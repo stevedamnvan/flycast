@@ -1,4 +1,6 @@
 add_library(flycast-neural STATIC
+    motion_reference.cpp
+    motion_reference.h
     neural_frame.h
     neural_stage.cpp
     neural_stage.h)

@@ -27,6 +27,7 @@ void Usage()
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|sr --api d3d11|d3d12 [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
+	std::cout << "neuraltest selftest\n";
 }
 
 bool ParseArgs(int argc, char **argv, int first, Args& args, std::string& error)
@@ -416,6 +417,7 @@ int main(int argc, char **argv)
 		return 2;
 	}
 	const std::string command = argv[1];
+	if (command == "selftest") return neuraltest::RunSelfTests();
 	if (command == "render") return RenderCommand(args);
 	if (command == "determinism") return DeterminismCommand(args);
 	if (command == "scaling") return ScalingCommand(args);
