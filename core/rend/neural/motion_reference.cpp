@@ -2,6 +2,7 @@
 #include "motion_reference.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -64,6 +65,20 @@ DrawMatch MakeMatch(const DrawRecord& previous, float confidence, std::uint8_t t
 	return result;
 }
 
+constexpr std::size_t OrdinalWordCount = 65536 / 64;
+
+bool PreviousOrdinalUsed(const std::array<std::uint64_t, OrdinalWordCount>& used,
+	std::uint16_t ordinal) noexcept
+{
+	return (used[ordinal / 64] & (std::uint64_t{1} << (ordinal % 64))) != 0;
+}
+
+void MarkPreviousOrdinalUsed(std::array<std::uint64_t, OrdinalWordCount>& used,
+	std::uint16_t ordinal) noexcept
+{
+	used[ordinal / 64] |= std::uint64_t{1} << (ordinal % 64);
+}
+
 std::uint32_t FloatBits(float value) noexcept
 {
 	std::uint32_t bits = 0;
@@ -107,8 +122,17 @@ bool IsReactive(const DrawRecord& draw) noexcept
 std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current)
 {
 	std::vector<DrawMatch> matches(current.size);
-	std::vector<bool> consumed(previous.size, false);
-	for (std::size_t ci = 0; ci < current.size; ++ci)
+	MatchDrawsInto(previous, current, matches.data(), matches.size());
+	return matches;
+}
+
+void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current,
+	DrawMatch *matches, std::size_t outputCapacity) noexcept
+{
+	const std::size_t count = std::min(current.size, outputCapacity);
+	std::fill(matches, matches + count, DrawMatch{});
+	std::array<std::uint64_t, OrdinalWordCount> consumed{};
+	for (std::size_t ci = 0; ci < count; ++ci)
 	{
 		const auto& draw = current.data[ci];
 		if (IsReactive(draw))
@@ -117,27 +141,29 @@ std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<Draw
 			continue;
 		}
 		for (std::size_t pi = 0; pi < previous.size; ++pi)
-			if (!consumed[pi] && ExactCompatible(previous.data[pi], draw))
+			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal) &&
+				ExactCompatible(previous.data[pi], draw))
 			{
 				matches[ci] = MakeMatch(previous.data[pi], 1.f, 1, MatchReason::Exact);
-				consumed[pi] = true;
+				MarkPreviousOrdinalUsed(consumed, previous.data[pi].ordinal);
 				break;
 			}
 	}
-	for (std::size_t ci = 0; ci < current.size; ++ci)
+	for (std::size_t ci = 0; ci < count; ++ci)
 	{
 		if (matches[ci].confidence != 0.f ||
 			matches[ci].reason == static_cast<std::uint8_t>(MatchReason::Reactive))
 			continue;
 		for (std::size_t pi = 0; pi < previous.size; ++pi)
-			if (!consumed[pi] && StructurallyCompatible(previous.data[pi], current.data[ci]))
+			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal) &&
+				StructurallyCompatible(previous.data[pi], current.data[ci]))
 			{
 				matches[ci] = MakeMatch(previous.data[pi], .8f, 2, MatchReason::Structural);
-				consumed[pi] = true;
+				MarkPreviousOrdinalUsed(consumed, previous.data[pi].ordinal);
 				break;
 			}
 	}
-	for (std::size_t ci = 0; ci < current.size; ++ci)
+	for (std::size_t ci = 0; ci < count; ++ci)
 	{
 		if (matches[ci].confidence != 0.f ||
 			matches[ci].reason == static_cast<std::uint8_t>(MatchReason::Reactive))
@@ -147,7 +173,7 @@ std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<Draw
 		std::size_t best = previous.size;
 		for (std::size_t pi = 0; pi < previous.size; ++pi)
 		{
-			if (consumed[pi]) continue;
+			if (PreviousOrdinalUsed(consumed, previous.data[pi].ordinal)) continue;
 			const float score = SimilarityScore(previous.data[pi], current.data[ci]);
 			if (score > bestScore)
 			{
@@ -161,12 +187,11 @@ std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<Draw
 		if (best != previous.size && bestScore - secondScore >= 1.f)
 		{
 			matches[ci] = MakeMatch(previous.data[best], .5f, 3, MatchReason::Similarity);
-			consumed[best] = true;
+			MarkPreviousOrdinalUsed(consumed, previous.data[best].ordinal);
 		}
 		else if (best != previous.size)
 			matches[ci].reason = static_cast<std::uint8_t>(MatchReason::Ambiguous);
 	}
-	return matches;
 }
 
 SimilarityTransform FitSimilarity(ArrayView<Point2> previous, ArrayView<Point2> current) noexcept

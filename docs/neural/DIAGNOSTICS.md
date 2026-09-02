@@ -34,3 +34,10 @@ production DX11/OIT implementations.
 Depth visualization inverts the legacy encoding with
 `w = exp2(depth * 34) - 1`, followed by the path-specific 100000 scale. This is
 diagnostic only and is not used for motion or matching.
+
+The first production seam exposes only bounded draw metadata, deterministic
+snapshot hashes, frame/history identity, and existing texture ownership. It
+does not synthesize absent depth, motion, mask, confidence, or draw-ID
+artifacts. Existing DX11 depth handles at that seam are interim and are not
+accepted NGX inputs; FC-024 and FC-032/033 must replace them with the required
+export resources.

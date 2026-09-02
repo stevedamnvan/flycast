@@ -234,8 +234,49 @@ void gui_settings_video()
 			}
 			ImGui::Unindent();
 		}
-    }
+	}
 	ImGui::Spacing();
+#ifdef FLYCAST_ENABLE_NEURAL
+	header(T("Neural Rendering (Experimental)"));
+	{
+		const bool rendererSupported = renderApi == DirectX11;
+		DisabledScope rendererScope(!rendererSupported);
+		static const std::array<const char *, 9> modes = {
+			"Off", "Passthrough", "DLAA (jittered)", "DLAA Hook-Compatible (jitter 0)",
+			"DLSS SR Quality", "DLSS SR Balanced", "DLSS SR Performance",
+			"DLSS SR Ultra Performance", "DLSS 5 Experimental (unavailable)"
+		};
+		int selectedMode = std::clamp(config::NeuralMode.get(), 0,
+			static_cast<int>(modes.size() - 1));
+		if (ImGui::BeginCombo("##NeuralMode", modes[selectedMode]))
+		{
+			for (int i = 0; i < static_cast<int>(modes.size()); ++i)
+			{
+				const bool selected = selectedMode == i;
+				if (ImGui::Selectable(modes[i], selected))
+					config::NeuralMode = i;
+				if (selected) ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", T("Mode"));
+		{
+			DisabledScope modeScope(config::NeuralMode.get() == 0);
+			OptionCheckbox(T("D3D12 Surface (11On12)"), config::NeuralD3D12Surface,
+				T("Uses the experimental D3D11On12 presentation surface. Public D3D11 DLSS is the default."));
+		}
+		ImGui::TextWrapped("%s", T("Requires the DirectX 11 renderer (with or without per-pixel transparency)."));
+		if (!rendererSupported)
+			ImGui::TextWrapped("%s", T("The selected graphics API is unsupported; Flycast will continue with native presentation."));
+#ifdef FLYCAST_ENABLE_NGX
+		ImGui::TextUnformatted("NGX SDK: linked; runtime capability is checked on the render thread.");
+#else
+		ImGui::TextUnformatted("NGX SDK: not linked; passthrough and instrumentation only.");
+#endif
+	}
+	ImGui::Spacing();
+#endif
     header(T("Aspect Ratio"));
     {
     	OptionCheckbox(T("Widescreen"), config::Widescreen,

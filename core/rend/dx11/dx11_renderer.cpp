@@ -167,12 +167,23 @@ bool DX11Renderer::Init()
 	}
 	frameRendered = false;
 
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::StageConfig neuralConfig;
+	neuralConfig.mode = flycast::rend::neural::NeuralMode::Passthrough;
+	neuralConfig.api = flycast::rend::neural::Api::D3D11;
+	neuralStage = flycast::rend::neural::NeuralStage(neuralConfig);
+#endif
+
 	return success;
 }
 
 void DX11Renderer::Term()
 {
 	NOTICE_LOG(RENDERER, "DX11 renderer terminating");
+#ifdef FLYCAST_ENABLE_NEURAL
+	neuralStage.Shutdown();
+	neuralInstrumentation.SetEnabled(false);
+#endif
 #ifdef VIDEO_ROUTING
 	os_VideoRoutingTermDX();
 #endif
@@ -257,6 +268,10 @@ void DX11Renderer::resize(int w, int h)
 		return;
 	width = w;
 	height = h;
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (neuralInstrumentation.IsEnabled())
+		neuralInstrumentation.Discontinuity();
+#endif
 
 	// Create framebuffer texture
 	{
@@ -513,6 +528,9 @@ bool DX11Renderer::Render()
 	else
 	{
 		aspectRatio = getOutputFramebufferAspectRatio();
+#ifdef FLYCAST_ENABLE_NEURAL
+		submitNeuralFrame();
+#endif
 #ifndef LIBRETRO
 		deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
 		displayFramebuffer();
@@ -531,6 +549,56 @@ bool DX11Renderer::Render()
 
 	return !is_rtt;
 }
+
+#ifdef FLYCAST_ENABLE_NEURAL
+flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
+{
+	int outputWidth = settings.display.width;
+	int outputHeight = settings.display.height;
+	float renderAspect = aspectRatio;
+	if (config::Rotate90)
+	{
+		std::swap(outputWidth, outputHeight);
+		renderAspect = 1.f / renderAspect;
+	}
+	int dx = 0;
+	int dy = 0;
+	getWindowboxDimensions(outputWidth, outputHeight, renderAspect, dx, dy, false);
+	return {dx, dy, outputWidth - 2 * dx, outputHeight - 2 * dy};
+}
+
+flycast::rend::neural::TextureRef DX11Renderer::getNeuralDepthTexture()
+{
+	return {flycast::rend::neural::TextureApi::D3D11, depthTex.get(), nullptr,
+		static_cast<std::uint32_t>(DXGI_FORMAT_D24_UNORM_S8_UINT)};
+}
+
+void DX11Renderer::submitNeuralFrame()
+{
+	using namespace flycast::rend::neural;
+	const int requestedMode = std::clamp(config::NeuralMode.get(), 0, 8);
+	if (requestedMode != activeNeuralMode)
+	{
+		activeNeuralMode = requestedMode;
+		neuralInstrumentation.SetEnabled(requestedMode != 0);
+		neuralStage.Shutdown();
+		StageConfig stageConfig;
+		stageConfig.mode = static_cast<NeuralMode>(requestedMode);
+		stageConfig.api = config::NeuralD3D12Surface ? Api::D3D12 : Api::D3D11;
+		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook;
+		neuralStage = NeuralStage(stageConfig);
+	}
+	if (!neuralInstrumentation.IsEnabled()) return;
+	const TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
+		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
+	const auto contentRect = getNeuralContentRect();
+	const auto& frame = neuralInstrumentation.CaptureGeometry(*rendContext, color,
+		getNeuralDepthTexture(), width, height,
+		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
+		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	neuralStage.TrySubmit(frame);
+}
+#endif
 
 void DX11Renderer::displayFramebuffer()
 {

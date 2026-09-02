@@ -103,6 +103,11 @@ Option<int> SkipFrame("ta.skip");
 Option<int> MaxThreads("pvr.MaxThreads", 3);
 Option<int> AutoSkipFrame("pvr.AutoSkipFrame", 0);
 Option<int> RenderResolution("rend.Resolution", 480);
+#ifdef FLYCAST_ENABLE_NEURAL
+Option<int> NeuralMode("rend.NeuralMode", 0);
+Option<bool> NeuralD3D12Surface("rend.NeuralD3D12Surface", false);
+Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
+#endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);
 Option<bool> VSync("rend.vsync", true);

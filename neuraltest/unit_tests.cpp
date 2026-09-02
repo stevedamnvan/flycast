@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "hw/pvr/ta_ctx.h"
+#include "rend/neural/instrumentation.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
 
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace neuraltest {
@@ -182,6 +185,40 @@ int RunSelfTests()
 		frame.source = FrameSource::FramebufferDirect;
 		suite.Expect(stage.TrySubmit(frame) == SubmitStatus::Unsupported,
 			"framebuffer-direct bypasses stage");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(3);
+		context.verts[0].x = 10; context.verts[0].y = 20; context.verts[0].z = .2f;
+		context.verts[1].x = 80; context.verts[1].y = 25; context.verts[1].z = .3f;
+		context.verts[2].x = 40; context.verts[2].y = 90; context.verts[2].z = .4f;
+		context.idx = {0, 1, 2};
+		PolyParam poly{};
+		poly.init();
+		poly.first = 0;
+		poly.count = 3;
+		poly.tcw.full = 55;
+		context.global_param_op.push_back(poly);
+		RenderPass pass{};
+		pass.op_count = 1;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& first = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		const bool firstReset = first.resetHistory;
+		const auto firstDrawCount = first.draws.size;
+		const auto firstHash = instrumentation->DrawSnapshotHash();
+		const auto& second = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(firstDrawCount == 1 && firstReset,
+			"rend_context snapshot emits first-frame reset");
+		suite.Expect(second.draws.size == 1 && second.matches.data[0].tier == 1 &&
+			second.historyValid && instrumentation->DrawSnapshotHash() == firstHash,
+			"rend_context snapshot and draw hash are deterministic");
+		suite.Expect(!second.truncated, "atomic frame carries draw-overflow state");
 	}
 	{
 		const auto jitter = HaltonJitter(0, 8);

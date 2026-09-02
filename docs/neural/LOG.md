@@ -39,3 +39,15 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #17 2026-09-02 0caaeeb | build `motion_reference.cpp` and run `neuraltest selftest` | 17/17 checks pass: signature, tiers 1-3, one-to-one, reactive/unmatched, rigid fit, history, Halton, phase count, scene cut | CPU reference subset pass; strip, Naomi 2, HLSL, full recovery, and renderer wiring remain open
 
 #18 2026-09-02 f271894 | build recovery/stage changes and run `neuraltest selftest` | 23/23 checks pass; three failures at frames 1/30/60 enter one hold, 60 presents alone cannot exit before 1000 ms, resume emits one reset, repeated frame submits once | fallback-hold and emulated-frame cadence unit subset pass; NGX retry/device/timing remain open
+
+#19 2026-09-02 working tree | compile guarded production `rend_context` instrumentation seam | first compile lacked `nowide` includes, second lacked `glm`, third found non-const Flycast `ComPtr::get`; dependencies and accessor qualification corrected without bypassing diagnostics | failed attempts retained; no acceptance claim
+
+#20 2026-09-02 working tree | MSVC x64 full `flycast` + `neuraltest` build, neural ON / NGX OFF; `neuraltest selftest` | full link exit 0; 26/26 checks pass including a real `rend_context` metadata snapshot, first-frame reset, repeated-frame tier-1 match, deterministic hash, and atomic overflow state | production DX11/OIT metadata/cadence seam build pass; MRT exports and production pixel gates remain open
+
+#21 2026-09-02 working tree | rebuild guarded config/settings/runtime-mode changes | `flycast.exe` and `neuraltest.exe` linked; renderer requirement text and unsupported native-fallback note compiled | UI subset build pass; live capability, metrics, and debug-view controls remain open
+
+#22 2026-09-02 working tree | incremental build first outside, then inside `VsDevCmd.bat -arch=x64 -host_arch=x64`; `neuraltest selftest` | outside-developer-shell compile failed at standard headers and the stale 25-check binary was disregarded; proper MSVC build linked both targets and current binary passed 26/26 | corrected invocation pass; failed launch retained and is not test evidence
+
+#23 2026-09-02 working tree | fresh Ninja Release configure/build with `FLYCAST_NEURAL=OFF`, NGX/test off, DX9/tests off | 1090 steps; `flycast.exe` linked exit 0; no `flycast-neural` target in generated graph | feature-off build remains green after guarded production seam
+
+#24 2026-09-02 working tree | Ninja Release configure/build with neural ON, NGX ON, SDK v310.7.0; run `neuraltest selftest` | `flycast.exe` and `neuraltest.exe` linked exit 0; 26/26 checks pass | NGX-linked configuration remains green; no live NGX lifecycle/evaluation exists yet

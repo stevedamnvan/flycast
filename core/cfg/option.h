@@ -464,6 +464,11 @@ extern Option<int> SkipFrame;
 extern Option<int> MaxThreads;
 extern Option<int> AutoSkipFrame;		// 0: none, 1: some, 2: more
 extern Option<int> RenderResolution;
+#ifdef FLYCAST_ENABLE_NEURAL
+extern Option<int> NeuralMode;
+extern Option<bool> NeuralD3D12Surface;
+extern Option<int> NeuralDebugView;
+#endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;
 extern Option<bool> VSync;

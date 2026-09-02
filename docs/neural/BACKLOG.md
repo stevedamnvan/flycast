@@ -19,14 +19,14 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-015 | 1 | Harness NGX | D3D11/D3D12 live or precise unsupported | doing | LOG #14; precise unsupported result, live APIs pending |
 | FC-016 | 1 | Compare/capture | Threshold exit and legal capture path | doing | LOG #13-#14; compare green, capture blocked on FC-054 |
 | FC-019 | 1 | Phase gate | Commands run for both renderers | todo | |
-| FC-020 | 2 | Public structures | Renderer-neutral atomic frame contract | todo | |
-| FC-021 | 2 | Runtime probes | Disabled path has zero probe work | todo | |
+| FC-020 | 2 | Public structures | Renderer-neutral atomic frame contract | doing | LOG #20; C++17 neutral contract and bounded views implemented, GPU exports incomplete |
+| FC-021 | 2 | Runtime probes | Disabled path has zero probe work | doing | LOG #20; guarded runtime branch/default-off metadata path builds, pixel-parity gate pending |
 | FC-022 | 2 | Determinism / Gate 1 | Disabled equals baseline | todo | |
 | FC-023 | 2 | Genuine scaling / Gate 2 | 4x/8x edge samples differ from nearest | todo | |
 | FC-024 | 2 | Depth / Gate 3 | OP+PT only, correct ordering | todo | |
-| FC-025 | 2 | Draw records and IDs | Fixed history; R16_UINT ID | todo | |
-| FC-026 | 2 | History generation | All structural reset sources increment | todo | |
-| FC-027 | 2 | Atomic package | Once per display frame; never RTT evaluate | todo | |
+| FC-025 | 2 | Draw records and IDs | Fixed history; R16_UINT ID | doing | LOG #20; fixed 8192-entry double history, overflow flag, deterministic snapshot implemented; draw-ID MRT pending |
+| FC-026 | 2 | History generation | All structural reset sources increment | doing | LOG #20; enable/mode/resize/overflow resets wired locally; global reset/save-state/renderer-switch call sites pending |
+| FC-027 | 2 | Atomic package | Once per display frame; never RTT evaluate | doing | LOG #20; Geometry package is submitted once in normal DX11/OIT Render branches; FramebufferDirect/RTT package evidence pending |
 | FC-029 | 2 | Phase gate | Gates 1-3 and deterministic snapshots | todo | |
 | FC-030 | 3 | Previous selection | Last successfully evaluated frame | doing | LOG #17; CPU history tracker implemented, renderer wiring pending |
 | FC-031 | 3 | Draw matching | Three tiers, strips, rigid fit, reactive/N2 | doing | LOG #17; tiers/one-to-one/rigid/reactive implemented, strips/N2 pending |
@@ -46,7 +46,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | todo | |
 | FC-048 | 4 | Fallback transport | Bridge only if 11On12 gate fails | todo | |
 | FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | todo | |
-| FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | todo | |
+| FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | doing | LOG #21; guarded mode/surface config and renderer requirement UI implemented; live status/metrics/debug selector pending |
 | FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | todo | |
 | FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | todo | |
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | todo | |
@@ -54,7 +54,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
 | FC-056 | 5 | Experimental DLSS 5 | Unsupported until public contract | todo | |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | todo | |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#18; 23 checks pass, strip/N2/content-rect/HLSL pending |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#21; 26 checks pass, strip/N2/content-rect/HLSL pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | todo | |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | todo | |

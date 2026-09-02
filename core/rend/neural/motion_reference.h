@@ -44,6 +44,8 @@ std::uint64_t DrawSignature(const DrawRecord& draw) noexcept;
 bool IsReactive(const DrawRecord& draw) noexcept;
 std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous,
 	ArrayView<DrawRecord> current);
+void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current,
+	DrawMatch *output, std::size_t outputCapacity) noexcept;
 SimilarityTransform FitSimilarity(ArrayView<Point2> previous,
 	ArrayView<Point2> current) noexcept;
 bool IsSceneCut(std::uint64_t matchedArea, std::uint64_t totalArea,

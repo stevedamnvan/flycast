@@ -55,3 +55,14 @@ threshold failures, and genuine-resolution sampling, but it is not accepted as
 production DX11/DX11-OIT evidence. `rend_context`, the real TA parser, analytic
 depth/motion truth, and production renderer linkage remain required before the
 Phase 1 gate can close.
+
+## D-008: production instrumentation seam is metadata-only initially
+
+The guarded DX11 and DX11/OIT seam snapshots real `rend_context` OP/PT/TR
+metadata and submits one Geometry package before native display composition.
+Its current color and depth references are existing renderer resources used to
+establish ownership and cadence only: DX11 color is BGRA8, the base depth
+resource has no shader-resource view, and OIT exposes its typeless depth view.
+These are not the required RGBA8/R32 neural inputs. No presentation selection
+depends on stage output until the dedicated depth, motion, mask, confidence,
+and draw-ID resources and their gates exist.

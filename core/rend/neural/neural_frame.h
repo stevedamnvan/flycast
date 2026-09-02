@@ -91,6 +91,7 @@ struct NeuralFrame {
 	std::uint32_t historyGeneration = 0;
 	bool historyValid = false;
 	bool resetHistory = false;
+	bool truncated = false;
 	FrameSource source = FrameSource::Geometry;
 	ArrayView<DrawRecord> draws;
 	ArrayView<DrawMatch> matches;

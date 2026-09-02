@@ -28,6 +28,10 @@
 #include "dx11_shaders.h"
 #include "dx11_renderstate.h"
 #include "dx11_naomi2.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/instrumentation.h"
+#include "rend/neural/neural_stage.h"
+#endif
 #ifndef LIBRETRO
 #include "dx11_driver.h"
 #endif
@@ -56,6 +60,12 @@ struct DX11Renderer : public Renderer
 	bool RenderLastFrame() override;
 	BaseTextureCacheData *GetTexture(TSP tsp, TCW tcw, int area) override;
 	bool GetLastFrame(std::vector<u8>& data, int& width, int& height) override;
+#ifdef FLYCAST_ENABLE_NEURAL
+	void SetNeuralInstrumentationEnabled(bool enabled) noexcept
+	{
+		neuralInstrumentation.SetEnabled(enabled);
+	}
+#endif
 
 protected:
 	struct VertexConstants
@@ -104,6 +114,11 @@ protected:
 	void resetContextState();
 	void drawOSD();
 	TileClipping setTileClip(u32 val, Rect& rect);
+#ifdef FLYCAST_ENABLE_NEURAL
+	void submitNeuralFrame();
+	flycast::rend::neural::Rect getNeuralContentRect() const;
+	virtual flycast::rend::neural::TextureRef getNeuralDepthTexture();
+#endif
 
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> deviceContext;
@@ -132,6 +147,11 @@ protected:
 	float aspectRatio = 4.f / 3.f;
 	bool dithering = false;
 	rend_context *rendContext;
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::NeuralInstrumentation neuralInstrumentation;
+	flycast::rend::neural::NeuralStage neuralStage;
+	int activeNeuralMode = -1;
+#endif
 
 private:
 	void prepareRttRenderTarget(u32 texAddress);
