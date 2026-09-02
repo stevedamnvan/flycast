@@ -17,6 +17,12 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		recreateRequested_ = false;
 		++stats_.resets;
 	}
+	if (config_.mode == NeuralMode::Passthrough)
+	{
+		output_ = frame.color;
+		++stats_.submissions;
+		return SubmitStatus::Submitted;
+	}
 	// Phase 0 skeleton. Backends replace this explicit unsupported result before
 	// presentation integration is enabled.
 	++stats_.fallbacks;

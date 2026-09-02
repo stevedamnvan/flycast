@@ -11,13 +11,13 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-004 | 0 | Planning documents | Required docs and full backlog exist | done | docs/neural |
 | FC-005 | 0 | Licensing note | No binaries; maintainer review stated | done | THIRD_PARTY_NOTICES.md |
 | FC-009 | 0 | Phase gate | Three builds and backlog complete | done | LOG #5-#9 |
-| FC-010 | 1 | Synthetic fixtures | All named scenes plus TA-stream fixture | todo | |
-| FC-011 | 1 | Render/determinism | Five-run hashes and deltas | todo | |
-| FC-012 | 1 | Scaling/depth commands | Genuine 4x/8x samples; depth ground truth | todo | |
-| FC-013 | 1 | Motion command | Reports error, trust, tiers, reactive pixels | todo | |
-| FC-014 | 1 | Neural passthrough | Shared stage and artifact package | todo | |
-| FC-015 | 1 | Harness NGX | D3D11/D3D12 live or precise unsupported | todo | |
-| FC-016 | 1 | Compare/capture | Threshold exit and legal capture path | todo | |
+| FC-010 | 1 | Synthetic fixtures | All named scenes plus TA-stream fixture | doing | LOG #12; test-only geometry exists, `rend_context`/TA parser and analytic truth pending |
+| FC-011 | 1 | Render/determinism | Five-run hashes and deltas | doing | LOG #11-#13; test driver green, production renderers pending |
+| FC-012 | 1 | Scaling/depth commands | Genuine 4x/8x samples; depth ground truth | doing | LOG #11-#12; genuine-sampling gate green in test driver, production depth pending |
+| FC-013 | 1 | Motion command | Reports error, trust, tiers, reactive pixels | doing | LOG #14; explicit no-data result, matcher pending |
+| FC-014 | 1 | Neural passthrough | Shared stage and artifact package | doing | LOG #13; shared-stage color identity green, full export package pending |
+| FC-015 | 1 | Harness NGX | D3D11/D3D12 live or precise unsupported | doing | LOG #14; precise unsupported result, live APIs pending |
+| FC-016 | 1 | Compare/capture | Threshold exit and legal capture path | doing | LOG #13-#14; compare green, capture blocked on FC-054 |
 | FC-019 | 1 | Phase gate | Commands run for both renderers | todo | |
 | FC-020 | 2 | Public structures | Renderer-neutral atomic frame contract | todo | |
 | FC-021 | 2 | Runtime probes | Disabled path has zero probe work | todo | |

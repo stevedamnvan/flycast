@@ -44,3 +44,14 @@ Behavioral reference is DLSS5-Feeder v0.10.0-beta.2 at
 `b60a8ffe4073dd65f8dbf804e47886607919b6b6`. Later tags exist and are
 deliberately not followed. The reference is not a dependency and is not
 vendored.
+
+## D-007: Phase 1 fixture-driver boundary
+
+The initial ROM-free harness uses a real headless D3D11 device and GPU
+rasterization through a test-only driver. Flycast currently builds its renderer
+inside the application executable rather than as a linkable core library. The
+test driver permits early validation of artifact I/O, deterministic hashing,
+threshold failures, and genuine-resolution sampling, but it is not accepted as
+production DX11/DX11-OIT evidence. `rend_context`, the real TA parser, analytic
+depth/motion truth, and production renderer linkage remain required before the
+Phase 1 gate can close.

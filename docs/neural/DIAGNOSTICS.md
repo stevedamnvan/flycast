@@ -19,6 +19,18 @@ Raw game data and user paths are excluded. Emulator capture is rate limited.
 Normal emulator execution performs no readback; readback helpers are confined
 to `neuraltest`.
 
+During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
+`manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets
+`production_renderer` to `false` and the report explicitly labels depth and
+motion as `no data`. Passthrough additionally writes `prepared-color.png`,
+`neural_output.png`, `ngx-status.json`, and a command report. Missing artifacts
+are not synthesized or represented as production evidence.
+
+`dx11` and `dx11-oit` in Phase 1 test-driver reports are requested contract
+lanes, not claims that the production renderer classes were invoked. That gate
+remains open until the harness is connected through `rend_context` and the
+production DX11/OIT implementations.
+
 Depth visualization inverts the legacy encoding with
 `w = exp2(depth * 34) - 1`, followed by the path-specific 100000 scale. This is
 diagnostic only and is not used for motion or matching.

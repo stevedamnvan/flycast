@@ -21,3 +21,17 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #8 2026-09-02 working tree | configure NGX with `C:/definitely-missing-sdk` | generation stopped with the required `include/nvsdk_ngx.h` path diagnostic | negative configuration pass
 
 #9 2026-09-02 working tree | `build-neural-baseline/neuraltest/neuraltest.exe --version` | `neuraltest phase-0`, exit 0 | harness skeleton pass
+
+#10 2026-09-02 e5c88da | MSVC x64 configure and `cmake --build build-neural-baseline --target neuraltest -j 8`, neural ON / NGX OFF | five harness translation units and `flycast-neural.lib` linked; exit 0 | Phase 1 target build pass
+
+#11 2026-09-02 working tree | `render`, 5-run `determinism`, and `scaling` smoke on `static-triangle` / `textured-checker-edge` | hash `f38656d535ada799`; 5/5 exact; 4x 204915 and 8x 850539 pixels differ from nearest, max delta 249 | test-only D3D11 driver pass, not production renderer evidence
+
+#12 2026-09-02 working tree | 14 fixtures x `dx11`,`dx11-oit`: 5-run `determinism` and 1x/4x/8x `scaling` | 28 deterministic and 28 scaling commands passed; axis-aligned non-gate scenes reported informational zero differences | Phase 1 command matrix pass within test-driver boundary
+
+#13 2026-09-02 working tree | render all 14 fixtures in both requested lanes; passthrough; exact compare; wrong-history negative control | 28 packages; passthrough max delta 0; wrong-history 32325 differing pixels, max delta 248, PSNR 9.935606, expected exit 1 | artifact/threshold controls pass
+
+#14 2026-09-02 working tree | `depth`, `motion`, no-NGX `neural --backend dlaa`, and `capture` probes | depth/motion report no data with exit 0; DLAA reports unsupported with exit 0; capture exits 3 | missing production instrumentation and FC-054 are explicit, no false pass
+
+#15 2026-09-02 working tree | full MSVC x64 builds with neural ON/NGX OFF, neural ON/NGX ON at SDK v310.7.0, then neural OFF | `flycast.exe` linked in all three configurations; `neuraltest.exe` linked in both enabled configurations | configuration matrix remains green
+
+#16 2026-09-02 working tree | WARP `render --fixture rotate-quad --scale 4` and 5-run determinism | Microsoft Basic Render Driver; 5/5 exact at 1x; JSON manifest parsed successfully | WARP test-driver path pass, not FC-049 export evidence
