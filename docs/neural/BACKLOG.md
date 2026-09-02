@@ -36,10 +36,10 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-035 | 3 | Jitter | All VS variants; Halton; unjittered motion | doing | LOG #17; sequence/phase utility implemented, shaders pending |
 | FC-036 | 3 | Gates 4-6 | Fixture thresholds pass | todo | |
 | FC-039 | 3 | Phase gate | CPU/HLSL evidence and unit tests | todo | |
-| FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | todo | |
+| FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | doing | LOG #18; passthrough, frame dedupe, source bypass implemented; device backends pending |
 | FC-041 | 4 | Resource rings | Three deep; fixed; deferred retirement | todo | |
 | FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | todo | |
-| FC-043 | 4 | Recovery/timing | State machine, removal, async timings | todo | |
+| FC-043 | 4 | Recovery/timing | State machine, removal, async timings | doing | LOG #18; sliding-window hold controller green, NGX retry/device/timing pending |
 | FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | todo | |
 | FC-045 | 4 | D3D11On12 surface | Same renderer, dedicated D3D12 lists | todo | |
 | FC-046 | 4 | Cross-API parity | Identical inputs within 1 LSB | todo | |
@@ -54,7 +54,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
 | FC-056 | 5 | Experimental DLSS 5 | Unsupported until public contract | todo | |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | todo | |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17; 17 checks pass, strip/N2/state-machine/content-rect/HLSL pending |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#18; 23 checks pass, strip/N2/content-rect/HLSL pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | todo | |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | todo | |

@@ -2,6 +2,8 @@
 #pragma once
 
 #include "neural_frame.h"
+#include "motion_reference.h"
+#include "recovery_controller.h"
 
 #include <cstdint>
 
@@ -64,12 +66,19 @@ public:
 	StageStats GetStats() const noexcept { return stats_; }
 	TextureRef GetOutput() const noexcept { return output_; }
 	void RequestRecreate() noexcept { recreateRequested_ = true; }
+	void NotifyHostPresent() noexcept { recovery_.OnHostPresent(); }
 	void Shutdown() noexcept;
 
 private:
 	StageConfig config_{};
 	StageStats stats_{};
 	TextureRef output_{};
+	HistoryTracker history_{};
+	RecoveryController recovery_{};
+	std::uint32_t lastHistoryGeneration_ = 0;
+	FrameSource lastSource_ = FrameSource::Geometry;
+	bool hasFrame_ = false;
+	bool hasEvaluated_ = false;
 	bool recreateRequested_ = false;
 };
 

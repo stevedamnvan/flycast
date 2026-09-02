@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
 #include "rend/neural/motion_reference.h"
+#include "rend/neural/neural_stage.h"
 
 #include <cmath>
 #include <iostream>
@@ -148,6 +149,39 @@ int RunSelfTests()
 			history.ConsumeReset() && !history.ConsumeReset(), "skip preserves reference and requests one reset");
 		history.Discontinuity();
 		suite.Expect(history.Generation() == 1 && history.ConsumeReset(), "discontinuity increments generation");
+	}
+	{
+		RecoveryController recovery;
+		recovery.SetReady();
+		recovery.RecordTransientFailure(1, 100);
+		recovery.RecordTransientFailure(30, 200);
+		recovery.RecordTransientFailure(60, 300);
+		suite.Expect(recovery.State() == RecoveryState::FallbackHold && recovery.HoldEntries() == 1,
+			"three failures in sliding window enter hold once");
+		for (int i = 0; i < 60; ++i) recovery.OnHostPresent();
+		suite.Expect(!recovery.CanEvaluate(1299), "hold waits at least one second");
+		suite.Expect(recovery.CanEvaluate(1300) && recovery.ConsumeResumeReset() &&
+			!recovery.ConsumeResumeReset(), "hold resumes with exactly one reset");
+		recovery.RecordTransientFailure(200, 1400);
+		suite.Expect(recovery.State() == RecoveryState::Ready,
+			"hold exit clears stale failure window");
+	}
+	{
+		StageConfig config;
+		config.mode = NeuralMode::Passthrough;
+		NeuralStage stage(config);
+		std::uint32_t identity = 1;
+		NeuralFrame frame;
+		frame.frameId = 9;
+		frame.color.api = TextureApi::D3D11;
+		frame.color.resource = &identity;
+		suite.Expect(stage.TrySubmit(frame) == SubmitStatus::Submitted &&
+			stage.TrySubmit(frame) == SubmitStatus::Submitted && stage.GetStats().submissions == 1,
+			"stage evaluates an emulated frame once");
+		frame.frameId = 10;
+		frame.source = FrameSource::FramebufferDirect;
+		suite.Expect(stage.TrySubmit(frame) == SubmitStatus::Unsupported,
+			"framebuffer-direct bypasses stage");
 	}
 	{
 		const auto jitter = HaltonJitter(0, 8);

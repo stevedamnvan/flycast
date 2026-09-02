@@ -3,7 +3,9 @@ add_library(flycast-neural STATIC
     motion_reference.h
     neural_frame.h
     neural_stage.cpp
-    neural_stage.h)
+    neural_stage.h
+    recovery_controller.cpp
+    recovery_controller.h)
 
 target_include_directories(flycast-neural PUBLIC "${CMAKE_SOURCE_DIR}/core")
 target_compile_features(flycast-neural PUBLIC cxx_std_17)
