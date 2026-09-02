@@ -117,6 +117,8 @@ protected:
 	TileClipping setTileClip(u32 val, Rect& rect);
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
+	void submitNeuralFramebuffer();
+	bool syncNeuralMode();
 	bool ensureNeuralDepthResources();
 	void renderNeuralDepth();
 	void releaseNeuralResources() noexcept;

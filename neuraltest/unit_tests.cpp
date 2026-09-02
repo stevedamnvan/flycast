@@ -211,6 +211,8 @@ int RunSelfTests()
 		const bool firstReset = first.resetHistory;
 		const auto firstDrawCount = first.draws.size;
 		const auto firstHash = instrumentation->DrawSnapshotHash();
+		const auto firstFrameId = first.frameId;
+		instrumentation->MarkEvaluated(firstFrameId);
 		const auto& second = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		suite.Expect(firstDrawCount == 1 && firstReset,
@@ -219,6 +221,27 @@ int RunSelfTests()
 			second.historyValid && instrumentation->DrawSnapshotHash() == firstHash,
 			"rend_context snapshot and draw hash are deterministic");
 		suite.Expect(!second.truncated, "atomic frame carries draw-overflow state");
+		context.global_param_op[0].tcw.full = 56;
+		const auto& skipped = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(skipped.matches.data[0].confidence == 0.f,
+			"unevaluated draw does not replace history reference");
+		context.global_param_op[0].tcw.full = 55;
+		const auto& afterSkip = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(afterSkip.matches.data[0].tier == 1,
+			"matching uses last successfully evaluated draw history");
+		const auto generation = afterSkip.historyGeneration;
+		const auto& direct = instrumentation->CaptureSource(FrameSource::FramebufferDirect,
+			{}, 320, 240, 320, 240, {0, 0, 320, 240});
+		suite.Expect(direct.source == FrameSource::FramebufferDirect && direct.draws.empty() &&
+			direct.resetHistory && direct.historyGeneration == generation + 1,
+			"framebuffer-direct package is geometry-free and resets history");
+		const auto& geometryAgain = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(geometryAgain.resetHistory &&
+			geometryAgain.historyGeneration == generation + 2,
+			"framebuffer-direct to geometry transition increments history generation");
 	}
 	{
 		const auto jitter = HaltonJitter(0, 8);

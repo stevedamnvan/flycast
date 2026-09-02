@@ -161,6 +161,10 @@ void NeuralInstrumentation::SetEnabled(bool enabled) noexcept
 	if (!enabled)
 	{
 		drawCounts_[0] = drawCounts_[1] = 0;
+		referenceBuffer_ = 0;
+		currentBuffer_ = 1;
+		hasCapturedFrame_ = false;
+		hasSource_ = false;
 		frame_ = {};
 	}
 }
@@ -171,12 +175,20 @@ void NeuralInstrumentation::Discontinuity() noexcept
 	resetPending_ = true;
 }
 
+void NeuralInstrumentation::BeginSource(FrameSource source) noexcept
+{
+	if (hasSource_ && source != lastSource_)
+		Discontinuity();
+	lastSource_ = source;
+	hasSource_ = true;
+}
+
 const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& context,
 	TextureRef color, TextureRef depth, std::uint32_t renderWidth, std::uint32_t renderHeight,
 	std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect, Point2 jitter) noexcept
 {
+	BeginSource(FrameSource::Geometry);
 	auto& current = drawBuffers_[currentBuffer_];
-	const std::uint32_t previousBuffer = currentBuffer_ ^ 1u;
 	drawCounts_[currentBuffer_] = 0;
 	truncated_ = false;
 	AppendList(context, context.global_param_op, ListType_Opaque, current,
@@ -186,7 +198,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	AppendList(context, context.global_param_tr, ListType_Translucent, current,
 		drawCounts_[currentBuffer_], truncated_);
 	if (truncated_) Discontinuity();
-	MatchDrawsInto({drawBuffers_[previousBuffer].data(), drawCounts_[previousBuffer]},
+	MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
 		{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
 	drawSnapshotHash_ = 1469598103934665603ull;
 	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
@@ -205,16 +217,45 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	frame_.jitterX = jitter.x;
 	frame_.jitterY = jitter.y;
 	frame_.frameId = frameId_++;
+	capturedFrameId_ = frame_.frameId;
+	hasCapturedFrame_ = true;
 	frame_.historyGeneration = historyGeneration_;
-	frame_.historyValid = drawCounts_[previousBuffer] != 0 && !resetPending_;
+	frame_.historyValid = drawCounts_[referenceBuffer_] != 0 && !resetPending_;
 	frame_.resetHistory = resetPending_;
 	frame_.truncated = truncated_;
 	frame_.source = FrameSource::Geometry;
 	frame_.draws = {current.data(), drawCounts_[currentBuffer_]};
 	frame_.matches = {matchBuffer_.data(), drawCounts_[currentBuffer_]};
-	resetPending_ = false;
-	currentBuffer_ = previousBuffer;
 	return frame_;
+}
+
+const NeuralFrame& NeuralInstrumentation::CaptureSource(FrameSource source, TextureRef color,
+	std::uint32_t renderWidth, std::uint32_t renderHeight,
+	std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect) noexcept
+{
+	BeginSource(source);
+	frame_ = {};
+	frame_.color = color;
+	frame_.renderWidth = renderWidth;
+	frame_.renderHeight = renderHeight;
+	frame_.outputWidth = outputWidth;
+	frame_.outputHeight = outputHeight;
+	frame_.contentRect = contentRect;
+	frame_.frameId = frameId_++;
+	capturedFrameId_ = frame_.frameId;
+	hasCapturedFrame_ = true;
+	frame_.historyGeneration = historyGeneration_;
+	frame_.resetHistory = true;
+	frame_.source = source;
+	return frame_;
+}
+
+void NeuralInstrumentation::MarkEvaluated(std::uint64_t frameId) noexcept
+{
+	if (!hasCapturedFrame_ || capturedFrameId_ != frameId || frame_.source != FrameSource::Geometry)
+		return;
+	std::swap(referenceBuffer_, currentBuffer_);
+	resetPending_ = false;
 }
 
 } // namespace flycast::rend::neural

@@ -41,3 +41,8 @@ also exposes the current slot of an isolated three-deep R32 depth ring populated
 by OP/PT-only replay. No emulator-path readback exists. Runtime depth artifacts
 and Gate 3 remain pending; motion, mask, confidence, and draw-ID artifacts are
 not synthesized while their exports are absent.
+
+Draw-history diagnostics refer to the last stage-accepted frame rather than
+the previous emulated frame. A FramebufferDirect package carries color,
+dimensions, content rect, frame/history identity, and an explicit reset, but no
+geometry or temporal input views. RTT passes produce no stage submission.

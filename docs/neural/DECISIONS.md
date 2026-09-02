@@ -77,3 +77,13 @@ without adding a disabled-path shader permutation. Translucent and modifier
 volume lists are never issued to this target. This costs extra OP/PT draws and
 must meet FC-064 timing before acceptance; the choice can be replaced by an
 equivalent cheaper export if measured over budget.
+
+## D-010: instrumentation history advances on stage acceptance
+
+The two fixed draw buffers are explicit current-work and last-successful
+reference buffers. `CaptureGeometry` never rotates them. The renderer calls
+`MarkEvaluated(frameId)` only after `NeuralStage::TrySubmit` returns
+`Submitted`; busy, holding, unsupported, and failed frames overwrite only the
+work buffer. A Geometry/FramebufferDirect source transition increments
+`historyGeneration`, and direct frames carry no draw views and always request a
+reset. RTT branches do not call the stage.
