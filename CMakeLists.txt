@@ -105,6 +105,55 @@ option(ENABLE_DC_PROFILER "Build with support for target machine (SH4) profiler"
 option(ENABLE_FC_PROFILER "Build with support for host app (Flycast) profiler" OFF)
 option(USE_DISCORD "Use Discord Presence API" OFF)
 option(USE_LIBCDIO "Use libcdio for CDROM access" OFF)
+option(FLYCAST_NEURAL "Enable emulator-native neural rendering instrumentation (Windows/DX11)" OFF)
+option(FLYCAST_NEURAL_NGX "Link the NVIDIA NGX SDK for DLAA/DLSS backends" OFF)
+set(FLYCAST_NGX_SDK_DIR "" CACHE PATH "Path to the NVIDIA NGX/DLSS SDK")
+option(FLYCAST_NEURALTEST "Build the deterministic neural test harness" "${PROJECT_IS_TOP_LEVEL}")
+
+if(FLYCAST_NEURAL_NGX AND NOT FLYCAST_NEURAL)
+	message(FATAL_ERROR "FLYCAST_NEURAL_NGX=ON requires FLYCAST_NEURAL=ON")
+endif()
+
+if(FLYCAST_NEURAL)
+	if(NOT WIN32 OR WINDOWS_STORE OR NOT "x86_64" IN_LIST ARCHITECTURE)
+		message(FATAL_ERROR "FLYCAST_NEURAL is supported only for Windows x64 desktop builds")
+	endif()
+	if(NOT USE_DX11)
+		message(FATAL_ERROR "FLYCAST_NEURAL requires USE_DX11=ON")
+	endif()
+endif()
+
+if(FLYCAST_NEURAL_NGX)
+	set(_ngx_include "${FLYCAST_NGX_SDK_DIR}/include")
+	set(_ngx_libdir "${FLYCAST_NGX_SDK_DIR}/lib/Windows_x86_64/x64")
+	if(NOT EXISTS "${_ngx_include}/nvsdk_ngx.h" OR
+	   NOT EXISTS "${_ngx_include}/nvsdk_ngx_helpers.h")
+		message(FATAL_ERROR
+			"FLYCAST_NEURAL_NGX=ON requires FLYCAST_NGX_SDK_DIR to point to a public NVIDIA DLSS SDK containing include/nvsdk_ngx.h")
+	endif()
+
+	# NGX names its CRT variants s (static) and d (DLL). Flycast's default
+	# MSVC runtime is the DLL CRT unless CMAKE_MSVC_RUNTIME_LIBRARY says otherwise.
+	set(_ngx_crt "d")
+	if(CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "^MultiThreaded(Debug)?$")
+		set(_ngx_crt "s")
+	endif()
+	set(_ngx_release "${_ngx_libdir}/nvsdk_ngx_${_ngx_crt}.lib")
+	set(_ngx_debug "${_ngx_libdir}/nvsdk_ngx_${_ngx_crt}_dbg.lib")
+	if(NOT EXISTS "${_ngx_release}" OR NOT EXISTS "${_ngx_debug}")
+		message(FATAL_ERROR
+			"NVIDIA NGX import libraries for the selected MSVC runtime were not found: ${_ngx_release} and ${_ngx_debug}")
+	endif()
+
+	add_library(NVIDIA::NGX UNKNOWN IMPORTED GLOBAL)
+	set_target_properties(NVIDIA::NGX PROPERTIES
+		IMPORTED_CONFIGURATIONS "Debug;Release;RelWithDebInfo;MinSizeRel"
+		IMPORTED_LOCATION_DEBUG "${_ngx_debug}"
+		IMPORTED_LOCATION_RELEASE "${_ngx_release}"
+		IMPORTED_LOCATION_RELWITHDEBINFO "${_ngx_release}"
+		IMPORTED_LOCATION_MINSIZEREL "${_ngx_release}"
+		INTERFACE_INCLUDE_DIRECTORIES "${_ngx_include}")
+endif()
 
 if(IOS AND NOT LIBRETRO)
 	set(USE_VULKAN OFF CACHE BOOL "Force vulkan off" FORCE)
