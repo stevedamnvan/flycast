@@ -183,6 +183,7 @@ void DX11Renderer::Term()
 #ifdef FLYCAST_ENABLE_NEURAL
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
+	releaseNeuralResources();
 #endif
 #ifdef VIDEO_ROUTING
 	os_VideoRoutingTermDX();
@@ -567,10 +568,88 @@ flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
 	return {dx, dy, outputWidth - 2 * dx, outputHeight - 2 * dy};
 }
 
+bool DX11Renderer::ensureNeuralDepthResources()
+{
+	if (neuralDepthTextures[0] && neuralDepthWidth == width && neuralDepthHeight == height)
+		return true;
+	releaseNeuralResources();
+	D3D11_TEXTURE2D_DESC desc{};
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R32_TYPELESS;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthDesc{};
+	depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc{};
+	viewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	viewDesc.Texture2D.MipLevels = 1;
+	for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
+	{
+		HRESULT result = device->CreateTexture2D(&desc, nullptr, &neuralDepthTextures[i].get());
+		if (SUCCEEDED(result))
+			result = device->CreateDepthStencilView(neuralDepthTextures[i], &depthDesc,
+				&neuralDepthTargets[i].get());
+		if (SUCCEEDED(result))
+			result = device->CreateShaderResourceView(neuralDepthTextures[i], &viewDesc,
+				&neuralDepthViews[i].get());
+		if (FAILED(result))
+		{
+			WARN_LOG(RENDERER, "Neural R32 depth ring creation failed at slot %d: %x",
+				static_cast<int>(i), result);
+			releaseNeuralResources();
+			return false;
+		}
+	}
+	neuralDepthWidth = width;
+	neuralDepthHeight = height;
+	return true;
+}
+
+void DX11Renderer::releaseNeuralResources() noexcept
+{
+	for (auto& view : neuralDepthViews) view.reset();
+	for (auto& target : neuralDepthTargets) target.reset();
+	for (auto& texture : neuralDepthTextures) texture.reset();
+	neuralDepthWidth = neuralDepthHeight = 0;
+	neuralExportSlot = 0;
+}
+
+void DX11Renderer::renderNeuralDepth()
+{
+	ID3D11UnorderedAccessView *nullUavs[2]{};
+	deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+		D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr,
+		1, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
+	deviceContext->OMSetRenderTargets(0, nullptr, neuralDepthTargets[neuralExportSlot]);
+	deviceContext->ClearDepthStencilView(neuralDepthTargets[neuralExportSlot], D3D11_CLEAR_DEPTH, 0.f, 0);
+	deviceContext->IASetInputLayout(mainInputLayout);
+	unsigned int stride = sizeof(Vertex);
+	unsigned int offset = 0;
+	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.get(), &stride, &offset);
+	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	RenderPass previousPass{};
+	for (const RenderPass& currentPass : rendContext->render_passes)
+	{
+		drawList<ListType_Opaque, false>(rendContext->global_param_op,
+			previousPass.op_count, currentPass.op_count - previousPass.op_count);
+		drawList<ListType_Punch_Through, false>(rendContext->global_param_pt,
+			previousPass.pt_count, currentPass.pt_count - previousPass.pt_count);
+		previousPass = currentPass;
+	}
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+}
+
 flycast::rend::neural::TextureRef DX11Renderer::getNeuralDepthTexture()
 {
-	return {flycast::rend::neural::TextureApi::D3D11, depthTex.get(), nullptr,
-		static_cast<std::uint32_t>(DXGI_FORMAT_D24_UNORM_S8_UINT)};
+	return {flycast::rend::neural::TextureApi::D3D11, neuralDepthTextures[neuralExportSlot].get(),
+		neuralDepthViews[neuralExportSlot].get(),
+		static_cast<std::uint32_t>(DXGI_FORMAT_R32_FLOAT)};
 }
 
 void DX11Renderer::submitNeuralFrame()
@@ -587,13 +666,22 @@ void DX11Renderer::submitNeuralFrame()
 		stageConfig.api = config::NeuralD3D12Surface ? Api::D3D12 : Api::D3D11;
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook;
 		neuralStage = NeuralStage(stageConfig);
+		if (requestedMode == 0)
+			releaseNeuralResources();
 	}
 	if (!neuralInstrumentation.IsEnabled()) return;
+	TextureRef depth{};
+	if (ensureNeuralDepthResources())
+	{
+		neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
+		renderNeuralDepth();
+		depth = getNeuralDepthTexture();
+	}
 	const TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
 	const auto contentRect = getNeuralContentRect();
 	const auto& frame = neuralInstrumentation.CaptureGeometry(*rendContext, color,
-		getNeuralDepthTexture(), width, height,
+		depth, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
 	neuralStage.TrySubmit(frame);

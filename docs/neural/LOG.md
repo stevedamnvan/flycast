@@ -51,3 +51,5 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #23 2026-09-02 working tree | fresh Ninja Release configure/build with `FLYCAST_NEURAL=OFF`, NGX/test off, DX9/tests off | 1090 steps; `flycast.exe` linked exit 0; no `flycast-neural` target in generated graph | feature-off build remains green after guarded production seam
 
 #24 2026-09-02 working tree | Ninja Release configure/build with neural ON, NGX ON, SDK v310.7.0; run `neuraltest selftest` | `flycast.exe` and `neuraltest.exe` linked exit 0; 26/26 checks pass | NGX-linked configuration remains green; no live NGX lifecycle/evaluation exists yet
+
+#25 2026-09-02 cfe2285 | build production three-slot R32 depth-export replay with neural/NGX ON; rebuild fresh feature-off tree; run selftest | both `flycast.exe` builds linked exit 0; 26/26 checks pass; export issues only OP/PT lists and unbinds OIT UAVs before replay by construction | depth resource/ownership build pass for DX11 and OIT; no runtime pixels captured, so Gate 3 remains open

@@ -35,9 +35,9 @@ Depth visualization inverts the legacy encoding with
 `w = exp2(depth * 34) - 1`, followed by the path-specific 100000 scale. This is
 diagnostic only and is not used for motion or matching.
 
-The first production seam exposes only bounded draw metadata, deterministic
-snapshot hashes, frame/history identity, and existing texture ownership. It
-does not synthesize absent depth, motion, mask, confidence, or draw-ID
-artifacts. Existing DX11 depth handles at that seam are interim and are not
-accepted NGX inputs; FC-024 and FC-032/033 must replace them with the required
-export resources.
+The production seam exposes bounded draw metadata, deterministic snapshot
+hashes, frame/history identity, and existing color ownership. When enabled it
+also exposes the current slot of an isolated three-deep R32 depth ring populated
+by OP/PT-only replay. No emulator-path readback exists. Runtime depth artifacts
+and Gate 3 remain pending; motion, mask, confidence, and draw-ID artifacts are
+not synthesized while their exports are absent.

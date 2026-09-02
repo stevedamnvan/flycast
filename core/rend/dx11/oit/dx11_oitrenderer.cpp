@@ -702,14 +702,6 @@ struct DX11OITRenderer : public DX11Renderer
 		return !is_rtt;
 	}
 
-#ifdef FLYCAST_ENABLE_NEURAL
-	flycast::rend::neural::TextureRef getNeuralDepthTexture() override
-	{
-		return {flycast::rend::neural::TextureApi::D3D11, depthStencilTex2.get(), depthView.get(),
-			static_cast<std::uint32_t>(DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS)};
-	}
-#endif
-
 private:
 	Buffers buffers;
 	DX11OITShaders shaders;

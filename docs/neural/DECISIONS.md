@@ -60,9 +60,20 @@ Phase 1 gate can close.
 
 The guarded DX11 and DX11/OIT seam snapshots real `rend_context` OP/PT/TR
 metadata and submits one Geometry package before native display composition.
-Its current color and depth references are existing renderer resources used to
-establish ownership and cadence only: DX11 color is BGRA8, the base depth
-resource has no shader-resource view, and OIT exposes its typeless depth view.
-These are not the required RGBA8/R32 neural inputs. No presentation selection
-depends on stage output until the dedicated depth, motion, mask, confidence,
-and draw-ID resources and their gates exist.
+Its initial color and depth references used existing renderer resources only to
+establish ownership and cadence: DX11 color was BGRA8, the base depth resource
+had no shader-resource view, and OIT exposed its typeless depth view. Those
+references were not accepted as the required RGBA8/R32 neural inputs. No
+presentation selection depends on stage output until all dedicated exports and
+their gates exist.
+
+## D-009: OP/PT depth is replayed into an isolated R32 target
+
+The first production depth export replays only each render pass's opaque and
+punch-through lists into a three-slot `R32_TYPELESS` resource ring using a
+`D32_FLOAT` target and `R32_FLOAT` shader view. Existing shaders preserve both
+legacy log-depth and native-depth behavior, including punch-through discard,
+without adding a disabled-path shader permutation. Translucent and modifier
+volume lists are never issued to this target. This costs extra OP/PT draws and
+must meet FC-064 timing before acceptance; the choice can be replaced by an
+equivalent cheaper export if measured over budget.

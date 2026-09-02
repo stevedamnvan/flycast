@@ -23,7 +23,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-021 | 2 | Runtime probes | Disabled path has zero probe work | doing | LOG #20; guarded runtime branch/default-off metadata path builds, pixel-parity gate pending |
 | FC-022 | 2 | Determinism / Gate 1 | Disabled equals baseline | todo | |
 | FC-023 | 2 | Genuine scaling / Gate 2 | 4x/8x edge samples differ from nearest | todo | |
-| FC-024 | 2 | Depth / Gate 3 | OP+PT only, correct ordering | todo | |
+| FC-024 | 2 | Depth / Gate 3 | OP+PT only, correct ordering | doing | LOG #25; production guarded R32_FLOAT OP/PT replay export builds in DX11/OIT; runtime ordering artifacts pending |
 | FC-025 | 2 | Draw records and IDs | Fixed history; R16_UINT ID | doing | LOG #20; fixed 8192-entry double history, overflow flag, deterministic snapshot implemented; draw-ID MRT pending |
 | FC-026 | 2 | History generation | All structural reset sources increment | doing | LOG #20; enable/mode/resize/overflow resets wired locally; global reset/save-state/renderer-switch call sites pending |
 | FC-027 | 2 | Atomic package | Once per display frame; never RTT evaluate | doing | LOG #20; Geometry package is submitted once in normal DX11/OIT Render branches; FramebufferDirect/RTT package evidence pending |
@@ -37,7 +37,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-036 | 3 | Gates 4-6 | Fixture thresholds pass | todo | |
 | FC-039 | 3 | Phase gate | CPU/HLSL evidence and unit tests | todo | |
 | FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | doing | LOG #18; passthrough, frame dedupe, source bypass implemented; device backends pending |
-| FC-041 | 4 | Resource rings | Three deep; fixed; deferred retirement | todo | |
+| FC-041 | 4 | Resource rings | Three deep; fixed; deferred retirement | doing | LOG #25; fixed three-slot D3D11 R32 depth ring implemented; remaining inputs/output, busy tracking, deferred retirement pending |
 | FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | todo | |
 | FC-043 | 4 | Recovery/timing | State machine, removal, async timings | doing | LOG #18; sliding-window hold controller green, NGX retry/device/timing pending |
 | FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | todo | |

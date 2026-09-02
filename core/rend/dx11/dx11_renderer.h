@@ -31,6 +31,7 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/neural_stage.h"
+#include <array>
 #endif
 #ifndef LIBRETRO
 #include "dx11_driver.h"
@@ -116,8 +117,11 @@ protected:
 	TileClipping setTileClip(u32 val, Rect& rect);
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
+	bool ensureNeuralDepthResources();
+	void renderNeuralDepth();
+	void releaseNeuralResources() noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
-	virtual flycast::rend::neural::TextureRef getNeuralDepthTexture();
+	flycast::rend::neural::TextureRef getNeuralDepthTexture();
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -150,6 +154,13 @@ protected:
 #ifdef FLYCAST_ENABLE_NEURAL
 	flycast::rend::neural::NeuralInstrumentation neuralInstrumentation;
 	flycast::rend::neural::NeuralStage neuralStage;
+	static constexpr std::size_t NeuralExportRingSize = 3;
+	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralDepthTextures;
+	std::array<ComPtr<ID3D11DepthStencilView>, NeuralExportRingSize> neuralDepthTargets;
+	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralDepthViews;
+	std::uint32_t neuralDepthWidth = 0;
+	std::uint32_t neuralDepthHeight = 0;
+	std::size_t neuralExportSlot = 0;
 	int activeNeuralMode = -1;
 #endif
 
