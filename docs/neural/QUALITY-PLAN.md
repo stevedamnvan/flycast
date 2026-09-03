@@ -445,3 +445,16 @@ close a temporal or title-quality gate.
   policy-OFF is 0.171040/0.195104/0.627168 ms and
   0.225024/0.290720/0.319744 ms. These separately reported runs are not treated
   as an isolated external-cost subtraction.
+
+## Pre-quality Gate 1 closure
+
+LOG #111 closes FC-021/FC-022 before further quality tuning. Five consecutive
+1440x1080 Soulcalibur PVR scene frames are byte-identical between the
+neural-capable mode-off build and compile-time feature-off build on normal and
+OIT DX11. Repeating the enabled side on a marker-verified D3D11On12 device is
+also byte-identical. Every enabled marker reports zero neural instrumentation,
+draw/history population, input-layout/export/backend allocation, and guidance
+replay. The material wrong-frame controls change more than 569000 of 1555200
+pixels, and 14 synthetic fixtures under both renderer labels remain
+deterministic across five runs. The proof capture is synchronous and excluded
+from all performance evidence.

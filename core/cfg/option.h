@@ -464,6 +464,12 @@ extern Option<int> SkipFrame;
 extern Option<int> MaxThreads;
 extern Option<int> AutoSkipFrame;		// 0: none, 1: some, 2: more
 extern Option<int> RenderResolution;
+// Developer-only synchronous native PVR parity capture. This deliberately lives
+// outside FLYCAST_ENABLE_NEURAL so feature-enabled/mode-off and compile-time
+// feature-off builds exercise the identical capture code.
+extern OptionString NativeParityCaptureDirectory;
+extern Option<int> NativeParityCaptureFrames;
+extern Option<int> NativeParityCaptureSkip;
 #ifdef FLYCAST_ENABLE_NEURAL
 extern Option<int> NeuralMode;
 extern Option<bool> NeuralD3D12Surface;

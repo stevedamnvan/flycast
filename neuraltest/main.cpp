@@ -42,6 +42,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
+		"neuraltest native-parity --game PATH --enabled-flycast EXE --feature-off-flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 5] [--skip N] [--render-height N] [--timeout-ms N]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
@@ -112,6 +113,25 @@ bool HashFileFnv64(const std::filesystem::path& path, std::uint64_t& hash)
 	if (!stream)
 		return false;
 	hash = 1469598103934665603ull;
+	char buffer[64 * 1024];
+	while (stream)
+	{
+		stream.read(buffer, sizeof(buffer));
+		for (std::streamsize index = 0; index < stream.gcount(); ++index)
+		{
+			hash ^= static_cast<unsigned char>(buffer[index]);
+			hash *= 1099511628211ull;
+		}
+	}
+	return stream.eof();
+}
+
+bool HashFileFnv64Standard(const std::filesystem::path& path, std::uint64_t& hash)
+{
+	std::ifstream stream(path, std::ios::binary);
+	if (!stream)
+		return false;
+	hash = 14695981039346656037ull;
 	char buffer[64 * 1024];
 	while (stream)
 	{
@@ -424,7 +444,359 @@ bool IsMonitorSizedWindow(HWND window)
 		&& GetMonitorInfoW(monitor, &monitorInfo) != FALSE
 		&& EqualRect(&windowRect, &monitorInfo.rcMonitor) != FALSE;
 }
+
+bool RunNativeParityProcess(const std::filesystem::path& flycast,
+	const std::filesystem::path& game, const std::filesystem::path& output,
+	const std::filesystem::path& inputReplay, int rendererValue,
+	std::uint32_t frames, std::uint32_t skip, std::uint32_t renderHeight,
+	std::uint32_t timeoutMs, bool neuralEnabled, bool d3d11On12, std::string& error)
+{
+	std::error_code ec;
+	const auto completion = output / "native-parity-capture-complete.json";
+	if (std::filesystem::exists(completion))
+	{
+		error = "parity output already contains a completed capture";
+		return false;
+	}
+	std::filesystem::create_directories(output, ec);
+	if (ec)
+	{
+		error = "cannot create parity output: " + ec.message();
+		return false;
+	}
+	const auto scripts = flycast.parent_path() / "scripts";
+	std::filesystem::create_directories(scripts, ec);
+	if (ec)
+	{
+		error = "cannot create flycast replay directory: " + ec.message();
+		return false;
+	}
+	const auto replayDestination = scripts / (game.stem().string() + ".input");
+	if (std::filesystem::absolute(inputReplay) != std::filesystem::absolute(replayDestination))
+	{
+		std::filesystem::copy_file(inputReplay, replayDestination,
+			std::filesystem::copy_options::overwrite_existing, ec);
+		if (ec)
+		{
+			error = "cannot stage deterministic input replay: " + ec.message();
+			return false;
+		}
+	}
+
+	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
+		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
+		+ (neuralEnabled ? L",config:rend.NeuralMode=0,config:rend.NeuralCaptureFrames=0"
+			L",config:rend.NeuralD3D12Surface=" + std::wstring(d3d11On12 ? L"yes" : L"no") : L"")
+		+ L",config:rend.NativeParityCaptureDirectory='" + output.wstring() + L"'"
+		+ L",config:rend.NativeParityCaptureFrames=" + std::to_wstring(frames)
+		+ L",config:rend.NativeParityCaptureSkip=" + std::to_wstring(skip)
+		+ L",record:replay_input=yes,log:LogToFile=yes";
+	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
+		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
+	STARTUPINFOW startup{};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process{};
+	std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
+	mutableCommand.push_back(L'\0');
+	if (!CreateProcessW(flycast.wstring().c_str(), mutableCommand.data(), nullptr, nullptr,
+		FALSE, CREATE_NO_WINDOW, nullptr, flycast.parent_path().wstring().c_str(),
+		&startup, &process))
+	{
+		error = "failed to launch flycast: win32=" + std::to_string(GetLastError());
+		return false;
+	}
+	CloseHandle(process.hThread);
+	const auto deadline = std::chrono::steady_clock::now()
+		+ std::chrono::milliseconds(timeoutMs);
+	bool complete = false;
+	bool exitedEarly = false;
+	while (std::chrono::steady_clock::now() < deadline)
+	{
+		if (std::filesystem::exists(completion)) { complete = true; break; }
+		if (WaitForSingleObject(process.hProcess, 50) == WAIT_OBJECT_0)
+		{
+			exitedEarly = true;
+			break;
+		}
+	}
+	CloseWindowsContext closeContext{process.dwProcessId};
+	EnumWindows(CloseProcessWindows, reinterpret_cast<LPARAM>(&closeContext));
+	const bool cleanClose = WaitForSingleObject(process.hProcess, 5000) == WAIT_OBJECT_0;
+	if (!cleanClose)
+	{
+		TerminateProcess(process.hProcess, 4);
+		WaitForSingleObject(process.hProcess, 5000);
+	}
+	CloseHandle(process.hProcess);
+	if (!complete)
+	{
+		error = exitedEarly ? "flycast exited before parity capture completed"
+			: "timed out waiting for parity capture";
+		return false;
+	}
+	if (!cleanClose)
+	{
+		error = "flycast did not close cleanly after parity capture";
+		return false;
+	}
+	return true;
+}
 #endif
+
+int NativeParityCommand(const Args& args)
+{
+	const auto gameText = Value(args, "--game");
+	const auto enabledText = Value(args, "--enabled-flycast");
+	const auto offText = Value(args, "--feature-off-flycast");
+	const auto replayText = Value(args, "--input-replay");
+	const auto outputText = Value(args, "--out");
+	if (gameText.empty() || enabledText.empty() || offText.empty()
+		|| replayText.empty() || outputText.empty())
+	{
+		std::cerr << "native-parity requires --game, both flycast executables, "
+			"--input-replay, and --out\n";
+		return 2;
+	}
+	const auto renderer = Value(args, "--renderer", "dx11");
+	const auto api = Value(args, "--api", "d3d11");
+	if (renderer != "dx11" && renderer != "dx11-oit")
+	{
+		std::cerr << "--renderer must be dx11 or dx11-oit\n";
+		return 2;
+	}
+	if (api != "d3d11" && api != "d3d11on12")
+	{
+		std::cerr << "--api must be d3d11 or d3d11on12\n";
+		return 2;
+	}
+	std::string error;
+	std::uint32_t frames = 5, skip = 0, renderHeight = 1080, timeoutMs = 120000;
+	if (!Number(args, "--frames", 5, frames, error) || frames < 2 || frames > 240
+		|| !Number(args, "--skip", 0, skip, error)
+		|| !Number(args, "--render-height", 1080, renderHeight, error)
+		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error))
+	{
+		std::cerr << (error.empty() ? "native-parity requires 2..240 frames" : error) << '\n';
+		return 2;
+	}
+	const auto game = std::filesystem::absolute(gameText);
+	const auto enabled = std::filesystem::absolute(enabledText);
+	const auto featureOff = std::filesystem::absolute(offText);
+	const auto replay = std::filesystem::absolute(replayText);
+	const auto output = std::filesystem::absolute(outputText);
+	for (const auto& required : {game, enabled, featureOff, replay})
+		if (!std::filesystem::is_regular_file(required))
+		{
+			std::cerr << "required native-parity input is unavailable: "
+				<< required.string() << '\n';
+			return 3;
+		}
+	if (enabled == featureOff)
+	{
+		std::cerr << "enabled and feature-off executables must be different files\n";
+		return 2;
+	}
+	if (std::filesystem::exists(output / "native-parity-report.json"))
+	{
+		std::cerr << "native-parity output already contains a completed report\n";
+		return 2;
+	}
+#ifndef _WIN32
+	std::cerr << "production native parity launcher is currently available only on Windows\n";
+	return 3;
+#else
+	const auto enabledOutput = output / "enabled-mode-off";
+	const auto featureOffOutput = output / "feature-off";
+	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
+	if (!RunNativeParityProcess(enabled, game, enabledOutput, replay, rendererValue,
+		frames, skip, renderHeight, timeoutMs, true, api == "d3d11on12", error)
+		|| !RunNativeParityProcess(featureOff, game, featureOffOutput, replay, rendererValue,
+			frames, skip, renderHeight, timeoutMs, false, false, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	auto readText = [](const std::filesystem::path& path, std::string& text) {
+		std::ifstream stream(path);
+		if (!stream) return false;
+		text.assign(std::istreambuf_iterator<char>(stream),
+			std::istreambuf_iterator<char>());
+		return !stream.bad();
+	};
+	std::string enabledMarker;
+	std::string featureOffMarker;
+	if (!readText(enabledOutput / "native-parity-capture-complete.json", enabledMarker)
+		|| !readText(featureOffOutput / "native-parity-capture-complete.json", featureOffMarker))
+	{
+		std::cerr << "cannot read native parity completion diagnostics\n";
+		return 1;
+	}
+	const std::vector<std::string> zeroActivity = {
+		"\"neural_mode\": 0",
+		"\"neural_instrumentation_enabled\": false",
+		"\"neural_draw_records\": 0",
+		"\"neural_previous_positions\": 0",
+		"\"neural_input_layout_allocated\": false",
+		"\"neural_export_resources_allocated\": false",
+		"\"neural_guidance_replays\": 0",
+		"\"neural_backend_resource_objects\": 0",
+	};
+	for (const auto& required : zeroActivity)
+		if (enabledMarker.find(required) == std::string::npos
+			|| featureOffMarker.find(required) == std::string::npos)
+		{
+			std::cerr << "disabled-build activity invariant failed: " << required << '\n';
+			return 1;
+		}
+	if (enabledMarker.find("\"neural_compiled\": true") == std::string::npos
+		|| featureOffMarker.find("\"neural_compiled\": false") == std::string::npos)
+	{
+		std::cerr << "native-parity executables do not represent enabled and feature-off builds\n";
+		return 1;
+	}
+	const std::string expectedEnabledSurface = std::string("\"d3d11on12_surface\": ")
+		+ (api == "d3d11on12" ? "true" : "false");
+	if (enabledMarker.find(expectedEnabledSurface) == std::string::npos
+		|| featureOffMarker.find("\"d3d11on12_surface\": false") == std::string::npos)
+	{
+		std::cerr << "native-parity did not exercise the requested enabled-build surface\n";
+		return 1;
+	}
+	std::uint64_t replayHash = 0;
+	if (!HashFileFnv64(replay, replayHash))
+	{
+		std::cerr << "cannot hash retained input replay\n";
+		return 1;
+	}
+	std::error_code ec;
+	std::filesystem::copy_file(replay, output / "input-replay.input",
+		std::filesystem::copy_options::overwrite_existing, ec);
+	if (ec)
+	{
+		std::cerr << "cannot retain input replay: " << ec.message() << '\n';
+		return 1;
+	}
+
+	std::vector<std::string> hashes;
+	hashes.reserve(frames);
+	for (std::uint32_t frame = 0; frame < frames; ++frame)
+	{
+		std::ostringstream name;
+		name << "frame-" << std::setw(6) << std::setfill('0') << frame << ".bgra8";
+		const auto a = enabledOutput / name.str();
+		const auto b = featureOffOutput / name.str();
+		std::uint64_t aHash = 0, bHash = 0;
+		const auto aSize = std::filesystem::file_size(a, ec);
+		if (ec) { std::cerr << "cannot size enabled parity frame\n"; return 1; }
+		const auto bSize = std::filesystem::file_size(b, ec);
+		if (ec || aSize != bSize || !HashFileFnv64Standard(a, aHash)
+			|| !HashFileFnv64Standard(b, bHash) || aHash != bHash)
+		{
+			std::cerr << "native parity mismatch at capture frame " << frame << '\n';
+			return 1;
+		}
+		hashes.push_back(Hex64(aHash));
+	}
+	std::uint64_t wrongA = 0, wrongB = 0;
+	const auto wrongPathA = enabledOutput / "frame-000000.bgra8";
+	if (!HashFileFnv64Standard(wrongPathA, wrongA))
+		return 1;
+	std::ostringstream lastName;
+	lastName << "frame-" << std::setw(6) << std::setfill('0') << (frames - 1) << ".bgra8";
+	const auto wrongPathB = featureOffOutput / lastName.str();
+	if (!HashFileFnv64Standard(wrongPathB, wrongB))
+		return 1;
+	if (wrongA == wrongB)
+	{
+		std::cerr << "wrong-frame negative control did not differ; choose a dynamic capture window\n";
+		return 1;
+	}
+	std::ifstream wrongStreamA(wrongPathA, std::ios::binary);
+	std::ifstream wrongStreamB(wrongPathB, std::ios::binary);
+	std::uint64_t wrongDifferingPixels = 0;
+	std::uint64_t wrongComparedPixels = 0;
+	std::uint64_t wrongAbsoluteDelta = 0;
+	std::uint32_t wrongMaxDelta = 0;
+	std::array<unsigned char, 64 * 1024> wrongBytesA{};
+	std::array<unsigned char, 64 * 1024> wrongBytesB{};
+	while (wrongStreamA && wrongStreamB)
+	{
+		wrongStreamA.read(reinterpret_cast<char *>(wrongBytesA.data()), wrongBytesA.size());
+		wrongStreamB.read(reinterpret_cast<char *>(wrongBytesB.data()), wrongBytesB.size());
+		const auto countA = wrongStreamA.gcount();
+		const auto countB = wrongStreamB.gcount();
+		if (countA != countB || countA % 4 != 0)
+		{
+			std::cerr << "wrong-frame control byte contract differs\n";
+			return 1;
+		}
+		for (std::streamsize offset = 0; offset < countA; offset += 4)
+		{
+			bool pixelDiffers = false;
+			for (std::streamsize channel = 0; channel < 4; ++channel)
+			{
+				const auto delta = static_cast<std::uint32_t>(std::abs(
+					static_cast<int>(wrongBytesA[static_cast<std::size_t>(offset + channel)])
+					- static_cast<int>(wrongBytesB[static_cast<std::size_t>(offset + channel)])));
+				wrongAbsoluteDelta += delta;
+				wrongMaxDelta = std::max(wrongMaxDelta, delta);
+				pixelDiffers = pixelDiffers || delta != 0;
+			}
+			wrongDifferingPixels += pixelDiffers ? 1 : 0;
+			++wrongComparedPixels;
+		}
+	}
+	const std::uint64_t minimumWrongPixels = std::max<std::uint64_t>(1000,
+		wrongComparedPixels / 100);
+	if (!wrongStreamA.eof() || !wrongStreamB.eof()
+		|| wrongDifferingPixels < minimumWrongPixels)
+	{
+		std::cerr << "wrong-frame control is not materially different: pixels="
+			<< wrongDifferingPixels << "/" << wrongComparedPixels << '\n';
+		return 1;
+	}
+	const double wrongMeanAbsoluteDelta = wrongComparedPixels == 0 ? 0.0
+		: static_cast<double>(wrongAbsoluteDelta)
+			/ static_cast<double>(wrongComparedPixels * 4);
+
+	std::ofstream report(output / "native-parity-report.json");
+	report.imbue(std::locale::classic());
+	report << "{\n  \"schema\": 1,\n"
+		<< "  \"status\": \"pass\",\n"
+		<< "  \"scope\": \"production-pvr-scene-color-before-neural-and-overlays\",\n"
+		<< "  \"enabled_api\": \"" << api << "\",\n"
+		<< "  \"feature_off_api\": \"d3d11\",\n"
+		<< "  \"renderer\": \"" << renderer << "\",\n"
+		<< "  \"frames\": " << frames << ",\n"
+		<< "  \"skip\": " << skip << ",\n"
+		<< "  \"render_height\": " << renderHeight << ",\n"
+		<< "  \"input_replay_fnv64\": \"" << Hex64(replayHash) << "\",\n"
+		<< "  \"exact_pairs\": [\n";
+	for (std::uint32_t frame = 0; frame < frames; ++frame)
+		report << "    {\"frame\": " << frame << ", \"fnv64\": \""
+			<< hashes[frame] << "\"}" << (frame + 1 == frames ? "\n" : ",\n");
+	report << "  ],\n"
+		<< "  \"wrong_frame_control\": {\"equal\": false, \"enabled_frame\": 0, "
+			"\"feature_off_frame\": " << (frames - 1)
+		<< ", \"differing_pixels\": " << wrongDifferingPixels
+		<< ", \"compared_pixels\": " << wrongComparedPixels
+		<< ", \"max_delta\": " << wrongMaxDelta
+		<< ", \"mean_absolute_delta\": " << wrongMeanAbsoluteDelta << "},\n"
+		<< "  \"synchronous_developer_capture\": true,\n"
+		<< "  \"clean_close\": true,\n"
+		<< "  \"performance_eligible\": false\n}\n";
+	if (!report)
+	{
+		std::cerr << "cannot write native parity report\n";
+		return 1;
+	}
+	std::cout << "native-parity pass api=" << api << " renderer=" << renderer
+		<< " exact_pairs=" << frames
+		<< " wrong_frame_pixels=" << wrongDifferingPixels << '/' << wrongComparedPixels
+		<< " replay_fnv64=" << Hex64(replayHash) << '\n';
+	return 0;
+#endif
+}
 
 int CaptureCommand(const Args& args)
 {
@@ -2688,6 +3060,7 @@ int main(int argc, char **argv)
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);
+	if (command == "native-parity") return NativeParityCommand(args);
 	if (command == "capture") return CaptureCommand(args);
 	if (command == "capture-index") return CaptureIndexCommand(args);
 	if (command == "compare-captures")

@@ -137,6 +137,7 @@ protected:
 	void renderVideoRouting();
 	void resetContextState();
 	void drawOSD();
+	void captureNativeParityFrame();
 	TileClipping setTileClip(u32 val, Rect& rect);
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
@@ -235,6 +236,7 @@ protected:
 	bool activeNeuralSurface = false;
 	bool activeNeuralGpuTiming = false;
 	bool neuralExportActive = false;
+	std::uint64_t neuralGuidanceReplayCount = 0;
 	bool neuralReactiveCoverageActive = false;
 	ComPtr<ID3D11Buffer> neuralPreviousPositionBuffer;
 	u32 neuralPreviousPositionBufferSize = 0;
@@ -307,6 +309,10 @@ private:
 	u32 indexBufferSize = 0;
 
 	ComPtr<ID3D11Texture2D> fbTex;
+	ComPtr<ID3D11Texture2D> nativeParityStagingTexture;
+	std::uint32_t nativeParitySeenFrames = 0;
+	std::uint32_t nativeParityCapturedFrames = 0;
+	bool nativeParityCaptureComplete = false;
 	ComPtr<ID3D11Texture2D> dcfbTexture;
 	ComPtr<ID3D11ShaderResourceView> dcfbTextureView;
 	ComPtr<ID3D11Texture2D> paletteTexture;

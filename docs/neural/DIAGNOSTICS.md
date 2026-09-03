@@ -548,3 +548,19 @@ fallback while the requested neural mode is active.
 `--evidence-start-frame` delays evidence marking and readback until that exact or
 next emulated frame ID. It is intended for deterministic input-replayed gameplay;
 frames before it evaluate and present normally and remain outside the evidence set.
+
+## Native disabled-versus-feature-off parity
+
+Use `neuraltest native-parity --game PATH --enabled-flycast EXE
+--feature-off-flycast EXE --input-replay FILE --out DIR --api
+d3d11|d3d11on12 --renderer dx11|dx11-oit --frames 5 --skip N`. The launcher
+runs the two executables sequentially, retains the replay, and compares the raw
+BGRA8 PVR scene color before neural work or overlays. It rejects reused
+executables, fewer than two frames, missing inputs, any byte mismatch, a
+non-material wrong-frame control, an unfulfilled surface request, or any
+disabled-path neural activity/allocation.
+
+`native-parity-capture-complete.json` records the actual renderer/surface and
+the zero-activity counters. `native-parity-report.json` records every exact
+pair plus changed-pixel/max/mean-delta data for the negative control. This is a
+synchronous developer proof, disabled by default and never performance data.

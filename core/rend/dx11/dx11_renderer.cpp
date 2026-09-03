@@ -22,14 +22,19 @@
 #include "hw/pvr/pvr_mem.h"
 #include "ui/gui.h"
 #include "rend/sorter.h"
+#include "version.h"
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
-#include "version.h"
 #endif
 
 #include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <locale>
 #include <memory>
+#include <sstream>
 #include <thread>
 
 void os_VideoRoutingTermDX();
@@ -74,12 +79,6 @@ bool DX11Renderer::Init()
 	bool success = (bool)shaders->getVertexShader(true, true);
 	ComPtr<ID3DBlob> blob = shaders->getVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(MainLayout, std::size(MainLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &mainInputLayout.get()));
-#ifdef FLYCAST_ENABLE_NEURAL
-	blob = shaders->getNeuralVertexShaderBlob();
-	success = success && blob && SUCCEEDED(device->CreateInputLayout(NeuralLayout,
-		std::size(NeuralLayout), blob->GetBufferPointer(), blob->GetBufferSize(),
-		&neuralInputLayout.get()));
-#endif
 	blob = shaders->getMVVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(ModVolLayout, std::size(ModVolLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &modVolInputLayout.get()));
 
@@ -192,12 +191,8 @@ bool DX11Renderer::Init()
 	frameRendered = false;
 
 #ifdef FLYCAST_ENABLE_NEURAL
-	flycast::rend::neural::StageConfig neuralConfig;
-	neuralConfig.mode = flycast::rend::neural::NeuralMode::Passthrough;
-	neuralConfig.api = flycast::rend::neural::Api::D3D11;
-	neuralStage = flycast::rend::neural::NeuralStage(neuralConfig);
 	publishNeuralStatus(flycast::rend::neural::SubmitStatus::Disabled,
-		"waiting for a neural frame");
+		"neural rendering is off");
 #endif
 
 	return success;
@@ -219,6 +214,10 @@ void DX11Renderer::Term()
 	n2Helper.term();
 	vtxConstants.reset();
 	pxlConstants.reset();
+	nativeParityStagingTexture.reset();
+	nativeParitySeenFrames = 0;
+	nativeParityCapturedFrames = 0;
+	nativeParityCaptureComplete = false;
 	fbTex.reset();
 	fbTextureView.reset();
 	fbRenderTarget.reset();
@@ -553,6 +552,8 @@ bool DX11Renderer::Render()
 	setupPixelShaderConstants();
 
 	drawStrips();
+	if (!is_rtt && !config::EmulateFramebuffer)
+		captureNativeParityFrame();
 #ifdef FLYCAST_ENABLE_NEURAL
 	if (!is_rtt)
 		markNeuralPvrEnd();
@@ -595,6 +596,182 @@ bool DX11Renderer::Render()
 	}
 
 	return !is_rtt;
+}
+
+void DX11Renderer::captureNativeParityFrame()
+{
+	const std::filesystem::path root(config::NativeParityCaptureDirectory.get());
+	const std::uint32_t requested = static_cast<std::uint32_t>(
+		std::clamp(config::NativeParityCaptureFrames.get(), 0, 240));
+	if (root.empty() || requested == 0 || nativeParityCaptureComplete || !fbTex)
+		return;
+
+	const std::uint32_t seen = nativeParitySeenFrames++;
+	const std::uint32_t skip = static_cast<std::uint32_t>(
+		std::max(0, config::NativeParityCaptureSkip.get()));
+	if (seen < skip)
+		return;
+
+	D3D11_TEXTURE2D_DESC sourceDesc{};
+	fbTex->GetDesc(&sourceDesc);
+	if (sourceDesc.Format != DXGI_FORMAT_B8G8R8A8_UNORM || sourceDesc.SampleDesc.Count != 1)
+	{
+		WARN_LOG(RENDERER, "Native parity capture requires single-sample BGRA8 PVR color");
+		nativeParityCaptureComplete = true;
+		return;
+	}
+
+	bool createStaging = !nativeParityStagingTexture;
+	if (!createStaging)
+	{
+		D3D11_TEXTURE2D_DESC stagingDesc{};
+		nativeParityStagingTexture->GetDesc(&stagingDesc);
+		createStaging = stagingDesc.Width != sourceDesc.Width
+			|| stagingDesc.Height != sourceDesc.Height
+			|| stagingDesc.Format != sourceDesc.Format;
+	}
+	if (createStaging)
+	{
+		nativeParityStagingTexture.reset();
+		D3D11_TEXTURE2D_DESC stagingDesc = sourceDesc;
+		stagingDesc.Usage = D3D11_USAGE_STAGING;
+		stagingDesc.BindFlags = 0;
+		stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		stagingDesc.MiscFlags = 0;
+		if (FAILED(device->CreateTexture2D(&stagingDesc, nullptr,
+			&nativeParityStagingTexture.get())))
+		{
+			WARN_LOG(RENDERER, "Native parity capture could not create staging texture");
+			nativeParityCaptureComplete = true;
+			return;
+		}
+	}
+
+	deviceContext->CopyResource(nativeParityStagingTexture, fbTex);
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	if (FAILED(deviceContext->Map(nativeParityStagingTexture, 0, D3D11_MAP_READ, 0, &mapped)))
+	{
+		WARN_LOG(RENDERER, "Native parity capture could not map staging texture");
+		nativeParityCaptureComplete = true;
+		return;
+	}
+
+	const std::size_t rowBytes = static_cast<std::size_t>(sourceDesc.Width) * 4;
+	std::vector<std::uint8_t> bytes(rowBytes * sourceDesc.Height);
+	for (std::uint32_t y = 0; y < sourceDesc.Height; ++y)
+		std::memcpy(bytes.data() + rowBytes * y,
+			static_cast<const std::uint8_t *>(mapped.pData) + mapped.RowPitch * y,
+			rowBytes);
+	deviceContext->Unmap(nativeParityStagingTexture, 0);
+
+	std::uint64_t hash = 14695981039346656037ull;
+	for (const std::uint8_t value : bytes)
+	{
+		hash ^= value;
+		hash *= 1099511628211ull;
+	}
+
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec)
+	{
+		WARN_LOG(RENDERER, "Native parity capture could not create output directory: %s",
+			ec.message().c_str());
+		nativeParityCaptureComplete = true;
+		return;
+	}
+
+	std::ostringstream stem;
+	stem << "frame-" << std::setfill('0') << std::setw(6) << nativeParityCapturedFrames;
+	std::ofstream raw(root / (stem.str() + ".bgra8"), std::ios::binary);
+	raw.write(reinterpret_cast<const char *>(bytes.data()),
+		static_cast<std::streamsize>(bytes.size()));
+	raw.close();
+	std::ofstream metadata(root / (stem.str() + ".json"));
+	metadata.imbue(std::locale::classic());
+	metadata << "{\n"
+		<< "  \"schema\": 1,\n"
+		<< "  \"capture_point\": \"pvr-scene-color-before-neural-and-overlays\",\n"
+		<< "  \"format\": \"BGRA8_UNORM\",\n"
+		<< "  \"renderer\": \"" << (IsOitRenderer() ? "dx11-oit" : "dx11") << "\",\n"
+		<< "  \"capture_index\": " << nativeParityCapturedFrames << ",\n"
+		<< "  \"source_frame_index\": " << seen << ",\n"
+		<< "  \"width\": " << sourceDesc.Width << ",\n"
+		<< "  \"height\": " << sourceDesc.Height << ",\n"
+		<< "  \"row_bytes\": " << rowBytes << ",\n"
+		<< "  \"byte_count\": " << bytes.size() << ",\n"
+		<< "  \"fnv64\": \"" << std::hex << std::uppercase << std::setfill('0')
+		<< std::setw(16) << hash << "\",\n"
+		<< "  \"git_sha\": \"" << GIT_HASH << "\",\n"
+		<< "  \"synchronous_developer_capture\": true\n"
+		<< "}\n";
+	metadata.close();
+
+	if (!raw || !metadata)
+	{
+		WARN_LOG(RENDERER, "Native parity capture failed to write frame %u",
+			nativeParityCapturedFrames);
+		nativeParityCaptureComplete = true;
+		return;
+	}
+
+	++nativeParityCapturedFrames;
+	if (nativeParityCapturedFrames == requested)
+	{
+		bool neuralCompiled = false;
+		int neuralMode = 0;
+		bool instrumentationEnabled = false;
+		std::size_t drawRecords = 0;
+		std::size_t previousPositions = 0;
+		bool inputLayoutAllocated = false;
+		bool exportResourcesAllocated = false;
+		bool d3d11On12Surface = false;
+		std::uint64_t guidanceReplays = 0;
+		std::uint32_t backendResourceObjects = 0;
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralCompiled = true;
+		neuralMode = config::NeuralMode.get();
+		instrumentationEnabled = neuralInstrumentation.IsEnabled();
+		drawRecords = neuralInstrumentation.CurrentDrawCount();
+		previousPositions = neuralInstrumentation.PreviousPositions().size;
+		inputLayoutAllocated = neuralInputLayout != nullptr;
+		d3d11On12Surface = DX11Context::Instance()->isD3D11On12();
+		exportResourcesAllocated = neuralColor.textures[0] != nullptr
+			|| neuralDepthTextures[0] != nullptr || neuralMotion.textures[0] != nullptr
+			|| neuralMask.textures[0] != nullptr || neuralPreviousPositionBuffer != nullptr;
+		guidanceReplays = neuralGuidanceReplayCount;
+		backendResourceObjects = neuralStage.GetStats().backendResourceObjects;
+#endif
+		std::ofstream complete(root / "native-parity-capture-complete.json");
+		complete.imbue(std::locale::classic());
+		complete << "{\n"
+			<< "  \"schema\": 1,\n"
+			<< "  \"capture_point\": \"pvr-scene-color-before-neural-and-overlays\",\n"
+			<< "  \"renderer\": \"" << (IsOitRenderer() ? "dx11-oit" : "dx11") << "\",\n"
+			<< "  \"d3d11on12_surface\": "
+			<< (d3d11On12Surface ? "true" : "false") << ",\n"
+			<< "  \"captured_frames\": " << nativeParityCapturedFrames << ",\n"
+			<< "  \"skipped_frames\": " << skip << ",\n"
+			<< "  \"git_sha\": \"" << GIT_HASH << "\",\n"
+			<< "  \"neural_compiled\": " << (neuralCompiled ? "true" : "false") << ",\n"
+			<< "  \"neural_mode\": " << neuralMode << ",\n"
+			<< "  \"neural_instrumentation_enabled\": "
+			<< (instrumentationEnabled ? "true" : "false") << ",\n"
+			<< "  \"neural_draw_records\": " << drawRecords << ",\n"
+			<< "  \"neural_previous_positions\": " << previousPositions << ",\n"
+			<< "  \"neural_input_layout_allocated\": "
+			<< (inputLayoutAllocated ? "true" : "false") << ",\n"
+			<< "  \"neural_export_resources_allocated\": "
+			<< (exportResourcesAllocated ? "true" : "false") << ",\n"
+			<< "  \"neural_guidance_replays\": " << guidanceReplays << ",\n"
+			<< "  \"neural_backend_resource_objects\": " << backendResourceObjects << ",\n"
+			<< "  \"synchronous_developer_capture\": true,\n"
+			<< "  \"performance_eligible\": false\n"
+			<< "}\n";
+		nativeParityCaptureComplete = true;
+		NOTICE_LOG(RENDERER, "Native parity capture complete: %u BGRA8 PVR frames at %s",
+			nativeParityCapturedFrames, root.string().c_str());
+	}
 }
 
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -803,6 +980,7 @@ void DX11Renderer::releaseNeuralResources() noexcept
 
 bool DX11Renderer::renderNeuralExports()
 {
+	++neuralGuidanceReplayCount;
 	acquireNeuralInputs();
 	ID3D11UnorderedAccessView *nullUavs[2]{};
 	deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
@@ -1634,6 +1812,18 @@ bool DX11Renderer::syncNeuralMode()
 {
 	using namespace flycast::rend::neural;
 	const int requestedMode = std::clamp(config::NeuralMode.get(), 0, 8);
+	if (requestedMode != 0 && !neuralInputLayout)
+	{
+		const ComPtr<ID3DBlob> blob = shaders->getNeuralVertexShaderBlob();
+		if (!blob || FAILED(device->CreateInputLayout(NeuralLayout,
+			std::size(NeuralLayout), blob->GetBufferPointer(), blob->GetBufferSize(),
+			&neuralInputLayout.get())))
+		{
+			publishNeuralStatus(SubmitStatus::RecoverableFailure,
+				"neural input-layout allocation failed");
+			return false;
+		}
+	}
 	if (requestedMode == static_cast<int>(NeuralMode::Dlss5Experimental)
 		&& config::NeuralDlss5EvidenceCapture.get())
 	{
@@ -1732,7 +1922,10 @@ bool DX11Renderer::syncNeuralMode()
 		if (surfaceRequested && !requestedSurface)
 			WARN_LOG(RENDERER, "D3D11On12 neural surface was requested after native D3D11 initialization; restart the renderer to activate it");
 		if (requestedMode == 0)
+		{
 			releaseNeuralResources();
+			neuralInputLayout.reset();
+		}
 		publishNeuralStatus(SubmitStatus::Disabled,
 			requestedMode == 0 ? "neural rendering is off" : "waiting for a neural frame");
 	}

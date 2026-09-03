@@ -103,6 +103,9 @@ Option<int> SkipFrame("ta.skip");
 Option<int> MaxThreads("pvr.MaxThreads", 3);
 Option<int> AutoSkipFrame("pvr.AutoSkipFrame", 0);
 Option<int> RenderResolution("rend.Resolution", 480);
+OptionString NativeParityCaptureDirectory("rend.NativeParityCaptureDirectory", "");
+Option<int> NativeParityCaptureFrames("rend.NativeParityCaptureFrames", 0);
+Option<int> NativeParityCaptureSkip("rend.NativeParityCaptureSkip", 0);
 #ifdef FLYCAST_ENABLE_NEURAL
 Option<int> NeuralMode("rend.NeuralMode", 0);
 Option<bool> NeuralD3D12Surface("rend.NeuralD3D12Surface", false);

@@ -733,6 +733,8 @@ struct DX11OITRenderer : public DX11Renderer
 		setupPixelShaderConstants();
 
 		drawStrips();
+		if (!is_rtt && !config::EmulateFramebuffer)
+			captureNativeParityFrame();
 #ifdef FLYCAST_ENABLE_NEURAL
 		if (!is_rtt)
 			markNeuralPvrEnd();

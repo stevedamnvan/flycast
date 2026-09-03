@@ -1065,3 +1065,26 @@ single requested-mode native Present is allowed only as the already documented
 nonblocking busy fallback; it is counted explicitly and may not become stale
 neural output. The control is developer-only, default-off, mutually exclusive
 with other lifecycle controls, and changes no external-consumer configuration.
+
+## D-067: native parity is captured at the PVR scene boundary
+
+Gate 1 compares the production `fbTex` BGRA8 bytes immediately after the full
+normal or OIT PVR resolve and before neural submission, protected overlays,
+Flycast OSD, ImGui, aspect bars, or presentation. The same small synchronous
+readback is compiled into neural-capable and compile-time feature-off builds;
+it is hidden, default-off, bounded, and explicitly excluded from performance
+measurements.
+
+The enabled build must be in mode zero and report no instrumentation, draw
+records, previous-position history, neural input layout, guidance export
+resources or replay, or backend objects. Neural shader input-layout creation is
+therefore lazy and is released again when mode zero is selected. The launcher
+retains the exact input replay, requires raw byte equality for every paired
+frame, and requires a materially different mismatched-frame control.
+
+The feature-off build cannot instantiate D3D11On12 because that route is
+compiled with the experimental neural surface. Cross-surface Gate 1 therefore
+compares the enabled/mode-off production PVR path on an explicitly verified
+D3D11On12 device against the compile-time feature-off native-D3D11 baseline.
+The actual surface of each process is recorded; it is never inferred from a
+requested option.

@@ -55,6 +55,7 @@ public:
 		return ordinal < drawCounts_[currentBuffer_] && overlayBuffer_[ordinal] != 0;
 	}
 	std::size_t OverlayDrawCount() const noexcept { return overlayDrawCount_; }
+	std::size_t CurrentDrawCount() const noexcept { return drawCounts_[currentBuffer_]; }
 	// Allocates only when a bounded developer capture requests per-draw evidence.
 	std::vector<OverlayDrawDiagnostic> CaptureOverlayDiagnostics() const;
 
