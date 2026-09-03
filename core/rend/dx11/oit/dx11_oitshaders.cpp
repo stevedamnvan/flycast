@@ -774,6 +774,7 @@ enum VertexMacroEnum {
 	MacroPositionOnly,
 	MacroLightOn,
 	MacroModifierVolume,
+	MacroNeuralExport,
 };
 
 static D3D_SHADER_MACRO VertexMacros[]
@@ -784,6 +785,7 @@ static D3D_SHADER_MACRO VertexMacros[]
 	{ "POSITION_ONLY", "0" },
 	{ "LIGHT_ON", "1" },
 	{ "MODIFIER_VOLUME", "0" },
+	{ "NEURAL_EXPORT", "0" },
 	{ nullptr, nullptr }
 };
 

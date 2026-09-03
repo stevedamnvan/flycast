@@ -28,6 +28,9 @@ const char * const DX11N2VertexShader = R"(
 struct VertexIn
 {
 	float4 pos : POSITION;
+	#if NEURAL_EXPORT == 1
+	float4 previousPos : POSITION1;
+	#endif
 #if POSITION_ONLY == 0
 	float4 col : COLOR0;
 	float4 spec : COLOR1;
@@ -46,6 +49,10 @@ struct VertexOut
 {
 	float4 pos : SV_POSITION;
 	float4 uv : TEXCOORD0;
+	#if NEURAL_EXPORT == 1
+	noperspective float4 neuralScreen : TEXCOORD2;
+	noperspective float neuralPositionValid : TEXCOORD3;
+	#endif
 #if POSITION_ONLY == 0
 	INTERPOLATION float4 col : COLOR0;
 	INTERPOLATION float4 spec : COLOR1;
@@ -156,6 +163,13 @@ VertexOut main(in VertexIn vin)
 #endif
 	vo.pos.w = 1.f;
 	vo.pos.z = 0.f;
+	#if NEURAL_EXPORT == 1
+	// Prior Naomi 2 model/projection matrices are not retained yet. The CPU
+	// stream marks these vertices invalid, and the shader keeps that contract
+	// explicit instead of applying current matrices to a previous model pose.
+	vo.neuralScreen = float4(0.f, 0.f, 0.f, 0.f);
+	vo.neuralPositionValid = 0.f;
+	#endif
 
 	return vo;
 }

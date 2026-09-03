@@ -294,6 +294,26 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 	}
 	for (auto& position : previousPositions_)
 		if (position.valid < 0.f) position.valid = 0.f;
+	// A pixel cannot safely interpolate motion from a partly invalid primitive.
+	// Downgrade the whole draw after shared-vertex conflicts have been resolved.
+	for (std::size_t ci = 0; ci < drawCounts_[currentBuffer_]; ++ci)
+	{
+		auto& match = matchBuffer_[ci];
+		if (match.confidence < .5f) continue;
+		const auto& draw = drawBuffers_[currentBuffer_][ci];
+		bool allPositionsTrusted = true;
+		for (std::uint32_t i = 0; i < draw.indexCount; ++i)
+		{
+			const std::size_t offset = static_cast<std::size_t>(draw.firstIndex) + i;
+			if (offset >= currentIndices.size() || currentIndices[offset] >= previousPositions_.size()
+				|| previousPositions_[currentIndices[offset]].valid != 1.f)
+			{
+				allPositionsTrusted = false;
+				break;
+			}
+		}
+		if (!allPositionsTrusted) match.confidence = 0.f;
+	}
 }
 
 void NeuralInstrumentation::Discontinuity() noexcept

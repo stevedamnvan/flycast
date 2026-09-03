@@ -35,6 +35,17 @@ const D3D11_INPUT_ELEMENT_DESC MainLayout[]
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(Vertex, u),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, (UINT)offsetof(Vertex, nx),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
+#ifdef FLYCAST_ENABLE_NEURAL
+const D3D11_INPUT_ELEMENT_DESC NeuralLayout[]
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, (UINT)offsetof(Vertex, x), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, (UINT)offsetof(Vertex, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR",    1, DXGI_FORMAT_B8G8R8A8_UNORM, 0, (UINT)offsetof(Vertex, spc), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(Vertex, u), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, (UINT)offsetof(Vertex, nx), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "POSITION", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+#endif
 const D3D11_INPUT_ELEMENT_DESC ModVolLayout[]
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, (UINT)offsetof(ModTriangle, x0), D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -56,6 +67,12 @@ bool DX11Renderer::Init()
 	bool success = (bool)shaders->getVertexShader(true, true);
 	ComPtr<ID3DBlob> blob = shaders->getVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(MainLayout, std::size(MainLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &mainInputLayout.get()));
+#ifdef FLYCAST_ENABLE_NEURAL
+	blob = shaders->getNeuralVertexShaderBlob();
+	success = success && blob && SUCCEEDED(device->CreateInputLayout(NeuralLayout,
+		std::size(NeuralLayout), blob->GetBufferPointer(), blob->GetBufferSize(),
+		&neuralInputLayout.get()));
+#endif
 	blob = shaders->getMVVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(ModVolLayout, std::size(ModVolLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &modVolInputLayout.get()));
 
@@ -184,6 +201,7 @@ void DX11Renderer::Term()
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
 	releaseNeuralResources();
+	neuralInputLayout.reset();
 #endif
 #ifdef VIDEO_ROUTING
 	os_VideoRoutingTermDX();
@@ -395,6 +413,10 @@ void DX11Renderer::configVertexShader()
 	constant.topPlane[3] = 1;
 	constant.bottomPlane[1] = -1;
 	constant.bottomPlane[3] = 1;
+#ifdef FLYCAST_ENABLE_NEURAL
+	constant.neuralRenderSize[0] = static_cast<float>(width);
+	constant.neuralRenderSize[1] = static_cast<float>(height);
+#endif
 	D3D11_MAPPED_SUBRESOURCE mappedSubres;
 	deviceContext->Map(vtxConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
 	memcpy(mappedSubres.pData, &constant, sizeof(constant));
@@ -729,9 +751,11 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralDepthWidth = neuralDepthHeight = 0;
 	neuralExportSlot = 0;
 	neuralExportActive = false;
+	neuralPreviousPositionBuffer.reset();
+	neuralPreviousPositionBufferSize = 0;
 }
 
-void DX11Renderer::renderNeuralExports()
+bool DX11Renderer::renderNeuralExports()
 {
 	acquireNeuralInputs();
 	ID3D11UnorderedAccessView *nullUavs[2]{};
@@ -760,12 +784,36 @@ void DX11Renderer::renderNeuralExports()
 	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot], black);
 	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot], black);
 	deviceContext->ClearDepthStencilView(neuralDepthTargets[neuralExportSlot], D3D11_CLEAR_DEPTH, 0.f, 0);
+	const auto previousPositions = neuralInstrumentation.PreviousPositions();
+	const u32 previousPositionBytes = static_cast<u32>(previousPositions.size
+		* sizeof(flycast::rend::neural::PreviousPosition));
+	if (previousPositionBytes == 0 || !ensureBufferSize(neuralPreviousPositionBuffer,
+		D3D11_BIND_VERTEX_BUFFER, neuralPreviousPositionBufferSize, previousPositionBytes))
+	{
+		WARN_LOG(RENDERER, "Neural previous-position stream allocation failed");
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		releaseNeuralInputs();
+		return false;
+	}
+	D3D11_MAPPED_SUBRESOURCE previousMapped{};
+	if (FAILED(deviceContext->Map(neuralPreviousPositionBuffer, 0,
+		D3D11_MAP_WRITE_DISCARD, 0, &previousMapped)))
+	{
+		WARN_LOG(RENDERER, "Neural previous-position stream upload failed");
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		releaseNeuralInputs();
+		return false;
+	}
+	memcpy(previousMapped.pData, previousPositions.data, previousPositionBytes);
+	deviceContext->Unmap(neuralPreviousPositionBuffer, 0);
 	configVertexShader();
 	setupPixelShaderConstants();
-	deviceContext->IASetInputLayout(mainInputLayout);
-	unsigned int stride = sizeof(Vertex);
-	unsigned int offset = 0;
-	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.get(), &stride, &offset);
+	deviceContext->IASetInputLayout(neuralInputLayout);
+	ID3D11Buffer *vertexBuffers[] = {vertexBuffer.get(), neuralPreviousPositionBuffer.get()};
+	const unsigned int strides[] = {sizeof(Vertex), sizeof(flycast::rend::neural::PreviousPosition)};
+	const unsigned int offsets[] = {0, 0};
+	deviceContext->IASetVertexBuffers(0, static_cast<UINT>(std::size(vertexBuffers)),
+		vertexBuffers, strides, offsets);
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	neuralExportActive = true;
 	RenderPass previousPass{};
@@ -786,6 +834,7 @@ void DX11Renderer::renderNeuralExports()
 	neuralExportActive = false;
 	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 	releaseNeuralInputs();
+	return true;
 }
 
 flycast::rend::neural::TextureRef DX11Renderer::getNeuralTexture(
@@ -964,11 +1013,9 @@ void DX11Renderer::submitNeuralFrame()
 	neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
-	if (ensureNeuralResources())
-	{
-		neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
-		renderNeuralExports();
-	}
+	if (!ensureNeuralResources()) return;
+	neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
+	if (!renderNeuralExports()) return;
 	TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
 	TextureRef depth{};
@@ -1256,8 +1303,9 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			ordinal = rendContext->global_param_op.size() + rendContext->global_param_pt.size()
 				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
 		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
-		constants.neuralConfidence = 0.f;
-		constants.neuralBiasMask = 1.f;
+		const auto *match = neuralInstrumentation.MatchForOrdinal(ordinal);
+		constants.neuralConfidence = match ? match->confidence : 0.f;
+		constants.neuralBiasMask = constants.neuralConfidence >= .5f ? 0.f : 1.f;
 	}
 #endif
 
@@ -1277,7 +1325,12 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			gpuPalette = 2; // force linear
 	}
 
-	ComPtr<ID3D11VertexShader> vertexShader = shaders->getVertexShader(gp->pcw.Gouraud, gp->isNaomi2());
+	ComPtr<ID3D11VertexShader> vertexShader = shaders->getVertexShader(gp->pcw.Gouraud,
+		gp->isNaomi2()
+#ifdef FLYCAST_ENABLE_NEURAL
+		, neuralExportActive
+#endif
+		);
 	deviceContext->VSSetShader(vertexShader, nullptr, 0);
 	ComPtr<ID3D11PixelShader> pixelShader = shaders->getShader(
 			gp->pcw.Texture,

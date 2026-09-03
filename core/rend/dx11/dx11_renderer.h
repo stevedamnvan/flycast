@@ -80,8 +80,10 @@ protected:
 	    float transMatrix[4][4];
 	    float leftPlane[4];
 	    float topPlane[4];
-	    float rightPlane[4];
-	    float bottomPlane[4];
+		float rightPlane[4];
+		float bottomPlane[4];
+		float neuralRenderSize[2];
+		float neuralPadding[2];
 	};
 
 	struct PixelConstants
@@ -130,7 +132,7 @@ protected:
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();
 	bool ensureNeuralResources();
-	void renderNeuralExports();
+	bool renderNeuralExports();
 	void releaseNeuralResources() noexcept;
 	void logNeuralConsumerStatus(flycast::rend::neural::SubmitStatus status) noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
@@ -150,6 +152,7 @@ protected:
 	ComPtr<ID3D11Texture2D> depthTex;
 	ComPtr<ID3D11DepthStencilView> depthTexView;
 	ComPtr<ID3D11InputLayout> mainInputLayout;
+	ComPtr<ID3D11InputLayout> neuralInputLayout;
 	ComPtr<ID3D11InputLayout> modVolInputLayout;
 	ComPtr<ID3D11Buffer> pxlPolyConstants;
 	ComPtr<ID3D11Buffer> vertexBuffer;
@@ -198,6 +201,8 @@ protected:
 	int activeNeuralMode = -1;
 	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
+	ComPtr<ID3D11Buffer> neuralPreviousPositionBuffer;
+	u32 neuralPreviousPositionBufferSize = 0;
 	ComPtr<ID3D11ShaderResourceView> neuralPresentationView;
 	std::array<ComPtr<ID3D12Resource>, NeuralExportRingSize> neuralOutputD3D12Resources;
 	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralOutputWrappedTextures;

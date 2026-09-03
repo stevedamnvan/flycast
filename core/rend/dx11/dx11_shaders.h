@@ -53,13 +53,15 @@ public:
 	const ComPtr<ID3D11PixelShader>& getShader(bool pp_Texture, bool pp_UseAlpha, bool pp_IgnoreTexA, u32 pp_ShadInstr,
 			bool pp_Offset, u32 pp_FogCtrl, bool pp_BumpMap, bool fog_clamping, bool trilinear, int palette, bool gouraud,
 			bool alphaTest, bool clipInside, bool dithering, bool neuralExport = false);
-	const ComPtr<ID3D11VertexShader>& getVertexShader(bool gouraud, bool naomi2);
+	const ComPtr<ID3D11VertexShader>& getVertexShader(bool gouraud, bool naomi2,
+			bool neuralExport = false);
 	const ComPtr<ID3D11PixelShader>& getModVolShader();
 	const ComPtr<ID3D11VertexShader>& getMVVertexShader(bool naomi2);
 	const ComPtr<ID3D11PixelShader>& getQuadPixelShader();
 	const ComPtr<ID3D11VertexShader>& getQuadVertexShader(bool rotate);
 
 	ComPtr<ID3DBlob> getVertexShaderBlob();
+	ComPtr<ID3DBlob> getNeuralVertexShaderBlob();
 	ComPtr<ID3DBlob> getMVVertexShaderBlob();
 	ComPtr<ID3DBlob> getQuadVertexShaderBlob();
 
@@ -70,7 +72,7 @@ private:
 
 	ComPtr<ID3D11Device> device;
 	std::unordered_map<u32, ComPtr<ID3D11PixelShader>> shaders;
-	ComPtr<ID3D11VertexShader> vertexShaders[8];
+	ComPtr<ID3D11VertexShader> vertexShaders[16];
 	ComPtr<ID3D11PixelShader> modVolShader;
 	ComPtr<ID3D11VertexShader> modVolVertexShaders[4];
 	ComPtr<ID3D11PixelShader> quadPixelShader;

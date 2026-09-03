@@ -75,7 +75,7 @@ int RunSelfTests()
 	{
 		std::string error;
 		const bool valid = ValidateProductionExportShader(error);
-		suite.Expect(valid, "production native and neural-export pixel shaders compile");
+		suite.Expect(valid, "production native and neural-export vertex/pixel shaders compile");
 		if (!valid && !error.empty())
 			std::cerr << error << '\n';
 	}
@@ -473,10 +473,20 @@ int RunSelfTests()
 			previousPositions.data[1].valid == 1.f && previousPositions.data[1].x == 80.f &&
 			previousPositions.data[2].valid == 1.f && previousPositions.data[2].x == 40.f,
 			"accepted exact topology emits prior positions by strip index");
+		for (auto& vertex : context.verts) vertex.x += 6.f;
+		instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		const auto afterSkippedPositions = instrumentation->PreviousPositions();
+		suite.Expect(afterSkippedPositions.size == 3 &&
+			afterSkippedPositions.data[0].x == 10.f &&
+			afterSkippedPositions.data[1].x == 80.f &&
+			afterSkippedPositions.data[2].x == 40.f,
+			"unevaluated pose cannot replace accepted previous-position history");
 		context.idx = {0, 2, 1};
 		const auto& reindexed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		suite.Expect(reindexed.matches.data[0].tier != 0 &&
+			reindexed.matches.data[0].confidence == 0.f &&
 			instrumentation->TrustedPreviousVertexCount() == 0 &&
 			std::all_of(instrumentation->PreviousPositions().begin(),
 				instrumentation->PreviousPositions().end(),
@@ -517,6 +527,8 @@ int RunSelfTests()
 		instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		suite.Expect(instrumentation->TrustedPreviousVertexCount() == 0 &&
+			instrumentation->MatchForOrdinal(0)->confidence == 0.f &&
+			instrumentation->MatchForOrdinal(1)->confidence == 0.f &&
 			std::all_of(instrumentation->PreviousPositions().begin(),
 				instrumentation->PreviousPositions().end(),
 				[](const PreviousPosition& position) { return position.valid == 0.f; }),
@@ -565,6 +577,29 @@ int RunSelfTests()
 			"GPU motion contract matches analytic render-pixel truth");
 		suite.Expect(motionOk && motion.negativeControlsFail,
 			"reversed and doubled motion fail pixel reprojection");
+	}
+	{
+		ProductionMotionResult native;
+		ProductionMotionResult on12;
+		std::string fixtureError;
+		const bool nativeOk = RunProductionMotionFixture(false, native, fixtureError);
+		if (!nativeOk && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(nativeOk && native.analyticTruth,
+			"production PVR shader rasterizes accepted motion on native D3D11");
+		fixtureError.clear();
+		const bool on12Ok = RunProductionMotionFixture(true, on12, fixtureError);
+		if (!on12Ok && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(on12Ok && on12.analyticTruth,
+			"production PVR shader rasterizes accepted motion on D3D11On12");
+		suite.Expect(nativeOk && on12Ok && Near(native.trustedX, on12.trustedX)
+			&& Near(native.trustedY, on12.trustedY)
+			&& native.trustedMask == on12.trustedMask
+			&& native.trustedConfidence == on12.trustedConfidence
+			&& native.trustedDrawId == on12.trustedDrawId,
+			"production motion guidance is exact across D3D11 surfaces");
+		suite.Expect(nativeOk && on12Ok && native.invalidProtected && on12.invalidProtected
+			&& native.magnitudeProtected && on12.magnitudeProtected,
+			"invalid and excessive production motion are current-color protected");
 	}
 	{
 		ColorContractResult color;

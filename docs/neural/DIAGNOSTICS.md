@@ -43,11 +43,12 @@ visualization rather than infinity.
 The production seam exposes bounded draw metadata, deterministic snapshot
 hashes, frame/history identity, and a three-deep atomic export set: converted
 RGBA8 scene color, OP/PT-only R32 depth, RG16F motion, R8 bias mask, R8
-confidence, and R16_UINT draw ID. The current intermediate export clears motion
-and confidence to zero and bias to one because previous-position geometry is
-not yet bound. Draw IDs cover OP/PT replay only. No emulator-path readback
-exists. Runtime artifacts and Gates 3-6 remain pending; these allocated/bound
-resources are not accepted as pixel evidence.
+confidence, and R16_UINT draw ID. Exact-topology accepted positions are bound
+as a second vertex stream. The export shader writes previous-minus-current
+motion in render pixels and gates it by draw confidence, per-vertex validity,
+and a 128-pixel magnitude limit. Any rejection writes zero motion/confidence
+and bias one. Draw IDs cover OP/PT replay only. Emulator-path artifact capture
+and Gates 13-18 remain pending.
 
 Draw-history diagnostics refer to the last stage-accepted frame rather than
 the previous emulated frame. A FramebufferDirect package carries color,
@@ -68,6 +69,12 @@ strip indices; topology changes, Naomi 2 until transform history is implemented,
 out-of-range indices, reset/truncation, and conflicting mappings of one current
 vertex remain invalid. The history caps are 1,048,576 vertices and indices;
 overflow resets history rather than allocating without bound.
+
+The dedicated neural input layout drives both normal DX11 and the base guidance
+replay used after an OIT scene resolve. Current and previous unjittered screen
+positions are separate interpolants; raster position is not used to derive
+motion. Naomi 2 remains invalid until accepted historical model/projection
+matrices are available.
 
 The ROM-free Gate 11 command is `neuraltest depth-contract --api
 d3d11|d3d11on12 --out DIR`. It compiles the production pixel shader, writes

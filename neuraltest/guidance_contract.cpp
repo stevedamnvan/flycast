@@ -31,6 +31,23 @@ struct ContractVertex {
 	float color[4];
 };
 
+struct ProductionVertex {
+	float x;
+	float y;
+	float z;
+	std::uint32_t color;
+	std::uint32_t specular;
+	float u;
+	float v;
+};
+
+struct PreviousPosition {
+	float x;
+	float y;
+	float z;
+	float valid;
+};
+
 struct Surface {
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> context;
@@ -128,6 +145,24 @@ VSOut main(VSIn i) { VSOut o; o.pos=float4(i.pos, 0, 1); o.uv=float4(0,0,0,i.sou
 		return true;
 	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
 		diagnostics->GetBufferSize()) : HrText("compile depth contract vertex shader", hr);
+	return false;
+}
+
+bool CompileProductionVertex(const std::string& source, ComPtr<ID3DBlob>& code,
+	std::string& error)
+{
+	D3D_SHADER_MACRO macros[] = {
+		{"pp_Gouraud", "1"}, {"DIV_POS_Z", "0"}, {"POSITION_ONLY", "0"},
+		{"pp_TwoVolumes", "0"}, {"LIGHT_ON", "1"}, {"MODIFIER_VOLUME", "0"},
+		{"NEURAL_EXPORT", "1"}, {nullptr, nullptr}
+	};
+	ComPtr<ID3DBlob> diagnostics;
+	const HRESULT hr = D3DCompile(source.data(), source.size(), "production-motion-vertex",
+		macros, nullptr, "main", "vs_5_0", D3DCOMPILE_ENABLE_STRICTNESS |
+		D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, code.GetAddressOf(), diagnostics.GetAddressOf());
+	if (SUCCEEDED(hr)) return true;
+	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
+		diagnostics->GetBufferSize()) : HrText("compile production motion vertex shader", hr);
 	return false;
 }
 
@@ -288,6 +323,83 @@ bool ReadDepth(ID3D11Device *device, ID3D11DeviceContext *context, ID3D11Texture
 			static_cast<const std::uint8_t *>(mapped.pData) + static_cast<std::size_t>(y) * mapped.RowPitch,
 			static_cast<std::size_t>(desc.Width) * sizeof(float));
 	context->Unmap(staging.Get(), 0);
+	return true;
+}
+
+float HalfToFloat(std::uint16_t half)
+{
+	const std::uint32_t sign = static_cast<std::uint32_t>(half & 0x8000u) << 16;
+	std::uint32_t exponent = (half >> 10) & 0x1fu;
+	std::uint32_t mantissa = half & 0x3ffu;
+	std::uint32_t bits = 0;
+	if (exponent == 0)
+	{
+		if (mantissa == 0) bits = sign;
+		else
+		{
+			exponent = 127 - 15 + 1;
+			while ((mantissa & 0x400u) == 0) { mantissa <<= 1; --exponent; }
+			mantissa &= 0x3ffu;
+			bits = sign | (exponent << 23) | (mantissa << 13);
+		}
+	}
+	else if (exponent == 31) bits = sign | 0x7f800000u | (mantissa << 13);
+	else bits = sign | ((exponent + 127 - 15) << 23) | (mantissa << 13);
+	float value = 0.f;
+	std::memcpy(&value, &bits, sizeof(value));
+	return value;
+}
+
+bool ReadProductionGuidance(ID3D11Device *device, ID3D11DeviceContext *context,
+	const Targets& targets, ProductionMotionResult& result, bool trusted,
+	bool oversized, std::string& error)
+{
+	std::array<std::array<std::uint8_t, 4>, 4> samples{};
+	for (std::size_t i = 0; i < targets.guidance.size(); ++i)
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		targets.guidance[i]->GetDesc(&desc);
+		desc.Usage = D3D11_USAGE_STAGING;
+		desc.BindFlags = 0;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+		ComPtr<ID3D11Texture2D> staging;
+		HRESULT hr = device->CreateTexture2D(&desc, nullptr, staging.GetAddressOf());
+		if (SUCCEEDED(hr)) context->CopyResource(staging.Get(), targets.guidance[i].Get());
+		D3D11_MAPPED_SUBRESOURCE mapped{};
+		if (SUCCEEDED(hr)) hr = context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped);
+		if (FAILED(hr)) { error = HrText("read production motion guidance", hr); return false; }
+		const auto *pixel = static_cast<const std::uint8_t *>(mapped.pData)
+			+ static_cast<std::size_t>(Height / 2) * mapped.RowPitch
+			+ static_cast<std::size_t>(Width / 2) * (i == 0 ? 4 : i == 3 ? 2 : 1);
+		std::memcpy(samples[i].data(), pixel, i == 0 ? 4 : i == 3 ? 2 : 1);
+		context->Unmap(staging.Get(), 0);
+	}
+	std::uint16_t motionHalf[2]{};
+	std::memcpy(motionHalf, samples[0].data(), sizeof(motionHalf));
+	const float motionX = HalfToFloat(motionHalf[0]);
+	const float motionY = HalfToFloat(motionHalf[1]);
+	if (trusted)
+	{
+		result.trustedX = motionX;
+		result.trustedY = motionY;
+		result.trustedMask = samples[1][0];
+		result.trustedConfidence = samples[2][0];
+		std::memcpy(&result.trustedDrawId, samples[3].data(), sizeof(result.trustedDrawId));
+	}
+	else if (oversized)
+	{
+		result.oversizedX = motionX;
+		result.oversizedY = motionY;
+		result.oversizedMask = samples[1][0];
+		result.oversizedConfidence = samples[2][0];
+	}
+	else
+	{
+		result.invalidX = motionX;
+		result.invalidY = motionY;
+		result.invalidMask = samples[1][0];
+		result.invalidConfidence = samples[2][0];
+	}
 	return true;
 }
 
@@ -529,6 +641,204 @@ bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::s
 	return result.nearIsGreater && result.clearIsNoGeometry && result.visibleOrderingAgrees
 		&& result.punchThroughAgrees && result.reversedSubmissionStable
 		&& result.wrongOrderFailed && result.nativeExportExact;
+}
+
+bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
+	std::string& error)
+{
+	Surface surface;
+	if (!CreateSurface(d3d11On12, surface, error)) return false;
+	result.surface = surface.name;
+	result.adapter = surface.adapter;
+	std::ifstream input(std::string(NEURAL_SOURCE_DIR) + "/core/rend/dx11/dx11_shaders.cpp",
+		std::ios::binary);
+	if (!input) { error = "cannot open production dx11_shaders.cpp"; return false; }
+	std::ostringstream stream;
+	stream << input.rdbuf();
+	std::string common;
+	std::string pixel;
+	std::string vertex;
+	if (!ExtractRawString(stream.str(), "PixelShaderCommon", common)
+		|| !ExtractRawString(stream.str(), "PixelShader", pixel)
+		|| !ExtractRawString(stream.str(), "VertexShader", vertex))
+	{
+		error = "cannot extract production motion shaders";
+		return false;
+	}
+	PixelInclude includes(common);
+	ComPtr<ID3DBlob> vsCode;
+	ComPtr<ID3DBlob> psCode;
+	if (!CompileProductionVertex(vertex, vsCode, error)
+		|| !CompilePixel(pixel, includes, true, false, psCode, error)) return false;
+	ComPtr<ID3D11VertexShader> vs;
+	ComPtr<ID3D11PixelShader> ps;
+	HRESULT hr = surface.device->CreateVertexShader(vsCode->GetBufferPointer(),
+		vsCode->GetBufferSize(), nullptr, vs.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(psCode->GetBufferPointer(),
+		psCode->GetBufferSize(), nullptr, ps.GetAddressOf());
+	const D3D11_INPUT_ELEMENT_DESC elements[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 1, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,
+			D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	ComPtr<ID3D11InputLayout> layout;
+	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(elements,
+		static_cast<UINT>(std::size(elements)), vsCode->GetBufferPointer(), vsCode->GetBufferSize(),
+		layout.GetAddressOf());
+	if (FAILED(hr)) { error = HrText("create production motion shaders/layout", hr); return false; }
+
+	const ProductionVertex vertices[] = {
+		{-.5f, .5f, .0025f, 0xffffffffu, 0, 0, 0},
+		{ .5f, .5f, .0025f, 0xffffffffu, 0, 1, 0},
+		{-.5f,-.5f, .0025f, 0xffffffffu, 0, 0, 1},
+		{ .5f,-.5f, .0025f, 0xffffffffu, 0, 1, 1},
+	};
+	auto makePrevious = [](float deltaX, float deltaY, float valid) {
+		return std::array<PreviousPosition, 4>{{
+			{-.5f + deltaX, .5f + deltaY, .0025f, valid},
+			{ .5f + deltaX, .5f + deltaY, .0025f, valid},
+			{-.5f + deltaX,-.5f + deltaY, .0025f, valid},
+			{ .5f + deltaX,-.5f + deltaY, .0025f, valid},
+		}};
+	};
+	const auto trustedPrevious = makePrevious(-8.f / Width, -6.f / Height, 1.f);
+	const auto invalidPrevious = makePrevious(-8.f / Width, -6.f / Height, 0.f);
+	const auto oversizedPrevious = makePrevious(3.f, 0.f, 1.f);
+	auto createBuffer = [&](const void *data, UINT bytes, UINT bind, D3D11_USAGE usage,
+		ID3D11Buffer **buffer) {
+		D3D11_BUFFER_DESC desc{};
+		desc.ByteWidth = bytes;
+		desc.Usage = usage;
+		desc.BindFlags = bind;
+		D3D11_SUBRESOURCE_DATA initial{};
+		initial.pSysMem = data;
+		return surface.device->CreateBuffer(&desc, &initial, buffer);
+	};
+	ComPtr<ID3D11Buffer> vertexBuffer;
+	ComPtr<ID3D11Buffer> previousBuffer;
+	hr = createBuffer(vertices, sizeof(vertices), D3D11_BIND_VERTEX_BUFFER,
+		D3D11_USAGE_IMMUTABLE, vertexBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = createBuffer(trustedPrevious.data(), sizeof(trustedPrevious),
+		D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT, previousBuffer.GetAddressOf());
+
+	struct alignas(16) VertexConstants {
+		float matrix[16]; float planes[16]; float renderSize[2]; float padding[2];
+	} vertexConstants{};
+	vertexConstants.matrix[0] = vertexConstants.matrix[5] =
+		vertexConstants.matrix[10] = vertexConstants.matrix[15] = 1.f;
+	vertexConstants.planes[0] = 1.f; vertexConstants.planes[3] = 1.f;
+	vertexConstants.planes[5] = 1.f; vertexConstants.planes[7] = 1.f;
+	vertexConstants.planes[8] = -1.f; vertexConstants.planes[11] = 1.f;
+	vertexConstants.planes[13] = -1.f; vertexConstants.planes[15] = 1.f;
+	vertexConstants.renderSize[0] = static_cast<float>(Width);
+	vertexConstants.renderSize[1] = static_cast<float>(Height);
+	struct alignas(16) PixelConstants { float values[24]; } pixelConstants{};
+	struct alignas(16) PolyConstants {
+		float clip[4]; float palette; float trilinear; float confidence;
+		std::uint32_t drawId; float bias; float padding[3];
+	} polyConstants{};
+	polyConstants.trilinear = 1.f;
+	polyConstants.confidence = 1.f;
+	polyConstants.drawId = 7;
+	auto constantBuffer = [&](const void *data, UINT bytes, ID3D11Buffer **buffer) {
+		return createBuffer(data, bytes, D3D11_BIND_CONSTANT_BUFFER,
+			D3D11_USAGE_IMMUTABLE, buffer);
+	};
+	ComPtr<ID3D11Buffer> vertexConstantBuffer;
+	ComPtr<ID3D11Buffer> pixelConstantBuffer;
+	ComPtr<ID3D11Buffer> polyConstantBuffer;
+	if (SUCCEEDED(hr)) hr = constantBuffer(&vertexConstants, sizeof(vertexConstants),
+		vertexConstantBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = constantBuffer(&pixelConstants, sizeof(pixelConstants),
+		pixelConstantBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = constantBuffer(&polyConstants, sizeof(polyConstants),
+		polyConstantBuffer.GetAddressOf());
+	D3D11_RASTERIZER_DESC rasterDesc{};
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.DepthClipEnable = TRUE;
+	ComPtr<ID3D11RasterizerState> raster;
+	if (SUCCEEDED(hr)) hr = surface.device->CreateRasterizerState(&rasterDesc,
+		raster.GetAddressOf());
+	D3D11_DEPTH_STENCIL_DESC depthDesc{};
+	depthDesc.DepthEnable = TRUE;
+	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	ComPtr<ID3D11DepthStencilState> depthState;
+	if (SUCCEEDED(hr)) hr = surface.device->CreateDepthStencilState(&depthDesc,
+		depthState.GetAddressOf());
+	if (FAILED(hr)) { error = HrText("create production motion buffers/state", hr); return false; }
+	Targets targets;
+	if (!CreateTargets(surface.device.Get(), targets, error)) return false;
+
+	auto render = [&](const auto& positions, bool trusted, bool oversized) {
+		surface.context->UpdateSubresource(previousBuffer.Get(), 0, nullptr,
+			positions.data(), 0, 0);
+		const float zero[4]{};
+		const float one[4] = {1,1,1,1};
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[0].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[1].Get(), one);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[2].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[3].Get(), zero);
+		surface.context->ClearDepthStencilView(targets.depthTarget.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
+		ID3D11RenderTargetView *views[] = {targets.guidanceTargets[0].Get(),
+			targets.guidanceTargets[1].Get(), targets.guidanceTargets[2].Get(),
+			targets.guidanceTargets[3].Get()};
+		surface.context->OMSetRenderTargets(static_cast<UINT>(std::size(views)), views,
+			targets.depthTarget.Get());
+		D3D11_VIEWPORT viewport{0,0,static_cast<float>(Width),static_cast<float>(Height),0,1};
+		surface.context->RSSetViewports(1, &viewport);
+		surface.context->RSSetState(raster.Get());
+		surface.context->OMSetDepthStencilState(depthState.Get(), 0);
+		ID3D11Buffer *buffers[] = {vertexBuffer.Get(), previousBuffer.Get()};
+		const UINT strides[] = {sizeof(ProductionVertex), sizeof(PreviousPosition)};
+		const UINT offsets[] = {0,0};
+		surface.context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+		surface.context->IASetInputLayout(layout.Get());
+		surface.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		surface.context->VSSetShader(vs.Get(), nullptr, 0);
+		ID3D11Buffer *vsConstants[] = {vertexConstantBuffer.Get()};
+		surface.context->VSSetConstantBuffers(0, 1, vsConstants);
+		surface.context->PSSetShader(ps.Get(), nullptr, 0);
+		ID3D11Buffer *psConstants[] = {pixelConstantBuffer.Get(), polyConstantBuffer.Get()};
+		surface.context->PSSetConstantBuffers(0, 2, psConstants);
+		surface.context->Draw(4, 0);
+		surface.context->Flush();
+		return ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
+			result, trusted, oversized, error);
+	};
+	if (!render(trustedPrevious, true, false)
+		|| !render(invalidPrevious, false, false)
+		|| !render(oversizedPrevious, false, true)) return false;
+	const auto close = [](float a, float b) { return std::abs(a - b) <= .01f; };
+	result.analyticTruth = close(result.trustedX, -4.f) && close(result.trustedY, 3.f)
+		&& result.trustedMask == 0 && result.trustedConfidence == 255
+		&& result.trustedDrawId == 7;
+	result.invalidProtected = result.invalidX == 0.f && result.invalidY == 0.f
+		&& result.invalidMask == 255 && result.invalidConfidence == 0;
+	result.magnitudeProtected = result.oversizedX == 0.f && result.oversizedY == 0.f
+		&& result.oversizedMask == 255 && result.oversizedConfidence == 0;
+	const bool passed = result.analyticTruth && result.invalidProtected
+		&& result.magnitudeProtected;
+	if (!passed)
+	{
+		std::ostringstream detail;
+		detail << result.surface << " production motion samples: trusted=["
+			<< result.trustedX << ',' << result.trustedY << "] mask="
+			<< static_cast<unsigned>(result.trustedMask) << " confidence="
+			<< static_cast<unsigned>(result.trustedConfidence) << " draw="
+			<< result.trustedDrawId << " invalid=[" << result.invalidX << ','
+			<< result.invalidY << "] mask=" << static_cast<unsigned>(result.invalidMask)
+			<< " confidence=" << static_cast<unsigned>(result.invalidConfidence)
+			<< " oversized=[" << result.oversizedX << ',' << result.oversizedY
+			<< "] mask=" << static_cast<unsigned>(result.oversizedMask)
+			<< " confidence=" << static_cast<unsigned>(result.oversizedConfidence);
+		error = detail.str();
+	}
+	return passed;
 }
 
 } // namespace neuraltest

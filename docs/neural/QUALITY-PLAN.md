@@ -94,20 +94,24 @@ close a temporal or title-quality gate.
 - Gate 12: green at LOG #62 for the synthetic guidance contract. RG16F motion
   matches analytic static/translation/camera/deformation truth; jitter-only is
   zero; pixel reprojection and public DLAA both reject reversed/doubled motion.
-  Production PVR previous-position wiring remains Q2 work under FC-032/FC-035.
+  LOG #67 additionally proves the real production PVR vertex/pixel shader pair
+  emits `[-4,+3]` render-pixel motion identically on native D3D11 and
+  D3D11On12. Invalid and over-limit controls emit zero motion/confidence and
+  full current-color bias.
 - Q1 SDR/color/rectangle contract: green at LOG #63. The production quad path
   is byte-exact for the deterministic chart; public DLAA is exact in 214,320
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
   Content-rectangle examples and odd-size centering are exact. Black-border
   exclusion still depends on the production target-resolution work in FC-053.
-- Gate 13/Q2 correspondence: partial at LOG #64. Structural identity is
+- Gate 13/Q2 correspondence: partial at LOG #64 and #67. Structural identity is
   pose-independent, texture/palette/RTT generations are explicit, repeated
   small buckets use minimum-cost assignment, and large buckets are ambiguous.
-  Previous-position rasterization and full confidence/disocclusion evidence
-  remain open, so Gate 13 is not yet green.
-- FC-032 previous-position stream: partial at LOG #66. The bounded CPU stream
+  Previous-position rasterization is now live for exact topology; full
+  confidence/disocclusion evidence remains open, so Gate 13 is not yet green.
+- FC-032 previous-position stream: partial at LOG #66 and #67. The bounded CPU stream
   is owned by last accepted history, maps exact topology by strip/index
   position, supports deformation, and rejects reindex and shared-vertex
-  conflicts. Production DX11 shader binding and Naomi 2 transform history are
-  still required before motion can be trusted.
+  conflicts. It is bound to a dedicated DX11 input layout and drives the normal
+  and OIT guidance replay. Naomi 2 transform history is still required and is
+  deliberately validity zero rather than using current matrices on prior pose.
 - Gates 13 through 18: pending.

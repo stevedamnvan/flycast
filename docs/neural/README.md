@@ -34,6 +34,11 @@ The synthetic motion convention is exercised by `neuraltest motion-contract
 constant `--motion-x/--motion-y` values; production motion remains geometry
 derived and does not expose those overrides.
 
+`neuraltest selftest` also executes the real production PVR export shader pair
+on native D3D11 and D3D11On12. It checks accepted `[-4,+3]` render-pixel motion
+and falsifies invalid/excessive guidance by requiring zero motion/confidence and
+full current-color bias.
+
 The ROM-free SDR and rectangle contract is exercised by `neuraltest
 color-contract --out DIR`. It compiles the production DX11 presentation quad,
 round-trips an `R8G8B8A8_UNORM` ramp/patch/alpha/checker chart, and checks exact

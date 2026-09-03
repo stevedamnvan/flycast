@@ -32,6 +32,9 @@ const char * const VertexShader = R"(
 struct VertexIn
 {
 	float4 pos : POSITION;
+	#if NEURAL_EXPORT == 1
+	float4 previousPos : POSITION1;
+	#endif
 	float4 col : COLOR0;
 	float4 spec : COLOR1;
 	float2 uv : TEXCOORD0;
@@ -41,6 +44,10 @@ struct VertexOut
 {
 	float4 pos : SV_POSITION;
 	float4 uv : TEXCOORD0;
+	#if NEURAL_EXPORT == 1
+	noperspective float4 neuralScreen : TEXCOORD2;
+	noperspective float neuralPositionValid : TEXCOORD3;
+	#endif
 	INTERPOLATION float4 col : COLOR0;
 	INTERPOLATION float4 spec : COLOR1;
 };
@@ -52,6 +59,8 @@ cbuffer constantBuffer : register(b0)
 	float4 topPlane;
 	float4 rightPlane;
 	float4 bottomPlane;
+	float2 neuralRenderSize;
+	float2 neuralPadding;
 };
 
 [clipplanes(leftPlane, topPlane, rightPlane, bottomPlane)]
@@ -59,9 +68,16 @@ VertexOut main(in VertexIn vin)
 {
 	VertexOut vo;
 	vo.pos = mul(transMatrix, float4(vin.pos.xyz, 1.f));
+	#if NEURAL_EXPORT == 1
+	float4 previousClip = mul(transMatrix, float4(vin.previousPos.xyz, 1.f));
+	#endif
 #if DIV_POS_Z == 1
 	vo.pos /= vo.pos.z;
 	vo.pos.z = vo.pos.w;
+	#if NEURAL_EXPORT == 1
+	previousClip /= previousClip.z;
+	previousClip.z = previousClip.w;
+	#endif
 #endif
 	vo.col = vin.col;
 	vo.spec = vin.spec;
@@ -79,6 +95,16 @@ VertexOut main(in VertexIn vin)
 	vo.pos.w = 1.f;
 	vo.pos.z = 0.f;
 #endif
+	#if NEURAL_EXPORT == 1
+	float2 currentNdc = vo.pos.xy / vo.pos.w;
+	float2 previousNdc = previousClip.xy / previousClip.w;
+	vo.neuralScreen = float4(
+		(currentNdc.x * .5f + .5f) * neuralRenderSize.x,
+		(.5f - currentNdc.y * .5f) * neuralRenderSize.y,
+		(previousNdc.x * .5f + .5f) * neuralRenderSize.x,
+		(.5f - previousNdc.y * .5f) * neuralRenderSize.y);
+	vo.neuralPositionValid = vin.previousPos.w;
+	#endif
 
 	return vo;
 }
@@ -245,6 +271,10 @@ struct Pixel
 {
 	float4 pos : SV_POSITION;
 	float4 uv : TEXCOORD0;
+	#if NEURAL_EXPORT == 1
+	noperspective float4 neuralScreen : TEXCOORD2;
+	noperspective float neuralPositionValid : TEXCOORD3;
+	#endif
 	INTERPOLATION float4 col : COLOR0;
 	INTERPOLATION float4 spec : COLOR1;
 };
@@ -369,11 +399,13 @@ PSO main(in Pixel inpix)
 #endif
 	pso.z = log2(1.0f + max(w, -0.999999f)) / 34.0f;
 	#if NEURAL_EXPORT == 1
-	// Zero motion remains explicitly untrusted until the correspondence vertex
-	// stream is supplied; consumers must use current color for these pixels.
-	pso.motion = float2(0.f, 0.f);
-	pso.mask = neuralBiasMask;
-	pso.confidence = neuralConfidence;
+	float2 candidateMotion = inpix.neuralScreen.zw - inpix.neuralScreen.xy;
+	float magnitudeSquared = dot(candidateMotion, candidateMotion);
+	float trusted = step(.9999f, inpix.neuralPositionValid)
+		* step(.5f, neuralConfidence) * step(magnitudeSquared, 128.f * 128.f);
+	pso.motion = candidateMotion * trusted;
+	pso.mask = max(neuralBiasMask, 1.f - trusted);
+	pso.confidence = neuralConfidence * trusted;
 	pso.drawId = neuralDrawId;
 	#else
 	pso.col = color;
@@ -486,6 +518,7 @@ enum VertexMacroEnum {
 	MacroTwoVolumes,
 	MacroLightOn,
 	MacroModifierVolume,
+	MacroVertexNeuralExport,
 };
 
 static D3D_SHADER_MACRO VertexMacros[]
@@ -496,6 +529,7 @@ static D3D_SHADER_MACRO VertexMacros[]
 	{ "pp_TwoVolumes", "0" },
 	{ "LIGHT_ON", "1" },
 	{ "MODIFIER_VOLUME", "0" },
+	{ "NEURAL_EXPORT", "0" },
 	{ nullptr, nullptr }
 };
 
@@ -587,14 +621,17 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getShader(bool pp_Texture, bool pp
 	return shader;
 }
 
-const ComPtr<ID3D11VertexShader>& DX11Shaders::getVertexShader(bool gouraud, bool naomi2)
+const ComPtr<ID3D11VertexShader>& DX11Shaders::getVertexShader(bool gouraud, bool naomi2,
+	bool neuralExport)
 {
 	bool divPosZ = !settings.platform.isNaomi2() && config::NativeDepthInterpolation;
-	int index = (int)gouraud | ((int)naomi2 << 1) | ((int)divPosZ << 2);
+	int index = (int)gouraud | ((int)naomi2 << 1) | ((int)divPosZ << 2)
+		| ((int)neuralExport << 3);
 	ComPtr<ID3D11VertexShader>& vertexShader = vertexShaders[index];
 	if (!vertexShader)
 	{
 		VertexMacros[MacroGouraud].Definition = MacroValues[gouraud];
+		VertexMacros[MacroVertexNeuralExport].Definition = MacroValues[neuralExport];
 		if (!naomi2)
 		{
 			VertexMacros[MacroDivPosZ].Definition = MacroValues[divPosZ];
@@ -621,6 +658,7 @@ const ComPtr<ID3D11VertexShader>& DX11Shaders::getMVVertexShader(bool naomi2)
 	int index = (int)naomi2 | ((int)divPosZ << 1);
 	if (!modVolVertexShaders[index])
 	{
+		VertexMacros[MacroVertexNeuralExport].Definition = MacroValues[false];
 		if (!naomi2)
 		{
 			VertexMacros[MacroDivPosZ].Definition = MacroValues[divPosZ];
@@ -723,6 +761,7 @@ ComPtr<ID3D11PixelShader> DX11Shaders::compilePS(const char* source, const char*
 ComPtr<ID3DBlob> DX11Shaders::getVertexShaderBlob()
 {
 	VertexMacros[MacroGouraud].Definition = MacroValues[true];
+	VertexMacros[MacroVertexNeuralExport].Definition = MacroValues[false];
 	// FIXME code dup
 	VertexMacros[MacroPositionOnly].Definition = MacroValues[false];
 	VertexMacros[MacroTwoVolumes].Definition = MacroValues[false];
@@ -732,10 +771,25 @@ ComPtr<ID3DBlob> DX11Shaders::getVertexShaderBlob()
 	return compileShader(source.c_str(), "main", "vs_4_0", VertexMacros);
 }
 
+ComPtr<ID3DBlob> DX11Shaders::getNeuralVertexShaderBlob()
+{
+	VertexMacros[MacroGouraud].Definition = MacroValues[true];
+	VertexMacros[MacroDivPosZ].Definition = MacroValues[false];
+	VertexMacros[MacroPositionOnly].Definition = MacroValues[false];
+	VertexMacros[MacroTwoVolumes].Definition = MacroValues[false];
+	VertexMacros[MacroLightOn].Definition = MacroValues[true];
+	VertexMacros[MacroModifierVolume].Definition = MacroValues[false];
+	VertexMacros[MacroVertexNeuralExport].Definition = MacroValues[true];
+	std::string source(DX11N2VertexShader);
+	source += std::string("\n") + DX11N2ColorShader;
+	return compileShader(source.c_str(), "main", "vs_4_0", VertexMacros);
+}
+
 ComPtr<ID3DBlob> DX11Shaders::getMVVertexShaderBlob()
 {
 	// FIXME code dup
 	VertexMacros[MacroGouraud].Definition = MacroValues[false];
+	VertexMacros[MacroVertexNeuralExport].Definition = MacroValues[false];
 	VertexMacros[MacroPositionOnly].Definition = MacroValues[true];
 	VertexMacros[MacroTwoVolumes].Definition = MacroValues[false];
 	VertexMacros[MacroModifierVolume].Definition = MacroValues[true];

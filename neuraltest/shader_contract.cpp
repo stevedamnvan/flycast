@@ -50,7 +50,7 @@ private:
 	const std::string& common_;
 };
 
-bool Compile(const std::string& source, const char *neuralExport,
+bool CompilePixel(const std::string& source, const char *neuralExport,
 	PixelInclude& includes, std::string& error)
 {
 	D3D_SHADER_MACRO macros[] = {
@@ -73,30 +73,73 @@ bool Compile(const std::string& source, const char *neuralExport,
 	return false;
 }
 
+bool CompileVertex(const std::string& source, bool divPosZ, bool neuralExport,
+	bool naomi2, std::string& error)
+{
+	D3D_SHADER_MACRO macros[] = {
+		{"pp_Gouraud", "1"}, {"DIV_POS_Z", divPosZ ? "1" : "0"},
+		{"POSITION_ONLY", "0"}, {"pp_TwoVolumes", "0"}, {"LIGHT_ON", "1"},
+		{"MODIFIER_VOLUME", "0"}, {"NEURAL_EXPORT", neuralExport ? "1" : "0"},
+		{nullptr, nullptr}
+	};
+	ComPtr<ID3DBlob> code;
+	ComPtr<ID3DBlob> diagnostics;
+	const HRESULT result = D3DCompile(source.data(), source.size(),
+		naomi2 ? "dx11_naomi2.cpp" : "dx11_shaders.cpp", macros, nullptr,
+		"main", "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
+		code.GetAddressOf(), diagnostics.GetAddressOf());
+	if (SUCCEEDED(result)) return true;
+	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
+		diagnostics->GetBufferSize()) : "D3DCompile failed without diagnostics";
+	return false;
+}
+
+bool ReadSource(const char *relativePath, std::string& source)
+{
+	std::ifstream input(std::string(NEURAL_SOURCE_DIR) + '/' + relativePath, std::ios::binary);
+	if (!input) return false;
+	std::ostringstream stream;
+	stream << input.rdbuf();
+	source = stream.str();
+	return true;
+}
+
 } // namespace
 
 bool ValidateProductionExportShader(std::string& error)
 {
-	std::ifstream input(std::string(NEURAL_SOURCE_DIR) + "/core/rend/dx11/dx11_shaders.cpp",
-		std::ios::binary);
-	if (!input)
+	std::string source;
+	std::string naomiSource;
+	if (!ReadSource("core/rend/dx11/dx11_shaders.cpp", source)
+		|| !ReadSource("core/rend/dx11/dx11_naomi2.cpp", naomiSource))
 	{
-		error = "cannot open production dx11_shaders.cpp";
+		error = "cannot open production DX11 shader sources";
 		return false;
 	}
-	std::ostringstream stream;
-	stream << input.rdbuf();
 	std::string common;
 	std::string pixel;
-	const auto source = stream.str();
+	std::string vertex;
+	std::string naomiVertex;
+	std::string naomiColor;
 	if (!ExtractRawString(source, "PixelShaderCommon", common)
-		|| !ExtractRawString(source, "PixelShader", pixel))
+		|| !ExtractRawString(source, "PixelShader", pixel)
+		|| !ExtractRawString(source, "VertexShader", vertex)
+		|| !ExtractRawString(naomiSource, "DX11N2VertexShader", naomiVertex)
+		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor))
 	{
-		error = "cannot extract production pixel shader raw strings";
+		error = "cannot extract production DX11 shader raw strings";
 		return false;
 	}
 	PixelInclude includes(common);
-	return Compile(pixel, "0", includes, error) && Compile(pixel, "1", includes, error);
+	const std::string naomi = naomiVertex + '\n' + naomiColor;
+	return CompilePixel(pixel, "0", includes, error)
+		&& CompilePixel(pixel, "1", includes, error)
+		&& CompileVertex(vertex, false, false, false, error)
+		&& CompileVertex(vertex, true, false, false, error)
+		&& CompileVertex(vertex, false, true, false, error)
+		&& CompileVertex(vertex, true, true, false, error)
+		&& CompileVertex(naomi, false, false, true, error)
+		&& CompileVertex(naomi, false, true, true, error);
 }
 
 } // namespace neuraltest

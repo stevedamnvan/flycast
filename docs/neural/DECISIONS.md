@@ -95,9 +95,9 @@ reset. RTT branches do not call the stage.
 The production DX11 export ring now owns the complete required texture format
 set. Its export-only pixel-shader permutation reuses the existing texture,
 alpha-test, clipping, and depth behavior for opaque and punch-through replay.
-Until previous-position geometry is bound, motion is cleared to zero and every
-pixel's bias-current-color mask remains one; confidence is zero. This is a safe
-intermediate contract, not motion evidence. Draw ID zero remains background and
+Unmatched or invalid previous-position geometry clears motion to zero and sets
+bias-current-color to one with zero confidence. Exact accepted topology may now
+emit geometry-derived motion under D-033. Draw ID zero remains background and
 opaque/punch-through draws use global snapshot ordinal plus one. Translucent
 draw-ID/mask coverage remains pending and cannot close FC-025 or FC-033.
 
@@ -403,3 +403,24 @@ invalidated. Reindexed topology, resets, truncated frames, and out-of-range
 indices emit validity zero. Naomi 2 is also validity zero until previous matrix
 state is carried and proven; applying current matrices to prior model-space
 positions would create false camera/object motion.
+
+## D-033: production motion is a validity-gated second vertex stream
+
+The normal DX11 guidance replay, including the base replay used after the OIT
+scene resolve, binds accepted XYZ plus validity in input slot 1. Its neural-only
+vertex permutation carries current and previous unjittered screen positions as
+separate `noperspective` interpolants. The pixel permutation writes
+previous-minus-current in render pixels. This deliberately does not derive
+current position from `SV_POSITION`, so later current-frame raster jitter cannot
+leak into the motion vector.
+
+Match confidence below 0.5, any invalid vertex in a draw, or motion above 128
+render pixels produces zero motion, zero confidence, and public
+`BiasCurrentColorMask=1`. The production-shader fixture proves `[-4,+3]`, draw
+ID 7, mask 0, and confidence 255 for trusted motion on native D3D11 and
+D3D11On12; invalid and excessive controls are fully protected. Naomi 2 stays
+invalid until prior model/projection matrices are retained and proven.
+
+If the second stream cannot be allocated or uploaded, the atomic export reports
+failure and the frame is not submitted to the neural stage, so it cannot advance
+accepted history with cleared or stale guidance.

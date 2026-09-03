@@ -44,6 +44,10 @@ public:
 	{
 		return trustedPreviousVertexCount_;
 	}
+	const DrawMatch *MatchForOrdinal(std::size_t ordinal) const noexcept
+	{
+		return ordinal < drawCounts_[currentBuffer_] ? &matchBuffer_[ordinal] : nullptr;
+	}
 
 private:
 	using DrawBuffer = std::array<DrawRecord, MaxDraws>;
