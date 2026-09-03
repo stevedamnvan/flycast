@@ -562,10 +562,8 @@ flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
 		std::swap(outputWidth, outputHeight);
 		renderAspect = 1.f / renderAspect;
 	}
-	int dx = 0;
-	int dy = 0;
-	getWindowboxDimensions(outputWidth, outputHeight, renderAspect, dx, dy, false);
-	return {dx, dy, outputWidth - 2 * dx, outputHeight - 2 * dy};
+	return flycast::rend::neural::ComputeContentRect(outputWidth, outputHeight,
+		renderAspect, config::IntegerScale, config::RenderResolution);
 }
 
 bool DX11Renderer::ensureNeuralDepthResources()

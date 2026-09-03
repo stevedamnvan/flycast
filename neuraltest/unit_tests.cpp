@@ -5,6 +5,7 @@
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -111,6 +112,18 @@ int RunSelfTests()
 			"matcher tier 3 similarity");
 	}
 	{
+		DrawRecord previous = base;
+		DrawRecord current = base;
+		current.vertexCount += 2;
+		current.indexCount += 2;
+		current.geomSig++;
+		current.ordinal += 8;
+		current.bboxMin[0] += 4;
+		const auto result = MatchDraws({&previous, 1}, {&current, 1});
+		suite.Expect(result[0].tier == 2 && StripCoverage(previous, current) >= .9f,
+			"strip-level changed-count match retains covered region");
+	}
+	{
 		DrawRecord reactive = base;
 		reactive.list = 2;
 		reactive.bboxMax[0] = reactive.bboxMin[0] + 8;
@@ -142,6 +155,32 @@ int RunSelfTests()
 			roundTrip = roundTrip && Near(value.x, previous[i].x) && Near(value.y, previous[i].y);
 		}
 		suite.Expect(roundTrip, "rigid similarity fit round-trip");
+	}
+	{
+		const float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0,
+			0, 0, 1, 0, 0, 0, 0, 1};
+		float translated[16];
+		std::copy(std::begin(identity), std::end(identity), translated);
+		translated[12] = 4.f;
+		translated[13] = -3.f;
+		const auto projected = ProjectNaomi2(translated, identity, identity, {2.f, 5.f, 1.f});
+		suite.Expect(Near(projected.x, 6.f) && Near(projected.y, 2.f),
+			"Naomi 2 exact matrix path follows column-major shader transform");
+	}
+	{
+		DrawMatch unmatched{};
+		const auto rejected = ClassifyMotion(unmatched, {40.f, -7.f}, false, false);
+		DrawMatch exact{};
+		exact.confidence = 1.f;
+		exact.reason = static_cast<std::uint8_t>(MatchReason::Exact);
+		const auto trusted = ClassifyMotion(exact, {4.f, 0.f}, false, false);
+		const auto tooLarge = ClassifyMotion(exact, {129.f, 0.f}, false, false);
+		suite.Expect(!rejected.trusted && rejected.biasCurrentColor && Near(rejected.motion.x, 0.f),
+			"unmatched draw emits zero motion and current-color bias");
+		suite.Expect(trusted.trusted && !trusted.biasCurrentColor && Near(trusted.motion.x, 4.f),
+			"trusted motion survives classification");
+		suite.Expect(!tooLarge.trusted && tooLarge.biasCurrentColor && Near(tooLarge.motion.x, 0.f),
+			"motion above 128 native pixels is rejected");
 	}
 	{
 		HistoryTracker history;
@@ -250,6 +289,21 @@ int RunSelfTests()
 			"jitter phase count");
 	}
 	suite.Expect(IsSceneCut(34, 100) && !IsSceneCut(35, 100), "scene-cut threshold");
+	{
+		const auto fourThree = ComputeContentRect(1920, 1080, 4.f / 3.f, false, 480);
+		const auto widescreen = ComputeContentRect(1920, 1080, 16.f / 9.f, false, 480);
+		suite.Expect(fourThree.x == 240 && fourThree.y == 0 && fourThree.width == 1440 &&
+			fourThree.height == 1080 && widescreen.x == 0 && widescreen.width == 1920,
+			"content rect respects 4:3 and widescreen aspect");
+	}
+	{
+		const float sourceDepth = .375f;
+		const float legacyEncoded = std::log2(1.f + 100000.f * sourceDepth) / 34.f;
+		const float nativeEncoded = std::log2(1.f + 100000.f / sourceDepth) / 34.f;
+		suite.Expect(Near(InvertLegacyDepth(legacyEncoded, false), sourceDepth, 1e-3f) &&
+			Near(InvertLegacyDepth(nativeEncoded, true), sourceDepth, 1e-3f),
+			"depth visualization inverse covers legacy and DIV_POS_Z paths");
+	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;

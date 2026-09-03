@@ -194,6 +194,24 @@ void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> curren
 	}
 }
 
+float StripCoverage(const DrawRecord& previous, const DrawRecord& current) noexcept
+{
+	if (previous.list != current.list || previous.pass != current.pass ||
+		previous.stateSig != current.stateSig || previous.texId != current.texId ||
+		previous.uvSig != current.uvSig || previous.stripCount == 0 || current.stripCount == 0)
+		return 0.f;
+	const int left = std::max<int>(previous.bboxMin[0], current.bboxMin[0]);
+	const int top = std::max<int>(previous.bboxMin[1], current.bboxMin[1]);
+	const int right = std::min<int>(previous.bboxMax[0], current.bboxMax[0]);
+	const int bottom = std::min<int>(previous.bboxMax[1], current.bboxMax[1]);
+	const int currentWidth = std::max(0, static_cast<int>(current.bboxMax[0]) - current.bboxMin[0]);
+	const int currentHeight = std::max(0, static_cast<int>(current.bboxMax[1]) - current.bboxMin[1]);
+	const int currentArea = currentWidth * currentHeight;
+	if (currentArea == 0) return 0.f;
+	const int overlapArea = std::max(0, right - left) * std::max(0, bottom - top);
+	return static_cast<float>(overlapArea) / static_cast<float>(currentArea);
+}
+
 SimilarityTransform FitSimilarity(ArrayView<Point2> previous, ArrayView<Point2> current) noexcept
 {
 	SimilarityTransform transform;
@@ -234,10 +252,107 @@ SimilarityTransform FitSimilarity(ArrayView<Point2> previous, ArrayView<Point2> 
 	return transform;
 }
 
+namespace {
+
+void Transform4(const float *matrix, const float input[4], float output[4]) noexcept
+{
+	for (int row = 0; row < 4; ++row)
+		output[row] = matrix[row] * input[0] + matrix[4 + row] * input[1] +
+			matrix[8 + row] * input[2] + matrix[12 + row] * input[3];
+}
+
+} // namespace
+
+Point2 ProjectNaomi2(const float *modelView, const float *projection,
+	const float *ndc, Point3 position) noexcept
+{
+	const float input[4] = {position.x, position.y, position.z, 1.f};
+	float view[4]{};
+	float clip[4]{};
+	Transform4(modelView, input, view);
+	Transform4(projection, view, clip);
+	if (std::abs(clip[3]) <= std::numeric_limits<float>::epsilon()) return {};
+	const float projected[4] = {clip[0] / clip[3], clip[1] / clip[3],
+		1.f / clip[3], 1.f};
+	float output[4]{};
+	Transform4(ndc, projected, output);
+	return {output[0], output[1]};
+}
+
+MotionTrust ClassifyMotion(const DrawMatch& match, Point2 motion,
+	bool resetHistory, bool truncated) noexcept
+{
+	MotionTrust result;
+	result.motion = motion;
+	result.confidence = match.confidence;
+	const float magnitudeSquared = motion.x * motion.x + motion.y * motion.y;
+	const bool reactive = match.reason == static_cast<std::uint8_t>(MatchReason::Reactive);
+	result.trusted = !resetHistory && !truncated && !reactive &&
+		match.confidence >= .5f && magnitudeSquared <= 128.f * 128.f;
+	result.biasCurrentColor = !result.trusted;
+	if (!result.trusted)
+		result.motion = {};
+	return result;
+}
+
 bool IsSceneCut(std::uint64_t matchedArea, std::uint64_t totalArea, float minimumRatio) noexcept
 {
 	return totalArea == 0 || static_cast<double>(matchedArea) /
 		static_cast<double>(totalArea) < minimumRatio;
+}
+
+float InvertLegacyDepth(float encodedDepth, bool divPosZ) noexcept
+{
+	const float scaled = std::exp2(encodedDepth * 34.f) - 1.f;
+	if (scaled <= std::numeric_limits<float>::epsilon())
+		return 0.f;
+	return divPosZ ? 100000.f / scaled : scaled / 100000.f;
+}
+
+Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
+	float renderAspect, bool integerScale, std::uint32_t renderResolution) noexcept
+{
+	Rect result{0, 0, static_cast<std::int32_t>(outputWidth),
+		static_cast<std::int32_t>(outputHeight)};
+	if (outputWidth == 0 || outputHeight == 0 || renderAspect <= 0.f)
+		return {};
+	if (integerScale)
+	{
+		if (renderResolution == 0) return result;
+		const int framebufferHeight = static_cast<int>(renderResolution);
+		const int framebufferWidth = static_cast<int>(renderAspect * framebufferHeight);
+		int scale = std::min(static_cast<int>(outputWidth) / framebufferWidth,
+			static_cast<int>(outputHeight) / framebufferHeight);
+		if (scale == 0)
+		{
+			scale = std::max(framebufferWidth / static_cast<int>(outputWidth),
+				framebufferHeight / static_cast<int>(outputHeight)) + 1;
+			result.x = (static_cast<int>(outputWidth) - framebufferWidth / scale) / 2;
+			result.y = (static_cast<int>(outputHeight) - framebufferHeight / scale) / 2;
+		}
+		else
+		{
+			result.x = (static_cast<int>(outputWidth) - framebufferWidth * scale) / 2;
+			result.y = (static_cast<int>(outputHeight) - framebufferHeight * scale) / 2;
+		}
+		result.width = static_cast<std::int32_t>(outputWidth) - 2 * result.x;
+		result.height = static_cast<std::int32_t>(outputHeight) - 2 * result.y;
+		return result;
+	}
+	const float screenAspect = static_cast<float>(outputWidth) / outputHeight;
+	if (renderAspect > screenAspect)
+	{
+		result.y = static_cast<std::int32_t>(std::lround(outputHeight *
+			(1.f - screenAspect / renderAspect) / 2.f));
+		result.height -= 2 * result.y;
+	}
+	else
+	{
+		result.x = static_cast<std::int32_t>(std::lround(outputWidth *
+			(1.f - renderAspect / screenAspect) / 2.f));
+		result.width -= 2 * result.x;
+	}
+	return result;
 }
 
 float Halton(std::uint32_t index, std::uint32_t base) noexcept

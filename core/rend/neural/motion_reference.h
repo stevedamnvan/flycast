@@ -30,6 +30,19 @@ struct Point2 {
 	float y = 0.f;
 };
 
+struct Point3 {
+	float x = 0.f;
+	float y = 0.f;
+	float z = 0.f;
+};
+
+struct MotionTrust {
+	Point2 motion{};
+	float confidence = 0.f;
+	bool trusted = false;
+	bool biasCurrentColor = true;
+};
+
 struct SimilarityTransform {
 	float scaleCos = 1.f;
 	float scaleSin = 0.f;
@@ -46,10 +59,18 @@ std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous,
 	ArrayView<DrawRecord> current);
 void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current,
 	DrawMatch *output, std::size_t outputCapacity) noexcept;
+float StripCoverage(const DrawRecord& previous, const DrawRecord& current) noexcept;
 SimilarityTransform FitSimilarity(ArrayView<Point2> previous,
 	ArrayView<Point2> current) noexcept;
+Point2 ProjectNaomi2(const float *modelView, const float *projection,
+	const float *ndc, Point3 position) noexcept;
+MotionTrust ClassifyMotion(const DrawMatch& match, Point2 motion,
+	bool resetHistory, bool truncated) noexcept;
 bool IsSceneCut(std::uint64_t matchedArea, std::uint64_t totalArea,
 	float minimumRatio = .35f) noexcept;
+float InvertLegacyDepth(float encodedDepth, bool divPosZ) noexcept;
+Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
+	float renderAspect, bool integerScale, std::uint32_t renderResolution) noexcept;
 float Halton(std::uint32_t index, std::uint32_t base) noexcept;
 Point2 HaltonJitter(std::uint64_t frameId, std::uint32_t phaseCount) noexcept;
 std::uint32_t JitterPhaseCount(std::uint32_t renderWidth, std::uint32_t outputWidth) noexcept;

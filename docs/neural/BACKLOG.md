@@ -29,9 +29,9 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-027 | 2 | Atomic package | Once per display frame; never RTT evaluate | doing | LOG #20,#26; Geometry and FramebufferDirect packages wired once per display-bound path; runtime cadence/RTT evidence pending |
 | FC-029 | 2 | Phase gate | Gates 1-3 and deterministic snapshots | todo | |
 | FC-030 | 3 | Previous selection | Last successfully evaluated frame | done | LOG #17,#26; renderer commits reference history only after `Submitted`, skip-reference unit control green |
-| FC-031 | 3 | Draw matching | Three tiers, strips, rigid fit, reactive/N2 | doing | LOG #17; tiers/one-to-one/rigid/reactive implemented, strips/N2 pending |
-| FC-032 | 3 | Motion rasterization | RG16F render-pixel current-to-previous | todo | |
-| FC-033 | 3 | Confidence/mask | R8 confidence and required bias rules | todo | |
+| FC-031 | 3 | Draw matching | Three tiers, strips, rigid fit, reactive/N2 | doing | LOG #17,#27; CPU tiers/one-to-one/strip coverage/rigid/reactive/N2 matrix path green; renderer vertex correspondence pending |
+| FC-032 | 3 | Motion rasterization | RG16F render-pixel current-to-previous | doing | LOG #27; CPU trust and 128-pixel rejection semantics green; RG16F raster export pending |
+| FC-033 | 3 | Confidence/mask | R8 confidence and required bias rules | doing | LOG #27; CPU confidence/current-color bias semantics green; R8 GPU export pending |
 | FC-034 | 3 | Reset rules | All cadence and scene-cut resets | doing | LOG #17,#26; CPU tracker/scene-cut and framebuffer transitions implemented, remaining global call sites pending |
 | FC-035 | 3 | Jitter | All VS variants; Halton; unjittered motion | doing | LOG #17; sequence/phase utility implemented, shaders pending |
 | FC-036 | 3 | Gates 4-6 | Fixture thresholds pass | todo | |
@@ -54,7 +54,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
 | FC-056 | 5 | Experimental DLSS 5 | Unsupported until public contract | todo | |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | todo | |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#26; 30 checks pass, strip/N2/content-rect/HLSL pending |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#27; 37 checks pass including strip/N2/content-rect/depth inverse; HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | todo | |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | todo | |
