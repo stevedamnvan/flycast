@@ -40,7 +40,8 @@ public:
 	void RecordEvaluation(std::uint64_t frameId, bool accepted) noexcept;
 	void StagePresentation(std::uint64_t sourceFrameId,
 		std::uint64_t outputFrameId) noexcept;
-	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats);
+	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats,
+		std::uint32_t rendererResourceObjects);
 	void RecordPresent() noexcept;
 	bool Enabled() const noexcept { return !root_.empty() && targetSamples_ != 0 && !written_; }
 
@@ -57,6 +58,8 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		std::uint32_t rendererResourceObjects = 0;
+		std::uint32_t backendResourceObjects = 0;
 		double presentIntervalMs = 0.;
 	};
 	struct Sample {
@@ -71,6 +74,8 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		std::uint32_t rendererResourceObjects = 0;
+		std::uint32_t backendResourceObjects = 0;
 	};
 
 	void Reset();

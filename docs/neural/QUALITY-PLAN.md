@@ -274,3 +274,13 @@ close a temporal or title-quality gate.
   the other cases presented 600/600 neural frames. Process-owned foreground
   transfer was also attempted but Windows rejected focus ownership in this
   non-interactive desktop, so focus/alt-tab remains explicitly unproven.
+  LOG #88 adds per-sample Flycast-owned neural GPU-object accounting and four
+  fresh 10000-sample Soulcalibur soaks across normal/OIT native D3D11 and
+  D3D11On12. Native D3D11 remained exactly 91 objects (82 renderer, 9 backend)
+  and D3D11On12 exactly 125 (115 renderer, 10 backend): initial, minimum,
+  maximum, and final were identical in every run. All 40000 accepted outputs
+  were presented with zero native fallback, missing/accepted-output drops,
+  identity errors, repeats, source gaps, alternation, latency, or query-ring
+  pressure; local VRAM was non-increasing. The host exposes only one monitor,
+  and media discovery found only the supplied Soulcalibur Dreamcast image, so
+  monitor-move and cross-title evidence remain blocked rather than inferred.

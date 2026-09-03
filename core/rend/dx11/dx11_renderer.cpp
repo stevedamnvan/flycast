@@ -1422,7 +1422,38 @@ void DX11Renderer::markNeuralPvrEnd()
 
 void DX11Renderer::endNeuralPerformanceFrame()
 {
-	neuralPerformance.EndFrame(deviceContext, neuralStage.GetStats());
+	neuralPerformance.EndFrame(deviceContext, neuralStage.GetStats(),
+		neuralResourceObjectCount());
+}
+
+std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
+{
+	std::uint32_t count = neuralPreviousPositionBuffer ? 1u : 0u;
+	auto countArray = [&count](const auto& objects) {
+		for (const auto& object : objects) count += object ? 1u : 0u;
+	};
+	auto countTargetRing = [&countArray](const NeuralTargetRing& ring) {
+		countArray(ring.textures);
+		countArray(ring.targets);
+		countArray(ring.views);
+		countArray(ring.d3d12Resources);
+	};
+	countArray(neuralDepthTextures);
+	countArray(neuralDepthTargets);
+	countArray(neuralDepthViews);
+	countArray(neuralDepthD3D12Resources);
+	countTargetRing(neuralColor);
+	countTargetRing(neuralMotion);
+	countTargetRing(neuralMask);
+	countTargetRing(neuralResolvedMask);
+	countTargetRing(neuralConfidence);
+	countTargetRing(neuralDrawId);
+	countTargetRing(neuralPreviousDrawId);
+	countTargetRing(neuralOverlayMask);
+	countArray(neuralOutputD3D12Resources);
+	countArray(neuralOutputWrappedTextures);
+	countArray(neuralOutputWrappedViews);
+	return count;
 }
 
 bool DX11Renderer::syncNeuralMode()

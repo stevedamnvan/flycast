@@ -549,7 +549,23 @@ public:
 	}
 
 	void ResetHistory() noexcept override { resetRequested_ = true; }
-	BackendStats GetStats() const noexcept override { return stats_; }
+	BackendStats GetStats() const noexcept override
+	{
+		auto result = stats_;
+		result.liveResourceObjects += fence_ ? 1u : 0u;
+		for (const auto& allocator : allocator_)
+			result.liveResourceObjects += allocator ? 1u : 0u;
+		for (const auto& list : list_) result.liveResourceObjects += list ? 1u : 0u;
+		for (const auto& output : output_) result.liveResourceObjects += output ? 1u : 0u;
+		result.liveResourceObjects += evidenceInputReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceDepthReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceMotionReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceMaskReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceOutputReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceMarkedOutputReadback_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceMarkerUpload_ ? 1u : 0u;
+		return result;
+	}
 	TextureRef GetOutput() const noexcept override
 	{
 		if (!output_[outputSlot_]) return {};

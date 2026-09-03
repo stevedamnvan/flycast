@@ -383,7 +383,14 @@ public:
 	}
 
 	void ResetHistory() noexcept override { resetRequested_ = true; }
-	BackendStats GetStats() const noexcept override { return stats_; }
+	BackendStats GetStats() const noexcept override
+	{
+		auto result = stats_;
+		for (const auto& resource : output_) result.liveResourceObjects += resource ? 1u : 0u;
+		for (const auto& view : outputViews_) result.liveResourceObjects += view ? 1u : 0u;
+		for (const auto& query : completion_) result.liveResourceObjects += query ? 1u : 0u;
+		return result;
+	}
 	TextureRef GetOutput() const noexcept override
 	{
 		if (!output_[outputSlot_]) return {};

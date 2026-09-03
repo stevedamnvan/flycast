@@ -166,6 +166,8 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.sourceFrameId = slot.sourceFrameId;
 		sample.acceptedFrameId = slot.acceptedFrameId;
 		sample.outputFrameId = slot.outputFrameId;
+		sample.rendererResourceObjects = slot.rendererResourceObjects;
+		sample.backendResourceObjects = slot.backendResourceObjects;
 		if (samples_.size() < targetSamples_) samples_.push_back(sample);
 	}
 	if (samples_.size() >= targetSamples_ && !written_) WriteReport();
@@ -226,10 +228,13 @@ void PerformanceTracker::Mark(ID3D11DeviceContext *context, GpuTimingPoint point
 	ring_[activeSlot_].marked[index] = true;
 }
 
-void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats& stats)
+void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats& stats,
+	std::uint32_t rendererResourceObjects)
 {
 	stageStats_ = stats;
 	if (activeSlot_ >= RingSize || !context) return;
+	ring_[activeSlot_].rendererResourceObjects = rendererResourceObjects;
+	ring_[activeSlot_].backendResourceObjects = stats.backendResourceObjects;
 	context->End(ring_[activeSlot_].disjoint);
 	ring_[activeSlot_].pending = true;
 	lastEndedSlot_ = activeSlot_;
@@ -270,6 +275,28 @@ void PerformanceTracker::WriteReport()
 			sample.outputFrameId, sample.presented);
 	}
 	const auto& cadenceStats = cadence.Stats();
+	std::uint32_t initialResourceObjects = 0;
+	std::uint32_t finalResourceObjects = 0;
+	std::uint32_t minimumResourceObjects = 0;
+	std::uint32_t maximumResourceObjects = 0;
+	if (!samples_.empty())
+	{
+		auto totalObjects = [](const Sample& sample) {
+			return sample.rendererResourceObjects + sample.backendResourceObjects;
+		};
+		initialResourceObjects = totalObjects(samples_.front());
+		finalResourceObjects = totalObjects(samples_.back());
+		minimumResourceObjects = initialResourceObjects;
+		maximumResourceObjects = initialResourceObjects;
+		for (const auto& sample : samples_)
+		{
+			const auto total = totalObjects(sample);
+			minimumResourceObjects = (std::min)(minimumResourceObjects, total);
+			maximumResourceObjects = (std::max)(maximumResourceObjects, total);
+		}
+	}
+	const auto resourceGrowth = static_cast<std::int64_t>(finalResourceObjects)
+		- static_cast<std::int64_t>(initialResourceObjects);
 	const auto [usage, budget] = QueryVram(device_);
 	const auto growth = static_cast<std::int64_t>(usage)
 		- static_cast<std::int64_t>(initialVramUsage_);
@@ -326,6 +353,14 @@ void PerformanceTracker::WriteReport()
 		<< ",\n  \"vram\": {\"initial_usage_bytes\": " << initialVramUsage_
 		<< ", \"final_usage_bytes\": " << usage << ", \"growth_bytes\": " << growth
 		<< ", \"budget_bytes\": " << budget << "}"
+		<< ",\n  \"resource_objects\": {\"scope\": \"flycast-owned-neural-gpu-objects\""
+		<< ", \"initial\": " << initialResourceObjects
+		<< ", \"minimum\": " << minimumResourceObjects
+		<< ", \"maximum\": " << maximumResourceObjects
+		<< ", \"final\": " << finalResourceObjects
+		<< ", \"growth\": " << resourceGrowth
+		<< ", \"renderer_final\": " << samples_.back().rendererResourceObjects
+		<< ", \"backend_final\": " << samples_.back().backendResourceObjects << "}"
 		<< ",\n  \"percentiles_ms\": {";
 	auto summary = [&](const char *name, const std::vector<double>& values, bool first) {
 		report << (first ? "\n    " : ",\n    ") << '"' << name << "\": {\"p50\": "

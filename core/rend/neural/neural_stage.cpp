@@ -115,6 +115,7 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	{
 		const auto init = backend_->Initialize(config_, device_, context_);
 		const auto backendStats = backend_->GetStats();
+		stats_.backendResourceObjects = backendStats.liveResourceObjects;
 		stats_.createFailures = backendStats.createFailures;
 		stats_.lastNgxResult = backendStats.lastResult;
 		stats_.lastExceptionCode = backendStats.lastExceptionCode;
@@ -163,6 +164,7 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		backend_->ResetHistory();
 	const auto result = backend_->Evaluate(frame);
 	const auto backendStats = backend_->GetStats();
+	stats_.backendResourceObjects = backendStats.liveResourceObjects;
 	stats_.createFailures = backendStats.createFailures;
 	stats_.evaluateFailures = backendStats.evaluateFailures;
 	stats_.lastNgxResult = backendStats.lastResult;

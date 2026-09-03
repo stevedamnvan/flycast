@@ -164,6 +164,7 @@ protected:
 	void beginNeuralPerformanceFrame();
 	void markNeuralPvrEnd();
 	void endNeuralPerformanceFrame();
+	std::uint32_t neuralResourceObjectCount() const noexcept;
 #endif
 
 	ComPtr<ID3D11Device> device;

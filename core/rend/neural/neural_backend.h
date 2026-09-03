@@ -64,6 +64,9 @@ enum class BackendEvalStatus : std::uint8_t {
 };
 
 struct BackendStats {
+	// Live Flycast-owned GPU resource/view/query/command objects in the backend.
+	// Borrowed device/context/queue pointers and NGX-owned internals are excluded.
+	std::uint32_t liveResourceObjects = 0;
 	std::uint64_t createFailures = 0;
 	std::uint64_t evaluateFailures = 0;
 	std::int32_t lastResult = 0;

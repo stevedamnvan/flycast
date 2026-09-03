@@ -1053,9 +1053,21 @@ int PerformanceCommand(const Args& args)
 				!= std::string::npos;
 	}
 	std::ifstream performanceStream(output / "performance.json");
+	const bool performanceOpened = performanceStream.is_open();
 	const std::string completedPerformance(
 		(std::istreambuf_iterator<char>(performanceStream)),
 		std::istreambuf_iterator<char>());
+	const bool resourceAccountingComplete = performanceOpened
+		&& completedPerformance.find("\"resource_objects\":") != std::string::npos
+		&& completedPerformance.find("\"scope\": \"flycast-owned-neural-gpu-objects\"")
+			!= std::string::npos
+		&& completedPerformance.find("\"initial\":") != std::string::npos
+		&& completedPerformance.find("\"minimum\":") != std::string::npos
+		&& completedPerformance.find("\"maximum\":") != std::string::npos
+		&& completedPerformance.find("\"final\":") != std::string::npos
+		&& completedPerformance.find("\"growth\":") != std::string::npos
+		&& completedPerformance.find("\"renderer_final\":") != std::string::npos
+		&& completedPerformance.find("\"backend_final\":") != std::string::npos;
 	if (rendererSwitchAfter != 0)
 		rendererSwitchComplete = rendererSwitchComplete
 			&& completedPerformance.find("\"renderer\": \""
@@ -1169,6 +1181,8 @@ int PerformanceCommand(const Args& args)
 		<< ",\n  \"pause_duration_main_frames\": " << pauseDuration
 		<< ",\n  \"pause_roundtrip_completed\": "
 		<< (pauseComplete ? "true" : "false")
+		<< ",\n  \"resource_accounting_completed\": "
+		<< (resourceAccountingComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
@@ -1182,10 +1196,11 @@ int PerformanceCommand(const Args& args)
 		<< " game_reload=" << (gameReloadComplete ? "pass" : "fail")
 		<< " savestate=" << (saveStateComplete ? "pass" : "fail")
 		<< " pause=" << (pauseComplete ? "pass" : "fail")
+		<< " resources=" << (resourceAccountingComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
 		&& rendererSwitchComplete && surfaceSwitchComplete && gameReloadComplete
-		&& saveStateComplete && pauseComplete ? 0 : 1;
+		&& saveStateComplete && pauseComplete && resourceAccountingComplete ? 0 : 1;
 #endif
 }
 

@@ -788,3 +788,19 @@ while the game is paused; after resume, the existing tracker must complete its
 requested measured interval. A source-frame gap is expected. Any native frame
 must be counted as explicit fresh fallback, while missing Presents, accepted-
 output loss, identity mismatch, stale repeat, or frame latency fails the run.
+
+## D-053: resource accounting is scoped to Flycast-owned neural GPU objects
+
+Performance telemetry counts the live GPU resources, views, queries, command
+allocators, command lists, and fences created and owned by Flycast's neural
+export and public-NGX backends. Borrowed device/context/queue pointers, aliasing
+presentation references, NGX handles/parameters, and opaque driver or external-
+consumer allocations are excluded. The report names this scope rather than
+presenting the count as process-wide GPU allocation truth.
+
+Every resolved performance sample carries renderer and backend counts. The
+report publishes initial, minimum, maximum, final, growth, and final component
+counts. A complete launcher run requires those fields. This complements DXGI
+local-VRAM usage: stable object count can reject an object leak even when driver
+memory accounting fluctuates, but it cannot prove the lifetime of objects owned
+inside NGX or a supplied external consumer.

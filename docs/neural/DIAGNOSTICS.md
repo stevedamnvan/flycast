@@ -64,6 +64,8 @@ Production performance measurement is separate:
 [--renderer-switch-after N]
 [--surface-switch-after N]
 [--game-reload-after N]
+[--savestate-roundtrip-after N] [--savestate-load-delay N]
+[--pause-roundtrip-after N] [--pause-duration N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -81,6 +83,15 @@ accepted-output latency in emulated frames. Native D3D11 and D3D11On12 use the
 same accounting; a public evaluation that is deliberately withheld because an
 experimental external contract is not ready is counted as accepted but not
 presented, never as neural presentation.
+
+The same report records `resource_objects` for Flycast-owned neural GPU
+resources, views, queries, command allocators, command lists, and fences. It
+contains initial/minimum/maximum/final/growth plus final renderer/backend
+components, and the launcher rejects a completed run if this accounting is
+absent. Borrowed device/context/queue pointers, NGX handles and opaque internal
+allocations, aliasing presentation references, and external-consumer objects
+are intentionally excluded; the emitted scope string makes that boundary
+machine-readable.
 
 The optional window transition is a bounded Windows-only production check. It
 finds only the launched Flycast process's unowned visible window, waits the
@@ -136,6 +147,14 @@ was observed and the game ID and media path returned unchanged. Performance
 telemetry deliberately spans the boundary so history resets and discontinuous
 source IDs remain visible. This proves same-media unload/reload, not switching
 to a second title.
+
+`--savestate-roundtrip-after N` serializes the production emulator state to a
+bounded process-owned byte vector and reloads it after
+`--savestate-load-delay N` main frames. `--pause-roundtrip-after N` invokes the
+actual `gui_togglePause` path and resumes after `--pause-duration N` main
+frames. Both controls are mutually exclusive with the other developer
+transitions, write path-free exact-frame markers, and keep performance sampling
+across the lifecycle boundary.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket

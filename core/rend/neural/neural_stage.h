@@ -21,6 +21,7 @@ enum class SubmitStatus : std::uint8_t {
 };
 
 struct StageStats {
+	std::uint32_t backendResourceObjects = 0;
 	double exportGpuMs = 0.;
 	double evaluateGpuMs = 0.;
 	double totalGpuMs = 0.;
