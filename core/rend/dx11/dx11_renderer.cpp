@@ -572,6 +572,23 @@ bool DX11Renderer::ensureNeuralResources()
 		&& neuralDepthWidth == width && neuralDepthHeight == height)
 		return true;
 	releaseNeuralResources();
+	DX11Context *context = DX11Context::Instance();
+	const bool useD3D11On12 = activeNeuralSurface && context->isD3D11On12();
+	auto createWrappedTexture = [&](const D3D12_RESOURCE_DESC& resourceDesc,
+		D3D12_RESOURCE_STATES initialState, D3D12_RESOURCE_STATES outState,
+		const D3D11_RESOURCE_FLAGS& flags, ComPtr<ID3D12Resource>& resource,
+		ComPtr<ID3D11Texture2D>& texture) {
+		D3D12_HEAP_PROPERTIES heap{};
+		heap.Type = D3D12_HEAP_TYPE_DEFAULT;
+		HRESULT result = context->getD3D12Device()->CreateCommittedResource(&heap,
+			D3D12_HEAP_FLAG_NONE, &resourceDesc, initialState, nullptr,
+			__uuidof(ID3D12Resource), reinterpret_cast<void **>(&resource.get()));
+		if (SUCCEEDED(result))
+			result = context->getD3D11On12Device()->CreateWrappedResource(resource, &flags,
+				initialState, outState, __uuidof(ID3D11Texture2D),
+				reinterpret_cast<void **>(&texture.get()));
+		return result;
+	};
 	D3D11_TEXTURE2D_DESC desc{};
 	desc.Width = width;
 	desc.Height = height;
@@ -590,7 +607,27 @@ bool DX11Renderer::ensureNeuralResources()
 	viewDesc.Texture2D.MipLevels = 1;
 	for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
 	{
-		HRESULT result = device->CreateTexture2D(&desc, nullptr, &neuralDepthTextures[i].get());
+		HRESULT result;
+		if (useD3D11On12)
+		{
+			D3D12_RESOURCE_DESC resourceDesc{};
+			resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			resourceDesc.Width = width;
+			resourceDesc.Height = height;
+			resourceDesc.DepthOrArraySize = 1;
+			resourceDesc.MipLevels = 1;
+			resourceDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+			resourceDesc.SampleDesc.Count = 1;
+			resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+			resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+			D3D11_RESOURCE_FLAGS flags{};
+			flags.BindFlags = desc.BindFlags;
+			result = createWrappedTexture(resourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE,
+				D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, flags,
+				neuralDepthD3D12Resources[i], neuralDepthTextures[i]);
+		}
+		else
+			result = device->CreateTexture2D(&desc, nullptr, &neuralDepthTextures[i].get());
 		if (SUCCEEDED(result))
 			result = device->CreateDepthStencilView(neuralDepthTextures[i], &depthDesc,
 				&neuralDepthTargets[i].get());
@@ -617,7 +654,28 @@ bool DX11Renderer::ensureNeuralResources()
 		targetDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 		for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
 		{
-			HRESULT result = device->CreateTexture2D(&targetDesc, nullptr, &ring.textures[i].get());
+			HRESULT result;
+			if (useD3D11On12)
+			{
+				D3D12_RESOURCE_DESC resourceDesc{};
+				resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				resourceDesc.Width = width;
+				resourceDesc.Height = height;
+				resourceDesc.DepthOrArraySize = 1;
+				resourceDesc.MipLevels = 1;
+				resourceDesc.Format = format;
+				resourceDesc.SampleDesc.Count = 1;
+				resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+				resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+				D3D11_RESOURCE_FLAGS flags{};
+				flags.BindFlags = targetDesc.BindFlags;
+				result = createWrappedTexture(resourceDesc,
+					D3D12_RESOURCE_STATE_RENDER_TARGET,
+					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, flags,
+					ring.d3d12Resources[i], ring.textures[i]);
+			}
+			else
+				result = device->CreateTexture2D(&targetDesc, nullptr, &ring.textures[i].get());
 			if (SUCCEEDED(result))
 				result = device->CreateRenderTargetView(ring.textures[i], nullptr, &ring.targets[i].get());
 			if (SUCCEEDED(result))
@@ -647,11 +705,14 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	releaseNeuralPresentation();
+	releaseNeuralInputs();
 	neuralPresentationView.reset();
 	auto releaseTargetRing = [](NeuralTargetRing& ring) {
 		for (auto& view : ring.views) view.reset();
 		for (auto& target : ring.targets) target.reset();
 		for (auto& texture : ring.textures) texture.reset();
+		for (auto& resource : ring.d3d12Resources) resource.reset();
 	};
 	releaseTargetRing(neuralColor);
 	releaseTargetRing(neuralMotion);
@@ -661,6 +722,10 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	for (auto& view : neuralDepthViews) view.reset();
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
+	for (auto& resource : neuralDepthD3D12Resources) resource.reset();
+	for (auto& view : neuralOutputWrappedViews) view.reset();
+	for (auto& texture : neuralOutputWrappedTextures) texture.reset();
+	for (auto& resource : neuralOutputD3D12Resources) resource.reset();
 	neuralDepthWidth = neuralDepthHeight = 0;
 	neuralExportSlot = 0;
 	neuralExportActive = false;
@@ -668,6 +733,7 @@ void DX11Renderer::releaseNeuralResources() noexcept
 
 void DX11Renderer::renderNeuralExports()
 {
+	acquireNeuralInputs();
 	ID3D11UnorderedAccessView *nullUavs[2]{};
 	deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
 		D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr,
@@ -713,19 +779,158 @@ void DX11Renderer::renderNeuralExports()
 	}
 	neuralExportActive = false;
 	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	releaseNeuralInputs();
 }
 
 flycast::rend::neural::TextureRef DX11Renderer::getNeuralTexture(
 	std::array<ComPtr<ID3D11Texture2D>, 3>& textures,
-	std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views, DXGI_FORMAT format)
+	std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views,
+	std::array<ComPtr<ID3D12Resource>, 3>& d3d12Resources, DXGI_FORMAT format)
 {
+	if (activeNeuralSurface && d3d12Resources[neuralExportSlot])
+		return {flycast::rend::neural::TextureApi::D3D12,
+			d3d12Resources[neuralExportSlot].get(), nullptr, static_cast<std::uint32_t>(format)};
 	return {flycast::rend::neural::TextureApi::D3D11, textures[neuralExportSlot].get(),
 		views[neuralExportSlot].get(), static_cast<std::uint32_t>(format)};
+}
+
+void DX11Renderer::acquireNeuralInputs()
+{
+	if (!activeNeuralSurface || neuralInputsAcquired)
+		return;
+	ID3D11Resource *resources[] = {
+		neuralColor.textures[neuralExportSlot],
+		neuralDepthTextures[neuralExportSlot],
+		neuralMotion.textures[neuralExportSlot],
+		neuralMask.textures[neuralExportSlot],
+		neuralConfidence.textures[neuralExportSlot],
+		neuralDrawId.textures[neuralExportSlot],
+	};
+	DX11Context::Instance()->AcquireWrappedResources(resources,
+		static_cast<UINT>(std::size(resources)));
+	neuralInputsAcquired = true;
+}
+
+void DX11Renderer::releaseNeuralInputs()
+{
+	if (!neuralInputsAcquired)
+		return;
+	ID3D11Resource *resources[] = {
+		neuralColor.textures[neuralExportSlot],
+		neuralDepthTextures[neuralExportSlot],
+		neuralMotion.textures[neuralExportSlot],
+		neuralMask.textures[neuralExportSlot],
+		neuralConfidence.textures[neuralExportSlot],
+		neuralDrawId.textures[neuralExportSlot],
+	};
+	DX11Context::Instance()->ReleaseWrappedResources(resources,
+		static_cast<UINT>(std::size(resources)));
+	neuralInputsAcquired = false;
+}
+
+void DX11Renderer::releaseNeuralPresentation()
+{
+	if (!neuralPresentationAcquired)
+	{
+		pendingNeuralPresentationFrameId = 0;
+		return;
+	}
+	ID3D11ShaderResourceView *nullView = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullView);
+	ID3D11Resource *resource = neuralOutputWrappedTextures[neuralPresentationSlot];
+	DX11Context::Instance()->ReleaseWrappedResources(&resource, 1);
+	neuralPresentationAcquired = false;
+	neuralPresentationView.reset();
+	pendingNeuralPresentationFrameId = 0;
+}
+
+bool DX11Renderer::wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId)
+{
+	if (!activeNeuralSurface || !resource || !DX11Context::Instance()->isD3D11On12())
+		return false;
+	releaseNeuralPresentation();
+	std::size_t slot = NeuralExportRingSize;
+	for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
+	{
+		if (neuralOutputD3D12Resources[i].get() == resource)
+		{
+			slot = i;
+			break;
+		}
+		if (slot == NeuralExportRingSize && !neuralOutputD3D12Resources[i])
+			slot = i;
+	}
+	if (slot == NeuralExportRingSize)
+		return false;
+	if (!neuralOutputD3D12Resources[slot])
+	{
+		resource->AddRef();
+		neuralOutputD3D12Resources[slot].reset(resource);
+		D3D11_RESOURCE_FLAGS flags{};
+		flags.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		const auto state = static_cast<D3D12_RESOURCE_STATES>(
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+			| D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		HRESULT result = DX11Context::Instance()->getD3D11On12Device()->CreateWrappedResource(
+			resource, &flags, state, state, __uuidof(ID3D11Texture2D),
+			reinterpret_cast<void **>(&neuralOutputWrappedTextures[slot].get()));
+		if (SUCCEEDED(result))
+			result = device->CreateShaderResourceView(neuralOutputWrappedTextures[slot], nullptr,
+				&neuralOutputWrappedViews[slot].get());
+		if (FAILED(result))
+		{
+			WARN_LOG(RENDERER, "Neural D3D12 output wrapping failed: %x", result);
+			neuralOutputWrappedViews[slot].reset();
+			neuralOutputWrappedTextures[slot].reset();
+			neuralOutputD3D12Resources[slot].reset();
+			return false;
+		}
+	}
+	ID3D11Resource *wrapped = neuralOutputWrappedTextures[slot];
+	DX11Context::Instance()->AcquireWrappedResources(&wrapped, 1);
+	neuralPresentationSlot = slot;
+	neuralPresentationAcquired = true;
+	neuralPresentationView = neuralOutputWrappedViews[slot];
+	pendingNeuralPresentationFrameId = frameId;
+	++neuralWrappedOutputCount;
+	if (neuralWrappedOutputCount == 1)
+		NOTICE_LOG(RENDERER,
+			"DLSS 5 candidate public-output ready: frame=%llu route=d3d11on12 resource=%p; external mutation unconfirmed",
+			static_cast<unsigned long long>(frameId), resource);
+	return true;
+}
+
+void DX11Renderer::logNeuralConsumerStatus(
+	flycast::rend::neural::SubmitStatus status) noexcept
+{
+	using namespace flycast::rend::neural;
+	if (activeNeuralMode != static_cast<int>(NeuralMode::Dlss5Experimental))
+		return;
+	const auto stats = neuralStage.GetStats();
+	if (stats.dlss5Route == loggedDlss5Route
+		&& stats.dlss5Readiness == loggedDlss5Readiness
+		&& stats.compatibilityRebuildAttempts == loggedCompatibilityRebuildAttempts
+		&& stats.dlss5ContractEvaluated == loggedDlss5ContractEvaluated)
+		return;
+	loggedDlss5Route = stats.dlss5Route;
+	loggedDlss5Readiness = stats.dlss5Readiness;
+	loggedCompatibilityRebuildAttempts = stats.compatibilityRebuildAttempts;
+	loggedDlss5ContractEvaluated = stats.dlss5ContractEvaluated;
+	NOTICE_LOG(RENDERER,
+		"DLSS 5 consumer status: submit=%u route=%s readiness=%s contract_evaluated=%d "
+		"rebuilds=%llu attempts=%llu failures=%llu rebuild_reason=%s detail=%s",
+		static_cast<unsigned>(status), Dlss5HookRouteName(stats.dlss5Route),
+		Dlss5HookReadinessName(stats.dlss5Readiness), stats.dlss5ContractEvaluated ? 1 : 0,
+		static_cast<unsigned long long>(stats.compatibilityRebuilds),
+		static_cast<unsigned long long>(stats.compatibilityRebuildAttempts),
+		static_cast<unsigned long long>(stats.compatibilityRebuildFailures),
+		Dlss5RebuildReasonName(stats.compatibilityRebuildReason), neuralStage.GetStatusReason());
 }
 
 void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
+	releaseNeuralPresentation();
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
 	const auto contentRect = getNeuralContentRect();
@@ -746,17 +951,29 @@ void DX11Renderer::submitNeuralFrame()
 	TextureRef drawId{};
 	if (neuralColor.textures[0])
 	{
-		color = getNeuralTexture(neuralColor.textures, neuralColor.views, DXGI_FORMAT_R8G8B8A8_UNORM);
-		depth = getNeuralTexture(neuralDepthTextures, neuralDepthViews, DXGI_FORMAT_R32_FLOAT);
-		motion = getNeuralTexture(neuralMotion.textures, neuralMotion.views, DXGI_FORMAT_R16G16_FLOAT);
-		mask = getNeuralTexture(neuralMask.textures, neuralMask.views, DXGI_FORMAT_R8_UNORM);
-		confidence = getNeuralTexture(neuralConfidence.textures, neuralConfidence.views, DXGI_FORMAT_R8_UNORM);
-		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views, DXGI_FORMAT_R16_UINT);
+		color = getNeuralTexture(neuralColor.textures, neuralColor.views,
+			neuralColor.d3d12Resources, DXGI_FORMAT_R8G8B8A8_UNORM);
+		depth = getNeuralTexture(neuralDepthTextures, neuralDepthViews,
+			neuralDepthD3D12Resources, DXGI_FORMAT_R32_FLOAT);
+		motion = getNeuralTexture(neuralMotion.textures, neuralMotion.views,
+			neuralMotion.d3d12Resources, DXGI_FORMAT_R16G16_FLOAT);
+		mask = getNeuralTexture(neuralMask.textures, neuralMask.views,
+			neuralMask.d3d12Resources, DXGI_FORMAT_R8_UNORM);
+		confidence = getNeuralTexture(neuralConfidence.textures, neuralConfidence.views,
+			neuralConfidence.d3d12Resources, DXGI_FORMAT_R8_UNORM);
+		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views,
+			neuralDrawId.d3d12Resources, DXGI_FORMAT_R16_UINT);
 	}
 	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
-	if (neuralStage.TrySubmit(frame) == SubmitStatus::Submitted)
+	const auto status = neuralStage.TrySubmit(frame);
+	logNeuralConsumerStatus(status);
+	if (status == SubmitStatus::Submitted)
 	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
+		const auto stats = neuralStage.GetStats();
+		if (activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
+			&& stats.dlss5Readiness != Dlss5HookReadiness::ContractEvaluated)
+			return;
 		const auto output = neuralStage.GetOutput();
 		if (output.api == TextureApi::D3D11 && output.view)
 		{
@@ -764,6 +981,8 @@ void DX11Renderer::submitNeuralFrame()
 			view->AddRef();
 			neuralPresentationView.reset(view);
 		}
+		else if (output.api == TextureApi::D3D12 && output.resource)
+			wrapNeuralOutput(static_cast<ID3D12Resource *>(output.resource), frame.frameId);
 	}
 }
 
@@ -771,9 +990,11 @@ bool DX11Renderer::syncNeuralMode()
 {
 	using namespace flycast::rend::neural;
 	const int requestedMode = std::clamp(config::NeuralMode.get(), 0, 8);
-	const bool requestedSurface = config::NeuralD3D12Surface.get();
+	const bool surfaceRequested = config::NeuralD3D12Surface.get();
+	const bool requestedSurface = surfaceRequested && DX11Context::Instance()->isD3D11On12();
 	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface)
 	{
+		releaseNeuralResources();
 		neuralPresentationView.reset();
 		activeNeuralMode = requestedMode;
 		activeNeuralSurface = requestedSurface;
@@ -797,7 +1018,11 @@ bool DX11Renderer::syncNeuralMode()
 		if (stageConfig.api == Api::D3D11)
 			neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());
 		else
-			neuralStage.SetGraphicsDevice(stageConfig.api, nullptr, nullptr);
+			neuralStage.SetGraphicsDevice(stageConfig.api,
+				DX11Context::Instance()->getD3D12Device(),
+				DX11Context::Instance()->getD3D12Queue());
+		if (surfaceRequested && !requestedSurface)
+			WARN_LOG(RENDERER, "D3D11On12 neural surface was requested after native D3D11 initialization; restart the renderer to activate it");
 		if (requestedMode == 0)
 			releaseNeuralResources();
 	}
@@ -807,6 +1032,7 @@ bool DX11Renderer::syncNeuralMode()
 void DX11Renderer::submitNeuralFramebuffer()
 {
 	using namespace flycast::rend::neural;
+	releaseNeuralPresentation();
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
 	const TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
@@ -816,9 +1042,15 @@ void DX11Renderer::submitNeuralFramebuffer()
 		color, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect);
-	if (neuralStage.TrySubmit(frame) == SubmitStatus::Submitted)
+	const auto status = neuralStage.TrySubmit(frame);
+	logNeuralConsumerStatus(status);
+	if (status == SubmitStatus::Submitted)
 	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
+		const auto stats = neuralStage.GetStats();
+		if (activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
+			&& stats.dlss5Readiness != Dlss5HookReadiness::ContractEvaluated)
+			return;
 		const auto output = neuralStage.GetOutput();
 		if (output.api == TextureApi::D3D11 && output.view)
 		{
@@ -826,6 +1058,8 @@ void DX11Renderer::submitNeuralFramebuffer()
 			view->AddRef();
 			neuralPresentationView.reset(view);
 		}
+		else if (output.api == TextureApi::D3D12 && output.resource)
+			wrapNeuralOutput(static_cast<ID3D12Resource *>(output.resource), frame.frameId);
 	}
 }
 #endif
@@ -886,8 +1120,28 @@ void DX11Renderer::displayFramebuffer()
 #else
 		fbTextureView;
 #endif
+	const bool queuedNeuralOutput =
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralPresentationAcquired && pendingNeuralPresentationFrameId != 0;
+	const auto queuedNeuralFrameId = pendingNeuralPresentationFrameId;
+#else
+		false;
+#endif
 	quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
 		x, y, w, h, config::Rotate90);
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (queuedNeuralOutput)
+	{
+		++neuralAcceptedBlitCount;
+		DX11Context::Instance()->QueueNeuralOutputPresent(queuedNeuralFrameId);
+		if (neuralAcceptedBlitCount == 1)
+			NOTICE_LOG(RENDERER,
+				"DLSS 5 candidate public-output blit queued: frame=%llu route=d3d11on12; external mutation unconfirmed",
+				static_cast<unsigned long long>(queuedNeuralFrameId));
+		pendingNeuralPresentationFrameId = 0;
+	}
+	releaseNeuralPresentation();
+#endif
 #endif
 }
 

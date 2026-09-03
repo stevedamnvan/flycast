@@ -90,8 +90,6 @@ bool DX11Context::init(bool keepCurrentWindow)
 			dxgiFactory6.reset();
 		}
 	}
-	dxgiFactory.reset();
-
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_11_1,
@@ -99,6 +97,40 @@ bool DX11Context::init(bool keepCurrentWindow)
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0,
 	};
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (config::NeuralD3D12Surface.get())
+	{
+		hr = D3D12CreateDevice(dxgiAdapter, D3D_FEATURE_LEVEL_11_0,
+			__uuidof(ID3D12Device), reinterpret_cast<void **>(&d3d12Device.get()));
+		if (SUCCEEDED(hr))
+		{
+			D3D12_COMMAND_QUEUE_DESC queueDesc{};
+			queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			hr = d3d12Device->CreateCommandQueue(&queueDesc, __uuidof(ID3D12CommandQueue),
+				reinterpret_cast<void **>(&d3d12Queue.get()));
+		}
+		if (SUCCEEDED(hr))
+		{
+			IUnknown *queues[] = {d3d12Queue.get()};
+			hr = D3D11On12CreateDevice(d3d12Device, D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+				featureLevels, ARRAYSIZE(featureLevels), queues, 1, 0, &pDevice.get(),
+				&pDeviceContext.get(), &featureLevel);
+			if (SUCCEEDED(hr)) pDevice.as(d3d11On12Device);
+		}
+		if (FAILED(hr) || !d3d11On12Device)
+		{
+			WARN_LOG(RENDERER, "D3D11On12 device creation failed: %x; falling back to native D3D11", hr);
+			d3d11On12Device.reset();
+			d3d12Queue.reset();
+			d3d12Device.reset();
+			pDeviceContext.reset();
+			pDevice.reset();
+		}
+		else
+			NOTICE_LOG(RENDERER, "D3D11 renderer is using the D3D11On12 neural surface");
+	}
+	if (!pDevice)
+#endif
 	hr = D3D11CreateDevice(
 	    dxgiAdapter.get(), // High performance GPU, or fallback to use the default adapter.
 	    dxgiAdapter.get() == nullptr ? D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE_UNKNOWN, // D3D_DRIVER_TYPE_UNKNOWN is required when providing an adapter.
@@ -110,7 +142,7 @@ bool DX11Context::init(bool keepCurrentWindow)
 	    &pDevice.get(),
 	    &featureLevel,
 	    &pDeviceContext.get());
-	if (FAILED(hr)) {
+	if (!pDevice || FAILED(hr)) {
 		WARN_LOG(RENDERER, "D3D11 device creation failed: %x", hr);
 		return false;
 	}
@@ -118,8 +150,17 @@ bool DX11Context::init(bool keepCurrentWindow)
 	ComPtr<IDXGIDevice2> dxgiDevice;
 	pDevice.as(dxgiDevice);
 
-	dxgiAdapter.reset();
-	dxgiDevice->GetAdapter(&dxgiAdapter.get());
+	bool refreshFactoryFromD3D11 = true;
+#ifdef FLYCAST_ENABLE_NEURAL
+	refreshFactoryFromD3D11 = !d3d12Queue || !dxgiAdapter;
+#endif
+	if (refreshFactoryFromD3D11)
+	{
+		dxgiAdapter.reset();
+		dxgiDevice->GetAdapter(&dxgiAdapter.get());
+		dxgiFactory.reset();
+		dxgiAdapter->GetParent(__uuidof(IDXGIFactory1), (void **)&dxgiFactory.get());
+	}
 	DXGI_ADAPTER_DESC desc;
 	dxgiAdapter->GetDesc(&desc);
 	nowide::stackstring wdesc;
@@ -127,8 +168,6 @@ bool DX11Context::init(bool keepCurrentWindow)
 	adapterDesc = wdesc.get();
 	adapterVersion = std::to_string(desc.Revision);
 	vendorId = desc.VendorId;
-
-	dxgiAdapter->GetParent(__uuidof(IDXGIFactory1), (void **)&dxgiFactory.get());
 
 	ComPtr<IDXGIFactory2> dxgiFactory2;
 	dxgiFactory.as(dxgiFactory2);
@@ -151,7 +190,11 @@ bool DX11Context::init(bool keepCurrentWindow)
 		desc.Height = settings.display.height;
 		hr = dxgiFactory2->CreateSwapChainForCoreWindow(pDevice, (IUnknown *)window, &desc, nullptr, &swapchain1.get());
 #else
-		hr = dxgiFactory2->CreateSwapChainForHwnd(pDevice, (HWND)window, &desc, nullptr, nullptr, &swapchain1.get());
+		IUnknown *swapchainDevice = pDevice;
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (d3d12Queue) swapchainDevice = d3d12Queue;
+#endif
+		hr = dxgiFactory2->CreateSwapChainForHwnd(swapchainDevice, (HWND)window, &desc, nullptr, nullptr, &swapchain1.get());
 #endif
 		if (SUCCEEDED(hr))
 			swapchain1.as(swapchain);
@@ -178,7 +221,11 @@ bool DX11Context::init(bool keepCurrentWindow)
 		if (allowTearing)
 			desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
-		hr = dxgiFactory->CreateSwapChain(pDevice, &desc, &swapchain.get());
+		IUnknown *swapchainDevice = pDevice;
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (d3d12Queue) swapchainDevice = d3d12Queue;
+#endif
+		hr = dxgiFactory->CreateSwapChain(swapchainDevice, &desc, &swapchain.get());
 	}
 	if (FAILED(hr)) {
 		WARN_LOG(RENDERER, "D3D11 swap chain creation failed: %x", hr);
@@ -215,6 +262,13 @@ void DX11Context::term()
 	samplers.term();
 	shaders.term();
 	imguiDriver.reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+	releaseWrappedBackBuffer();
+	for (auto& view : wrappedBackBufferViews) view.reset();
+	for (auto& buffer : wrappedBackBuffers) buffer.reset();
+	swapchain3.reset();
+	pendingNeuralOutputFrameId = 0;
+#endif
 	renderTargetView.reset();
 	swapchain1.reset();
 	swapchain.reset();
@@ -225,6 +279,11 @@ void DX11Context::term()
 	}
 	pDeviceContext.reset();
 	pDevice.reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+	d3d11On12Device.reset();
+	d3d12Queue.reset();
+	d3d12Device.reset();
+#endif
 	d3dcompiler = nullptr;
 }
 
@@ -233,6 +292,9 @@ void DX11Context::Present()
 	if (!frameRendered)
 		return;
 	frameRendered = false;
+#ifdef FLYCAST_ENABLE_NEURAL
+	releaseWrappedBackBuffer();
+#endif
 	bool swapOnVSync = !settings.input.fastForwardMode && config::VSync;
 	HRESULT hr;
 	if (!swapchain) {
@@ -247,17 +309,40 @@ void DX11Context::Present()
 	}
 	if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
 		WARN_LOG(RENDERER, "Present failed: device removed/reset");
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (d3d12Device)
+			WARN_LOG(RENDERER, "D3D12 device removed reason: %x",
+				d3d12Device->GetDeviceRemovedReason());
+#endif
 		handleDeviceLost();
 	}
 	else if (hr != DXGI_ERROR_WAS_STILL_DRAWING && FAILED(hr)) {
 		WARN_LOG(RENDERER, "Present failed %x", hr);
 	}
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (SUCCEEDED(hr) && pendingNeuralOutputFrameId != 0)
+	{
+		++neuralOutputPresentCount;
+		if (neuralOutputPresentCount == 1)
+			NOTICE_LOG(RENDERER,
+				"DLSS 5 candidate public-output present completed: frame=%llu route=d3d11on12; external mutation unconfirmed",
+				static_cast<unsigned long long>(pendingNeuralOutputFrameId));
+		pendingNeuralOutputFrameId = 0;
+	}
+	else if (FAILED(hr) && hr != DXGI_ERROR_WAS_STILL_DRAWING)
+		pendingNeuralOutputFrameId = 0;
+	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET)
+		acquireWrappedBackBuffer();
+#endif
 }
 
 void DX11Context::EndImGuiFrame()
 {
 	if (pDevice && pDeviceContext && renderTargetView)
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		acquireWrappedBackBuffer();
+#endif
 		if (overlayOnly) {
 			overlay.draw(settings.display.width, settings.display.height, config::FloatVMUs, true);
 		}
@@ -282,6 +367,13 @@ void DX11Context::resize()
 	{
 		ID3D11RenderTargetView *nullRTV = nullptr;
 		pDeviceContext->OMSetRenderTargets(1, &nullRTV, nullptr);
+#ifdef FLYCAST_ENABLE_NEURAL
+		releaseWrappedBackBuffer();
+		for (auto& view : wrappedBackBufferViews) view.reset();
+		for (auto& buffer : wrappedBackBuffers) buffer.reset();
+		swapchain3.reset();
+		pendingNeuralOutputFrameId = 0;
+#endif
 		renderTargetView.reset();
 #ifdef TARGET_UWP
 		HRESULT hr = swapchain->ResizeBuffers(2, settings.display.width, settings.display.height, DXGI_FORMAT_R8G8B8A8_UNORM, allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0);
@@ -301,19 +393,48 @@ void DX11Context::resize()
 
 		// Create a render target view
 		ComPtr<ID3D11Texture2D> backBuffer;
-		hr = swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&backBuffer.get());
+		bool wrappedTargetsCreated = false;
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (d3d11On12Device)
+		{
+			hr = swapchain1.as(swapchain3);
+			for (std::size_t i = 0; SUCCEEDED(hr) && i < On12BackBufferCount; ++i)
+			{
+				ComPtr<ID3D12Resource> backBuffer12;
+				hr = swapchain->GetBuffer(static_cast<UINT>(i), __uuidof(ID3D12Resource),
+					reinterpret_cast<void **>(&backBuffer12.get()));
+				if (FAILED(hr)) break;
+				D3D11_RESOURCE_FLAGS flags{};
+				flags.BindFlags = D3D11_BIND_RENDER_TARGET;
+				hr = d3d11On12Device->CreateWrappedResource(backBuffer12, &flags,
+					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT,
+					__uuidof(ID3D11Texture2D),
+					reinterpret_cast<void **>(&wrappedBackBuffers[i].get()));
+				if (SUCCEEDED(hr))
+					hr = pDevice->CreateRenderTargetView(wrappedBackBuffers[i], nullptr,
+						&wrappedBackBufferViews[i].get());
+			}
+			wrappedTargetsCreated = SUCCEEDED(hr);
+		}
+		else
+#endif
+			hr = swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&backBuffer.get());
 		if (FAILED(hr))
 		{
 			WARN_LOG(RENDERER, "swapChain->GetBuffer() failed: %x", hr);
 			return;
 		}
 
-		hr = pDevice->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView.get());
-		if (FAILED(hr))
+		if (!wrappedTargetsCreated)
+			hr = pDevice->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView.get());
+		if (FAILED(hr) || (!wrappedTargetsCreated && !renderTargetView))
 		{
 			WARN_LOG(RENDERER, "CreateRenderTargetView failed: %x", hr);
 			return;
 		}
+#ifdef FLYCAST_ENABLE_NEURAL
+		acquireWrappedBackBuffer();
+#endif
 		pDeviceContext->OMSetRenderTargets(1, &renderTargetView.get(), nullptr);
 
 		if (swapchain1)
@@ -337,6 +458,52 @@ void DX11Context::resize()
 	}
 	// TODO minimized window
 }
+
+#ifdef FLYCAST_ENABLE_NEURAL
+void DX11Context::AcquireWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept
+{
+	if (d3d11On12Device && resources && count != 0)
+		d3d11On12Device->AcquireWrappedResources(resources, count);
+}
+
+void DX11Context::ReleaseWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept
+{
+	if (d3d11On12Device && resources && count != 0)
+	{
+		d3d11On12Device->ReleaseWrappedResources(resources, count);
+		pDeviceContext->Flush();
+	}
+}
+
+void DX11Context::acquireWrappedBackBuffer() noexcept
+{
+	if (d3d11On12Device && swapchain3 && !wrappedBackBufferAcquired)
+	{
+		wrappedBackBufferIndex = swapchain3->GetCurrentBackBufferIndex();
+		if (wrappedBackBufferIndex >= wrappedBackBuffers.size()
+			|| !wrappedBackBuffers[wrappedBackBufferIndex])
+			return;
+		ID3D11Resource *resource = wrappedBackBuffers[wrappedBackBufferIndex];
+		AcquireWrappedResources(&resource, 1);
+		renderTargetView = wrappedBackBufferViews[wrappedBackBufferIndex];
+		wrappedBackBufferAcquired = true;
+	}
+}
+
+void DX11Context::releaseWrappedBackBuffer() noexcept
+{
+	if (d3d11On12Device && wrappedBackBufferAcquired
+		&& wrappedBackBufferIndex < wrappedBackBuffers.size()
+		&& wrappedBackBuffers[wrappedBackBufferIndex])
+	{
+		ID3D11RenderTargetView *nullTarget = nullptr;
+		pDeviceContext->OMSetRenderTargets(1, &nullTarget, nullptr);
+		ID3D11Resource *resource = wrappedBackBuffers[wrappedBackBufferIndex];
+		ReleaseWrappedResources(&resource, 1);
+		wrappedBackBufferAcquired = false;
+	}
+}
+#endif
 
 void DX11Context::handleDeviceLost()
 {

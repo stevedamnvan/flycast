@@ -25,6 +25,11 @@
 #include <windows.h>
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
+#ifdef FLYCAST_ENABLE_NEURAL
+#include <d3d11on12.h>
+#include <d3d12.h>
+#include <array>
+#endif
 #include "windows/comptr.h"
 #include "windows/dynlink.h"
 #include "dx11_overlay.h"
@@ -42,6 +47,18 @@ public:
 	const ComPtr<ID3D11DeviceContext>& getDeviceContext() const { return pDeviceContext; }
 	ComPtr<ID3D11RenderTargetView>& getRenderTarget() { return renderTargetView; }
 	const pD3DCompile getCompiler();
+#ifdef FLYCAST_ENABLE_NEURAL
+	bool isD3D11On12() const noexcept { return d3d11On12Device != nullptr; }
+	ID3D12Device *getD3D12Device() const noexcept { return d3d12Device; }
+	ID3D12CommandQueue *getD3D12Queue() const noexcept { return d3d12Queue; }
+	ID3D11On12Device *getD3D11On12Device() const noexcept { return d3d11On12Device; }
+	void AcquireWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept;
+	void ReleaseWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept;
+	void QueueNeuralOutputPresent(std::uint64_t frameId) noexcept
+	{
+		pendingNeuralOutputFrameId = frameId;
+	}
+#endif
 
 	void resize() override;
 	void setOverlay(bool overlayOnly) { this->overlayOnly = overlayOnly; }
@@ -93,6 +110,21 @@ private:
 	ComPtr<IDXGISwapChain> swapchain;
 	ComPtr<IDXGISwapChain1> swapchain1;
 	ComPtr<ID3D11RenderTargetView> renderTargetView;
+#ifdef FLYCAST_ENABLE_NEURAL
+	ComPtr<ID3D12Device> d3d12Device;
+	ComPtr<ID3D12CommandQueue> d3d12Queue;
+	ComPtr<ID3D11On12Device> d3d11On12Device;
+	ComPtr<IDXGISwapChain3> swapchain3;
+	static constexpr std::size_t On12BackBufferCount = 2;
+	std::array<ComPtr<ID3D11Texture2D>, On12BackBufferCount> wrappedBackBuffers;
+	std::array<ComPtr<ID3D11RenderTargetView>, On12BackBufferCount> wrappedBackBufferViews;
+	bool wrappedBackBufferAcquired = false;
+	std::size_t wrappedBackBufferIndex = 0;
+	std::uint64_t pendingNeuralOutputFrameId = 0;
+	std::uint64_t neuralOutputPresentCount = 0;
+	void acquireWrappedBackBuffer() noexcept;
+	void releaseWrappedBackBuffer() noexcept;
+#endif
 	bool overlayOnly = false;
 	DX11Overlay overlay;
 	bool allowTearing = false;

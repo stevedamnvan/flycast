@@ -132,11 +132,17 @@ protected:
 	bool ensureNeuralResources();
 	void renderNeuralExports();
 	void releaseNeuralResources() noexcept;
+	void logNeuralConsumerStatus(flycast::rend::neural::SubmitStatus status) noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
 	flycast::rend::neural::TextureRef getNeuralTexture(
 		std::array<ComPtr<ID3D11Texture2D>, 3>& textures,
 		std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views,
+		std::array<ComPtr<ID3D12Resource>, 3>& d3d12Resources,
 		DXGI_FORMAT format);
+	bool wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId);
+	void acquireNeuralInputs();
+	void releaseNeuralInputs();
+	void releaseNeuralPresentation();
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -175,10 +181,12 @@ protected:
 		std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> textures;
 		std::array<ComPtr<ID3D11RenderTargetView>, NeuralExportRingSize> targets;
 		std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> views;
+		std::array<ComPtr<ID3D12Resource>, NeuralExportRingSize> d3d12Resources;
 	};
 	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralDepthTextures;
 	std::array<ComPtr<ID3D11DepthStencilView>, NeuralExportRingSize> neuralDepthTargets;
 	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralDepthViews;
+	std::array<ComPtr<ID3D12Resource>, NeuralExportRingSize> neuralDepthD3D12Resources;
 	NeuralTargetRing neuralColor;
 	NeuralTargetRing neuralMotion;
 	NeuralTargetRing neuralMask;
@@ -191,6 +199,21 @@ protected:
 	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
 	ComPtr<ID3D11ShaderResourceView> neuralPresentationView;
+	std::array<ComPtr<ID3D12Resource>, NeuralExportRingSize> neuralOutputD3D12Resources;
+	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralOutputWrappedTextures;
+	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralOutputWrappedViews;
+	bool neuralInputsAcquired = false;
+	bool neuralPresentationAcquired = false;
+	std::size_t neuralPresentationSlot = 0;
+	std::uint64_t pendingNeuralPresentationFrameId = 0;
+	std::uint64_t neuralWrappedOutputCount = 0;
+	std::uint64_t neuralAcceptedBlitCount = 0;
+	flycast::rend::neural::Dlss5HookRoute loggedDlss5Route =
+		flycast::rend::neural::Dlss5HookRoute::None;
+	flycast::rend::neural::Dlss5HookReadiness loggedDlss5Readiness =
+		flycast::rend::neural::Dlss5HookReadiness::Disabled;
+	std::uint64_t loggedCompatibilityRebuildAttempts = 0;
+	bool loggedDlss5ContractEvaluated = false;
 #endif
 
 private:

@@ -197,3 +197,45 @@ the current ladder. Loaded modules and a successful public evaluation cannot
 advance the claim past `contract-evaluated`; no current Flycast route is
 recorded as passing Gate 10. D3D11On12 process classification is measured at
 runtime rather than inferred from swapchain creation.
+
+## D-021: the available Feeder source is not a Flycast bridge runtime
+
+Feeder v0.10.0-beta.2 demonstrates a useful D3D11-to-private-D3D12 transport,
+but its D3D11 path obtains color, depth, and motion from the ReShade effect
+runtime and constructs its own neural contract. It therefore cannot satisfy
+FC-048's requirement to mirror Flycast's exact public NGX resources, scalars,
+and frame identity. It remains a design reference. The bridge route is blocked
+until a compatible contract-preserving runtime is supplied or a bounded local
+bridge build is separately authorized.
+
+## D-022: the supplied add-on selects the conditional On12 route
+
+In a corrected native-D3D11 Soulcalibur run, Flycast evaluated its public NGX
+contract while the supplied RenoDX add-on installed only D3D12 NGX hooks and
+reported no intercepted evaluation or feature 18 work. This blocks only the
+exact supplied direct-D3D11 arrangement; it does not generalize to all D3D11
+consumers. Because the same add-on positively consumes D3D12 NGX, this measured
+failure activates FC-045's conditional D3D11On12 route.
+
+## D-023: production On12 owns every flip-model backbuffer
+
+The queue-created two-buffer swapchain is exposed to the DX11 renderer through
+one wrapped D3D11 resource and RTV per D3D12 backbuffer. Acquire and release use
+`IDXGISwapChain3::GetCurrentBackBufferIndex`; the previous single-buffer draft
+lost the device on its first Present and is retained only as failed evidence.
+Neural input rings are D3D12 resources wrapped for D3D11 export, released to
+non-pixel-shader-resource state before public NGX evaluation, and accepted D3D12
+outputs are wrapped back for the existing final content blit.
+
+## D-024: public-output presentation telemetry is not visual confirmation
+
+The production renderer tags the accepted D3D12 public output with the Flycast
+frame ID, records when that view is selected by the final content blit, and
+records a successful Present. These events prove application-side ownership and
+cadence for the public output resource. Even when the external log records a
+feature-18 evaluation at the same contract boundary, Flycast labels the resource
+an external-mutation-unconfirmed candidate until a sentinel, pixel comparison,
+and controlled add-on A/B prove that the presented pixels are neural output.
+If the experimental route has not reached `contract-evaluated`, the public NGX
+call may still run for detection/rebuild telemetry, but its output is not selected
+and Flycast keeps the native framebuffer as the presentation source.
