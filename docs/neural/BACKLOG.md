@@ -41,10 +41,10 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | done | LOG #31,#33-#35; exact project identity/version, external feature path, live create/evaluate/cleanup and readable unsupported paths verified |
 | FC-043 | 4 | Recovery/timing | State machine, removal, async timings | doing | LOG #18,#31; sliding-window hold, nonblocking ring readiness, exception and device-removal mapping implemented; GPU timing/retry evidence pending |
 | FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | doing | LOG #34,#37-#40; three DLAA plus Quality/Performance fixtures pass 240/240 with zero invalid frames; DLAA/reference downsample and full flicker thresholds pending |
-| FC-045 | 4 | D3D11On12 surface | Same renderer, dedicated D3D12 lists | doing | LOG #42-#44; same-device/same-queue wrapped-resource smoke and dedicated NGX list/fence rings green in harness; production renderer/swapchain pending |
+| FC-045 | 4 | Conditional D3D11On12 surface | Same renderer, dedicated D3D12 lists, selected only by measured route need | doing | LOG #42-#44; harness smoke is green; partial production scaffolding is preserved but unaccepted and is not required for D3D11 candidate testing |
 | FC-046 | 4 | Cross-API parity | Identical inputs within 1 LSB | done | LOG #45; all 12 final D3D11/D3D12 DLAA/hook/SR fixture pairs are byte-identical |
 | FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | doing | LOG #44-#45; three 240-frame zero-jitter standard D3D12 evaluations green; loaded-module detection and real-emulator hook test pending |
-| FC-048 | 4 | Fallback transport | Bridge only if 11On12 gate fails | todo | |
+| FC-048 | 4 | D3D11 bridge transport | Genuine D3D11 contract mirrored through a private D3D12 consumer and returned with frame identity | todo | First-class M1A candidate; requires a separately supplied or authorized bridge runtime and full Gate 10 provenance |
 | FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | done | LOG #46; SDK and no-SDK WARP GPU texture allocation plus D3D11On12 surface creation return clean explicit unsupported status on both APIs |
 | FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | doing | LOG #21; guarded mode/surface config and renderer requirement UI implemented; live status/metrics/debug selector pending |
 | FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | doing | LOG #49; accepted D3D11 output is selected for the final content-rect blit and native output remains fallback; live emulator capture/cadence evidence pending |
@@ -52,13 +52,19 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | todo | |
 | FC-054 | 5 | Capture CLI | Rate-limited artifact package | todo | |
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
-| FC-056 | 5 | Experimental DLSS 5 | Unsupported until public contract | done | LOG #31; backend factory returns explicit public-contract unsupported reason; no private IDs or module inspection |
+| FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | doing | LOG #50; D3D11 is accepted as a candidate, D3D11On12 is conditional, and readiness/rebuild telemetry is separate from Gate 10 proof |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | doing | LOG #49; build-time presentation/fallback/reset structure is green, runtime toggles and pixel Gate 8 pending |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#31; 41 checks pass in NGX and no-NGX builds, including explicit DLSS5/D3D12 stubs; numerical HLSL equivalence pending |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50; 45 checks pass in NGX and no-NGX builds, including route-neutral readiness and bounded compatibility rebuild policy; numerical HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40,#44-#45; public RTX harness matrix green on both APIs; production captures/cadence remain pending |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |
 | FC-064 | 6 | Performance | Invariants and measured targets | todo | |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | todo | |
-| FC-066 | 6 | Optional hook test | User-supplied real-emulator components | todo | |
+| FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | todo | Required for every DLSS 5 claim; public NGX success alone is insufficient |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
+
+## FC-056 / FC-066 route sub-items
+
+- Direct D3D11: identify a compatible user-supplied consumer, observe Flycast's genuine public contract, prove returned-output consumption and presentation, and run add-on-off controls.
+- D3D11 bridge: mirror Flycast's exact resources, scalars, and frame identity into the private D3D12 session, return the output to D3D11, prove presentation, and run bridge/host-off controls.
+- Conditional D3D11On12/native D3D12: finish production resource/swapchain ownership only if route compatibility or measured cost justifies it, then prove classification, synchronization, returned-output presentation, and negative controls.

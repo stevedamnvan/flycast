@@ -35,9 +35,6 @@ std::unique_ptr<INeuralBackend> CreateNgxD3D12Backend();
 
 std::unique_ptr<INeuralBackend> CreateNeuralBackend(NeuralMode mode, Api api)
 {
-	if (mode == NeuralMode::Dlss5Experimental)
-		return std::make_unique<UnsupportedBackend>(
-			"DLSS 5 experimental backend awaits a public NVIDIA developer contract");
 #ifdef FLYCAST_ENABLE_NGX
 	return api == Api::D3D12 ? CreateNgxD3D12Backend() : CreateNgxD3D11Backend();
 #else

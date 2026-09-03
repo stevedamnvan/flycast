@@ -444,7 +444,8 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	}
 
 	StageConfig config;
-	config.mode = backend == "dlaa-hook" ? NeuralMode::DlaaHook
+	config.mode = backend == "dlss5-hook" ? NeuralMode::Dlss5Experimental
+		: backend == "dlaa-hook" ? NeuralMode::DlaaHook
 		: mode == "balanced" ? NeuralMode::SrBalanced
 		: mode == "performance" ? NeuralMode::SrPerformance
 		: mode == "ultra-performance" ? NeuralMode::SrUltraPerformance
@@ -454,7 +455,10 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	config.outputHeight = outputHeight;
 	config.contentRect = {0, 0, static_cast<std::int32_t>(outputWidth),
 		static_cast<std::int32_t>(outputHeight)};
-	config.hookCompatibility = config.mode == NeuralMode::DlaaHook;
+	config.hookCompatibility = config.mode == NeuralMode::DlaaHook
+		|| config.mode == NeuralMode::Dlss5Experimental;
+	if (config.mode == NeuralMode::Dlss5Experimental)
+		config.dlss5Route = Dlss5HookRoute::D3D11On12;
 	NeuralStage stage(config);
 	stage.SetGraphicsDevice(Api::D3D12, device.Get(), queue.Get());
 	NeuralFrame frame;
@@ -515,6 +519,14 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	result.fallbacks = stats.fallbacks;
 	result.lastNgxResult = stats.lastNgxResult;
 	result.lastExceptionCode = stats.lastExceptionCode;
+	result.compatibilityRebuilds = stats.compatibilityRebuilds;
+	result.compatibilityRebuildAttempts = stats.compatibilityRebuildAttempts;
+	result.compatibilityRebuildFailures = stats.compatibilityRebuildFailures;
+	result.compatibilityRebuildReason = stats.compatibilityRebuildReason;
+	result.dlss5ContractEvaluated = stats.dlss5ContractEvaluated;
+	result.dlss5Route = stats.dlss5Route;
+	result.dlss5Readiness = stats.dlss5Readiness;
+	result.dlss5Components = stats.dlss5Components;
 	result.outputHash = result.output.rgba.empty() ? 0 : previousHash;
 	if (frameCount < 2 || !std::isfinite(result.minTemporalPsnr)) result.minTemporalPsnr = 0.;
 	stage.Shutdown();

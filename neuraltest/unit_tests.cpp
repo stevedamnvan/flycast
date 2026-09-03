@@ -2,6 +2,7 @@
 #include "harness.h"
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
+#include "rend/neural/dlss5_hook.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
 
@@ -233,10 +234,63 @@ int RunSelfTests()
 			"framebuffer-direct bypasses stage");
 	}
 	{
+		Dlss5CompatibilityRebuildPolicy policy;
+		policy.Configure(3, 2);
+		policy.Observe(Dlss5HookReadiness::MissingComponents, 20);
+		policy.Observe(Dlss5HookReadiness::ComponentsPresent, 20);
+		policy.Observe(Dlss5HookReadiness::ContractEvaluated, 22);
+		const bool beforeGrace = !policy.ConsumeReleaseRequest();
+		policy.Observe(Dlss5HookReadiness::ContractEvaluated, 23);
+		const bool firstRelease = policy.ConsumeReleaseRequest()
+			&& !policy.ConsumeReleaseRequest() && policy.BeginCreateAttempt();
+		policy.CompleteCreateAttempt(false);
+		const bool retry = policy.RetryAvailable() && policy.BeginCreateAttempt()
+			&& policy.LastReason() == Dlss5RebuildReason::RetryAfterCreateFailure;
+		policy.CompleteCreateAttempt(true);
+		suite.Expect(beforeGrace && firstRelease && retry
+			&& policy.Attempts() == 2 && policy.Failures() == 1
+			&& policy.SuccessfulRebuilds() == 1 && !policy.RecreatePending(),
+			"DLSS 5 readiness transition debounces one rebuild and bounds its retry");
+
+		Dlss5CompatibilityRebuildPolicy disabled;
+		disabled.Configure(0, 0);
+		disabled.Observe(Dlss5HookReadiness::ComponentsPresent, 0);
+		suite.Expect(!disabled.ConsumeReleaseRequest() && disabled.Attempts() == 0,
+			"DLSS 5 compatibility rebuild can be disabled by configuration");
+	}
+	{
 		auto experimental = CreateNeuralBackend(NeuralMode::Dlss5Experimental, Api::D3D12);
 		suite.Expect(experimental->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
-			&& std::string(experimental->GetStatusReason()).find("public NVIDIA") != std::string::npos,
-			"experimental DLSS 5 backend is an explicit public-contract stub");
+			&& std::string(experimental->GetStatusReason()).find(
+#ifdef FLYCAST_ENABLE_NGX
+				"D3D12 device"
+#else
+				"D3D11On12"
+#endif
+			) != std::string::npos,
+			"experimental DLSS 5 D3D12 candidate reports an uninitialized public-NGX seam");
+		Dlss5HookComponents complete{true, true, true, true};
+		const auto missingRoute = AssessDlss5Hook(true, Dlss5HookRoute::None, complete, false);
+		const auto missingComponents = AssessDlss5Hook(true, Dlss5HookRoute::D3D11External, {}, false);
+		const auto ready = AssessDlss5Hook(true, Dlss5HookRoute::D3D11External, complete, false);
+		const auto evaluated = AssessDlss5Hook(true, Dlss5HookRoute::D3D11On12, complete, true);
+		suite.Expect(!missingRoute.componentsPresent
+			&& missingRoute.readiness == Dlss5HookReadiness::MissingRoute
+			&& !missingComponents.componentsPresent
+			&& missingComponents.readiness == Dlss5HookReadiness::MissingComponents
+			&& ready.componentsPresent && ready.readiness == Dlss5HookReadiness::ComponentsPresent
+			&& evaluated.componentsPresent && evaluated.readiness == Dlss5HookReadiness::ContractEvaluated,
+			"DLSS 5 readiness distinguishes route, components, and evaluated contract");
+		auto experimentalD3D11 = CreateNeuralBackend(NeuralMode::Dlss5Experimental, Api::D3D11);
+		suite.Expect(experimentalD3D11->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
+			&& std::string(experimentalD3D11->GetStatusReason()).find(
+#ifdef FLYCAST_ENABLE_NGX
+				"D3D11 device"
+#else
+				"without FLYCAST_NEURAL_NGX"
+#endif
+			) != std::string::npos,
+			"experimental DLSS 5 accepts the D3D11 public-NGX candidate route");
 		auto d3d12 = CreateNeuralBackend(NeuralMode::DlaaHook, Api::D3D12);
 		suite.Expect(d3d12->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
 			&& std::string(d3d12->GetStatusReason()).find(

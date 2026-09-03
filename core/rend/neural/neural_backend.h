@@ -2,6 +2,7 @@
 #pragma once
 
 #include "neural_frame.h"
+#include "dlss5_hook.h"
 
 #include <cstdint>
 #include <memory>
@@ -29,6 +30,9 @@ struct StageConfig {
 	std::uint32_t outputHeight = 0;
 	Rect contentRect;
 	bool hookCompatibility = false;
+	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
+	std::uint32_t dlss5RebuildGraceEvaluations = 300;
+	std::uint32_t dlss5RebuildMaxAttempts = 2;
 };
 
 enum class BackendEvalStatus : std::uint8_t {
@@ -44,6 +48,14 @@ struct BackendStats {
 	std::uint64_t evaluateFailures = 0;
 	std::int32_t lastResult = 0;
 	std::uint32_t lastExceptionCode = 0;
+	std::uint64_t compatibilityRebuilds = 0;
+	std::uint64_t compatibilityRebuildAttempts = 0;
+	std::uint64_t compatibilityRebuildFailures = 0;
+	Dlss5RebuildReason compatibilityRebuildReason = Dlss5RebuildReason::None;
+	bool dlss5ContractEvaluated = false;
+	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
+	Dlss5HookReadiness dlss5Readiness = Dlss5HookReadiness::Disabled;
+	Dlss5HookComponents dlss5Components{};
 };
 
 class INeuralBackend

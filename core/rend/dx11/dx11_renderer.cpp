@@ -782,7 +782,17 @@ bool DX11Renderer::syncNeuralMode()
 		StageConfig stageConfig;
 		stageConfig.mode = static_cast<NeuralMode>(requestedMode);
 		stageConfig.api = requestedSurface ? Api::D3D12 : Api::D3D11;
-		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook;
+		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook
+			|| stageConfig.mode == NeuralMode::Dlss5Experimental;
+		if (stageConfig.mode == NeuralMode::Dlss5Experimental)
+		{
+			stageConfig.dlss5Route = requestedSurface ? Dlss5HookRoute::D3D11On12
+				: Dlss5HookRoute::D3D11External;
+			stageConfig.dlss5RebuildGraceEvaluations = static_cast<std::uint32_t>(
+				std::max(0, config::NeuralDlss5RebuildGraceEvaluations.get()));
+			stageConfig.dlss5RebuildMaxAttempts = static_cast<std::uint32_t>(
+				std::clamp(config::NeuralDlss5RebuildMaxAttempts.get(), 0, 4));
+		}
 		neuralStage = NeuralStage(stageConfig);
 		if (stageConfig.api == Api::D3D11)
 			neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());

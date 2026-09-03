@@ -244,7 +244,7 @@ void gui_settings_video()
 		static const std::array<const char *, 9> modes = {
 			"Off", "Passthrough", "DLAA (jittered)", "DLAA Hook-Compatible (jitter 0)",
 			"DLSS SR Quality", "DLSS SR Balanced", "DLSS SR Performance",
-			"DLSS SR Ultra Performance", "DLSS 5 Experimental (unavailable)"
+			"DLSS SR Ultra Performance", "DLSS 5 Experimental (external consumer)"
 		};
 		int selectedMode = std::clamp(config::NeuralMode.get(), 0,
 			static_cast<int>(modes.size() - 1));
@@ -264,9 +264,17 @@ void gui_settings_video()
 		{
 			DisabledScope modeScope(config::NeuralMode.get() == 0);
 			OptionCheckbox(T("D3D12 Surface (11On12)"), config::NeuralD3D12Surface,
-				T("Uses the experimental D3D11On12 presentation surface. Public D3D11 DLSS is the default."));
+				T("Uses the conditional D3D11On12 route. Leave off for the D3D11 external-consumer route."));
 		}
 		ImGui::TextWrapped("%s", T("Requires the DirectX 11 renderer (with or without per-pixel transparency)."));
+		if (selectedMode == 8)
+		{
+			ImGui::TextWrapped("%s", T("Uses public NGX as an experimental contract for a user-supplied external consumer. Component detection and contract evaluation do not prove neural-output consumption. Flycast does not bundle or inspect add-ons."));
+			OptionSlider(T("Consumer readiness grace"), config::NeuralDlss5RebuildGraceEvaluations,
+				0, 1200, T("Successful public-NGX evaluations to wait after consumer components become ready."), "%d evaluations");
+			OptionSlider(T("Compatibility rebuild attempts"), config::NeuralDlss5RebuildMaxAttempts,
+				0, 4, T("Maximum bounded feature recreation attempts after a readiness transition."));
+		}
 		if (!rendererSupported)
 			ImGui::TextWrapped("%s", T("The selected graphics API is unsupported; Flycast will continue with native presentation."));
 #ifdef FLYCAST_ENABLE_NGX

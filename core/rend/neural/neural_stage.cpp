@@ -118,6 +118,16 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		stats_.createFailures = backendStats.createFailures;
 		stats_.lastNgxResult = backendStats.lastResult;
 		stats_.lastExceptionCode = backendStats.lastExceptionCode;
+		stats_.compatibilityRebuilds = backendStats.compatibilityRebuilds;
+		stats_.compatibilityRebuildAttempts = backendStats.compatibilityRebuildAttempts;
+		stats_.compatibilityRebuildFailures = backendStats.compatibilityRebuildFailures;
+		stats_.compatibilityRebuildReason = backendStats.compatibilityRebuildReason;
+		stats_.dlss5ContractEvaluated = backendStats.dlss5ContractEvaluated;
+		stats_.dlss5Route = backendStats.dlss5Route == Dlss5HookRoute::None
+			&& config_.mode == NeuralMode::Dlss5Experimental
+			? config_.dlss5Route : backendStats.dlss5Route;
+		stats_.dlss5Readiness = backendStats.dlss5Readiness;
+		stats_.dlss5Components = backendStats.dlss5Components;
 		if (init != BackendEvalStatus::Success)
 		{
 			++stats_.fallbacks;
@@ -142,6 +152,16 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	stats_.evaluateFailures = backendStats.evaluateFailures;
 	stats_.lastNgxResult = backendStats.lastResult;
 	stats_.lastExceptionCode = backendStats.lastExceptionCode;
+	stats_.compatibilityRebuilds = backendStats.compatibilityRebuilds;
+	stats_.compatibilityRebuildAttempts = backendStats.compatibilityRebuildAttempts;
+	stats_.compatibilityRebuildFailures = backendStats.compatibilityRebuildFailures;
+	stats_.compatibilityRebuildReason = backendStats.compatibilityRebuildReason;
+	stats_.dlss5ContractEvaluated = backendStats.dlss5ContractEvaluated;
+	stats_.dlss5Route = backendStats.dlss5Route == Dlss5HookRoute::None
+		&& config_.mode == NeuralMode::Dlss5Experimental
+		? config_.dlss5Route : backendStats.dlss5Route;
+	stats_.dlss5Readiness = backendStats.dlss5Readiness;
+	stats_.dlss5Components = backendStats.dlss5Components;
 	if (result == BackendEvalStatus::Success)
 	{
 		output_ = backend_->GetOutput();

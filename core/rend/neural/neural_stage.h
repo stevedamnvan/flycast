@@ -33,6 +33,14 @@ struct StageStats {
 	std::uint64_t evaluateFailures = 0;
 	std::int32_t lastNgxResult = 0;
 	std::uint32_t lastExceptionCode = 0;
+	std::uint64_t compatibilityRebuilds = 0;
+	std::uint64_t compatibilityRebuildAttempts = 0;
+	std::uint64_t compatibilityRebuildFailures = 0;
+	Dlss5RebuildReason compatibilityRebuildReason = Dlss5RebuildReason::None;
+	bool dlss5ContractEvaluated = false;
+	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
+	Dlss5HookReadiness dlss5Readiness = Dlss5HookReadiness::Disabled;
+	Dlss5HookComponents dlss5Components{};
 };
 
 class NeuralStage final {

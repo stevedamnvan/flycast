@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "neural_backend.h"
+#include "dlss5_hook.h"
 #include "version.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -121,6 +122,9 @@ public:
 	{
 		Shutdown();
 		config_ = config;
+		rebuildPolicy_.Configure(config.dlss5RebuildGraceEvaluations,
+			config.dlss5RebuildMaxAttempts);
+		stats_.dlss5Route = config.dlss5Route;
 		device_ = static_cast<ID3D12Device *>(device);
 		queue_ = static_cast<ID3D12CommandQueue *>(context);
 		if (!device_ || !queue_)
@@ -193,6 +197,7 @@ public:
 			++stats_.createFailures;
 			return BackendEvalStatus::RecoverableFailure;
 		}
+		RefreshDlss5HookStatus();
 		return BackendEvalStatus::Success;
 	}
 
@@ -205,7 +210,7 @@ public:
 		if (frame.color.api != TextureApi::D3D12 || frame.depth.api != TextureApi::D3D12
 			|| frame.motion.api != TextureApi::D3D12 || frame.mask.api != TextureApi::D3D12)
 			return Unsupported("neural frame texture API does not match D3D12 backend");
-		const bool dlaa = config_.mode == NeuralMode::Dlaa || config_.mode == NeuralMode::DlaaHook;
+		const bool dlaa = IsDlaa(config_.mode);
 		if (dlaa && (frame.renderWidth != config_.outputWidth || frame.renderHeight != config_.outputHeight))
 			return Unsupported("DLAA requires equal render and output dimensions");
 		if (IsSr(config_.mode)
@@ -217,6 +222,38 @@ public:
 				config_.outputWidth, config_.outputHeight);
 			return BackendEvalStatus::Unsupported;
 		}
+
+		RefreshDlss5HookStatus();
+		if (rebuildPolicy_.ConsumeReleaseRequest())
+			rebuildReleasePending_ = true;
+		if (rebuildReleasePending_)
+		{
+			if (!AllSubmittedWorkComplete())
+				return UnsupportedOrBusy("DLSS 5 compatibility rebuild awaiting asynchronous retirement");
+			if (feature_)
+			{
+				const auto release = ReleaseLeaf(feature_);
+				Record(release);
+				if (release.exceptionCode != 0 || NVSDK_NGX_FAILED(release.result))
+				{
+					if (rebuildPolicy_.BeginCreateAttempt())
+						rebuildPolicy_.CompleteCreateAttempt(false);
+					SyncRebuildStats();
+					if (!rebuildPolicy_.RetryAvailable())
+					{
+						compatibilityRebuildExhausted_ = true;
+						rebuildReleasePending_ = false;
+						return Unsupported("DLSS 5 compatibility release retry limit reached");
+					}
+					return DeviceOrFailure("DLSS 5 compatibility feature release failed; bounded retry pending");
+				}
+				feature_ = nullptr;
+			}
+			rebuildReleasePending_ = false;
+			resetRequested_ = true;
+		}
+		if (compatibilityRebuildExhausted_)
+			return Unsupported("DLSS 5 compatibility rebuild retry limit reached");
 
 		const std::size_t slot = (outputSlot_ + 1) % output_.size();
 		if (slotFence_[slot] != 0 && fence_->GetCompletedValue() < slotFence_[slot])
@@ -232,6 +269,9 @@ public:
 		}
 		if (!feature_)
 		{
+			const bool compatibilityCreate = rebuildPolicy_.RecreatePending();
+			if (compatibilityCreate && !rebuildPolicy_.BeginCreateAttempt())
+				return Unsupported("DLSS 5 compatibility rebuild retry limit reached");
 			NVSDK_NGX_DLSS_Create_Params create{};
 			create.Feature.InWidth = frame.renderWidth;
 			create.Feature.InHeight = frame.renderHeight;
@@ -247,9 +287,24 @@ public:
 			if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
 			{
 				++stats_.createFailures;
+				if (compatibilityCreate)
+				{
+					rebuildPolicy_.CompleteCreateAttempt(false);
+					SyncRebuildStats();
+					Poison(slot);
+					if (rebuildPolicy_.RetryAvailable())
+						return DeviceOrFailure("DLSS 5 compatibility recreate failed; bounded retry pending");
+					compatibilityRebuildExhausted_ = true;
+					return Unsupported("DLSS 5 compatibility recreate retry limit reached");
+				}
 				Poison(slot);
 				return Unsupported(call.exceptionCode ? "NGX D3D12 create raised an exception"
 					: "NGX D3D12 feature creation failed");
+			}
+			if (compatibilityCreate)
+			{
+				rebuildPolicy_.CompleteCreateAttempt(true);
+				SyncRebuildStats();
 			}
 		}
 		NVSDK_NGX_D3D12_DLSS_Eval_Params evaluate{};
@@ -295,7 +350,11 @@ public:
 		slotFence_[slot] = value;
 		outputSlot_ = slot;
 		resetRequested_ = false;
-		reason_[0] = 0;
+		++successfulEvaluations_;
+		if (config_.mode == NeuralMode::Dlss5Experimental)
+			RefreshDlss5HookStatus(true);
+		else
+			reason_[0] = 0;
 		return BackendEvalStatus::Success;
 	}
 
@@ -340,6 +399,15 @@ public:
 		slotFence_.fill(0);
 		outputState_.fill(D3D12_RESOURCE_STATE_COMMON);
 		resetRequested_ = true;
+		successfulEvaluations_ = 0;
+		rebuildReleasePending_ = false;
+		compatibilityRebuildExhausted_ = false;
+		rebuildPolicy_.Reset();
+		SyncRebuildStats();
+		stats_.dlss5ContractEvaluated = false;
+		stats_.dlss5Readiness = Dlss5HookReadiness::Disabled;
+		stats_.dlss5Route = Dlss5HookRoute::None;
+		stats_.dlss5Components = {};
 	}
 
 private:
@@ -347,6 +415,12 @@ private:
 	{
 		std::snprintf(reason_, sizeof(reason_), "%s", reason);
 		return BackendEvalStatus::Unsupported;
+	}
+
+	BackendEvalStatus UnsupportedOrBusy(const char *reason) noexcept
+	{
+		std::snprintf(reason_, sizeof(reason_), "%s", reason);
+		return BackendEvalStatus::Busy;
 	}
 
 	BackendEvalStatus DeviceOrFailure(const char *reason) noexcept
@@ -360,6 +434,42 @@ private:
 	{
 		stats_.lastResult = static_cast<std::int32_t>(call.result);
 		if (call.exceptionCode) stats_.lastExceptionCode = call.exceptionCode;
+	}
+
+	bool AllSubmittedWorkComplete() const noexcept
+	{
+		if (!fence_) return true;
+		const auto completed = fence_->GetCompletedValue();
+		for (const auto value : slotFence_)
+			if (value != 0 && completed < value) return false;
+		return true;
+	}
+
+	void RefreshDlss5HookStatus(bool contractEvaluated = false) noexcept
+	{
+		if (config_.mode != NeuralMode::Dlss5Experimental) return;
+		stats_.dlss5Components = DetectDlss5HookComponents();
+		if (contractEvaluated)
+		{
+			const auto ready = AssessDlss5Hook(true, config_.dlss5Route,
+				stats_.dlss5Components, false);
+			if (ready.componentsPresent) stats_.dlss5ContractEvaluated = true;
+		}
+		const auto assessment = AssessDlss5Hook(true, config_.dlss5Route, stats_.dlss5Components,
+			stats_.dlss5ContractEvaluated);
+		stats_.dlss5Route = config_.dlss5Route;
+		stats_.dlss5Readiness = assessment.readiness;
+		rebuildPolicy_.Observe(assessment.readiness, successfulEvaluations_);
+		SyncRebuildStats();
+		std::snprintf(reason_, sizeof(reason_), "%s", assessment.message);
+	}
+
+	void SyncRebuildStats() noexcept
+	{
+		stats_.compatibilityRebuilds = rebuildPolicy_.SuccessfulRebuilds();
+		stats_.compatibilityRebuildAttempts = rebuildPolicy_.Attempts();
+		stats_.compatibilityRebuildFailures = rebuildPolicy_.Failures();
+		stats_.compatibilityRebuildReason = rebuildPolicy_.LastReason();
 	}
 
 	bool CreateCommandSlot(std::size_t slot) noexcept
@@ -436,6 +546,12 @@ private:
 		}
 	}
 
+	static bool IsDlaa(NeuralMode mode) noexcept
+	{
+		return mode == NeuralMode::Dlaa || mode == NeuralMode::DlaaHook
+			|| mode == NeuralMode::Dlss5Experimental;
+	}
+
 	static bool IsSr(NeuralMode mode) noexcept
 	{
 		return mode == NeuralMode::SrQuality || mode == NeuralMode::SrBalanced
@@ -458,6 +574,10 @@ private:
 	std::size_t outputSlot_ = 0;
 	bool initialized_ = false;
 	bool resetRequested_ = true;
+	Dlss5CompatibilityRebuildPolicy rebuildPolicy_;
+	bool rebuildReleasePending_ = false;
+	bool compatibilityRebuildExhausted_ = false;
+	std::uint64_t successfulEvaluations_ = 0;
 	unsigned int optimalWidth_ = 0;
 	unsigned int optimalHeight_ = 0;
 	unsigned int maxWidth_ = 0;

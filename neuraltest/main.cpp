@@ -24,7 +24,7 @@ void Usage()
 		"neuraltest determinism --fixture NAME --renderer dx11|dx11-oit [--runs 5] [--warp]\n"
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
 		"neuraltest depth|motion --in DIR\n"
-		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
+		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
 	std::cout << "neuraltest selftest\n";
@@ -292,7 +292,8 @@ int NeuralCommand(const Args& args)
 		std::cerr << "--api must be d3d11 or d3d12\n";
 		return 2;
 	}
-	if (backend != "passthrough" && backend != "dlaa" && backend != "dlaa-hook" && backend != "sr")
+	if (backend != "passthrough" && backend != "dlaa" && backend != "dlaa-hook"
+		&& backend != "dlss5-hook" && backend != "sr")
 	{
 		std::cerr << "unsupported --backend value\n";
 		return 2;
@@ -343,6 +344,19 @@ int NeuralCommand(const Args& args)
 			<< ",\n  \"submissions\": " << run.submissions << ",\n  \"busy_skips\": " << run.busySkips
 			<< ",\n  \"fallbacks\": " << run.fallbacks << ",\n  \"last_ngx_result\": "
 			<< run.lastNgxResult << ",\n  \"last_exception_code\": " << run.lastExceptionCode
+			<< ",\n  \"compatibility_rebuilds\": " << run.compatibilityRebuilds
+			<< ",\n  \"compatibility_rebuild_attempts\": " << run.compatibilityRebuildAttempts
+			<< ",\n  \"compatibility_rebuild_failures\": " << run.compatibilityRebuildFailures
+			<< ",\n  \"compatibility_rebuild_reason\": \""
+			<< Dlss5RebuildReasonName(run.compatibilityRebuildReason) << "\""
+			<< ",\n  \"dlss5_contract_evaluated\": " << (run.dlss5ContractEvaluated ? "true" : "false")
+			<< ",\n  \"dlss5_route\": \"" << Dlss5HookRouteName(run.dlss5Route) << "\""
+			<< ",\n  \"dlss5_readiness\": \"" << Dlss5HookReadinessName(run.dlss5Readiness) << "\""
+			<< ",\n  \"dlss5_components\": {\"reshade\": "
+			<< (run.dlss5Components.reshadeHostLoaded ? "true" : "false")
+			<< ", \"interceptor\": " << (run.dlss5Components.interceptorLoaded ? "true" : "false")
+			<< ", \"neural_runtime\": " << (run.dlss5Components.neuralRuntimeLoaded ? "true" : "false")
+			<< ", \"dlss_runtime\": " << (run.dlss5Components.dlssRuntimeLoaded ? "true" : "false") << "}"
 			<< ",\n  \"invalid_frames\": " << run.invalidFrames
 			<< ",\n  \"output_changes\": " << run.outputChanges
 			<< ",\n  \"max_temporal_changed_pixels\": " << run.maxTemporalChangedPixels

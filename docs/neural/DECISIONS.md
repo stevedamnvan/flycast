@@ -33,10 +33,12 @@ Windows application baseline is built with both test switches off.
 
 ## D-005: DLSS 5 boundary
 
-`ExperimentalDLSS5Backend` remains an explicit unsupported adapter until a
-public NVIDIA developer contract exists. Hook-compatible mode issues only the
-standard D3D12 NGX Super Sampling evaluation. It never names private feature
-IDs or inspects/configures third-party modules.
+Flycast implements only the public NGX DLAA/SR contract and never names private
+feature IDs or inspects/configures third-party modules. Experimental DLSS 5 is
+route-neutral: a compatible direct D3D11 consumer, D3D11-to-private-D3D12
+bridge, or conditional D3D11On12/native-D3D12 route may consume that public
+contract. Public NGX success is not DLSS 5 proof; FC-066 and Gate 10 require
+positive returned-output consumption and presentation evidence.
 
 ## D-006: pinned community reference
 
@@ -166,3 +168,32 @@ later UI composition retain their native order. Mode/surface changes, resource
 release, and the beginning of each new submission clear the retained view.
 Global renderer reset and save-state deserialization explicitly increment the
 instrumentation history generation through a renderer-neutral callback.
+
+## D-018: experimental consumer acceptance is route-neutral
+
+The experimental mode does not auto-enable `NeuralD3D12Surface`. Native D3D11
+is a valid candidate transport and is labeled `d3d11-external-unclassified`
+until evidence distinguishes direct consumption from a bridge. D3D11On12 is a
+separately selected conditional route. Route selection follows measured
+interception, returned-output provenance, latency, correctness, stability, and
+maintenance cost rather than API label.
+
+## D-019: compatibility rebuilds follow readiness transitions
+
+The consumer compatibility recreation is armed only by a missing-to-present
+component transition. It waits a configurable count of successful public-NGX
+evaluations (default 300), consumes one idempotent release request, and bounds
+release/recreate attempts (default two). Telemetry records attempts, failures,
+successful rebuilds, and the initiating or retry reason. The value 300 is a
+configuration default, not an architectural frame invariant.
+
+## D-020: readiness and proof are separate states
+
+Current status and harness reports distinguish selected route, missing
+components, components present, public contract evaluated, and compatibility
+rebuild activity. Later Gate 10 work must add output-produced, output-consumed,
+and visually-confirmed evidence as separate fields rather than infer them from
+the current ladder. Loaded modules and a successful public evaluation cannot
+advance the claim past `contract-evaluated`; no current Flycast route is
+recorded as passing Gate 10. D3D11On12 process classification is measured at
+runtime rather than inferred from swapchain creation.

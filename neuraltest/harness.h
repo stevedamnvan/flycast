@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#include "rend/neural/dlss5_hook.h"
+
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -65,6 +67,17 @@ struct NeuralRunResult {
 	double minTemporalPsnr = 0.;
 	std::int32_t lastNgxResult = 0;
 	std::uint32_t lastExceptionCode = 0;
+	std::uint64_t compatibilityRebuilds = 0;
+	std::uint64_t compatibilityRebuildAttempts = 0;
+	std::uint64_t compatibilityRebuildFailures = 0;
+	flycast::rend::neural::Dlss5RebuildReason compatibilityRebuildReason =
+		flycast::rend::neural::Dlss5RebuildReason::None;
+	bool dlss5ContractEvaluated = false;
+	flycast::rend::neural::Dlss5HookRoute dlss5Route =
+		flycast::rend::neural::Dlss5HookRoute::None;
+	flycast::rend::neural::Dlss5HookReadiness dlss5Readiness =
+		flycast::rend::neural::Dlss5HookReadiness::Disabled;
+	flycast::rend::neural::Dlss5HookComponents dlss5Components{};
 };
 
 const std::vector<std::string>& FixtureNames();
