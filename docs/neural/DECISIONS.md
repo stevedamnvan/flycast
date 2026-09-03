@@ -913,3 +913,25 @@ active. That retained view is written only as `public-dlaa-output.png`; it is
 never assigned to the experimental presentation view. Final composition stays
 native, and its byte identity is required by the capture. Ordinary policy-OFF,
 performance, and presentation paths do not create or retain this reference.
+
+## D-060: temporal comparisons require unique byte-verified input correspondence
+
+Nominal emulated frame IDs are not cross-process state identity. The bounded
+capture-comparison command pairs only unique four-input contract hashes, with
+equal sequence lengths, consecutive chronology in both runs, and fixed
+build/game/API/renderer/target geometry. It verifies the saved raw/decoded
+source, depth, motion, mask, and output against their manifest hashes and
+compares each paired input buffer byte-for-byte. Ambiguity is rejected rather
+than resolved with draw order or arbitrary first-match selection.
+
+An external artifact must already carry the complete mutation/presentation
+confirmation record. A public reference must not have an evaluated external
+contract, and its output hash must match the external proof's policy-OFF hash
+when paired to external output. The comparison is a read-only consumer of
+existing evidence, not a new transport proof or a new source of confirmation.
+
+RGB fidelity and raw temporal change remain separate components, with alpha
+accounted separately and exact-image PSNR represented without invalid JSON
+infinity. Lower raw temporal change may reflect blur, altered motion, or scene
+cuts, so it cannot alone justify a stability claim. Reports never select a
+winner and are written only after every candidate passes validation.

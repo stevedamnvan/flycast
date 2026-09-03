@@ -949,6 +949,8 @@ int RunSelfTests()
 			"default overlay composite preserves unclassified world and omitted-composite control fails");
 	}
 
+	for (const auto& test : CaptureComparisonSelfTests())
+		suite.Expect(test.second, test.first);
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;
 }

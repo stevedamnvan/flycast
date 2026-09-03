@@ -66,10 +66,10 @@ preserves the Gate 10 sentinel contract; `production` retains the real resolved
 mask and disocclusion path for an exact quality-capture replay.
 
 `--evidence-presentation marker` is the default and presents Gate 10's sentinel
-unchanged. `restored` snapshots the evaluated output, performs the same marked
-proof and swapchain readback, then restores the unmarked output before final
-sampling. Candidate packages therefore contain zero marker pixels while the ON
-log still proves 1024/1024 marker pixels and completed Present. Both modes are
+unchanged. `restored` snapshots the evaluated output, performs the unmarked and
+marked D3D12 readbacks, then restores the unmarked output before final sampling.
+The candidate's swapchain readback contains zero marker pixels; a separate
+ON-marker run must prove 1024/1024 marker pixels and completed Present. Both modes are
 synchronous, developer-only, and excluded from performance measurements.
 
 On an experimental policy-OFF run, restored synchronous capture may retain the
@@ -105,6 +105,34 @@ sets `winner_declared=false` and does not convert still images into a title-
 quality decision. Malformed packages are retained, excluded, and counted in
 `rejected_package_count`. An empty valid root writes an empty diagnostic index
 and exits 3.
+
+`neuraltest compare-captures --a DIR --b DIR --out JSON
+[--a-output external|public] [--b-output external|public]` defaults to an
+external-versus-public comparison. It requires equally sized, consecutive
+sequences of 2 through 240 target-native schema-3 captures and an existing
+output parent directory. It refuses to overwrite an existing report.
+
+Frames are paired by all four contract hashes, never by nominal frame number.
+Duplicate identities, gaps, reversed chronology, mixed build/game/API/renderer
+identity, invalid dimensions, intercepted candidates labeled as public output,
+and incomplete external confirmation all reject the comparison before writing.
+Profiles, presets, overlay policies, and external-setting recommendations must
+also stay constant within each lane; actual external settings remain explicitly
+unverified rather than being inferred from Flycast recommendations.
+The command decodes every source/output/mask PNG, checks dimensions before
+allocation, reloads depth/motion bytes, verifies all five raw FNV64 values,
+and then compares all four input buffers byte-for-byte. An external/public pair
+also requires the public returned hash to equal its external proof's OFF hash.
+This validates already confirmed artifacts; it does not replace Gate 10 proof.
+
+The JSON report preserves each pair's independent frame IDs and relative
+manifest links, RGB MAE/MSE/PSNR against both its peer and source, alpha mismatch
+counts, scene-cut labels, and consecutive raw temporal RGB MAE. Null PSNR plus
+`rgb_exact=true` means infinite PSNR. Raw temporal MAE includes object motion
+and scene cuts: it is not motion-compensated flicker or proof of stability.
+No resampling is implicit, no automatic winner is declared, and captures remain
+performance-ineligible. Existing per-frame manifests retain the profile,
+external-setting recommendations, guidance metrics, and exact evidence record.
 
 All production capture JSON streams use the classic locale. A high-resolution
 manifest must encode 5120 by 3840 as `[5120, 3840]`, independent of the Windows

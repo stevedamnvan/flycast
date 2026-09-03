@@ -150,7 +150,7 @@ close a temporal or title-quality gate.
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
-- Gate 16: partial through LOG #101. The production match-output option and public
+- Gate 16: partial through LOG #103. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
   remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
@@ -180,7 +180,7 @@ close a temporal or title-quality gate.
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
   Per-title tuning and evidence-driven broader trust remain open.
-- Gate 17: partial through LOG #101. The bounded capture CLI writes the production
+- Gate 17: partial through LOG #103. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
@@ -207,12 +207,22 @@ close a temporal or title-quality gate.
   supplied external setting as the Faithful winner on source identity despite
   slightly lower raw temporal delta. Other legally available Dreamcast titles
   remain unavailable, so Gate 17 and the representative title matrix remain open.
-- Gate 18: partial through LOG #98. Asynchronous production D3D11 timestamp queries,
+  LOG #103 replaces the ad-hoc comparison with a bounded command that verifies
+  every saved input/output hash and actual input-byte equality, rejects ambiguous
+  matches and chronology gaps, and writes separate RGB/alpha/temporal metrics.
+  It reproduces all 30 pairs; raw temporal change is explicitly not a stability
+  score because it includes object motion and cuts. Actual depth and PNG mutation
+  controls reject without creating a report; both selftests now pass 125/125.
+- Gate 18: partial through LOG #102. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
   native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
   LOG #98 adds accepted-frame-filtered asynchronous D3D12 queue timestamps for
   public and intercepted evaluation without waits or per-frame misassociation.
+  LOG #102 confirms the post-restoration normal/OIT public-DLAA regressions each
+  present 600/600 frames with no cadence or identity fault, zero owned-object
+  growth (127 including two optional timing resources), and clean close. All
+  synchronous evidence remains off in those measurements.
   The full transition/failure matrix, isolated external timing, longer runs,
   resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage

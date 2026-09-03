@@ -1,5 +1,6 @@
 add_executable(neuraltest
     artifacts.cpp
+	capture_compare.cpp
 	color_contract.cpp
 	disocclusion_contract.cpp
 	guidance_contract.cpp

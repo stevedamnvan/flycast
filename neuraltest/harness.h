@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace neuraltest {
@@ -244,5 +245,9 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	float motionX, float motionY, std::uint32_t frames, std::uint32_t dlssPreset,
 	NeuralRunResult& result, std::string& error);
 int RunSelfTests();
+int CompareCaptureSequences(const std::filesystem::path& a,
+	const std::filesystem::path& b, const std::filesystem::path& output,
+	const std::string& aOutput, const std::string& bOutput);
+std::vector<std::pair<std::string, bool>> CaptureComparisonSelfTests();
 
 } // namespace neuraltest
