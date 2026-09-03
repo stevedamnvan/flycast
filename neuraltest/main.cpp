@@ -48,7 +48,7 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -1264,7 +1264,7 @@ int PerformanceCommand(const Args& args)
 	}
 	if (injection != "none" && injection != "create" && injection != "evaluate"
 		&& injection != "ring-busy" && injection != "device-removed"
-		&& injection != "runtime-unavailable")
+		&& injection != "runtime-unavailable" && injection != "seh-exception")
 	{
 		std::cerr << "invalid performance injection\n";
 		return 2;
@@ -1418,7 +1418,7 @@ int PerformanceCommand(const Args& args)
 	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
 	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
 		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4
-		: injection == "runtime-unavailable" ? 5 : 0;
+		: injection == "runtime-unavailable" ? 5 : injection == "seh-exception" ? 6 : 0;
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
 		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
 		+ L",config:rend.NeuralMode=" + std::to_wstring(mode)
@@ -1870,6 +1870,29 @@ int PerformanceCommand(const Args& args)
 			&& completedPerformance.find("\"api\": \""
 				+ std::string(surfaceTo == 1 ? "d3d11on12" : "d3d11")
 				+ "\"") != std::string::npos;
+	bool sehExceptionComplete = injection != "seh-exception";
+	if (injection == "seh-exception")
+	{
+		std::uint64_t exceptionCode = 0, evaluateFailures = 0;
+		std::uint64_t acceptedEvaluations = 0, neuralPresents = 0, nativePresents = 0;
+		std::uint64_t missingPresents = 0, acceptedNotPresented = 0;
+		std::uint64_t identityMismatches = 0, outputRepeats = 0, latencyMax = 0;
+		sehExceptionComplete = jsonUnsigned("last_exception_code", exceptionCode)
+			&& exceptionCode == 0xE0424E47ull
+			&& jsonUnsigned("evaluate_failures", evaluateFailures)
+			&& evaluateFailures >= injectionCount
+			&& jsonUnsigned("accepted_evaluations", acceptedEvaluations)
+			&& acceptedEvaluations != 0
+			&& jsonUnsigned("neural_presents", neuralPresents) && neuralPresents != 0
+			&& jsonUnsigned("native_presents", nativePresents) && nativePresents != 0
+			&& jsonUnsigned("missing_presents", missingPresents) && missingPresents == 0
+			&& jsonUnsigned("accepted_not_presented", acceptedNotPresented)
+			&& acceptedNotPresented == 0
+			&& jsonUnsigned("frame_identity_mismatches", identityMismatches)
+			&& identityMismatches == 0
+			&& jsonUnsigned("output_frame_repeats", outputRepeats) && outputRepeats == 0
+			&& jsonUnsigned("latency_frames_max", latencyMax) && latencyMax == 0;
+	}
 	if (!complete)
 	{
 		std::cerr << (exitedEarly ? "flycast exited before performance run completed"
@@ -1937,6 +1960,8 @@ int PerformanceCommand(const Args& args)
 		<< ",\n  \"mode_off_duration_main_frames\": " << modeOffDuration
 		<< ",\n  \"mode_roundtrip_completed\": "
 		<< (modeRoundtripComplete ? "true" : "false")
+		<< ",\n  \"seh_exception_completed\": "
+		<< (sehExceptionComplete ? "true" : "false")
 		<< ",\n  \"resource_accounting_completed\": "
 		<< (resourceAccountingComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
@@ -1953,12 +1978,13 @@ int PerformanceCommand(const Args& args)
 		<< " savestate=" << (saveStateComplete ? "pass" : "fail")
 		<< " pause=" << (pauseComplete ? "pass" : "fail")
 		<< " mode_roundtrip=" << (modeRoundtripComplete ? "pass" : "fail")
+		<< " seh_exception=" << (sehExceptionComplete ? "pass" : "fail")
 		<< " resources=" << (resourceAccountingComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
 		&& rendererSwitchComplete && surfaceSwitchComplete && gameReloadComplete
 		&& saveStateComplete && pauseComplete && modeRoundtripComplete
-		&& resourceAccountingComplete ? 0 : 1;
+		&& sehExceptionComplete && resourceAccountingComplete ? 0 : 1;
 #endif
 }
 

@@ -1138,3 +1138,19 @@ focus lifecycle reset is retained rather than hidden. This proves the Windows
 focus-loss/restore boundary relevant to Alt+Tab; it does not claim that the
 harness synthesized the keyboard gesture, moved monitors, or changed desktop
 sessions.
+
+## D-071: SEH is tested with an application-defined software exception
+
+The developer-only `seh-exception` control enters the same production NGX
+evaluate leaf as a real call, but raises application-defined Windows exception
+`0xE0424E47` immediately before calling the runtime. This avoids altering or
+faulting a third-party binary and avoids colliding with Flycast's global access-
+violation handler. The local `__try`/`__except` filter must record the exact
+code and return through the ordinary recoverable-failure state machine.
+
+Three consecutive injections must trigger the bounded hold, explicit native
+fallback, and reset recovery already used for runtime failures. A passing
+performance interval requires both native and recovered neural Presents with
+no accepted-output loss, stale output, identity mismatch, latency, crash, or
+Flycast-owned object growth. This validates Flycast's exception containment;
+it is not evidence that a supplied NGX runtime itself raised an exception.

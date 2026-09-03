@@ -172,7 +172,7 @@ Production performance measurement is separate:
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
 [--feature-path DIR] [--input-replay yes|no]
-[--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable]
+[--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception]
 [--inject-count N] [--inject-after N]
 [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip]
 [--transition-delay-ms N]
@@ -336,6 +336,17 @@ flush, clears the candidate output, and latches native fallback. Performance
 telemetry records the terminal status and the corresponding object-count drop.
 This is controlled active-unavailability evidence, not physical removal of a
 loaded runtime binary.
+
+The performance-only `seh-exception` control raises application-defined Windows
+software exception `0xE0424E47` from inside the production D3D11 or D3D12 NGX
+evaluate leaf. The same `__try`/`__except` boundary used for a runtime fault must
+record that exact code, return recoverable failure, enter the normal bounded
+hold after three consecutive injections, present native frames while held, and
+resume fresh neural output. Acceptance requires nonzero native and neural
+presentation plus zero missing Presents, accepted-output loss, identity error,
+stale output repeat, or latency. An injection count of zero is a deliberate
+negative control and cannot pass. This proves Flycast's SEH/fallback boundary;
+it does not claim a fault occurred inside a third-party runtime.
 
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets

@@ -19,6 +19,8 @@
 namespace flycast::rend::neural {
 namespace {
 
+constexpr DWORD kInjectedNgxSehCode = 0xE0424E47u;
+
 struct NgxCallResult
 {
 	NVSDK_NGX_Result result = NVSDK_NGX_Result_FAIL_PlatformError;
@@ -100,9 +102,21 @@ NgxCallResult ApplyPresetLeaf(NVSDK_NGX_Parameter *parameters,
 }
 
 NgxCallResult EvaluateLeaf(ID3D12GraphicsCommandList *list, NVSDK_NGX_Handle *handle,
-	NVSDK_NGX_Parameter *parameters, NVSDK_NGX_D3D12_DLSS_Eval_Params *evaluate) noexcept
+	NVSDK_NGX_Parameter *parameters, NVSDK_NGX_D3D12_DLSS_Eval_Params *evaluate,
+	bool injectException = false) noexcept
 {
-	NGX_SEH_CALL(NGX_D3D12_EVALUATE_DLSS_EXT(list, handle, parameters, evaluate));
+	NgxCallResult call;
+	__try
+	{
+		if (injectException)
+			RaiseException(kInjectedNgxSehCode, 0, 0, nullptr);
+		call.result = NGX_D3D12_EVALUATE_DLSS_EXT(list, handle, parameters, evaluate);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		call.exceptionCode = GetExceptionCode();
+	}
+	return call;
 }
 
 NgxCallResult ReleaseLeaf(NVSDK_NGX_Handle *handle) noexcept
@@ -442,7 +456,10 @@ public:
 		if (timingQuery_ && timingReadback_)
 			list_[slot]->EndQuery(timingQuery_, D3D12_QUERY_TYPE_TIMESTAMP,
 				static_cast<UINT>(slot * 2));
-		const auto call = EvaluateLeaf(list_[slot], feature_, parameters_, &evaluate);
+		const bool injectException = ConsumeInjection(FailureInjection::SehException,
+			"injected D3D12 NGX evaluate exception");
+		const auto call = EvaluateLeaf(list_[slot], feature_, parameters_, &evaluate,
+			injectException);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
 		{

@@ -274,6 +274,14 @@ close a temporal or title-quality gate.
   harness does not synthesize the Alt+Tab keyboard gesture, but the foreground
   ownership lifecycle relevant to that boundary is now proven on the four
   normal-Dreamcast production paths.
+  LOG #115 exercises the production D3D11 and D3D12 NGX evaluate SEH leaves
+  with three application-defined software exceptions after warmup. Native-
+  D3D11 normal and D3D11On12 OIT each record exact exception `0xE0424E47`,
+  three evaluation failures, one bounded hold, 62 native Presents, and recovery
+  to 538 neural Presents. Both have zero missing or accepted-but-unpresented
+  frames, identity mismatch, source/output repeat, latency, query pressure, or
+  object growth and close cleanly. This closes the Flycast-owned SEH boundary,
+  not actual device removal or a fault originating inside a supplied runtime.
   The full transition/failure matrix, isolated external timing, longer runs,
   resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage

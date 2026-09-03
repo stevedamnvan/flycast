@@ -30,6 +30,7 @@ enum class FailureInjection : std::uint8_t {
 	OutputBusy,
 	DeviceRemoved,
 	RuntimeUnavailable,
+	SehException,
 };
 
 struct StageConfig {
