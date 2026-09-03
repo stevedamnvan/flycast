@@ -57,7 +57,8 @@ Production performance measurement is separate:
 `neuraltest performance --game PATH --frames N --warmup N --out DIR
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
-[--feature-path DIR] [--timeout-ms N]`
+[--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed]
+[--inject-count N] [--inject-after N] [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
 12-slot D3D11 timestamp/disjoint-query ring is polled only with
@@ -76,6 +77,16 @@ cross-queue command gap as NGX GPU time. Native-off and zero-accepted-submission
 runs likewise write `null` with explicit scopes rather than reporting timestamp
 marker overhead as evaluation. The complete report is bounded evidence
 for one interval, not a long-run leak or full-title stability claim.
+
+`capture` accepts the same `--inject`, `--inject-count`, and `--inject-after`
+controls. `--inject-after N` arms only after N accepted evaluations, allowing a
+capture to prove that a rejected frame does not reuse the previously accepted
+output. For create/evaluate/busy controls, three consecutive injected results
+exercise the bounded hold and resume reset. `device-removed` is a synthetic
+status control: it latches native fallback until stage recreation but does not
+remove the actual DXGI device. A rejected capture is accepted only when its
+manifest has no public/external output and source-color and final-composited
+SHA-256 hashes match; actual device-loss recovery is not implied.
 
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets

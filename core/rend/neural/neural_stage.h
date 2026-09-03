@@ -31,6 +31,7 @@ struct StageStats {
 	std::uint64_t resets = 0;
 	std::uint64_t createFailures = 0;
 	std::uint64_t evaluateFailures = 0;
+	std::uint64_t deviceRemovedStatuses = 0;
 	std::int32_t lastNgxResult = 0;
 	std::uint32_t lastExceptionCode = 0;
 	std::uint64_t compatibilityRebuilds = 0;

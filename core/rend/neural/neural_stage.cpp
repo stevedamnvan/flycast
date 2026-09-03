@@ -141,6 +141,11 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		if (init != BackendEvalStatus::Success)
 		{
 			++stats_.fallbacks;
+			if (init == BackendEvalStatus::DeviceRemoved)
+			{
+				++stats_.deviceRemovedStatuses;
+				recovery_.DeviceRemoved();
+			}
 			if (init == BackendEvalStatus::Unsupported)
 				backendPermanentlyUnsupported_ = true;
 			else if (init == BackendEvalStatus::RecoverableFailure)
@@ -204,6 +209,11 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		recovery_.RecordTransientFailure(frame.frameId, MonotonicMilliseconds());
 		stats_.holdEntries = recovery_.HoldEntries();
 		return SubmitStatus::RecoverableFailure;
+	}
+	if (result == BackendEvalStatus::DeviceRemoved)
+	{
+		++stats_.deviceRemovedStatuses;
+		recovery_.DeviceRemoved();
 	}
 	return result == BackendEvalStatus::DeviceRemoved ? SubmitStatus::DeviceRemoved
 		: SubmitStatus::Unsupported;

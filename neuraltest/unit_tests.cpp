@@ -415,6 +415,13 @@ int RunSelfTests()
 		recovery.RecordTransientFailure(200, 1400);
 		suite.Expect(recovery.State() == RecoveryState::Ready,
 			"hold exit clears stale failure window");
+		RecoveryController removed;
+		removed.SetReady();
+		removed.DeviceRemoved();
+		for (int i = 0; i < 120; ++i) removed.OnHostPresent();
+		suite.Expect(!removed.CanEvaluate(10000)
+			&& removed.State() == RecoveryState::DeviceRemoved,
+			"device-removed state stays on native fallback until stage recreation");
 	}
 	{
 		StageConfig config;

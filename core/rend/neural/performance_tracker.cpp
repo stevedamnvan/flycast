@@ -87,12 +87,16 @@ bool PerformanceTracker::CreateQueries(ID3D11Device *device)
 void PerformanceTracker::Configure(ID3D11Device *device,
 	const std::filesystem::path& root, std::uint32_t warmupFrames,
 	std::uint32_t sampleFrames, std::string gameId, std::string api,
-	std::string renderer, int neuralMode)
+	std::string renderer, int neuralMode, int failureInjection,
+	std::uint32_t failureInjectionCount, std::uint32_t failureInjectionAfter)
 {
 	sampleFrames = (std::min)(sampleFrames, 10000u);
 	if (root == root_ && warmupFrames == warmupFrames_
 		&& sampleFrames == targetSamples_ && gameId == gameId_
-		&& api == api_ && renderer == renderer_ && neuralMode == neuralMode_)
+		&& api == api_ && renderer == renderer_ && neuralMode == neuralMode_
+		&& failureInjection == failureInjection_
+		&& failureInjectionCount == failureInjectionCount_
+		&& failureInjectionAfter == failureInjectionAfter_)
 		return;
 	Reset();
 	root_ = root;
@@ -103,6 +107,9 @@ void PerformanceTracker::Configure(ID3D11Device *device,
 	api_ = std::move(api);
 	renderer_ = std::move(renderer);
 	neuralMode_ = neuralMode;
+	failureInjection_ = failureInjection;
+	failureInjectionCount_ = failureInjectionCount;
+	failureInjectionAfter_ = failureInjectionAfter;
 	if (root_.empty() || targetSamples_ == 0 || !device) return;
 	device->AddRef();
 	device_.reset(device);
@@ -242,6 +249,9 @@ void PerformanceTracker::WriteReport()
 		<< "\",\n  \"api\": \"" << Json(api_)
 		<< "\",\n  \"renderer\": \"" << Json(renderer_)
 		<< "\",\n  \"neural_mode\": " << neuralMode_
+		<< ",\n  \"failure_injection\": " << failureInjection_
+		<< ",\n  \"failure_injection_count\": " << failureInjectionCount_
+		<< ",\n  \"failure_injection_after_accepted\": " << failureInjectionAfter_
 		<< ",\n  \"synchronous_capture_enabled\": false"
 		<< ",\n  \"query_policy\": \"D3D11_ASYNC_GETDATA_DONOTFLUSH\""
 		<< ",\n  \"stage_evaluate_gpu_available\": " << (evaluateAvailable ? "true" : "false")
@@ -251,8 +261,10 @@ void PerformanceTracker::WriteReport()
 		<< ",\n  \"stage_counts\": {\"submissions\": " << stageStats_.submissions
 		<< ", \"busy\": " << stageStats_.busySkips << ", \"fallbacks\": "
 		<< stageStats_.fallbacks << ", \"resets\": " << stageStats_.resets
+		<< ", \"hold_entries\": " << stageStats_.holdEntries
 		<< ", \"create_failures\": " << stageStats_.createFailures
-		<< ", \"evaluate_failures\": " << stageStats_.evaluateFailures << "}"
+		<< ", \"evaluate_failures\": " << stageStats_.evaluateFailures
+		<< ", \"device_removed\": " << stageStats_.deviceRemovedStatuses << "}"
 		<< ",\n  \"vram\": {\"initial_usage_bytes\": " << initialVramUsage_
 		<< ", \"final_usage_bytes\": " << usage << ", \"growth_bytes\": " << growth
 		<< ", \"budget_bytes\": " << budget << "}"

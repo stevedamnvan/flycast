@@ -1401,7 +1401,12 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 		static_cast<std::uint32_t>(std::clamp(config::NeuralPerformanceFrames.get(), 0, 10000)),
 		settings.content.gameId,
 		DX11Context::Instance()->isD3D11On12() ? "d3d11on12" : "d3d11",
-		IsOitRenderer() ? "dx11-oit" : "dx11", config::NeuralMode.get());
+		IsOitRenderer() ? "dx11-oit" : "dx11", config::NeuralMode.get(),
+		std::clamp(config::NeuralFailureInjection.get(), 0, 4),
+		static_cast<std::uint32_t>(std::clamp(
+			config::NeuralFailureInjectionCount.get(), 0, 10000)),
+		static_cast<std::uint32_t>(std::clamp(
+			config::NeuralFailureInjectionAfter.get(), 0, 10000)));
 	neuralPerformance.BeginFrame(deviceContext);
 }
 
@@ -1445,13 +1450,24 @@ bool DX11Renderer::syncNeuralMode()
 	const int configuredPreset = config::NeuralDlssPreset.get();
 	const int requestedPreset = configuredPreset == 10 || configuredPreset == 11
 		? configuredPreset : 0;
+	const int requestedFailureInjection = std::clamp(config::NeuralFailureInjection.get(), 0, 4);
+	const int requestedFailureInjectionCount = requestedFailureInjection == 0 ? 0
+		: std::clamp(config::NeuralFailureInjectionCount.get(), 0, 10000);
+	const int requestedFailureInjectionAfter = requestedFailureInjection == 0 ? 0
+		: std::clamp(config::NeuralFailureInjectionAfter.get(), 0, 10000);
 	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface
-		|| requestedPreset != activeNeuralPreset)
+		|| requestedPreset != activeNeuralPreset
+		|| requestedFailureInjection != activeNeuralFailureInjection
+		|| requestedFailureInjectionCount != activeNeuralFailureInjectionCount
+		|| requestedFailureInjectionAfter != activeNeuralFailureInjectionAfter)
 	{
 		releaseNeuralResources();
 		neuralPresentationView.reset();
 		activeNeuralMode = requestedMode;
 		activeNeuralPreset = requestedPreset;
+		activeNeuralFailureInjection = requestedFailureInjection;
+		activeNeuralFailureInjectionCount = requestedFailureInjectionCount;
+		activeNeuralFailureInjectionAfter = requestedFailureInjectionAfter;
 		activeNeuralSurface = requestedSurface;
 		neuralInstrumentation.SetEnabled(requestedMode != 0);
 		neuralStage.Shutdown();
@@ -1459,6 +1475,11 @@ bool DX11Renderer::syncNeuralMode()
 		stageConfig.mode = static_cast<NeuralMode>(requestedMode);
 		stageConfig.api = requestedSurface ? Api::D3D12 : Api::D3D11;
 		stageConfig.dlssPreset = static_cast<std::uint32_t>(requestedPreset);
+		stageConfig.failureInjection = static_cast<FailureInjection>(requestedFailureInjection);
+		stageConfig.failureInjectionCount = static_cast<std::uint32_t>(
+			requestedFailureInjectionCount);
+		stageConfig.failureInjectionAfter = static_cast<std::uint32_t>(
+			requestedFailureInjectionAfter);
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook
 			|| stageConfig.mode == NeuralMode::Dlss5Experimental;
 		if (stageConfig.mode == NeuralMode::Dlss5Experimental)

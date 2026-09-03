@@ -631,3 +631,22 @@ that component unavailable and writes `null`. A future D3D12 query heap is
 required before that queue's evaluation time can be claimed. Native-off and
 zero-accepted-submission runs also write `null` with distinct not-applicable or
 not-observed scopes; timestamp-marker overhead is not mislabeled evaluation.
+
+## D-043: failure injection is developer-only, bounded, and call-boundary local
+
+Hidden, default-zero Flycast options can suppress a bounded number of public
+feature-create or evaluate calls, return an output-ring/delayed-fence busy
+status, or return a synthetic device-removed status. The capture/performance
+launchers are the only supported front end. They record the selected fault,
+count, and number of accepted evaluations before arming; the UI exposes none of
+these options and normal execution has no active branch.
+
+The controls do not patch NGX, remove a real device, invent an NGX result, or
+write third-party configuration. They stop immediately before the named public
+call or queue action and return Flycast's existing backend status. Recoverable
+create/evaluate/busy faults enter the existing bounded hold after three events,
+advance neither accepted output nor history during failure, and resume with a
+reset after real host-present notification. Device-removed status latches the
+stage on native fallback until renderer/stage recreation; it must not silently
+retry a reportedly removed device. Actual DXGI device removal remains a
+separate required test.

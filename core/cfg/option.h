@@ -484,6 +484,9 @@ extern Option<int> NeuralStyleFamily;
 extern OptionString NeuralPerformanceDirectory;
 extern Option<int> NeuralPerformanceFrames;
 extern Option<int> NeuralPerformanceWarmup;
+extern Option<int> NeuralFailureInjection;
+extern Option<int> NeuralFailureInjectionCount;
+extern Option<int> NeuralFailureInjectionAfter;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

@@ -174,6 +174,7 @@ public:
 	{
 		Shutdown();
 		config_ = config;
+		injectedCount_ = 0;
 		rebuildPolicy_.Configure(config.dlss5RebuildGraceEvaluations,
 			config.dlss5RebuildMaxAttempts);
 		stats_.dlss5Route = config.dlss5Route;
@@ -306,6 +307,12 @@ public:
 		}
 		if (compatibilityRebuildExhausted_)
 			return Unsupported("DLSS 5 compatibility rebuild retry limit reached");
+		if (ConsumeInjection(FailureInjection::DeviceRemoved,
+			"injected D3D12 device-removed status"))
+			return BackendEvalStatus::DeviceRemoved;
+		if (ConsumeInjection(FailureInjection::OutputBusy,
+			"injected D3D12 delayed-fence busy status"))
+			return BackendEvalStatus::Busy;
 
 		const std::size_t slot = (outputSlot_ + 1) % output_.size();
 		if (slotFence_[slot] != 0 && fence_->GetCompletedValue() < slotFence_[slot])
@@ -344,6 +351,23 @@ public:
 				create.InFeatureCreateFlags = static_cast<NVSDK_NGX_DLSS_Feature_Flags>(
 					create.InFeatureCreateFlags | NVSDK_NGX_DLSS_Feature_Flags_DepthInverted);
 			create.InEnableOutputSubrects = false;
+			if (ConsumeInjection(FailureInjection::FeatureCreate,
+				"injected D3D12 feature-create failure"))
+			{
+				++stats_.createFailures;
+				Poison(slot);
+				if (compatibilityCreate)
+				{
+					rebuildPolicy_.CompleteCreateAttempt(false);
+					SyncRebuildStats();
+					if (!rebuildPolicy_.RetryAvailable())
+					{
+						compatibilityRebuildExhausted_ = true;
+						return Unsupported("injected compatibility recreate retry limit reached");
+					}
+				}
+				return BackendEvalStatus::RecoverableFailure;
+			}
 			const auto call = CreateLeaf(list_[slot], &feature_, parameters_, &create);
 			Record(call);
 			if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
@@ -393,6 +417,13 @@ public:
 			&& evidenceMarkedOutputReadback_;
 		const auto evidenceStart = captureEvidence
 			? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+		if (ConsumeInjection(FailureInjection::Evaluate,
+			"injected D3D12 evaluate failure"))
+		{
+			++stats_.evaluateFailures;
+			Poison(slot);
+			return BackendEvalStatus::RecoverableFailure;
+		}
 		const auto call = EvaluateLeaf(list_[slot], feature_, parameters_, &evaluate);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
@@ -587,6 +618,18 @@ public:
 	}
 
 private:
+	bool ConsumeInjection(FailureInjection injection, const char *reason) noexcept
+	{
+		if (config_.failureInjection != injection
+			|| successfulEvaluations_ < config_.failureInjectionAfter
+			|| injectedCount_ >= config_.failureInjectionCount)
+			return false;
+		++injectedCount_;
+		std::snprintf(reason_, sizeof(reason_), "%s (%u/%u)", reason, injectedCount_,
+			config_.failureInjectionCount);
+		return true;
+	}
+
 	BackendEvalStatus Unsupported(const char *reason) noexcept
 	{
 		std::snprintf(reason_, sizeof(reason_), "%s", reason);
@@ -845,6 +888,7 @@ private:
 
 	StageConfig config_{};
 	BackendStats stats_{};
+	std::uint32_t injectedCount_ = 0;
 	ID3D12Device *device_ = nullptr;
 	ID3D12CommandQueue *queue_ = nullptr;
 	NVSDK_NGX_Parameter *parameters_ = nullptr;

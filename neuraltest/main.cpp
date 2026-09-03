@@ -40,9 +40,9 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -372,6 +372,7 @@ int CaptureCommand(const Args& args)
 	const auto api = Value(args, "--api", "d3d11");
 	const auto renderer = Value(args, "--renderer", "dx11");
 	const auto preset = Value(args, "--preset", "auto");
+	const auto injection = Value(args, "--inject", "none");
 	const auto profile = Value(args, "--profile", "faithful");
 	const auto style = Value(args, "--style", "auto");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
@@ -394,6 +395,27 @@ int CaptureCommand(const Args& args)
 		std::cerr << "--preset must be auto, j, or k\n";
 		return 2;
 	}
+	if (injection != "none" && injection != "create" && injection != "evaluate"
+		&& injection != "ring-busy" && injection != "device-removed")
+	{
+		std::cerr << "invalid capture injection\n";
+		return 2;
+	}
+	std::uint32_t injectionCount = 0;
+	if (!Number(args, "--inject-count", injection == "none" ? 0 : 3,
+		injectionCount, error) || injectionCount > 10000)
+	{
+		std::cerr << (error.empty() ? "invalid capture injection count" : error) << '\n';
+		return 2;
+	}
+	if (injection == "none") injectionCount = 0;
+	std::uint32_t injectionAfter = 0;
+	if (!Number(args, "--inject-after", 0, injectionAfter, error) || injectionAfter > 10000)
+	{
+		std::cerr << (error.empty() ? "invalid capture injection delay" : error) << '\n';
+		return 2;
+	}
+	if (injection == "none") injectionAfter = 0;
 	if (profile != "faithful" && profile != "enhanced" && profile != "photoreal")
 	{
 		std::cerr << "--profile must be faithful, enhanced, or photoreal\n";
@@ -439,6 +461,8 @@ int CaptureCommand(const Args& args)
 		: lane == "sr-quality" ? 4 : 8;
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
 	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
+	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
+		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4 : 0;
 	const int profileValue = profile == "enhanced" ? 1 : profile == "photoreal" ? 2 : 0;
 	const int styleValue = static_cast<int>(std::distance(styles.begin(), styleIt));
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
@@ -450,6 +474,9 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
 		+ L",config:rend.NeuralDlss5EvidenceCapture=no"
+		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
+		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
+		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",config:rend.NeuralQualityProfile=" + std::to_wstring(profileValue)
 		+ L",config:rend.NeuralStyleFamily=" + std::to_wstring(styleValue)
@@ -529,12 +556,16 @@ int CaptureCommand(const Args& args)
 		<< "\",\n  \"profile\": \"" << profile
 		<< "\",\n  \"style\": \"" << style
 		<< "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"failure_injection\": \"" << injection
+		<< "\",\n  \"failure_injection_count\": " << injectionCount
+		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
 		<< ",\n  \"requested_frames\": " << frames
 		<< ",\n  \"skip\": " << skip
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
 	std::cout << "capture complete frames=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
+		<< " injection=" << injection << ':' << injectionCount
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport ? 0 : 1;
 #endif
@@ -564,6 +595,7 @@ int PerformanceCommand(const Args& args)
 	const auto api = Value(args, "--api", "d3d11");
 	const auto renderer = Value(args, "--renderer", "dx11");
 	const auto preset = Value(args, "--preset", "auto");
+	const auto injection = Value(args, "--inject", "none");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "invalid performance lane\n";
@@ -584,6 +616,27 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "invalid performance preset\n";
 		return 2;
 	}
+	if (injection != "none" && injection != "create" && injection != "evaluate"
+		&& injection != "ring-busy" && injection != "device-removed")
+	{
+		std::cerr << "invalid performance injection\n";
+		return 2;
+	}
+	std::uint32_t injectionCount = 0;
+	if (!Number(args, "--inject-count", injection == "none" ? 0 : 3,
+		injectionCount, error) || injectionCount > 10000)
+	{
+		std::cerr << (error.empty() ? "invalid performance injection count" : error) << '\n';
+		return 2;
+	}
+	if (injection == "none") injectionCount = 0;
+	std::uint32_t injectionAfter = 0;
+	if (!Number(args, "--inject-after", 0, injectionAfter, error) || injectionAfter > 10000)
+	{
+		std::cerr << (error.empty() ? "invalid performance injection delay" : error) << '\n';
+		return 2;
+	}
+	if (injection == "none") injectionAfter = 0;
 	const auto game = std::filesystem::absolute(gameText);
 	const auto output = std::filesystem::absolute(outputText);
 	if (!std::filesystem::is_regular_file(game))
@@ -615,6 +668,8 @@ int PerformanceCommand(const Args& args)
 		: lane == "sr-quality" ? 4 : 8;
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
 	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
+	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
+		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4 : 0;
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
 		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
 		+ L",config:rend.NeuralMode=" + std::to_wstring(mode)
@@ -625,6 +680,9 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralPerformanceFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralPerformanceWarmup=" + std::to_wstring(warmup)
+		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
+		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
+		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
@@ -697,11 +755,15 @@ int PerformanceCommand(const Args& args)
 	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
 		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
 		<< "\",\n  \"preset\": \"" << preset << "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"failure_injection\": \"" << injection
+		<< "\",\n  \"failure_injection_count\": " << injectionCount
+		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
 	std::cout << "performance complete samples=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
+		<< " injection=" << injection << ':' << injectionCount
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport ? 0 : 1;
 #endif

@@ -31,7 +31,9 @@ class PerformanceTracker {
 public:
 	void Configure(ID3D11Device *device, const std::filesystem::path& root,
 		std::uint32_t warmupFrames, std::uint32_t sampleFrames,
-		std::string gameId, std::string api, std::string renderer, int neuralMode);
+		std::string gameId, std::string api, std::string renderer, int neuralMode,
+		int failureInjection, std::uint32_t failureInjectionCount,
+		std::uint32_t failureInjectionAfter);
 	void BeginFrame(ID3D11DeviceContext *context);
 	void Mark(ID3D11DeviceContext *context, GpuTimingPoint point);
 	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats);
@@ -76,6 +78,9 @@ private:
 	std::string api_;
 	std::string renderer_;
 	int neuralMode_ = 0;
+	int failureInjection_ = 0;
+	std::uint32_t failureInjectionCount_ = 0;
+	std::uint32_t failureInjectionAfter_ = 0;
 	std::uint64_t initialVramUsage_ = 0;
 	std::chrono::steady_clock::time_point lastPresent_{};
 	double lastPresentIntervalMs_ = 0.;

@@ -49,9 +49,6 @@ struct DX11Renderer : public Renderer
 
 	bool Present() override
 	{
-#ifdef FLYCAST_ENABLE_NEURAL
-		neuralPerformance.RecordPresent();
-#endif
 		if (!frameRendered || clearLastFrame)
 			return false;
 		frameRendered = false;
@@ -59,6 +56,10 @@ struct DX11Renderer : public Renderer
 		imguiDriver->setFrameRendered();
 #else
 		DX11Context::Instance()->present();
+#endif
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralPerformance.RecordPresent();
+		neuralStage.NotifyHostPresent();
 #endif
 		return true;
 	}
@@ -221,6 +222,9 @@ protected:
 	std::size_t neuralExportSlot = 0;
 	int activeNeuralMode = -1;
 	int activeNeuralPreset = -1;
+	int activeNeuralFailureInjection = -1;
+	int activeNeuralFailureInjectionCount = -1;
+	int activeNeuralFailureInjectionAfter = -1;
 	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
 	bool neuralReactiveCoverageActive = false;

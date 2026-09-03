@@ -170,4 +170,10 @@ close a temporal or title-quality gate.
   D3D12-queue evaluation is honestly unavailable rather than inferred. The full
   transition/failure matrix, external timing, longer runs, resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage
-  remain open.
+  remain open. LOG #76 adds bounded injected feature-create, evaluate,
+  output-ring/delayed-fence-busy, and synthetic device-removed-status coverage
+  on native D3D11 and D3D11On12. Rejected frames after accepted output fall
+  back to byte-identical source color rather than stale public output; the
+  recoverable controls resume after one hold/reset and removed status remains
+  latched. Real device removal and the rest of the transition matrix remain
+  open, so Gate 18 is not closed.

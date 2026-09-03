@@ -23,6 +23,14 @@ enum class NeuralMode : std::uint8_t {
 
 enum class Api : std::uint8_t { D3D11, D3D12 };
 
+enum class FailureInjection : std::uint8_t {
+	None,
+	FeatureCreate,
+	Evaluate,
+	OutputBusy,
+	DeviceRemoved,
+};
+
 struct StageConfig {
 	NeuralMode mode = NeuralMode::Off;
 	Api api = Api::D3D11;
@@ -40,6 +48,11 @@ struct StageConfig {
 	std::uint32_t dlss5RebuildMaxAttempts = 2;
 	bool dlss5EvidenceCapture = false;
 	std::uint32_t dlss5EvidenceCaptureFrames = 1;
+	// Developer-only deterministic failure controls. Production defaults never
+	// enter these paths and no real device state is modified.
+	FailureInjection failureInjection = FailureInjection::None;
+	std::uint32_t failureInjectionCount = 0;
+	std::uint32_t failureInjectionAfter = 0;
 };
 
 enum class BackendEvalStatus : std::uint8_t {
