@@ -14,6 +14,7 @@ enum DrawFlags : std::uint8_t {
 	DrawNaomi2 = 1u << 2,
 	DrawDegenerate = 1u << 3,
 	DrawAdditive = 1u << 4,
+	DrawScreenAligned = 1u << 5,
 };
 
 enum class MatchReason : std::uint8_t {
@@ -69,6 +70,14 @@ MotionTrust ClassifyMotion(const DrawMatch& match, Point2 motion,
 	bool resetHistory, bool truncated) noexcept;
 bool IsSceneCut(std::uint64_t matchedArea, std::uint64_t totalArea,
 	float minimumRatio = .35f) noexcept;
+bool IsHighConfidenceOverlay(const DrawRecord& draw, std::size_t drawCount,
+	std::uint32_t renderWidth, std::uint32_t renderHeight,
+	std::uint8_t stableAcceptedFrames, std::uint16_t textureUseCount) noexcept;
+bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,
+	std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept;
+bool UpdateConservativeBypass(bool candidate, bool active,
+	std::uint8_t& enterStreak, std::uint8_t& exitStreak,
+	std::uint8_t threshold = 3) noexcept;
 float InvertLegacyDepth(float encodedDepth, bool divPosZ) noexcept;
 Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
 	float renderAspect, bool integerScale, std::uint32_t renderResolution) noexcept;

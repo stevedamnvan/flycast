@@ -107,7 +107,8 @@ protected:
 		std::uint32_t neuralDrawId;
 		float neuralBiasMask;
 		std::uint32_t neuralPreviousDrawId;
-		float neuralPadding[2];
+		float neuralOverlayMask;
+		float neuralPadding;
 	};
 
 	virtual void resize(int w, int h);
@@ -203,6 +204,7 @@ protected:
 	NeuralTargetRing neuralConfidence;
 	NeuralTargetRing neuralDrawId;
 	NeuralTargetRing neuralPreviousDrawId;
+	NeuralTargetRing neuralOverlayMask;
 	std::uint32_t neuralDepthWidth = 0;
 	std::uint32_t neuralDepthHeight = 0;
 	std::size_t neuralExportSlot = 0;
@@ -233,6 +235,12 @@ protected:
 	bool loggedDlss5ContractEvaluated = false;
 	std::uint64_t loggedEvidenceCaptures = 0;
 	std::uint64_t loggedEvidenceCaptureFailures = 0;
+	int loggedOverlayPolicy = -1;
+	std::string loggedOverlayGameId;
+	bool loggedOverlayActive = false;
+	bool neural2DBypassActive = false;
+	std::uint8_t neural2DBypassEnterStreak = 0;
+	std::uint8_t neural2DBypassExitStreak = 0;
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 #endif
 

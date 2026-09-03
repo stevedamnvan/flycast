@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <unordered_map>
 
 namespace flycast::rend::neural {
 namespace {
@@ -98,6 +99,8 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	record.n2Proj = static_cast<std::int16_t>(poly.projMatrix);
 	if (poly.isNaomi2()) record.flags |= DrawNaomi2;
 	if (list == ListType_Translucent && poly.count <= 6) record.flags |= DrawReactive;
+	if (list == ListType_Translucent && poly.tsp.SrcInstr == 1 && poly.tsp.DstInstr == 1)
+		record.flags |= DrawAdditive;
 
 	std::uint64_t uvHash = 1469598103934665603ull;
 	std::uint64_t topologyHash = 1469598103934665603ull;
@@ -156,6 +159,22 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	record.bboxMin[1] = QuantizeCoord(yMin);
 	record.bboxMax[0] = QuantizeCoord(xMax);
 	record.bboxMax[1] = QuantizeCoord(yMax);
+	if (sampleCount >= 4 && sampleCount <= 12)
+	{
+		bool screenAligned = true;
+		for (std::size_t i = poly.first; i < end; ++i)
+		{
+			const std::uint32_t vertexIndex = context.idx[i];
+			if (vertexIndex >= context.verts.size()) continue;
+			const auto& vertex = context.verts[vertexIndex];
+			const bool onX = std::abs(vertex.x - xMin) <= .25f
+				|| std::abs(vertex.x - xMax) <= .25f;
+			const bool onY = std::abs(vertex.y - yMin) <= .25f
+				|| std::abs(vertex.y - yMax) <= .25f;
+			if (!onX || !onY) { screenAligned = false; break; }
+		}
+		if (screenAligned) record.flags |= DrawScreenAligned;
+	}
 	return record;
 }
 
@@ -199,8 +218,93 @@ void NeuralInstrumentation::SetEnabled(bool enabled) noexcept
 		historyAge_ = 0;
 		skippedFrameCount_ = 0;
 		sceneCut_ = false;
+		overlayDrawCount_ = 0;
+		overlayBuffer_.fill(0);
+		overlayStability_[0].fill(0);
+		overlayStability_[1].fill(0);
 		hasSource_ = false;
 		frame_ = {};
+	}
+}
+
+void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
+	std::uint32_t renderHeight) noexcept
+{
+	overlayBuffer_.fill(0);
+	overlayStability_[currentBuffer_].fill(0);
+	overlayDrawCount_ = 0;
+	const auto currentCount = drawCounts_[currentBuffer_];
+	const auto referenceCount = drawCounts_[referenceBuffer_];
+	struct Occurrence { std::uint16_t count = 0; std::size_t index = 0; };
+	try
+	{
+		std::unordered_map<std::uint64_t, Occurrence> currentOccurrences;
+		std::unordered_map<std::uint64_t, Occurrence> referenceOccurrences;
+		std::unordered_map<std::uint32_t, std::uint16_t> textureOccurrences;
+		currentOccurrences.reserve(currentCount);
+		referenceOccurrences.reserve(referenceCount);
+		textureOccurrences.reserve(currentCount);
+		for (std::size_t i = 0; i < currentCount; ++i)
+		{
+			auto& occurrence = currentOccurrences[
+				DrawStructuralSignature(drawBuffers_[currentBuffer_][i])];
+			occurrence.index = i;
+			if (occurrence.count != std::numeric_limits<std::uint16_t>::max())
+				++occurrence.count;
+			const auto texture = drawBuffers_[currentBuffer_][i].texId;
+			if (texture != 0 && textureOccurrences[texture]
+				!= std::numeric_limits<std::uint16_t>::max())
+				++textureOccurrences[texture];
+		}
+		for (std::size_t i = 0; i < referenceCount; ++i)
+		{
+			auto& occurrence = referenceOccurrences[
+				DrawStructuralSignature(drawBuffers_[referenceBuffer_][i])];
+			occurrence.index = i;
+			if (occurrence.count != std::numeric_limits<std::uint16_t>::max())
+				++occurrence.count;
+		}
+		for (std::size_t ci = 0; ci < currentCount; ++ci)
+		{
+			const auto& current = drawBuffers_[currentBuffer_][ci];
+			const auto signature = DrawStructuralSignature(current);
+			const auto currentOccurrence = currentOccurrences.find(signature);
+			const auto referenceOccurrence = referenceOccurrences.find(signature);
+			std::uint8_t stability = 1;
+			if (currentOccurrence != currentOccurrences.end()
+				&& referenceOccurrence != referenceOccurrences.end()
+				&& currentOccurrence->second.count == 1
+				&& referenceOccurrence->second.count == 1)
+			{
+				const auto referenceIndex = referenceOccurrence->second.index;
+				const auto& previous = drawBuffers_[referenceBuffer_][referenceIndex];
+				const bool stationary = std::abs(current.centroid[0] - previous.centroid[0]) <= .25f
+					&& std::abs(current.centroid[1] - previous.centroid[1]) <= .25f
+					&& current.bboxMin[0] == previous.bboxMin[0]
+					&& current.bboxMin[1] == previous.bboxMin[1]
+					&& current.bboxMax[0] == previous.bboxMax[0]
+					&& current.bboxMax[1] == previous.bboxMax[1];
+				if (stationary)
+					stability = static_cast<std::uint8_t>(std::min<int>(255,
+						overlayStability_[referenceBuffer_][referenceIndex] + 1));
+			}
+			overlayStability_[currentBuffer_][ci] = stability;
+			const auto texture = textureOccurrences.find(current.texId);
+			const std::uint16_t textureUses = texture == textureOccurrences.end()
+				? 0 : texture->second;
+			if (IsHighConfidenceOverlay(current, currentCount, renderWidth, renderHeight,
+				stability, textureUses))
+			{
+				overlayBuffer_[ci] = 1;
+				++overlayDrawCount_;
+			}
+		}
+	}
+	catch (...)
+	{
+		overlayBuffer_.fill(0);
+		overlayStability_[currentBuffer_].fill(0);
+		overlayDrawCount_ = 0;
 	}
 }
 
@@ -525,6 +629,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		drawCounts_[currentBuffer_], truncated_);
 	AppendList(context, context.global_param_tr, ListType_Translucent, current,
 		drawCounts_[currentBuffer_], truncated_);
+	ClassifyOverlays(renderWidth, renderHeight);
 	if (!CapturePositionSnapshot(context))
 		truncated_ = true;
 	if (truncated_) Discontinuity();
@@ -558,6 +663,8 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	frame_.resetHistory = resetPending_;
 	frame_.sceneCut = sceneCut_;
 	frame_.truncated = truncated_;
+	frame_.predominantly2D = IsPredominantly2DFrame(
+		{current.data(), drawCounts_[currentBuffer_]}, renderWidth, renderHeight);
 	frame_.source = FrameSource::Geometry;
 	frame_.draws = {current.data(), drawCounts_[currentBuffer_]};
 	frame_.matches = {matchBuffer_.data(), drawCounts_[currentBuffer_]};

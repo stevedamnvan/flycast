@@ -9,6 +9,7 @@ add_executable(neuraltest
 	motion_contract.cpp
 	neural_runner.cpp
 	neural_runner_d3d12.cpp
+	overlay_contract.cpp
     renderer.cpp
 	shader_contract.cpp
 	transparency_contract.cpp

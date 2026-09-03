@@ -473,6 +473,7 @@ extern Option<bool> NeuralDlss5EvidenceCapture;
 extern Option<int> NeuralDlss5EvidenceCaptureFrames;
 extern Option<int> NeuralDlss5EvidenceStartDelayMs;
 extern Option<int> NeuralDebugView;
+extern Option<int> NeuralOverlayPolicy;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

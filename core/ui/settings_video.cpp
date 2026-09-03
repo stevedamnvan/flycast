@@ -275,6 +275,28 @@ void gui_settings_video()
 			OptionSlider(T("Compatibility rebuild attempts"), config::NeuralDlss5RebuildMaxAttempts,
 				0, 4, T("Maximum bounded feature recreation attempts after a readiness transition."));
 		}
+		if (selectedMode != 0)
+		{
+			static const std::array<const char *, 3> overlayPolicies = {
+				"Auto (high-confidence HUD)", "Protect full PVR frame", "Disable post-composite"
+			};
+			int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0,
+				static_cast<int>(overlayPolicies.size() - 1));
+			if (ImGui::BeginCombo("##NeuralOverlayPolicy", overlayPolicies[overlayPolicy]))
+			{
+				for (int i = 0; i < static_cast<int>(overlayPolicies.size()); ++i)
+				{
+					const bool selected = overlayPolicy == i;
+					if (ImGui::Selectable(overlayPolicies[i], selected))
+						config::NeuralOverlayPolicy = i;
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s", T("Game overlay protection"));
+			ImGui::TextWrapped("%s", T("Stored per game. Full-frame protection is the safe override when automatic HUD classification is uncertain."));
+		}
 		if (!rendererSupported)
 			ImGui::TextWrapped("%s", T("The selected graphics API is unsupported; Flycast will continue with native presentation."));
 #ifdef FLYCAST_ENABLE_NGX

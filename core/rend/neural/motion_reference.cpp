@@ -213,6 +213,93 @@ bool IsReactive(const DrawRecord& draw) noexcept
 	return explicitlyReactive || smallTranslucent;
 }
 
+bool IsHighConfidenceOverlay(const DrawRecord& draw, std::size_t drawCount,
+	std::uint32_t renderWidth, std::uint32_t renderHeight,
+	std::uint8_t stableAcceptedFrames, std::uint16_t textureUseCount) noexcept
+{
+	if (drawCount == 0 || renderWidth == 0 || renderHeight == 0
+		|| draw.list == 0 || (draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) != 0
+		|| (draw.flags & DrawScreenAligned) == 0 || stableAcceptedFrames < 3
+		|| textureUseCount < 2 || std::abs(draw.zMax - draw.zMin) > .002f)
+		return false;
+	const int left = draw.bboxMin[0];
+	const int top = draw.bboxMin[1];
+	const int right = draw.bboxMax[0];
+	const int bottom = draw.bboxMax[1];
+	const int width = std::max(0, right - left);
+	const int height = std::max(0, bottom - top);
+	if (width == 0 || height == 0
+		|| static_cast<std::uint64_t>(width) * height
+			> static_cast<std::uint64_t>(renderWidth) * renderHeight / 6)
+		return false;
+	const int edgeX = std::max(2, static_cast<int>(renderWidth / 16));
+	const int edgeY = std::max(2, static_cast<int>(renderHeight / 16));
+	const bool edgeAnchored = left <= edgeX || top <= edgeY
+		|| right >= static_cast<int>(renderWidth) - edgeX
+		|| bottom >= static_cast<int>(renderHeight) - edgeY;
+	const std::size_t lateWindow = std::max<std::size_t>(4, drawCount / 8);
+	const bool late = static_cast<std::size_t>(draw.ordinal) + lateWindow >= drawCount;
+	return edgeAnchored && late;
+}
+
+bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,
+	std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept
+{
+	if (draws.empty() || renderWidth == 0 || renderHeight == 0)
+		return false;
+	std::size_t eligible = 0;
+	std::size_t screenAligned = 0;
+	std::size_t planar = 0;
+	std::uint64_t coveredArea = 0;
+	for (const auto& draw : draws)
+	{
+		if ((draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) != 0)
+			continue;
+		++eligible;
+		if ((draw.flags & DrawScreenAligned) != 0)
+			++screenAligned;
+		if (std::abs(draw.zMax - draw.zMin) <= .002f)
+			++planar;
+		const int width = std::max(0, static_cast<int>(draw.bboxMax[0]) - draw.bboxMin[0]);
+		const int height = std::max(0, static_cast<int>(draw.bboxMax[1]) - draw.bboxMin[1]);
+		coveredArea += static_cast<std::uint64_t>(width) * height;
+	}
+	if (eligible == 0)
+		return false;
+	// Require overwhelming, independently observed 2D evidence. Summed coverage
+	// intentionally permits tiled menus and sprite fields while the 90% tests
+	// reject mixed 3D scenes containing only a screen-aligned HUD.
+	const bool overwhelmingAlignment = screenAligned * 10 >= eligible * 9;
+	const bool overwhelmingPlanarity = planar * 10 >= eligible * 9;
+	const auto frameArea = static_cast<std::uint64_t>(renderWidth) * renderHeight;
+	const bool meaningfulCoverage = coveredArea * 2 >= frameArea || eligible >= 8;
+	return overwhelmingAlignment && overwhelmingPlanarity && meaningfulCoverage;
+}
+
+bool UpdateConservativeBypass(bool candidate, bool active,
+	std::uint8_t& enterStreak, std::uint8_t& exitStreak,
+	std::uint8_t threshold) noexcept
+{
+	threshold = std::max<std::uint8_t>(1, threshold);
+	if (candidate)
+	{
+		exitStreak = 0;
+		if (enterStreak != std::numeric_limits<std::uint8_t>::max())
+			++enterStreak;
+		if (!active && enterStreak >= threshold)
+			return true;
+	}
+	else
+	{
+		enterStreak = 0;
+		if (exitStreak != std::numeric_limits<std::uint8_t>::max())
+			++exitStreak;
+		if (active && exitStreak >= threshold)
+			return false;
+	}
+	return active;
+}
+
 std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current)
 {
 	std::vector<DrawMatch> matches(current.size);

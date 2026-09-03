@@ -126,11 +126,21 @@ close a temporal or title-quality gate.
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
   Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gate 15A: green at LOG #70. Normal DX11 translucent lists replay only into
+- Gate 15A: green at LOG #70-#71. Normal DX11 translucent lists replay only into
   current-color bias with depth disabled. The OIT final visible fragment stack
   emits separate R8 reactive coverage, merged without creating depth or trusted
   motion. The exact production resolve passes empty/modifier-only, single-layer,
   and multi-layer controls on native D3D11 and D3D11On12 with byte-identical
   masks; omitted coverage fails. Punch-through remains in the proven physical
-  depth path and framebuffer-direct rendering retains native fallback.
-- Gate 15B through Gate 18: pending.
+  depth path and framebuffer-direct rendering retains native fallback. LOG #71
+  records and corrects an RT1-versus-`SV_Target0` merge-slot bug and adds a
+  direct base-mask-union regression on both surfaces.
+- Gate 15B: green at LOG #71 for the production mechanism and conservative
+  default classifier. Protected pixels are restored from original PVR color
+  after neural scene presentation but before Flycast OSD/ImGui; the exact GPU
+  fixture restores 33/33 pixels byte-for-byte and changes 0 unclassified
+  pixels on native D3D11 and D3D11On12. Strict world-geometry negatives, a
+  per-game full-frame protection override, framebuffer-direct native fallback,
+  and a three-frame-latched 2D/menu bypass are covered. Representative-title
+  visual acceptance remains Gate 17 and is not inferred from this gate.
+- Gate 16 through Gate 18: pending.

@@ -134,3 +134,19 @@ empty/modifier-only pixels, single-layer translucency, and a visible two-layer
 stack. It proves mask coverage only; translucent geometry never becomes
 authoritative depth or motion. Normal sorted translucency is protected by a
 separate production list replay into the same base mask.
+
+The ROM-free Gate 15B command is `neuraltest overlay-contract --api
+d3d11|d3d11on12 --out DIR`. It compiles and executes the production late
+composite and writes `original-scene.png`, `neural-scene.png`,
+`overlay-mask.png`, `composited.png`, and `overlay-contract.json`. Acceptance
+requires every protected output byte to equal original PVR color, every
+unprotected output byte to equal the neural scene, and the deliberately omitted
+composite to mismatch every protected pixel.
+
+`NeuralOverlayPolicy` is stored through Flycast's existing per-game option
+system: 0 is the strict automatic classifier, 1 restores the complete PVR frame
+as a safe title override, and 2 disables post-composition. Runtime notices name
+the game ID, policy, active protected-draw count, and conservative 2D/menu
+bypass transitions. Those transitions require three consecutive classifications
+and are active only for experimental generative mode; public DLAA remains a
+separately selectable feature.

@@ -220,6 +220,116 @@ int RunSelfTests()
 			"reactive draw emits no trusted match");
 	}
 	{
+		DrawRecord hud = base;
+		hud.list = 2;
+		hud.flags = DrawScreenAligned;
+		hud.zMin = hud.zMax = .5f;
+		hud.bboxMin[0] = 2; hud.bboxMin[1] = 8;
+		hud.bboxMax[0] = 42; hud.bboxMax[1] = 28;
+		hud.ordinal = 18;
+		suite.Expect(IsHighConfidenceOverlay(hud, 20, 320, 240, 3, 4),
+			"stable late edge-aligned repeated-texture draw is a high-confidence overlay");
+		DrawRecord interior = hud;
+		interior.bboxMin[0] = 100; interior.bboxMax[0] = 140;
+		interior.bboxMin[1] = 80; interior.bboxMax[1] = 100;
+		DrawRecord physical = hud;
+		physical.list = 0;
+		DrawRecord perspective = hud;
+		perspective.zMax += .02f;
+		suite.Expect(!IsHighConfidenceOverlay(interior, 20, 320, 240, 3, 4)
+			&& !IsHighConfidenceOverlay(physical, 20, 320, 240, 3, 4)
+			&& !IsHighConfidenceOverlay(perspective, 20, 320, 240, 3, 4)
+			&& !IsHighConfidenceOverlay(hud, 20, 320, 240, 2, 4)
+			&& !IsHighConfidenceOverlay(hud, 20, 320, 240, 3, 1),
+			"interior world, opaque, perspective, unstable, and unique-texture controls stay world geometry");
+	}
+	{
+		DrawRecord menu[4]{};
+		for (std::size_t i = 0; i < 4; ++i)
+		{
+			menu[i].flags = DrawScreenAligned;
+			menu[i].zMin = menu[i].zMax = .5f;
+			menu[i].bboxMin[0] = static_cast<std::int16_t>((i % 2) * 160);
+			menu[i].bboxMin[1] = static_cast<std::int16_t>((i / 2) * 120);
+			menu[i].bboxMax[0] = menu[i].bboxMin[0] + 160;
+			menu[i].bboxMax[1] = menu[i].bboxMin[1] + 120;
+		}
+		suite.Expect(IsPredominantly2DFrame({menu, 4}, 320, 240),
+			"tiled screen-aligned menu is conservatively classified as predominantly 2D");
+		DrawRecord mixed[5] = {menu[0], menu[1], menu[2], menu[3], menu[0]};
+		mixed[4].flags = 0;
+		mixed[4].zMin = .1f; mixed[4].zMax = .9f;
+		mixed[4].bboxMin[0] = 20; mixed[4].bboxMin[1] = 20;
+		mixed[4].bboxMax[0] = 300; mixed[4].bboxMax[1] = 220;
+		suite.Expect(!IsPredominantly2DFrame({mixed, 5}, 320, 240),
+			"mixed 3D scene with screen-aligned HUD does not trigger the 2D bypass");
+		std::uint8_t enter = 0;
+		std::uint8_t exit = 0;
+		bool active = false;
+		active = UpdateConservativeBypass(true, active, enter, exit);
+		active = UpdateConservativeBypass(false, active, enter, exit);
+		active = UpdateConservativeBypass(true, active, enter, exit);
+		suite.Expect(!active, "transient 2D classification cannot enter the conservative bypass");
+		active = UpdateConservativeBypass(true, active, enter, exit);
+		active = UpdateConservativeBypass(true, active, enter, exit);
+		suite.Expect(active, "three consecutive 2D frames enter the conservative bypass");
+		active = UpdateConservativeBypass(false, active, enter, exit);
+		active = UpdateConservativeBypass(true, active, enter, exit);
+		active = UpdateConservativeBypass(false, active, enter, exit);
+		suite.Expect(active, "transient 3D classification cannot leave the conservative bypass");
+		active = UpdateConservativeBypass(false, active, enter, exit);
+		active = UpdateConservativeBypass(false, active, enter, exit);
+		suite.Expect(!active, "three consecutive 3D frames leave the conservative bypass");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(12);
+		auto setQuad = [&](int baseVertex, float left, float top, float right, float bottom,
+			float uvOffset) {
+			const float positions[4][2] = {{left, top}, {left, bottom},
+				{right, top}, {right, bottom}};
+			for (int i = 0; i < 4; ++i)
+			{
+				auto& vertex = context.verts[baseVertex + i];
+				vertex.x = positions[i][0]; vertex.y = positions[i][1]; vertex.z = .5f;
+				vertex.u = uvOffset + (i >= 2 ? .1f : 0.f);
+				vertex.v = i % 2 ? .1f : 0.f;
+			}
+		};
+		setQuad(0, 2, 8, 34, 24, 0.f);
+		setQuad(4, 2, 32, 48, 48, .2f);
+		setQuad(8, 270, 70, 310, 100, .4f);
+		context.idx = {0,1,2,3, 4,5,6,7, 8,9,10,11};
+		for (int i = 0; i < 3; ++i)
+		{
+			PolyParam poly{};
+			poly.init(); poly.first = i * 4; poly.count = 4; poly.tcw.full = 71;
+			context.global_param_tr.push_back(poly);
+		}
+		RenderPass pass{};
+		pass.tr_count = 3;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		for (int frameIndex = 0; frameIndex < 3; ++frameIndex)
+		{
+			if (frameIndex != 0)
+			{
+				for (int i = 8; i < 12; ++i) context.verts[i].y += 1.f;
+			}
+			const auto& frame = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+				320, 240, {0,0,320,240}, {});
+			instrumentation->MarkEvaluated(frame.frameId);
+		}
+		suite.Expect(instrumentation->OverlayDrawCount() == 2
+			&& instrumentation->IsOverlayOrdinal(0)
+			&& instrumentation->IsOverlayOrdinal(1)
+			&& !instrumentation->IsOverlayOrdinal(2),
+			"accepted-frame overlay classifier protects stable HUD quads and rejects moving world control");
+	}
+	{
 		DrawRecord current = base;
 		current.list = 3;
 		DrawRecord previous[] = {base};
@@ -728,8 +838,25 @@ int RunSelfTests()
 			"production OIT reactive coverage is exact across D3D11 surfaces");
 		suite.Expect(nativeOk && on12Ok && native.emptyAndModifierClear
 			&& native.singleLayerReactive && native.multiLayerReactive
-			&& native.wrongControlFailed,
+			&& native.wrongControlFailed && native.mergePreservesBase,
 			"empty/modifier-only pixels stay clear while single and multi-layer translucency reject the omitted-mask control");
+	}
+	{
+		OverlayContractResult native;
+		OverlayContractResult on12;
+		std::string fixtureError;
+		const bool nativeOk = RunOverlayContractFixture(false, native, fixtureError);
+		if (!nativeOk && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(nativeOk, "protected overlay pixels composite byte-exactly on native D3D11");
+		fixtureError.clear();
+		const bool on12Ok = RunOverlayContractFixture(true, on12, fixtureError);
+		if (!on12Ok && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(on12Ok, "protected overlay pixels composite byte-exactly on D3D11On12");
+		suite.Expect(nativeOk && on12Ok && native.composited.rgba == on12.composited.rgba,
+			"overlay composition is exact across D3D11 surfaces");
+		suite.Expect(nativeOk && on12Ok && native.worldChanged == 0
+			&& native.wrongProtectedMismatch == native.protectedPixels,
+			"default overlay composite preserves unclassified world and omitted-composite control fails");
 	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';

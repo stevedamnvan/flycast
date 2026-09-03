@@ -159,12 +159,14 @@ bool ValidateProductionExportShader(std::string& error)
 	std::string naomiVertex;
 	std::string naomiColor;
 	std::string reactiveCoverage;
+	std::string overlayComposite;
 	std::string oitHeader;
 	std::string oitFinal;
 	if (!ExtractRawString(source, "PixelShaderCommon", common)
 		|| !ExtractRawString(source, "PixelShader", pixel)
 		|| !ExtractRawString(source, "VertexShader", vertex)
 		|| !ExtractRawString(source, "NeuralReactiveCoveragePixelShader", reactiveCoverage)
+		|| !ExtractRawString(source, "NeuralOverlayCompositePixelShader", overlayComposite)
 		|| !ExtractRawString(naomiSource, "DX11N2VertexShader", naomiVertex)
 		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor)
 		|| !ExtractRawString(oitSource, "static const char OITShaderHeader[]", oitHeader)
@@ -188,6 +190,8 @@ bool ValidateProductionExportShader(std::string& error)
 		&& CompileVertex(naomi, false, false, true, error)
 		&& CompileVertex(naomi, false, true, true, error)
 		&& CompileStandalonePixel(reactiveCoverage, "neural-reactive-coverage",
+			nullptr, nullptr, error)
+		&& CompileStandalonePixel(overlayComposite, "neural-overlay-composite",
 			nullptr, nullptr, error)
 		&& oitFinal.find("reactiveCoverage = num_frag > 0") != std::string::npos
 		&& oitFinal.find("SV_Target1") != std::string::npos

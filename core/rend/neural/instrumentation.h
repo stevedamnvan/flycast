@@ -48,6 +48,11 @@ public:
 	{
 		return ordinal < drawCounts_[currentBuffer_] ? &matchBuffer_[ordinal] : nullptr;
 	}
+	bool IsOverlayOrdinal(std::size_t ordinal) const noexcept
+	{
+		return ordinal < drawCounts_[currentBuffer_] && overlayBuffer_[ordinal] != 0;
+	}
+	std::size_t OverlayDrawCount() const noexcept { return overlayDrawCount_; }
 
 private:
 	using DrawBuffer = std::array<DrawRecord, MaxDraws>;
@@ -56,9 +61,13 @@ private:
 	bool CapturePositionSnapshot(const ::rend_context& context) noexcept;
 	void BuildPreviousPositions(const ::rend_context& context) noexcept;
 	void FinalizeConfidence() noexcept;
+	void ClassifyOverlays(std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept;
 
 	DrawBuffer drawBuffers_[2]{};
 	MatchBuffer matchBuffer_{};
+	std::array<std::uint8_t, MaxDraws> overlayBuffer_{};
+	std::array<std::array<std::uint8_t, MaxDraws>, 2> overlayStability_{};
+	std::size_t overlayDrawCount_ = 0;
 	std::size_t drawCounts_[2]{};
 	std::vector<PreviousPosition> positionBuffers_[2];
 	std::vector<std::uint32_t> indexBuffers_[2];

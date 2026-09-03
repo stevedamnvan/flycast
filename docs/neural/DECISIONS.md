@@ -494,3 +494,42 @@ fixture. Empty/modifier-only, single-layer, and multi-layer controls run on
 native D3D11 and D3D11On12 and must be byte-identical. The synchronous Gate 10
 evidence mode still copies its explicitly cleared base mask and does not allow
 the later disocclusion pass to change that diagnostic contract.
+
+The first integration bound the merge destination at RT1 even though the
+full-screen merge shader writes `SV_Target0`. The subsequent Gate 15B slice
+corrected that slot and extended the fixture to begin with an independent base
+mask, merge disjoint OIT coverage, and require their exact union. This negative
+finding is retained in LOG #71 and the regression now executes on both surface
+types.
+
+## D-037: protect only stable HUD evidence and composite the original bytes late
+
+Automatic overlay classification is deliberately narrower than ordinary
+reactive classification. A candidate must be non-opaque, screen-aligned,
+constant-depth, edge-anchored, late, bounded in area, stationary for three
+accepted frames, and use a texture repeated within the frame. Structural
+identity and exact bounds carry stability across accepted history. Moving,
+interior, opaque, perspective, unique-texture, RTT, Naomi 2, and degenerate
+controls remain world geometry. Ambiguity therefore keeps scene content in the
+world rather than deleting it.
+
+The production neural export writes the accepted classification to a separate
+R8 target. After the neural scene has been placed in the exact content
+rectangle, a production full-screen shader discards unclassified pixels and
+restores classified pixels from the original PVR scene. Flycast OSD and ImGui
+remain later. A per-game `NeuralOverlayPolicy` supports automatic, protect-full-
+PVR-frame, and disable-post-composite policies; diagnostics always name the
+game ID and active policy. Flycast does not edit an external consumer.
+
+Framebuffer-direct content already takes native fallback. Generative mode also
+uses a conservative predominantly-2D detector: at least 90 percent of eligible
+draws must be screen-aligned and planar, with meaningful frame coverage. Three
+consecutive candidates enter the bypass and three consecutive 3D frames leave
+it, preventing one-frame native/neural alternation. Entering the bypass resets
+history; bypassed frames are not submitted and cannot advance accepted history.
+
+The exact production composite fixture protects 33 pixels byte-for-byte and
+leaves every unclassified pixel equal to the neural input. Omitting the
+composite creates 33 protected-pixel mismatches. Native D3D11 and D3D11On12
+artifacts are byte-identical. This closes the mechanism and conservative default
+classifier, while title-level visual acceptance remains Gate 17.

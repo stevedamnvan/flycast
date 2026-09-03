@@ -263,7 +263,8 @@ cbuffer polyConstantBuffer : register(b1)
 	uint neuralDrawId;
 	float neuralBiasMask;
 	uint neuralPreviousDrawId;
-	float2 neuralPadding;
+	float neuralOverlayMask;
+	float neuralPadding;
 };
 
 #include "pixel_common.hlsl"
@@ -288,6 +289,7 @@ struct PSO
 	float confidence : SV_TARGET2;
 	uint drawId : SV_TARGET3;
 	uint previousDrawId : SV_TARGET4;
+	float overlayMask : SV_TARGET5;
 	#else
 	float4 col : SV_TARGET;
 	#endif
@@ -410,6 +412,7 @@ PSO main(in Pixel inpix)
 	pso.confidence = neuralConfidence * trusted;
 	pso.drawId = neuralDrawId;
 	pso.previousDrawId = trusted >= .5f ? neuralPreviousDrawId : 0;
+	pso.overlayMask = neuralOverlayMask;
 	#else
 	pso.col = color;
 	#endif
@@ -437,6 +440,8 @@ PSO modifierVolume(in MVPixel inpix)
 	pso.mask = 1.f;
 	pso.confidence = 0.f;
 	pso.drawId = 0;
+	pso.previousDrawId = 0;
+	pso.overlayMask = 0.f;
 	#else
 	pso.col = float4(0, 0, 0, 1.f - shadowScale);
 	#endif
@@ -548,6 +553,30 @@ float main(in VertexIn input) : SV_Target
 	if (reactiveCoverage.Load(int3(int2(input.pos.xy), 0)) < .5f)
 		discard;
 	return 1.f;
+}
+)";
+
+const char * const NeuralOverlayCompositePixelShader = R"(
+struct VertexIn
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+Texture2D<float4> originalScene : register(t0);
+Texture2D<float> overlayMask : register(t1);
+sampler sceneSampler : register(s0);
+
+float4 main(in VertexIn input) : SV_Target
+{
+	uint width;
+	uint height;
+	overlayMask.GetDimensions(width, height);
+	int2 pixel = int2(clamp(input.uv * float2(width, height), 0.f,
+		float2(width - 1, height - 1)));
+	if (overlayMask.Load(int3(pixel, 0)) < .5f)
+		discard;
+	return originalScene.Sample(sceneSampler, input.uv);
 }
 )";
 
@@ -848,6 +877,15 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralReactiveCoveragePixelShad
 	return neuralReactiveCoveragePixelShader;
 }
 
+const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralOverlayCompositePixelShader()
+{
+	if (!neuralOverlayCompositePixelShader)
+		neuralOverlayCompositePixelShader = compilePS(NeuralOverlayCompositePixelShader,
+			"main", nullptr);
+
+	return neuralOverlayCompositePixelShader;
+}
+
 ComPtr<ID3DBlob> DX11Shaders::getNeuralVertexShaderBlob()
 {
 	VertexMacros[MacroGouraud].Definition = MacroValues[true];
@@ -900,6 +938,7 @@ void DX11Shaders::term()
 	quadPixelShader.reset();
 	neuralDisocclusionPixelShader.reset();
 	neuralReactiveCoveragePixelShader.reset();
+	neuralOverlayCompositePixelShader.reset();
 	device.reset();
 }
 

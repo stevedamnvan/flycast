@@ -28,6 +28,7 @@ void Usage()
 		"neuraltest color-contract --out DIR\n"
 		"neuraltest disocclusion-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest transparency-contract --api d3d11|d3d11on12 --out DIR\n"
+		"neuraltest overlay-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
@@ -536,11 +537,57 @@ int TransparencyContractCommand(const Args& args)
 	report << "{\n  \"surface\": \"" << result.surface << "\",\n  \"adapter\": \""
 		<< result.adapter << "\",\n  \"empty_modifier_clear\": true,"
 		<< "\n  \"single_layer_reactive\": true,\n  \"multi_layer_reactive\": true,"
-		<< "\n  \"wrong_omitted_mask_failed\": true\n}\n";
+		<< "\n  \"wrong_omitted_mask_failed\": true,"
+		<< "\n  \"merge_preserves_base_mask\": true\n}\n";
 	if (!report.good()) { std::cerr << "failed to write transparency report\n"; return 1; }
 	std::cout << "surface=" << result.surface
 		<< " empty_modifier_clear=yes single_layer_reactive=yes"
-		<< " multi_layer_reactive=yes wrong_omitted_mask_failed=yes\n";
+		<< " multi_layer_reactive=yes wrong_omitted_mask_failed=yes"
+		<< " merge_preserves_base_mask=yes\n";
+	return 0;
+}
+
+int OverlayContractCommand(const Args& args)
+{
+	const auto api = Value(args, "--api", "d3d11");
+	const auto output = Value(args, "--out");
+	if ((api != "d3d11" && api != "d3d11on12") || output.empty())
+	{
+		std::cerr << "overlay-contract requires --api d3d11|d3d11on12 and --out DIR\n";
+		return 2;
+	}
+	neuraltest::OverlayContractResult result;
+	std::string error;
+	if (!neuraltest::RunOverlayContractFixture(api == "d3d11on12", result, error))
+	{
+		std::cerr << (error.empty() ? "overlay contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "original-scene.png",
+		result.original, error)
+		|| !neuraltest::WritePng(std::filesystem::path(output) / "neural-scene.png",
+			result.neural, error)
+		|| !neuraltest::WritePng(std::filesystem::path(output) / "overlay-mask.png",
+			result.mask, error)
+		|| !neuraltest::WritePng(std::filesystem::path(output) / "composited.png",
+			result.composited, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "overlay-contract.json");
+	report << "{\n  \"surface\": \"" << result.surface << "\",\n  \"adapter\": \""
+		<< result.adapter << "\",\n  \"protected_pixels\": " << result.protectedPixels
+		<< ",\n  \"protected_mismatch\": " << result.protectedMismatch
+		<< ",\n  \"world_changed\": " << result.worldChanged
+		<< ",\n  \"wrong_protected_mismatch\": " << result.wrongProtectedMismatch
+		<< "\n}\n";
+	if (!report.good()) { std::cerr << "failed to write overlay report\n"; return 1; }
+	std::cout << "surface=" << result.surface << " protected_pixels="
+		<< result.protectedPixels << " protected_mismatch=" << result.protectedMismatch
+		<< " world_changed=" << result.worldChanged << " wrong_protected_mismatch="
+		<< result.wrongProtectedMismatch << '\n';
 	return 0;
 }
 
@@ -818,6 +865,7 @@ int main(int argc, char **argv)
 	if (command == "color-contract") return ColorContractCommand(args);
 	if (command == "disocclusion-contract") return DisocclusionContractCommand(args);
 	if (command == "transparency-contract") return TransparencyContractCommand(args);
+	if (command == "overlay-contract") return OverlayContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

@@ -113,6 +113,7 @@ struct NeuralFrame {
 	bool resetHistory = false;
 	bool sceneCut = false;
 	bool truncated = false;
+	bool predominantly2D = false;
 	FrameSource source = FrameSource::Geometry;
 	ArrayView<DrawRecord> draws;
 	ArrayView<DrawMatch> matches;

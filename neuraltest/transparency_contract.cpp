@@ -334,8 +334,56 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	result.singleLayerReactive = value(1) == 255 && value(2) == 255;
 	result.multiLayerReactive = value(3) == 255;
 	result.wrongControlFailed = result.singleLayerReactive && result.multiLayerReactive;
+
+	std::ifstream mergeInput(std::string(NEURAL_SOURCE_DIR)
+		+ "/core/rend/dx11/dx11_shaders.cpp", std::ios::binary);
+	std::ostringstream mergeSourceStream;
+	mergeSourceStream << mergeInput.rdbuf();
+	std::string mergePixel;
+	if (!mergeInput || !ExtractRawString(mergeSourceStream.str(),
+		"NeuralReactiveCoveragePixelShader", mergePixel))
+	{
+		error = "cannot extract production reactive merge shader";
+		return false;
+	}
+	ComPtr<ID3DBlob> mergeCode;
+	hr = D3DCompile(mergePixel.data(), mergePixel.size(), "production-reactive-merge",
+		nullptr, nullptr, "main", "ps_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
+		mergeCode.GetAddressOf(), diagnostics.ReleaseAndGetAddressOf());
+	ComPtr<ID3D11PixelShader> mergeShader;
+	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(mergeCode->GetBufferPointer(),
+		mergeCode->GetBufferSize(), nullptr, mergeShader.GetAddressOf());
+	const std::array<std::uint8_t, Width> baseValues = {0, 0, 255, 0};
+	const std::array<std::uint8_t, Width> coverageValues = {0, 255, 0, 255};
+	ComPtr<ID3D11Texture2D> baseTexture;
+	ComPtr<ID3D11Texture2D> coverageTexture;
+	if (SUCCEEDED(hr) && (!CreateTexture(surface.device.Get(), DXGI_FORMAT_R8_UNORM,
+		D3D11_BIND_RENDER_TARGET, baseValues.data(), Width, baseTexture, error)
+		|| !CreateTexture(surface.device.Get(), DXGI_FORMAT_R8_UNORM,
+		D3D11_BIND_SHADER_RESOURCE, coverageValues.data(), Width, coverageTexture, error)))
+		return false;
+	ComPtr<ID3D11RenderTargetView> baseTarget;
+	ComPtr<ID3D11ShaderResourceView> coverageView;
+	if (SUCCEEDED(hr)) hr = surface.device->CreateRenderTargetView(baseTexture.Get(), nullptr,
+		baseTarget.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = surface.device->CreateShaderResourceView(coverageTexture.Get(), nullptr,
+		coverageView.GetAddressOf());
+	if (FAILED(hr)) { error = HrText("create reactive merge resources", hr); return false; }
+	ID3D11RenderTargetView *mergeTarget = baseTarget.Get();
+	surface.context->OMSetRenderTargets(1, &mergeTarget, nullptr);
+	surface.context->PSSetShader(mergeShader.Get(), nullptr, 0);
+	ID3D11ShaderResourceView *coverageResource = coverageView.Get();
+	surface.context->PSSetShaderResources(0, 1, &coverageResource);
+	surface.context->Draw(4, 0);
+	ID3D11ShaderResourceView *nullResource = nullptr;
+	surface.context->PSSetShaderResources(0, 1, &nullResource);
+	Image merged;
+	if (!ReadMask(surface.device.Get(), surface.context.Get(), baseTexture.Get(), merged, error))
+		return false;
+	result.mergePreservesBase = merged.rgba[0] == 0 && merged.rgba[4] == 255
+		&& merged.rgba[8] == 255 && merged.rgba[12] == 255;
 	return result.emptyAndModifierClear && result.singleLayerReactive
-		&& result.multiLayerReactive && result.wrongControlFailed;
+		&& result.multiLayerReactive && result.wrongControlFailed && result.mergePreservesBase;
 }
 
 } // namespace neuraltest

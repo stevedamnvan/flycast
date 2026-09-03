@@ -195,6 +195,20 @@ struct TransparencyContractResult {
 	bool singleLayerReactive = false;
 	bool multiLayerReactive = false;
 	bool wrongControlFailed = false;
+	bool mergePreservesBase = false;
+};
+
+struct OverlayContractResult {
+	std::string surface;
+	std::string adapter;
+	Image original;
+	Image neural;
+	Image mask;
+	Image composited;
+	std::uint32_t protectedPixels = 0;
+	std::uint32_t protectedMismatch = 0;
+	std::uint32_t worldChanged = 0;
+	std::uint32_t wrongProtectedMismatch = 0;
 };
 
 const std::vector<std::string>& FixtureNames();
@@ -217,6 +231,8 @@ bool RunDisocclusionContractFixture(bool d3d11On12,
 	DisocclusionContractResult& result, std::string& error);
 bool RunTransparencyContractFixture(bool d3d11On12,
 	TransparencyContractResult& result, std::string& error);
+bool RunOverlayContractFixture(bool d3d11On12,
+	OverlayContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,

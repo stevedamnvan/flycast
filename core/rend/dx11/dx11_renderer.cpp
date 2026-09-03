@@ -590,7 +590,7 @@ flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
 
 bool DX11Renderer::ensureNeuralResources()
 {
-	if (neuralDepthTextures[0] && neuralColor.textures[0]
+	if (neuralDepthTextures[0] && neuralColor.textures[0] && neuralOverlayMask.textures[0]
 		&& neuralDepthWidth == width && neuralDepthHeight == height)
 		return true;
 	releaseNeuralResources();
@@ -664,7 +664,8 @@ bool DX11Renderer::ensureNeuralResources()
 			return false;
 		}
 	}
-	auto createTargetRing = [&](NeuralTargetRing& ring, DXGI_FORMAT format, const char *name) {
+	auto createTargetRing = [&](NeuralTargetRing& ring, DXGI_FORMAT format, const char *name,
+		bool allowWrapped = true) {
 		D3D11_TEXTURE2D_DESC targetDesc{};
 		targetDesc.Width = width;
 		targetDesc.Height = height;
@@ -677,7 +678,7 @@ bool DX11Renderer::ensureNeuralResources()
 		for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
 		{
 			HRESULT result;
-			if (useD3D11On12)
+			if (useD3D11On12 && allowWrapped)
 			{
 				D3D12_RESOURCE_DESC resourceDesc{};
 				resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -718,7 +719,9 @@ bool DX11Renderer::ensureNeuralResources()
 		|| !createTargetRing(neuralConfidence, DXGI_FORMAT_R8_UNORM, "confidence")
 		|| !createTargetRing(neuralDrawId, DXGI_FORMAT_R16_UINT, "draw ID")
 		|| !createTargetRing(neuralPreviousDrawId, DXGI_FORMAT_R16_UINT,
-			"expected previous draw ID"))
+			"expected previous draw ID")
+		|| !createTargetRing(neuralOverlayMask, DXGI_FORMAT_R8_UNORM,
+			"overlay classification", false))
 	{
 		releaseNeuralResources();
 		return false;
@@ -747,6 +750,7 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	releaseTargetRing(neuralConfidence);
 	releaseTargetRing(neuralDrawId);
 	releaseTargetRing(neuralPreviousDrawId);
+	releaseTargetRing(neuralOverlayMask);
 	for (auto& view : neuralDepthViews) view.reset();
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
@@ -785,6 +789,7 @@ bool DX11Renderer::renderNeuralExports()
 		neuralConfidence.targets[neuralExportSlot].get(),
 		neuralDrawId.targets[neuralExportSlot].get(),
 		neuralPreviousDrawId.targets[neuralExportSlot].get(),
+		neuralOverlayMask.targets[neuralExportSlot].get(),
 	};
 	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets,
 		neuralDepthTargets[neuralExportSlot]);
@@ -794,6 +799,7 @@ bool DX11Renderer::renderNeuralExports()
 	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot], black);
 	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot], black);
 	deviceContext->ClearRenderTargetView(neuralPreviousDrawId.targets[neuralExportSlot], black);
+	deviceContext->ClearRenderTargetView(neuralOverlayMask.targets[neuralExportSlot], black);
 	deviceContext->ClearDepthStencilView(neuralDepthTargets[neuralExportSlot], D3D11_CLEAR_DEPTH, 0.f, 0);
 	const auto previousPositions = neuralInstrumentation.PreviousPositions();
 	const u32 previousPositionBytes = static_cast<u32>(previousPositions.size
@@ -843,6 +849,13 @@ bool DX11Renderer::renderNeuralExports()
 		releaseNeuralInputs();
 		return false;
 	}
+	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
+	if (overlayPolicy == 1)
+	{
+		const float protectedFrame[4] = {1.f, 1.f, 1.f, 1.f};
+		deviceContext->ClearRenderTargetView(neuralOverlayMask.targets[neuralExportSlot],
+			protectedFrame);
+	}
 	if (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
 		&& config::NeuralDlss5EvidenceCapture.get())
 	{
@@ -865,6 +878,10 @@ bool DX11Renderer::renderNeuralReactiveCoverage()
 	ID3D11RenderTargetView *targets[] = {
 		nullptr,
 		neuralMask.targets[neuralExportSlot].get(),
+		nullptr,
+		nullptr,
+		nullptr,
+		neuralOverlayMask.targets[neuralExportSlot].get(),
 	};
 	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets, nullptr);
 	neuralReactiveCoverageActive = true;
@@ -884,11 +901,8 @@ bool DX11Renderer::mergeNeuralReactiveCoverage(ID3D11ShaderResourceView *coverag
 {
 	if (!coverageView)
 		return true;
-	ID3D11RenderTargetView *targets[] = {
-		nullptr,
-		neuralMask.targets[neuralExportSlot].get(),
-	};
-	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets, nullptr);
+	ID3D11RenderTargetView *target = neuralMask.targets[neuralExportSlot].get();
+	deviceContext->OMSetRenderTargets(1, &target, nullptr);
 	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
 	const auto& shader = shaders->getNeuralReactiveCoveragePixelShader();
 	if (!shader)
@@ -1141,9 +1155,44 @@ void DX11Renderer::submitNeuralFrame()
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
 	const auto contentRect = getNeuralContentRect();
-	neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
+	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	const bool bypass2DCandidate = activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
+		&& capturedFrame.predominantly2D;
+	const bool bypass2D = UpdateConservativeBypass(bypass2DCandidate,
+		neural2DBypassActive, neural2DBypassEnterStreak, neural2DBypassExitStreak);
+	if (bypass2D != neural2DBypassActive)
+	{
+		if (bypass2D)
+			neuralInstrumentation.Discontinuity();
+		neural2DBypassActive = bypass2D;
+		NOTICE_LOG(RENDERER,
+			"DLSS 5 conservative 2D/menu bypass: game=%s active=%d draws=%u",
+			settings.content.gameId.c_str(), bypass2D ? 1 : 0,
+			static_cast<unsigned>(capturedFrame.draws.size));
+	}
+	if (bypass2D)
+		return;
+	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
+	if (loggedOverlayPolicy != overlayPolicy || loggedOverlayGameId != settings.content.gameId)
+	{
+		loggedOverlayPolicy = overlayPolicy;
+		loggedOverlayGameId = settings.content.gameId;
+		const char *policyName = overlayPolicy == 0 ? "auto-high-confidence"
+			: overlayPolicy == 1 ? "protect-full-frame" : "disabled";
+		NOTICE_LOG(RENDERER, "Neural game overlay policy: game=%s policy=%s per-title=%d",
+			settings.content.gameId.c_str(), policyName, overlayPolicy != 0 ? 1 : 0);
+	}
+	const bool overlayActive = overlayPolicy == 1
+		|| (overlayPolicy == 0 && neuralInstrumentation.OverlayDrawCount() != 0);
+	if (overlayActive != loggedOverlayActive)
+	{
+		loggedOverlayActive = overlayActive;
+		NOTICE_LOG(RENDERER, "Neural protected overlay state: game=%s active=%d draws=%u",
+			settings.content.gameId.c_str(), overlayActive ? 1 : 0,
+			static_cast<unsigned>(neuralInstrumentation.OverlayDrawCount()));
+	}
 	if (!ensureNeuralResources()) return;
 	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
 		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
@@ -1361,6 +1410,21 @@ void DX11Renderer::displayFramebuffer()
 	quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
 		x, y, w, h, config::Rotate90);
 #ifdef FLYCAST_ENABLE_NEURAL
+	if (neuralPresentationView && config::NeuralOverlayPolicy.get() != 2
+		&& neuralOverlayMask.views[neuralExportSlot])
+	{
+		const auto& shader = shaders->getNeuralOverlayCompositePixelShader();
+		if (shader)
+		{
+			deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+			ID3D11ShaderResourceView *views[] = {
+				fbTextureView.get(), neuralOverlayMask.views[neuralExportSlot].get()
+			};
+			quad->drawCustom(shader, views, static_cast<UINT>(std::size(views)),
+				samplers->getSampler(config::LinearInterpolation), x, y, w, h,
+				config::Rotate90);
+		}
+	}
 	if (queuedNeuralOutput)
 	{
 		++neuralAcceptedBlitCount;
@@ -1437,6 +1501,9 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			ordinal = rendContext->global_param_op.size() + rendContext->global_param_pt.size()
 				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
 		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
+		const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
+		constants.neuralOverlayMask = overlayPolicy == 0
+			&& neuralInstrumentation.IsOverlayOrdinal(ordinal) ? 1.f : 0.f;
 		if (neuralReactiveCoverageActive)
 		{
 			constants.neuralConfidence = 0.f;

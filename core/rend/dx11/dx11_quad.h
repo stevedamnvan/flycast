@@ -130,11 +130,14 @@ public:
 	}
 
 	void drawCustom(const ComPtr<ID3D11PixelShader>& shader,
-		ID3D11ShaderResourceView *const *views, UINT viewCount)
+		ID3D11ShaderResourceView *const *views, UINT viewCount,
+		ComPtr<ID3D11SamplerState> sampler = {},
+		float x = -1.f, float y = -1.f, float w = 2.f, float h = 2.f,
+		bool rotate = false)
 	{
 		Vertex vertices[4] {
-			{-1.f, -1.f, 0.f, 1.f}, {-1.f, 1.f, 0.f, 0.f},
-			{1.f, -1.f, 1.f, 1.f}, {1.f, 1.f, 1.f, 0.f},
+			{x, y, 0.f, 1.f}, {x, y + h, 0.f, 0.f},
+			{x + w, y, 1.f, 1.f}, {x + w, y + h, 1.f, 0.f},
 		};
 		D3D11_MAPPED_SUBRESOURCE mappedSubRes{};
 		deviceContext->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubRes);
@@ -147,13 +150,15 @@ public:
 		deviceContext->OMSetDepthStencilState(depthStencilState, 0);
 		deviceContext->RSSetState(rasterizerState);
 		deviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		deviceContext->VSSetShader(vertexShader, nullptr, 0);
+		deviceContext->VSSetShader(rotate ? rotateVertexShader : vertexShader, nullptr, 0);
 		deviceContext->PSSetShader(shader, nullptr, 0);
 		deviceContext->GSSetShader(nullptr, nullptr, 0);
 		deviceContext->HSSetShader(nullptr, nullptr, 0);
 		deviceContext->DSSetShader(nullptr, nullptr, 0);
 		deviceContext->CSSetShader(nullptr, nullptr, 0);
 		deviceContext->PSSetShaderResources(0, viewCount, views);
+		if (sampler)
+			deviceContext->PSSetSamplers(0, 1, &sampler.get());
 		deviceContext->Draw(4, 0);
 		ID3D11ShaderResourceView *nullViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]{};
 		deviceContext->PSSetShaderResources(0, viewCount, nullViews);
