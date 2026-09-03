@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
@@ -60,7 +60,8 @@ bool ParseArgs(int argc, char **argv, int first, Args& args, std::string& error)
 			error = "unexpected positional argument: " + key;
 			return false;
 		}
-		if (key == "--warp" || key == "--no-ngx" || key == "--edge-only")
+		if (key == "--warp" || key == "--no-ngx" || key == "--edge-only"
+			|| key == "--late-overlay-proof")
 		{
 			args[key] = "true";
 			continue;
@@ -458,6 +459,8 @@ int CaptureCommand(const Args& args)
 	const auto evidenceMask = Value(args, "--evidence-mask", "zero");
 	const auto evidencePresentation = Value(args, "--evidence-presentation", "marker");
 	const auto inputReplay = Value(args, "--input-replay", "no");
+	const bool lateOverlayProof = args.count("--late-overlay-proof") != 0;
+	const auto proofOverlay = Value(args, "--proof-overlay", "fps");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "--lane must be native, dlaa, sr-quality, or dlss5\n";
@@ -491,6 +494,16 @@ int CaptureCommand(const Args& args)
 	if (inputReplay != "yes" && inputReplay != "no")
 	{
 		std::cerr << "--input-replay must be yes or no\n";
+		return 2;
+	}
+	if (proofOverlay != "fps" && proofOverlay != "none")
+	{
+		std::cerr << "--proof-overlay must be fps or none\n";
+		return 2;
+	}
+	if (!lateOverlayProof && args.count("--proof-overlay") != 0)
+	{
+		std::cerr << "--proof-overlay requires --late-overlay-proof\n";
 		return 2;
 	}
 	if (renderer != "dx11" && renderer != "dx11-oit")
@@ -628,6 +641,9 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
+		+ L",config:rend.NeuralLateOverlayProof=" + (lateOverlayProof ? L"yes" : L"no")
+		+ L",config:rend.ShowFPS="
+		+ (lateOverlayProof && proofOverlay == "fps" ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (evidenceFrames != 0 ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames="
 		+ std::to_wstring(evidenceFrames == 0 ? 1 : evidenceFrames)
@@ -712,6 +728,30 @@ int CaptureCommand(const Args& args)
 			: "capture timed out before completion") << '\n';
 		return 1;
 	}
+	std::uint32_t lateOverlayProofFiles = 0;
+	if (lateOverlayProof)
+	{
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(output))
+		{
+			if (!entry.is_regular_file() || entry.path().filename() != "late-overlay-proof.json")
+				continue;
+			std::ifstream proof(entry.path());
+			std::ostringstream text;
+			text << proof.rdbuf();
+			if (!proof || text.str().find("\"passed\": true") == std::string::npos)
+			{
+				std::cerr << "late Flycast overlay pixel proof failed: "
+					<< entry.path().string() << '\n';
+				return 1;
+			}
+			++lateOverlayProofFiles;
+		}
+		if (lateOverlayProofFiles != frames)
+		{
+			std::cerr << "late Flycast overlay proof count differs from requested frames\n";
+			return 1;
+		}
+	}
 	std::ofstream launchReport(output / "capture-launch.json");
 	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
 		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
@@ -727,6 +767,9 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""
 		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
+		<< ",\n  \"late_overlay_proof_requested\": " << (lateOverlayProof ? "true" : "false")
+		<< ",\n  \"late_overlay_source\": \"" << (lateOverlayProof ? proofOverlay : "none") << "\""
+		<< ",\n  \"late_overlay_proof_frames\": " << lateOverlayProofFiles
 		<< ",\n  \"failure_injection\": \"" << injection
 		<< "\",\n  \"failure_injection_count\": " << injectionCount
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter

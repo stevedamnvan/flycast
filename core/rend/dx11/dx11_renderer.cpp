@@ -579,6 +579,9 @@ bool DX11Renderer::Render()
 		endNeuralPerformanceFrame();
 #endif
 		drawOSD();
+#ifdef FLYCAST_ENABLE_NEURAL
+		captureNeuralLateOverlayFrame();
+#endif
 		renderVideoRouting();
 		DX11Context::Instance()->setFrameRendered();
 #else
@@ -1219,7 +1222,8 @@ void DX11Renderer::submitNeuralFrame()
 	if (!syncNeuralMode()) return;
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
-		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)));
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
+		config::NeuralLateOverlayProof.get());
 	const auto contentRect = getNeuralContentRect();
 	neuralInstrumentation.SetOverlayGameId(settings.content.gameId);
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
@@ -1497,13 +1501,40 @@ void DX11Renderer::captureNeuralQualityFrame()
 			afterCount, neuralQualityCaptureMetadata.submitStatus.c_str());
 }
 
+void DX11Renderer::captureNeuralLateOverlayFrame()
+{
+	if (!config::NeuralLateOverlayProof.get()
+		|| config::NeuralCaptureDirectory.get().empty()
+		|| config::NeuralCaptureFrames.get() <= 0
+		|| currentNeuralSourceFrameId == 0)
+		return;
+	ID3D11Resource *resource = nullptr;
+	DX11Context::Instance()->getRenderTarget()->GetResource(&resource);
+	if (!resource)
+		return;
+	ID3D11Texture2D *backBuffer = nullptr;
+	resource->QueryInterface(__uuidof(ID3D11Texture2D),
+		reinterpret_cast<void **>(&backBuffer));
+	resource->Release();
+	if (!backBuffer)
+		return;
+	std::string error;
+	const bool captured = neuralQualityCapture.CapturePresentedWithFlycastOverlays(
+		device, deviceContext, backBuffer, currentNeuralSourceFrameId,
+		getNeuralContentRect(), error);
+	backBuffer->Release();
+	if (!captured)
+		WARN_LOG(RENDERER, "Neural late-overlay proof failed: %s", error.c_str());
+}
+
 void DX11Renderer::beginNeuralPerformanceFrame()
 {
 	const bool synchronousCapture = !config::NeuralCaptureDirectory.get().empty()
 		&& config::NeuralCaptureFrames.get() > 0;
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
-		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)));
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
+		config::NeuralLateOverlayProof.get());
 	neuralQualityCaptureGpuTimer.Configure(device, synchronousCapture);
 	neuralQualityCaptureGpuTimer.BeginFrame(deviceContext,
 		neuralQualityCapture.CapturesCurrentFrame());
@@ -2460,6 +2491,9 @@ void DX11Renderer::RenderFramebuffer(const FramebufferInfo& info)
 	deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
 	displayFramebuffer();
 	drawOSD();
+#ifdef FLYCAST_ENABLE_NEURAL
+	captureNeuralLateOverlayFrame();
+#endif
 	renderVideoRouting();
 	DX11Context::Instance()->setFrameRendered();
 #else

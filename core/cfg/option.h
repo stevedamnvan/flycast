@@ -482,6 +482,7 @@ extern Option<int> NeuralDlssPreset;
 extern OptionString NeuralCaptureDirectory;
 extern Option<int> NeuralCaptureFrames;
 extern Option<int> NeuralCaptureSkip;
+extern Option<bool> NeuralLateOverlayProof;
 extern Option<int> NeuralQualityProfile;
 extern Option<int> NeuralStyleFamily;
 extern OptionString NeuralPerformanceDirectory;

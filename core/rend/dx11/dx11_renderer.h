@@ -164,6 +164,7 @@ protected:
 	void releaseNeuralHistory();
 	void releaseNeuralPresentation();
 	void captureNeuralQualityFrame();
+	void captureNeuralLateOverlayFrame();
 	void beginNeuralPerformanceFrame();
 	void markNeuralPvrEnd();
 	void endNeuralPerformanceFrame();

@@ -163,6 +163,13 @@ close a temporal or title-quality gate.
   buffers are exact per renderer. Gate 15B remains partial until representative
   titles and uncertain-overlay controls establish that profiles neither miss
   other HUDs nor remove world geometry. This does not reopen Gate 10.
+- Legacy integration Gate 8 is green at LOG #109. Exact same-frame production
+  captures on normal DX11 and DX11 OIT, each on native D3D11 and D3D11On12,
+  retain the neural/game-overlay composite before Flycast UI and then capture
+  the ImGui-rendered FPS OSD afterward. All eight positive frames contain a
+  nonzero late-only pixel delta; the no-OSD control contains zero delta and is
+  rejected. This proves ordering and buffer exclusion, not broader game-HUD
+  classification or title quality.
 - Gate 16: partial through LOG #106. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane

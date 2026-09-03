@@ -449,6 +449,17 @@ requires every protected output byte to equal original PVR color, every
 unprotected output byte to equal the neural scene, and the deliberately omitted
 composite to mismatch every protected pixel.
 
+The production Flycast OSD/ImGui exclusion form is `neuraltest capture --game
+PATH --frames N --skip M --out DIR --lane dlaa --api d3d11|d3d11on12
+--renderer dx11|dx11-oit --input-replay yes --late-overlay-proof`. It enables
+the FPS OSD as a deterministic late ImGui layer and writes, per frame,
+`final-composited.png`, `presented-with-flycast-overlays.png`,
+`flycast-overlay-difference.png`, and `late-overlay-proof.json`. Acceptance
+requires nonzero changed pixels in the content rectangle. `--proof-overlay
+none` is the falsifying control and must return failure with zero changed
+pixels. This synchronous developer capture must not be used for performance
+measurements.
+
 That synthetic compositor result is not real-game classifier coverage. Bounded
 captures now include schema-2 `overlay-draws.json` with `screen_size`, the active
 `overlay_profile`, PVR-native-screen bounds, resource generations, structural

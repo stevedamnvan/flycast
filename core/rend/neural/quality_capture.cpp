@@ -390,17 +390,22 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 } // namespace
 
 void QualityCaptureWriter::Configure(const std::filesystem::path& root,
-	std::uint32_t skip, std::uint32_t limit)
+	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof)
 {
-	if (root == root_ && skip == skip_ && limit == limit_)
+	if (root == root_ && skip == skip_ && limit == limit_
+		&& lateOverlayProof == lateOverlayProof_)
 		return;
 	root_ = root;
 	skip_ = skip;
 	limit_ = (std::min)(limit, 240u);
-	seen_ = captured_ = 0;
+	lateOverlayProof_ = lateOverlayProof;
+	seen_ = captured_ = lateOverlayCaptured_ = 0;
 	previousFrameId_ = 0;
+	pendingLateOverlayFrameId_ = 0;
+	pendingLateOverlayContentRect_ = {};
 	previousFinal_ = {};
 	previousSource_ = {};
+	pendingPreFlycastOverlayFull_ = {};
 }
 
 bool QualityCaptureWriter::WantsFrame() const noexcept
@@ -817,8 +822,14 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	previousFrameId_ = metadata.frameId;
 	previousFinal_ = final;
 	previousSource_ = source;
+	if (lateOverlayProof_)
+	{
+		pendingLateOverlayFrameId_ = metadata.frameId;
+		pendingLateOverlayContentRect_ = metadata.contentRect;
+		pendingPreFlycastOverlayFull_ = finalFull;
+	}
 	++captured_;
-	if (captured_ == limit_)
+	if (captured_ == limit_ && !lateOverlayProof_)
 	{
 		std::ofstream complete(root_ / "capture-complete.json");
 		complete.imbue(std::locale::classic());
@@ -827,6 +838,115 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 			<< "\",\n  \"captured_frames\": " << captured_
 			<< ",\n  \"status\": \"complete\"\n}\n";
 		if (!complete) { error = "failed writing capture completion marker"; return false; }
+	}
+	return true;
+}
+
+bool QualityCaptureWriter::CapturePresentedWithFlycastOverlays(ID3D11Device *device,
+	ID3D11DeviceContext *context, ID3D11Texture2D *presented,
+	std::uint64_t frameId, const Rect& contentRect, std::string& error)
+{
+	if (!lateOverlayProof_ || pendingLateOverlayFrameId_ == 0)
+		return true;
+	if (frameId != pendingLateOverlayFrameId_ || !device || !context || !presented)
+	{
+		error = "late-overlay capture does not match the pending neural frame";
+		return false;
+	}
+	RawTexture presentedRaw;
+	if (!ReadTexture(device, context, presented, presentedRaw, error))
+		return false;
+	const auto presentedFull = ToRgba(presentedRaw);
+	if (presentedFull.width != pendingPreFlycastOverlayFull_.width
+		|| presentedFull.height != pendingPreFlycastOverlayFull_.height
+		|| presentedFull.pixels.size() != pendingPreFlycastOverlayFull_.pixels.size())
+	{
+		error = "late-overlay presented and pre-overlay dimensions disagree";
+		return false;
+	}
+	if (contentRect.x != pendingLateOverlayContentRect_.x
+		|| contentRect.y != pendingLateOverlayContentRect_.y
+		|| contentRect.width != pendingLateOverlayContentRect_.width
+		|| contentRect.height != pendingLateOverlayContentRect_.height)
+	{
+		error = "late-overlay content rectangle changed within one frame";
+		return false;
+	}
+
+	std::uint64_t changedPixels = 0;
+	std::uint64_t contentChangedPixels = 0;
+	std::uint8_t maxDelta = 0;
+	for (std::uint32_t y = 0; y < presentedFull.height; ++y)
+		for (std::uint32_t x = 0; x < presentedFull.width; ++x)
+		{
+			const auto pixel = static_cast<std::size_t>(y) * presentedFull.width + x;
+			bool changed = false;
+			for (std::size_t channel = 0; channel < 4; ++channel)
+			{
+				const auto before = pendingPreFlycastOverlayFull_.pixels[pixel * 4 + channel];
+				const auto after = presentedFull.pixels[pixel * 4 + channel];
+				const auto delta = static_cast<std::uint8_t>(std::abs(int(before) - int(after)));
+				maxDelta = (std::max)(maxDelta, delta);
+				changed = changed || delta != 0;
+			}
+			if (!changed) continue;
+			++changedPixels;
+			if (x >= static_cast<std::uint32_t>((std::max)(0, contentRect.x))
+				&& y >= static_cast<std::uint32_t>((std::max)(0, contentRect.y))
+				&& x < static_cast<std::uint32_t>((std::max)(0, contentRect.x + contentRect.width))
+				&& y < static_cast<std::uint32_t>((std::max)(0, contentRect.y + contentRect.height)))
+				++contentChangedPixels;
+		}
+
+	std::ostringstream frameName;
+	frameName.imbue(std::locale::classic());
+	frameName << "frame-" << std::setw(6) << std::setfill('0') << frameId;
+	const auto frameRoot = root_ / frameName.str();
+	const auto presentedContent = Crop(presentedFull, contentRect);
+	const auto difference = Difference(pendingPreFlycastOverlayFull_, presentedFull);
+	if (!WritePng(frameRoot / "presented-with-flycast-overlays.png",
+		presentedContent, error)
+		|| !WritePng(frameRoot / "flycast-overlay-difference.png", difference, error))
+		return false;
+
+	const bool passed = changedPixels != 0 && contentChangedPixels != 0;
+	std::ofstream proof(frameRoot / "late-overlay-proof.json");
+	proof.imbue(std::locale::classic());
+	proof << "{\n  \"schema\": 1,\n  \"frame_id\": " << frameId
+		<< ",\n  \"pre_overlay_artifact\": \"final-composited.png\""
+		<< ",\n  \"presented_artifact\": \"presented-with-flycast-overlays.png\""
+		<< ",\n  \"difference_artifact\": \"flycast-overlay-difference.png\""
+		<< ",\n  \"pre_overlay_boundary\": \"after neural scene and protected game overlay composite\""
+		<< ",\n  \"presented_boundary\": \"after gui_display_osd ImGui draw data\""
+		<< ",\n  \"changed_pixels_full_backbuffer\": " << changedPixels
+		<< ",\n  \"changed_pixels_content_rect\": " << contentChangedPixels
+		<< ",\n  \"max_channel_delta\": " << unsigned(maxDelta)
+		<< ",\n  \"neural_buffer_contains_flycast_overlay\": false"
+		<< ",\n  \"passed\": " << (passed ? "true" : "false")
+		<< "\n}\n";
+	if (!proof)
+	{
+		error = "failed writing late-overlay proof";
+		return false;
+	}
+
+	pendingLateOverlayFrameId_ = 0;
+	pendingPreFlycastOverlayFull_ = {};
+	++lateOverlayCaptured_;
+	if (lateOverlayCaptured_ == limit_)
+	{
+		std::ofstream complete(root_ / "capture-complete.json");
+		complete.imbue(std::locale::classic());
+		complete << "{\n  \"schema\": 1,\n  \"git_sha\": \"" << GIT_HASH
+			<< "\",\n  \"captured_frames\": " << captured_
+			<< ",\n  \"late_overlay_proof_frames\": " << lateOverlayCaptured_
+			<< ",\n  \"late_overlay_proof_requested\": true"
+			<< ",\n  \"status\": \"complete\"\n}\n";
+		if (!complete)
+		{
+			error = "failed writing late-overlay capture completion marker";
+			return false;
+		}
 	}
 	return true;
 }

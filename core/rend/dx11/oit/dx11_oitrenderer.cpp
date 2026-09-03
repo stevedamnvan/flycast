@@ -759,6 +759,9 @@ struct DX11OITRenderer : public DX11Renderer
 			endNeuralPerformanceFrame();
 #endif
 			drawOSD();
+#ifdef FLYCAST_ENABLE_NEURAL
+			captureNeuralLateOverlayFrame();
+#endif
 			renderVideoRouting();
 			DX11Context::Instance()->setFrameRendered();
 #else

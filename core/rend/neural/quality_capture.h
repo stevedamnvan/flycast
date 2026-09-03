@@ -99,12 +99,15 @@ public:
 	};
 
 	void Configure(const std::filesystem::path& root, std::uint32_t skip,
-		std::uint32_t limit);
+		std::uint32_t limit, bool lateOverlayProof = false);
 	bool WantsFrame() const noexcept;
 	bool CapturesCurrentFrame() const noexcept;
 	bool Capture(ID3D11Device *device, ID3D11DeviceContext *context,
 		const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 		std::string& error);
+	bool CapturePresentedWithFlycastOverlays(ID3D11Device *device,
+		ID3D11DeviceContext *context, ID3D11Texture2D *presented,
+		std::uint64_t frameId, const Rect& contentRect, std::string& error);
 	std::uint32_t CapturedCount() const noexcept { return captured_; }
 
 private:
@@ -113,9 +116,14 @@ private:
 	std::uint32_t limit_ = 0;
 	std::uint32_t seen_ = 0;
 	std::uint32_t captured_ = 0;
+	std::uint32_t lateOverlayCaptured_ = 0;
 	std::uint64_t previousFrameId_ = 0;
+	std::uint64_t pendingLateOverlayFrameId_ = 0;
+	Rect pendingLateOverlayContentRect_{};
+	bool lateOverlayProof_ = false;
 	RgbaImage previousFinal_;
 	RgbaImage previousSource_;
+	RgbaImage pendingPreFlycastOverlayFull_;
 };
 
 // Deliberately synchronous capture-only timing. It is activated only for a

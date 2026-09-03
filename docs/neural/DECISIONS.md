@@ -1028,3 +1028,21 @@ neural output is ready, Flycast does not queue or log that output as presented
 while a guidance view is on screen. This prevents a developer visualization
 from becoming false Gate 10 or cadence evidence. Debug mode remains off by
 default and is not a performance-measurement lane.
+
+## D-065: Gate 8 uses an exact pre/post production capture boundary
+
+Flycast OSD and ImGui exclusion is a pixel contract, not an inference from call
+sites. The optional `NeuralLateOverlayProof` capture mode retains the complete
+backbuffer immediately after neural scene selection and protected Dreamcast
+overlay composition. After `gui_display_osd` submits its ImGui draw data, the
+same frame and content rectangle are read back again. The package records the
+pre-overlay composite, presented image, exact difference image, changed-pixel
+count, and maximum channel delta.
+
+The proof passes only when a real late Flycast overlay changes pixels in the
+content rectangle. The bounded launcher uses Flycast's FPS OSD as that visible
+control and rejects a capture with no late delta. Normal DX11 and DX11 OIT use
+their own render loops and both must invoke the post-OSD boundary. This mode is
+synchronous, developer-only, off by default, and never valid performance data.
+It changes no neural input, accepted history, external consumer configuration,
+or ordinary presentation.
