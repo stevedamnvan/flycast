@@ -668,3 +668,19 @@ sequence. These are diagnostics, not an instruction to reuse stale output:
 rejected frames remain native and an accepted experimental candidate withheld
 for a missing external contract is explicitly counted rather than mislabeled
 as displayed Neural Rendering.
+
+## D-045: window transitions are process-scoped and evidence-gated
+
+The production performance launcher may apply one explicit Win32 transition
+sequence to the Flycast process it created: delayed resize, minimize, restore,
+and exact resize-back. It never searches by title, manipulates another process,
+or reports a transition as complete from an API request alone. The launch
+report retains the delay and each observed action result, and the run fails if
+the performance interval completes before the whole sequence.
+
+Transition-time native fallback is permitted when a public feature or its
+resources are temporarily unavailable, but it is not hidden: frame-identity
+telemetry must count native/neural transitions and accepted-output disposition.
+No stale output, identity mismatch, repeat, missing Present, or unbounded wait
+is permitted. This bounded sequence does not substitute for the remaining
+fullscreen, monitor-move, renderer-restart, or actual device-loss matrix.

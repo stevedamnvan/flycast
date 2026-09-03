@@ -58,7 +58,9 @@ Production performance measurement is separate:
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
 [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed]
-[--inject-count N] [--inject-after N] [--timeout-ms N]`
+[--inject-count N] [--inject-after N]
+[--transition none|resize-minimize-restore] [--transition-delay-ms N]
+[--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
 12-slot D3D11 timestamp/disjoint-query ring is polled only with
@@ -75,6 +77,16 @@ accepted-output latency in emulated frames. Native D3D11 and D3D11On12 use the
 same accounting; a public evaluation that is deliberately withheld because an
 experimental external contract is not ready is counted as accepted but not
 presented, never as neural presentation.
+
+The optional window transition is a bounded Windows-only production check. It
+finds only the launched Flycast process's unowned visible window, waits the
+requested 0..60000 ms, then resizes outward, minimizes, restores, and returns
+to the exact original window rectangle. Each OS action must be positively
+observed before the launch report can pass. The performance sampler continues
+through the sequence, so fallback, reset, frame-identity, cadence, and VRAM
+effects are retained. This covers window resize and minimize/restore; it does
+not claim borderless/exclusive-fullscreen, cross-monitor movement, alt-tab, or
+renderer restart.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket

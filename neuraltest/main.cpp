@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -346,6 +346,32 @@ BOOL CALLBACK CloseProcessWindows(HWND window, LPARAM parameter)
 		PostMessageW(window, WM_CLOSE, 0, 0);
 	return TRUE;
 }
+
+struct FindWindowContext {
+	DWORD processId = 0;
+	HWND window = nullptr;
+};
+
+BOOL CALLBACK FindProcessWindow(HWND window, LPARAM parameter)
+{
+	auto *context = reinterpret_cast<FindWindowContext *>(parameter);
+	DWORD processId = 0;
+	GetWindowThreadProcessId(window, &processId);
+	if (processId == context->processId && IsWindowVisible(window)
+		&& GetWindow(window, GW_OWNER) == nullptr)
+	{
+		context->window = window;
+		return FALSE;
+	}
+	return TRUE;
+}
+
+HWND FindProcessWindow(DWORD processId)
+{
+	FindWindowContext context{processId};
+	EnumWindows(FindProcessWindow, reinterpret_cast<LPARAM>(&context));
+	return context.window;
+}
 #endif
 
 int CaptureCommand(const Args& args)
@@ -596,6 +622,7 @@ int PerformanceCommand(const Args& args)
 	const auto renderer = Value(args, "--renderer", "dx11");
 	const auto preset = Value(args, "--preset", "auto");
 	const auto injection = Value(args, "--inject", "none");
+	const auto transition = Value(args, "--transition", "none");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "invalid performance lane\n";
@@ -622,6 +649,11 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "invalid performance injection\n";
 		return 2;
 	}
+	if (transition != "none" && transition != "resize-minimize-restore")
+	{
+		std::cerr << "invalid performance transition\n";
+		return 2;
+	}
 	std::uint32_t injectionCount = 0;
 	if (!Number(args, "--inject-count", injection == "none" ? 0 : 3,
 		injectionCount, error) || injectionCount > 10000)
@@ -637,6 +669,14 @@ int PerformanceCommand(const Args& args)
 		return 2;
 	}
 	if (injection == "none") injectionAfter = 0;
+	std::uint32_t transitionDelayMs = 500;
+	if (!Number(args, "--transition-delay-ms", 500, transitionDelayMs, error)
+		|| transitionDelayMs > 60000)
+	{
+		std::cerr << (error.empty() ? "invalid performance transition delay" : error) << '\n';
+		return 2;
+	}
+	if (transition == "none") transitionDelayMs = 0;
 	const auto game = std::filesystem::absolute(gameText);
 	const auto output = std::filesystem::absolute(outputText);
 	if (!std::filesystem::is_regular_file(game))
@@ -726,8 +766,86 @@ int PerformanceCommand(const Args& args)
 	const auto completion = output / "performance-complete.json";
 	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
 	bool complete = false, exitedEarly = false;
+	HWND transitionWindow = nullptr;
+	RECT originalWindowRect{};
+	bool originalWindowRectValid = false;
+	int transitionStep = transition == "none" ? 5 : 0;
+	bool resizeOutPassed = transition == "none";
+	bool minimizePassed = transition == "none";
+	bool restorePassed = transition == "none";
+	bool resizeBackPassed = transition == "none";
+	auto nextTransition = std::chrono::steady_clock::time_point{};
 	while (std::chrono::steady_clock::now() < deadline)
 	{
+		const auto now = std::chrono::steady_clock::now();
+		if (transitionStep < 5)
+		{
+			if (!transitionWindow)
+			{
+				transitionWindow = FindProcessWindow(process.dwProcessId);
+				if (transitionWindow)
+				{
+					originalWindowRectValid = GetWindowRect(transitionWindow,
+						&originalWindowRect) != FALSE;
+					nextTransition = now + std::chrono::milliseconds(transitionDelayMs);
+				}
+			}
+			else if (now >= nextTransition)
+			{
+				if (!IsWindow(transitionWindow))
+					transitionWindow = FindProcessWindow(process.dwProcessId);
+				const int originalWidth = originalWindowRect.right - originalWindowRect.left;
+				const int originalHeight = originalWindowRect.bottom - originalWindowRect.top;
+				switch (transitionStep)
+				{
+				case 0:
+					resizeOutPassed = originalWindowRectValid && SetWindowPos(transitionWindow,
+						nullptr, 0, 0, originalWidth + 160, originalHeight + 90,
+						SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE) != FALSE;
+					break;
+				case 1:
+				{
+					RECT expandedRect{};
+					resizeOutPassed = resizeOutPassed && transitionWindow
+						&& GetWindowRect(transitionWindow, &expandedRect) != FALSE
+						&& expandedRect.right - expandedRect.left == originalWidth + 160
+						&& expandedRect.bottom - expandedRect.top == originalHeight + 90;
+					if (transitionWindow)
+						ShowWindow(transitionWindow, SW_MINIMIZE);
+					minimizePassed = transitionWindow
+						&& IsIconic(transitionWindow) != FALSE;
+					break;
+				}
+				case 2:
+					if (transitionWindow)
+						ShowWindow(transitionWindow, SW_RESTORE);
+					restorePassed = transitionWindow != nullptr;
+					break;
+				case 3:
+					restorePassed = restorePassed && transitionWindow
+						&& IsIconic(transitionWindow) == FALSE
+						&& IsWindowVisible(transitionWindow) != FALSE;
+					resizeBackPassed = originalWindowRectValid && SetWindowPos(transitionWindow,
+						nullptr, originalWindowRect.left, originalWindowRect.top,
+						originalWidth, originalHeight,
+						SWP_NOZORDER | SWP_NOACTIVATE) != FALSE;
+					break;
+				case 4:
+				{
+					RECT finalRect{};
+					resizeBackPassed = resizeBackPassed && transitionWindow
+						&& GetWindowRect(transitionWindow, &finalRect) != FALSE
+						&& finalRect.left == originalWindowRect.left
+						&& finalRect.top == originalWindowRect.top
+						&& finalRect.right == originalWindowRect.right
+						&& finalRect.bottom == originalWindowRect.bottom;
+					break;
+				}
+				}
+				++transitionStep;
+				nextTransition = now + std::chrono::milliseconds(350);
+			}
+		}
 		if (std::filesystem::exists(completion)) { complete = true; break; }
 		if (WaitForSingleObject(process.hProcess, 50) == WAIT_OBJECT_0)
 		{
@@ -745,6 +863,8 @@ int PerformanceCommand(const Args& args)
 		forcedTermination = true;
 	}
 	CloseHandle(process.hProcess);
+	const bool transitionComplete = transitionStep == 5 && resizeOutPassed
+		&& minimizePassed && restorePassed && resizeBackPassed;
 	if (!complete)
 	{
 		std::cerr << (exitedEarly ? "flycast exited before performance run completed"
@@ -758,14 +878,24 @@ int PerformanceCommand(const Args& args)
 		<< ",\n  \"failure_injection\": \"" << injection
 		<< "\",\n  \"failure_injection_count\": " << injectionCount
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
+		<< ",\n  \"window_transition\": \"" << transition
+		<< "\",\n  \"window_transition_delay_ms\": " << transitionDelayMs
+		<< ",\n  \"window_transition_completed\": "
+		<< (transitionComplete ? "true" : "false")
+		<< ",\n  \"window_transition_actions\": {\"resize_out\": "
+		<< (resizeOutPassed ? "true" : "false")
+		<< ", \"minimize\": " << (minimizePassed ? "true" : "false")
+		<< ", \"restore\": " << (restorePassed ? "true" : "false")
+		<< ", \"resize_back\": " << (resizeBackPassed ? "true" : "false") << "}"
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
 	std::cout << "performance complete samples=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
 		<< " injection=" << injection << ':' << injectionCount
+		<< " transition=" << transition << ':' << (transitionComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
-	return launchReport ? 0 : 1;
+	return launchReport && transitionComplete ? 0 : 1;
 #endif
 }
 

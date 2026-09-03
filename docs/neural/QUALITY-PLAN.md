@@ -189,3 +189,13 @@ close a temporal or title-quality gate.
   Longer runs, active runtime removal, real device
   loss, and the remaining transition matrix are still open, so Gate 18 is not
   closed.
+  LOG #78 adds an OS-observed resize/minimize/restore/resize-back sequence
+  delayed five seconds into active rendering. Normal and OIT D3D11 and
+  D3D11On12 each completed 600 measured Soulcalibur frames and clean shutdown.
+  All four runs had zero missing Presents, accepted-output drops, identity
+  mismatches, output repeats, or frame latency; each recorded the single
+  source-ID gap at the minimize boundary. Normal D3D11 conservatively used 35
+  native frames and one explicit native/neural transition while its public
+  feature/resources recovered; the other three lanes presented neural output
+  for all 600 samples. Fullscreen, monitor move, alt-tab, renderer restart,
+  load/unload, real device loss, and long-run coverage remain open.
