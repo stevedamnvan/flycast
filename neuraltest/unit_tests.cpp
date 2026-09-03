@@ -379,6 +379,81 @@ int RunSelfTests()
 			"accepted-frame overlay classifier protects stable HUD quads and rejects moving world control");
 	}
 	{
+		// Sorted translucent PolyParam.first still addresses vertices. Only the
+		// SortedTriangle ranges address the submitted index buffer. Deliberately
+		// put unrelated world indices at the same numeric offset as the HUD strip.
+		rend_context context;
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(8);
+		const float positions[8][2] = {{2,8},{2,24},{34,8},{34,24},
+			{120,100},{120,140},{160,100},{160,140}};
+		for (int i = 0; i < 8; ++i)
+		{
+			context.verts[i].x = positions[i][0];
+			context.verts[i].y = positions[i][1];
+			context.verts[i].z = i < 4 ? .8f : .2f;
+		}
+		context.idx = {4,5,6,7, 0,1,2, 2,1,3};
+		PolyParam strip{};
+		strip.init(); strip.first = 0; strip.count = 4; strip.tcw.full = 71;
+		context.global_param_tr.push_back(strip);
+		RenderPass pass{};
+		pass.tr_count = 1; pass.autosort = true; pass.sorted_tr_count = 1;
+		context.render_passes.push_back(pass);
+		context.sortedTriangles.push_back({0, 4, 6});
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& sorted = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0,0,320,240}, {});
+		const bool correctSorted = sorted.draws.size == 2
+			&& sorted.draws.data[0].indexCount == 0
+			&& (sorted.draws.data[0].flags & DrawDegenerate) != 0
+			&& sorted.draws.data[1].firstIndex == 4 && sorted.draws.data[1].indexCount == 6
+			&& sorted.draws.data[1].bboxMin[0] == 2 && sorted.draws.data[1].bboxMax[0] == 34
+			&& sorted.draws.data[1].zMin == .8f && sorted.draws.data[1].zMax == .8f;
+		suite.Expect(correctSorted,
+			"sorted translucent capture follows submitted triangles, not vertex-offset alias control");
+		const auto diagnostics = instrumentation->CaptureOverlayDiagnostics();
+		suite.Expect(diagnostics.size() == 2 && diagnostics[1].draw.ordinal == 1
+			&& !diagnostics[1].classified && diagnostics[1].stableAcceptedFrames == 1,
+			"bounded draw diagnostics describe the actual sorted submission ordinal");
+		instrumentation->MarkEvaluated(sorted.frameId);
+		const auto& repeated = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0,0,320,240}, {});
+		suite.Expect(repeated.draws.size == 2 && repeated.matches.data[1].confidence == 0.f
+			&& (repeated.draws.data[1].flags & (DrawTriangleList | DrawReactive))
+				== (DrawTriangleList | DrawReactive)
+			&& instrumentation->TrustedPreviousVertexCount() == 0,
+			"sorted translucent submissions cannot manufacture authoritative geometry motion");
+		// A later indexed pass must keep its own original-list ordinal. Multiple
+		// sorted spans sharing one state owner must remain distinct submissions.
+		context.global_param_tr.push_back(strip);
+		RenderPass later = pass;
+		later.tr_count = 2;
+		context.render_passes.push_back(later);
+		context.sortedTriangles[0].count = 3;
+		context.sortedTriangles.push_back({0, 7, 3});
+		context.render_passes[0].sorted_tr_count = 2;
+		context.render_passes[1].sorted_tr_count = 2;
+		const auto& mixed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0,0,320,240}, {});
+		suite.Expect(mixed.draws.size == 4 && mixed.draws.data[0].indexCount == 0
+			&& mixed.draws.data[1].indexCount == 4 && mixed.draws.data[1].pass == 1
+			&& mixed.draws.data[2].firstIndex == 4 && mixed.draws.data[2].pass == 0
+			&& mixed.draws.data[3].firstIndex == 7 && mixed.draws.data[3].pass == 0,
+			"mixed passes preserve indexed ordinals and separate sorted spans sharing render state");
+		context.global_param_tr.pop_back();
+		context.render_passes.pop_back();
+		context.sortedTriangles.clear();
+		context.render_passes[0].sorted_tr_count = 0;
+		const auto& indexed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0,0,320,240}, {});
+		suite.Expect(indexed.draws.size == 1 && indexed.draws.data[0].firstIndex == 0
+			&& indexed.draws.data[0].bboxMin[0] == 120 && indexed.draws.data[0].bboxMax[0] == 160,
+			"indexed OIT or per-strip translucent capture retains its original index contract");
+	}
+	{
 		DrawRecord current = base;
 		current.list = 3;
 		DrawRecord previous[] = {base};

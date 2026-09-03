@@ -935,3 +935,23 @@ accounted separately and exact-image PSNR represented without invalid JSON
 infinity. Lower raw temporal change may reflect blur, altered motion, or scene
 cuts, so it cannot alone justify a stability claim. Reports never select a
 winner and are written only after every candidate passes validation.
+
+## D-061: guidance follows actual sorted submissions; empty HUD masks are not proof
+
+Triangle sorting leaves translucent PolyParam.first/count in vertex-strip
+space while emitting actual index ranges in SortedTriangle. Guidance must use
+the submitted triangle ranges and triangle-list topology, not reinterpret the
+original vertex offsets as indices. Preserve original list ordinal slots as
+empty placeholders for sorted passes and append the actual sorted submissions;
+the export shader receives that exact appended ordinal. Multiple sorted spans
+sharing render state remain separate records. Sorted translucent motion stays
+zero/untrusted and coverage never writes authoritative depth. OIT and per-strip
+indexed-strip submissions retain their existing paths.
+
+Capture-only draw diagnostics and nonempty protected-pixel counts are required
+before claiming that the real-game HUD participates in the exact compositor.
+The compositor's selected-pixel byte equality does not establish complete HUD
+classification. LOG #104 reopens FC-055 and real-title Gates 15A/15B while
+retaining their narrower synthetic evidence. Keep classifier widening and title
+rules separate from this indexing correction; unchanged original scene/depth
+buffers are a regression control, not a substitute for moving-title validation.

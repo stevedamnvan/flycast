@@ -914,8 +914,14 @@ bool DX11Renderer::renderNeuralReactiveCoverage()
 	RenderPass previousPass{};
 	for (const RenderPass& currentPass : rendContext->render_passes)
 	{
-		drawList<ListType_Translucent, false>(rendContext->global_param_tr,
-			previousPass.tr_count, currentPass.tr_count - previousPass.tr_count);
+		if (currentPass.sorted_tr_count > previousPass.sorted_tr_count)
+			// Sorted PolyParam offsets are vertices, not indices. Replay the same
+			// submitted triangle list as scene color, without authoritative depth.
+			drawSorted(previousPass.sorted_tr_count,
+				currentPass.sorted_tr_count - previousPass.sorted_tr_count, false);
+		else
+			drawList<ListType_Translucent, false>(rendContext->global_param_tr,
+				previousPass.tr_count, currentPass.tr_count - previousPass.tr_count);
 		previousPass = currentPass;
 	}
 	neuralReactiveCoverageActive = false;
@@ -1335,6 +1341,8 @@ void DX11Renderer::submitNeuralFrame()
 		+ qualityProfile.styleName;
 	neuralQualityCaptureMetadata.externalRecommendation =
 		qualityProfile.externalRecommendation;
+	if (neuralQualityCapture.CapturesCurrentFrame())
+		neuralQualityCaptureMetadata.overlayDraws = neuralInstrumentation.CaptureOverlayDiagnostics();
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::EvaluateBegin);
@@ -1849,7 +1857,7 @@ TileClipping DX11Renderer::setTileClip(u32 tileclip, Rect& clip_rect)
 }
 
 template <u32 Type, bool SortingEnabled>
-void DX11Renderer::setRenderState(const PolyParam *gp)
+void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride)
 {
 	PixelPolyConstants constants{};
 	if (gp->pcw.Texture && gp->tsp.FilterMode > 1 && Type != ListType_Punch_Through && gp->tcw.MipMapped == 1)
@@ -1874,6 +1882,8 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 		else
 			ordinal = rendContext->global_param_op.size() + rendContext->global_param_pt.size()
 				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
+		if (neuralOrdinalOverride != ~0u)
+			ordinal = neuralOrdinalOverride;
 		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
 		const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 		constants.neuralOverlayMask = overlayPolicy == 0
@@ -2060,7 +2070,11 @@ void DX11Renderer::drawSorted(int first, int count, bool multipass)
 	for (int p = first; p < end; p++)
 	{
 		const PolyParam* params = &rendContext->global_param_tr[rendContext->sortedTriangles[p].polyIndex];
-		setRenderState<ListType_Translucent, true>(params);
+		// Sorted guidance records follow the three original list ranges. The
+		// override is consumed only during neural export, never native drawing.
+		const auto ordinal = static_cast<u32>(rendContext->global_param_op.size()
+			+ rendContext->global_param_pt.size() + rendContext->global_param_tr.size() + p);
+		setRenderState<ListType_Translucent, true>(params, ordinal);
 		deviceContext->DrawIndexed(rendContext->sortedTriangles[p].count, rendContext->sortedTriangles[p].first, 0);
 	}
 	if (multipass && config::TranslucentPolygonDepthMask)

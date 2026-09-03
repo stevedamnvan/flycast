@@ -81,6 +81,13 @@ struct DrawMatch {
 	float rigid[4]{};
 };
 
+struct OverlayDrawDiagnostic {
+	DrawRecord draw;
+	std::uint8_t stableAcceptedFrames = 0;
+	std::uint16_t textureUseCount = 0;
+	bool classified = false;
+};
+
 struct PreviousPosition {
 	float x = 0.f;
 	float y = 0.f;

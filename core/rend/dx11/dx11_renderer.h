@@ -287,7 +287,7 @@ private:
 	template <u32 Type, bool SortingEnabled>
 	void drawList(const std::vector<PolyParam>& gply, int first, int count);
 	template <u32 Type, bool SortingEnabled>
-	void setRenderState(const PolyParam *gp);
+	void setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride = ~0u);
 	void drawSorted(int first, int count, bool multipass);
 	void drawModVols(int first, int count);
 

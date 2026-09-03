@@ -133,7 +133,9 @@ close a temporal or title-quality gate.
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
   Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gate 15A: green at LOG #70-#71. Normal DX11 translucent lists replay only into
+- Gate 15A: partial after the LOG #104 real-game correction. The synthetic
+  LOG #70-#71 controls remain green but did not cover sorted submission indexing.
+  Normal DX11 translucent lists replay only into
   current-color bias with depth disabled. The OIT final visible fragment stack
   emits separate R8 reactive coverage, merged without creating depth or trusted
   motion. The exact production resolve passes empty/modifier-only, single-layer,
@@ -142,14 +144,20 @@ close a temporal or title-quality gate.
   depth path and framebuffer-direct rendering retains native fallback. LOG #71
   records and corrects an RT1-versus-`SV_Target0` merge-slot bug and adds a
   direct base-mask-union regression on both surfaces.
-- Gate 15B: green at LOG #71 for the production mechanism and conservative
-  default classifier. Protected pixels are restored from original PVR color
+- Gate 15B: partial after LOG #104. The LOG #71 synthetic production-composite
+  mechanism remains green, but complete real-game HUD classification is not
+  proven. Protected pixels are restored from original PVR color
   after neural scene presentation but before Flycast OSD/ImGui; the exact GPU
   fixture restores 33/33 pixels byte-for-byte and changes 0 unclassified
   pixels on native D3D11 and D3D11On12. Strict world-geometry negatives, a
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
+  The earlier Soulcalibur zero-mismatch reports had zero protected pixels;
+  they did not prove HUD coverage. The sorted-index correction now protects
+  some name pixels, while batched text, bars, repeated draws, and scale-aware
+  classification still require their own captured validation. This does not
+  reopen the separate Gate 10 transport/provenance result.
 - Gate 16: partial through LOG #103. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane

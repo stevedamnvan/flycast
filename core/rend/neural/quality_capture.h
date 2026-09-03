@@ -69,6 +69,7 @@ struct QualityCaptureMetadata {
 	std::string profile = "unassigned";
 	std::string externalRecommendation = "user-controlled";
 	QualityGpuTimings gpuTimings{};
+	std::vector<OverlayDrawDiagnostic> overlayDraws;
 };
 
 struct QualityCaptureTextures {

@@ -592,7 +592,9 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		return false;
 
 	std::uint64_t invalidDepth = 0, invalidMotion = 0, trusted = 0, reactive = 0,
-		hudMismatch = 0;
+		hudMismatch = 0, hudProtected = 0;
+	const bool hudComparable = final.width == native.width && final.height == native.height
+		&& native.width == source.width && native.height == source.height;
 	for (std::size_t pixel = 0; pixel < static_cast<std::size_t>(source.width) * source.height; ++pixel)
 	{
 		float d;
@@ -605,12 +607,13 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		const bool pixelReactive = maskRaw.bytes[pixel] >= 128;
 		reactive += pixelReactive;
 		trusted += !pixelReactive && confidenceRaw.bytes[pixel] >= 128;
-		if (overlayRaw.bytes[pixel] >= 128 && final.width == native.width
-			&& final.height == native.height)
+		if (overlayRaw.bytes[pixel] >= 128)
 		{
+			++hudProtected;
 			const auto offset = pixel * 4;
-			hudMismatch += std::memcmp(native.pixels.data() + offset,
-				final.pixels.data() + offset, 4) != 0;
+			if (hudComparable)
+				hudMismatch += std::memcmp(native.pixels.data() + offset,
+					final.pixels.data() + offset, 4) != 0;
 		}
 	}
 	const double pixels = static_cast<double>(source.width) * source.height;
@@ -658,6 +661,38 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	const std::uint64_t dropped = previousFrameId_ != 0 && metadata.frameId > previousFrameId_ + 1
 		? metadata.frameId - previousFrameId_ - 1 : 0;
 
+	std::ofstream overlayDraws(frameRoot / "overlay-draws.json");
+	overlayDraws.imbue(std::locale::classic());
+	overlayDraws << "{\n  \"schema\": 1,\n  \"frame_id\": " << metadata.frameId
+		<< ",\n  \"coordinate_space\": \"PVR-native-screen\",\n  \"draws\": [";
+	bool firstOverlayDraw = true;
+	for (const auto& evidence : metadata.overlayDraws)
+	{
+		const auto& draw = evidence.draw;
+		if (!firstOverlayDraw) overlayDraws << ',';
+		firstOverlayDraw = false;
+		overlayDraws << "\n    {\"ordinal\":" << draw.ordinal << ",\"list\":" << draw.list
+			<< ",\"pass\":" << draw.pass << ",\"flags\":" << unsigned(draw.flags)
+			<< ",\"blend\":" << unsigned(draw.blend) << ",\"texture_id\":" << draw.texId
+			<< ",\"texture_generation\":" << draw.textureGeneration
+			<< ",\"palette_generation\":" << draw.paletteGeneration
+			<< ",\"rtt_generation\":" << draw.rttGeneration
+			<< ",\"state_signature\":" << draw.stateSig << ",\"uv_signature\":" << draw.uvSig
+			<< ",\"topology_signature\":" << draw.topologySig
+			<< ",\"vertex_count\":" << draw.vertexCount << ",\"index_count\":" << draw.indexCount
+			<< ",\"bbox\":[" << draw.bboxMin[0] << ',' << draw.bboxMin[1] << ','
+			<< draw.bboxMax[0] << ',' << draw.bboxMax[1] << ']'
+			<< ",\"depth_range\":[";
+		if (std::isfinite(draw.zMin)) overlayDraws << draw.zMin; else overlayDraws << "null";
+		overlayDraws << ',';
+		if (std::isfinite(draw.zMax)) overlayDraws << draw.zMax; else overlayDraws << "null";
+		overlayDraws << "],\"stable_accepted_frames\":" << unsigned(evidence.stableAcceptedFrames)
+			<< ",\"texture_use_count\":" << evidence.textureUseCount
+			<< ",\"classified\":" << (evidence.classified ? "true" : "false") << '}';
+	}
+	overlayDraws << "\n  ]\n}\n";
+	if (!overlayDraws) { error = "failed writing overlay draw diagnostics"; return false; }
+
 	std::ofstream metrics(frameRoot / "metrics.json");
 	metrics.imbue(std::locale::classic());
 	metrics << std::fixed << std::setprecision(6)
@@ -669,7 +704,13 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"low_frequency_color_drift\": " << colorDrift
 		<< ",\n  \"saturation_drift\": " << saturationDrift
 		<< ",\n  \"black_level_drift\": " << blackLevelDrift
-		<< ",\n  \"hud_pixel_mismatch_count\": " << hudMismatch
+		<< ",\n  \"hud_pixel_mismatch_count\": "
+		<< (hudComparable ? std::to_string(hudMismatch) : "null")
+		<< ",\n  \"hud_protected_pixel_count\": " << hudProtected
+		<< ",\n  \"hud_protected_pixel_percentage\": " << hudProtected * 100. / pixels
+		<< ",\n  \"hud_comparison_available\": " << (hudComparable ? "true" : "false")
+		<< ",\n  \"hud_protected_pixels_verified\": "
+		<< (hudComparable && hudProtected > 0 && hudMismatch == 0 ? "true" : "false")
 		<< ",\n  \"output_frame_repeated\": " << (repeated ? "true" : "false")
 		<< ",\n  \"output_frame_drop_count\": " << dropped
 		<< ",\n  \"depth_invalid_pixel_coverage\": " << invalidDepth / pixels

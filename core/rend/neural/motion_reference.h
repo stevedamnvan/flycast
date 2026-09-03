@@ -15,6 +15,7 @@ enum DrawFlags : std::uint8_t {
 	DrawDegenerate = 1u << 3,
 	DrawAdditive = 1u << 4,
 	DrawScreenAligned = 1u << 5,
+	DrawTriangleList = 1u << 6,
 };
 
 enum class MatchReason : std::uint8_t {

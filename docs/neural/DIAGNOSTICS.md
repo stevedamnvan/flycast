@@ -421,6 +421,26 @@ requires every protected output byte to equal original PVR color, every
 unprotected output byte to equal the neural scene, and the deliberately omitted
 composite to mismatch every protected pixel.
 
+That synthetic compositor result is not real-game classifier coverage. Bounded
+captures now include `overlay-draws.json` with PVR-native-screen bounds,
+resource generations, structural signatures, accepted-frame stability,
+texture-use counts, and classification for every captured draw. For sorted
+translucency the original PolyParam slots are empty placeholders; actual
+SortedTriangle submissions follow all three original list ranges, in sorted
+submission order, with flag 64 (triangle list). Their motion is always reactive.
+The live replay uses those same triangle ranges; it must never reinterpret
+sorted PolyParam vertex offsets as index offsets. OIT and per-strip paths keep
+their indexed-strip contract.
+
+`hud_protected_pixel_count` and `hud_protected_pixel_percentage` quantify mask
+coverage. `hud_comparison_available` requires matching source/native/final
+dimensions; when unavailable, `hud_pixel_mismatch_count` is null.
+`hud_protected_pixels_verified` requires a nonempty mask and zero mismatches.
+It proves only those selected pixels, not complete HUD coverage or correct
+classification. The initial diagnostic-before and sorted-fix-on12 development
+captures used the older provisional name `hud_preservation_verified` for this
+same limited check. Historical zero mismatches with an empty mask are vacuous.
+
 `NeuralOverlayPolicy` is stored through Flycast's existing per-game option
 system: 0 is the strict automatic classifier, 1 restores the complete PVR frame
 as a safe title override, and 2 disables post-composition. Runtime notices name

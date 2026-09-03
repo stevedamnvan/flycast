@@ -191,7 +191,45 @@ void AppendList(const rend_context& context, const Container& polys, std::uint16
 			return;
 		}
 		const auto ordinal = static_cast<std::uint16_t>(count);
-		output[count++] = MakeRecord(context, polys[i], list, i, ordinal);
+		PolyParam poly = polys[i];
+		if (list == ListType_Translucent)
+		{
+			const auto pass = PassFor(context, i, list);
+			if (pass < context.render_passes.size()
+				&& context.render_passes[pass].sorted_tr_count
+					> (pass == 0 ? 0 : context.render_passes[pass - 1].sorted_tr_count))
+				// Triangle sorting leaves this offset in vertex space. Retain the
+				// ordinal as an empty placeholder; capture actual submissions below.
+				poly.count = 0;
+		}
+		output[count++] = MakeRecord(context, poly, list, i, ordinal);
+	}
+}
+
+void AppendSortedTranslucent(const rend_context& context,
+	std::array<DrawRecord, NeuralInstrumentation::MaxDraws>& output,
+	std::size_t& count, bool& truncated) noexcept
+{
+	std::size_t pass = 0;
+	for (std::size_t i = 0; i < context.sortedTriangles.size(); ++i)
+	{
+		if (count == output.size()) { truncated = true; return; }
+		const auto& sorted = context.sortedTriangles[i];
+		if (sorted.polyIndex >= context.global_param_tr.size())
+		{
+			truncated = true;
+			return;
+		}
+		while (pass + 1 < context.render_passes.size()
+			&& i >= context.render_passes[pass].sorted_tr_count) ++pass;
+		PolyParam poly = context.global_param_tr[sorted.polyIndex];
+		poly.first = sorted.first;
+		poly.count = sorted.count;
+		auto record = MakeRecord(context, poly, ListType_Translucent,
+			sorted.polyIndex, static_cast<std::uint16_t>(count));
+		record.pass = static_cast<std::uint16_t>(pass);
+		record.flags |= DrawTriangleList | DrawReactive;
+		output[count++] = record;
 	}
 }
 
@@ -306,6 +344,23 @@ void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
 		overlayStability_[currentBuffer_].fill(0);
 		overlayDrawCount_ = 0;
 	}
+}
+
+std::vector<OverlayDrawDiagnostic> NeuralInstrumentation::CaptureOverlayDiagnostics() const
+{
+	std::unordered_map<std::uint32_t, std::uint16_t> textureUses;
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+		if (drawBuffers_[currentBuffer_][i].texId != 0)
+			++textureUses[drawBuffers_[currentBuffer_][i].texId];
+	std::vector<OverlayDrawDiagnostic> result;
+	result.reserve(drawCounts_[currentBuffer_]);
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+	{
+		const auto& draw = drawBuffers_[currentBuffer_][i];
+		result.push_back({draw, overlayStability_[currentBuffer_][i],
+			draw.texId == 0 ? std::uint16_t(0) : textureUses[draw.texId], overlayBuffer_[i] != 0});
+	}
+	return result;
 }
 
 void NeuralInstrumentation::FinalizeConfidence() noexcept
@@ -658,6 +713,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		drawCounts_[currentBuffer_], truncated_);
 	AppendList(context, context.global_param_tr, ListType_Translucent, current,
 		drawCounts_[currentBuffer_], truncated_);
+	AppendSortedTranslucent(context, current, drawCounts_[currentBuffer_], truncated_);
 	ClassifyOverlays(renderWidth, renderHeight);
 	if (!CapturePositionSnapshot(context))
 		truncated_ = true;
