@@ -1046,3 +1046,22 @@ their own render loops and both must invoke the post-OSD boundary. This mode is
 synchronous, developer-only, off by default, and never valid performance data.
 It changes no neural input, accepted history, external consumer configuration,
 or ordinary presentation.
+
+## D-066: runtime mode round trips keep one continuous evidence interval
+
+The hidden `NeuralModeRoundtripAfter` control changes only Flycast's live neural
+mode: it stores the requested nonzero mode, sets mode zero at an exact main
+frame, and restores the stored mode after a bounded frame duration. It does not
+restart the renderer or the asynchronous performance sampler. The public stage,
+guidance resources, and accepted correspondence history retire through the same
+production `syncNeuralMode` path used by an interactive setting change.
+
+Each performance sample therefore records its active mode and whether an
+accepted evaluation carried `resetHistory`. Acceptance requires two mode
+transitions, an all-native off interval with zero accepted evaluations, the
+first accepted post-off frame explicitly reset, and no missing Present,
+accepted-output loss, identity mismatch, repeated output, or frame latency. A
+single requested-mode native Present is allowed only as the already documented
+nonblocking busy fallback; it is counted explicitly and may not become stale
+neural output. The control is developer-only, default-off, mutually exclusive
+with other lifecycle controls, and changes no external-consumer configuration.

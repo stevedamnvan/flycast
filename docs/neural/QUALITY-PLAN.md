@@ -245,7 +245,7 @@ close a temporal or title-quality gate.
   It reproduces all 30 pairs; raw temporal change is explicitly not a stability
   score because it includes object motion and cuts. Actual depth and PNG mutation
   controls reject without creating a report; both selftests now pass 125/125.
-- Gate 18: partial through LOG #102. Asynchronous production D3D11 timestamp queries,
+- Gate 18: partial through LOG #110. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
   native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
@@ -255,6 +255,15 @@ close a temporal or title-quality gate.
   present 600/600 frames with no cadence or identity fault, zero owned-object
   growth (127 including two optional timing resources), and clean close. All
   synchronous evidence remains off in those measurements.
+  LOG #110 keeps one continuous 600-sample interval across a live exact-frame
+  neural-mode round trip on normal DX11 and DX11 OIT over native D3D11 and
+  D3D11On12. Every case records mode 2 -> 0 at main frame 300 -> mode 2 at 360,
+  60/60 native mode-zero Presents, zero off-mode evaluations, and a reset on
+  the first accepted re-entry. All four have zero missing Presents, accepted-
+  output loss, identity mismatch, output repeat, frame latency, query-ring
+  pressure, or Flycast-owned object growth, and close cleanly. Native D3D11
+  normal/OIT each retain one explicit nonblocking native fallback while mode 2
+  is active; both On12 cases return 540/540 requested-mode neural Presents.
   The full transition/failure matrix, isolated external timing, longer runs,
   resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage

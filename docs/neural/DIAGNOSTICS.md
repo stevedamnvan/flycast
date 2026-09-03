@@ -531,6 +531,20 @@ requires `pause-roundtrip-complete.json` to record the exact main-frame pair,
 an observed `GuiState::Pause`, and an observed return to `GuiState::Closed`.
 The performance interval spans the pause and must retain explicit source gaps
 without stale output, identity errors, accepted-output loss, or frame latency.
+
+The live mode lifecycle form is `neuraltest performance --game PATH --out DIR
+--frames N --warmup N --mode-roundtrip-after N --mode-off-duration N` plus the
+normal API/renderer/feature-path options. It requires a non-native lane and
+leaves measured neural samples on both sides of the off interval. The hidden,
+default-off control is mutually exclusive with every other developer lifecycle
+transition. `neural-mode-roundtrip-complete.json` records the exact off/on main
+frames and proves there was no renderer or sampler restart. `performance.json`
+records the live mode and reset bit per sample; its `runtime_mode_cadence`
+summary requires two mode transitions, all-native/zero-evaluation mode-zero
+samples, and a reset on the first accepted re-entry frame. The launcher also
+rejects missing Presents, accepted-but-unpresented outputs, identity faults,
+output repeats, latency, or more than one explicitly counted nonblocking native
+fallback while the requested neural mode is active.
 `--evidence-start-frame` delays evidence marking and readback until that exact or
 next emulated frame ID. It is intended for deterministic input-replayed gameplay;
 frames before it evaluate and present normally and remain outside the evidence set.

@@ -499,6 +499,8 @@ extern Option<int> NeuralSaveStateAfter;
 extern Option<int> NeuralSaveStateLoadDelay;
 extern Option<int> NeuralPauseAfter;
 extern Option<int> NeuralPauseDuration;
+extern Option<int> NeuralModeRoundtripAfter;
+extern Option<int> NeuralModeOffDuration;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

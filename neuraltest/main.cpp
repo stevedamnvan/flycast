@@ -46,7 +46,7 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -800,6 +800,7 @@ int PerformanceCommand(const Args& args)
 	std::uint32_t surfaceSwitchAfter = 0, gameReloadAfter = 0;
 	std::uint32_t saveStateAfter = 0, saveStateLoadDelay = 30;
 	std::uint32_t pauseAfter = 0, pauseDuration = 30;
+	std::uint32_t modeRoundtripAfter = 0, modeOffDuration = 30;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
 		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -820,6 +821,10 @@ int PerformanceCommand(const Args& args)
 		|| pauseAfter > 10000
 		|| !Number(args, "--pause-duration", 30, pauseDuration, error)
 		|| pauseDuration == 0 || pauseDuration > 10000
+		|| !Number(args, "--mode-roundtrip-after", 0, modeRoundtripAfter, error)
+		|| modeRoundtripAfter > 10000
+		|| !Number(args, "--mode-off-duration", 30, modeOffDuration, error)
+		|| modeOffDuration == 0 || modeOffDuration > 10000
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
 		std::cerr << (error.empty() ? "invalid performance bounds" : error) << '\n';
@@ -828,7 +833,7 @@ int PerformanceCommand(const Args& args)
 	const unsigned developerTransitionCount = (rendererReinitAfter != 0 ? 1u : 0u)
 		+ (rendererSwitchAfter != 0 ? 1u : 0u) + (surfaceSwitchAfter != 0 ? 1u : 0u)
 		+ (gameReloadAfter != 0 ? 1u : 0u) + (saveStateAfter != 0 ? 1u : 0u)
-		+ (pauseAfter != 0 ? 1u : 0u);
+		+ (pauseAfter != 0 ? 1u : 0u) + (modeRoundtripAfter != 0 ? 1u : 0u);
 	if (developerTransitionCount > 1)
 	{
 		std::cerr << "developer renderer transitions are mutually exclusive\n";
@@ -844,6 +849,24 @@ int PerformanceCommand(const Args& args)
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "invalid performance lane\n";
+		return 2;
+	}
+	if (modeRoundtripAfter != 0 && lane == "native")
+	{
+		std::cerr << "neural mode round trip requires a neural lane\n";
+		return 2;
+	}
+	if (modeRoundtripAfter == 0 && args.find("--mode-off-duration") != args.end())
+	{
+		std::cerr << "mode-off duration requires a mode round trip\n";
+		return 2;
+	}
+	if (modeRoundtripAfter != 0
+		&& (modeRoundtripAfter <= warmup + 12
+			|| static_cast<std::uint64_t>(modeRoundtripAfter) + modeOffDuration + 24
+				>= static_cast<std::uint64_t>(warmup) + frames))
+	{
+		std::cerr << "mode round trip must leave measured neural samples before and after the off interval\n";
 		return 2;
 	}
 	if (api != "d3d11" && api != "d3d11on12")
@@ -956,6 +979,12 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "performance output already contains a pause marker\n";
 		return 2;
 	}
+	if (modeRoundtripAfter != 0
+		&& std::filesystem::exists(output / "neural-mode-roundtrip-complete.json"))
+	{
+		std::cerr << "performance output already contains a neural-mode marker\n";
+		return 2;
+	}
 #ifndef _WIN32
 	std::cerr << "production performance launcher is currently available only on Windows\n";
 	return 3;
@@ -1038,6 +1067,8 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(saveStateLoadDelay)
 		+ L",config:rend.NeuralPauseAfter=" + std::to_wstring(pauseAfter)
 		+ L",config:rend.NeuralPauseDuration=" + std::to_wstring(pauseDuration)
+		+ L",config:rend.NeuralModeRoundtripAfter=" + std::to_wstring(modeRoundtripAfter)
+		+ L",config:rend.NeuralModeOffDuration=" + std::to_wstring(modeOffDuration)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",record:replay_input=" + (inputReplay == "yes" ? L"yes" : L"no")
 		+ L",log:LogToFile=yes";
@@ -1290,6 +1321,16 @@ int PerformanceCommand(const Args& args)
 		&& completedPerformance.find("\"growth\":") != std::string::npos
 		&& completedPerformance.find("\"renderer_final\":") != std::string::npos
 		&& completedPerformance.find("\"backend_final\":") != std::string::npos;
+	auto jsonUnsigned = [&completedPerformance](const char *field,
+		std::uint64_t& value) {
+		const std::regex expression(std::string("\\\"") + field
+			+ "\\\"\\s*:\\s*([0-9]+)");
+		std::smatch match;
+		if (!std::regex_search(completedPerformance, match, expression)) return false;
+		try { value = std::stoull(match[1].str()); }
+		catch (...) { return false; }
+		return true;
+	};
 	if (rendererSwitchAfter != 0)
 		rendererSwitchComplete = rendererSwitchComplete
 			&& completedPerformance.find("\"renderer\": \""
@@ -1344,6 +1385,57 @@ int PerformanceCommand(const Args& args)
 				!= std::string::npos
 			&& marker.find("\"resume_main_frame\": "
 				+ std::to_string(pauseAfter + pauseDuration)) != std::string::npos;
+	}
+	bool modeRoundtripComplete = modeRoundtripAfter == 0;
+	if (modeRoundtripAfter != 0)
+	{
+		std::ifstream markerStream(output / "neural-mode-roundtrip-complete.json");
+		const bool markerOpened = markerStream.is_open();
+		const std::string marker((std::istreambuf_iterator<char>(markerStream)),
+			std::istreambuf_iterator<char>());
+		std::uint64_t initialMode = 0, finalMode = 0, modeTransitions = 0;
+		std::uint64_t offModeSamples = 0, offNativePresents = 0;
+		std::uint64_t offAcceptedEvaluations = 0, requestedModeSamples = 0;
+		std::uint64_t requestedModeNeuralPresents = 0, requestedModeNativePresents = 0;
+		std::uint64_t reentryResetAccepts = 0;
+		std::uint64_t acceptedNotPresented = 0, identityMismatches = 0;
+		std::uint64_t outputRepeats = 0, nativeNeuralAlternations = 0;
+		modeRoundtripComplete = markerOpened
+			&& marker.find("\"completed\": true") != std::string::npos
+			&& marker.find("\"original_mode\": " + std::to_string(mode)) != std::string::npos
+			&& marker.find("\"off_mode\": 0") != std::string::npos
+			&& marker.find("\"restored_mode\": " + std::to_string(mode)) != std::string::npos
+			&& marker.find("\"off_main_frame\": "
+				+ std::to_string(modeRoundtripAfter)) != std::string::npos
+			&& marker.find("\"on_main_frame\": "
+				+ std::to_string(modeRoundtripAfter + modeOffDuration)) != std::string::npos
+			&& marker.find("\"renderer_restarted\": false") != std::string::npos
+			&& marker.find("\"performance_sampling_restarted\": false") != std::string::npos
+			&& jsonUnsigned("initial_mode", initialMode) && initialMode == static_cast<unsigned>(mode)
+			&& jsonUnsigned("final_mode", finalMode) && finalMode == static_cast<unsigned>(mode)
+			&& jsonUnsigned("mode_transitions", modeTransitions) && modeTransitions == 2
+			&& jsonUnsigned("off_mode_samples", offModeSamples) && offModeSamples != 0
+			&& jsonUnsigned("off_native_presents", offNativePresents)
+			&& offNativePresents == offModeSamples
+			&& jsonUnsigned("off_accepted_evaluations", offAcceptedEvaluations)
+			&& offAcceptedEvaluations == 0
+			&& jsonUnsigned("requested_mode_samples", requestedModeSamples)
+			&& requestedModeSamples > offModeSamples
+			&& jsonUnsigned("requested_mode_neural_presents", requestedModeNeuralPresents)
+			&& requestedModeNeuralPresents != 0
+			&& jsonUnsigned("requested_mode_native_presents", requestedModeNativePresents)
+			&& requestedModeNativePresents <= 1
+			&& jsonUnsigned("reentry_reset_accepts", reentryResetAccepts)
+			&& reentryResetAccepts != 0
+			&& completedPerformance.find("\"first_reentry_accepted_reset\": true")
+				!= std::string::npos
+			&& jsonUnsigned("accepted_not_presented", acceptedNotPresented)
+			&& acceptedNotPresented == 0
+			&& jsonUnsigned("frame_identity_mismatches", identityMismatches)
+			&& identityMismatches == 0
+			&& jsonUnsigned("output_frame_repeats", outputRepeats) && outputRepeats == 0
+			&& jsonUnsigned("native_neural_alternations", nativeNeuralAlternations)
+			&& nativeNeuralAlternations >= 2 && nativeNeuralAlternations <= 4;
 	}
 	if (surfaceSwitchAfter != 0)
 		surfaceSwitchComplete = surfaceSwitchComplete
@@ -1407,6 +1499,10 @@ int PerformanceCommand(const Args& args)
 		<< ",\n  \"pause_duration_main_frames\": " << pauseDuration
 		<< ",\n  \"pause_roundtrip_completed\": "
 		<< (pauseComplete ? "true" : "false")
+		<< ",\n  \"mode_roundtrip_after_main_frames\": " << modeRoundtripAfter
+		<< ",\n  \"mode_off_duration_main_frames\": " << modeOffDuration
+		<< ",\n  \"mode_roundtrip_completed\": "
+		<< (modeRoundtripComplete ? "true" : "false")
 		<< ",\n  \"resource_accounting_completed\": "
 		<< (resourceAccountingComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
@@ -1422,11 +1518,13 @@ int PerformanceCommand(const Args& args)
 		<< " game_reload=" << (gameReloadComplete ? "pass" : "fail")
 		<< " savestate=" << (saveStateComplete ? "pass" : "fail")
 		<< " pause=" << (pauseComplete ? "pass" : "fail")
+		<< " mode_roundtrip=" << (modeRoundtripComplete ? "pass" : "fail")
 		<< " resources=" << (resourceAccountingComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
 		&& rendererSwitchComplete && surfaceSwitchComplete && gameReloadComplete
-		&& saveStateComplete && pauseComplete && resourceAccountingComplete ? 0 : 1;
+		&& saveStateComplete && pauseComplete && modeRoundtripComplete
+		&& resourceAccountingComplete ? 0 : 1;
 #endif
 }
 

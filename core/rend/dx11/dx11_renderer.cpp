@@ -1383,7 +1383,8 @@ void DX11Renderer::submitNeuralFrame()
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateEnd);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::EvaluateEnd);
-	neuralPerformance.RecordEvaluation(frame.frameId, status == SubmitStatus::Submitted);
+	neuralPerformance.RecordEvaluation(frame.frameId, status == SubmitStatus::Submitted,
+		frame.resetHistory);
 	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
 	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
 	logNeuralConsumerStatus(status);

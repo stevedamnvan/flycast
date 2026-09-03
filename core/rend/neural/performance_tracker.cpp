@@ -74,6 +74,7 @@ void PerformanceTracker::Reset()
 	warmupRemaining_ = 0;
 	initialVramUsage_ = 0;
 	written_ = false;
+	currentNeuralMode_ = 0;
 }
 
 bool PerformanceTracker::CreateQueries(ID3D11Device *device)
@@ -98,11 +99,14 @@ void PerformanceTracker::Configure(ID3D11Device *device,
 	sampleFrames = (std::min)(sampleFrames, 10000u);
 	if (root == root_ && warmupFrames == warmupFrames_
 		&& sampleFrames == targetSamples_ && gameId == gameId_
-		&& api == api_ && renderer == renderer_ && neuralMode == neuralMode_
+		&& api == api_ && renderer == renderer_
 		&& failureInjection == failureInjection_
 		&& failureInjectionCount == failureInjectionCount_
 		&& failureInjectionAfter == failureInjectionAfter_)
+	{
+		currentNeuralMode_ = neuralMode;
 		return;
+	}
 	Reset();
 	root_ = root;
 	warmupFrames_ = warmupFrames;
@@ -112,6 +116,7 @@ void PerformanceTracker::Configure(ID3D11Device *device,
 	api_ = std::move(api);
 	renderer_ = std::move(renderer);
 	neuralMode_ = neuralMode;
+	currentNeuralMode_ = neuralMode;
 	failureInjection_ = failureInjection;
 	failureInjectionCount_ = failureInjectionCount;
 	failureInjectionAfter_ = failureInjectionAfter;
@@ -169,6 +174,8 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.sourceFrameId = slot.sourceFrameId;
 		sample.acceptedFrameId = slot.acceptedFrameId;
 		sample.outputFrameId = slot.outputFrameId;
+		sample.neuralMode = slot.neuralMode;
+		sample.resetHistory = slot.resetHistory;
 		sample.rendererResourceObjects = slot.rendererResourceObjects;
 		sample.backendResourceObjects = slot.backendResourceObjects;
 		if (samples_.size() < targetSamples_) samples_.push_back(sample);
@@ -200,6 +207,8 @@ void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 		slot.sourceFrameId = 0;
 		slot.acceptedFrameId = 0;
 		slot.outputFrameId = 0;
+		slot.neuralMode = currentNeuralMode_;
+		slot.resetHistory = false;
 		slot.presentIntervalMs = 0.;
 		context->Begin(slot.disjoint);
 		Mark(context, GpuTimingPoint::PvrBegin);
@@ -208,10 +217,14 @@ void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 	++ringBusy_;
 }
 
-void PerformanceTracker::RecordEvaluation(std::uint64_t frameId, bool accepted) noexcept
+void PerformanceTracker::RecordEvaluation(std::uint64_t frameId, bool accepted,
+	bool resetHistory) noexcept
 {
 	if (activeSlot_ < RingSize && accepted)
+	{
 		ring_[activeSlot_].acceptedFrameId = frameId;
+		ring_[activeSlot_].resetHistory = resetHistory;
+	}
 }
 
 void PerformanceTracker::StagePresentation(std::uint64_t sourceFrameId,
@@ -292,6 +305,45 @@ void PerformanceTracker::WriteReport()
 			sample.outputFrameId, sample.presented);
 	}
 	const auto& cadenceStats = cadence.Stats();
+	std::uint64_t modeTransitions = 0;
+	std::uint64_t offModeSamples = 0;
+	std::uint64_t offNativePresents = 0;
+	std::uint64_t offAcceptedEvaluations = 0;
+	std::uint64_t requestedModeSamples = 0;
+	std::uint64_t requestedModeNeuralPresents = 0;
+	std::uint64_t requestedModeNativePresents = 0;
+	std::uint64_t reentryResetAccepts = 0;
+	bool seenOffMode = false;
+	bool firstReentryAcceptedSeen = false;
+	bool firstReentryAcceptedReset = false;
+	int previousMode = samples_.empty() ? neuralMode_ : samples_.front().neuralMode;
+	for (const auto& sample : samples_)
+	{
+		if (sample.neuralMode != previousMode) ++modeTransitions;
+		previousMode = sample.neuralMode;
+		if (sample.neuralMode == 0)
+		{
+			seenOffMode = true;
+			++offModeSamples;
+			if (sample.presented && sample.outputFrameId == 0) ++offNativePresents;
+			if (sample.acceptedFrameId != 0) ++offAcceptedEvaluations;
+		}
+		else if (sample.neuralMode == neuralMode_)
+		{
+			++requestedModeSamples;
+			if (sample.presented && sample.outputFrameId != 0)
+				++requestedModeNeuralPresents;
+			if (sample.presented && sample.outputFrameId == 0)
+				++requestedModeNativePresents;
+			if (seenOffMode && sample.acceptedFrameId != 0 && sample.resetHistory)
+				++reentryResetAccepts;
+			if (seenOffMode && sample.acceptedFrameId != 0 && !firstReentryAcceptedSeen)
+			{
+				firstReentryAcceptedSeen = true;
+				firstReentryAcceptedReset = sample.resetHistory;
+			}
+		}
+	}
 	std::uint32_t initialResourceObjects = 0;
 	std::uint32_t finalResourceObjects = 0;
 	std::uint32_t minimumResourceObjects = 0;
@@ -381,6 +433,20 @@ void PerformanceTracker::WriteReport()
 			static_cast<double>(cadenceStats.latencyFramesTotal) /
 			static_cast<double>(cadenceStats.latencySamples))
 		<< ", \"latency_frames_max\": " << cadenceStats.latencyFramesMax << "}"
+		<< ",\n  \"runtime_mode_cadence\": {\"initial_mode\": "
+		<< (samples_.empty() ? neuralMode_ : samples_.front().neuralMode)
+		<< ", \"final_mode\": "
+		<< (samples_.empty() ? neuralMode_ : samples_.back().neuralMode)
+		<< ", \"mode_transitions\": " << modeTransitions
+		<< ", \"off_mode_samples\": " << offModeSamples
+		<< ", \"off_native_presents\": " << offNativePresents
+		<< ", \"off_accepted_evaluations\": " << offAcceptedEvaluations
+		<< ", \"requested_mode_samples\": " << requestedModeSamples
+		<< ", \"requested_mode_neural_presents\": " << requestedModeNeuralPresents
+		<< ", \"requested_mode_native_presents\": " << requestedModeNativePresents
+		<< ", \"reentry_reset_accepts\": " << reentryResetAccepts
+		<< ", \"first_reentry_accepted_reset\": "
+		<< (firstReentryAcceptedSeen && firstReentryAcceptedReset ? "true" : "false") << "}"
 		<< ",\n  \"stage_counts\": {\"submissions\": " << stageStats_.submissions
 		<< ", \"busy\": " << stageStats_.busySkips << ", \"fallbacks\": "
 		<< stageStats_.fallbacks << ", \"resets\": " << stageStats_.resets
@@ -429,7 +495,9 @@ void PerformanceTracker::WriteReport()
 			<< ", \"presented\": " << (s.presented ? "true" : "false")
 			<< ", \"source_frame_id\": " << s.sourceFrameId
 			<< ", \"accepted_frame_id\": " << s.acceptedFrameId
-			<< ", \"output_frame_id\": " << s.outputFrameId << '}';
+			<< ", \"output_frame_id\": " << s.outputFrameId
+			<< ", \"neural_mode\": " << s.neuralMode
+			<< ", \"reset_history\": " << (s.resetHistory ? "true" : "false") << '}';
 	}
 	report << "\n  ]\n}\n";
 	if (!report) return;

@@ -37,7 +37,8 @@ public:
 		std::uint32_t failureInjectionAfter);
 	void BeginFrame(ID3D11DeviceContext *context);
 	void Mark(ID3D11DeviceContext *context, GpuTimingPoint point);
-	void RecordEvaluation(std::uint64_t frameId, bool accepted) noexcept;
+	void RecordEvaluation(std::uint64_t frameId, bool accepted,
+		bool resetHistory) noexcept;
 	void StagePresentation(std::uint64_t sourceFrameId,
 		std::uint64_t outputFrameId) noexcept;
 	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats,
@@ -58,6 +59,8 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		int neuralMode = 0;
+		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
 		double presentIntervalMs = 0.;
@@ -74,6 +77,8 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		int neuralMode = 0;
+		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
 	};
@@ -105,6 +110,7 @@ private:
 	std::string api_;
 	std::string renderer_;
 	int neuralMode_ = 0;
+	int currentNeuralMode_ = 0;
 	int failureInjection_ = 0;
 	std::uint32_t failureInjectionCount_ = 0;
 	std::uint32_t failureInjectionAfter_ = 0;

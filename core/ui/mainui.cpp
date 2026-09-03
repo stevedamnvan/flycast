@@ -64,6 +64,11 @@ static bool neuralDeveloperPauseObserved;
 static bool neuralDeveloperResumeObserved;
 static u32 neuralDeveloperPauseFrame;
 static u32 neuralDeveloperResumeFrame;
+static bool neuralDeveloperModeRoundtripTriggered;
+static bool neuralDeveloperModeRoundtripCompleted;
+static int neuralDeveloperModeRoundtripOriginal;
+static u32 neuralDeveloperModeOffFrame;
+static u32 neuralDeveloperModeOnFrame;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -166,6 +171,25 @@ static void writeNeuralDeveloperPauseMarker()
 		<< ",\n  \"pause_main_frame\": " << neuralDeveloperPauseFrame
 		<< ",\n  \"resume_main_frame\": " << neuralDeveloperResumeFrame << "\n}\n";
 }
+
+static void writeNeuralDeveloperModeRoundtripMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "neural-mode-roundtrip-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": "
+		<< (neuralDeveloperModeRoundtripCompleted ? "true" : "false")
+		<< ",\n  \"original_mode\": " << neuralDeveloperModeRoundtripOriginal
+		<< ",\n  \"off_mode\": 0"
+		<< ",\n  \"restored_mode\": " << config::NeuralMode.get()
+		<< ",\n  \"off_main_frame\": " << neuralDeveloperModeOffFrame
+		<< ",\n  \"on_main_frame\": " << neuralDeveloperModeOnFrame
+		<< ",\n  \"renderer_restarted\": false"
+		<< ",\n  \"performance_sampling_restarted\": false\n}\n";
+}
 #endif
 
 bool mainui_rend_frame()
@@ -258,6 +282,10 @@ void mainui_loop(bool forceStart)
 		const int neuralSaveStateLoadDelay = std::clamp(config::NeuralSaveStateLoadDelay.get(), 1, 10000);
 		const int neuralPauseAfter = std::clamp(config::NeuralPauseAfter.get(), 0, 10000);
 		const int neuralPauseDuration = std::clamp(config::NeuralPauseDuration.get(), 1, 10000);
+		const int neuralModeRoundtripAfter = std::clamp(
+			config::NeuralModeRoundtripAfter.get(), 0, 10000);
+		const int neuralModeOffDuration = std::clamp(
+			config::NeuralModeOffDuration.get(), 1, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -416,6 +444,34 @@ void mainui_loop(bool forceStart)
 				"Neural developer pause round trip completed at main frame %u: %d",
 				MainFrameCount, neuralDeveloperResumeObserved ? 1 : 0);
 		}
+		else if (!neuralDeveloperModeRoundtripTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralGameReloadAfter == 0 && neuralSaveStateAfter == 0
+			&& neuralPauseAfter == 0 && neuralModeRoundtripAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralModeRoundtripAfter)
+			&& config::NeuralMode.get() > 0)
+		{
+			neuralDeveloperModeRoundtripTriggered = true;
+			neuralDeveloperModeRoundtripOriginal = config::NeuralMode.get();
+			neuralDeveloperModeOffFrame = MainFrameCount;
+			config::NeuralMode = 0;
+			NOTICE_LOG(RENDERER,
+				"Neural developer live mode-off requested at main frame %u: %d -> 0",
+				MainFrameCount, neuralDeveloperModeRoundtripOriginal);
+		}
+		else if (neuralDeveloperModeRoundtripTriggered
+			&& !neuralDeveloperModeRoundtripCompleted
+			&& MainFrameCount >= neuralDeveloperModeOffFrame
+				+ static_cast<u32>(neuralModeOffDuration))
+		{
+			neuralDeveloperModeOnFrame = MainFrameCount;
+			config::NeuralMode = neuralDeveloperModeRoundtripOriginal;
+			neuralDeveloperModeRoundtripCompleted = true;
+			writeNeuralDeveloperModeRoundtripMarker();
+			NOTICE_LOG(RENDERER,
+				"Neural developer live mode-on restored at main frame %u: 0 -> %d",
+				MainFrameCount, neuralDeveloperModeRoundtripOriginal);
+		}
 #endif
 
 		if (config::RendererType != currentRenderer || forceReinit)
@@ -506,6 +562,11 @@ void mainui_start()
 	neuralDeveloperResumeObserved = false;
 	neuralDeveloperPauseFrame = 0;
 	neuralDeveloperResumeFrame = 0;
+	neuralDeveloperModeRoundtripTriggered = false;
+	neuralDeveloperModeRoundtripCompleted = false;
+	neuralDeveloperModeRoundtripOriginal = 0;
+	neuralDeveloperModeOffFrame = 0;
+	neuralDeveloperModeOnFrame = 0;
 #endif
 	mainui_enabled = true;
 }
