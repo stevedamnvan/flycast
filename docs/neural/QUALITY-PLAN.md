@@ -174,14 +174,16 @@ close a temporal or title-quality gate.
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
   Per-title tuning and evidence-driven broader trust remain open.
-- Gate 17: partial through LOG #95. The bounded capture CLI writes the production
+- Gate 17: partial through LOG #99. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
   covered. LOG #74 adds a relative-path HTML/JSON comparison index which
   explicitly refuses to declare a still-frame winner. Two externally confirmed
-  moving frames are now captured, but capture GPU timings, moving gameplay, all
-  profile lanes, and every other legally available title remain open, so no
+  moving frames are now captured. LOG #99 adds capture-only base-PVR, guidance,
+  accepted evaluation, overlay/presentation-blit, and overall-frame GPU spans
+  with exact D3D12 frame-ID retirement where available. External moving gameplay,
+  all profile lanes, and every other legally available title remain open, so no
   title-quality winner is declared. LOG #94 adds a repeatable real combat
   sequence and makes the developer-only launcher retain the exact input script,
   hash, and byte count. Two independent frame-1802 native scouts were
