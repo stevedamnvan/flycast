@@ -75,3 +75,13 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #35 2026-09-02 working tree | D3D11 unsupported matrix on the same harness | WARP returned init `0xBAD00001`; missing feature runtime returned availability 0 / feature-init `0xBAD00004`; `--no-ngx` returned explicit disabled reason; all exited cleanly without exception | missing-runtime, WARP/non-NVIDIA, and explicit-disable failure subset pass; injected failures remain pending
 
 #36 2026-09-02 working tree | rebuild SDK-enabled `flycast`/`neuraltest`, instrumentation-only `flycast`/`neuraltest`, and feature-off `flycast`; run both enabled selftests | all targets linked; SDK and no-SDK harnesses each passed 41/41 | three-configuration build matrix remains green after live-runner integration
+
+#37 2026-09-02 1b7120f | add public optimal-settings query and explicit SR output/mode arguments | NGX returned 1280x960 Quality input for 1920x1440 output and accepted it; deliberate 320x240 mismatch returned a precise unsupported reason | real-upscale dimension contract pass; no 1:1 SR claim
+
+#38 2026-09-02 working tree | D3D11 SR Quality 1280x960 -> 1920x1440 and Performance 1280x960 -> 2560x1920, 240 frames each, on `camera-translate`, `particles`, `textured-checker-edge` | all six runs submitted 240/240 with result 1, zero exceptions, busy skips, fallbacks, and invalid frames; final hashes Quality `0820ac65892d2064`,`2c7143441a2eab4d`,`4c7a8579e94196ec`, Performance `8fab374f23153673`,`43939767f31a17c3`,`7b8e8287d018b3d1` | D3D11 public SR live matrix pass on static harness inputs; production temporal inputs remain pending
+
+#39 2026-09-02 working tree | compare Performance output against direct 8x reference for the same frame | camera: 33718 differing pixels, max 193, PSNR 33.681036; particles: 11437 / 249 / 36.994271; checker: 379356 / 242 / 42.291854 | measurements recorded without an acceptance threshold; DLAA/reference downsample comparison remains pending
+
+#40 2026-09-02 working tree | per-frame static-output metric on 240-frame camera Quality run | 239 hash changes; worst adjacent frame affected 1195/2764800 pixels, max delta 41, PSNR 69.0399 dB; zero black frames | static convergence/flicker measured, not declared threshold-green
+
+#41 2026-09-02 working tree | correct create flags to the exact DLAA/SR contract and rerun 240-frame checker DLAA | DLAA flags 0 submitted 240/240 with zero invalid/busy/fallback/exception; 238 adjacent hash changes, worst 506/76800 pixels, delta 27, PSNR 60.0902 dB | DLAA no longer incorrectly advertises low-resolution motion; `MVLowRes` is SR-only

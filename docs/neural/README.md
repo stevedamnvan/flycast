@@ -18,6 +18,11 @@ For development and `neuraltest`, `FLYCAST_NGX_FEATURE_PATH` may instead name th
 directory containing the user-supplied feature DLL. The path is passed to NGX's
 documented feature search list and is never copied into the build or repository.
 
+The harness accepts standard SR as `neural --backend sr --mode quality` (or
+`performance`) with `--output-width` and `--output-height`. It asks NGX for the
+optimal input size and rejects an input package of any other dimensions instead
+of silently stretching or treating a 1:1 evaluation as SR.
+
 Project state is recorded in `BACKLOG.md`; commands and evidence are in
 `LOG.md`; deviations are in `DECISIONS.md`; artifact definitions are in
 `DIAGNOSTICS.md`.

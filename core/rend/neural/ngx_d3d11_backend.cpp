@@ -66,6 +66,16 @@ NgxCallResult CreateLeaf(ID3D11DeviceContext *context, NVSDK_NGX_Handle **handle
 	NGX_SEH_CALL(NGX_D3D11_CREATE_DLSS_EXT(context, handle, parameters, create));
 }
 
+NgxCallResult OptimalSettingsLeaf(NVSDK_NGX_Parameter *parameters,
+	unsigned int outputWidth, unsigned int outputHeight, NVSDK_NGX_PerfQuality_Value quality,
+	unsigned int *optimalWidth, unsigned int *optimalHeight, unsigned int *maxWidth,
+	unsigned int *maxHeight, unsigned int *minWidth, unsigned int *minHeight,
+	float *sharpness) noexcept
+{
+	NGX_SEH_CALL(NGX_DLSS_GET_OPTIMAL_SETTINGS(parameters, outputWidth, outputHeight, quality,
+		optimalWidth, optimalHeight, maxWidth, maxHeight, minWidth, minHeight, sharpness));
+}
+
 NgxCallResult EvaluateLeaf(ID3D11DeviceContext *context, NVSDK_NGX_Handle *handle,
 	NVSDK_NGX_Parameter *parameters, NVSDK_NGX_D3D11_DLSS_Eval_Params *evaluate) noexcept
 {
@@ -151,6 +161,21 @@ public:
 				available, needsDriver, static_cast<unsigned int>(featureInitResult));
 			return BackendEvalStatus::Unsupported;
 		}
+		if (IsSr(config_.mode))
+		{
+			float sharpness = 0.f;
+			call = OptimalSettingsLeaf(parameters_, config_.outputWidth, config_.outputHeight,
+				Quality(config_.mode), &optimalWidth_, &optimalHeight_, &maxWidth_, &maxHeight_,
+				&minWidth_, &minHeight_, &sharpness);
+			Record(call);
+			if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result)
+				|| optimalWidth_ == 0 || optimalHeight_ == 0)
+			{
+				++stats_.createFailures;
+				return Unsupported(call.exceptionCode ? "NGX optimal-settings query raised an exception"
+					: "NGX optimal-settings query failed");
+			}
+		}
 		if (!CreateOutputRing(config.outputWidth, config.outputHeight))
 		{
 			++stats_.createFailures;
@@ -171,6 +196,15 @@ public:
 		const bool dlaa = config_.mode == NeuralMode::Dlaa || config_.mode == NeuralMode::DlaaHook;
 		if (dlaa && (frame.renderWidth != config_.outputWidth || frame.renderHeight != config_.outputHeight))
 			return Unsupported("DLAA requires equal render and output dimensions");
+		if (IsSr(config_.mode)
+			&& (frame.renderWidth != optimalWidth_ || frame.renderHeight != optimalHeight_))
+		{
+			std::snprintf(reason_, sizeof(reason_),
+				"SR input %ux%u does not match NGX optimal %ux%u for output %ux%u",
+				frame.renderWidth, frame.renderHeight, optimalWidth_, optimalHeight_,
+				config_.outputWidth, config_.outputHeight);
+			return BackendEvalStatus::Unsupported;
+		}
 		if (!feature_)
 		{
 			NVSDK_NGX_DLSS_Create_Params create{};
@@ -179,7 +213,9 @@ public:
 			create.Feature.InTargetWidth = config_.outputWidth;
 			create.Feature.InTargetHeight = config_.outputHeight;
 			create.Feature.InPerfQualityValue = Quality(config_.mode);
-			create.InFeatureCreateFlags = NVSDK_NGX_DLSS_Feature_Flags_MVLowRes;
+			create.InFeatureCreateFlags = IsSr(config_.mode)
+				? NVSDK_NGX_DLSS_Feature_Flags_MVLowRes
+				: NVSDK_NGX_DLSS_Feature_Flags_None;
 			create.InEnableOutputSubrects = false;
 			const auto call = CreateLeaf(context_, &feature_, parameters_, &create);
 			Record(call);
@@ -330,6 +366,12 @@ private:
 		}
 	}
 
+	static bool IsSr(NeuralMode mode) noexcept
+	{
+		return mode == NeuralMode::SrQuality || mode == NeuralMode::SrBalanced
+			|| mode == NeuralMode::SrPerformance || mode == NeuralMode::SrUltraPerformance;
+	}
+
 	StageConfig config_{};
 	BackendStats stats_{};
 	ID3D11Device *device_ = nullptr;
@@ -343,6 +385,12 @@ private:
 	std::size_t outputSlot_ = 0;
 	bool initialized_ = false;
 	bool resetRequested_ = true;
+	unsigned int optimalWidth_ = 0;
+	unsigned int optimalHeight_ = 0;
+	unsigned int maxWidth_ = 0;
+	unsigned int maxHeight_ = 0;
+	unsigned int minWidth_ = 0;
+	unsigned int minHeight_ = 0;
 	char reason_[192]{};
 };
 

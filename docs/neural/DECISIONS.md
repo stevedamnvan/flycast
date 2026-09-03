@@ -108,8 +108,9 @@ release/destroy/shutdown call is made by a POD-only SEH leaf; C++ ownership and
 fallback policy remain outside those leaves. Output uses a fixed three-slot
 RGBA8 UAV/SRV ring with `D3D11_QUERY_EVENT` readiness checks and
 `D3D11_ASYNC_GETDATA_DONOTFLUSH`, so a busy slot skips instead of waiting.
-Create uses only `MVLowRes`; HDR, jittered-MV, inverted-depth, auto-exposure,
-alpha-upscale, sharpening, and output subrect flags are off. The stable custom
+Create uses `MVLowRes` only for standard SR and no flags for 1:1 DLAA; HDR,
+jittered-MV, inverted-depth, auto-exposure, alpha-upscale, sharpening, and
+output subrect flags are off. The stable custom
 Project ID is Flycast-specific but still requires maintainer/NVIDIA review
 before distribution.
 
@@ -123,3 +124,13 @@ through `NVSDK_NGX_FeatureCommonInfo::PathListInfo`. This keeps the separately
 licensed feature DLL outside the repository while making the harness invocation
 deterministic. The first attempted live run exposed that `PATH` alone does not
 satisfy NGX feature discovery.
+
+## D-014: SR inputs must match public NGX optimal settings
+
+For each standard SR mode, the D3D11 backend calls the public
+`NGX_DLSS_GET_OPTIMAL_SETTINGS` callback after capability discovery. Feature
+creation is rejected unless `NeuralFrame` render dimensions equal the returned
+optimal dimensions for the configured output. The harness exposes explicit
+output dimensions; this prevents a successful 1:1 Super Sampling call from
+being mislabeled as an upscaling result. Dynamic-resolution min/max bounds are
+recorded internally but are not accepted by this first fixed-resolution path.

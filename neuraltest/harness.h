@@ -57,7 +57,11 @@ struct NeuralRunResult {
 	std::uint64_t busySkips = 0;
 	std::uint64_t fallbacks = 0;
 	std::uint64_t invalidFrames = 0;
+	std::uint64_t outputChanges = 0;
 	std::uint64_t outputHash = 0;
+	std::uint32_t maxTemporalChangedPixels = 0;
+	std::uint8_t maxTemporalDelta = 0;
+	double minTemporalPsnr = 0.;
 	std::int32_t lastNgxResult = 0;
 	std::uint32_t lastExceptionCode = 0;
 };
@@ -73,8 +77,9 @@ double ComputePsnr(const Image& a, const Image& b, std::uint32_t& differingPixel
 bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixture,
 	const RenderOptions& options, const RenderResult& result, std::string& error);
 bool ValidateProductionExportShader(std::string& error);
-bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool warp,
-	std::uint32_t frames, NeuralRunResult& result, std::string& error);
+bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
+	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
+	bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error);
 int RunSelfTests();
 
 } // namespace neuraltest

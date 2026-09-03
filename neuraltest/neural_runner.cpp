@@ -9,8 +9,10 @@
 #include <wrl/client.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <vector>
 
 using Microsoft::WRL::ComPtr;
@@ -139,8 +141,9 @@ const char *StatusName(flycast::rend::neural::SubmitStatus status)
 
 } // namespace
 
-bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool warp,
-	std::uint32_t frames, NeuralRunResult& result, std::string& error)
+bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
+	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
+	bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error)
 {
 	using namespace flycast::rend::neural;
 	if (input.width == 0 || input.height == 0 || input.rgba.size()
@@ -184,12 +187,15 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool war
 
 	StageConfig config;
 	config.mode = backend == "dlaa-hook" ? NeuralMode::DlaaHook
+		: mode == "balanced" ? NeuralMode::SrBalanced
+		: mode == "performance" ? NeuralMode::SrPerformance
+		: mode == "ultra-performance" ? NeuralMode::SrUltraPerformance
 		: backend == "sr" ? NeuralMode::SrQuality : NeuralMode::Dlaa;
 	config.api = Api::D3D11;
-	config.outputWidth = input.width;
-	config.outputHeight = input.height;
-	config.contentRect = {0, 0, static_cast<std::int32_t>(input.width),
-		static_cast<std::int32_t>(input.height)};
+	config.outputWidth = outputWidth;
+	config.outputHeight = outputHeight;
+	config.contentRect = {0, 0, static_cast<std::int32_t>(outputWidth),
+		static_cast<std::int32_t>(outputHeight)};
 	config.hookCompatibility = config.mode == NeuralMode::DlaaHook;
 	NeuralStage stage(config);
 	stage.SetGraphicsDevice(Api::D3D11, device.Get(), context.Get());
@@ -203,11 +209,16 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool war
 		static_cast<std::uint32_t>(DXGI_FORMAT_R16G16_FLOAT)};
 	frame.mask = {TextureApi::D3D11, maskTexture.Get(), maskView.Get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_R8_UNORM)};
-	frame.renderWidth = frame.outputWidth = input.width;
-	frame.renderHeight = frame.outputHeight = input.height;
+	frame.renderWidth = input.width;
+	frame.renderHeight = input.height;
+	frame.outputWidth = outputWidth;
+	frame.outputHeight = outputHeight;
 	frame.contentRect = config.contentRect;
 	SubmitStatus status = SubmitStatus::Disabled;
 	ComPtr<ID3D11Texture2D> staging;
+	Image previousOutput;
+	std::uint64_t previousOutputHash = 0;
+	result.minTemporalPsnr = std::numeric_limits<double>::infinity();
 	const std::uint32_t frameCount = frames == 0 ? 1 : frames;
 	for (std::uint32_t i = 0; i < frameCount; ++i)
 	{
@@ -224,6 +235,19 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool war
 			result.output, black, error))
 			return false;
 		if (black) ++result.invalidFrames;
+		const std::uint64_t outputHash = HashImage(result.output);
+		if (i != 0)
+		{
+			if (outputHash != previousOutputHash) ++result.outputChanges;
+			std::uint32_t changedPixels = 0;
+			std::uint8_t maxDelta = 0;
+			const double psnr = ComputePsnr(previousOutput, result.output, changedPixels, maxDelta);
+			result.maxTemporalChangedPixels = (std::max)(result.maxTemporalChangedPixels, changedPixels);
+			result.maxTemporalDelta = (std::max)(result.maxTemporalDelta, maxDelta);
+			result.minTemporalPsnr = (std::min)(result.minTemporalPsnr, psnr);
+		}
+		previousOutputHash = outputHash;
+		previousOutput = result.output;
 	}
 	result.status = StatusName(status);
 	result.reason = stage.GetStatusReason();
@@ -233,7 +257,8 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool war
 	result.fallbacks = stats.fallbacks;
 	result.lastNgxResult = stats.lastNgxResult;
 	result.lastExceptionCode = stats.lastExceptionCode;
-	result.outputHash = result.output.rgba.empty() ? 0 : HashImage(result.output);
+	result.outputHash = result.output.rgba.empty() ? 0 : previousOutputHash;
+	if (frameCount < 2 || !std::isfinite(result.minTemporalPsnr)) result.minTemporalPsnr = 0.;
 	if (status != SubmitStatus::Submitted)
 		return true;
 	return true;

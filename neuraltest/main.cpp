@@ -24,7 +24,7 @@ void Usage()
 		"neuraltest determinism --fixture NAME --renderer dx11|dx11-oit [--runs 5] [--warp]\n"
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
 		"neuraltest depth|motion --in DIR\n"
-		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|sr --api d3d11|d3d12 [--no-ngx] [--warp]\n"
+		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
 	std::cout << "neuraltest selftest\n";
@@ -280,6 +280,8 @@ int NeuralCommand(const Args& args)
 	const auto output = Value(args, "--out");
 	const auto backend = Value(args, "--backend", "passthrough");
 	const auto api = Value(args, "--api", "d3d11");
+	const auto mode = Value(args, "--mode", "quality");
+	const auto effectiveMode = backend == "sr" ? mode : backend;
 	if (input.empty() || output.empty())
 	{
 		std::cerr << "neural requires --in and --out\n";
@@ -295,6 +297,12 @@ int NeuralCommand(const Args& args)
 		std::cerr << "unsupported --backend value\n";
 		return 2;
 	}
+	if (mode != "quality" && mode != "balanced" && mode != "performance"
+		&& mode != "ultra-performance")
+	{
+		std::cerr << "unsupported --mode value\n";
+		return 2;
+	}
 	neuraltest::Image image;
 	std::string error;
 	if (!neuraltest::ReadPng(ResolveImage(input), image, error))
@@ -303,9 +311,14 @@ int NeuralCommand(const Args& args)
 		return 1;
 	}
 	std::uint32_t frames = 1;
-	if (!Number(args, "--frames", 1, frames, error) || frames == 0)
+	std::uint32_t outputWidth = image.width;
+	std::uint32_t outputHeight = image.height;
+	if (!Number(args, "--frames", 1, frames, error)
+		|| !Number(args, "--output-width", image.width, outputWidth, error)
+		|| !Number(args, "--output-height", image.height, outputHeight, error)
+		|| frames == 0 || outputWidth == 0 || outputHeight == 0)
 	{
-		std::cerr << (error.empty() ? "--frames must be positive" : error) << '\n';
+		std::cerr << (error.empty() ? "frame count and output dimensions must be positive" : error) << '\n';
 		return 2;
 	}
 	if (backend != "passthrough")
@@ -322,27 +335,39 @@ int NeuralCommand(const Args& args)
 			run.status = "unsupported";
 			run.reason = "D3D11On12 neural surface is not implemented";
 		}
-		else if (!neuraltest::RunLiveNeuralD3D11(image, backend,
-			args.count("--warp") != 0, frames, run, error))
+		else if (!neuraltest::RunLiveNeuralD3D11(image, backend, mode,
+			outputWidth, outputHeight, args.count("--warp") != 0, frames, run, error))
 		{
 			std::cerr << error << '\n';
 			return 1;
 		}
 		std::ofstream statusFile(std::filesystem::path(output) / "ngx-status.json");
-		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"api\": \"" << api
+		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"mode\": \"" << effectiveMode
+			<< "\",\n  \"api\": \"" << api
 			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
 			<< "\",\n  \"reason\": \"" << run.reason << "\",\n  \"requested_frames\": " << frames
 			<< ",\n  \"submissions\": " << run.submissions << ",\n  \"busy_skips\": " << run.busySkips
 			<< ",\n  \"fallbacks\": " << run.fallbacks << ",\n  \"last_ngx_result\": "
 			<< run.lastNgxResult << ",\n  \"last_exception_code\": " << run.lastExceptionCode
 			<< ",\n  \"invalid_frames\": " << run.invalidFrames
+			<< ",\n  \"output_changes\": " << run.outputChanges
+			<< ",\n  \"max_temporal_changed_pixels\": " << run.maxTemporalChangedPixels
+			<< ",\n  \"max_temporal_delta\": " << static_cast<unsigned>(run.maxTemporalDelta)
+			<< ",\n  \"min_temporal_psnr\": " << run.minTemporalPsnr
 			<< ",\n  \"output_hash\": \"0x" << std::hex << run.outputHash << std::dec << "\"\n}\n";
 		std::ofstream report(std::filesystem::path(output) / "report.md");
-		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nAPI: `" << api
+		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nMode: `" << effectiveMode
+			<< "`  \nAPI: `" << api
 			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter
-			<< "`  \nSubmissions: " << run.submissions << "/" << frames
-			<< "  \nInvalid frames: " << run.invalidFrames << "  \nOutput hash: `0x"
-			<< std::hex << run.outputHash << std::dec << "`\n\nReason: " << run.reason << "\n";
+			<< "`  \nRender/output: " << image.width << 'x' << image.height << " -> "
+			<< outputWidth << 'x' << outputHeight
+			<< "  \nSubmissions: " << run.submissions << "/" << frames
+			<< "  \nInvalid frames: " << run.invalidFrames
+			<< "  \nOutput changes: " << run.outputChanges << "  \nOutput hash: `0x"
+			<< std::hex << run.outputHash << std::dec << "`  \nWorst adjacent frame: "
+			<< run.maxTemporalChangedPixels << " pixels, delta "
+			<< static_cast<unsigned>(run.maxTemporalDelta) << ", PSNR "
+			<< run.minTemporalPsnr << " dB\n\nReason: " << run.reason << "\n";
 		if (run.status == "submitted"
 			&& !neuraltest::WritePng(std::filesystem::path(output) / "neural_output.png",
 				run.output, error))
@@ -354,7 +379,8 @@ int NeuralCommand(const Args& args)
 			<< "\" submissions=" << run.submissions << '/' << frames
 			<< " ngx_result=" << run.lastNgxResult << " exception=" << run.lastExceptionCode
 			<< " invalid_frames=" << run.invalidFrames << " output_hash=0x" << std::hex
-			<< run.outputHash << std::dec << " reason=\"" << run.reason << "\"\n";
+			<< run.outputHash << std::dec << " output_changes=" << run.outputChanges
+			<< " reason=\"" << run.reason << "\"\n";
 		return run.invalidFrames == 0 ? 0 : 1;
 	}
 	StageConfig config;
