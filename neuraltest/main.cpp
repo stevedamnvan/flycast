@@ -25,6 +25,7 @@ void Usage()
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
 		"neuraltest depth-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest motion-contract --out DIR\n"
+		"neuraltest color-contract --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
@@ -414,6 +415,50 @@ int MotionContractCommand(const Args& args)
 	return 0;
 }
 
+int ColorContractCommand(const Args& args)
+{
+	const auto output = Value(args, "--out");
+	if (output.empty())
+	{
+		std::cerr << "color-contract requires --out DIR\n";
+		return 2;
+	}
+	neuraltest::ColorContractResult result;
+	std::string error;
+	if (!neuraltest::RunColorContractFixture(result, error))
+	{
+		std::cerr << (error.empty() ? "color contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "source-color.png",
+		result.source, error) || !neuraltest::WritePng(std::filesystem::path(output) /
+		"roundtrip-color.png", result.roundTrip, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "color-contract.json");
+	report << "{\n  \"adapter\": \"" << result.adapter
+		<< "\",\n  \"format\": \"R8G8B8A8_UNORM\","
+		<< "\n  \"pre_exposure\": 1,\n  \"exposure_scale\": 1,"
+		<< "\n  \"byte_exact\": true,\n  \"channels_exact\": true,"
+		<< "\n  \"grayscale_exact\": true,\n  \"alpha_independent_rgb\": true,"
+		<< "\n  \"content_rectangles_exact\": true,"
+		<< "\n  \"differing_pixels\": " << result.differingPixels
+		<< ",\n  \"max_delta\": " << static_cast<unsigned>(result.maxDelta) << "\n}\n";
+	if (!report.good())
+	{
+		std::cerr << "failed to write color-contract report\n";
+		return 1;
+	}
+	std::cout << "format=R8G8B8A8_UNORM byte_exact=yes channels_exact=yes"
+		<< " grayscale_exact=yes alpha_independent_rgb=yes content_rectangles_exact=yes"
+		<< " differing_pixels=" << result.differingPixels << " max_delta="
+		<< static_cast<unsigned>(result.maxDelta) << '\n';
+	return 0;
+}
+
 int NeuralCommand(const Args& args)
 {
 	using namespace flycast::rend::neural;
@@ -685,6 +730,7 @@ int main(int argc, char **argv)
 	if (command == "scaling") return ScalingCommand(args);
 	if (command == "depth-contract") return DepthContractCommand(args);
 	if (command == "motion-contract") return MotionContractCommand(args);
+	if (command == "color-contract") return ColorContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

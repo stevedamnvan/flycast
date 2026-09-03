@@ -132,6 +132,19 @@ struct MotionContractResult {
 	bool negativeControlsFail = false;
 };
 
+struct ColorContractResult {
+	std::string adapter;
+	Image source;
+	Image roundTrip;
+	bool byteExact = false;
+	bool channelsExact = false;
+	bool grayscaleExact = false;
+	bool alphaIndependent = false;
+	bool contentRectsExact = false;
+	std::uint32_t differingPixels = 0;
+	std::uint8_t maxDelta = 0;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -145,6 +158,7 @@ bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixtur
 bool ValidateProductionExportShader(std::string& error);
 bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::string& error);
 bool RunMotionContractFixture(MotionContractResult& result, std::string& error);
+bool RunColorContractFixture(ColorContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,

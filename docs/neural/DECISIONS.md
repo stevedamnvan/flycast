@@ -110,9 +110,9 @@ release/destroy/shutdown call is made by a POD-only SEH leaf; C++ ownership and
 fallback policy remain outside those leaves. Output uses a fixed three-slot
 RGBA8 UAV/SRV ring with `D3D11_QUERY_EVENT` readiness checks and
 `D3D11_ASYNC_GETDATA_DONOTFLUSH`, so a busy slot skips instead of waiting.
-Create uses `MVLowRes` only for standard SR and no flags for 1:1 DLAA; HDR,
-jittered-MV, inverted-depth, auto-exposure, alpha-upscale, sharpening, and
-output subrect flags are off. The stable custom
+Create uses `DepthInverted` for the proven greater-is-near PVR depth and adds
+`MVLowRes` only for standard SR. HDR, jittered-MV, auto-exposure,
+alpha-upscale, sharpening, and output subrect flags are off. The stable custom
 Project ID is Flycast-specific but still requires maintainer/NVIDIA review
 before distribution.
 
@@ -341,3 +341,25 @@ dB against current color with correct motion, versus `23.734309` reversed and
 cases. Production therefore retains `InMVScaleX/Y = 1`, unjittered motion plus
 separate render-pixel jitter, no `MVJittered`, and `MVLowRes` only for actual
 low-resolution SR inputs. This proves the contract, not yet PVR history wiring.
+
+## D-030: SDR color is unflagged linear-contract data with unit exposure
+
+The Q1 chart compiles and runs Flycast's production DX11 presentation quad over
+`R8G8B8A8_UNORM`. Grayscale, RGB/CMY, near-black/near-white, alpha, and
+checkerboard content round-trips byte-exactly with a white multiplier and no
+blend; RGB is unchanged across the alpha ramp. This rules out an RGB/BGR swap,
+an extra presentation gamma transform, and alpha-dependent RGB darkening in
+the scene handoff.
+
+With the separately supplied public NGX feature path made explicit, public
+DLAA submitted 8/8 frames on native D3D11 and D3D11On12. Final outputs were
+byte-identical across APIs. All 214,320 RGB/alpha samples taken from the
+constant interiors of the ramp/patch/step/alpha regions were exact; changes
+were confined to reconstruction around spatial transitions. The SDR contract
+therefore keeps `InPreExposure = 1`, `InExposureScale = 1`, and no `IsHDR`
+feature flag. This does not assert an HDR path.
+
+`ComputeContentRect` returns the exact required target examples and remains
+centered over an odd-dimension sweep with no one-pixel accounting mismatch.
+The neural input remains scene content rather than a composed letterboxed
+backbuffer; production Match Content Rectangle raster sizing is still FC-053.

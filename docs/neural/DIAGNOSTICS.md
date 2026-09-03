@@ -67,3 +67,12 @@ writes previous/current color, correct/reversed/doubled RG16F motion, and a JSON
 report containing analytic samples and reprojection MAE. Public DLAA consumes
 the same pair through harness-only `neural --previous-in ... --motion-x ...
 --motion-y ...`; this temporal input override is not a production setting.
+
+The Q1 SDR command is `neuraltest color-contract --out DIR`. It writes
+`source-color.png`, `roundtrip-color.png`, and `color-contract.json`. The test
+compiles Flycast's production DX11 quad shaders, point-samples a deterministic
+RGBA chart through `R8G8B8A8_UNORM`, and requires byte-exact RGB, grayscale,
+alpha-independent RGB, and alpha output. It also verifies the exact requested
+4:3/16:9 rectangles and a sweep of odd output sizes. Public DLAA color runs
+must set `FLYCAST_NGX_FEATURE_PATH` to the separately supplied public feature
+DLL directory when it is not beside `neuraltest.exe`.

@@ -422,6 +422,16 @@ int RunSelfTests()
 		suite.Expect(motionOk && motion.negativeControlsFail,
 			"reversed and doubled motion fail pixel reprojection");
 	}
+	{
+		ColorContractResult color;
+		std::string fixtureError;
+		const bool colorOk = RunColorContractFixture(color, fixtureError);
+		suite.Expect(colorOk && color.byteExact && color.channelsExact
+			&& color.grayscaleExact && color.alphaIndependent,
+			"production SDR quad path preserves color and alpha exactly");
+		suite.Expect(colorOk && color.contentRectsExact,
+			"content rectangle examples and odd-size rounding are exact");
+	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;

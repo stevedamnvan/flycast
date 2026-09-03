@@ -34,6 +34,11 @@ The synthetic motion convention is exercised by `neuraltest motion-contract
 constant `--motion-x/--motion-y` values; production motion remains geometry
 derived and does not expose those overrides.
 
+The ROM-free SDR and rectangle contract is exercised by `neuraltest
+color-contract --out DIR`. It compiles the production DX11 presentation quad,
+round-trips an `R8G8B8A8_UNORM` ramp/patch/alpha/checker chart, and checks exact
+4:3, 16:9, and odd-sized content rectangles.
+
 Project state is recorded in `BACKLOG.md`; commands and evidence are in
 `LOG.md`; deviations are in `DECISIONS.md`; artifact definitions are in
 `DIAGNOSTICS.md`.

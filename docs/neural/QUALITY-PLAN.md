@@ -95,4 +95,9 @@ close a temporal or title-quality gate.
   matches analytic static/translation/camera/deformation truth; jitter-only is
   zero; pixel reprojection and public DLAA both reject reversed/doubled motion.
   Production PVR previous-position wiring remains Q2 work under FC-032/FC-035.
+- Q1 SDR/color/rectangle contract: green at LOG #63. The production quad path
+  is byte-exact for the deterministic chart; public DLAA is exact in 214,320
+  constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
+  Content-rectangle examples and odd-size centering are exact. Black-border
+  exclusion still depends on the production target-resolution work in FC-053.
 - Gates 13 through 18: pending.
