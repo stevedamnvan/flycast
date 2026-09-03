@@ -1569,6 +1569,27 @@ bool ReplaceExactlyOnce(std::string& text, const std::string& from,
 	return true;
 }
 
+std::string ExternalSettingsProofJson(const neuraltest::ExternalConsumerSettings& settings,
+	const std::string& indentation = "  ")
+{
+	std::ostringstream json;
+	json.imbue(std::locale::classic());
+	json << std::setprecision(std::numeric_limits<double>::max_digits10)
+		<< indentation << "\"external_settings_proof\": {\n"
+		<< indentation << "  \"schema\": 1,\n"
+		<< indentation << "  \"source\": \"consumer ON host log\",\n"
+		<< indentation << "  \"stable_across_log\": true,\n"
+		<< indentation << "  \"upscaling\": " << (settings.upscaling ? "true" : "false") << ",\n"
+		<< indentation << "  \"intensity\": " << settings.intensity << ",\n"
+		<< indentation << "  \"global_tone\": " << settings.globalTone << ",\n"
+		<< indentation << "  \"diffuse_white_nits\": " << settings.diffuseWhiteNits << ",\n"
+		<< indentation << "  \"preset\": " << settings.preset << ",\n"
+		<< indentation << "  \"style\": " << settings.style << ",\n"
+		<< indentation << "  \"enabled\": " << (settings.enabled ? "true" : "false") << "\n"
+		<< indentation << "}";
+	return json.str();
+}
+
 int ConfirmExternalCaptureCommand(const Args& args)
 {
 	const auto captureText = Value(args, "--capture");
@@ -1609,6 +1630,17 @@ int ConfirmExternalCaptureCommand(const Args& args)
 		|| onHostLog.find("feature 18 evaluation succeeded") == std::string::npos)
 	{
 		std::cerr << "ON evidence lacks the bounded contract and consumer activity controls\n";
+		return 1;
+	}
+	neuraltest::ExternalConsumerSettings activeSettings;
+	if (!neuraltest::ParseExternalConsumerSettingsLog(onHostLog, activeSettings, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	if (!activeSettings.enabled)
+	{
+		std::cerr << "consumer-reported active settings say DLSS5 is disabled\n";
 		return 1;
 	}
 	if (offHostLog.find("SAFE MODE: EnableHooks=0, all hooks off (no NR)") == std::string::npos)
@@ -1727,7 +1759,7 @@ int ConfirmExternalCaptureCommand(const Args& args)
 			"\n    \"off_returned_fnv64\": \"" + promotion.off->returned + "\","
 			"\n    \"sentinel_marker_pixels\": 1024,"
 			"\n    \"same_frame_present_completed\": true"
-			"\n  }";
+			"\n  },\n" + ExternalSettingsProofJson(activeSettings);
 		if (!ReplaceExactlyOnce(promotion.json, ",\n  \"capture_stalls_gpu\": true",
 			proof + ",\n  \"capture_stalls_gpu\": true"))
 		{
@@ -1786,6 +1818,7 @@ int ConfirmExternalCaptureCommand(const Args& args)
 	report << "{\n  \"schema\": 1,\n  \"git_sha\": \"" << expectedSha
 		<< "\",\n  \"confirmed_frames\": " << promotions.size()
 		<< ",\n  \"method\": \"exact-input ON/OFF mutation plus same-frame sentinel Present\","
+		<< "\n" << ExternalSettingsProofJson(activeSettings) << ","
 		<< "\n  \"synchronous_evidence_excluded_from_performance\": true,"
 		<< "\n  \"status\": \"confirmed\"\n}\n";
 	if (!report)
@@ -1794,7 +1827,8 @@ int ConfirmExternalCaptureCommand(const Args& args)
 		return 1;
 	}
 	std::cout << "external capture confirmed frames=" << promotions.size()
-		<< " git_sha=" << expectedSha << '\n';
+		<< " git_sha=" << expectedSha
+		<< " consumer_settings_verified=true\n";
 	return 0;
 }
 

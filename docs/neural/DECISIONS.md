@@ -979,3 +979,28 @@ are paired one-to-one in sorted depth order; changed counts or depth disagreemen
 reset protection. This Flycast profile never writes or changes external model
 settings. A named-title capture proves only that title and scene, not the
 representative Gate 17 matrix.
+
+## D-063: external settings require consumer-reported capture provenance
+
+Flycast's profile text is a recommendation, not evidence of the settings an
+external Neural Rendering consumer actually used. External confirmation now
+parses the consumer's complete `DLSS5 active settings` tuple from the ON host
+log. The tuple records upscaling, intensity, global tone, diffuse-white nits,
+preset, style, and enabled state exactly as reported. Confirmation rejects a
+missing tuple, a disabled consumer, or any tuple change within the host log.
+Repeated identical reports are permitted.
+
+The stable tuple is copied into every promoted manifest and the confirmation
+report as `external_settings_proof`, with its source explicitly labeled
+`consumer ON host log`. Comparison validates the typed proof, requires it to
+remain identical within a lane, and exposes it separately from
+`external_settings_recommendation`. Old confirmed captures remain readable but
+continue to report `actual_external_settings_verified=false` when they lack
+this proof. Settings may differ between A/B lanes because that is the purpose
+of a controlled settings comparison.
+
+This is evidence capture only. Flycast does not map undocumented selector
+numbers to model names, infer semantic-mask behavior, or write any RenoDX,
+ReShade, RHI, or consumer configuration. A consumer log line, like module or
+Feature 18 activity, does not replace the existing exact-input mutation,
+sentinel-Present, and policy-OFF presentation proof.

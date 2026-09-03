@@ -12,6 +12,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <regex>
 #include <set>
@@ -22,6 +23,33 @@ namespace neuraltest {
 namespace {
 using Json = nlohmann::json;
 constexpr const char *InputNames[] = {"color_fnv64", "depth_fnv64", "motion_fnv64", "mask_fnv64"};
+
+bool SameSettings(const ExternalConsumerSettings& a, const ExternalConsumerSettings& b)
+{
+	return a.upscaling == b.upscaling && a.intensity == b.intensity
+		&& a.globalTone == b.globalTone && a.diffuseWhiteNits == b.diffuseWhiteNits
+		&& a.preset == b.preset && a.style == b.style && a.enabled == b.enabled;
+}
+
+bool ParseClassicDouble(const std::string& text, double& value)
+{
+	std::istringstream stream(text);
+	stream.imbue(std::locale::classic());
+	stream >> value;
+	return stream && stream.peek() == std::char_traits<char>::eof() && std::isfinite(value);
+}
+
+bool ParseUint32(const std::string& text, std::uint32_t& value)
+{
+	std::uint64_t parsed = 0;
+	std::istringstream stream(text);
+	stream.imbue(std::locale::classic());
+	stream >> parsed;
+	if (!stream || stream.peek() != std::char_traits<char>::eof()
+		|| parsed > std::numeric_limits<std::uint32_t>::max()) return false;
+	value = static_cast<std::uint32_t>(parsed);
+	return true;
+}
 
 void Require(bool value, const std::string& reason)
 {
@@ -72,6 +100,26 @@ void UnsignedArray(const Json& value, std::size_t count)
 			"invalid dimension/rectangle component");
 }
 
+void ValidateExternalSettingsProof(const Json& proof)
+{
+	Require(proof.is_object() && proof.at("schema") == 1
+		&& proof.at("source") == "consumer ON host log"
+		&& proof.at("stable_across_log") == true,
+		"external settings proof lacks stable consumer provenance");
+	for (const auto field : {"upscaling", "enabled"})
+		Require(proof.at(field).is_boolean(), "external settings proof has invalid Boolean field");
+	Require(proof.at("enabled") == true,
+		"confirmed external output cannot carry disabled consumer settings");
+	for (const auto field : {"intensity", "global_tone", "diffuse_white_nits"})
+		Require(proof.at(field).is_number()
+			&& std::isfinite(proof.at(field).get<double>()),
+			"external settings proof has invalid numeric field");
+	for (const auto field : {"preset", "style"})
+		Require(proof.at(field).is_number_unsigned()
+			&& proof.at(field).get<std::uint64_t>() <= std::numeric_limits<std::uint32_t>::max(),
+			"external settings proof has invalid selector field");
+}
+
 void ValidateManifest(const Json& j, const std::string& output)
 {
 	Require(j.at("schema") == 3 && IsSha(j.at("git_sha")), "expected schema-3 capture and Git SHA");
@@ -106,6 +154,8 @@ void ValidateManifest(const Json& j, const std::string& output)
 			&& IsHash(proof.at("off_returned_fnv64"))
 			&& proof.at("on_returned_fnv64") != proof.at("off_returned_fnv64"),
 			"external proof does not agree with the captured output");
+		if (j.contains("external_settings_proof"))
+			ValidateExternalSettingsProof(j.at("external_settings_proof"));
 	}
 	else
 		Require(j.at("external_contract_evaluated") == false && j.at("external_output_confirmed") == false
@@ -171,12 +221,35 @@ std::vector<std::size_t> Pair(const std::vector<Frame>& a, const std::vector<Fra
 		for (const auto field : {"profile", "public_dlss_preset", "overlay_policy", "neural_mode", "external_settings"})
 			Require(a[i].metadata.at(field) == a.front().metadata.at(field)
 				&& b[j].metadata.at(field) == b.front().metadata.at(field), "quality lane changes within a sequence");
+		for (const auto *sequence : {&a, &b})
+		{
+			const auto& current = (*sequence)[sequence == &a ? i : j].metadata;
+			const auto& first = sequence->front().metadata;
+			Require(current.contains("external_settings_proof") == first.contains("external_settings_proof")
+				&& (!current.contains("external_settings_proof")
+					|| current.at("external_settings_proof") == first.at("external_settings_proof")),
+				"verified external settings change within a sequence");
+		}
 		if (i)
 			Require(a[i].id == a[i - 1].id + 1 && b[j].id == b[result.back()].id + 1,
 				"matched sequence has a frame gap or reordered chronology");
 		result.push_back(j);
 	}
 	return result;
+}
+
+Json LaneMetadata(const Frame& f)
+{
+	const bool verified = f.metadata.value("external_output_confirmed", false)
+		&& f.metadata.contains("external_settings_proof");
+	Json lane = {{"profile", f.metadata.at("profile")},
+		{"public_dlss_preset", f.metadata.at("public_dlss_preset")},
+		{"overlay_policy", f.metadata.at("overlay_policy")},
+		{"neural_mode", f.metadata.at("neural_mode")},
+		{"external_settings_recommendation", f.metadata.at("external_settings")},
+		{"actual_external_settings_verified", verified}};
+	if (verified) lane["actual_external_settings"] = f.metadata.at("external_settings_proof");
+	return lane;
 }
 
 std::string RawHash(const std::vector<std::uint8_t>& bytes)
@@ -336,17 +409,11 @@ int CompareCaptureSequences(const std::filesystem::path& aPath, const std::files
 			previousB = std::move(y.output);
 			frames.push_back(std::move(frame));
 		}
-		auto lane = [](const Frame& f) {
-			return Json{{"profile", f.metadata.at("profile")}, {"public_dlss_preset", f.metadata.at("public_dlss_preset")},
-				{"overlay_policy", f.metadata.at("overlay_policy")}, {"neural_mode", f.metadata.at("neural_mode")},
-				{"external_settings_recommendation", f.metadata.at("external_settings")},
-				{"actual_external_settings_verified", false}};
-		};
 		const Json report = {{"schema", 1}, {"tool_git_sha", GIT_HASH},
 			{"capture_git_sha", a.front().metadata.at("git_sha")}, {"game_id", a.front().metadata.at("game_id")},
 			{"status", "exact-input-paired"}, {"pair_count", frames.size()},
 			{"a_output", aOutput}, {"b_output", bOutput}, {"all_saved_input_and_output_hashes_verified", true},
-			{"a_lane", lane(a.front())}, {"b_lane", lane(b.front())},
+			{"a_lane", LaneMetadata(a.front())}, {"b_lane", LaneMetadata(b.front())},
 			{"all_four_input_buffers_byte_identical", true}, {"winner_declared", false},
 			{"eligible_for_performance_metrics", false},
 			{"metric_definition", "RGB byte-domain MAE/MSE/PSNR; alpha counted separately; null PSNR with rgb_exact means infinity; raw temporal MAE includes motion and cuts and is not a flicker or stability score"},
@@ -368,10 +435,71 @@ int CompareCaptureSequences(const std::filesystem::path& aPath, const std::files
 	}
 }
 
+bool ParseExternalConsumerSettingsLog(std::string_view text,
+	ExternalConsumerSettings& settings, std::string& error)
+{
+	const std::string number = R"([-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?)";
+	const std::regex pattern("DLSS5 active settings: upscaling=(ON|OFF) intensity=(" + number
+		+ ") global_tone=(" + number + ") diffuse_white_nits=(" + number
+		+ ") preset=([0-9]+) style=([0-9]+) enabled=(ON|OFF)");
+	const std::string copy(text);
+	std::sregex_iterator iterator(copy.begin(), copy.end(), pattern), end;
+	bool found = false;
+	ExternalConsumerSettings stable;
+	for (; iterator != end; ++iterator)
+	{
+		const auto& match = *iterator;
+		ExternalConsumerSettings parsed;
+		parsed.upscaling = match[1] == "ON";
+		parsed.enabled = match[7] == "ON";
+		if (!ParseClassicDouble(match[2], parsed.intensity)
+			|| !ParseClassicDouble(match[3], parsed.globalTone)
+			|| !ParseClassicDouble(match[4], parsed.diffuseWhiteNits)
+			|| !ParseUint32(match[5], parsed.preset)
+			|| !ParseUint32(match[6], parsed.style))
+		{
+			error = "consumer settings log contains an invalid active-settings tuple";
+			return false;
+		}
+		if (!found) { stable = parsed; found = true; }
+		else if (!SameSettings(stable, parsed))
+		{
+			error = "consumer settings changed within the ON host log";
+			return false;
+		}
+	}
+	if (!found)
+	{
+		error = "ON host log has no consumer-reported active settings";
+		return false;
+	}
+	settings = stable;
+	error.clear();
+	return true;
+}
+
 std::vector<std::pair<std::string, bool>> CaptureComparisonSelfTests()
 {
 	std::vector<std::pair<std::string, bool>> tests;
 	auto expect = [&](const std::string& name, bool value) { tests.emplace_back(name, value); };
+	const std::string settingsLine = "DLSS5 active settings: upscaling=OFF intensity=1.000000 "
+		"global_tone=1.000000 diffuse_white_nits=203.000000 preset=0 style=0 enabled=ON";
+	ExternalConsumerSettings parsedSettings;
+	std::string settingsError;
+	expect("consumer settings parser accepts the complete active tuple",
+		ParseExternalConsumerSettingsLog(settingsLine, parsedSettings, settingsError)
+		&& !parsedSettings.upscaling && parsedSettings.intensity == 1.
+		&& parsedSettings.globalTone == 1. && parsedSettings.diffuseWhiteNits == 203.
+		&& parsedSettings.preset == 0 && parsedSettings.style == 0 && parsedSettings.enabled);
+	expect("consumer settings parser accepts repeated identical tuples",
+		ParseExternalConsumerSettingsLog(settingsLine + "\n" + settingsLine,
+			parsedSettings, settingsError));
+	expect("consumer settings parser rejects a missing tuple",
+		!ParseExternalConsumerSettingsLog("feature 18 created", parsedSettings, settingsError));
+	expect("consumer settings parser rejects a settings change within one host log",
+		!ParseExternalConsumerSettingsLog(settingsLine + "\nDLSS5 active settings: upscaling=OFF "
+			"intensity=0.250000 global_tone=1.000000 diffuse_white_nits=203.000000 "
+			"preset=0 style=0 enabled=ON", parsedSettings, settingsError));
 	const std::string text = R"({"schema":3,"git_sha":"123456789","game_id":"fixture","frame_id":10,
 		"evaluation_accepted":true,"public_output_present":true,"capture_stalls_gpu":true,
 		"eligible_for_performance_metrics":false,"render_size":[2,2],"output_size":[2,2],
@@ -416,6 +544,30 @@ std::vector<std::pair<std::string, bool>> CaptureComparisonSelfTests()
 		{"sentinel_marker_pixels", 1024}, {"same_frame_present_completed", true},
 		{"on_returned_fnv64", "0000000000000005"}, {"off_returned_fnv64", "0000000000000007"}};
 	expect("comparison accepts structurally complete confirmed external proof", !Fails([&] { Describe(bad, "external"); }));
+	bad["external_settings_proof"] = {{"schema", 1}, {"source", "consumer ON host log"},
+		{"stable_across_log", true}, {"upscaling", false}, {"intensity", 1.0},
+		{"global_tone", 1.0}, {"diffuse_white_nits", 203.0}, {"preset", 0u},
+		{"style", 0u}, {"enabled", true}};
+	auto settingsFrame = Describe(bad, "external");
+	expect("verified consumer settings are exposed separately from recommendations",
+		LaneMetadata(settingsFrame).at("actual_external_settings_verified") == true
+		&& LaneMetadata(settingsFrame).at("actual_external_settings").at("intensity") == 1.0);
+	auto changedSettingsFrame = settingsFrame;
+	changedSettingsFrame.id += 1;
+	changedSettingsFrame.metadata["frame_id"] = changedSettingsFrame.id;
+	changedSettingsFrame.key[0] = 'F';
+	changedSettingsFrame.metadata["external_settings_proof"]["intensity"] = .25;
+	expect("comparison rejects verified consumer settings changing within a lane",
+		Fails([&] { Pair(std::vector<Frame>{settingsFrame, changedSettingsFrame},
+			std::vector<Frame>{settingsFrame, changedSettingsFrame}); }));
+	bad["external_settings_proof"]["stable_across_log"] = false;
+	expect("malformed consumer settings proof is rejected when present",
+		Fails([&] { Describe(bad, "external"); }));
+	bad["external_settings_proof"]["stable_across_log"] = true;
+	bad["external_settings_proof"]["enabled"] = false;
+	expect("confirmed output rejects consumer settings reported disabled",
+		Fails([&] { Describe(bad, "external"); }));
+	bad.erase("external_settings_proof");
 	bad["external_output_proof"]["same_frame_present_completed"] = false;
 	expect("external proof without completed Present is rejected", Fails([&] { Describe(bad, "external"); }));
 	bad["external_output_proof"]["same_frame_present_completed"] = true;

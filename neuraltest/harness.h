@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -212,6 +213,16 @@ struct OverlayContractResult {
 	std::uint32_t wrongProtectedMismatch = 0;
 };
 
+struct ExternalConsumerSettings {
+	bool upscaling = false;
+	double intensity = 0.;
+	double globalTone = 0.;
+	double diffuseWhiteNits = 0.;
+	std::uint32_t preset = 0;
+	std::uint32_t style = 0;
+	bool enabled = false;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -248,6 +259,8 @@ int RunSelfTests();
 int CompareCaptureSequences(const std::filesystem::path& a,
 	const std::filesystem::path& b, const std::filesystem::path& output,
 	const std::string& aOutput, const std::string& bOutput);
+bool ParseExternalConsumerSettingsLog(std::string_view text,
+	ExternalConsumerSettings& settings, std::string& error);
 std::vector<std::pair<std::string, bool>> CaptureComparisonSelfTests();
 
 } // namespace neuraltest

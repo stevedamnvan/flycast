@@ -162,7 +162,7 @@ close a temporal or title-quality gate.
   buffers are exact per renderer. Gate 15B remains partial until representative
   titles and uncertain-overlay controls establish that profiles neither miss
   other HUDs nor remove world geometry. This does not reopen Gate 10.
-- Gate 16: partial through LOG #103. The production match-output option and public
+- Gate 16: partial through LOG #106. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
   remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
@@ -185,8 +185,14 @@ close a temporal or title-quality gate.
   30.219362 to 24.391432, gradient MAE from 3.637432 to 4.404373, edge recall
   from 92.029170% to 89.370230%, color drift from 0.233438 to 3.547196, and
   saturation drift from 3.334620 to 11.999162. It therefore does not displace
-  public Auto as the Faithful baseline. Broader titles and a winning external
-  setting remain open; Gate 16 is not green.
+  public Auto as the Faithful baseline. That earlier comparison recorded only
+  Flycast's recommendation. The supplied consumer's current host log reports
+  upscaling off, intensity 1, global tone 1, diffuse white 203 nits, preset 0,
+  style 0, and enabled on. LOG #106 adds fail-closed capture binding for this
+  tuple, but the fresh post-HUD policy-OFF attempt produced no eligible evidence
+  and was not promoted. No causal setting conclusion or new winner is claimed.
+  Broader titles and a winning verified external setting remain open; Gate 16
+  is not green.
 - Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
   Enhanced Materials and explicitly non-faithful Photoreal Experimental are
   selectable; style families, user-controlled external recommendations, and an

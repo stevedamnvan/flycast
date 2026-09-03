@@ -94,6 +94,13 @@ unmarked image copied to `neural-rendering-output.png`, the manifest marked
 confirmed, and `external-confirmation.json` written. A mismatch leaves every
 candidate unpromoted. All sentinel timings remain excluded from performance.
 
+The ON host log must also contain one stable, enabled
+`DLSS5 active settings` tuple. Missing settings, a disabled report, or any
+change in upscaling/intensity/global-tone/diffuse-white/preset/style during the
+log rejects confirmation. The exact consumer-reported tuple is stored as
+`external_settings_proof`; it is distinct from Flycast's user-facing
+recommendation and never causes a third-party configuration write.
+
 `neuraltest capture-index --root DIR [--out HTML]` recursively discovers only
 production packages containing both source and final images plus strict two-
 element render/output size arrays and a four-element content rectangle. It writes a lazy-
@@ -117,8 +124,11 @@ Duplicate identities, gaps, reversed chronology, mixed build/game/API/renderer
 identity, invalid dimensions, intercepted candidates labeled as public output,
 and incomplete external confirmation all reject the comparison before writing.
 Profiles, presets, overlay policies, and external-setting recommendations must
-also stay constant within each lane; actual external settings remain explicitly
-unverified rather than being inferred from Flycast recommendations.
+also stay constant within each lane. When confirmation supplied a typed
+`external_settings_proof`, that proof must also remain constant within its lane
+and the report sets `actual_external_settings_verified=true` with the exact
+tuple. Older captures without proof remain explicitly unverified rather than
+being inferred from Flycast recommendations.
 The command decodes every source/output/mask PNG, checks dimensions before
 allocation, reloads depth/motion bytes, verifies all five raw FNV64 values,
 and then compares all four input buffers byte-for-byte. An external/public pair
