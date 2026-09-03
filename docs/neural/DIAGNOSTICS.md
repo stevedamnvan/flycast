@@ -314,3 +314,12 @@ the exact save/load frames, `in_memory=true`, and a nonzero byte count, plus a
 completed performance report with no missing/accepted-but-unpresented frame,
 identity mismatch, stale output repeat, or frame latency. Source-frame gaps and
 explicit native fallback at the load boundary are retained rather than hidden.
+
+The real pause lifecycle form is `neuraltest performance --game PATH --out DIR
+--frames N --warmup N --pause-roundtrip-after N --pause-duration N` plus the
+normal API/renderer/feature-path options. The hidden, default-off control is
+mutually exclusive with other developer lifecycle transitions. Acceptance
+requires `pause-roundtrip-complete.json` to record the exact main-frame pair,
+an observed `GuiState::Pause`, and an observed return to `GuiState::Closed`.
+The performance interval spans the pause and must retain explicit source gaps
+without stale output, identity errors, accepted-output loss, or frame latency.

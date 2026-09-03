@@ -265,3 +265,12 @@ close a temporal or title-quality gate.
   both path transitions; the other cases presented 600/600 neural frames.
   Cross-title loading, alt-tab/focus, monitor move, active runtime removal,
   actual device loss, external timing, and broader-title coverage remain open.
+  LOG #87 adds an exact-frame `gui_togglePause`/resume round trip on normal DX11
+  and DX11 OIT across native D3D11 and D3D11On12. Every marker observed
+  `GuiState::Pause` at frame 200 and `GuiState::Closed` at frame 260, and every
+  case completed 600 measured Presents with zero missing/accepted-output drops,
+  identity errors, source or output repeats, or frame latency. Each retained one
+  source-frame gap. Native-D3D11 OIT used one explicit fresh native fallback;
+  the other cases presented 600/600 neural frames. Process-owned foreground
+  transfer was also attempted but Windows rejected focus ownership in this
+  non-interactive desktop, so focus/alt-tab remains explicitly unproven.

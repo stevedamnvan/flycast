@@ -59,6 +59,11 @@ static bool neuralDeveloperSaveStateLoaded;
 static u32 neuralDeveloperSaveStateFrame;
 static u32 neuralDeveloperLoadStateFrame;
 static std::vector<u8> neuralDeveloperSaveState;
+static bool neuralDeveloperPauseTriggered;
+static bool neuralDeveloperPauseObserved;
+static bool neuralDeveloperResumeObserved;
+static u32 neuralDeveloperPauseFrame;
+static u32 neuralDeveloperResumeFrame;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -141,6 +146,25 @@ static void writeNeuralDeveloperSaveStateMarker()
 		<< ",\n  \"load_main_frame\": " << neuralDeveloperLoadStateFrame
 		<< ",\n  \"state_bytes\": "
 		<< std::to_string(neuralDeveloperSaveState.size()) << "\n}\n";
+}
+
+static void writeNeuralDeveloperPauseMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "pause-roundtrip-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": "
+		<< (neuralDeveloperPauseObserved && neuralDeveloperResumeObserved
+			? "true" : "false")
+		<< ",\n  \"pause_observed\": "
+		<< (neuralDeveloperPauseObserved ? "true" : "false")
+		<< ",\n  \"resume_observed\": "
+		<< (neuralDeveloperResumeObserved ? "true" : "false")
+		<< ",\n  \"pause_main_frame\": " << neuralDeveloperPauseFrame
+		<< ",\n  \"resume_main_frame\": " << neuralDeveloperResumeFrame << "\n}\n";
 }
 #endif
 
@@ -232,6 +256,8 @@ void mainui_loop(bool forceStart)
 		const int neuralGameReloadAfter = std::clamp(config::NeuralGameReloadAfter.get(), 0, 10000);
 		const int neuralSaveStateAfter = std::clamp(config::NeuralSaveStateAfter.get(), 0, 10000);
 		const int neuralSaveStateLoadDelay = std::clamp(config::NeuralSaveStateLoadDelay.get(), 1, 10000);
+		const int neuralPauseAfter = std::clamp(config::NeuralPauseAfter.get(), 0, 10000);
+		const int neuralPauseDuration = std::clamp(config::NeuralPauseDuration.get(), 1, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -277,7 +303,7 @@ void mainui_loop(bool forceStart)
 		}
 		else if (!neuralDeveloperGameReloadTriggered && neuralReinitAfter == 0
 			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
-			&& neuralSaveStateAfter == 0
+			&& neuralSaveStateAfter == 0 && neuralPauseAfter == 0
 			&& neuralGameReloadAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralGameReloadAfter)
 			&& !settings.content.path.empty())
@@ -311,7 +337,8 @@ void mainui_loop(bool forceStart)
 		}
 		else if (!neuralDeveloperSaveStateTriggered && neuralReinitAfter == 0
 			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
-			&& neuralGameReloadAfter == 0 && neuralSaveStateAfter > 0
+			&& neuralGameReloadAfter == 0 && neuralPauseAfter == 0
+			&& neuralSaveStateAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralSaveStateAfter)
 			&& dc_savestateAllowed())
 		{
@@ -358,6 +385,36 @@ void mainui_loop(bool forceStart)
 			NOTICE_LOG(RENDERER,
 				"Neural developer in-memory state round trip completed at main frame %u: %d",
 				MainFrameCount, neuralDeveloperSaveStateLoaded ? 1 : 0);
+		}
+		else if (!neuralDeveloperPauseTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralGameReloadAfter == 0 && neuralSaveStateAfter == 0
+			&& neuralPauseAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralPauseAfter))
+		{
+			neuralDeveloperPauseTriggered = true;
+			neuralDeveloperPauseFrame = MainFrameCount;
+			NOTICE_LOG(RENDERER,
+				"Neural developer pause requested at main frame %u", MainFrameCount);
+			gui_togglePause();
+			neuralDeveloperPauseObserved = gui_state == GuiState::Pause;
+			if (!neuralDeveloperPauseObserved)
+				writeNeuralDeveloperPauseMarker();
+		}
+		else if (neuralDeveloperPauseTriggered && neuralDeveloperPauseObserved
+			&& !neuralDeveloperResumeObserved
+			&& MainFrameCount >= neuralDeveloperPauseFrame
+				+ static_cast<u32>(neuralPauseDuration))
+		{
+			neuralDeveloperResumeFrame = MainFrameCount;
+			NOTICE_LOG(RENDERER,
+				"Neural developer resume requested at main frame %u", MainFrameCount);
+			gui_togglePause();
+			neuralDeveloperResumeObserved = gui_state == GuiState::Closed;
+			writeNeuralDeveloperPauseMarker();
+			NOTICE_LOG(RENDERER,
+				"Neural developer pause round trip completed at main frame %u: %d",
+				MainFrameCount, neuralDeveloperResumeObserved ? 1 : 0);
 		}
 #endif
 
@@ -444,6 +501,11 @@ void mainui_start()
 	neuralDeveloperSaveStateFrame = 0;
 	neuralDeveloperLoadStateFrame = 0;
 	neuralDeveloperSaveState.clear();
+	neuralDeveloperPauseTriggered = false;
+	neuralDeveloperPauseObserved = false;
+	neuralDeveloperResumeObserved = false;
+	neuralDeveloperPauseFrame = 0;
+	neuralDeveloperResumeFrame = 0;
 #endif
 	mainui_enabled = true;
 }

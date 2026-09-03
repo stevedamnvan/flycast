@@ -132,6 +132,8 @@ Option<int> NeuralSurfaceSwitchAfter("rend.NeuralSurfaceSwitchAfter", 0);
 Option<int> NeuralGameReloadAfter("rend.NeuralGameReloadAfter", 0);
 Option<int> NeuralSaveStateAfter("rend.NeuralSaveStateAfter", 0);
 Option<int> NeuralSaveStateLoadDelay("rend.NeuralSaveStateLoadDelay", 30);
+Option<int> NeuralPauseAfter("rend.NeuralPauseAfter", 0);
+Option<int> NeuralPauseDuration("rend.NeuralPauseDuration", 30);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

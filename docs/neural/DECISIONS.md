@@ -773,3 +773,18 @@ sampling spans the load so the required history reset, source discontinuity,
 fallback choice, output identity, and latency remain observable. A counted
 native frame at that boundary is permitted only as explicit fresh-frame
 fallback; stale or falsely continuous neural output is not.
+
+## D-052: pause/resume evidence uses Flycast's actual GUI state machine
+
+The developer pause control invokes `gui_togglePause` at an exact main frame,
+requires the observed state to be `GuiState::Pause`, allows the main/UI loop to
+continue for a bounded number of frames, invokes the same control again, and
+requires `GuiState::Closed`. It does not call emulator stop/start directly and
+therefore exercises the same input, audio, emulation-thread, and GUI ownership
+used by an interactive pause.
+
+Performance sampling is not restarted. No rendered samples are manufactured
+while the game is paused; after resume, the existing tracker must complete its
+requested measured interval. A source-frame gap is expected. Any native frame
+must be counted as explicit fresh fallback, while missing Presents, accepted-
+output loss, identity mismatch, stale repeat, or frame latency fails the run.

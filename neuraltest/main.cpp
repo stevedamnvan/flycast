@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -631,6 +631,7 @@ int PerformanceCommand(const Args& args)
 	std::uint32_t rendererReinitAfter = 0, rendererSwitchAfter = 0;
 	std::uint32_t surfaceSwitchAfter = 0, gameReloadAfter = 0;
 	std::uint32_t saveStateAfter = 0, saveStateLoadDelay = 30;
+	std::uint32_t pauseAfter = 0, pauseDuration = 30;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
 		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -647,6 +648,10 @@ int PerformanceCommand(const Args& args)
 		|| saveStateAfter > 10000
 		|| !Number(args, "--savestate-load-delay", 30, saveStateLoadDelay, error)
 		|| saveStateLoadDelay == 0 || saveStateLoadDelay > 10000
+		|| !Number(args, "--pause-roundtrip-after", 0, pauseAfter, error)
+		|| pauseAfter > 10000
+		|| !Number(args, "--pause-duration", 30, pauseDuration, error)
+		|| pauseDuration == 0 || pauseDuration > 10000
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
 		std::cerr << (error.empty() ? "invalid performance bounds" : error) << '\n';
@@ -654,7 +659,8 @@ int PerformanceCommand(const Args& args)
 	}
 	const unsigned developerTransitionCount = (rendererReinitAfter != 0 ? 1u : 0u)
 		+ (rendererSwitchAfter != 0 ? 1u : 0u) + (surfaceSwitchAfter != 0 ? 1u : 0u)
-		+ (gameReloadAfter != 0 ? 1u : 0u) + (saveStateAfter != 0 ? 1u : 0u);
+		+ (gameReloadAfter != 0 ? 1u : 0u) + (saveStateAfter != 0 ? 1u : 0u)
+		+ (pauseAfter != 0 ? 1u : 0u);
 	if (developerTransitionCount > 1)
 	{
 		std::cerr << "developer renderer transitions are mutually exclusive\n";
@@ -763,6 +769,12 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "performance output already contains a savestate marker\n";
 		return 2;
 	}
+	if (pauseAfter != 0
+		&& std::filesystem::exists(output / "pause-roundtrip-complete.json"))
+	{
+		std::cerr << "performance output already contains a pause marker\n";
+		return 2;
+	}
 #ifndef _WIN32
 	std::cerr << "production performance launcher is currently available only on Windows\n";
 	return 3;
@@ -803,6 +815,8 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralGameReloadAfter=" + std::to_wstring(gameReloadAfter)
 		+ L",config:rend.NeuralSaveStateAfter=" + std::to_wstring(saveStateAfter)
 		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(saveStateLoadDelay)
+		+ L",config:rend.NeuralPauseAfter=" + std::to_wstring(pauseAfter)
+		+ L",config:rend.NeuralPauseDuration=" + std::to_wstring(pauseDuration)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
@@ -1081,6 +1095,22 @@ int PerformanceCommand(const Args& args)
 				+ std::to_string(saveStateAfter + saveStateLoadDelay)) != std::string::npos
 			&& marker.find("\"state_bytes\": 0") == std::string::npos;
 	}
+	bool pauseComplete = pauseAfter == 0;
+	if (pauseAfter != 0)
+	{
+		std::ifstream markerStream(output / "pause-roundtrip-complete.json");
+		const bool markerOpened = markerStream.is_open();
+		const std::string marker((std::istreambuf_iterator<char>(markerStream)),
+			std::istreambuf_iterator<char>());
+		pauseComplete = markerOpened
+			&& marker.find("\"completed\": true") != std::string::npos
+			&& marker.find("\"pause_observed\": true") != std::string::npos
+			&& marker.find("\"resume_observed\": true") != std::string::npos
+			&& marker.find("\"pause_main_frame\": " + std::to_string(pauseAfter))
+				!= std::string::npos
+			&& marker.find("\"resume_main_frame\": "
+				+ std::to_string(pauseAfter + pauseDuration)) != std::string::npos;
+	}
 	if (surfaceSwitchAfter != 0)
 		surfaceSwitchComplete = surfaceSwitchComplete
 			&& completedPerformance.find("\"api\": \""
@@ -1135,6 +1165,10 @@ int PerformanceCommand(const Args& args)
 		<< ",\n  \"savestate_load_delay_main_frames\": " << saveStateLoadDelay
 		<< ",\n  \"savestate_roundtrip_completed\": "
 		<< (saveStateComplete ? "true" : "false")
+		<< ",\n  \"pause_roundtrip_after_main_frames\": " << pauseAfter
+		<< ",\n  \"pause_duration_main_frames\": " << pauseDuration
+		<< ",\n  \"pause_roundtrip_completed\": "
+		<< (pauseComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
@@ -1147,10 +1181,11 @@ int PerformanceCommand(const Args& args)
 		<< " surface_switch=" << (surfaceSwitchComplete ? "pass" : "fail")
 		<< " game_reload=" << (gameReloadComplete ? "pass" : "fail")
 		<< " savestate=" << (saveStateComplete ? "pass" : "fail")
+		<< " pause=" << (pauseComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
 		&& rendererSwitchComplete && surfaceSwitchComplete && gameReloadComplete
-		&& saveStateComplete ? 0 : 1;
+		&& saveStateComplete && pauseComplete ? 0 : 1;
 #endif
 }
 
