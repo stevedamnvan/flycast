@@ -833,3 +833,15 @@ Malformed packages remain on disk and are counted as rejected in the HTML and
 JSON index. They are not silently rewritten or linked into accepted evidence.
 This preserves failed attempts while preventing syntactically valid but
 semantically wrong arrays such as a locale-grouped 5120 becoming two values.
+
+## D-056: external contract evaluation is not output confirmation
+
+Quality metadata carries separate `external_contract_evaluated` and
+`external_output_confirmed` fields. Consumer components or Feature 18 activity
+may set only the first. `neural-rendering-output.png` and
+`neural_rendering_output_present=true` require the second, which remains false
+until a capture-specific mutation and presentation proof is implemented.
+
+Public output is still retained as `public-dlaa-output.png`. This prevents an
+unconfirmed candidate from being relabeled while preserving the data needed
+for a later paired proof.

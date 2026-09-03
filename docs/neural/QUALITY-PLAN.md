@@ -310,3 +310,7 @@ close a temporal or title-quality gate.
   but every status explicitly said returned neural output was unconfirmed.
   Those candidate files are retained but rejected as presentation evidence;
   Feature 18 activity alone does not satisfy Gate 17.
+  LOG #92 separates contract evaluation from external-output confirmation. A
+  three-frame live negative control observed the contract and public output but
+  correctly emitted no external label or file. Capture-specific external
+  mutation/presentation proof remains required.

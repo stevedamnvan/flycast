@@ -29,7 +29,8 @@ Each production `frame-NNNNNN` directory contains:
 - `public-dlaa-output.png` only when a public NGX result exists. Native
   passthrough is never labeled as DLAA.
 - `neural-rendering-output.png` only when the supplied external contract was
-  actually evaluated; module/readiness detection alone cannot create it.
+  independently confirmed for that capture; module/readiness or contract
+  evaluation alone cannot create it.
 - `final-composited.png`, optional `native-versus-output-difference.png`, and
   an optional `temporal-flicker.png` beginning with the second captured frame.
 - `metrics.json`: temporal variance, motion reprojection error, reactive-region

@@ -29,6 +29,7 @@ struct QualityCaptureMetadata {
 	bool predominantly2D = false;
 	bool evaluationAccepted = false;
 	bool externalContractEvaluated = false;
+	bool externalOutputConfirmed = false;
 	bool d3d11On12 = false;
 	bool oitRenderer = false;
 	int neuralMode = 0;

@@ -1397,7 +1397,7 @@ int CaptureIndexCommand(const Args& args)
 			<< HtmlEscape(JsonStringField(json, "renderer")) << " / "
 			<< HtmlEscape(JsonStringField(json, "api")) << "; accepted="
 			<< HtmlEscape(JsonScalarField(json, "evaluation_accepted")) << "; external="
-			<< HtmlEscape(JsonScalarField(json, "external_contract_evaluated"))
+			<< HtmlEscape(JsonScalarField(json, "external_output_confirmed"))
 			<< "; status=" << HtmlEscape(JsonStringField(json, "submit_status"))
 			<< "<br><code>"
 			<< HtmlEscape(relativeText) << "</code><br><a href=\"" << HtmlEscape(relativeText)

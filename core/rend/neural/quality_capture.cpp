@@ -443,7 +443,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		return false;
 	if (hasPublicOutput && !WritePng(frameRoot / "public-dlaa-output.png", publicOutput, error))
 		return false;
-	if (hasPublicOutput && metadata.externalContractEvaluated
+	if (hasPublicOutput && metadata.externalOutputConfirmed
 		&& !WritePng(frameRoot / "neural-rendering-output.png", publicOutput, error))
 		return false;
 	const auto nativeDifference = hasPublicOutput ? Difference(native, publicOutput) : RgbaImage{};
@@ -573,9 +573,11 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"submit_status\": \"" << Json(metadata.submitStatus) << "\""
 		<< ",\n  \"external_contract_evaluated\": "
 		<< (metadata.externalContractEvaluated ? "true" : "false")
+		<< ",\n  \"external_output_confirmed\": "
+		<< (metadata.externalOutputConfirmed ? "true" : "false")
 		<< ",\n  \"public_output_present\": " << (hasPublicOutput ? "true" : "false")
 		<< ",\n  \"neural_rendering_output_present\": "
-		<< (hasPublicOutput && metadata.externalContractEvaluated ? "true" : "false")
+		<< (hasPublicOutput && metadata.externalOutputConfirmed ? "true" : "false")
 		<< ",\n  \"capture_stalls_gpu\": true,\n  \"eligible_for_performance_metrics\": false\n}\n";
 	if (!manifest) { error = "failed writing manifest.json"; return false; }
 
