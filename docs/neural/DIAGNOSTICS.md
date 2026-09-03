@@ -63,6 +63,7 @@ Production performance measurement is separate:
 [--renderer-reinit-after N]
 [--renderer-switch-after N]
 [--surface-switch-after N]
+[--game-reload-after N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -125,6 +126,16 @@ records the source and destination surface; acceptance requires a new report
 whose `api` identifies that destination plus a fresh warmup and complete sample
 interval. This is an in-process surface/context switch, not a switch to Vulkan,
 OpenGL, or DirectX 9.
+
+`--game-reload-after N` is mutually exclusive with the renderer/surface
+developer transitions. At the exact main frame, Flycast saves the current media
+identity in memory, calls the real emulator unload path, positively observes
+cleared content state, reloads the same media through `Emulator::loadGame`, and
+starts it again. The marker contains no media path; it records only that unload
+was observed and the game ID and media path returned unchanged. Performance
+telemetry deliberately spans the boundary so history resets and discontinuous
+source IDs remain visible. This proves same-media unload/reload, not switching
+to a second title.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket

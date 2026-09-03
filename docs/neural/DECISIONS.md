@@ -741,3 +741,17 @@ SDL/Windows propagation is allowed one second between action and observation.
 This covers Flycast's supported borderless desktop fullscreen path; it must not
 be relabeled exclusive fullscreen. All cadence, identity, fallback, reset, and
 VRAM measurements continue through the transition.
+
+## D-050: game lifecycle evidence spans a real same-media unload/reload
+
+The developer lifecycle control retains the current media identity only in
+process memory, invokes `Emulator::unloadGame`, observes that content state was
+cleared, then invokes `Emulator::loadGame` and `start` for the same media. It is
+process-lifetime, hidden, default-off, and mutually exclusive with renderer or
+surface transition controls. Its marker does not expose the media path.
+
+Unlike renderer recreation, the performance tracker is intentionally not
+restarted. It spans the lifecycle boundary so reset-driven source-ID gaps,
+stale output, false continuity, and native/neural alternation can be measured.
+Source discontinuity is expected and recorded; output identity mismatch,
+accepted-output loss, stale repeat, or silent alternation is not permitted.

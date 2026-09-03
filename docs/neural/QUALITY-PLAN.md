@@ -248,3 +248,11 @@ close a temporal or title-quality gate.
   output repeats, alternation, latency, or query-ring pressure and clean close.
   Each retained one source-frame gap at the mode boundary. Flycast does not
   expose exclusive fullscreen in this path, so no exclusive claim is made.
+  LOG #85 adds real same-media `Emulator::unloadGame`/`loadGame`/`start`
+  transitions at main frame 300 on normal DX11 and DX11 OIT across native D3D11
+  and D3D11On12. Every run observed cleared content state and the same game ID
+  and media identity after reload, then completed 600 measured neural Presents
+  with zero native Presents, missing/accepted-output drops, identity errors,
+  output repeats, alternation, latency, or query-ring pressure and clean close.
+  Three source-ID gaps and explicit resets expose the lifecycle discontinuity.
+  Cross-title loading and save-state runtime validation remain open.

@@ -48,6 +48,11 @@ static bool neuralDeveloperSurfaceSwitchTriggered;
 static bool neuralDeveloperSurfaceSwitchPending;
 static int neuralDeveloperSurfaceSwitchFrom;
 static int neuralDeveloperSurfaceSwitchTo;
+static bool neuralDeveloperGameReloadTriggered;
+static bool neuralDeveloperGameReloadCompleted;
+static bool neuralDeveloperGameUnloadObserved;
+static bool neuralDeveloperGameIdUnchanged;
+static bool neuralDeveloperGamePathUnchanged;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -89,6 +94,25 @@ static void writeNeuralDeveloperSurfaceSwitchMarker()
 		<< MainFrameCount << ",\n  \"surface_from\": " << neuralDeveloperSurfaceSwitchFrom
 		<< ",\n  \"surface_to\": " << neuralDeveloperSurfaceSwitchTo
 		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
+}
+
+static void writeNeuralDeveloperGameReloadMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "game-reload-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": "
+		<< (neuralDeveloperGameReloadCompleted ? "true" : "false")
+		<< ",\n  \"main_frame\": " << MainFrameCount
+		<< ",\n  \"unload_observed\": "
+		<< (neuralDeveloperGameUnloadObserved ? "true" : "false")
+		<< ",\n  \"same_game_id\": "
+		<< (neuralDeveloperGameIdUnchanged ? "true" : "false")
+		<< ",\n  \"same_media_path\": "
+		<< (neuralDeveloperGamePathUnchanged ? "true" : "false") << "\n}\n";
 }
 #endif
 
@@ -177,6 +201,7 @@ void mainui_loop(bool forceStart)
 		const int neuralReinitAfter = std::clamp(config::NeuralRendererReinitAfter.get(), 0, 10000);
 		const int neuralSwitchAfter = std::clamp(config::NeuralRendererSwitchAfter.get(), 0, 10000);
 		const int neuralSurfaceSwitchAfter = std::clamp(config::NeuralSurfaceSwitchAfter.get(), 0, 10000);
+		const int neuralGameReloadAfter = std::clamp(config::NeuralGameReloadAfter.get(), 0, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -219,6 +244,39 @@ void mainui_loop(bool forceStart)
 				"Neural developer surface switch requested at main frame %u: %d -> %d",
 				MainFrameCount, neuralDeveloperSurfaceSwitchFrom,
 				neuralDeveloperSurfaceSwitchTo);
+		}
+		else if (!neuralDeveloperGameReloadTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralGameReloadAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralGameReloadAfter)
+			&& !settings.content.path.empty())
+		{
+			neuralDeveloperGameReloadTriggered = true;
+			const std::string mediaPath = settings.content.path;
+			const std::string gameId = settings.content.gameId;
+			NOTICE_LOG(RENDERER,
+				"Neural developer same-media reload requested at main frame %u",
+				MainFrameCount);
+			try
+			{
+				emu.unloadGame();
+				neuralDeveloperGameUnloadObserved = settings.content.path.empty();
+				emu.loadGame(mediaPath.c_str());
+				emu.start();
+				neuralDeveloperGameIdUnchanged = !gameId.empty()
+					&& settings.content.gameId == gameId;
+				neuralDeveloperGamePathUnchanged = settings.content.path == mediaPath;
+				neuralDeveloperGameReloadCompleted = neuralDeveloperGameUnloadObserved
+					&& neuralDeveloperGameIdUnchanged && neuralDeveloperGamePathUnchanged;
+			}
+			catch (const FlycastException& e)
+			{
+				ERROR_LOG(RENDERER, "Neural developer same-media reload failed: %s", e.what());
+			}
+			writeNeuralDeveloperGameReloadMarker();
+			NOTICE_LOG(RENDERER,
+				"Neural developer same-media reload completed at main frame %u: %d",
+				MainFrameCount, neuralDeveloperGameReloadCompleted ? 1 : 0);
 		}
 #endif
 
@@ -294,6 +352,11 @@ void mainui_start()
 	neuralDeveloperSwitchPending = false;
 	neuralDeveloperSurfaceSwitchTriggered = false;
 	neuralDeveloperSurfaceSwitchPending = false;
+	neuralDeveloperGameReloadTriggered = false;
+	neuralDeveloperGameReloadCompleted = false;
+	neuralDeveloperGameUnloadObserved = false;
+	neuralDeveloperGameIdUnchanged = false;
+	neuralDeveloperGamePathUnchanged = false;
 #endif
 	mainui_enabled = true;
 }
