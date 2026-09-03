@@ -48,7 +48,7 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -1270,7 +1270,7 @@ int PerformanceCommand(const Args& args)
 		return 2;
 	}
 	if (transition != "none" && transition != "resize-minimize-restore"
-		&& transition != "fullscreen-roundtrip")
+		&& transition != "fullscreen-roundtrip" && transition != "focus-roundtrip")
 	{
 		std::cerr << "invalid performance transition\n";
 		return 2;
@@ -1499,6 +1499,13 @@ int PerformanceCommand(const Args& args)
 	bool fullscreenExitRequested = transition != "fullscreen-roundtrip";
 	bool fullscreenExitObserved = transition != "fullscreen-roundtrip";
 	bool fullscreenRectRestored = transition != "fullscreen-roundtrip";
+	bool focusTargetRequested = transition != "focus-roundtrip";
+	bool focusTargetObserved = transition != "focus-roundtrip";
+	bool focusLossRequested = transition != "focus-roundtrip";
+	bool focusLossObserved = transition != "focus-roundtrip";
+	bool focusRestoreRequested = transition != "focus-roundtrip";
+	bool focusRestoreObserved = transition != "focus-roundtrip";
+	HWND focusControlWindow = nullptr;
 	auto nextTransition = std::chrono::steady_clock::time_point{};
 	while (std::chrono::steady_clock::now() < deadline)
 	{
@@ -1521,7 +1528,47 @@ int PerformanceCommand(const Args& args)
 					transitionWindow = FindProcessWindow(process.dwProcessId);
 				const int originalWidth = originalWindowRect.right - originalWindowRect.left;
 				const int originalHeight = originalWindowRect.bottom - originalWindowRect.top;
-				if (transition == "fullscreen-roundtrip")
+				if (transition == "focus-roundtrip")
+				{
+					switch (transitionStep)
+					{
+					case 0:
+						focusTargetRequested = transitionWindow
+							&& SetForegroundWindow(transitionWindow) != FALSE;
+						break;
+					case 1:
+						focusTargetObserved = focusTargetRequested
+							&& GetForegroundWindow() == transitionWindow;
+						focusControlWindow = CreateWindowExW(WS_EX_TOOLWINDOW, L"STATIC",
+							L"Flycast focus lifecycle control", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+							0, 0, 160, 90, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+						focusLossRequested = focusControlWindow
+							&& SetForegroundWindow(focusControlWindow) != FALSE;
+						break;
+					case 2:
+						focusLossObserved = focusLossRequested && focusControlWindow
+							&& GetForegroundWindow() == focusControlWindow
+							&& GetForegroundWindow() != transitionWindow;
+						focusRestoreRequested = focusLossObserved && transitionWindow
+							&& SetForegroundWindow(transitionWindow) != FALSE;
+						break;
+					case 3:
+						focusRestoreObserved = focusRestoreRequested
+							&& GetForegroundWindow() == transitionWindow;
+						break;
+					case 4:
+						focusRestoreObserved = focusRestoreObserved && transitionWindow
+							&& IsWindowVisible(transitionWindow) != FALSE
+							&& IsIconic(transitionWindow) == FALSE;
+						if (focusControlWindow)
+						{
+							DestroyWindow(focusControlWindow);
+							focusControlWindow = nullptr;
+						}
+						break;
+					}
+				}
+				else if (transition == "fullscreen-roundtrip")
 				{
 					switch (transitionStep)
 					{
@@ -1609,6 +1656,11 @@ int PerformanceCommand(const Args& args)
 			break;
 		}
 	}
+	if (focusControlWindow)
+	{
+		DestroyWindow(focusControlWindow);
+		focusControlWindow = nullptr;
+	}
 	CloseWindowsContext closeContext{process.dwProcessId};
 	EnumWindows(CloseProcessWindows, reinterpret_cast<LPARAM>(&closeContext));
 	bool forcedTermination = false;
@@ -1622,7 +1674,10 @@ int PerformanceCommand(const Args& args)
 	const bool transitionComplete = transitionStep == 5 && resizeOutPassed
 		&& minimizePassed && restorePassed && resizeBackPassed
 		&& fullscreenEnterRequested && fullscreenEnterObserved
-		&& fullscreenExitRequested && fullscreenExitObserved && fullscreenRectRestored;
+		&& fullscreenExitRequested && fullscreenExitObserved && fullscreenRectRestored
+		&& focusTargetRequested && focusTargetObserved
+		&& focusLossRequested && focusLossObserved
+		&& focusRestoreRequested && focusRestoreObserved;
 	bool rendererReinitComplete = rendererReinitAfter == 0;
 	if (rendererReinitAfter != 0)
 	{
@@ -1845,7 +1900,13 @@ int PerformanceCommand(const Args& args)
 		<< ", \"fullscreen_enter_observed\": " << (fullscreenEnterObserved ? "true" : "false")
 		<< ", \"fullscreen_exit_requested\": " << (fullscreenExitRequested ? "true" : "false")
 		<< ", \"fullscreen_exit_observed\": " << (fullscreenExitObserved ? "true" : "false")
-		<< ", \"fullscreen_rect_restored\": " << (fullscreenRectRestored ? "true" : "false") << "}"
+		<< ", \"fullscreen_rect_restored\": " << (fullscreenRectRestored ? "true" : "false")
+		<< ", \"focus_target_requested\": " << (focusTargetRequested ? "true" : "false")
+		<< ", \"focus_target_observed\": " << (focusTargetObserved ? "true" : "false")
+		<< ", \"focus_loss_requested\": " << (focusLossRequested ? "true" : "false")
+		<< ", \"focus_loss_observed\": " << (focusLossObserved ? "true" : "false")
+		<< ", \"focus_restore_requested\": " << (focusRestoreRequested ? "true" : "false")
+		<< ", \"focus_restore_observed\": " << (focusRestoreObserved ? "true" : "false") << "}"
 		<< ",\n  \"renderer_reinit_after_main_frames\": " << rendererReinitAfter
 		<< ",\n  \"renderer_reinit_completed\": "
 		<< (rendererReinitComplete ? "true" : "false")

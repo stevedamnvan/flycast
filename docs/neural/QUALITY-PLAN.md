@@ -264,6 +264,16 @@ close a temporal or title-quality gate.
   pressure, or Flycast-owned object growth, and close cleanly. Native D3D11
   normal/OIT each retain one explicit nonblocking native fallback while mode 2
   is active; both On12 cases return 540/540 requested-mode neural Presents.
+  LOG #114 adds a real Windows foreground-focus loss/restore cycle between the
+  launched Flycast window and a visible top-level control window. Public DLAA
+  normal/OIT on native D3D11 and D3D11On12 each accepted and presented 600/600
+  outputs with zero missing or accepted-but-unpresented frames, identity
+  mismatch, source/output repeat, native/neural alternation, frame latency, or
+  Flycast-owned object growth, and every process closed cleanly. Each run
+  retains the single source-frame gap and reset at the focus boundary. The
+  harness does not synthesize the Alt+Tab keyboard gesture, but the foreground
+  ownership lifecycle relevant to that boundary is now proven on the four
+  normal-Dreamcast production paths.
   The full transition/failure matrix, isolated external timing, longer runs,
   resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage
@@ -360,7 +370,7 @@ close a temporal or title-quality gate.
   gap plus explicit reset counts. Native-D3D11 OIT conservatively presented one
   fresh native frame at the load boundary in both repeated runs and recorded
   both path transitions; the other cases presented 600/600 neural frames.
-  Cross-title loading, alt-tab/focus, monitor move, active runtime removal,
+  Cross-title loading, monitor move, active runtime removal,
   actual device loss, external timing, and broader-title coverage remain open.
   LOG #87 adds an exact-frame `gui_togglePause`/resume round trip on normal DX11
   and DX11 OIT across native D3D11 and D3D11On12. Every marker observed
@@ -369,8 +379,9 @@ close a temporal or title-quality gate.
   identity errors, source or output repeats, or frame latency. Each retained one
   source-frame gap. Native-D3D11 OIT used one explicit fresh native fallback;
   the other cases presented 600/600 neural frames. Process-owned foreground
-  transfer was also attempted but Windows rejected focus ownership in this
-  non-interactive desktop, so focus/alt-tab remains explicitly unproven.
+  transfer was also attempted but Windows rejected focus ownership in that
+  non-interactive desktop. LOG #114 supersedes that attempt with observed
+  foreground ownership in the current interactive desktop.
   LOG #88 adds per-sample Flycast-owned neural GPU-object accounting and four
   fresh 10000-sample Soulcalibur soaks across normal/OIT native D3D11 and
   D3D11On12. Native D3D11 remained exactly 91 objects (82 renderer, 9 backend)

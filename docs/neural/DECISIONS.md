@@ -1120,3 +1120,21 @@ matrices and therefore emits zero-validity motion for those draws. Legacy Gate
 5 and FC-061 remain open until the accepted-history matrices feed the actual
 Naomi 2 neural vertex shader within the 1e-3 threshold. This is a stated missing
 capability, not a reason to manufacture motion from current matrices.
+
+## D-070: focus lifecycle evidence requires observed foreground ownership
+
+A focus transition is accepted only when the launched Flycast window first
+owns foreground focus, a real visible process-owned top-level control window
+then owns it while Flycast does not, and the same visible, non-minimized
+Flycast window finally owns it again. API requests without the corresponding
+`GetForegroundWindow` observations fail the launch. The control window is
+destroyed on success, timeout, and cleanup.
+
+The asynchronous production sampler remains active across this sequence. Its
+report must still reject missing Presents, accepted-but-unpresented output,
+frame-identity mismatch, stale/repeated output, native/neural alternation,
+latency, or Flycast-owned resource growth. A source-frame gap paired with the
+focus lifecycle reset is retained rather than hidden. This proves the Windows
+focus-loss/restore boundary relevant to Alt+Tab; it does not claim that the
+harness synthesized the keyboard gesture, moved monitors, or changed desktop
+sessions.

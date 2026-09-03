@@ -174,13 +174,15 @@ Production performance measurement is separate:
 [--feature-path DIR] [--input-replay yes|no]
 [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable]
 [--inject-count N] [--inject-after N]
-[--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N]
+[--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip]
+[--transition-delay-ms N]
 [--renderer-reinit-after N]
 [--renderer-switch-after N]
 [--surface-switch-after N]
 [--game-reload-after N]
 [--savestate-roundtrip-after N] [--savestate-load-delay N]
 [--pause-roundtrip-after N] [--pause-duration N]
+[--mode-roundtrip-after N] [--mode-off-duration N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -240,8 +242,8 @@ to the exact original window rectangle. Each OS action must be positively
 observed before the launch report can pass. The performance sampler continues
 through the sequence, so fallback, reset, frame-identity, cadence, and VRAM
 effects are retained. This covers window resize and minimize/restore; it does
-not claim borderless/exclusive-fullscreen, cross-monitor movement, alt-tab, or
-renderer restart.
+not claim borderless/exclusive fullscreen, cross-monitor movement, focus
+transfer, or renderer restart.
 
 `fullscreen-roundtrip` posts the same unmodified F11 input Flycast handles in
 normal use. Acceptance separately requires the key request, monitor-sized SDL
@@ -250,6 +252,17 @@ exact restoration of the original window rectangle. Fullscreen observations
 use a one-second interval because SDL/Windows state propagation is asynchronous.
 Flycast exposes `SDL_WINDOW_FULLSCREEN_DESKTOP` here, so this proves borderless
 desktop fullscreen, not an unsupported exclusive-fullscreen mode.
+
+`focus-roundtrip` first makes the launched Flycast window the observed Windows
+foreground target, creates a visible process-owned top-level control window,
+moves foreground focus to that control, positively observes that Flycast lost
+focus, then restores and positively observes foreground focus on the same
+visible, non-minimized Flycast window. All six request/observation booleans are
+retained in `performance-launch.json`; an incomplete sequence fails even if a
+performance report exists. This exercises the production focus-loss/restore
+lifecycle used by an Alt+Tab boundary without synthesizing the Alt+Tab
+keystroke itself. It does not prove cross-monitor movement or another desktop
+session.
 
 `--renderer-reinit-after N` is a separate hidden, default-off developer check
 for a real in-process renderer/API-context teardown and recreation after main
