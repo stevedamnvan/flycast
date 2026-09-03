@@ -302,3 +302,15 @@ Markdown reports record the selected hint. The production log likewise records
 Auto/J/K and states that external Neural Rendering model selection is
 independent. A successful preset test proves public feature creation/evaluation;
 it does not prove that the external consumer changed models.
+
+The real save-state lifecycle form is `neuraltest performance --game PATH
+--out DIR --frames N --warmup N --savestate-roundtrip-after N
+--savestate-load-delay N` plus the normal API/renderer/feature-path options.
+Both thresholds are main-frame counts. The control is hidden, default-off, and
+mutually exclusive with renderer reinit, renderer switch, surface switch, and
+same-media reload. It serializes into process memory, never the platform save
+directory. Acceptance requires `savestate-roundtrip-complete.json` to report
+the exact save/load frames, `in_memory=true`, and a nonzero byte count, plus a
+completed performance report with no missing/accepted-but-unpresented frame,
+identity mismatch, stale output repeat, or frame latency. Source-frame gaps and
+explicit native fallback at the load boundary are retained rather than hidden.

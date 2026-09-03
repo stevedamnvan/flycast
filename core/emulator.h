@@ -38,6 +38,8 @@ void flycast_term();
 void dc_exit();
 void dc_savestate(int index = 0, const u8 *pngData = nullptr, u32 pngSize = 0);
 void dc_loadstate(int index = 0);
+bool dc_savestateMemory(std::vector<u8>& state);
+bool dc_loadstateMemory(const std::vector<u8>& state);
 time_t dc_getStateCreationDate(int index);
 void dc_getStateScreenshot(int index, std::vector<u8>& pngData);
 bool dc_savestateAllowed();

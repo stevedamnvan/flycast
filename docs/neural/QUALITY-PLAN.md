@@ -255,4 +255,13 @@ close a temporal or title-quality gate.
   with zero native Presents, missing/accepted-output drops, identity errors,
   output repeats, alternation, latency, or query-ring pressure and clean close.
   Three source-ID gaps and explicit resets expose the lifecycle discontinuity.
-  Cross-title loading and save-state runtime validation remain open.
+  LOG #86 adds an exact-frame, cross-platform in-memory save/load round trip on
+  normal DX11 and DX11 OIT across native D3D11 and D3D11On12. All four cases
+  restored the same 27797870-byte production state at main frames 200 and 230,
+  completed 600 measured Presents with zero missing or accepted-output drops,
+  identity errors, output repeats, or frame latency, and retained one source
+  gap plus explicit reset counts. Native-D3D11 OIT conservatively presented one
+  fresh native frame at the load boundary in both repeated runs and recorded
+  both path transitions; the other cases presented 600/600 neural frames.
+  Cross-title loading, alt-tab/focus, monitor move, active runtime removal,
+  actual device loss, external timing, and broader-title coverage remain open.

@@ -755,3 +755,21 @@ restarted. It spans the lifecycle boundary so reset-driven source-ID gaps,
 stale output, false continuity, and native/neural alternation can be measured.
 Source discontinuity is expected and recorded; output identity mismatch,
 accepted-output loss, stale repeat, or silent alternation is not permitted.
+
+## D-051: save-state lifecycle evidence uses a real cross-platform memory image
+
+The existing GUI `-2` quick-state slot is backed by `fmemopen` and is therefore
+not an in-memory path on Windows. The neural developer control instead uses the
+same `dc_serialize`/`Emulator::loadstate` production boundary with a bounded
+process-owned byte vector. The write pass may be smaller than the dry sizing
+pass because TA contexts reserve their maximum size during dry-run; the vector
+is reduced to the completed write length and is never written to storage.
+
+At an exact main-frame threshold the emulator stops, serializes, and resumes.
+After a bounded frame delay it stops, deserializes through the normal
+`Event::LoadState` notification, and resumes. The marker records the exact
+save/load frames and nonzero byte count without media paths. Performance
+sampling spans the load so the required history reset, source discontinuity,
+fallback choice, output identity, and latency remain observable. A counted
+native frame at that boundary is permitted only as explicit fresh-frame
+fallback; stale or falsely continuous neural output is not.

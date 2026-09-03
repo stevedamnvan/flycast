@@ -491,6 +491,8 @@ extern Option<int> NeuralRendererReinitAfter;
 extern Option<int> NeuralRendererSwitchAfter;
 extern Option<int> NeuralSurfaceSwitchAfter;
 extern Option<int> NeuralGameReloadAfter;
+extern Option<int> NeuralSaveStateAfter;
+extern Option<int> NeuralSaveStateLoadDelay;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

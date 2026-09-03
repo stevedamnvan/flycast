@@ -53,6 +53,12 @@ static bool neuralDeveloperGameReloadCompleted;
 static bool neuralDeveloperGameUnloadObserved;
 static bool neuralDeveloperGameIdUnchanged;
 static bool neuralDeveloperGamePathUnchanged;
+static bool neuralDeveloperSaveStateTriggered;
+static bool neuralDeveloperSaveStateSaved;
+static bool neuralDeveloperSaveStateLoaded;
+static u32 neuralDeveloperSaveStateFrame;
+static u32 neuralDeveloperLoadStateFrame;
+static std::vector<u8> neuralDeveloperSaveState;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -113,6 +119,28 @@ static void writeNeuralDeveloperGameReloadMarker()
 		<< (neuralDeveloperGameIdUnchanged ? "true" : "false")
 		<< ",\n  \"same_media_path\": "
 		<< (neuralDeveloperGamePathUnchanged ? "true" : "false") << "\n}\n";
+}
+
+static void writeNeuralDeveloperSaveStateMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "savestate-roundtrip-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": "
+		<< (neuralDeveloperSaveStateSaved && neuralDeveloperSaveStateLoaded
+			? "true" : "false")
+		<< ",\n  \"in_memory\": true"
+		<< ",\n  \"save_allowed\": "
+		<< (dc_savestateAllowed() ? "true" : "false")
+		<< ",\n  \"saved\": " << (neuralDeveloperSaveStateSaved ? "true" : "false")
+		<< ",\n  \"loaded\": " << (neuralDeveloperSaveStateLoaded ? "true" : "false")
+		<< ",\n  \"save_main_frame\": " << neuralDeveloperSaveStateFrame
+		<< ",\n  \"load_main_frame\": " << neuralDeveloperLoadStateFrame
+		<< ",\n  \"state_bytes\": "
+		<< std::to_string(neuralDeveloperSaveState.size()) << "\n}\n";
 }
 #endif
 
@@ -202,6 +230,8 @@ void mainui_loop(bool forceStart)
 		const int neuralSwitchAfter = std::clamp(config::NeuralRendererSwitchAfter.get(), 0, 10000);
 		const int neuralSurfaceSwitchAfter = std::clamp(config::NeuralSurfaceSwitchAfter.get(), 0, 10000);
 		const int neuralGameReloadAfter = std::clamp(config::NeuralGameReloadAfter.get(), 0, 10000);
+		const int neuralSaveStateAfter = std::clamp(config::NeuralSaveStateAfter.get(), 0, 10000);
+		const int neuralSaveStateLoadDelay = std::clamp(config::NeuralSaveStateLoadDelay.get(), 1, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -247,6 +277,7 @@ void mainui_loop(bool forceStart)
 		}
 		else if (!neuralDeveloperGameReloadTriggered && neuralReinitAfter == 0
 			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralSaveStateAfter == 0
 			&& neuralGameReloadAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralGameReloadAfter)
 			&& !settings.content.path.empty())
@@ -277,6 +308,56 @@ void mainui_loop(bool forceStart)
 			NOTICE_LOG(RENDERER,
 				"Neural developer same-media reload completed at main frame %u: %d",
 				MainFrameCount, neuralDeveloperGameReloadCompleted ? 1 : 0);
+		}
+		else if (!neuralDeveloperSaveStateTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralGameReloadAfter == 0 && neuralSaveStateAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralSaveStateAfter)
+			&& dc_savestateAllowed())
+		{
+			neuralDeveloperSaveStateTriggered = true;
+			neuralDeveloperSaveStateFrame = MainFrameCount;
+			NOTICE_LOG(RENDERER,
+				"Neural developer in-memory save requested at main frame %u",
+				MainFrameCount);
+			try
+			{
+				emu.stop();
+				neuralDeveloperSaveStateSaved = dc_savestateMemory(neuralDeveloperSaveState);
+				emu.start();
+			}
+			catch (const FlycastException& e)
+			{
+				ERROR_LOG(RENDERER, "Neural developer in-memory save failed: %s", e.what());
+				try { emu.start(); } catch (...) { }
+			}
+			if (!neuralDeveloperSaveStateSaved)
+				writeNeuralDeveloperSaveStateMarker();
+		}
+		else if (neuralDeveloperSaveStateTriggered && neuralDeveloperSaveStateSaved
+			&& !neuralDeveloperSaveStateLoaded
+			&& MainFrameCount >= neuralDeveloperSaveStateFrame
+				+ static_cast<u32>(neuralSaveStateLoadDelay))
+		{
+			neuralDeveloperLoadStateFrame = MainFrameCount;
+			NOTICE_LOG(RENDERER,
+				"Neural developer in-memory load requested at main frame %u",
+				MainFrameCount);
+			try
+			{
+				emu.stop();
+				neuralDeveloperSaveStateLoaded = dc_loadstateMemory(neuralDeveloperSaveState);
+				emu.start();
+			}
+			catch (const FlycastException& e)
+			{
+				ERROR_LOG(RENDERER, "Neural developer in-memory load failed: %s", e.what());
+				try { emu.start(); } catch (...) { }
+			}
+			writeNeuralDeveloperSaveStateMarker();
+			NOTICE_LOG(RENDERER,
+				"Neural developer in-memory state round trip completed at main frame %u: %d",
+				MainFrameCount, neuralDeveloperSaveStateLoaded ? 1 : 0);
 		}
 #endif
 
@@ -357,6 +438,12 @@ void mainui_start()
 	neuralDeveloperGameUnloadObserved = false;
 	neuralDeveloperGameIdUnchanged = false;
 	neuralDeveloperGamePathUnchanged = false;
+	neuralDeveloperSaveStateTriggered = false;
+	neuralDeveloperSaveStateSaved = false;
+	neuralDeveloperSaveStateLoaded = false;
+	neuralDeveloperSaveStateFrame = 0;
+	neuralDeveloperLoadStateFrame = 0;
+	neuralDeveloperSaveState.clear();
 #endif
 	mainui_enabled = true;
 }

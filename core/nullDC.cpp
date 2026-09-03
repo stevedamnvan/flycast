@@ -369,6 +369,62 @@ void dc_loadstate(int index)
 	free(data);
 }
 
+bool dc_savestateMemory(std::vector<u8>& state)
+{
+	if (!dc_savestateAllowed())
+		return false;
+
+	try
+	{
+		Serializer sizePass;
+		dc_serialize(sizePass);
+		const size_t sizedBytes = sizePass.size();
+		state.resize(sizedBytes);
+		Serializer serializer(state.data(), state.size());
+		dc_serialize(serializer);
+		const size_t writtenBytes = serializer.size();
+		if (writtenBytes != sizedBytes)
+			WARN_LOG(SAVESTATE,
+				"In-memory state size pass %d differs from write pass %d",
+				(int)sizedBytes, (int)writtenBytes);
+		state.resize(writtenBytes);
+		NOTICE_LOG(SAVESTATE, "Saved in-memory state size %d", (int)state.size());
+		return !state.empty();
+	}
+	catch (const SerializeBase::Exception& e)
+	{
+		ERROR_LOG(SAVESTATE, "%s", e.what());
+		state.clear();
+		return false;
+	}
+}
+
+bool dc_loadstateMemory(const std::vector<u8>& state)
+{
+	if (!dc_savestateAllowed() || settings.raHardcoreMode || state.empty())
+		return false;
+
+	try
+	{
+		Deserializer deserializer(state.data(), state.size());
+		emu.loadstate(deserializer);
+		NOTICE_LOG(SAVESTATE, "Loaded in-memory state ver %d size %d",
+			deserializer.version(), (int)state.size());
+		if (deserializer.size() != state.size())
+		{
+			WARN_LOG(SAVESTATE, "In-memory state size %d but only %d bytes used",
+				(int)state.size(), (int)deserializer.size());
+			return false;
+		}
+		return true;
+	}
+	catch (const Deserializer::Exception& e)
+	{
+		ERROR_LOG(SAVESTATE, "%s", e.what());
+		return false;
+	}
+}
+
 time_t dc_getStateCreationDate(int index)
 {
 	std::string filename = hostfs::getSavestatePath(index, false);
