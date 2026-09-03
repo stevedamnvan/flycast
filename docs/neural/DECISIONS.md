@@ -819,3 +819,17 @@ objects, clears the stage output, and returns a distinct terminal backend
 status. The stage then latches native fallback until recreation. This proves
 Flycast's controlled response to an active runtime becoming unavailable; it is
 not represented as physical deletion or unloading of a third-party DLL.
+
+## D-055: capture JSON is locale-independent and indexes validate dimensions
+
+Production capture metrics, manifests, and completion markers use the classic
+locale so integer dimensions and floating metrics cannot acquire host-specific
+grouping separators. The comparison index accepts a package only when
+`render_size` and `output_size` are strict two-element unsigned arrays and
+`content_rect` is a strict four-element unsigned array, in addition to the
+required source/final images.
+
+Malformed packages remain on disk and are counted as rejected in the HTML and
+JSON index. They are not silently rewritten or linked into accepted evidence.
+This preserves failed attempts while preventing syntactically valid but
+semantically wrong arrays such as a locale-grouped 5120 becoming two values.

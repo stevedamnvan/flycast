@@ -44,13 +44,20 @@ explicit destination and positive frame limit are supplied, and every package
 is marked ineligible for performance measurements.
 
 `neuraltest capture-index --root DIR [--out HTML]` recursively discovers only
-production packages containing both source and final images. It writes a lazy-
+production packages containing both source and final images plus strict two-
+element render/output size arrays and a four-element content rectangle. It writes a lazy-
 loading HTML contact sheet and a machine-readable JSON manifest using relative
 paths. Every card shows game/profile, actual renderer/API, acceptance, external-
 evaluation state, and submit status; available native/guidance/public/external/
 final/difference/flicker artifacts are linked in place. The index explicitly
 sets `winner_declared=false` and does not convert still images into a title-
-quality decision. An empty root writes an empty diagnostic index and exits 3.
+quality decision. Malformed packages are retained, excluded, and counted in
+`rejected_package_count`. An empty valid root writes an empty diagnostic index
+and exits 3.
+
+All production capture JSON streams use the classic locale. A high-resolution
+manifest must encode 5120 by 3840 as `[5120, 3840]`, independent of the Windows
+user locale.
 
 Production performance measurement is separate:
 

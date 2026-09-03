@@ -1270,6 +1270,41 @@ std::string JsonScalarField(const std::string& json, const std::string& field)
 	return json.substr(begin, end - begin);
 }
 
+bool JsonUnsignedArrayField(const std::string& json, const std::string& field,
+	std::size_t expectedCount)
+{
+	const auto marker = "\"" + field + "\":";
+	auto position = json.find(marker);
+	if (position == std::string::npos) return false;
+	position += marker.size();
+	auto skipSpace = [&]() {
+		while (position < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[position]))) ++position;
+	};
+	skipSpace();
+	if (position >= json.size() || json[position++] != '[') return false;
+	for (std::size_t item = 0; item < expectedCount; ++item)
+	{
+		skipSpace();
+		if (position >= json.size()
+			|| !std::isdigit(static_cast<unsigned char>(json[position]))) return false;
+		std::uint64_t value = 0;
+		while (position < json.size()
+			&& std::isdigit(static_cast<unsigned char>(json[position])))
+		{
+			value = value * 10 + static_cast<unsigned>(json[position++] - '0');
+			if (value > std::numeric_limits<std::uint32_t>::max()) return false;
+		}
+		skipSpace();
+		if (item + 1 < expectedCount)
+		{
+			if (position >= json.size() || json[position++] != ',') return false;
+		}
+	}
+	skipSpace();
+	return position < json.size() && json[position] == ']';
+}
+
 int CaptureIndexCommand(const Args& args)
 {
 	const auto rootText = Value(args, "--root");
@@ -1287,6 +1322,7 @@ int CaptureIndexCommand(const Args& args)
 	const auto output = std::filesystem::absolute(Value(args, "--out",
 		(root / "comparison-index.html").string()));
 	std::vector<std::filesystem::path> manifests;
+	std::size_t rejectedManifests = 0;
 	std::error_code ec;
 	for (std::filesystem::recursive_directory_iterator iterator(root, ec), end;
 		!ec && iterator != end; iterator.increment(ec))
@@ -1296,7 +1332,18 @@ int CaptureIndexCommand(const Args& args)
 		const auto frameRoot = iterator->path().parent_path();
 		if (std::filesystem::is_regular_file(frameRoot / "source-color.png")
 			&& std::filesystem::is_regular_file(frameRoot / "final-composited.png"))
+		{
+			std::ifstream stream(iterator->path());
+			const std::string json((std::istreambuf_iterator<char>(stream)), {});
+			if (!stream.is_open() || !JsonUnsignedArrayField(json, "render_size", 2)
+				|| !JsonUnsignedArrayField(json, "output_size", 2)
+				|| !JsonUnsignedArrayField(json, "content_rect", 4))
+			{
+				++rejectedManifests;
+				continue;
+			}
 			manifests.push_back(iterator->path());
+		}
 	}
 	if (ec)
 	{
@@ -1366,6 +1413,7 @@ int CaptureIndexCommand(const Args& args)
 		html << "</div></section>";
 	}
 	html << "<p class=\"note\">Packages: " << manifests.size()
+		<< "; rejected malformed packages: " << rejectedManifests
 		<< ". Review moving sequences and numeric components before acceptance.</p>";
 	if (!html)
 	{
@@ -1376,7 +1424,8 @@ int CaptureIndexCommand(const Args& args)
 	jsonOutput.replace_extension(".json");
 	std::ofstream report(jsonOutput);
 	report << "{\n  \"schema\": 1,\n  \"winner_declared\": false,\n  \"package_count\": "
-		<< relativeManifests.size() << ",\n  \"manifests\": [";
+		<< relativeManifests.size() << ",\n  \"rejected_package_count\": "
+		<< rejectedManifests << ",\n  \"manifests\": [";
 	for (std::size_t i = 0; i < relativeManifests.size(); ++i)
 	{
 		if (i != 0) report << ',';
@@ -1389,6 +1438,7 @@ int CaptureIndexCommand(const Args& args)
 		return 1;
 	}
 	std::cout << "capture index packages=" << manifests.size()
+		<< " rejected=" << rejectedManifests
 		<< " html=" << output.string() << '\n';
 	return manifests.empty() ? 3 : 0;
 }

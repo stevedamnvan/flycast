@@ -293,3 +293,15 @@ close a temporal or title-quality gate.
   latency. D3D11 released 9 backend objects and D3D11On12 released 10. This is
   controlled active-unavailability coverage; physical loaded-DLL removal and
   actual device loss remain open.
+  LOG #90 adds current-SHA Soulcalibur frames 302 through 331 for native
+  640x480 presentation, target-resolution 880x660 DLAA under Faithful,
+  Enhanced, and Photoreal profile metadata, and a 5120x3840 8x reference
+  downsampled to the same 880x660 output. All five lanes contain 30 unique
+  consecutive outputs with zero reported repeat, drop, or HUD mismatch. The
+  three DLAA profile image sequences are byte-identical because profiles do not
+  write external settings and no external consumer was present; no winner is
+  declared. An initial 8x capture exposed locale-grouped dimensions, was
+  retained and rejected, and a fresh 30-frame recapture plus strict index
+  validation produced 150 accepted and 30 rejected packages. Gameplay scenes,
+  external output, and other legally supplied titles remain required for Gate
+  17.

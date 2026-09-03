@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <locale>
 #include <sstream>
 
 namespace flycast::rend::neural {
@@ -522,6 +523,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		? metadata.frameId - previousFrameId_ - 1 : 0;
 
 	std::ofstream metrics(frameRoot / "metrics.json");
+	metrics.imbue(std::locale::classic());
 	metrics << std::fixed << std::setprecision(6)
 		<< "{\n  \"static_frame_temporal_variance\": " << temporalVariance
 		<< ",\n  \"motion_reprojection_error\": " << reprojectionError
@@ -543,6 +545,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	if (!metrics) { error = "failed writing metrics.json"; return false; }
 
 	std::ofstream manifest(frameRoot / "manifest.json");
+	manifest.imbue(std::locale::classic());
 	manifest << "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"game_id\": \"" << Json(metadata.gameId)
 		<< "\",\n  \"frame_id\": " << metadata.frameId
@@ -583,6 +586,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	if (captured_ == limit_)
 	{
 		std::ofstream complete(root_ / "capture-complete.json");
+		complete.imbue(std::locale::classic());
 		complete << "{\n  \"schema\": 1,\n  \"git_sha\": \"" << GIT_HASH
 			<< "\",\n  \"game_id\": \"" << Json(metadata.gameId)
 			<< "\",\n  \"captured_frames\": " << captured_
