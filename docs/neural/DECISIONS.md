@@ -1105,3 +1105,18 @@ texture-wide differences alone from masquerading as geometry sampling. The
 all-zero nearest control is evaluated by the same predicate and must fail.
 The command is synchronous, developer-only, disabled by default, and excluded
 from performance claims.
+
+## D-069: legacy gate aggregation preserves the Naomi 2 boundary
+
+The original Gates 4-7 remain useful acceptance labels, but they do not replace
+quality Gates 11-18. Current evidence closes static zero motion, wrong-history
+rejection, and shared-stage passthrough identity. Normal Dreamcast Gate 5
+translation, camera, deformation, topology, edge-clip, and particle controls
+are also green.
+
+Naomi 2 is not promoted from its conservative fallback by the CPU matrix test
+alone. The production export still lacks accepted prior model-view/projection
+matrices and therefore emits zero-validity motion for those draws. Legacy Gate
+5 and FC-061 remain open until the accepted-history matrices feed the actual
+Naomi 2 neural vertex shader within the 1e-3 threshold. This is a stated missing
+capability, not a reason to manufacture motion from current matrices.

@@ -476,3 +476,20 @@ including 160653 and 642093 edge samples and 14959/15083 diverse blocks. The
 native-D3D11 and D3D11On12 results are exact per renderer. A zero-difference,
 zero-diversity nearest control is executed through the same acceptance predicate
 and rejected. Capture is synchronous, developer-only, and performance-ineligible.
+
+## Legacy Gates 4-7 aggregation
+
+LOG #113 refreshes the original FC-061 thresholds without conflating them with
+quality Gates 11-18. Legacy Gate 4 is green: the current GPU fixture returns
+exact static `[0,0]` motion. Gate 6 is green through the matcher/generation/
+ambiguity controls that emit zero confidence and current-color bias for wrong
+history. Gate 7 is green: current-SHA passthrough runs on packages rendered
+under both DX11 renderer labels report byte-identical stage color.
+
+Legacy Gate 5 is green for normal Dreamcast geometry: +4X is exactly `[-4,0]`,
+camera/deformation truth is within the analytic bound, changed-count edge clips
+retain at least 90 percent in the CPU control, topology changes are rejected,
+and particles remain reactive. It is not closed overall because Naomi 2 still
+has only an exact CPU column-major projection test; accepted prior matrices are
+not yet carried through the production HLSL export. That deliberate zero-trust
+fallback remains correct until the missing path is implemented and proven.
