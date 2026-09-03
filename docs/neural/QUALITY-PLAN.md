@@ -199,3 +199,12 @@ close a temporal or title-quality gate.
   feature/resources recovered; the other three lanes presented neural output
   for all 600 samples. Fullscreen, monitor move, alt-tab, renderer restart,
   load/unload, real device loss, and long-run coverage remain open.
+  LOG #79 adds paired 10000-sample normal-renderer soaks at committed
+  `b3399f96c`. Native D3D11 and D3D11On12 each presented 10000/10000 accepted
+  neural frames with zero missing, dropped, repeated, gapped, mismatched, or
+  alternating frames, zero measured frame latency, zero query-ring pressure,
+  and clean close. D3D11 local VRAM moved from 306855936 to 303792128 bytes
+  (-3063808); D3D11On12 remained exactly 391602176 bytes. This closes the
+  bounded normal-renderer long-run growth/cadence check, not OIT long-run,
+  resource-object accounting, external-consumer timing, or the remaining
+  transition/failure matrix.
