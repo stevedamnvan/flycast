@@ -609,3 +609,25 @@ external-contract state, and failure reason beside every frame. Earlier failed
 or incomplete packages may therefore remain visible without being presented as
 accepted results. Its JSON contract fixes `winner_declared` to false; moving
 sequences and numeric review remain required for Gate 17.
+
+## D-042: performance telemetry is asynchronous and queue-scoped
+
+Performance mode is a separate explicit path from quality capture and the Gate
+10 sentinel. It creates a bounded 12-slot timestamp/disjoint-query ring and
+polls completed data only with `D3D11_ASYNC_GETDATA_DONOTFLUSH`. No texture is
+mapped, no context is flushed, and no query wait can alter emulator/audio
+cadence. Synchronous capture disables the tracker. Native performance sets
+NeuralMode off so its baseline does not pay guidance-export cost.
+
+Markers bracket base PVR work, guidance export, stage evaluation, and the final
+scene/overlay presentation blit. The full first-to-last timestamp is labeled a
+frame GPU span because it can include idle gaps; it is not summed work. P50,
+P95, P99, raw samples, Present-call intervals, stage counters, query pressure,
+and post-warmup local-VRAM growth are retained.
+
+Native D3D11 timestamps can bracket public NGX work issued on the same context.
+D3D11On12 evaluation is submitted on a D3D12 queue, so the D3D11 report marks
+that component unavailable and writes `null`. A future D3D12 query heap is
+required before that queue's evaluation time can be claimed. Native-off and
+zero-accepted-submission runs also write `null` with distinct not-applicable or
+not-observed scopes; timestamp-marker overhead is not mislabeled evaluation.

@@ -41,7 +41,8 @@ void Usage()
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n"
-		"neuraltest capture-index --root DIR [--out HTML]\n";
+		"neuraltest capture-index --root DIR [--out HTML]\n"
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -533,6 +534,173 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
 	std::cout << "capture complete frames=" << frames << " lane=" << lane
+		<< " api=" << api << " renderer=" << renderer
+		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
+	return launchReport ? 0 : 1;
+#endif
+}
+
+int PerformanceCommand(const Args& args)
+{
+	const auto gameText = Value(args, "--game");
+	const auto outputText = Value(args, "--out");
+	if (gameText.empty() || outputText.empty())
+	{
+		std::cerr << "performance requires --game and --out\n";
+		return 2;
+	}
+	std::string error;
+	std::uint32_t frames = 0, warmup = 120, timeoutMs = 120000, renderHeight = 480;
+	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
+		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
+		|| !Number(args, "--render-height", 480, renderHeight, error)
+		|| renderHeight < 120 || renderHeight > 8640
+		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
+	{
+		std::cerr << (error.empty() ? "invalid performance bounds" : error) << '\n';
+		return 2;
+	}
+	const auto lane = Value(args, "--lane", "dlaa");
+	const auto api = Value(args, "--api", "d3d11");
+	const auto renderer = Value(args, "--renderer", "dx11");
+	const auto preset = Value(args, "--preset", "auto");
+	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
+	{
+		std::cerr << "invalid performance lane\n";
+		return 2;
+	}
+	if (api != "d3d11" && api != "d3d11on12")
+	{
+		std::cerr << "invalid performance API\n";
+		return 2;
+	}
+	if (renderer != "dx11" && renderer != "dx11-oit")
+	{
+		std::cerr << "invalid performance renderer\n";
+		return 2;
+	}
+	if (preset != "auto" && preset != "j" && preset != "k")
+	{
+		std::cerr << "invalid performance preset\n";
+		return 2;
+	}
+	const auto game = std::filesystem::absolute(gameText);
+	const auto output = std::filesystem::absolute(outputText);
+	if (!std::filesystem::is_regular_file(game))
+	{
+		std::cerr << "game media is unavailable\n";
+		return 3;
+	}
+	if (std::filesystem::exists(output / "performance-complete.json"))
+	{
+		std::cerr << "performance output already contains a completed run\n";
+		return 2;
+	}
+#ifndef _WIN32
+	std::cerr << "production performance launcher is currently available only on Windows\n";
+	return 3;
+#else
+	wchar_t modulePath[32768]{};
+	GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
+	const std::filesystem::path defaultFlycast = std::filesystem::path(modulePath).parent_path()
+		.parent_path() / "flycast.exe";
+	const auto flycast = std::filesystem::absolute(Value(args, "--flycast",
+		defaultFlycast.string()));
+	if (!std::filesystem::is_regular_file(flycast))
+	{
+		std::cerr << "flycast executable is unavailable: " << flycast.string() << '\n';
+		return 3;
+	}
+	const int mode = lane == "native" ? 0 : lane == "dlaa" ? 2
+		: lane == "sr-quality" ? 4 : 8;
+	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
+	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
+	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
+		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
+		+ L",config:rend.NeuralMode=" + std::to_wstring(mode)
+		+ L",config:rend.NeuralD3D12Surface=" + (api == "d3d11on12" ? L"yes" : L"no")
+		+ L",config:rend.NeuralMatchOutputResolution=yes"
+		+ L",config:rend.NeuralCaptureFrames=0"
+		+ L",config:rend.NeuralDlss5EvidenceCapture=no"
+		+ L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'"
+		+ L",config:rend.NeuralPerformanceFrames=" + std::to_wstring(frames)
+		+ L",config:rend.NeuralPerformanceWarmup=" + std::to_wstring(warmup)
+		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
+		+ L",log:LogToFile=yes";
+	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
+		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
+
+	const auto featurePath = Value(args, "--feature-path");
+	std::wstring oldFeaturePath;
+	bool restoreFeaturePath = false;
+	if (!featurePath.empty())
+	{
+		const auto path = std::filesystem::absolute(featurePath);
+		if (!std::filesystem::is_directory(path))
+		{
+			std::cerr << "public NGX feature path is unavailable\n";
+			return 3;
+		}
+		wchar_t oldValue[32768]{};
+		const DWORD oldLength = GetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
+			oldValue, static_cast<DWORD>(std::size(oldValue)));
+		if (oldLength > 0 && oldLength < std::size(oldValue)) oldFeaturePath = oldValue;
+		restoreFeaturePath = true;
+		SetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH", path.wstring().c_str());
+	}
+	STARTUPINFOW startup{};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process{};
+	std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
+	mutableCommand.push_back(L'\0');
+	const BOOL launched = CreateProcessW(flycast.wstring().c_str(), mutableCommand.data(),
+		nullptr, nullptr, FALSE, 0, nullptr, flycast.parent_path().wstring().c_str(),
+		&startup, &process);
+	if (restoreFeaturePath)
+		SetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
+			oldFeaturePath.empty() ? nullptr : oldFeaturePath.c_str());
+	if (!launched)
+	{
+		std::cerr << "failed to launch flycast: win32=" << GetLastError() << '\n';
+		return 1;
+	}
+	CloseHandle(process.hThread);
+	const auto completion = output / "performance-complete.json";
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+	bool complete = false, exitedEarly = false;
+	while (std::chrono::steady_clock::now() < deadline)
+	{
+		if (std::filesystem::exists(completion)) { complete = true; break; }
+		if (WaitForSingleObject(process.hProcess, 50) == WAIT_OBJECT_0)
+		{
+			exitedEarly = true;
+			break;
+		}
+	}
+	CloseWindowsContext closeContext{process.dwProcessId};
+	EnumWindows(CloseProcessWindows, reinterpret_cast<LPARAM>(&closeContext));
+	bool forcedTermination = false;
+	if (WaitForSingleObject(process.hProcess, 5000) != WAIT_OBJECT_0)
+	{
+		TerminateProcess(process.hProcess, 4);
+		WaitForSingleObject(process.hProcess, 5000);
+		forcedTermination = true;
+	}
+	CloseHandle(process.hProcess);
+	if (!complete)
+	{
+		std::cerr << (exitedEarly ? "flycast exited before performance run completed"
+			: "performance run timed out") << '\n';
+		return 1;
+	}
+	std::ofstream launchReport(output / "performance-launch.json");
+	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
+		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
+		<< "\",\n  \"preset\": \"" << preset << "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
+		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
+		<< ",\n  \"media_path_recorded\": false\n}\n";
+	std::cout << "performance complete samples=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport ? 0 : 1;
@@ -1291,6 +1459,7 @@ int main(int argc, char **argv)
 	if (command == "compare") return CompareCommand(args);
 	if (command == "capture") return CaptureCommand(args);
 	if (command == "capture-index") return CaptureIndexCommand(args);
+	if (command == "performance") return PerformanceCommand(args);
 	Usage();
 	return 2;
 }

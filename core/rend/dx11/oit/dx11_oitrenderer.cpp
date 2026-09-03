@@ -702,7 +702,13 @@ struct DX11OITRenderer : public DX11Renderer
 		bool is_rtt = rendContext->isRTT;
 
 		if (!is_rtt)
+		{
+#ifdef FLYCAST_ENABLE_NEURAL
+			if (!config::EmulateFramebuffer)
+				beginNeuralPerformanceFrame();
+#endif
 			resize(rendContext->framebufferWidth, rendContext->framebufferHeight);
+		}
 		if (pixelBufferSize != config::PixelBufferSize)
 		{
 			buffers.init(device, deviceContext);
@@ -727,6 +733,10 @@ struct DX11OITRenderer : public DX11Renderer
 		setupPixelShaderConstants();
 
 		drawStrips();
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (!is_rtt)
+			markNeuralPvrEnd();
+#endif
 
 		if (is_rtt)
 		{
@@ -745,6 +755,9 @@ struct DX11OITRenderer : public DX11Renderer
 #ifndef LIBRETRO
 			deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
 			displayFramebuffer();
+#ifdef FLYCAST_ENABLE_NEURAL
+			endNeuralPerformanceFrame();
+#endif
 			drawOSD();
 			renderVideoRouting();
 			DX11Context::Instance()->setFrameRendered();

@@ -120,6 +120,9 @@ Option<int> NeuralCaptureFrames("rend.NeuralCaptureFrames", 0);
 Option<int> NeuralCaptureSkip("rend.NeuralCaptureSkip", 0);
 Option<int> NeuralQualityProfile("rend.NeuralQualityProfile", 0);
 Option<int> NeuralStyleFamily("rend.NeuralStyleFamily", 0);
+OptionString NeuralPerformanceDirectory("rend.NeuralPerformanceDirectory", "");
+Option<int> NeuralPerformanceFrames("rend.NeuralPerformanceFrames", 0);
+Option<int> NeuralPerformanceWarmup("rend.NeuralPerformanceWarmup", 120);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

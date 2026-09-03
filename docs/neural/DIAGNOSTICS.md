@@ -52,6 +52,31 @@ final/difference/flicker artifacts are linked in place. The index explicitly
 sets `winner_declared=false` and does not convert still images into a title-
 quality decision. An empty root writes an empty diagnostic index and exits 3.
 
+Production performance measurement is separate:
+
+`neuraltest performance --game PATH --frames N --warmup N --out DIR
+[--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
+[--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
+[--feature-path DIR] [--timeout-ms N]`
+
+This command forces synchronous capture and Gate 10 evidence readback off. A
+12-slot D3D11 timestamp/disjoint-query ring is polled only with
+`D3D11_ASYNC_GETDATA_DONOTFLUSH`; it never waits, flushes, maps a texture, or
+changes emulation cadence. `performance.json` contains every resolved sample,
+P50/P95/P99 base-PVR, guidance, stage-evaluation, overlay/presentation-blit, GPU
+timestamp-span, and Present-call interval values, stage busy/fallback/failure
+counts, ring pressure, plus local-VRAM initial/final/growth after warmup.
+
+Native performance means NeuralMode off, unlike native artifact capture which
+uses the passthrough stage to retain guidance images. Native D3D11 can bracket
+public NGX work on its D3D11 context. D3D11On12 public NGX executes on the D3D12
+queue, so its D3D11 timestamp report deliberately writes stage evaluation as
+`null` with scope `unavailable-d3d11on12-cross-queue`; it does not relabel a
+cross-queue command gap as NGX GPU time. Native-off and zero-accepted-submission
+runs likewise write `null` with explicit scopes rather than reporting timestamp
+marker overhead as evaluation. The complete report is bounded evidence
+for one interval, not a long-run leak or full-title stability claim.
+
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets
 `production_renderer` to `false` and the report explicitly labels depth and

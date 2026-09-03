@@ -31,6 +31,7 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/neural_stage.h"
+#include "rend/neural/performance_tracker.h"
 #include "rend/neural/quality_capture.h"
 #include <array>
 #endif
@@ -48,6 +49,9 @@ struct DX11Renderer : public Renderer
 
 	bool Present() override
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralPerformance.RecordPresent();
+#endif
 		if (!frameRendered || clearLastFrame)
 			return false;
 		frameRendered = false;
@@ -156,6 +160,9 @@ protected:
 	void releaseNeuralHistory();
 	void releaseNeuralPresentation();
 	void captureNeuralQualityFrame();
+	void beginNeuralPerformanceFrame();
+	void markNeuralPvrEnd();
+	void endNeuralPerformanceFrame();
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -256,6 +263,7 @@ protected:
 	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
 	flycast::rend::neural::QualityCaptureMetadata neuralQualityCaptureMetadata;
 	bool neuralQualityCapturePending = false;
+	flycast::rend::neural::PerformanceTracker neuralPerformance;
 #endif
 
 private:

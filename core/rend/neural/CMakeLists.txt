@@ -5,6 +5,8 @@ add_library(flycast-neural STATIC
     instrumentation.h
 	motion_reference.cpp
 	motion_reference.h
+	performance_tracker.cpp
+	performance_tracker.h
 	quality_capture.cpp
 	quality_capture.h
 	quality_profile.cpp

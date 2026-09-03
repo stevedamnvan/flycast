@@ -481,6 +481,9 @@ extern Option<int> NeuralCaptureFrames;
 extern Option<int> NeuralCaptureSkip;
 extern Option<int> NeuralQualityProfile;
 extern Option<int> NeuralStyleFamily;
+extern OptionString NeuralPerformanceDirectory;
+extern Option<int> NeuralPerformanceFrames;
+extern Option<int> NeuralPerformanceWarmup;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

@@ -163,4 +163,11 @@ close a temporal or title-quality gate.
   explicitly refuses to declare a still-frame winner. GPU timings, external-
   output capture, moving gameplay, all profile lanes, and every other legally available title
   remain open, so no title-quality winner is declared.
-- Gate 18: pending.
+- Gate 18: partial at LOG #75. Asynchronous production D3D11 timestamp queries,
+  Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
+  growth are now available without synchronous capture. Initial Soulcalibur
+  native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
+  D3D12-queue evaluation is honestly unavailable rather than inferred. The full
+  transition/failure matrix, external timing, longer runs, resource-object
+  counts, latency, resize/fullscreen/device-removal cases, and title coverage
+  remain open.

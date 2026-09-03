@@ -518,6 +518,10 @@ bool DX11Renderer::Render()
 	bool is_rtt = rendContext->isRTT;
 	if (!is_rtt)
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (!config::EmulateFramebuffer)
+			beginNeuralPerformanceFrame();
+#endif
 		resize(rendContext->framebufferWidth, rendContext->framebufferHeight);
 		deviceContext->OMSetRenderTargets(1, &fbRenderTarget.get(), depthTexView);
 		deviceContext->ClearDepthStencilView(depthTexView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
@@ -542,6 +546,10 @@ bool DX11Renderer::Render()
 	setupPixelShaderConstants();
 
 	drawStrips();
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (!is_rtt)
+		markNeuralPvrEnd();
+#endif
 
 	if (is_rtt)
 	{
@@ -560,6 +568,9 @@ bool DX11Renderer::Render()
 #ifndef LIBRETRO
 		deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
 		displayFramebuffer();
+#ifdef FLYCAST_ENABLE_NEURAL
+		endNeuralPerformanceFrame();
+#endif
 		drawOSD();
 		renderVideoRouting();
 		DX11Context::Instance()->setFrameRendered();
@@ -1235,7 +1246,9 @@ void DX11Renderer::submitNeuralFrame()
 	if (!ensureNeuralResources()) return;
 	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
 		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
+	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceBegin);
 	if (!renderNeuralExports()) return;
+	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceEnd);
 	TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
 	TextureRef depth{};
@@ -1285,7 +1298,9 @@ void DX11Renderer::submitNeuralFrame()
 		+ qualityProfile.styleName;
 	neuralQualityCaptureMetadata.externalRecommendation =
 		qualityProfile.externalRecommendation;
+	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
 	const auto status = neuralStage.TrySubmit(frame);
+	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateEnd);
 	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
 	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
 	logNeuralConsumerStatus(status);
@@ -1373,6 +1388,32 @@ void DX11Renderer::captureNeuralQualityFrame()
 			settings.content.gameId.c_str(),
 			static_cast<unsigned long long>(neuralQualityCaptureMetadata.frameId),
 			afterCount, neuralQualityCaptureMetadata.submitStatus.c_str());
+}
+
+void DX11Renderer::beginNeuralPerformanceFrame()
+{
+	const bool synchronousCapture = !config::NeuralCaptureDirectory.get().empty()
+		&& config::NeuralCaptureFrames.get() > 0;
+	neuralPerformance.Configure(device,
+		synchronousCapture ? std::filesystem::path{} :
+			std::filesystem::path(config::NeuralPerformanceDirectory.get()),
+		static_cast<std::uint32_t>(std::max(0, config::NeuralPerformanceWarmup.get())),
+		static_cast<std::uint32_t>(std::clamp(config::NeuralPerformanceFrames.get(), 0, 10000)),
+		settings.content.gameId,
+		DX11Context::Instance()->isD3D11On12() ? "d3d11on12" : "d3d11",
+		IsOitRenderer() ? "dx11-oit" : "dx11", config::NeuralMode.get());
+	neuralPerformance.BeginFrame(deviceContext);
+}
+
+void DX11Renderer::markNeuralPvrEnd()
+{
+	neuralPerformance.Mark(deviceContext,
+		flycast::rend::neural::GpuTimingPoint::PvrEnd);
+}
+
+void DX11Renderer::endNeuralPerformanceFrame()
+{
+	neuralPerformance.EndFrame(deviceContext, neuralStage.GetStats());
 }
 
 bool DX11Renderer::syncNeuralMode()
@@ -1488,6 +1529,10 @@ void DX11Renderer::submitNeuralFramebuffer()
 void DX11Renderer::displayFramebuffer()
 {
 #ifndef LIBRETRO
+#ifdef FLYCAST_ENABLE_NEURAL
+	neuralPerformance.Mark(deviceContext,
+		flycast::rend::neural::GpuTimingPoint::CompositeBegin);
+#endif
 	D3D11_VIEWPORT vp{};
 	vp.Width = (FLOAT)settings.display.width;
 	vp.Height = (FLOAT)settings.display.height;
@@ -1566,6 +1611,8 @@ void DX11Renderer::displayFramebuffer()
 				config::Rotate90);
 		}
 	}
+	neuralPerformance.Mark(deviceContext,
+		flycast::rend::neural::GpuTimingPoint::CompositeEnd);
 	captureNeuralQualityFrame();
 	if (queuedNeuralOutput)
 	{
