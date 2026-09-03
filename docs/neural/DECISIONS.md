@@ -134,3 +134,24 @@ optimal dimensions for the configured output. The harness exposes explicit
 output dimensions; this prevents a successful 1:1 Super Sampling call from
 being mislabeled as an upscaling result. Dynamic-resolution min/max bounds are
 recorded internally but are not accepted by this first fixed-resolution path.
+
+## D-015: D3D12 NGX work is isolated in discardable ring slots
+
+The public D3D12 backend owns three command allocators, command lists, output
+textures, and per-slot fence values. A slot whose prior fence is incomplete
+returns `Busy`. NGX create/evaluate executes inside POD-only SEH leaves; an
+exception or failed external call prevents list submission and replaces the
+unsubmitted allocator/list. Successful work transitions output from UAV to
+shader-read and executes on the caller's direct queue. Harness readback waits
+are separate and do not enter the backend or emulator frame path. Current
+shutdown drains submitted work before releasing NGX and is not accepted yet as
+the deferred-retirement solution for runtime resize/toggle.
+
+## D-016: the harness proves the same-device D3D11On12 surface separately
+
+Before each D3D12 neural run, the harness creates D3D11On12 on the exact D3D12
+device and direct queue, wraps a D3D12 render target, acquires it, clears it
+through D3D11, releases it to D3D12, flushes, and observes queue completion.
+The synthetic neural inputs are then uploaded as native D3D12 resources. This
+proves basic wrapped-resource/same-queue viability, not yet that Flycast's PVR
+renderer or swapchain runs on that surface; FC-045 remains open for that reason.

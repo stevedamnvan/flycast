@@ -143,7 +143,7 @@ const char *StatusName(flycast::rend::neural::SubmitStatus status)
 
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error)
+	bool disableNgx, bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error)
 {
 	using namespace flycast::rend::neural;
 	if (input.width == 0 || input.height == 0 || input.rgba.size()
@@ -169,6 +169,7 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 		return false;
 	}
 	result.adapter = AdapterName(device.Get());
+	result.surface = "native-d3d11";
 	const std::size_t pixels = static_cast<std::size_t>(input.width) * input.height;
 	std::vector<float> depth(pixels, .5f);
 	std::vector<std::uint32_t> motion(pixels, 0);
@@ -184,6 +185,12 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 		|| !CreateInput(device.Get(), input.width, input.height, DXGI_FORMAT_R8_UNORM,
 			mask.data(), input.width, maskTexture, maskView, error))
 		return false;
+	if (disableNgx)
+	{
+		result.status = "unsupported";
+		result.reason = "--no-ngx requested after D3D11 export texture validation";
+		return true;
+	}
 
 	StageConfig config;
 	config.mode = backend == "dlaa-hook" ? NeuralMode::DlaaHook

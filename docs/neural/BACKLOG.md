@@ -41,11 +41,11 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | done | LOG #31,#33-#35; exact project identity/version, external feature path, live create/evaluate/cleanup and readable unsupported paths verified |
 | FC-043 | 4 | Recovery/timing | State machine, removal, async timings | doing | LOG #18,#31; sliding-window hold, nonblocking ring readiness, exception and device-removal mapping implemented; GPU timing/retry evidence pending |
 | FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | doing | LOG #34,#37-#40; three DLAA plus Quality/Performance fixtures pass 240/240 with zero invalid frames; DLAA/reference downsample and full flicker thresholds pending |
-| FC-045 | 4 | D3D11On12 surface | Same renderer, dedicated D3D12 lists | todo | |
-| FC-046 | 4 | Cross-API parity | Identical inputs within 1 LSB | todo | |
-| FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | todo | |
+| FC-045 | 4 | D3D11On12 surface | Same renderer, dedicated D3D12 lists | doing | LOG #42-#44; same-device/same-queue wrapped-resource smoke and dedicated NGX list/fence rings green in harness; production renderer/swapchain pending |
+| FC-046 | 4 | Cross-API parity | Identical inputs within 1 LSB | done | LOG #45; all 12 final D3D11/D3D12 DLAA/hook/SR fixture pairs are byte-identical |
+| FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | doing | LOG #44-#45; three 240-frame zero-jitter standard D3D12 evaluations green; loaded-module detection and real-emulator hook test pending |
 | FC-048 | 4 | Fallback transport | Bridge only if 11On12 gate fails | todo | |
-| FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | doing | LOG #31; no-NGX build and explicit unsupported factories green; GPU export WARP and D3D12 paths pending |
+| FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | done | LOG #46; SDK and no-SDK WARP GPU texture allocation plus D3D11On12 surface creation return clean explicit unsupported status on both APIs |
 | FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | doing | LOG #21; guarded mode/surface config and renderer requirement UI implemented; live status/metrics/debug selector pending |
 | FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | todo | |
 | FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | todo | |
@@ -56,7 +56,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | todo | |
 | FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#31; 41 checks pass in NGX and no-NGX builds, including explicit DLSS5/D3D12 stubs; numerical HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
-| FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40; D3D11 RTX matrix running; D3D12/hook and production captures pending |
+| FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40,#44-#45; public RTX harness matrix green on both APIs; production captures/cadence remain pending |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |
 | FC-064 | 6 | Performance | Invariants and measured targets | todo | |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | todo | |

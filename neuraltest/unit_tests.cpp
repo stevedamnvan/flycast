@@ -239,7 +239,13 @@ int RunSelfTests()
 			"experimental DLSS 5 backend is an explicit public-contract stub");
 		auto d3d12 = CreateNeuralBackend(NeuralMode::DlaaHook, Api::D3D12);
 		suite.Expect(d3d12->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
-			&& std::string(d3d12->GetStatusReason()).find("D3D11On12") != std::string::npos,
+			&& std::string(d3d12->GetStatusReason()).find(
+#ifdef FLYCAST_ENABLE_NGX
+				"D3D12 device"
+#else
+				"D3D11On12"
+#endif
+			) != std::string::npos,
 			"D3D12 backend reports the uninitialized surface precisely");
 	}
 	{

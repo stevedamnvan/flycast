@@ -325,18 +325,11 @@ int NeuralCommand(const Args& args)
 	{
 		std::filesystem::create_directories(output);
 		neuraltest::NeuralRunResult run;
-		if (args.count("--no-ngx") != 0)
-		{
-			run.status = "unsupported";
-			run.reason = "--no-ngx requested; live SDK calls disabled";
-		}
-		else if (api == "d3d12")
-		{
-			run.status = "unsupported";
-			run.reason = "D3D11On12 neural surface is not implemented";
-		}
-		else if (!neuraltest::RunLiveNeuralD3D11(image, backend, mode,
-			outputWidth, outputHeight, args.count("--warp") != 0, frames, run, error))
+		if (!(api == "d3d12"
+			? neuraltest::RunLiveNeuralD3D12(image, backend, mode, outputWidth, outputHeight,
+				args.count("--no-ngx") != 0, args.count("--warp") != 0, frames, run, error)
+			: neuraltest::RunLiveNeuralD3D11(image, backend, mode, outputWidth, outputHeight,
+				args.count("--no-ngx") != 0, args.count("--warp") != 0, frames, run, error)))
 		{
 			std::cerr << error << '\n';
 			return 1;
@@ -344,6 +337,7 @@ int NeuralCommand(const Args& args)
 		std::ofstream statusFile(std::filesystem::path(output) / "ngx-status.json");
 		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"mode\": \"" << effectiveMode
 			<< "\",\n  \"api\": \"" << api
+			<< "\",\n  \"surface\": \"" << run.surface
 			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
 			<< "\",\n  \"reason\": \"" << run.reason << "\",\n  \"requested_frames\": " << frames
 			<< ",\n  \"submissions\": " << run.submissions << ",\n  \"busy_skips\": " << run.busySkips
@@ -358,6 +352,7 @@ int NeuralCommand(const Args& args)
 		std::ofstream report(std::filesystem::path(output) / "report.md");
 		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nMode: `" << effectiveMode
 			<< "`  \nAPI: `" << api
+			<< "`  \nSurface: `" << run.surface
 			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter
 			<< "`  \nRender/output: " << image.width << 'x' << image.height << " -> "
 			<< outputWidth << 'x' << outputHeight

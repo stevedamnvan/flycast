@@ -85,3 +85,15 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #40 2026-09-02 working tree | per-frame static-output metric on 240-frame camera Quality run | 239 hash changes; worst adjacent frame affected 1195/2764800 pixels, max delta 41, PSNR 69.0399 dB; zero black frames | static convergence/flicker measured, not declared threshold-green
 
 #41 2026-09-02 working tree | correct create flags to the exact DLAA/SR contract and rerun 240-frame checker DLAA | DLAA flags 0 submitted 240/240 with zero invalid/busy/fallback/exception; 238 adjacent hash changes, worst 506/76800 pixels, delta 27, PSNR 60.0902 dB | DLAA no longer incorrectly advertises low-resolution motion; `MVLowRes` is SR-only
+
+#42 2026-09-02 6388f36 | first D3D12 backend compile | SDK v310.7.0's D3D12 create helper required explicit creation/visibility node masks unlike D3D11; corrected both to node mask 1 and rebuilt | failed attempt retained; no runtime claim
+
+#43 2026-09-02 working tree | first public D3D12 DLAA evaluation using dedicated allocator/list/output/fence slot | RTX 5090 submitted 1/1, result 1, exception 0, valid output hash `837c174685cf0994`; same one-frame D3D11 output matched exactly | native D3D12 backend live smoke pass
+
+#44 2026-09-02 working tree | D3D12 DLAA and zero-jitter DLAA-hook on `camera-translate`, `particles`, `textured-checker-edge`, 240 frames each | all six runs submitted 240/240, zero invalid/busy/fallback/exception; final hashes matched the D3D11 results | public standard evaluate-shape hook subset pass; no third-party module was loaded or inspected
+
+#45 2026-09-02 working tree | D3D12 Quality/Performance SR on the same three fixtures, then 12 cross-API final-image comparisons | six SR runs submitted 240/240 with zero invalid frames; DLAA, hook, Quality, and Performance D3D11/D3D12 pairs all had zero differing pixels and max delta 0 | FC-046 harness cross-API parity pass; static synthetic inputs only
+
+#46 2026-09-02 working tree | WARP and `--no-ngx` texture/export probes on D3D11 and D3D12; no-SDK build D3D12 repeat | both APIs allocated the complete GPU input set; D3D12 additionally created/cleared/released a same-queue D3D11On12 wrapped target; all reported explicit unsupported without SDK invocation | FC-049 pass within harness boundary
+
+#47 2026-09-02 working tree | rebuild SDK, instrumentation-only, and feature-off configurations; run both enabled selftests | all three `flycast` targets and both harnesses linked; each selftest passed 41/41 | configuration matrix green after D3D12 backend and harness additions

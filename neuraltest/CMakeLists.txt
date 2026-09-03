@@ -4,6 +4,7 @@ add_executable(neuraltest
     harness.h
     main.cpp
 	neural_runner.cpp
+	neural_runner_d3d12.cpp
     renderer.cpp
     shader_contract.cpp
     unit_tests.cpp)
