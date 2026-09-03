@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -372,6 +372,26 @@ HWND FindProcessWindow(DWORD processId)
 	EnumWindows(FindProcessWindow, reinterpret_cast<LPARAM>(&context));
 	return context.window;
 }
+
+bool PostF11(HWND window)
+{
+	if (!window) return false;
+	const LPARAM scan = static_cast<LPARAM>(MapVirtualKeyW(VK_F11, MAPVK_VK_TO_VSC)) << 16;
+	return PostMessageW(window, WM_KEYDOWN, VK_F11, scan) != FALSE
+		&& PostMessageW(window, WM_KEYUP, VK_F11, scan | (1ll << 30) | (1ll << 31)) != FALSE;
+}
+
+bool IsMonitorSizedWindow(HWND window)
+{
+	if (!window) return false;
+	RECT windowRect{};
+	MONITORINFO monitorInfo{};
+	monitorInfo.cbSize = sizeof(monitorInfo);
+	const HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+	return GetWindowRect(window, &windowRect) != FALSE && monitor
+		&& GetMonitorInfoW(monitor, &monitorInfo) != FALSE
+		&& EqualRect(&windowRect, &monitorInfo.rcMonitor) != FALSE;
+}
 #endif
 
 int CaptureCommand(const Args& args)
@@ -663,7 +683,8 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "invalid performance injection\n";
 		return 2;
 	}
-	if (transition != "none" && transition != "resize-minimize-restore")
+	if (transition != "none" && transition != "resize-minimize-restore"
+		&& transition != "fullscreen-roundtrip")
 	{
 		std::cerr << "invalid performance transition\n";
 		return 2;
@@ -805,10 +826,15 @@ int PerformanceCommand(const Args& args)
 	RECT originalWindowRect{};
 	bool originalWindowRectValid = false;
 	int transitionStep = transition == "none" ? 5 : 0;
-	bool resizeOutPassed = transition == "none";
-	bool minimizePassed = transition == "none";
-	bool restorePassed = transition == "none";
-	bool resizeBackPassed = transition == "none";
+	bool resizeOutPassed = transition != "resize-minimize-restore";
+	bool minimizePassed = transition != "resize-minimize-restore";
+	bool restorePassed = transition != "resize-minimize-restore";
+	bool resizeBackPassed = transition != "resize-minimize-restore";
+	bool fullscreenEnterRequested = transition != "fullscreen-roundtrip";
+	bool fullscreenEnterObserved = transition != "fullscreen-roundtrip";
+	bool fullscreenExitRequested = transition != "fullscreen-roundtrip";
+	bool fullscreenExitObserved = transition != "fullscreen-roundtrip";
+	bool fullscreenRectRestored = transition != "fullscreen-roundtrip";
 	auto nextTransition = std::chrono::steady_clock::time_point{};
 	while (std::chrono::steady_clock::now() < deadline)
 	{
@@ -831,7 +857,37 @@ int PerformanceCommand(const Args& args)
 					transitionWindow = FindProcessWindow(process.dwProcessId);
 				const int originalWidth = originalWindowRect.right - originalWindowRect.left;
 				const int originalHeight = originalWindowRect.bottom - originalWindowRect.top;
-				switch (transitionStep)
+				if (transition == "fullscreen-roundtrip")
+				{
+					switch (transitionStep)
+					{
+					case 0:
+						fullscreenEnterRequested = originalWindowRectValid
+							&& PostF11(transitionWindow);
+						break;
+					case 1:
+						fullscreenEnterObserved = fullscreenEnterRequested
+							&& IsMonitorSizedWindow(transitionWindow);
+						break;
+					case 2:
+						fullscreenExitRequested = PostF11(transitionWindow);
+						break;
+					case 3:
+						fullscreenExitObserved = fullscreenExitRequested && transitionWindow
+							&& IsWindowVisible(transitionWindow) != FALSE
+							&& !IsMonitorSizedWindow(transitionWindow);
+						break;
+					case 4:
+					{
+						RECT finalRect{};
+						fullscreenRectRestored = fullscreenExitObserved && transitionWindow
+							&& GetWindowRect(transitionWindow, &finalRect) != FALSE
+							&& EqualRect(&finalRect, &originalWindowRect) != FALSE;
+						break;
+					}
+					}
+				}
+				else switch (transitionStep)
 				{
 				case 0:
 					resizeOutPassed = originalWindowRectValid && SetWindowPos(transitionWindow,
@@ -878,7 +934,8 @@ int PerformanceCommand(const Args& args)
 				}
 				}
 				++transitionStep;
-				nextTransition = now + std::chrono::milliseconds(350);
+				nextTransition = now + std::chrono::milliseconds(
+					transition == "fullscreen-roundtrip" ? 1000 : 350);
 			}
 		}
 		if (std::filesystem::exists(completion)) { complete = true; break; }
@@ -899,7 +956,9 @@ int PerformanceCommand(const Args& args)
 	}
 	CloseHandle(process.hProcess);
 	const bool transitionComplete = transitionStep == 5 && resizeOutPassed
-		&& minimizePassed && restorePassed && resizeBackPassed;
+		&& minimizePassed && restorePassed && resizeBackPassed
+		&& fullscreenEnterRequested && fullscreenEnterObserved
+		&& fullscreenExitRequested && fullscreenExitObserved && fullscreenRectRestored;
 	bool rendererReinitComplete = rendererReinitAfter == 0;
 	if (rendererReinitAfter != 0)
 	{
@@ -990,7 +1049,12 @@ int PerformanceCommand(const Args& args)
 		<< (resizeOutPassed ? "true" : "false")
 		<< ", \"minimize\": " << (minimizePassed ? "true" : "false")
 		<< ", \"restore\": " << (restorePassed ? "true" : "false")
-		<< ", \"resize_back\": " << (resizeBackPassed ? "true" : "false") << "}"
+		<< ", \"resize_back\": " << (resizeBackPassed ? "true" : "false")
+		<< ", \"fullscreen_enter_requested\": " << (fullscreenEnterRequested ? "true" : "false")
+		<< ", \"fullscreen_enter_observed\": " << (fullscreenEnterObserved ? "true" : "false")
+		<< ", \"fullscreen_exit_requested\": " << (fullscreenExitRequested ? "true" : "false")
+		<< ", \"fullscreen_exit_observed\": " << (fullscreenExitObserved ? "true" : "false")
+		<< ", \"fullscreen_rect_restored\": " << (fullscreenRectRestored ? "true" : "false") << "}"
 		<< ",\n  \"renderer_reinit_after_main_frames\": " << rendererReinitAfter
 		<< ",\n  \"renderer_reinit_completed\": "
 		<< (rendererReinitComplete ? "true" : "false")

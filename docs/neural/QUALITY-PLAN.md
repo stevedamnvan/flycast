@@ -240,3 +240,11 @@ close a temporal or title-quality gate.
   local VRAM grew by a bounded 647168 bytes; D3D11On12 OIT remained exactly
   flat. This closes the bounded OIT long-run cadence check, not resource-object
   accounting, external-consumer timing, or broader-title stability.
+  LOG #84 adds Flycast-native F11 borderless-desktop-fullscreen enter/exit on
+  normal DX11 and DX11 OIT across native D3D11 and D3D11On12. All four runs
+  positively observed monitor-sized fullscreen, windowed exit, and exact
+  original-rectangle restoration, then completed 600 measured neural Presents
+  with zero native Presents, missing/accepted-output drops, identity errors,
+  output repeats, alternation, latency, or query-ring pressure and clean close.
+  Each retained one source-frame gap at the mode boundary. Flycast does not
+  expose exclusive fullscreen in this path, so no exclusive claim is made.

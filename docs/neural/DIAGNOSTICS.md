@@ -59,7 +59,7 @@ Production performance measurement is separate:
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
 [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed]
 [--inject-count N] [--inject-after N]
-[--transition none|resize-minimize-restore] [--transition-delay-ms N]
+[--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N]
 [--renderer-reinit-after N]
 [--renderer-switch-after N]
 [--surface-switch-after N]
@@ -90,6 +90,14 @@ through the sequence, so fallback, reset, frame-identity, cadence, and VRAM
 effects are retained. This covers window resize and minimize/restore; it does
 not claim borderless/exclusive-fullscreen, cross-monitor movement, alt-tab, or
 renderer restart.
+
+`fullscreen-roundtrip` posts the same unmodified F11 input Flycast handles in
+normal use. Acceptance separately requires the key request, monitor-sized SDL
+desktop-fullscreen state, exit request, observed return to windowed state, and
+exact restoration of the original window rectangle. Fullscreen observations
+use a one-second interval because SDL/Windows state propagation is asynchronous.
+Flycast exposes `SDL_WINDOW_FULLSCREEN_DESKTOP` here, so this proves borderless
+desktop fullscreen, not an unsupported exclusive-fullscreen mode.
 
 `--renderer-reinit-after N` is a separate hidden, default-off developer check
 for a real in-process renderer/API-context teardown and recreation after main

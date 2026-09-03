@@ -727,3 +727,17 @@ The exact source/destination surface marker is necessary but insufficient. The
 replacement performance tracker must also identify the destination API and
 finish a fresh bounded interval. This proves in-process movement between the
 two selected surfaces; it does not prove a switch to another graphics API.
+
+## D-049: fullscreen evidence uses Flycast's real F11/SDL path
+
+Fullscreen validation sends unmodified F11 key messages to the launched
+Flycast window so the normal SDL event handler calls
+`SDL_SetWindowFullscreen(SDL_WINDOW_FULLSCREEN_DESKTOP)`. The harness must
+observe the process-owned window become exactly monitor-sized, send F11 again,
+observe windowed state, and verify the exact original rectangle is restored.
+Requests alone do not pass.
+
+SDL/Windows propagation is allowed one second between action and observation.
+This covers Flycast's supported borderless desktop fullscreen path; it must not
+be relabeled exclusive fullscreen. All cadence, identity, fallback, reset, and
+VRAM measurements continue through the transition.
