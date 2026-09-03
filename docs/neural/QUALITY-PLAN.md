@@ -189,10 +189,16 @@ close a temporal or title-quality gate.
   Flycast's recommendation. The supplied consumer's current host log reports
   upscaling off, intensity 1, global tone 1, diffuse white 203 nits, preset 0,
   style 0, and enabled on. LOG #106 adds fail-closed capture binding for this
-  tuple, but the fresh post-HUD policy-OFF attempt produced no eligible evidence
-  and was not promoted. No causal setting conclusion or new winner is claimed.
-  Broader titles and a winning verified external setting remain open; Gate 16
-  is not green.
+  tuple. LOG #107 then widened and rebuilt the late ON/OFF evidence window,
+  confirmed 30/30 fresh post-fix frames, and exact-input paired them to public
+  Auto. External/public raw temporal RGB MAE was 2.752928/2.774712, but
+  source PSNR was 25.677898/38.543206 dB and source RGB MAE was
+  10.256009/0.932040. External also lost the trail, edge, thin-line, color,
+  saturation, and black-level components. The interval contained no protected
+  HUD pixels, so it is settings/source evidence rather than a second real-HUD
+  proof. No causal single-control conclusion or new winner is claimed. Broader
+  titles and a winning verified external setting remain open; Gate 16 is not
+  green.
 - Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
   Enhanced Materials and explicitly non-faithful Photoreal Experimental are
   selectable; style families, user-controlled external recommendations, and an
