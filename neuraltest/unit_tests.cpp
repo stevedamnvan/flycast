@@ -462,10 +462,65 @@ int RunSelfTests()
 		for (auto& vertex : context.verts) { vertex.x += 24.f; vertex.y -= 7.f; }
 		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
+		const auto previousPositions = instrumentation->PreviousPositions();
 		suite.Expect(moved.matches.data[0].tier == 1 &&
 			DrawStructuralSignature(moved.draws.data[0]) == originalStructure &&
 			moved.draws.data[0].centroid[0] > 40.f,
 			"production draw capture retains identity across pose translation");
+		suite.Expect(previousPositions.size == 3 &&
+			instrumentation->TrustedPreviousVertexCount() == 3 &&
+			previousPositions.data[0].valid == 1.f && previousPositions.data[0].x == 10.f &&
+			previousPositions.data[1].valid == 1.f && previousPositions.data[1].x == 80.f &&
+			previousPositions.data[2].valid == 1.f && previousPositions.data[2].x == 40.f,
+			"accepted exact topology emits prior positions by strip index");
+		context.idx = {0, 2, 1};
+		const auto& reindexed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(reindexed.matches.data[0].tier != 0 &&
+			instrumentation->TrustedPreviousVertexCount() == 0 &&
+			std::all_of(instrumentation->PreviousPositions().begin(),
+				instrumentation->PreviousPositions().end(),
+				[](const PreviousPosition& position) { return position.valid == 0.f; }),
+			"reindexed topology cannot emit exact previous-position motion");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(6);
+		for (int i = 0; i < 3; ++i)
+		{
+			context.verts[i].x = static_cast<float>(i * 10);
+			context.verts[i].y = static_cast<float>(i * 5);
+			context.verts[i].z = .5f;
+			context.verts[i + 3] = context.verts[i];
+			context.verts[i + 3].x += 100.f;
+		}
+		context.idx = {0, 1, 2, 3, 4, 5};
+		PolyParam first{};
+		first.init();
+		first.first = 0;
+		first.count = 3;
+		first.tcw.full = 71;
+		PolyParam second = first;
+		second.first = 3;
+		context.global_param_op = {first, second};
+		RenderPass pass{};
+		pass.op_count = 2;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& previous = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		instrumentation->MarkEvaluated(previous.frameId);
+		context.idx = {0, 1, 2, 0, 1, 2};
+		instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(instrumentation->TrustedPreviousVertexCount() == 0 &&
+			std::all_of(instrumentation->PreviousPositions().begin(),
+				instrumentation->PreviousPositions().end(),
+				[](const PreviousPosition& position) { return position.valid == 0.f; }),
+			"shared current vertices with conflicting history are invalidated");
 	}
 	{
 		const auto jitter = HaltonJitter(0, 8);

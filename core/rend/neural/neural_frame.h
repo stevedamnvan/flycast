@@ -80,6 +80,15 @@ struct DrawMatch {
 	float rigid[4]{};
 };
 
+struct PreviousPosition {
+	float x = 0.f;
+	float y = 0.f;
+	float z = 0.f;
+	// One only when exact index-position correspondence is authoritative.
+	// Zero covers new, ambiguous, conflicted, reindexed, and Naomi 2 vertices.
+	float valid = 0.f;
+};
+
 struct NeuralFrame {
 	TextureRef color;
 	TextureRef depth;

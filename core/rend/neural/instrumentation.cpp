@@ -186,12 +186,114 @@ void NeuralInstrumentation::SetEnabled(bool enabled) noexcept
 	if (!enabled)
 	{
 		drawCounts_[0] = drawCounts_[1] = 0;
+		positionBuffers_[0].clear();
+		positionBuffers_[1].clear();
+		indexBuffers_[0].clear();
+		indexBuffers_[1].clear();
+		previousPositions_.clear();
+		trustedPreviousVertexCount_ = 0;
 		referenceBuffer_ = 0;
 		currentBuffer_ = 1;
 		hasCapturedFrame_ = false;
 		hasSource_ = false;
 		frame_ = {};
 	}
+}
+
+bool NeuralInstrumentation::CapturePositionSnapshot(const rend_context& context) noexcept
+{
+	if (context.verts.size() > MaxHistoryVertices || context.idx.size() > MaxHistoryIndices)
+		return false;
+	try
+	{
+		auto& positions = positionBuffers_[currentBuffer_];
+		positions.resize(context.verts.size());
+		for (std::size_t i = 0; i < context.verts.size(); ++i)
+		{
+			positions[i].x = context.verts[i].x;
+			positions[i].y = context.verts[i].y;
+			positions[i].z = context.verts[i].z;
+			positions[i].valid = 0.f;
+		}
+		indexBuffers_[currentBuffer_].assign(context.idx.begin(), context.idx.end());
+		return true;
+	}
+	catch (...)
+	{
+		positionBuffers_[currentBuffer_].clear();
+		indexBuffers_[currentBuffer_].clear();
+		return false;
+	}
+}
+
+void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) noexcept
+{
+	trustedPreviousVertexCount_ = 0;
+	try
+	{
+		previousPositions_.resize(context.verts.size());
+	}
+	catch (...)
+	{
+		previousPositions_.clear();
+		truncated_ = true;
+		Discontinuity();
+		return;
+	}
+	for (std::size_t i = 0; i < context.verts.size(); ++i)
+	{
+		previousPositions_[i].x = context.verts[i].x;
+		previousPositions_[i].y = context.verts[i].y;
+		previousPositions_[i].z = context.verts[i].z;
+		previousPositions_[i].valid = 0.f;
+	}
+	if (resetPending_ || truncated_ || drawCounts_[referenceBuffer_] == 0)
+		return;
+	const auto& previousVertices = positionBuffers_[referenceBuffer_];
+	const auto& previousIndices = indexBuffers_[referenceBuffer_];
+	const auto& currentIndices = indexBuffers_[currentBuffer_];
+	for (std::size_t ci = 0; ci < drawCounts_[currentBuffer_]; ++ci)
+	{
+		const auto& currentDraw = drawBuffers_[currentBuffer_][ci];
+		const auto& match = matchBuffer_[ci];
+		if (match.tier == 0 || match.confidence < .5f ||
+			(currentDraw.flags & DrawNaomi2) != 0 ||
+			match.prevOrdinal >= drawCounts_[referenceBuffer_])
+			continue;
+		const auto& previousDraw = drawBuffers_[referenceBuffer_][match.prevOrdinal];
+		if (currentDraw.topologySig != previousDraw.topologySig ||
+			currentDraw.indexCount != previousDraw.indexCount)
+			continue;
+		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+		{
+			const std::size_t currentOffset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+			const std::size_t previousOffset = static_cast<std::size_t>(previousDraw.firstIndex) + i;
+			if (currentOffset >= currentIndices.size() || previousOffset >= previousIndices.size())
+				break;
+			const auto currentVertex = currentIndices[currentOffset];
+			const auto previousVertex = previousIndices[previousOffset];
+			if (currentVertex >= previousPositions_.size() || previousVertex >= previousVertices.size())
+				continue;
+			auto& output = previousPositions_[currentVertex];
+			const auto& candidate = previousVertices[previousVertex];
+			if (output.valid < 0.f) continue;
+			if (output.valid > 0.f && (output.x != candidate.x || output.y != candidate.y ||
+				output.z != candidate.z))
+			{
+				output.valid = -1.f;
+				--trustedPreviousVertexCount_;
+				continue;
+			}
+			if (output.valid == 0.f)
+			{
+				output = candidate;
+				output.valid = 1.f;
+				++trustedPreviousVertexCount_;
+			}
+		}
+	}
+	for (auto& position : previousPositions_)
+		if (position.valid < 0.f) position.valid = 0.f;
 }
 
 void NeuralInstrumentation::Discontinuity() noexcept
@@ -222,9 +324,12 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		drawCounts_[currentBuffer_], truncated_);
 	AppendList(context, context.global_param_tr, ListType_Translucent, current,
 		drawCounts_[currentBuffer_], truncated_);
+	if (!CapturePositionSnapshot(context))
+		truncated_ = true;
 	if (truncated_) Discontinuity();
 	MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
 		{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
+	BuildPreviousPositions(context);
 	drawSnapshotHash_ = 1469598103934665603ull;
 	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
 	{
@@ -259,6 +364,8 @@ const NeuralFrame& NeuralInstrumentation::CaptureSource(FrameSource source, Text
 	std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect) noexcept
 {
 	BeginSource(source);
+	previousPositions_.clear();
+	trustedPreviousVertexCount_ = 0;
 	frame_ = {};
 	frame_.color = color;
 	frame_.renderWidth = renderWidth;

@@ -61,6 +61,14 @@ repeated structural buckets record deterministic minimum-cost assignment plus
 best/second-best costs; buckets above eight are reported as ambiguous with zero
 confidence instead of receiving manufactured motion.
 
+Exact-topology matches also build a bounded per-current-vertex previous-position
+stream from the last stage-accepted geometry snapshot. Each element stores XYZ
+and an explicit validity bit. Mapping follows index position, including repeated
+strip indices; topology changes, Naomi 2 until transform history is implemented,
+out-of-range indices, reset/truncation, and conflicting mappings of one current
+vertex remain invalid. The history caps are 1,048,576 vertices and indices;
+overflow resets history rather than allocating without bound.
+
 The ROM-free Gate 11 command is `neuraltest depth-contract --api
 d3d11|d3d11on12 --out DIR`. It compiles the production pixel shader, writes
 `correct-color.png`, `reversed-color.png`, `wrong-polarity-color.png`, exact

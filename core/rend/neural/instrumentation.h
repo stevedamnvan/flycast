@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstdint>
+#include <vector>
 
 struct rend_context;
 
@@ -14,6 +15,8 @@ namespace flycast::rend::neural {
 class NeuralInstrumentation final {
 public:
 	static constexpr std::size_t MaxDraws = 8192;
+	static constexpr std::size_t MaxHistoryVertices = 1024 * 1024;
+	static constexpr std::size_t MaxHistoryIndices = 1024 * 1024;
 
 	void SetEnabled(bool enabled) noexcept;
 	bool IsEnabled() const noexcept { return enabled_; }
@@ -33,15 +36,29 @@ public:
 	bool Truncated() const noexcept { return truncated_; }
 	std::uint64_t DrawSnapshotHash() const noexcept { return drawSnapshotHash_; }
 	std::uint32_t HistoryGeneration() const noexcept { return historyGeneration_; }
+	ArrayView<PreviousPosition> PreviousPositions() const noexcept
+	{
+		return {previousPositions_.data(), previousPositions_.size()};
+	}
+	std::size_t TrustedPreviousVertexCount() const noexcept
+	{
+		return trustedPreviousVertexCount_;
+	}
 
 private:
 	using DrawBuffer = std::array<DrawRecord, MaxDraws>;
 	using MatchBuffer = std::array<DrawMatch, MaxDraws>;
 	void BeginSource(FrameSource source) noexcept;
+	bool CapturePositionSnapshot(const ::rend_context& context) noexcept;
+	void BuildPreviousPositions(const ::rend_context& context) noexcept;
 
 	DrawBuffer drawBuffers_[2]{};
 	MatchBuffer matchBuffer_{};
 	std::size_t drawCounts_[2]{};
+	std::vector<PreviousPosition> positionBuffers_[2];
+	std::vector<std::uint32_t> indexBuffers_[2];
+	std::vector<PreviousPosition> previousPositions_;
+	std::size_t trustedPreviousVertexCount_ = 0;
 	std::uint32_t referenceBuffer_ = 0;
 	std::uint32_t currentBuffer_ = 1;
 	std::uint64_t frameId_ = 0;

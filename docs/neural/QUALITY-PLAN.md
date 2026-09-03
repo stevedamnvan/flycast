@@ -105,4 +105,9 @@ close a temporal or title-quality gate.
   small buckets use minimum-cost assignment, and large buckets are ambiguous.
   Previous-position rasterization and full confidence/disocclusion evidence
   remain open, so Gate 13 is not yet green.
+- FC-032 previous-position stream: partial at LOG #66. The bounded CPU stream
+  is owned by last accepted history, maps exact topology by strip/index
+  position, supports deformation, and rejects reindex and shared-vertex
+  conflicts. Production DX11 shader binding and Naomi 2 transform history are
+  still required before motion can be trusted.
 - Gates 13 through 18: pending.

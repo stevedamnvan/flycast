@@ -385,3 +385,21 @@ bounds/scale change, depth-range change, and ordinal proximity. Each accepted
 match records its assigned and next candidate cost for later confidence work.
 Larger repeated buckets are classified ambiguous at zero confidence. This is
 the conservative particle policy; it does not manufacture a confident match.
+
+## D-032: previous positions are accepted-history data with explicit validity
+
+The instrumentation owns two bounded CPU geometry snapshots aligned with its
+draw-history buffers. Capture writes only the current candidate; the buffers
+swap only in `MarkEvaluated` after the neural stage accepts that exact frame.
+Skipped and failed evaluations therefore cannot replace the position reference.
+Both vertex and index history are capped at 1,048,576 elements; allocation or
+cap failure marks the package truncated and resets temporal history.
+
+For exact topology, current and accepted indices are paired at the same strip
+position and the accepted XYZ is written at the current vertex index. This
+retains per-vertex deformation and repeated/degenerate strip positions. If two
+draws map one current vertex to different accepted positions, that vertex is
+invalidated. Reindexed topology, resets, truncated frames, and out-of-range
+indices emit validity zero. Naomi 2 is also validity zero until previous matrix
+state is carried and proven; applying current matrices to prior model-space
+positions would create false camera/object motion.
