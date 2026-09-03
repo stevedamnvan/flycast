@@ -757,6 +757,10 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	releaseNeuralInputs();
 	releaseNeuralHistory();
 	neuralPresentationView.reset();
+	neuralQualityCapturePublicView.reset();
+	neuralQualityCapturePublicSlot = NeuralExportRingSize;
+	neuralCaptureOnlyPublicView.reset();
+	neuralCaptureOnlyPublicSlot = NeuralExportRingSize;
 	auto releaseTargetRing = [](NeuralTargetRing& ring) {
 		for (auto& view : ring.views) view.reset();
 		for (auto& target : ring.targets) target.reset();
@@ -1067,12 +1071,11 @@ void DX11Renderer::releaseNeuralPresentation()
 	pendingNeuralPresentationFrameId = 0;
 }
 
-bool DX11Renderer::wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId)
+bool DX11Renderer::ensureNeuralOutputWrapped(ID3D12Resource *resource, std::size_t& slot)
 {
 	if (!activeNeuralSurface || !resource || !DX11Context::Instance()->isD3D11On12())
 		return false;
-	releaseNeuralPresentation();
-	std::size_t slot = NeuralExportRingSize;
+	slot = NeuralExportRingSize;
 	for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
 	{
 		if (neuralOutputD3D12Resources[i].get() == resource)
@@ -1109,6 +1112,15 @@ bool DX11Renderer::wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t fram
 			return false;
 		}
 	}
+	return true;
+}
+
+bool DX11Renderer::wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId)
+{
+	releaseNeuralPresentation();
+	std::size_t slot = NeuralExportRingSize;
+	if (!ensureNeuralOutputWrapped(resource, slot))
+		return false;
 	ID3D11Resource *wrapped = neuralOutputWrappedTextures[slot];
 	DX11Context::Instance()->AcquireWrappedResources(&wrapped, 1);
 	neuralPresentationSlot = slot;
@@ -1120,6 +1132,18 @@ bool DX11Renderer::wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t fram
 		NOTICE_LOG(RENDERER,
 			"DLSS 5 candidate public-output ready: frame=%llu route=d3d11on12 resource=%p; external mutation unconfirmed",
 			static_cast<unsigned long long>(frameId), resource);
+	return true;
+}
+
+bool DX11Renderer::retainNeuralOutputForCapture(ID3D12Resource *resource)
+{
+	neuralCaptureOnlyPublicView.reset();
+	neuralCaptureOnlyPublicSlot = NeuralExportRingSize;
+	std::size_t slot = NeuralExportRingSize;
+	if (!ensureNeuralOutputWrapped(resource, slot))
+		return false;
+	neuralCaptureOnlyPublicView = neuralOutputWrappedViews[slot];
+	neuralCaptureOnlyPublicSlot = slot;
 	return true;
 }
 
@@ -1334,6 +1358,15 @@ void DX11Renderer::submitNeuralFrame()
 			&& stats.dlss5Readiness != Dlss5HookReadiness::ContractEvaluated)
 		{
 			neuralQualityCapturePending = neuralQualityCapture.WantsFrame();
+			if (neuralQualityCapturePending && activeNeuralSurface
+				&& config::NeuralDlss5EvidenceCapture.get()
+				&& !config::NeuralDlss5EvidencePresentMarker.get())
+			{
+				const auto output = neuralStage.GetOutput();
+				if (output.api == TextureApi::D3D12 && output.resource)
+					retainNeuralOutputForCapture(
+						static_cast<ID3D12Resource *>(output.resource));
+			}
 			return;
 		}
 		const auto output = neuralStage.GetOutput();
@@ -1414,6 +1447,8 @@ void DX11Renderer::captureNeuralQualityFrame()
 	}
 	neuralQualityCapturePublicView.reset();
 	neuralQualityCapturePublicSlot = NeuralExportRingSize;
+	neuralCaptureOnlyPublicView.reset();
+	neuralCaptureOnlyPublicSlot = NeuralExportRingSize;
 	if (!captured)
 		WARN_LOG(RENDERER, "Neural quality capture failed: %s", error.c_str());
 	else if (afterCount != beforeCount)
@@ -1734,6 +1769,11 @@ void DX11Renderer::displayFramebuffer()
 		neuralQualityCapturePublicView = neuralPresentationView;
 		if (neuralPresentationAcquired)
 			neuralQualityCapturePublicSlot = neuralPresentationSlot;
+	}
+	else if (neuralQualityCapturePending && neuralCaptureOnlyPublicView)
+	{
+		neuralQualityCapturePublicView = neuralCaptureOnlyPublicView;
+		neuralQualityCapturePublicSlot = neuralCaptureOnlyPublicSlot;
 	}
 	if (queuedNeuralOutput)
 	{

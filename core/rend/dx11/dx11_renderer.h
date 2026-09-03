@@ -154,7 +154,9 @@ protected:
 		std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views,
 		std::array<ComPtr<ID3D12Resource>, 3>& d3d12Resources,
 		DXGI_FORMAT format);
+	bool ensureNeuralOutputWrapped(ID3D12Resource *resource, std::size_t& slot);
 	bool wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId);
+	bool retainNeuralOutputForCapture(ID3D12Resource *resource);
 	void acquireNeuralInputs();
 	void releaseNeuralInputs();
 	void acquireNeuralHistory();
@@ -272,6 +274,8 @@ protected:
 	flycast::rend::neural::QualityCaptureMetadata neuralQualityCaptureMetadata;
 	ComPtr<ID3D11ShaderResourceView> neuralQualityCapturePublicView;
 	std::size_t neuralQualityCapturePublicSlot = NeuralExportRingSize;
+	ComPtr<ID3D11ShaderResourceView> neuralCaptureOnlyPublicView;
+	std::size_t neuralCaptureOnlyPublicSlot = NeuralExportRingSize;
 	bool neuralQualityCapturePending = false;
 	flycast::rend::neural::PerformanceTracker neuralPerformance;
 #endif
