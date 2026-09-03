@@ -224,3 +224,12 @@ close a temporal or title-quality gate.
   renderer identity matched every switch marker and report. Three measured
   windows had flat VRAM and normal-D3D11 to OIT released 37703680 bytes. The
   D3D11/D3D11On12 surface switch and other listed Gate 18 gaps remain open.
+  LOG #82 adds real native-D3D11 to D3D11On12 and D3D11On12 to native-D3D11
+  surface switches while retaining normal DX11 or DX11 OIT. Every replacement
+  tracker identified the requested destination API and completed a fresh
+  60-frame warmup plus 600 measured frames with 600/600 neural Presents, zero
+  native Presents, missing/accepted-output drops, identity errors, repeats,
+  latency, fallback, or query-ring pressure, and clean close. Both normal-DX11
+  windows had flat VRAM; D3D11-to-On12 OIT grew by 131072 bytes and On12-to-
+  D3D11 OIT by 3334144 bytes, so longer OIT/resource-object evidence remains
+  required.

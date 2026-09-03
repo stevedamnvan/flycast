@@ -713,3 +713,17 @@ renderer, and sampler restart. Acceptance then requires the destination
 renderer to identify itself in a fresh completed performance report. This is
 stronger than merely observing a settings change, but it is not evidence for a
 D3D11/D3D11On12 surface change or another graphics API.
+
+## D-048: neural-surface switching is separate from renderer switching
+
+Native D3D11 and D3D11On12 are two neural/public-NGX surface implementations
+under the same DX11 renderer selection. The developer transition flips only
+that surface option, forces the ordinary renderer/API-context teardown and
+recreation path, and retains the normal or OIT renderer variant. It is mutually
+exclusive with the reinit and renderer-variant controls so every run has one
+unambiguous transition.
+
+The exact source/destination surface marker is necessary but insufficient. The
+replacement performance tracker must also identify the destination API and
+finish a fresh bounded interval. This proves in-process movement between the
+two selected surfaces; it does not prove a switch to another graphics API.

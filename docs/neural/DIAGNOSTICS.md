@@ -62,6 +62,7 @@ Production performance measurement is separate:
 [--transition none|resize-minimize-restore] [--transition-delay-ms N]
 [--renderer-reinit-after N]
 [--renderer-switch-after N]
+[--surface-switch-after N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -108,6 +109,14 @@ the launcher verifies the exact source and destination renderer. As with
 reinit, the final performance report must identify the destination renderer
 and complete a fresh warmup and measured interval. This proves both directions
 within the DX11 API; it does not claim a D3D11-to-D3D11On12 surface switch.
+
+`--surface-switch-after N` is mutually exclusive with both renderer transitions
+and flips the neural/public-NGX surface between native D3D11 and D3D11On12 at
+the exact main frame while retaining normal DX11 or DX11 OIT. Its marker
+records the source and destination surface; acceptance requires a new report
+whose `api` identifies that destination plus a fresh warmup and complete sample
+interval. This is an in-process surface/context switch, not a switch to Vulkan,
+OpenGL, or DirectX 9.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket

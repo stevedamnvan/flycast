@@ -128,6 +128,7 @@ Option<int> NeuralFailureInjectionCount("rend.NeuralFailureInjectionCount", 0);
 Option<int> NeuralFailureInjectionAfter("rend.NeuralFailureInjectionAfter", 0);
 Option<int> NeuralRendererReinitAfter("rend.NeuralRendererReinitAfter", 0);
 Option<int> NeuralRendererSwitchAfter("rend.NeuralRendererSwitchAfter", 0);
+Option<int> NeuralSurfaceSwitchAfter("rend.NeuralSurfaceSwitchAfter", 0);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

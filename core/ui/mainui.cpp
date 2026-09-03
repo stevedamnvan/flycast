@@ -44,6 +44,10 @@ static bool neuralDeveloperSwitchTriggered;
 static bool neuralDeveloperSwitchPending;
 static int neuralDeveloperSwitchFrom;
 static int neuralDeveloperSwitchTo;
+static bool neuralDeveloperSurfaceSwitchTriggered;
+static bool neuralDeveloperSurfaceSwitchPending;
+static int neuralDeveloperSurfaceSwitchFrom;
+static int neuralDeveloperSurfaceSwitchTo;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -70,6 +74,20 @@ static void writeNeuralDeveloperSwitchMarker()
 	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
 		<< MainFrameCount << ",\n  \"renderer_from\": " << neuralDeveloperSwitchFrom
 		<< ",\n  \"renderer_to\": " << neuralDeveloperSwitchTo
+		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
+}
+
+static void writeNeuralDeveloperSurfaceSwitchMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "surface-switch-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
+		<< MainFrameCount << ",\n  \"surface_from\": " << neuralDeveloperSurfaceSwitchFrom
+		<< ",\n  \"surface_to\": " << neuralDeveloperSurfaceSwitchTo
 		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
 }
 #endif
@@ -158,6 +176,7 @@ void mainui_loop(bool forceStart)
 #ifdef FLYCAST_ENABLE_NEURAL
 		const int neuralReinitAfter = std::clamp(config::NeuralRendererReinitAfter.get(), 0, 10000);
 		const int neuralSwitchAfter = std::clamp(config::NeuralRendererSwitchAfter.get(), 0, 10000);
+		const int neuralSurfaceSwitchAfter = std::clamp(config::NeuralSurfaceSwitchAfter.get(), 0, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -183,6 +202,23 @@ void mainui_loop(bool forceStart)
 			NOTICE_LOG(RENDERER,
 				"Neural developer renderer switch requested at main frame %u: %d -> %d",
 				MainFrameCount, neuralDeveloperSwitchFrom, neuralDeveloperSwitchTo);
+		}
+		else if (!neuralDeveloperSurfaceSwitchTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralSurfaceSwitchAfter)
+			&& (currentRenderer == RenderType::DirectX11
+				|| currentRenderer == RenderType::DirectX11_OIT))
+		{
+			neuralDeveloperSurfaceSwitchTriggered = true;
+			neuralDeveloperSurfaceSwitchPending = true;
+			neuralDeveloperSurfaceSwitchFrom = config::NeuralD3D12Surface.get() ? 1 : 0;
+			neuralDeveloperSurfaceSwitchTo = neuralDeveloperSurfaceSwitchFrom == 0 ? 1 : 0;
+			config::NeuralD3D12Surface = neuralDeveloperSurfaceSwitchTo != 0;
+			forceReinit = true;
+			NOTICE_LOG(RENDERER,
+				"Neural developer surface switch requested at main frame %u: %d -> %d",
+				MainFrameCount, neuralDeveloperSurfaceSwitchFrom,
+				neuralDeveloperSurfaceSwitchTo);
 		}
 #endif
 
@@ -229,6 +265,15 @@ void mainui_loop(bool forceStart)
 					"Neural developer renderer switch completed at main frame %u: %d -> %d",
 					MainFrameCount, neuralDeveloperSwitchFrom, neuralDeveloperSwitchTo);
 			}
+			if (neuralDeveloperSurfaceSwitchPending)
+			{
+				neuralDeveloperSurfaceSwitchPending = false;
+				writeNeuralDeveloperSurfaceSwitchMarker();
+				NOTICE_LOG(RENDERER,
+					"Neural developer surface switch completed at main frame %u: %d -> %d",
+					MainFrameCount, neuralDeveloperSurfaceSwitchFrom,
+					neuralDeveloperSurfaceSwitchTo);
+			}
 #endif
 			forceReinit = false;
 			currentRenderer = config::RendererType;
@@ -247,6 +292,8 @@ void mainui_start()
 	neuralDeveloperReinitPending = false;
 	neuralDeveloperSwitchTriggered = false;
 	neuralDeveloperSwitchPending = false;
+	neuralDeveloperSurfaceSwitchTriggered = false;
+	neuralDeveloperSurfaceSwitchPending = false;
 #endif
 	mainui_enabled = true;
 }

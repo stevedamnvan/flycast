@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -608,7 +608,7 @@ int PerformanceCommand(const Args& args)
 	}
 	std::string error;
 	std::uint32_t frames = 0, warmup = 120, timeoutMs = 120000, renderHeight = 480;
-	std::uint32_t rendererReinitAfter = 0, rendererSwitchAfter = 0;
+	std::uint32_t rendererReinitAfter = 0, rendererSwitchAfter = 0, surfaceSwitchAfter = 0;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
 		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -617,14 +617,18 @@ int PerformanceCommand(const Args& args)
 		|| rendererReinitAfter > 10000
 		|| !Number(args, "--renderer-switch-after", 0, rendererSwitchAfter, error)
 		|| rendererSwitchAfter > 10000
+		|| !Number(args, "--surface-switch-after", 0, surfaceSwitchAfter, error)
+		|| surfaceSwitchAfter > 10000
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
 		std::cerr << (error.empty() ? "invalid performance bounds" : error) << '\n';
 		return 2;
 	}
-	if (rendererReinitAfter != 0 && rendererSwitchAfter != 0)
+	const unsigned developerTransitionCount = (rendererReinitAfter != 0 ? 1u : 0u)
+		+ (rendererSwitchAfter != 0 ? 1u : 0u) + (surfaceSwitchAfter != 0 ? 1u : 0u);
+	if (developerTransitionCount > 1)
 	{
-		std::cerr << "renderer reinit and renderer switch are mutually exclusive\n";
+		std::cerr << "developer renderer transitions are mutually exclusive\n";
 		return 2;
 	}
 	const auto lane = Value(args, "--lane", "dlaa");
@@ -711,6 +715,12 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "performance output already contains a renderer-switch marker\n";
 		return 2;
 	}
+	if (surfaceSwitchAfter != 0
+		&& std::filesystem::exists(output / "surface-switch-complete.json"))
+	{
+		std::cerr << "performance output already contains a surface-switch marker\n";
+		return 2;
+	}
 #ifndef _WIN32
 	std::cerr << "production performance launcher is currently available only on Windows\n";
 	return 3;
@@ -747,6 +757,7 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
 		+ L",config:rend.NeuralRendererReinitAfter=" + std::to_wstring(rendererReinitAfter)
 		+ L",config:rend.NeuralRendererSwitchAfter=" + std::to_wstring(rendererSwitchAfter)
+		+ L",config:rend.NeuralSurfaceSwitchAfter=" + std::to_wstring(surfaceSwitchAfter)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
@@ -924,6 +935,40 @@ int PerformanceCommand(const Args& args)
 			&& marker.find("\"performance_sampling_restarted\": true")
 				!= std::string::npos;
 	}
+	const int surfaceFrom = api == "d3d11on12" ? 1 : 0;
+	const int surfaceTo = surfaceFrom == 0 ? 1 : 0;
+	bool surfaceSwitchComplete = surfaceSwitchAfter == 0;
+	if (surfaceSwitchAfter != 0)
+	{
+		std::ifstream markerStream(output / "surface-switch-complete.json");
+		const bool markerOpened = markerStream.is_open();
+		const std::string marker((std::istreambuf_iterator<char>(markerStream)),
+			std::istreambuf_iterator<char>());
+		surfaceSwitchComplete = markerOpened
+			&& marker.find("\"completed\": true") != std::string::npos
+			&& marker.find("\"main_frame\": " + std::to_string(surfaceSwitchAfter))
+				!= std::string::npos
+			&& marker.find("\"surface_from\": " + std::to_string(surfaceFrom))
+				!= std::string::npos
+			&& marker.find("\"surface_to\": " + std::to_string(surfaceTo))
+				!= std::string::npos
+			&& marker.find("\"performance_sampling_restarted\": true")
+				!= std::string::npos;
+	}
+	std::ifstream performanceStream(output / "performance.json");
+	const std::string completedPerformance(
+		(std::istreambuf_iterator<char>(performanceStream)),
+		std::istreambuf_iterator<char>());
+	if (rendererSwitchAfter != 0)
+		rendererSwitchComplete = rendererSwitchComplete
+			&& completedPerformance.find("\"renderer\": \""
+				+ std::string(switchedRendererValue == 6 ? "dx11-oit" : "dx11")
+				+ "\"") != std::string::npos;
+	if (surfaceSwitchAfter != 0)
+		surfaceSwitchComplete = surfaceSwitchComplete
+			&& completedPerformance.find("\"api\": \""
+				+ std::string(surfaceTo == 1 ? "d3d11on12" : "d3d11")
+				+ "\"") != std::string::npos;
 	if (!complete)
 	{
 		std::cerr << (exitedEarly ? "flycast exited before performance run completed"
@@ -955,6 +1000,12 @@ int PerformanceCommand(const Args& args)
 			: switchedRendererValue == 6 ? "dx11-oit" : "dx11") << "\""
 		<< ",\n  \"renderer_switch_completed\": "
 		<< (rendererSwitchComplete ? "true" : "false")
+		<< ",\n  \"surface_switch_after_main_frames\": " << surfaceSwitchAfter
+		<< ",\n  \"surface_switch_to\": \""
+		<< (surfaceSwitchAfter == 0 ? "none"
+			: surfaceTo == 1 ? "d3d11on12" : "d3d11") << "\""
+		<< ",\n  \"surface_switch_completed\": "
+		<< (surfaceSwitchComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
@@ -964,9 +1015,10 @@ int PerformanceCommand(const Args& args)
 		<< " transition=" << transition << ':' << (transitionComplete ? "pass" : "fail")
 		<< " renderer_reinit=" << (rendererReinitComplete ? "pass" : "fail")
 		<< " renderer_switch=" << (rendererSwitchComplete ? "pass" : "fail")
+		<< " surface_switch=" << (surfaceSwitchComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
-		&& rendererSwitchComplete ? 0 : 1;
+		&& rendererSwitchComplete && surfaceSwitchComplete ? 0 : 1;
 #endif
 }
 

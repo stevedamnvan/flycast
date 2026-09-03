@@ -489,6 +489,7 @@ extern Option<int> NeuralFailureInjectionCount;
 extern Option<int> NeuralFailureInjectionAfter;
 extern Option<int> NeuralRendererReinitAfter;
 extern Option<int> NeuralRendererSwitchAfter;
+extern Option<int> NeuralSurfaceSwitchAfter;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;
