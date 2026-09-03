@@ -888,5 +888,7 @@ window. Because retirement is delayed, D3D12 per-frame timing fields remain
 null rather than being attached to the wrong current frame. The aggregate is
 labeled `d3d12-backend-asynchronous-timestamps`; on an intercepted route it is
 the inclusive command-list evaluation span and is not an isolated external-
-consumer cost. Ordinary rendering creates no query resources and performs no
-timing readback.
+consumer cost. The bounded synchronous quality-capture path may request the
+same exact-frame timing, but remains labeled capture-only and ineligible for
+performance claims. Ordinary rendering creates no query resources and performs
+no timing readback.

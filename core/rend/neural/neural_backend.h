@@ -111,6 +111,7 @@ public:
 	virtual BackendEvalStatus Initialize(const StageConfig& config, void *device,
 		void *context) noexcept = 0;
 	virtual BackendEvalStatus Evaluate(const NeuralFrame& frame) noexcept = 0;
+	virtual void PollCompleted() noexcept {}
 	virtual void ResetHistory() noexcept = 0;
 	virtual BackendStats GetStats() const noexcept = 0;
 	virtual TextureRef GetOutput() const noexcept = 0;

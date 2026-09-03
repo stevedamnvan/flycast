@@ -70,6 +70,7 @@ public:
 
 	void SetGraphicsDevice(Api api, void *device, void *context) noexcept;
 	SubmitStatus TrySubmit(const NeuralFrame& frame) noexcept;
+	void PollCompletedGpuTiming() noexcept;
 	StageStats GetStats() const noexcept { return stats_; }
 	TextureRef GetOutput() const noexcept { return output_; }
 	void RequestRecreate() noexcept { recreateRequested_ = true; }

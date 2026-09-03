@@ -27,7 +27,9 @@
 #include "version.h"
 #endif
 
+#include <chrono>
 #include <memory>
+#include <thread>
 
 void os_VideoRoutingTermDX();
 
@@ -1252,8 +1254,12 @@ void DX11Renderer::submitNeuralFrame()
 	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
 		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceBegin);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		CaptureGpuTimingPoint::GuidanceBegin);
 	if (!renderNeuralExports()) return;
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceEnd);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		CaptureGpuTimingPoint::GuidanceEnd);
 	TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
 	TextureRef depth{};
@@ -1305,8 +1311,12 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.externalRecommendation =
 		qualityProfile.externalRecommendation;
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		CaptureGpuTimingPoint::EvaluateBegin);
 	const auto status = neuralStage.TrySubmit(frame);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateEnd);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		CaptureGpuTimingPoint::EvaluateEnd);
 	neuralPerformance.RecordEvaluation(frame.frameId, status == SubmitStatus::Submitted);
 	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
 	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
@@ -1344,15 +1354,23 @@ void DX11Renderer::captureNeuralQualityFrame()
 	if (!neuralQualityCapturePending)
 		return;
 	neuralQualityCapturePending = false;
+	bool captureOutputAcquired = false;
+	if (activeNeuralSurface && neuralQualityCapturePublicView
+		&& neuralQualityCapturePublicSlot < NeuralExportRingSize)
+	{
+		ID3D11Resource *resource = neuralOutputWrappedTextures[neuralQualityCapturePublicSlot];
+		DX11Context::Instance()->AcquireWrappedResources(&resource, 1);
+		captureOutputAcquired = true;
+	}
 	acquireNeuralInputs();
 	ID3D11Texture2D *publicOutput = nullptr;
 	// Passthrough presents the source texture; it is not a public-NGX result and
 	// must not be labeled as public DLAA in a quality package.
 	if (activeNeuralMode != static_cast<int>(flycast::rend::neural::NeuralMode::Passthrough)
-		&& neuralPresentationView)
+		&& neuralQualityCapturePublicView)
 	{
 		ID3D11Resource *resource = nullptr;
-		neuralPresentationView->GetResource(&resource);
+		neuralQualityCapturePublicView->GetResource(&resource);
 		if (resource)
 		{
 			resource->QueryInterface(__uuidof(ID3D11Texture2D),
@@ -1388,6 +1406,13 @@ void DX11Renderer::captureNeuralQualityFrame()
 	if (publicOutput) publicOutput->Release();
 	if (finalComposite) finalComposite->Release();
 	releaseNeuralInputs();
+	if (captureOutputAcquired)
+	{
+		ID3D11Resource *resource = neuralOutputWrappedTextures[neuralQualityCapturePublicSlot];
+		DX11Context::Instance()->ReleaseWrappedResources(&resource, 1);
+	}
+	neuralQualityCapturePublicView.reset();
+	neuralQualityCapturePublicSlot = NeuralExportRingSize;
 	if (!captured)
 		WARN_LOG(RENDERER, "Neural quality capture failed: %s", error.c_str());
 	else if (afterCount != beforeCount)
@@ -1402,6 +1427,12 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 {
 	const bool synchronousCapture = !config::NeuralCaptureDirectory.get().empty()
 		&& config::NeuralCaptureFrames.get() > 0;
+	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
+		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)));
+	neuralQualityCaptureGpuTimer.Configure(device, synchronousCapture);
+	neuralQualityCaptureGpuTimer.BeginFrame(deviceContext,
+		neuralQualityCapture.CapturesCurrentFrame());
 	neuralPerformance.Configure(device,
 		synchronousCapture ? std::filesystem::path{} :
 			std::filesystem::path(config::NeuralPerformanceDirectory.get()),
@@ -1422,6 +1453,8 @@ void DX11Renderer::markNeuralPvrEnd()
 {
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::PvrEnd);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		flycast::rend::neural::CaptureGpuTimingPoint::PvrEnd);
 }
 
 void DX11Renderer::endNeuralPerformanceFrame()
@@ -1494,10 +1527,11 @@ bool DX11Renderer::syncNeuralMode()
 		: std::clamp(config::NeuralFailureInjectionCount.get(), 0, 10000);
 	const int requestedFailureInjectionAfter = requestedFailureInjection == 0 ? 0
 		: std::clamp(config::NeuralFailureInjectionAfter.get(), 0, 10000);
-	const bool requestedGpuTiming = !config::NeuralPerformanceDirectory.get().empty()
-		&& config::NeuralPerformanceFrames.get() > 0
-		&& (config::NeuralCaptureDirectory.get().empty()
-			|| config::NeuralCaptureFrames.get() <= 0);
+	const bool synchronousCapture = !config::NeuralCaptureDirectory.get().empty()
+		&& config::NeuralCaptureFrames.get() > 0;
+	const bool requestedGpuTiming = synchronousCapture
+		|| (!config::NeuralPerformanceDirectory.get().empty()
+			&& config::NeuralPerformanceFrames.get() > 0);
 	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface
 		|| requestedPreset != activeNeuralPreset
 		|| requestedFailureInjection != activeNeuralFailureInjection
@@ -1601,6 +1635,8 @@ void DX11Renderer::displayFramebuffer()
 #ifdef FLYCAST_ENABLE_NEURAL
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeBegin);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		flycast::rend::neural::CaptureGpuTimingPoint::CompositeBegin);
 #endif
 	D3D11_VIEWPORT vp{};
 	vp.Width = (FLOAT)settings.display.width;
@@ -1684,9 +1720,18 @@ void DX11Renderer::displayFramebuffer()
 	}
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeEnd);
+	neuralQualityCaptureGpuTimer.Mark(deviceContext,
+		flycast::rend::neural::CaptureGpuTimingPoint::CompositeEnd);
 	neuralPerformance.StagePresentation(currentNeuralSourceFrameId,
 		displayedNeuralFrameId);
-	captureNeuralQualityFrame();
+	neuralQualityCapturePublicView.reset();
+	neuralQualityCapturePublicSlot = NeuralExportRingSize;
+	if (neuralQualityCapturePending && neuralPresentationView)
+	{
+		neuralQualityCapturePublicView = neuralPresentationView;
+		if (neuralPresentationAcquired)
+			neuralQualityCapturePublicSlot = neuralPresentationSlot;
+	}
 	if (queuedNeuralOutput)
 	{
 		++neuralAcceptedBlitCount;
@@ -1698,6 +1743,30 @@ void DX11Renderer::displayFramebuffer()
 		pendingNeuralPresentationFrameId = 0;
 	}
 	releaseNeuralPresentation();
+	const bool capturedGpuTiming = neuralQualityCaptureGpuTimer.EndAndResolve(deviceContext,
+		neuralQualityCaptureMetadata.gpuTimings);
+	if (!neuralQualityCaptureMetadata.evaluationAccepted || activeNeuralSurface)
+		neuralQualityCaptureMetadata.gpuTimings.evaluateAvailable = false;
+	if (activeNeuralSurface && capturedGpuTiming
+		&& neuralQualityCaptureMetadata.evaluationAccepted)
+	{
+		const auto deadline = std::chrono::steady_clock::now()
+			+ std::chrono::milliseconds(500);
+		while (std::chrono::steady_clock::now() < deadline)
+		{
+			neuralStage.PollCompletedGpuTiming();
+			const auto timingStats = neuralStage.GetStats();
+			if (timingStats.evaluateGpuFrameId == neuralQualityCaptureMetadata.frameId)
+			{
+				neuralQualityCaptureMetadata.gpuTimings.evaluateAvailable = true;
+				neuralQualityCaptureMetadata.gpuTimings.evaluateMs = timingStats.evaluateGpuMs;
+				neuralQualityCaptureMetadata.gpuTimings.available = true;
+				break;
+			}
+			std::this_thread::yield();
+		}
+	}
+	captureNeuralQualityFrame();
 #endif
 #endif
 }

@@ -152,7 +152,15 @@ P50/P95/P99. `samples_ms[].evaluate` intentionally stays null because the
 retired result belongs to an earlier frame. With an external interceptor the
 span is inclusive of work recorded through the public evaluation contract;
 it is not an exclusive external-cost measurement. The resources and readback
-path do not exist unless performance telemetry is explicitly active.
+path do not exist unless performance telemetry or bounded developer capture is
+explicitly active.
+
+Each quality package's `metrics.json` records capture-only GPU timestamp spans
+for base PVR, guidance, evaluation, overlay/presentation blit, and the overall
+frame where available. D3D11On12 evaluation is populated only when the retired
+D3D12 query carries the exact captured emulated-frame ID; otherwise it remains
+null with an unavailable scope. The manifest marks timing presence and still
+states `capture_stalls_gpu=true` and `eligible_for_performance_metrics=false`.
 
 The optional window transition is a bounded Windows-only production check. It
 finds only the launched Flycast process's unowned visible window, waits the

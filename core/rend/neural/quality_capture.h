@@ -2,14 +2,42 @@
 #pragma once
 
 #include "neural_frame.h"
-
 #include <d3d11.h>
+#include "windows/comptr.h"
+
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <string>
 #include <vector>
 
 namespace flycast::rend::neural {
+
+enum class CaptureGpuTimingPoint : std::uint8_t {
+	PvrBegin,
+	PvrEnd,
+	GuidanceBegin,
+	GuidanceEnd,
+	EvaluateBegin,
+	EvaluateEnd,
+	CompositeBegin,
+	CompositeEnd,
+	Count,
+};
+
+struct QualityGpuTimings {
+	bool available = false;
+	bool pvrAvailable = false;
+	bool guidanceAvailable = false;
+	bool evaluateAvailable = false;
+	bool compositeAvailable = false;
+	bool totalAvailable = false;
+	double pvrMs = 0.;
+	double guidanceMs = 0.;
+	double evaluateMs = 0.;
+	double compositeMs = 0.;
+	double totalMs = 0.;
+};
 
 struct QualityCaptureMetadata {
 	std::uint64_t frameId = 0;
@@ -40,6 +68,7 @@ struct QualityCaptureMetadata {
 	std::string submitStatus;
 	std::string profile = "unassigned";
 	std::string externalRecommendation = "user-controlled";
+	QualityGpuTimings gpuTimings{};
 };
 
 struct QualityCaptureTextures {
@@ -68,6 +97,7 @@ public:
 	void Configure(const std::filesystem::path& root, std::uint32_t skip,
 		std::uint32_t limit);
 	bool WantsFrame() const noexcept;
+	bool CapturesCurrentFrame() const noexcept;
 	bool Capture(ID3D11Device *device, ID3D11DeviceContext *context,
 		const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 		std::string& error);
@@ -82,6 +112,26 @@ private:
 	std::uint64_t previousFrameId_ = 0;
 	RgbaImage previousFinal_;
 	RgbaImage previousSource_;
+};
+
+// Deliberately synchronous capture-only timing. It is activated only for a
+// frame the bounded quality writer will retain and is never performance data.
+class QualityCaptureGpuTimer {
+public:
+	void Configure(ID3D11Device *device, bool enabled);
+	void BeginFrame(ID3D11DeviceContext *context, bool captureCurrentFrame);
+	void Mark(ID3D11DeviceContext *context, CaptureGpuTimingPoint point);
+	bool EndAndResolve(ID3D11DeviceContext *context, QualityGpuTimings& timings);
+
+private:
+	static constexpr std::size_t PointCount =
+		static_cast<std::size_t>(CaptureGpuTimingPoint::Count);
+	void Reset();
+	ComPtr<ID3D11Device> device_;
+	ComPtr<ID3D11Query> disjoint_;
+	std::array<ComPtr<ID3D11Query>, PointCount> points_;
+	std::array<bool, PointCount> marked_{};
+	bool active_ = false;
 };
 
 } // namespace flycast::rend::neural

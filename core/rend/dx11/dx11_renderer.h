@@ -268,7 +268,10 @@ protected:
 	std::uint32_t loggedNeuralOutputHeight = 0;
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
+	flycast::rend::neural::QualityCaptureGpuTimer neuralQualityCaptureGpuTimer;
 	flycast::rend::neural::QualityCaptureMetadata neuralQualityCaptureMetadata;
+	ComPtr<ID3D11ShaderResourceView> neuralQualityCapturePublicView;
+	std::size_t neuralQualityCapturePublicSlot = NeuralExportRingSize;
 	bool neuralQualityCapturePending = false;
 	flycast::rend::neural::PerformanceTracker neuralPerformance;
 #endif

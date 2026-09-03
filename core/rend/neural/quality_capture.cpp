@@ -5,6 +5,7 @@
 #include <stb/stb_image_write.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -12,6 +13,7 @@
 #include <limits>
 #include <locale>
 #include <sstream>
+#include <thread>
 
 namespace flycast::rend::neural {
 namespace {
@@ -405,6 +407,118 @@ bool QualityCaptureWriter::WantsFrame() const noexcept
 	return !root_.empty() && limit_ != 0 && captured_ < limit_;
 }
 
+bool QualityCaptureWriter::CapturesCurrentFrame() const noexcept
+{
+	return WantsFrame() && seen_ >= skip_;
+}
+
+void QualityCaptureGpuTimer::Reset()
+{
+	active_ = false;
+	marked_.fill(false);
+	for (auto& point : points_) point.reset();
+	disjoint_.reset();
+	device_.reset();
+}
+
+void QualityCaptureGpuTimer::Configure(ID3D11Device *device, bool enabled)
+{
+	if (!enabled || !device)
+	{
+		Reset();
+		return;
+	}
+	if (device_.get() == device && disjoint_) return;
+	Reset();
+	D3D11_QUERY_DESC disjointDesc{D3D11_QUERY_TIMESTAMP_DISJOINT, 0};
+	D3D11_QUERY_DESC timestampDesc{D3D11_QUERY_TIMESTAMP, 0};
+	if (FAILED(device->CreateQuery(&disjointDesc, &disjoint_.get()))) return;
+	for (auto& point : points_)
+		if (FAILED(device->CreateQuery(&timestampDesc, &point.get())))
+		{
+			Reset();
+			return;
+		}
+	device->AddRef();
+	device_.reset(device);
+}
+
+void QualityCaptureGpuTimer::BeginFrame(ID3D11DeviceContext *context,
+	bool captureCurrentFrame)
+{
+	active_ = false;
+	if (!captureCurrentFrame || !context || !disjoint_) return;
+	marked_.fill(false);
+	context->Begin(disjoint_);
+	active_ = true;
+	Mark(context, CaptureGpuTimingPoint::PvrBegin);
+}
+
+void QualityCaptureGpuTimer::Mark(ID3D11DeviceContext *context,
+	CaptureGpuTimingPoint point)
+{
+	if (!active_ || !context) return;
+	const auto index = static_cast<std::size_t>(point);
+	if (index >= PointCount) return;
+	context->End(points_[index]);
+	marked_[index] = true;
+}
+
+bool QualityCaptureGpuTimer::EndAndResolve(ID3D11DeviceContext *context,
+	QualityGpuTimings& timings)
+{
+	timings = {};
+	if (!active_ || !context || !disjoint_) return false;
+	context->End(disjoint_);
+	active_ = false;
+	// Quality capture is already an explicitly synchronous developer path. A
+	// single flush here makes the exact retained frame's timestamps observable;
+	// production performance telemetry never enters this method.
+	context->Flush();
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint{};
+	while (context->GetData(disjoint_, &disjoint, sizeof(disjoint),
+		D3D11_ASYNC_GETDATA_DONOTFLUSH) != S_OK)
+	{
+		if (std::chrono::steady_clock::now() >= deadline) return false;
+		std::this_thread::yield();
+	}
+	if (disjoint.Disjoint || disjoint.Frequency == 0) return false;
+	std::array<UINT64, PointCount> timestamps{};
+	for (std::size_t i = 0; i < PointCount; ++i)
+	{
+		if (!marked_[i]) continue;
+		while (context->GetData(points_[i], &timestamps[i], sizeof(timestamps[i]),
+			D3D11_ASYNC_GETDATA_DONOTFLUSH) != S_OK)
+		{
+			if (std::chrono::steady_clock::now() >= deadline) return false;
+			std::this_thread::yield();
+		}
+	}
+	auto duration = [&](CaptureGpuTimingPoint begin, CaptureGpuTimingPoint end,
+		double& milliseconds) {
+		const auto b = static_cast<std::size_t>(begin);
+		const auto e = static_cast<std::size_t>(end);
+		if (!marked_[b] || !marked_[e] || timestamps[e] < timestamps[b]) return false;
+		milliseconds = static_cast<double>(timestamps[e] - timestamps[b]) * 1000.
+			/ static_cast<double>(disjoint.Frequency);
+		return true;
+	};
+	timings.pvrAvailable = duration(CaptureGpuTimingPoint::PvrBegin,
+		CaptureGpuTimingPoint::PvrEnd, timings.pvrMs);
+	timings.guidanceAvailable = duration(CaptureGpuTimingPoint::GuidanceBegin,
+		CaptureGpuTimingPoint::GuidanceEnd, timings.guidanceMs);
+	timings.evaluateAvailable = duration(CaptureGpuTimingPoint::EvaluateBegin,
+		CaptureGpuTimingPoint::EvaluateEnd, timings.evaluateMs);
+	timings.compositeAvailable = duration(CaptureGpuTimingPoint::CompositeBegin,
+		CaptureGpuTimingPoint::CompositeEnd, timings.compositeMs);
+	timings.totalAvailable = duration(CaptureGpuTimingPoint::PvrBegin,
+		CaptureGpuTimingPoint::CompositeEnd, timings.totalMs);
+	timings.available = timings.pvrAvailable || timings.guidanceAvailable
+		|| timings.evaluateAvailable || timings.compositeAvailable || timings.totalAvailable;
+	return timings.available;
+}
+
 bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *context,
 	const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 	std::string& error)
@@ -562,7 +676,28 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"motion_invalid_pixel_coverage\": " << invalidMotion / pixels
 		<< ",\n  \"trusted_pixel_percentage\": " << trusted * 100. / pixels
 		<< ",\n  \"reactive_pixel_percentage\": " << reactive * 100. / pixels
-		<< ",\n  \"gpu_timings_ms\": null,"
+		<< ",\n  \"gpu_timings_ms\": {"
+		<< "\n    \"scope\": \"synchronous-developer-capture-only\""
+		<< ",\n    \"evaluation_scope\": \""
+		<< (metadata.d3d11On12
+			? metadata.gpuTimings.evaluateAvailable ? "d3d12-backend-exact-frame"
+				: "unavailable-no-exact-frame-retirement"
+			: "native-d3d11-context") << "\"";
+	auto timing = [&](const char *name, bool available, double value) {
+		metrics << ",\n    \"" << name << "\": ";
+		if (available) metrics << value;
+		else metrics << "null";
+	};
+	timing("base_pvr", metadata.gpuTimings.pvrAvailable, metadata.gpuTimings.pvrMs);
+	timing("guidance", metadata.gpuTimings.guidanceAvailable,
+		metadata.gpuTimings.guidanceMs);
+	timing("stage_evaluate", metadata.gpuTimings.evaluateAvailable,
+		metadata.gpuTimings.evaluateMs);
+	timing("overlay_and_present_blit", metadata.gpuTimings.compositeAvailable,
+		metadata.gpuTimings.compositeMs);
+	timing("frame_gpu_timestamp_span", metadata.gpuTimings.totalAvailable,
+		metadata.gpuTimings.totalMs);
+	metrics << "\n  },"
 		<< "\n  \"capture_mode\": \"synchronous-developer-only-excluded-from-performance\"\n}\n";
 	if (!metrics) { error = "failed writing metrics.json"; return false; }
 
@@ -626,6 +761,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"public_output_present\": " << (hasPublicOutput ? "true" : "false")
 		<< ",\n  \"neural_rendering_output_present\": "
 		<< (hasPublicOutput && metadata.externalOutputConfirmed ? "true" : "false")
+		<< ",\n  \"capture_gpu_timings_present\": "
+		<< (metadata.gpuTimings.available ? "true" : "false")
 		<< ",\n  \"capture_stalls_gpu\": true,\n  \"eligible_for_performance_metrics\": false\n}\n";
 	if (!manifest) { error = "failed writing manifest.json"; return false; }
 

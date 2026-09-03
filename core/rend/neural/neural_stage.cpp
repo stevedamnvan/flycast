@@ -235,6 +235,17 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		: SubmitStatus::Unsupported;
 }
 
+void NeuralStage::PollCompletedGpuTiming() noexcept
+{
+	if (!backend_) return;
+	backend_->PollCompleted();
+	const auto backendStats = backend_->GetStats();
+	stats_.backendResourceObjects = backendStats.liveResourceObjects;
+	stats_.evaluateGpuMs = backendStats.evaluateGpuMs;
+	stats_.evaluateGpuSamples = backendStats.evaluateGpuSamples;
+	stats_.evaluateGpuFrameId = backendStats.evaluateGpuFrameId;
+}
+
 void NeuralStage::Shutdown() noexcept
 {
 	if (backend_) backend_->Shutdown();

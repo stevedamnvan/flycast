@@ -575,6 +575,16 @@ public:
 		return BackendEvalStatus::Success;
 	}
 
+	void PollCompleted() noexcept override
+	{
+		if (!fence_) return;
+		const auto completed = fence_->GetCompletedValue();
+		for (std::size_t slot = 0; slot < timingPending_.size(); ++slot)
+			if (timingPending_[slot] && slotFence_[slot] != 0
+				&& completed >= slotFence_[slot])
+				ResolveTiming(slot);
+	}
+
 	void ResetHistory() noexcept override { resetRequested_ = true; }
 	BackendStats GetStats() const noexcept override
 	{
