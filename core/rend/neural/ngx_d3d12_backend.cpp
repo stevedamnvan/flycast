@@ -330,6 +330,7 @@ public:
 		const std::size_t slot = (outputSlot_ + 1) % output_.size();
 		if (slotFence_[slot] != 0 && fence_->GetCompletedValue() < slotFence_[slot])
 			return BackendEvalStatus::Busy;
+		ResolveTiming(slot);
 		if (FAILED(allocator_[slot]->Reset()) || FAILED(list_[slot]->Reset(allocator_[slot], nullptr)))
 			return DeviceOrFailure("D3D12 neural command-list reset failed");
 		const D3D12_RESOURCE_STATES previousOutputState = outputState_[slot];
@@ -438,6 +439,9 @@ public:
 			Poison(slot);
 			return BackendEvalStatus::RecoverableFailure;
 		}
+		if (timingQuery_ && timingReadback_)
+			list_[slot]->EndQuery(timingQuery_, D3D12_QUERY_TYPE_TIMESTAMP,
+				static_cast<UINT>(slot * 2));
 		const auto call = EvaluateLeaf(list_[slot], feature_, parameters_, &evaluate);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
@@ -446,6 +450,13 @@ public:
 			Poison(slot);
 			return DeviceOrFailure(call.exceptionCode ? "NGX D3D12 evaluate raised an exception"
 				: "NGX D3D12 evaluate failed");
+		}
+		if (timingQuery_ && timingReadback_)
+		{
+			const UINT query = static_cast<UINT>(slot * 2);
+			list_[slot]->EndQuery(timingQuery_, D3D12_QUERY_TYPE_TIMESTAMP, query + 1);
+			list_[slot]->ResolveQueryData(timingQuery_, D3D12_QUERY_TYPE_TIMESTAMP,
+				query, 2, timingReadback_, static_cast<UINT64>(query) * sizeof(std::uint64_t));
 		}
 		if (captureEvidence)
 		{
@@ -527,6 +538,8 @@ public:
 		if (FAILED(queue_->Signal(fence_, value)))
 			return DeviceOrFailure("D3D12 neural fence signal failed");
 		slotFence_[slot] = value;
+		timingPending_[slot] = timingQuery_ && timingReadback_;
+		timingFrameId_[slot] = frame.frameId;
 		outputSlot_ = slot;
 		if (captureEvidence)
 		{
@@ -567,6 +580,8 @@ public:
 	{
 		auto result = stats_;
 		result.liveResourceObjects += fence_ ? 1u : 0u;
+		result.liveResourceObjects += timingQuery_ ? 1u : 0u;
+		result.liveResourceObjects += timingReadback_ ? 1u : 0u;
 		for (const auto& allocator : allocator_)
 			result.liveResourceObjects += allocator ? 1u : 0u;
 		for (const auto& list : list_) result.liveResourceObjects += list ? 1u : 0u;
@@ -612,6 +627,8 @@ public:
 		for (auto& list : list_) list.reset();
 		for (auto& allocator : allocator_) allocator.reset();
 		for (auto& output : output_) output.reset();
+		timingQuery_.reset();
+		timingReadback_.reset();
 		evidenceInputReadback_.reset();
 		evidenceDepthReadback_.reset();
 		evidenceMotionReadback_.reset();
@@ -624,6 +641,9 @@ public:
 		device_ = nullptr;
 		outputSlot_ = 0;
 		slotFence_.fill(0);
+		timingPending_.fill(false);
+		timingFrameId_.fill(0);
+		timestampFrequency_ = 0;
 		outputState_.fill(D3D12_RESOURCE_STATE_COMMON);
 		resetRequested_ = true;
 		successfulEvaluations_ = 0;
@@ -645,6 +665,9 @@ public:
 		stats_.evidenceWaitMicroseconds = 0;
 		stats_.evidenceCaptures = 0;
 		stats_.evidenceCaptureFailures = 0;
+		stats_.evaluateGpuMs = 0.;
+		stats_.evaluateGpuSamples = 0;
+		stats_.evaluateGpuFrameId = 0;
 	}
 
 private:
@@ -759,7 +782,56 @@ private:
 			}
 			outputState_[i] = D3D12_RESOURCE_STATE_COMMON;
 		}
+		if (config_.performanceGpuTiming)
+			CreateTimingResources();
 		return !config_.dlss5EvidenceCapture || CreateEvidenceResources();
+	}
+
+	void CreateTimingResources() noexcept
+	{
+		D3D12_QUERY_HEAP_DESC queryDesc{};
+		queryDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+		queryDesc.Count = static_cast<UINT>(output_.size() * 2);
+		if (FAILED(device_->CreateQueryHeap(&queryDesc, __uuidof(ID3D12QueryHeap),
+			reinterpret_cast<void **>(&timingQuery_.get())))
+			|| FAILED(queue_->GetTimestampFrequency(&timestampFrequency_)))
+		{
+			timingQuery_.reset();
+			timestampFrequency_ = 0;
+			return;
+		}
+		if (!CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK,
+			static_cast<std::uint64_t>(queryDesc.Count) * sizeof(std::uint64_t),
+			D3D12_RESOURCE_STATE_COPY_DEST, timingReadback_))
+		{
+			timingQuery_.reset();
+			timestampFrequency_ = 0;
+		}
+	}
+
+	void ResolveTiming(std::size_t slot) noexcept
+	{
+		if (!timingPending_[slot] || !timingReadback_ || timestampFrequency_ == 0)
+			return;
+		const SIZE_T begin = slot * 2 * sizeof(std::uint64_t);
+		const D3D12_RANGE readRange{begin, begin + 2 * sizeof(std::uint64_t)};
+		void *mapped = nullptr;
+		if (SUCCEEDED(timingReadback_->Map(0, &readRange, &mapped)) && mapped)
+		{
+			const auto *timestamps = reinterpret_cast<const std::uint64_t *>(
+				static_cast<const std::uint8_t *>(mapped) + begin);
+			if (timestamps[1] >= timestamps[0])
+			{
+				stats_.evaluateGpuMs = static_cast<double>(timestamps[1] - timestamps[0])
+					* 1000. / static_cast<double>(timestampFrequency_);
+				stats_.evaluateGpuFrameId = timingFrameId_[slot];
+				++stats_.evaluateGpuSamples;
+			}
+			const D3D12_RANGE noWrite{0, 0};
+			timingReadback_->Unmap(0, &noWrite);
+		}
+		timingPending_[slot] = false;
+		timingFrameId_[slot] = 0;
 	}
 
 	bool CreateEvidenceBuffer(D3D12_HEAP_TYPE heapType, std::uint64_t size,
@@ -924,11 +996,16 @@ private:
 	NVSDK_NGX_Parameter *parameters_ = nullptr;
 	NVSDK_NGX_Handle *feature_ = nullptr;
 	ComPtr<ID3D12Fence> fence_;
+	ComPtr<ID3D12QueryHeap> timingQuery_;
+	ComPtr<ID3D12Resource> timingReadback_;
 	std::array<ComPtr<ID3D12CommandAllocator>, 3> allocator_;
 	std::array<ComPtr<ID3D12GraphicsCommandList>, 3> list_;
 	std::array<ComPtr<ID3D12Resource>, 3> output_;
 	std::array<D3D12_RESOURCE_STATES, 3> outputState_{};
 	std::array<std::uint64_t, 3> slotFence_{};
+	std::array<bool, 3> timingPending_{};
+	std::array<std::uint64_t, 3> timingFrameId_{};
+	std::uint64_t timestampFrequency_ = 0;
 	ComPtr<ID3D12Resource> evidenceInputReadback_;
 	ComPtr<ID3D12Resource> evidenceDepthReadback_;
 	ComPtr<ID3D12Resource> evidenceMotionReadback_;

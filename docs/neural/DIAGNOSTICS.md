@@ -143,6 +143,17 @@ allocations, aliasing presentation references, and external-consumer objects
 are intentionally excluded; the emitted scope string makes that boundary
 machine-readable.
 
+On D3D11On12, schema-3 reports may expose
+`stage_evaluate_scope=d3d12-backend-asynchronous-timestamps`. Those samples
+come from an optional two-timestamp-per-output-slot D3D12 query ring and are
+mapped only after the slot's existing fence has completed. They are filtered
+to accepted frame IDs in the measured interval and summarized as aggregate
+P50/P95/P99. `samples_ms[].evaluate` intentionally stays null because the
+retired result belongs to an earlier frame. With an external interceptor the
+span is inclusive of work recorded through the public evaluation contract;
+it is not an exclusive external-cost measurement. The resources and readback
+path do not exist unless performance telemetry is explicitly active.
+
 The optional window transition is a bounded Windows-only production check. It
 finds only the launched Flycast process's unowned visible window, waits the
 requested 0..60000 ms, then resizes outward, minimizes, restores, and returns

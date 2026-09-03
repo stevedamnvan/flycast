@@ -1494,11 +1494,16 @@ bool DX11Renderer::syncNeuralMode()
 		: std::clamp(config::NeuralFailureInjectionCount.get(), 0, 10000);
 	const int requestedFailureInjectionAfter = requestedFailureInjection == 0 ? 0
 		: std::clamp(config::NeuralFailureInjectionAfter.get(), 0, 10000);
+	const bool requestedGpuTiming = !config::NeuralPerformanceDirectory.get().empty()
+		&& config::NeuralPerformanceFrames.get() > 0
+		&& (config::NeuralCaptureDirectory.get().empty()
+			|| config::NeuralCaptureFrames.get() <= 0);
 	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface
 		|| requestedPreset != activeNeuralPreset
 		|| requestedFailureInjection != activeNeuralFailureInjection
 		|| requestedFailureInjectionCount != activeNeuralFailureInjectionCount
-		|| requestedFailureInjectionAfter != activeNeuralFailureInjectionAfter)
+		|| requestedFailureInjectionAfter != activeNeuralFailureInjectionAfter
+		|| requestedGpuTiming != activeNeuralGpuTiming)
 	{
 		releaseNeuralResources();
 		neuralPresentationView.reset();
@@ -1508,6 +1513,7 @@ bool DX11Renderer::syncNeuralMode()
 		activeNeuralFailureInjectionCount = requestedFailureInjectionCount;
 		activeNeuralFailureInjectionAfter = requestedFailureInjectionAfter;
 		activeNeuralSurface = requestedSurface;
+		activeNeuralGpuTiming = requestedGpuTiming;
 		neuralInstrumentation.SetEnabled(requestedMode != 0);
 		neuralStage.Shutdown();
 		StageConfig stageConfig;
@@ -1519,6 +1525,7 @@ bool DX11Renderer::syncNeuralMode()
 			requestedFailureInjectionCount);
 		stageConfig.failureInjectionAfter = static_cast<std::uint32_t>(
 			requestedFailureInjectionAfter);
+		stageConfig.performanceGpuTiming = requestedGpuTiming;
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook
 			|| stageConfig.mode == NeuralMode::Dlss5Experimental;
 		if (stageConfig.mode == NeuralMode::Dlss5Experimental)

@@ -116,6 +116,9 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		const auto init = backend_->Initialize(config_, device_, context_);
 		const auto backendStats = backend_->GetStats();
 		stats_.backendResourceObjects = backendStats.liveResourceObjects;
+		stats_.evaluateGpuMs = backendStats.evaluateGpuMs;
+		stats_.evaluateGpuSamples = backendStats.evaluateGpuSamples;
+		stats_.evaluateGpuFrameId = backendStats.evaluateGpuFrameId;
 		stats_.createFailures = backendStats.createFailures;
 		stats_.runtimeUnavailableStatuses = backendStats.runtimeUnavailableStatuses;
 		stats_.lastNgxResult = backendStats.lastResult;
@@ -166,6 +169,9 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	const auto result = backend_->Evaluate(frame);
 	const auto backendStats = backend_->GetStats();
 	stats_.backendResourceObjects = backendStats.liveResourceObjects;
+	stats_.evaluateGpuMs = backendStats.evaluateGpuMs;
+	stats_.evaluateGpuSamples = backendStats.evaluateGpuSamples;
+	stats_.evaluateGpuFrameId = backendStats.evaluateGpuFrameId;
 	stats_.createFailures = backendStats.createFailures;
 	stats_.evaluateFailures = backendStats.evaluateFailures;
 	stats_.runtimeUnavailableStatuses = backendStats.runtimeUnavailableStatuses;

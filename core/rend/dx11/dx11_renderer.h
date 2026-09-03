@@ -227,6 +227,7 @@ protected:
 	int activeNeuralFailureInjectionCount = -1;
 	int activeNeuralFailureInjectionAfter = -1;
 	bool activeNeuralSurface = false;
+	bool activeNeuralGpuTiming = false;
 	bool neuralExportActive = false;
 	bool neuralReactiveCoverageActive = false;
 	ComPtr<ID3D11Buffer> neuralPreviousPositionBuffer;

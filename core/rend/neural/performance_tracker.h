@@ -77,6 +77,10 @@ private:
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
 	};
+	struct BackendEvaluateSample {
+		std::uint64_t frameId = 0;
+		double milliseconds = 0.;
+	};
 
 	void Reset();
 	bool CreateQueries(ID3D11Device *device);
@@ -94,6 +98,8 @@ private:
 	std::size_t lastEndedSlot_ = RingSize;
 	std::uint64_t nextSequence_ = 1;
 	std::vector<Sample> samples_;
+	std::vector<BackendEvaluateSample> backendEvaluateSamples_;
+	std::uint64_t lastBackendEvaluateSample_ = 0;
 	StageStats stageStats_{};
 	std::string gameId_;
 	std::string api_;

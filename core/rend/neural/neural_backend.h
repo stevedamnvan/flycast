@@ -50,6 +50,9 @@ struct StageConfig {
 	bool dlss5EvidenceCapture = false;
 	std::uint32_t dlss5EvidenceCaptureFrames = 1;
 	std::uint64_t dlss5EvidenceStartFrame = 0;
+	// Optional asynchronous GPU telemetry. Disabled for ordinary rendering and
+	// for synchronous developer evidence capture.
+	bool performanceGpuTiming = false;
 	// Developer-only deterministic failure controls. Production defaults never
 	// enter these paths and no real device state is modified.
 	FailureInjection failureInjection = FailureInjection::None;
@@ -70,6 +73,12 @@ struct BackendStats {
 	// Live Flycast-owned GPU resource/view/query/command objects in the backend.
 	// Borrowed device/context/queue pointers and NGX-owned internals are excluded.
 	std::uint32_t liveResourceObjects = 0;
+	// Latest asynchronously retired backend-queue evaluation duration. The
+	// monotonically increasing count lets consumers collect each delayed sample
+	// without pretending it belongs to the current renderer frame.
+	double evaluateGpuMs = 0.;
+	std::uint64_t evaluateGpuSamples = 0;
+	std::uint64_t evaluateGpuFrameId = 0;
 	std::uint64_t createFailures = 0;
 	std::uint64_t evaluateFailures = 0;
 	std::uint64_t runtimeUnavailableStatuses = 0;

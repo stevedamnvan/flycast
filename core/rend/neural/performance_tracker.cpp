@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <locale>
+#include <unordered_set>
 #include <utility>
 
 namespace flycast::rend::neural {
@@ -64,6 +65,8 @@ void PerformanceTracker::Reset()
 	lastEndedSlot_ = RingSize;
 	nextSequence_ = 1;
 	samples_.clear();
+	backendEvaluateSamples_.clear();
+	lastBackendEvaluateSample_ = 0;
 	stageStats_ = {};
 	ringBusy_ = 0;
 	lastPresent_ = {};
@@ -232,7 +235,21 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 	std::uint32_t rendererResourceObjects)
 {
 	stageStats_ = stats;
-	if (activeSlot_ >= RingSize || !context) return;
+	if (activeSlot_ >= RingSize || !context)
+	{
+		// Advance past warmup and renderer-ring-busy retirements without adding
+		// them to the bounded measurement window.
+		lastBackendEvaluateSample_ = stats.evaluateGpuSamples;
+		return;
+	}
+	if (stats.evaluateGpuSamples < lastBackendEvaluateSample_)
+		lastBackendEvaluateSample_ = 0;
+	if (stats.evaluateGpuSamples > lastBackendEvaluateSample_)
+	{
+		backendEvaluateSamples_.push_back(
+			{stats.evaluateGpuFrameId, stats.evaluateGpuMs});
+		lastBackendEvaluateSample_ = stats.evaluateGpuSamples;
+	}
 	ring_[activeSlot_].rendererResourceObjects = rendererResourceObjects;
 	ring_[activeSlot_].backendResourceObjects = stats.backendResourceObjects;
 	context->End(ring_[activeSlot_].disjoint);
@@ -300,9 +317,24 @@ void PerformanceTracker::WriteReport()
 	const auto [usage, budget] = QueryVram(device_);
 	const auto growth = static_cast<std::int64_t>(usage)
 		- static_cast<std::int64_t>(initialVramUsage_);
-	const bool evaluateAvailable = api_ == "d3d11" && stageStats_.submissions != 0;
-	const char *evaluateScope = api_ != "d3d11"
-		? "unavailable-d3d11on12-cross-queue"
+	std::unordered_set<std::uint64_t> measuredAcceptedFrames;
+	for (const auto& sample : samples_)
+		if (sample.acceptedFrameId != 0)
+			measuredAcceptedFrames.insert(sample.acceptedFrameId);
+	std::vector<double> measuredBackendEvaluate;
+	for (const auto& sample : backendEvaluateSamples_)
+		if (measuredAcceptedFrames.find(sample.frameId) != measuredAcceptedFrames.end())
+			measuredBackendEvaluate.push_back(sample.milliseconds);
+	const bool nativeEvaluateAvailable = api_ == "d3d11" && stageStats_.submissions != 0;
+	const bool backendEvaluateAvailable = api_ == "d3d11on12"
+		&& !measuredBackendEvaluate.empty();
+	const bool evaluateAvailable = nativeEvaluateAvailable || backendEvaluateAvailable;
+	const auto& evaluateSummary = backendEvaluateAvailable ? measuredBackendEvaluate : evaluate;
+	const char *evaluateScope = backendEvaluateAvailable
+		? "d3d12-backend-asynchronous-timestamps"
+		: api_ != "d3d11"
+			? neuralMode_ == 0 ? "not-applicable-neural-off"
+				: "unavailable-d3d11on12-cross-queue"
 		: neuralMode_ == 0
 			? "not-applicable-neural-off"
 			: stageStats_.submissions == 0
@@ -311,7 +343,7 @@ void PerformanceTracker::WriteReport()
 	std::ofstream report(root_ / "performance.json");
 	report.imbue(std::locale::classic());
 	report << std::fixed << std::setprecision(6)
-		<< "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
+		<< "{\n  \"schema\": 3,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"game_id\": \"" << Json(gameId_)
 		<< "\",\n  \"api\": \"" << Json(api_)
 		<< "\",\n  \"renderer\": \"" << Json(renderer_)
@@ -320,9 +352,15 @@ void PerformanceTracker::WriteReport()
 		<< ",\n  \"failure_injection_count\": " << failureInjectionCount_
 		<< ",\n  \"failure_injection_after_accepted\": " << failureInjectionAfter_
 		<< ",\n  \"synchronous_capture_enabled\": false"
-		<< ",\n  \"query_policy\": \"D3D11_ASYNC_GETDATA_DONOTFLUSH\""
+		<< ",\n  \"query_policy\": \"asynchronous; D3D11 DONOTFLUSH or D3D12 map after existing slot fence\""
 		<< ",\n  \"stage_evaluate_gpu_available\": " << (evaluateAvailable ? "true" : "false")
 		<< ",\n  \"stage_evaluate_scope\": \"" << evaluateScope << "\""
+		<< ",\n  \"stage_evaluate_sample_alignment\": \""
+		<< (backendEvaluateAvailable ? "aggregate-only-delayed-ring"
+			: nativeEvaluateAvailable ? "source-frame" : "unavailable") << "\""
+		<< ",\n  \"stage_evaluate_gpu_sample_count\": "
+		<< (backendEvaluateAvailable ? measuredBackendEvaluate.size()
+			: nativeEvaluateAvailable ? evaluate.size() : 0)
 		<< ",\n  \"sample_count\": " << samples_.size()
 		<< ",\n  \"ring_busy_count\": " << ringBusy_
 		<< ",\n  \"presentation_cadence\": {\"observed_presents\": "
@@ -371,7 +409,7 @@ void PerformanceTracker::WriteReport()
 	summary("base_pvr_gpu", pvr, true);
 	summary("guidance_gpu", guidance, false);
 	if (evaluateAvailable)
-		summary("stage_evaluate_gpu", evaluate, false);
+		summary("stage_evaluate_gpu", evaluateSummary, false);
 	else
 		report << ",\n    \"stage_evaluate_gpu\": null";
 	summary("overlay_and_present_blit_gpu", composite, false);
@@ -384,7 +422,7 @@ void PerformanceTracker::WriteReport()
 		if (i != 0) report << ',';
 		report << "\n    {\"pvr\": " << s.pvrMs << ", \"guidance\": " << s.guidanceMs
 			<< ", \"evaluate\": ";
-		if (evaluateAvailable) report << s.evaluateMs;
+		if (nativeEvaluateAvailable) report << s.evaluateMs;
 		else report << "null";
 		report << ", \"composite\": " << s.compositeMs << ", \"total\": " << s.totalGpuMs
 			<< ", \"present_interval\": " << s.presentIntervalMs
@@ -397,7 +435,7 @@ void PerformanceTracker::WriteReport()
 	if (!report) return;
 	std::ofstream complete(root_ / "performance-complete.json");
 	complete.imbue(std::locale::classic());
-	complete << "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
+	complete << "{\n  \"schema\": 3,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"sample_count\": " << samples_.size()
 		<< ",\n  \"status\": \"complete\"\n}\n";
 	if (complete) written_ = true;

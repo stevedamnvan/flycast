@@ -871,3 +871,22 @@ promotion copies the already captured unmarked candidate, attaches the exact
 ON/OFF frame and hash record, and remains categorically ineligible for
 performance claims. The verifier reads logs only; it does not inspect or write
 the supplied component binaries or configuration.
+
+## D-058: D3D12 evaluation timing retires through the existing output ring
+
+D3D11 timestamp queries cannot measure work executed on Flycast's dedicated
+D3D12 neural queue. When production performance telemetry is explicitly
+enabled, the D3D12 backend therefore owns one optional timestamp query heap and
+one readback buffer with two queries per output slot. The queries bracket only
+the public NGX evaluation recording. Results are mapped only when the slot's
+existing submission fence is already complete; the timing path never waits,
+flushes, or enables synchronous evidence capture.
+
+Each retired duration retains its originating emulated frame ID. The report
+filters aggregate percentiles to accepted frame IDs in its bounded measurement
+window. Because retirement is delayed, D3D12 per-frame timing fields remain
+null rather than being attached to the wrong current frame. The aggregate is
+labeled `d3d12-backend-asynchronous-timestamps`; on an intercepted route it is
+the inclusive command-list evaluation span and is not an isolated external-
+consumer cost. Ordinary rendering creates no query resources and performs no
+timing readback.

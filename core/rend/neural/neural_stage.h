@@ -25,6 +25,8 @@ struct StageStats {
 	double exportGpuMs = 0.;
 	double evaluateGpuMs = 0.;
 	double totalGpuMs = 0.;
+	std::uint64_t evaluateGpuSamples = 0;
+	std::uint64_t evaluateGpuFrameId = 0;
 	std::uint64_t submissions = 0;
 	std::uint64_t busySkips = 0;
 	std::uint64_t holdEntries = 0;
