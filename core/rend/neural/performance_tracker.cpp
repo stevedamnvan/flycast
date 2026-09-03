@@ -61,6 +61,8 @@ void PerformanceTracker::Reset()
 	}
 	device_.reset();
 	activeSlot_ = RingSize;
+	lastEndedSlot_ = RingSize;
+	nextSequence_ = 1;
 	samples_.clear();
 	stageStats_ = {};
 	ringBusy_ = 0;
@@ -159,6 +161,11 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.compositeMs = duration(GpuTimingPoint::CompositeBegin, GpuTimingPoint::CompositeEnd);
 		sample.totalGpuMs = duration(GpuTimingPoint::PvrBegin, GpuTimingPoint::CompositeEnd);
 		sample.presentIntervalMs = slot.presentIntervalMs;
+		sample.presented = slot.presented;
+		sample.sequence = slot.sequence;
+		sample.sourceFrameId = slot.sourceFrameId;
+		sample.acceptedFrameId = slot.acceptedFrameId;
+		sample.outputFrameId = slot.outputFrameId;
 		if (samples_.size() < targetSamples_) samples_.push_back(sample);
 	}
 	if (samples_.size() >= targetSamples_ && !written_) WriteReport();
@@ -183,12 +190,31 @@ void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 		activeSlot_ = i;
 		auto& slot = ring_[i];
 		slot.marked.fill(false);
-		slot.presentIntervalMs = lastPresentIntervalMs_;
+		slot.presented = false;
+		slot.sequence = nextSequence_++;
+		slot.sourceFrameId = 0;
+		slot.acceptedFrameId = 0;
+		slot.outputFrameId = 0;
+		slot.presentIntervalMs = 0.;
 		context->Begin(slot.disjoint);
 		Mark(context, GpuTimingPoint::PvrBegin);
 		return;
 	}
 	++ringBusy_;
+}
+
+void PerformanceTracker::RecordEvaluation(std::uint64_t frameId, bool accepted) noexcept
+{
+	if (activeSlot_ < RingSize && accepted)
+		ring_[activeSlot_].acceptedFrameId = frameId;
+}
+
+void PerformanceTracker::StagePresentation(std::uint64_t sourceFrameId,
+	std::uint64_t outputFrameId) noexcept
+{
+	if (activeSlot_ >= RingSize) return;
+	ring_[activeSlot_].sourceFrameId = sourceFrameId;
+	ring_[activeSlot_].outputFrameId = outputFrameId;
 }
 
 void PerformanceTracker::Mark(ID3D11DeviceContext *context, GpuTimingPoint point)
@@ -206,6 +232,7 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 	if (activeSlot_ >= RingSize || !context) return;
 	context->End(ring_[activeSlot_].disjoint);
 	ring_[activeSlot_].pending = true;
+	lastEndedSlot_ = activeSlot_;
 	activeSlot_ = RingSize;
 }
 
@@ -215,6 +242,12 @@ void PerformanceTracker::RecordPresent() noexcept
 	if (lastPresent_ != std::chrono::steady_clock::time_point{})
 		lastPresentIntervalMs_ = std::chrono::duration<double, std::milli>(now - lastPresent_).count();
 	lastPresent_ = now;
+	if (lastEndedSlot_ < RingSize && ring_[lastEndedSlot_].pending)
+	{
+		ring_[lastEndedSlot_].presented = true;
+		ring_[lastEndedSlot_].presentIntervalMs = lastPresentIntervalMs_;
+		lastEndedSlot_ = RingSize;
+	}
 }
 
 void PerformanceTracker::WriteReport()
@@ -222,14 +255,21 @@ void PerformanceTracker::WriteReport()
 	std::error_code ec;
 	std::filesystem::create_directories(root_, ec);
 	if (ec) return;
+	std::sort(samples_.begin(), samples_.end(), [](const Sample& a, const Sample& b) {
+		return a.sequence < b.sequence;
+	});
 	std::vector<double> pvr, guidance, evaluate, composite, total, present;
+	PresentationCadence cadence;
 	for (const auto& sample : samples_)
 	{
 		pvr.push_back(sample.pvrMs); guidance.push_back(sample.guidanceMs);
 		evaluate.push_back(sample.evaluateMs); composite.push_back(sample.compositeMs);
 		total.push_back(sample.totalGpuMs);
 		if (sample.presentIntervalMs > 0.) present.push_back(sample.presentIntervalMs);
+		cadence.Observe(sample.sourceFrameId, sample.acceptedFrameId,
+			sample.outputFrameId, sample.presented);
 	}
+	const auto& cadenceStats = cadence.Stats();
 	const auto [usage, budget] = QueryVram(device_);
 	const auto growth = static_cast<std::int64_t>(usage)
 		- static_cast<std::int64_t>(initialVramUsage_);
@@ -244,7 +284,7 @@ void PerformanceTracker::WriteReport()
 	std::ofstream report(root_ / "performance.json");
 	report.imbue(std::locale::classic());
 	report << std::fixed << std::setprecision(6)
-		<< "{\n  \"schema\": 1,\n  \"git_sha\": \"" << GIT_HASH
+		<< "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"game_id\": \"" << Json(gameId_)
 		<< "\",\n  \"api\": \"" << Json(api_)
 		<< "\",\n  \"renderer\": \"" << Json(renderer_)
@@ -258,6 +298,24 @@ void PerformanceTracker::WriteReport()
 		<< ",\n  \"stage_evaluate_scope\": \"" << evaluateScope << "\""
 		<< ",\n  \"sample_count\": " << samples_.size()
 		<< ",\n  \"ring_busy_count\": " << ringBusy_
+		<< ",\n  \"presentation_cadence\": {\"observed_presents\": "
+		<< cadenceStats.observedPresents
+		<< ", \"missing_presents\": " << cadenceStats.missingPresents
+		<< ", \"accepted_evaluations\": " << cadenceStats.acceptedEvaluations
+		<< ", \"neural_presents\": " << cadenceStats.neuralPresents
+		<< ", \"native_presents\": " << cadenceStats.nativePresents
+		<< ", \"accepted_not_presented\": " << cadenceStats.acceptedNotPresented
+		<< ", \"frame_identity_mismatches\": " << cadenceStats.frameIdentityMismatches
+		<< ", \"source_frame_repeats\": " << cadenceStats.sourceFrameRepeats
+		<< ", \"source_frame_gaps\": " << cadenceStats.sourceFrameGaps
+		<< ", \"output_frame_repeats\": " << cadenceStats.outputFrameRepeats
+		<< ", \"native_neural_alternations\": " << cadenceStats.nativeNeuralAlternations
+		<< ", \"latency_samples\": " << cadenceStats.latencySamples
+		<< ", \"latency_frames_mean\": "
+		<< (cadenceStats.latencySamples == 0 ? 0. :
+			static_cast<double>(cadenceStats.latencyFramesTotal) /
+			static_cast<double>(cadenceStats.latencySamples))
+		<< ", \"latency_frames_max\": " << cadenceStats.latencyFramesMax << "}"
 		<< ",\n  \"stage_counts\": {\"submissions\": " << stageStats_.submissions
 		<< ", \"busy\": " << stageStats_.busySkips << ", \"fallbacks\": "
 		<< stageStats_.fallbacks << ", \"resets\": " << stageStats_.resets
@@ -293,13 +351,17 @@ void PerformanceTracker::WriteReport()
 		if (evaluateAvailable) report << s.evaluateMs;
 		else report << "null";
 		report << ", \"composite\": " << s.compositeMs << ", \"total\": " << s.totalGpuMs
-			<< ", \"present_interval\": " << s.presentIntervalMs << '}';
+			<< ", \"present_interval\": " << s.presentIntervalMs
+			<< ", \"presented\": " << (s.presented ? "true" : "false")
+			<< ", \"source_frame_id\": " << s.sourceFrameId
+			<< ", \"accepted_frame_id\": " << s.acceptedFrameId
+			<< ", \"output_frame_id\": " << s.outputFrameId << '}';
 	}
 	report << "\n  ]\n}\n";
 	if (!report) return;
 	std::ofstream complete(root_ / "performance-complete.json");
 	complete.imbue(std::locale::classic());
-	complete << "{\n  \"schema\": 1,\n  \"git_sha\": \"" << GIT_HASH
+	complete << "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"sample_count\": " << samples_.size()
 		<< ",\n  \"status\": \"complete\"\n}\n";
 	if (complete) written_ = true;

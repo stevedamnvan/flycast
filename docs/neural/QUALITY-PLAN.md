@@ -163,7 +163,7 @@ close a temporal or title-quality gate.
   explicitly refuses to declare a still-frame winner. GPU timings, external-
   output capture, moving gameplay, all profile lanes, and every other legally available title
   remain open, so no title-quality winner is declared.
-- Gate 18: partial at LOG #75. Asynchronous production D3D11 timestamp queries,
+- Gate 18: partial at LOG #75 and LOG #77. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
   native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
@@ -176,4 +176,16 @@ close a temporal or title-quality gate.
   back to byte-identical source color rather than stale public output; the
   recoverable controls resume after one hold/reset and removed status remains
   latched. Real device removal and the rest of the transition matrix remain
-  open, so Gate 18 is not closed.
+  open. LOG #77 adds per-sample source, accepted, and displayed frame identity
+  at the actual Present boundary. Sixty-frame native-D3D11 and D3D11On12 DLAA
+  intervals each showed 60 accepted/60 neural presents, zero missing or
+  accepted-but-unpresented frames, zero identity errors, repeats, source gaps,
+  native/neural alternations, and zero-frame latency. A mid-window injected
+  evaluation-failure control detected the expected neural-to-native transition
+  without stale output, while an experimental DLSS 5 run without an external
+  consumer counted all 30 accepted public candidates as not presented and all
+  30 final frames as native. A no-NGX build likewise recorded 30 native
+  presents with zero accepted or neural frames and no cadence/identity error.
+  Longer runs, active runtime removal, real device
+  loss, and the remaining transition matrix are still open, so Gate 18 is not
+  closed.

@@ -1170,6 +1170,7 @@ void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
 	neuralQualityCapturePending = false;
+	currentNeuralSourceFrameId = 0;
 	releaseNeuralPresentation();
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
@@ -1180,6 +1181,7 @@ void DX11Renderer::submitNeuralFrame()
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	currentNeuralSourceFrameId = capturedFrame.frameId;
 	if (loggedNeuralRenderWidth != capturedFrame.renderWidth
 		|| loggedNeuralRenderHeight != capturedFrame.renderHeight
 		|| loggedNeuralOutputWidth != capturedFrame.outputWidth
@@ -1301,6 +1303,7 @@ void DX11Renderer::submitNeuralFrame()
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
 	const auto status = neuralStage.TrySubmit(frame);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateEnd);
+	neuralPerformance.RecordEvaluation(frame.frameId, status == SubmitStatus::Submitted);
 	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
 	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
 	logNeuralConsumerStatus(status);
@@ -1324,6 +1327,7 @@ void DX11Renderer::submitNeuralFrame()
 			auto *view = static_cast<ID3D11ShaderResourceView *>(output.view);
 			view->AddRef();
 			neuralPresentationView.reset(view);
+			pendingNeuralPresentationFrameId = frame.frameId;
 		}
 		else if (output.api == TextureApi::D3D12 && output.resource)
 			wrapNeuralOutput(static_cast<ID3D12Resource *>(output.resource), frame.frameId);
@@ -1611,6 +1615,8 @@ void DX11Renderer::displayFramebuffer()
 #ifdef FLYCAST_ENABLE_NEURAL
 		neuralPresentationAcquired;
 	const auto queuedNeuralFrameId = pendingNeuralPresentationFrameId;
+	const auto displayedNeuralFrameId = neuralPresentationView
+		? pendingNeuralPresentationFrameId : 0;
 #else
 		false;
 #endif
@@ -1634,6 +1640,8 @@ void DX11Renderer::displayFramebuffer()
 	}
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeEnd);
+	neuralPerformance.StagePresentation(currentNeuralSourceFrameId,
+		displayedNeuralFrameId);
 	captureNeuralQualityFrame();
 	if (queuedNeuralOutput)
 	{

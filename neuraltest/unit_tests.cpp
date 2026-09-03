@@ -5,6 +5,7 @@
 #include "rend/neural/dlss5_hook.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
+#include "rend/neural/presentation_cadence.h"
 #include "rend/neural/quality_profile.h"
 
 #include <algorithm>
@@ -399,6 +400,24 @@ int RunSelfTests()
 			history.ConsumeReset() && !history.ConsumeReset(), "skip preserves reference and requests one reset");
 		history.Discontinuity();
 		suite.Expect(history.Generation() == 1 && history.ConsumeReset(), "discontinuity increments generation");
+	}
+	{
+		PresentationCadence cadence;
+		cadence.Observe(10, 10, 10, true);
+		cadence.Observe(11, 11, 11, true);
+		cadence.Observe(12, 0, 11, true);
+		cadence.Observe(13, 13, 0, true);
+		cadence.Observe(14, 14, 14, true);
+		cadence.Observe(15, 15, 0, false);
+		const auto& stats = cadence.Stats();
+		suite.Expect(stats.observedPresents == 5 && stats.missingPresents == 1
+			&& stats.acceptedEvaluations == 5 && stats.neuralPresents == 4
+			&& stats.nativePresents == 1 && stats.acceptedNotPresented == 2
+			&& stats.outputFrameRepeats == 1 && stats.sourceFrameRepeats == 0
+			&& stats.nativeNeuralAlternations == 2 && stats.latencySamples == 4
+			&& stats.latencyFramesTotal == 1 && stats.latencyFramesMax == 1
+			&& stats.frameIdentityMismatches == 0,
+			"presentation cadence counts accepted drops, repeats, alternation, and latency");
 	}
 	{
 		RecoveryController recovery;

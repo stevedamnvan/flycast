@@ -650,3 +650,21 @@ reset after real host-present notification. Device-removed status latches the
 stage on native fallback until renderer/stage recreation; it must not silently
 retry a reportedly removed device. Actual DXGI device removal remains a
 separate required test.
+
+## D-044: presentation identity is measured at the actual Present boundary
+
+An accepted public evaluation and a displayed neural result are different
+events. Each asynchronous performance-query slot therefore retains the current
+emulated source frame ID, the accepted evaluation frame ID, the selected output
+frame ID, and whether the host actually presented that slot. Native D3D11 now
+retains its output identity just as D3D11On12 already did. The final Present
+notification supplies that slot's CPU interval and presentation fact; false or
+suppressed presents cannot be promoted from a queued draw.
+
+Reports deterministically derive accepted-but-not-presented output, source and
+output repeats/gaps, native/neural alternation, identity mismatch, and
+frame-latency counters after sorting resolved GPU samples by submission
+sequence. These are diagnostics, not an instruction to reuse stale output:
+rejected frames remain native and an accepted experimental candidate withheld
+for a missing external contract is explicitly counted rather than mislabeled
+as displayed Neural Rendering.

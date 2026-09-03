@@ -2,6 +2,7 @@
 #pragma once
 
 #include "neural_stage.h"
+#include "presentation_cadence.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 #include <array>
@@ -36,6 +37,9 @@ public:
 		std::uint32_t failureInjectionAfter);
 	void BeginFrame(ID3D11DeviceContext *context);
 	void Mark(ID3D11DeviceContext *context, GpuTimingPoint point);
+	void RecordEvaluation(std::uint64_t frameId, bool accepted) noexcept;
+	void StagePresentation(std::uint64_t sourceFrameId,
+		std::uint64_t outputFrameId) noexcept;
 	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats);
 	void RecordPresent() noexcept;
 	bool Enabled() const noexcept { return !root_.empty() && targetSamples_ != 0 && !written_; }
@@ -48,6 +52,11 @@ private:
 		std::array<ComPtr<ID3D11Query>, PointCount> points;
 		std::array<bool, PointCount> marked{};
 		bool pending = false;
+		bool presented = false;
+		std::uint64_t sequence = 0;
+		std::uint64_t sourceFrameId = 0;
+		std::uint64_t acceptedFrameId = 0;
+		std::uint64_t outputFrameId = 0;
 		double presentIntervalMs = 0.;
 	};
 	struct Sample {
@@ -57,6 +66,11 @@ private:
 		double compositeMs = 0.;
 		double totalGpuMs = 0.;
 		double presentIntervalMs = 0.;
+		bool presented = false;
+		std::uint64_t sequence = 0;
+		std::uint64_t sourceFrameId = 0;
+		std::uint64_t acceptedFrameId = 0;
+		std::uint64_t outputFrameId = 0;
 	};
 
 	void Reset();
@@ -72,6 +86,8 @@ private:
 	std::uint32_t targetSamples_ = 0;
 	std::uint32_t ringBusy_ = 0;
 	std::size_t activeSlot_ = RingSize;
+	std::size_t lastEndedSlot_ = RingSize;
+	std::uint64_t nextSequence_ = 1;
 	std::vector<Sample> samples_;
 	StageStats stageStats_{};
 	std::string gameId_;

@@ -241,6 +241,7 @@ protected:
 	bool neuralPresentationAcquired = false;
 	std::size_t neuralPresentationSlot = 0;
 	std::uint64_t pendingNeuralPresentationFrameId = 0;
+	std::uint64_t currentNeuralSourceFrameId = 0;
 	std::uint64_t neuralWrappedOutputCount = 0;
 	std::uint64_t neuralAcceptedBlitCount = 0;
 	flycast::rend::neural::Dlss5HookRoute loggedDlss5Route =

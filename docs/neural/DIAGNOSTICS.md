@@ -66,7 +66,15 @@ This command forces synchronous capture and Gate 10 evidence readback off. A
 changes emulation cadence. `performance.json` contains every resolved sample,
 P50/P95/P99 base-PVR, guidance, stage-evaluation, overlay/presentation-blit, GPU
 timestamp-span, and Present-call interval values, stage busy/fallback/failure
-counts, ring pressure, plus local-VRAM initial/final/growth after warmup.
+counts, ring pressure, plus local-VRAM initial/final/growth after warmup. Schema
+2 also records the source, accepted-evaluation, and displayed-output frame ID
+for every timed sample. Its cadence summary counts missing presents, accepted
+outputs not presented, source gaps/repeats, neural-output repeats,
+native/neural transitions, frame-identity mismatches, and mean/maximum
+accepted-output latency in emulated frames. Native D3D11 and D3D11On12 use the
+same accounting; a public evaluation that is deliberately withheld because an
+experimental external contract is not ready is counted as accepted but not
+presented, never as neural presentation.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket
