@@ -614,6 +614,20 @@ void DX11Context::handleDeviceLost()
 	}
 }
 
+#ifdef FLYCAST_ENABLE_NEURAL
+HRESULT DX11Context::removeD3D12DeviceForTesting() noexcept
+{
+	if (!d3d12Device)
+		return E_NOINTERFACE;
+	ComPtr<ID3D12Device5> device5;
+	const HRESULT query = d3d12Device.as(device5);
+	if (FAILED(query) || !device5)
+		return FAILED(query) ? query : E_NOINTERFACE;
+	device5->RemoveDevice();
+	return d3d12Device->GetDeviceRemovedReason();
+}
+#endif
+
 const pD3DCompile DX11Context::getCompiler()
 {
 	if (d3dcompiler == nullptr)

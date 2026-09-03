@@ -507,6 +507,7 @@ extern Option<int> NeuralPauseAfter;
 extern Option<int> NeuralPauseDuration;
 extern Option<int> NeuralModeRoundtripAfter;
 extern Option<int> NeuralModeOffDuration;
+extern Option<int> NeuralActualDeviceRemovalAfter;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

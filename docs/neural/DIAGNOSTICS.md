@@ -179,6 +179,7 @@ Production performance measurement is separate:
 [--renderer-reinit-after N]
 [--renderer-switch-after N]
 [--surface-switch-after N]
+[--actual-device-removal-after N]
 [--game-reload-after N]
 [--savestate-roundtrip-after N] [--savestate-load-delay N]
 [--pause-roundtrip-after N] [--pause-duration N]
@@ -347,6 +348,19 @@ presentation plus zero missing Presents, accepted-output loss, identity error,
 stale output repeat, or latency. An injection count of zero is a deliberate
 negative control and cannot pass. This proves Flycast's SEH/fallback boundary;
 it does not claim a fault occurred inside a third-party runtime.
+
+The Windows-only performance control `--actual-device-removal-after N` requires
+`--api d3d11on12` and a neural lane. At exact main frame N it calls
+`ID3D12Device5::RemoveDevice` on Flycast's live process D3D12 device, requires
+`GetDeviceRemovedReason()` to return `DXGI_ERROR_DEVICE_REMOVED` (`0x887A0005`),
+then follows the normal renderer-reinitialization path. Acceptance requires the
+replacement context to expose D3D11On12 again and a fresh post-recovery sampler
+interval to present every accepted output with no native fallback, missing or
+withheld Present, identity error, source/output repeat, or frame latency. The
+control is mutually exclusive with other failure/window/renderer transitions,
+hidden, off by default, and never used to measure the pre-removal interval. It
+proves controlled removal and reconstruction of Flycast's actual D3D12 device;
+it does not claim a spontaneous driver reset, TDR, or physical runtime removal.
 
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets

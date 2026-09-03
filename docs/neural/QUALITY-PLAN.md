@@ -281,17 +281,28 @@ close a temporal or title-quality gate.
   to 538 neural Presents. Both have zero missing or accepted-but-unpresented
   frames, identity mismatch, source/output repeat, latency, query pressure, or
   object growth and close cleanly. This closes the Flycast-owned SEH boundary,
-  not actual device removal or a fault originating inside a supplied runtime.
+  not a fault originating inside a supplied runtime. LOG #116 separately
+  exercises controlled actual D3D12 device removal.
+  At exact main frame 300, normal and OIT D3D11On12 runs each call
+  `ID3D12Device5::RemoveDevice`, observe `DXGI_ERROR_DEVICE_REMOVED`, rebuild a
+  D3D11On12 context, and start a fresh post-recovery sampling interval. Each
+  fresh interval accepts and presents 600/600 neural frames with zero native,
+  missing, accepted-but-unpresented, identity, source/output repeat, source-gap,
+  alternation, latency, query-ring-pressure, or Flycast-owned object-growth
+  counts and closes cleanly. This proves controlled removal/reconstruction of
+  Flycast's actual process device, not a spontaneous driver reset or TDR.
   The full transition/failure matrix, isolated external timing, longer runs,
   resource-object
-  counts, latency, resize/fullscreen/device-removal cases, and title coverage
+  counts, latency, remaining transition cases, and title coverage
   remain open. LOG #76 adds bounded injected feature-create, evaluate,
   output-ring/delayed-fence-busy, and synthetic device-removed-status coverage
   on native D3D11 and D3D11On12. Rejected frames after accepted output fall
   back to byte-identical source color rather than stale public output; the
   recoverable controls resume after one hold/reset and removed status remains
-  latched. Real device removal and the rest of the transition matrix remain
-  open. LOG #77 adds per-sample source, accepted, and displayed frame identity
+  latched. LOG #116 supersedes the earlier actual-removal gap with controlled
+  device removal on normal/OIT D3D11On12; spontaneous driver/TDR coverage and
+  the rest of the transition matrix remain open. LOG #77 adds per-sample source,
+  accepted, and displayed frame identity
   at the actual Present boundary. Sixty-frame native-D3D11 and D3D11On12 DLAA
   intervals each showed 60 accepted/60 neural presents, zero missing or
   accepted-but-unpresented frames, zero identity errors, repeats, source gaps,
@@ -301,8 +312,8 @@ close a temporal or title-quality gate.
   consumer counted all 30 accepted public candidates as not presented and all
   30 final frames as native. A no-NGX build likewise recorded 30 native
   presents with zero accepted or neural frames and no cadence/identity error.
-  Longer runs, active runtime removal, real device
-  loss, and the remaining transition matrix are still open, so Gate 18 is not
+  Longer runs, physical loaded-runtime removal, spontaneous driver/TDR
+  evidence, and the remaining transition matrix are still open, so Gate 18 is not
   closed.
   LOG #78 adds an OS-observed resize/minimize/restore/resize-back sequence
   delayed five seconds into active rendering. Normal and OIT D3D11 and
@@ -313,7 +324,8 @@ close a temporal or title-quality gate.
   native frames and one explicit native/neural transition while its public
   feature/resources recovered; the other three lanes presented neural output
   for all 600 samples. Fullscreen, monitor move, alt-tab, renderer restart,
-  load/unload, real device loss, and long-run coverage remain open.
+  load/unload, controlled device removal, and long-run coverage were open at
+  that point; LOG #116 now closes the controlled-removal item.
   LOG #79 adds paired 10000-sample normal-renderer soaks at committed
   `b3399f96c`. Native D3D11 and D3D11On12 each presented 10000/10000 accepted
   neural frames with zero missing, dropped, repeated, gapped, mismatched, or
@@ -330,7 +342,8 @@ close a temporal or title-quality gate.
   presented frames, identity errors, repeats, latency, or query-ring pressure,
   and clean close. Three runs had flat measured-window VRAM; native-D3D11 OIT
   decreased by 3612672 bytes. Renderer/API switching, fullscreen, game
-  load/unload, active runtime removal, and real device loss remain open.
+  load/unload, active runtime removal, and controlled device removal were open
+  at that point; LOG #116 now closes the controlled-removal item.
   LOG #81 adds real normal-DX11 to DX11-OIT and DX11-OIT to normal-DX11
   switches on both native D3D11 and D3D11On12. Every destination renderer
   completed a fresh 60-frame warmup and 600 measured frames with 600/600 neural
@@ -379,7 +392,8 @@ close a temporal or title-quality gate.
   fresh native frame at the load boundary in both repeated runs and recorded
   both path transitions; the other cases presented 600/600 neural frames.
   Cross-title loading, monitor move, active runtime removal,
-  actual device loss, external timing, and broader-title coverage remain open.
+  controlled device removal, external timing, and broader-title coverage were
+  open at that point; LOG #116 now closes the controlled-removal item.
   LOG #87 adds an exact-frame `gui_togglePause`/resume round trip on normal DX11
   and DX11 OIT across native D3D11 and D3D11On12. Every marker observed
   `GuiState::Pause` at frame 200 and `GuiState::Closed` at frame 260, and every
@@ -408,7 +422,8 @@ close a temporal or title-quality gate.
   with zero missing/accepted-output drops, identity errors, output repeats, or
   latency. D3D11 released 9 backend objects and D3D11On12 released 10. This is
   controlled active-unavailability coverage; physical loaded-DLL removal and
-  actual device loss remain open.
+  controlled device removal were separate gaps there. LOG #116 now closes the
+  controlled-removal gap, while spontaneous driver/TDR evidence remains unavailable.
   LOG #90 adds current-SHA Soulcalibur frames 302 through 331 for native
   640x480 presentation, target-resolution 880x660 DLAA under Faithful,
   Enhanced, and Photoreal profile metadata, and a 5120x3840 8x reference

@@ -1154,3 +1154,19 @@ performance interval requires both native and recovered neural Presents with
 no accepted-output loss, stale output, identity mismatch, latency, crash, or
 Flycast-owned object growth. This validates Flycast's exception containment;
 it is not evidence that a supplied NGX runtime itself raised an exception.
+
+## D-072: actual D3D12 removal recovery uses an isolated evidence control
+
+The Gate 18 device-loss control removes Flycast's live D3D11On12 backing device
+through `ID3D12Device5::RemoveDevice` at an exact main-frame boundary. A pass
+requires both the returned device reason `DXGI_ERROR_DEVICE_REMOVED` and a newly
+initialized renderer that exposes D3D11On12 again. The old performance tracker
+is retired with the removed renderer; a completely new warmup and measured
+interval must then satisfy the ordinary accepted/output/cadence/resource
+acceptance rules. No sample from before removal is used as post-recovery proof.
+
+This control is hidden, opt-in, mutually exclusive with other developer
+transitions, and valid only on the selected D3D11On12 neural surface. It is
+stronger than the synthetic removed-status injection because it invalidates the
+actual process device and its resources. It is still bounded controlled-removal
+evidence, not a claim that a spontaneous driver reset or TDR was observed.

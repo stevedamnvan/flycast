@@ -52,6 +52,7 @@ public:
 	ID3D12Device *getD3D12Device() const noexcept { return d3d12Device; }
 	ID3D12CommandQueue *getD3D12Queue() const noexcept { return d3d12Queue; }
 	ID3D11On12Device *getD3D11On12Device() const noexcept { return d3d11On12Device; }
+	HRESULT removeD3D12DeviceForTesting() noexcept;
 	void AcquireWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept;
 	void ReleaseWrappedResources(ID3D11Resource *const *resources, UINT count) noexcept;
 	void QueueNeuralOutputPresent(std::uint64_t frameId) noexcept

@@ -48,7 +48,7 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -1174,6 +1174,7 @@ int PerformanceCommand(const Args& args)
 	std::uint32_t saveStateAfter = 0, saveStateLoadDelay = 30;
 	std::uint32_t pauseAfter = 0, pauseDuration = 30;
 	std::uint32_t modeRoundtripAfter = 0, modeOffDuration = 30;
+	std::uint32_t actualDeviceRemovalAfter = 0;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
 		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -1184,6 +1185,8 @@ int PerformanceCommand(const Args& args)
 		|| rendererSwitchAfter > 10000
 		|| !Number(args, "--surface-switch-after", 0, surfaceSwitchAfter, error)
 		|| surfaceSwitchAfter > 10000
+		|| !Number(args, "--actual-device-removal-after", 0,
+			actualDeviceRemovalAfter, error) || actualDeviceRemovalAfter > 10000
 		|| !Number(args, "--game-reload-after", 0, gameReloadAfter, error)
 		|| gameReloadAfter > 10000
 		|| !Number(args, "--savestate-roundtrip-after", 0, saveStateAfter, error)
@@ -1206,7 +1209,8 @@ int PerformanceCommand(const Args& args)
 	const unsigned developerTransitionCount = (rendererReinitAfter != 0 ? 1u : 0u)
 		+ (rendererSwitchAfter != 0 ? 1u : 0u) + (surfaceSwitchAfter != 0 ? 1u : 0u)
 		+ (gameReloadAfter != 0 ? 1u : 0u) + (saveStateAfter != 0 ? 1u : 0u)
-		+ (pauseAfter != 0 ? 1u : 0u) + (modeRoundtripAfter != 0 ? 1u : 0u);
+		+ (pauseAfter != 0 ? 1u : 0u) + (modeRoundtripAfter != 0 ? 1u : 0u)
+		+ (actualDeviceRemovalAfter != 0 ? 1u : 0u);
 	if (developerTransitionCount > 1)
 	{
 		std::cerr << "developer renderer transitions are mutually exclusive\n";
@@ -1247,6 +1251,16 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "invalid performance API\n";
 		return 2;
 	}
+	if (actualDeviceRemovalAfter != 0 && api != "d3d11on12")
+	{
+		std::cerr << "actual device removal requires d3d11on12\n";
+		return 2;
+	}
+	if (actualDeviceRemovalAfter != 0 && lane == "native")
+	{
+		std::cerr << "actual device removal requires a neural lane\n";
+		return 2;
+	}
 	if (renderer != "dx11" && renderer != "dx11-oit")
 	{
 		std::cerr << "invalid performance renderer\n";
@@ -1273,6 +1287,12 @@ int PerformanceCommand(const Args& args)
 		&& transition != "fullscreen-roundtrip" && transition != "focus-roundtrip")
 	{
 		std::cerr << "invalid performance transition\n";
+		return 2;
+	}
+	if (actualDeviceRemovalAfter != 0
+		&& (injection != "none" || transition != "none"))
+	{
+		std::cerr << "actual device removal cannot overlap another failure or window transition\n";
 		return 2;
 	}
 	std::uint32_t injectionCount = 0;
@@ -1332,6 +1352,12 @@ int PerformanceCommand(const Args& args)
 		&& std::filesystem::exists(output / "surface-switch-complete.json"))
 	{
 		std::cerr << "performance output already contains a surface-switch marker\n";
+		return 2;
+	}
+	if (actualDeviceRemovalAfter != 0
+		&& std::filesystem::exists(output / "actual-device-removal-complete.json"))
+	{
+		std::cerr << "performance output already contains an actual-device-removal marker\n";
 		return 2;
 	}
 	if (gameReloadAfter != 0
@@ -1435,6 +1461,8 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralRendererReinitAfter=" + std::to_wstring(rendererReinitAfter)
 		+ L",config:rend.NeuralRendererSwitchAfter=" + std::to_wstring(rendererSwitchAfter)
 		+ L",config:rend.NeuralSurfaceSwitchAfter=" + std::to_wstring(surfaceSwitchAfter)
+		+ L",config:rend.NeuralActualDeviceRemovalAfter="
+		+ std::to_wstring(actualDeviceRemovalAfter)
 		+ L",config:rend.NeuralGameReloadAfter=" + std::to_wstring(gameReloadAfter)
 		+ L",config:rend.NeuralSaveStateAfter=" + std::to_wstring(saveStateAfter)
 		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(saveStateLoadDelay)
@@ -1733,6 +1761,28 @@ int PerformanceCommand(const Args& args)
 			&& marker.find("\"performance_sampling_restarted\": true")
 				!= std::string::npos;
 	}
+	bool actualDeviceRemovalComplete = actualDeviceRemovalAfter == 0;
+	if (actualDeviceRemovalAfter != 0)
+	{
+		std::ifstream markerStream(output / "actual-device-removal-complete.json");
+		const bool markerOpened = markerStream.is_open();
+		const std::string marker((std::istreambuf_iterator<char>(markerStream)),
+			std::istreambuf_iterator<char>());
+		actualDeviceRemovalComplete = markerOpened
+			&& marker.find("\"completed\": true") != std::string::npos
+			&& marker.find("\"main_frame\": "
+				+ std::to_string(actualDeviceRemovalAfter)) != std::string::npos
+			&& marker.find("\"method\": \"ID3D12Device5::RemoveDevice\"")
+				!= std::string::npos
+			&& marker.find("\"removal_requested\": true") != std::string::npos
+			&& marker.find("\"removal_observed\": true") != std::string::npos
+			&& marker.find("\"removed_reason\": \"0x887A0005\"")
+				!= std::string::npos
+			&& marker.find("\"recovery_initialized\": true") != std::string::npos
+			&& marker.find("\"d3d11on12_restored\": true") != std::string::npos
+			&& marker.find("\"performance_sampling_restarted\": true")
+				!= std::string::npos;
+	}
 	std::ifstream performanceStream(output / "performance.json");
 	const bool performanceOpened = performanceStream.is_open();
 	const std::string completedPerformance(
@@ -1870,6 +1920,28 @@ int PerformanceCommand(const Args& args)
 			&& completedPerformance.find("\"api\": \""
 				+ std::string(surfaceTo == 1 ? "d3d11on12" : "d3d11")
 				+ "\"") != std::string::npos;
+	if (actualDeviceRemovalAfter != 0)
+	{
+		std::uint64_t acceptedEvaluations = 0, neuralPresents = 0;
+		std::uint64_t nativePresents = 0, missingPresents = 0;
+		std::uint64_t acceptedNotPresented = 0, identityMismatches = 0;
+		std::uint64_t sourceRepeats = 0, outputRepeats = 0, latencyMax = 0;
+		actualDeviceRemovalComplete = actualDeviceRemovalComplete
+			&& completedPerformance.find("\"api\": \"d3d11on12\"")
+				!= std::string::npos
+			&& jsonUnsigned("accepted_evaluations", acceptedEvaluations)
+			&& acceptedEvaluations == frames
+			&& jsonUnsigned("neural_presents", neuralPresents) && neuralPresents == frames
+			&& jsonUnsigned("native_presents", nativePresents) && nativePresents == 0
+			&& jsonUnsigned("missing_presents", missingPresents) && missingPresents == 0
+			&& jsonUnsigned("accepted_not_presented", acceptedNotPresented)
+			&& acceptedNotPresented == 0
+			&& jsonUnsigned("frame_identity_mismatches", identityMismatches)
+			&& identityMismatches == 0
+			&& jsonUnsigned("source_frame_repeats", sourceRepeats) && sourceRepeats == 0
+			&& jsonUnsigned("output_frame_repeats", outputRepeats) && outputRepeats == 0
+			&& jsonUnsigned("latency_frames_max", latencyMax) && latencyMax == 0;
+	}
 	bool sehExceptionComplete = injection != "seh-exception";
 	if (injection == "seh-exception")
 	{
@@ -1945,6 +2017,10 @@ int PerformanceCommand(const Args& args)
 			: surfaceTo == 1 ? "d3d11on12" : "d3d11") << "\""
 		<< ",\n  \"surface_switch_completed\": "
 		<< (surfaceSwitchComplete ? "true" : "false")
+		<< ",\n  \"actual_device_removal_after_main_frames\": "
+		<< actualDeviceRemovalAfter
+		<< ",\n  \"actual_device_removal_completed\": "
+		<< (actualDeviceRemovalComplete ? "true" : "false")
 		<< ",\n  \"game_reload_after_main_frames\": " << gameReloadAfter
 		<< ",\n  \"game_reload_completed\": "
 		<< (gameReloadComplete ? "true" : "false")
@@ -1974,6 +2050,8 @@ int PerformanceCommand(const Args& args)
 		<< " renderer_reinit=" << (rendererReinitComplete ? "pass" : "fail")
 		<< " renderer_switch=" << (rendererSwitchComplete ? "pass" : "fail")
 		<< " surface_switch=" << (surfaceSwitchComplete ? "pass" : "fail")
+		<< " actual_device_removal="
+		<< (actualDeviceRemovalComplete ? "pass" : "fail")
 		<< " game_reload=" << (gameReloadComplete ? "pass" : "fail")
 		<< " savestate=" << (saveStateComplete ? "pass" : "fail")
 		<< " pause=" << (pauseComplete ? "pass" : "fail")
@@ -1982,7 +2060,8 @@ int PerformanceCommand(const Args& args)
 		<< " resources=" << (resourceAccountingComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport && transitionComplete && rendererReinitComplete
-		&& rendererSwitchComplete && surfaceSwitchComplete && gameReloadComplete
+		&& rendererSwitchComplete && surfaceSwitchComplete
+		&& actualDeviceRemovalComplete && gameReloadComplete
 		&& saveStateComplete && pauseComplete && modeRoundtripComplete
 		&& sehExceptionComplete && resourceAccountingComplete ? 0 : 1;
 #endif

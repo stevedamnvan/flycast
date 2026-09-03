@@ -27,11 +27,15 @@
 #include "imgui_driver.h"
 #include "profiler/fc_profiler.h"
 #include "oslib/i18n.h"
+#if defined(_WIN32) && defined(FLYCAST_ENABLE_NEURAL)
+#include "rend/dx11/dx11context.h"
+#endif
 
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <locale>
 #include <thread>
 
 static bool mainui_enabled;
@@ -69,6 +73,13 @@ static bool neuralDeveloperModeRoundtripCompleted;
 static int neuralDeveloperModeRoundtripOriginal;
 static u32 neuralDeveloperModeOffFrame;
 static u32 neuralDeveloperModeOnFrame;
+static bool neuralDeveloperDeviceRemovalTriggered;
+static bool neuralDeveloperDeviceRemovalPending;
+static bool neuralDeveloperDeviceRemovalRequested;
+static bool neuralDeveloperDeviceRemovalObserved;
+static bool neuralDeveloperDeviceRemovalRecovered;
+static u32 neuralDeveloperDeviceRemovalFrame;
+static std::uint32_t neuralDeveloperDeviceRemovalReason;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -190,6 +201,34 @@ static void writeNeuralDeveloperModeRoundtripMarker()
 		<< ",\n  \"renderer_restarted\": false"
 		<< ",\n  \"performance_sampling_restarted\": false\n}\n";
 }
+
+static void writeNeuralDeveloperDeviceRemovalMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "actual-device-removal-complete.json");
+	marker.imbue(std::locale::classic());
+	marker << "{\n  \"schema\": 1,\n  \"completed\": "
+		<< (neuralDeveloperDeviceRemovalRequested
+			&& neuralDeveloperDeviceRemovalObserved
+			&& neuralDeveloperDeviceRemovalRecovered ? "true" : "false")
+		<< ",\n  \"main_frame\": " << neuralDeveloperDeviceRemovalFrame
+		<< ",\n  \"method\": \"ID3D12Device5::RemoveDevice\""
+		<< ",\n  \"removal_requested\": "
+		<< (neuralDeveloperDeviceRemovalRequested ? "true" : "false")
+		<< ",\n  \"removal_observed\": "
+		<< (neuralDeveloperDeviceRemovalObserved ? "true" : "false")
+		<< ",\n  \"removed_reason\": \"0x" << std::hex << std::uppercase
+		<< static_cast<unsigned long>(neuralDeveloperDeviceRemovalReason) << std::dec
+		<< "\",\n  \"recovery_initialized\": "
+		<< (neuralDeveloperDeviceRemovalRecovered ? "true" : "false")
+		<< ",\n  \"d3d11on12_restored\": "
+		<< (neuralDeveloperDeviceRemovalRecovered ? "true" : "false")
+		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
+}
 #endif
 
 bool mainui_rend_frame()
@@ -286,6 +325,8 @@ void mainui_loop(bool forceStart)
 			config::NeuralModeRoundtripAfter.get(), 0, 10000);
 		const int neuralModeOffDuration = std::clamp(
 			config::NeuralModeOffDuration.get(), 1, 10000);
+		const int neuralActualDeviceRemovalAfter = std::clamp(
+			config::NeuralActualDeviceRemovalAfter.get(), 0, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -328,6 +369,33 @@ void mainui_loop(bool forceStart)
 				"Neural developer surface switch requested at main frame %u: %d -> %d",
 				MainFrameCount, neuralDeveloperSurfaceSwitchFrom,
 				neuralDeveloperSurfaceSwitchTo);
+		}
+		else if (!neuralDeveloperDeviceRemovalTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
+			&& neuralActualDeviceRemovalAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralActualDeviceRemovalAfter)
+			&& (currentRenderer == RenderType::DirectX11
+				|| currentRenderer == RenderType::DirectX11_OIT))
+		{
+			neuralDeveloperDeviceRemovalTriggered = true;
+			neuralDeveloperDeviceRemovalFrame = MainFrameCount;
+#if defined(_WIN32)
+			DX11Context *context = DX11Context::Instance();
+			neuralDeveloperDeviceRemovalRequested = context && context->isD3D11On12();
+			if (neuralDeveloperDeviceRemovalRequested)
+			{
+				const HRESULT reason = context->removeD3D12DeviceForTesting();
+				neuralDeveloperDeviceRemovalReason = static_cast<std::uint32_t>(reason);
+				neuralDeveloperDeviceRemovalObserved = reason == DXGI_ERROR_DEVICE_REMOVED;
+			}
+#endif
+			neuralDeveloperDeviceRemovalPending = true;
+			forceReinit = true;
+			NOTICE_LOG(RENDERER,
+				"Neural developer actual D3D12 device removal requested at main frame %u: requested=%d observed=%d reason=%08x",
+				MainFrameCount, neuralDeveloperDeviceRemovalRequested ? 1 : 0,
+				neuralDeveloperDeviceRemovalObserved ? 1 : 0,
+				neuralDeveloperDeviceRemovalReason);
 		}
 		else if (!neuralDeveloperGameReloadTriggered && neuralReinitAfter == 0
 			&& neuralSwitchAfter == 0 && neuralSurfaceSwitchAfter == 0
@@ -526,6 +594,19 @@ void mainui_loop(bool forceStart)
 					MainFrameCount, neuralDeveloperSurfaceSwitchFrom,
 					neuralDeveloperSurfaceSwitchTo);
 			}
+			if (neuralDeveloperDeviceRemovalPending)
+			{
+				neuralDeveloperDeviceRemovalPending = false;
+#if defined(_WIN32)
+				DX11Context *context = DX11Context::Instance();
+				neuralDeveloperDeviceRemovalRecovered = context
+					&& context->isD3D11On12();
+#endif
+				writeNeuralDeveloperDeviceRemovalMarker();
+				NOTICE_LOG(RENDERER,
+					"Neural developer actual D3D12 device removal recovery completed at main frame %u: %d",
+					MainFrameCount, neuralDeveloperDeviceRemovalRecovered ? 1 : 0);
+			}
 #endif
 			forceReinit = false;
 			currentRenderer = config::RendererType;
@@ -567,6 +648,13 @@ void mainui_start()
 	neuralDeveloperModeRoundtripOriginal = 0;
 	neuralDeveloperModeOffFrame = 0;
 	neuralDeveloperModeOnFrame = 0;
+	neuralDeveloperDeviceRemovalTriggered = false;
+	neuralDeveloperDeviceRemovalPending = false;
+	neuralDeveloperDeviceRemovalRequested = false;
+	neuralDeveloperDeviceRemovalObserved = false;
+	neuralDeveloperDeviceRemovalRecovered = false;
+	neuralDeveloperDeviceRemovalFrame = 0;
+	neuralDeveloperDeviceRemovalReason = 0;
 #endif
 	mainui_enabled = true;
 }
