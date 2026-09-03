@@ -59,6 +59,12 @@ struct DX11Renderer : public Renderer
 	}
 
 	bool RenderLastFrame() override;
+	void ResetNeuralHistory() override
+	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralInstrumentation.Discontinuity();
+#endif
+	}
 	BaseTextureCacheData *GetTexture(TSP tsp, TCW tcw, int area) override;
 	bool GetLastFrame(std::vector<u8>& data, int& width, int& height) override;
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -182,7 +188,9 @@ protected:
 	std::uint32_t neuralDepthHeight = 0;
 	std::size_t neuralExportSlot = 0;
 	int activeNeuralMode = -1;
+	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
+	ComPtr<ID3D11ShaderResourceView> neuralPresentationView;
 #endif
 
 private:

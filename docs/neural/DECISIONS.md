@@ -155,3 +155,14 @@ through D3D11, releases it to D3D12, flushes, and observes queue completion.
 The synthetic neural inputs are then uploaded as native D3D12 resources. This
 proves basic wrapped-resource/same-queue viability, not yet that Flycast's PVR
 renderer or swapchain runs on that surface; FC-045 remains open for that reason.
+
+## D-017: presentation retains only an accepted D3D11 neural output
+
+`DX11Renderer` keeps an owning reference to the stage output only after
+`TrySubmit` returns `Submitted`. The normal framebuffer view remains the source
+for every disabled, busy, unsupported, holding, failed, or D3D12-without-wrapper
+frame. The selected view enters the existing content-rect quad blit, so OSD and
+later UI composition retain their native order. Mode/surface changes, resource
+release, and the beginning of each new submission clear the retained view.
+Global renderer reset and save-state deserialization explicitly increment the
+instrumentation history generation through a renderer-neutral callback.

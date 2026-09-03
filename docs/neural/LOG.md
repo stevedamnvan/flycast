@@ -97,3 +97,7 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #46 2026-09-02 working tree | WARP and `--no-ngx` texture/export probes on D3D11 and D3D12; no-SDK build D3D12 repeat | both APIs allocated the complete GPU input set; D3D12 additionally created/cleared/released a same-queue D3D11On12 wrapped target; all reported explicit unsupported without SDK invocation | FC-049 pass within harness boundary
 
 #47 2026-09-02 working tree | rebuild SDK, instrumentation-only, and feature-off configurations; run both enabled selftests | all three `flycast` targets and both harnesses linked; each selftest passed 41/41 | configuration matrix green after D3D12 backend and harness additions
+
+#48 2026-09-02 working tree | first compile of accepted-output presentation wiring | MSVC rejected a raw `ID3D11ShaderResourceView*` at Flycast's `Quad::draw`, which requires an owning `ComPtr` lvalue | failed attempt retained; output ownership was corrected instead of weakening the quad API
+
+#49 2026-09-02 working tree | rebuild SDK, instrumentation-only, and feature-off `flycast`; run both enabled selftests | all three `flycast.exe` targets linked; SDK and no-SDK selftests each passed 41/41 | D3D11 submitted output is now retained through the final content-rect blit before OSD, framebuffer-direct submission follows the same accepted-output rule, and global render reset/save-state deserialize notify neural history; runtime game evidence remains unavailable

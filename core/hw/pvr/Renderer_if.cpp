@@ -494,6 +494,8 @@ void rend_reset()
 	fbAddrHistory[0] = 1;
 	fbAddrHistory[1] = 1;
 	swapIntervalDetector.reset();
+	if (renderer != nullptr)
+		renderer->ResetNeuralHistory();
 }
 
 void rend_start_render()
@@ -699,4 +701,6 @@ void rend_deserialize(Deserializer& deser)
 	pend_rend = false;
 	fbAddrHistory[0] = 1;
 	fbAddrHistory[1] = 1;
+	if (renderer != nullptr)
+		renderer->ResetNeuralHistory();
 }

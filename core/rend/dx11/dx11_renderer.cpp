@@ -647,6 +647,7 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	neuralPresentationView.reset();
 	auto releaseTargetRing = [](NeuralTargetRing& ring) {
 		for (auto& view : ring.views) view.reset();
 		for (auto& target : ring.targets) target.reset();
@@ -725,6 +726,7 @@ flycast::rend::neural::TextureRef DX11Renderer::getNeuralTexture(
 void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
+	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
 	const auto contentRect = getNeuralContentRect();
 	neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
@@ -753,24 +755,39 @@ void DX11Renderer::submitNeuralFrame()
 	}
 	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
 	if (neuralStage.TrySubmit(frame) == SubmitStatus::Submitted)
+	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
+		const auto output = neuralStage.GetOutput();
+		if (output.api == TextureApi::D3D11 && output.view)
+		{
+			auto *view = static_cast<ID3D11ShaderResourceView *>(output.view);
+			view->AddRef();
+			neuralPresentationView.reset(view);
+		}
+	}
 }
 
 bool DX11Renderer::syncNeuralMode()
 {
 	using namespace flycast::rend::neural;
 	const int requestedMode = std::clamp(config::NeuralMode.get(), 0, 8);
-	if (requestedMode != activeNeuralMode)
+	const bool requestedSurface = config::NeuralD3D12Surface.get();
+	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface)
 	{
+		neuralPresentationView.reset();
 		activeNeuralMode = requestedMode;
+		activeNeuralSurface = requestedSurface;
 		neuralInstrumentation.SetEnabled(requestedMode != 0);
 		neuralStage.Shutdown();
 		StageConfig stageConfig;
 		stageConfig.mode = static_cast<NeuralMode>(requestedMode);
-		stageConfig.api = config::NeuralD3D12Surface ? Api::D3D12 : Api::D3D11;
+		stageConfig.api = requestedSurface ? Api::D3D12 : Api::D3D11;
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook;
 		neuralStage = NeuralStage(stageConfig);
-		neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());
+		if (stageConfig.api == Api::D3D11)
+			neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());
+		else
+			neuralStage.SetGraphicsDevice(stageConfig.api, nullptr, nullptr);
 		if (requestedMode == 0)
 			releaseNeuralResources();
 	}
@@ -780,6 +797,7 @@ bool DX11Renderer::syncNeuralMode()
 void DX11Renderer::submitNeuralFramebuffer()
 {
 	using namespace flycast::rend::neural;
+	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
 	const TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
@@ -788,7 +806,17 @@ void DX11Renderer::submitNeuralFramebuffer()
 		color, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect);
-	neuralStage.TrySubmit(frame);
+	if (neuralStage.TrySubmit(frame) == SubmitStatus::Submitted)
+	{
+		neuralInstrumentation.MarkEvaluated(frame.frameId);
+		const auto output = neuralStage.GetOutput();
+		if (output.api == TextureApi::D3D11 && output.view)
+		{
+			auto *view = static_cast<ID3D11ShaderResourceView *>(output.view);
+			view->AddRef();
+			neuralPresentationView.reset(view);
+		}
+	}
 }
 #endif
 
@@ -842,7 +870,14 @@ void DX11Renderer::displayFramebuffer()
 	x += shiftX;
 	y += shiftY;
 	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
-	quad->draw(fbTextureView, samplers->getSampler(config::LinearInterpolation), nullptr, x, y, w, h, config::Rotate90);
+	ComPtr<ID3D11ShaderResourceView>& presentationView =
+#ifdef FLYCAST_ENABLE_NEURAL
+		neuralPresentationView ? neuralPresentationView : fbTextureView;
+#else
+		fbTextureView;
+#endif
+	quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
+		x, y, w, h, config::Rotate90);
 #endif
 }
 

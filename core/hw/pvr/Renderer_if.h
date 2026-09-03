@@ -75,6 +75,7 @@ struct Renderer
 	virtual bool GetLastFrame(std::vector<u8>& data, int& width, int& height) { return false; }
 
 	virtual bool Present() { return true; }
+	virtual void ResetNeuralHistory() {}
 
 	virtual BaseTextureCacheData *GetTexture(TSP tsp, TCW tcw, int area = 0) { return nullptr; }
 

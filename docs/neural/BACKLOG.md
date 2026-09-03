@@ -25,7 +25,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-023 | 2 | Genuine scaling / Gate 2 | 4x/8x edge samples differ from nearest | todo | |
 | FC-024 | 2 | Depth / Gate 3 | OP+PT only, correct ordering | doing | LOG #25,#29; production guarded R32_FLOAT OP/PT replay export builds in DX11/OIT; runtime ordering artifacts pending |
 | FC-025 | 2 | Draw records and IDs | Fixed history; R16_UINT ID | doing | LOG #20,#29; fixed 8192-entry history plus OP/PT R16_UINT ordinal MRT build; translucent coverage/runtime evidence pending |
-| FC-026 | 2 | History generation | All structural reset sources increment | doing | LOG #20,#26; enable/mode/resize/overflow/framebuffer-source resets wired; global reset/save-state/renderer-switch call sites pending |
+| FC-026 | 2 | History generation | All structural reset sources increment | doing | LOG #20,#26,#49; enable/mode/resize/overflow/framebuffer-source plus global render reset/save-state deserialize are wired; explicit renderer-switch evidence pending |
 | FC-027 | 2 | Atomic package | Once per display frame; never RTT evaluate | doing | LOG #20,#26,#29; complete DX11 TextureRef set is attached to one Geometry package; runtime cadence/RTT evidence pending |
 | FC-029 | 2 | Phase gate | Gates 1-3 and deterministic snapshots | todo | |
 | FC-030 | 3 | Previous selection | Last successfully evaluated frame | done | LOG #17,#26; renderer commits reference history only after `Submitted`, skip-reference unit control green |
@@ -47,13 +47,13 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-048 | 4 | Fallback transport | Bridge only if 11On12 gate fails | todo | |
 | FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | done | LOG #46; SDK and no-SDK WARP GPU texture allocation plus D3D11On12 surface creation return clean explicit unsupported status on both APIs |
 | FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | doing | LOG #21; guarded mode/surface config and renderer requirement UI implemented; live status/metrics/debug selector pending |
-| FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | todo | |
-| FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | todo | |
+| FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | doing | LOG #49; accepted D3D11 output is selected for the final content-rect blit and native output remains fallback; live emulator capture/cadence evidence pending |
+| FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | doing | LOG #49; production render/reset/save-state and source-transition call sites are connected; live game-load/renderer-switch validation pending |
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | todo | |
 | FC-054 | 5 | Capture CLI | Rate-limited artifact package | todo | |
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
 | FC-056 | 5 | Experimental DLSS 5 | Unsupported until public contract | done | LOG #31; backend factory returns explicit public-contract unsupported reason; no private IDs or module inspection |
-| FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | todo | |
+| FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | doing | LOG #49; build-time presentation/fallback/reset structure is green, runtime toggles and pixel Gate 8 pending |
 | FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#31; 41 checks pass in NGX and no-NGX builds, including explicit DLSS5/D3D12 stubs; numerical HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40,#44-#45; public RTX harness matrix green on both APIs; production captures/cadence remain pending |
