@@ -269,6 +269,7 @@ void DX11Context::term()
 	swapchain3.reset();
 	pendingNeuralOutputFrameId = 0;
 	pendingNeuralOutputPresent = false;
+	neuralEvidenceBackBufferAttempts = 0;
 #endif
 	renderTargetView.reset();
 	swapchain1.reset();
@@ -326,7 +327,10 @@ void DX11Context::Present()
 	if (SUCCEEDED(hr) && pendingNeuralOutputPresent)
 	{
 		++neuralOutputPresentCount;
-		if (neuralOutputPresentCount == 1)
+		const auto evidenceLimit = static_cast<std::uint64_t>(
+			std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
+		if (neuralOutputPresentCount == 1
+			|| (config::NeuralDlss5EvidenceCapture.get() && neuralOutputPresentCount <= evidenceLimit))
 			NOTICE_LOG(RENDERER,
 				"DLSS 5 candidate public-output present completed: frame=%llu route=d3d11on12; external mutation unconfirmed",
 				static_cast<unsigned long long>(pendingNeuralOutputFrameId));
@@ -381,6 +385,7 @@ void DX11Context::resize()
 		swapchain3.reset();
 		pendingNeuralOutputFrameId = 0;
 		pendingNeuralOutputPresent = false;
+		neuralEvidenceBackBufferAttempts = 0;
 #endif
 		renderTargetView.reset();
 #ifdef TARGET_UWP
@@ -514,9 +519,11 @@ void DX11Context::releaseWrappedBackBuffer() noexcept
 
 void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcept
 {
-	if (neuralEvidenceBackBufferAttempted || !renderTargetView)
+	const auto captureLimit = static_cast<std::uint32_t>(
+		std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
+	if (neuralEvidenceBackBufferAttempts >= captureLimit || !renderTargetView)
 		return;
-	neuralEvidenceBackBufferAttempted = true;
+	const auto captureNumber = ++neuralEvidenceBackBufferAttempts;
 	ComPtr<ID3D11Resource> resource;
 	renderTargetView->GetResource(&resource.get());
 	ComPtr<ID3D11Texture2D> texture;
@@ -576,8 +583,8 @@ void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcep
 	}
 	pDeviceContext->Unmap(staging, 0);
 	NOTICE_LOG(RENDERER,
-		"DLSS 5 developer present evidence: frame=%llu backbuffer_fnv64=%016llX marker_pixels=%u/1024 size=%ux%u; synchronous developer mode",
-		static_cast<unsigned long long>(frameId), static_cast<unsigned long long>(hash),
+		"DLSS 5 developer present evidence: capture=%u frame=%llu backbuffer_fnv64=%016llX marker_pixels=%u/1024 size=%ux%u; synchronous developer mode",
+		captureNumber, static_cast<unsigned long long>(frameId), static_cast<unsigned long long>(hash),
 		markerPixels, desc.Width, desc.Height);
 }
 #endif

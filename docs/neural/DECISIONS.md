@@ -189,14 +189,15 @@ configuration default, not an architectural frame invariant.
 
 ## D-020: readiness and proof are separate states
 
-Current status and harness reports distinguish selected route, missing
+At this decision point, status and harness reports distinguished selected route, missing
 components, components present, public contract evaluated, and compatibility
 rebuild activity. Later Gate 10 work must add output-produced, output-consumed,
 and visually-confirmed evidence as separate fields rather than infer them from
 the current ladder. Loaded modules and a successful public evaluation cannot
 advance the claim past `contract-evaluated`; no current Flycast route is
-recorded as passing Gate 10. D3D11On12 process classification is measured at
-runtime rather than inferred from swapchain creation.
+recorded as passing Gate 10 in this decision. D-026 records the later controlled
+Gate 10 pass. D3D11On12 process classification is measured at runtime rather
+than inferred from swapchain creation.
 
 ## D-021: the available Feeder source is not a Flycast bridge runtime
 
@@ -239,17 +240,49 @@ and controlled add-on A/B prove that the presented pixels are neural output.
 If the experimental route has not reached `contract-evaluated`, the public NGX
 call may still run for detection/rebuild telemetry, but its output is not selected
 and Flycast keeps the native framebuffer as the presentation source.
+D-026 records the later paired-input and sentinel evidence that satisfies this
+decision's visual-confirmation requirement for the selected On12 route.
 
 ## D-025: sentinel evidence is explicit, synchronous, and non-production
 
 `rend.NeuralDlss5EvidenceCapture` is off by default and is accepted only for the
 experimental DLSS 5 mode. When enabled, the diagnostic forces the bias-current-
-color mask to zero, reads back one exact input/output pair, writes a 32x32
-magenta/cyan marker into the returned public-output resource, reads that resource
-back again, and checks the final D3D11On12 swapchain backbuffer before Present.
+color mask to zero, reads back one or a bounded series of exact color, depth,
+motion, mask, and output tuples, writes a 32x32 magenta/cyan marker into the
+returned public-output resource, reads that resource back again, and checks the
+final D3D11On12 swapchain backbuffer before Present.
 The diagnostic deliberately waits for GPU completion and logs the wait duration;
 it is prohibited from performance claims and from the normal emulator path.
 `rend.NeuralDlss5EvidenceStartDelayMs` may delay arming by at most 30 seconds so a
 consumer toggle can be attempted before the first contract evaluation. A marker
 seen in the backbuffer proves Flycast's public-output ownership and presentation
 path, not that an external feature modified the pre-marker pixels.
+`rend.NeuralDlss5EvidenceCaptureFrames` defaults to one and is bounded to 240. A
+larger value exists only to find exact source-hash matches across controlled
+external-consumer ON/OFF runs; every captured frame retains the diagnostic GPU
+wait, and the same bounded count applies to pre-Present swapchain verification.
+All such measurements are excluded from production timing or performance claims.
+
+## D-026: the supplied D3D11On12 route passes Gate 10
+
+The selected experimental route is Flycast D3D11On12 public NGX plus the exact
+user-supplied ReShade/RenoDX consumer and signed DLSSNR runtime recorded in LOG
+#53 and #59. In paired 120-frame Soulcalibur runs, external-consumer ON and
+explicit `EnableHooks=0` policy-OFF had identical frame IDs and identical color,
+depth, motion, and mask hashes for all 120 contracts. Returned-output hashes
+differed on 118 frames while the external log recorded feature-18 creation and
+evaluation only in the ON run.
+
+Frame 9 is the compact three-way proof: native color `0E9F202CA588F23F`,
+policy-OFF public DLAA `80C161B4A9783CA2`, and consumer-ON returned output
+`F2D37E657D2077C0`. The ON output was marked, selected by Flycast's accepted-
+output blit, found at all 1024 expected marker pixels in the frame-9 swapchain
+backbuffer, and completed Present tagged as frame 9. Route latency is therefore
+zero Flycast display frames; the synchronous diagnostic wait is not production
+GPU latency. This causal matched-contract proof establishes external output
+identity without inspecting private feature implementation or binaries.
+
+FC-056 and FC-066 are complete for this named route. This does not make the
+whole neural-rendering project or the On12 surface production-ready: FC-045's
+transition matrix, Dreamcast temporal-quality work, Gate 8, failure injection,
+and production performance remain open.

@@ -130,6 +130,9 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		stats_.dlss5Components = backendStats.dlss5Components;
 		stats_.evidenceFrameId = backendStats.evidenceFrameId;
 		stats_.evidenceInputHash = backendStats.evidenceInputHash;
+		stats_.evidenceDepthHash = backendStats.evidenceDepthHash;
+		stats_.evidenceMotionHash = backendStats.evidenceMotionHash;
+		stats_.evidenceMaskHash = backendStats.evidenceMaskHash;
 		stats_.evidenceOutputHash = backendStats.evidenceOutputHash;
 		stats_.evidenceMarkedOutputHash = backendStats.evidenceMarkedOutputHash;
 		stats_.evidenceWaitMicroseconds = backendStats.evidenceWaitMicroseconds;
@@ -171,6 +174,9 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	stats_.dlss5Components = backendStats.dlss5Components;
 	stats_.evidenceFrameId = backendStats.evidenceFrameId;
 	stats_.evidenceInputHash = backendStats.evidenceInputHash;
+	stats_.evidenceDepthHash = backendStats.evidenceDepthHash;
+	stats_.evidenceMotionHash = backendStats.evidenceMotionHash;
+	stats_.evidenceMaskHash = backendStats.evidenceMaskHash;
 	stats_.evidenceOutputHash = backendStats.evidenceOutputHash;
 	stats_.evidenceMarkedOutputHash = backendStats.evidenceMarkedOutputHash;
 	stats_.evidenceWaitMicroseconds = backendStats.evidenceWaitMicroseconds;

@@ -43,6 +43,9 @@ struct StageStats {
 	Dlss5HookComponents dlss5Components{};
 	std::uint64_t evidenceFrameId = 0;
 	std::uint64_t evidenceInputHash = 0;
+	std::uint64_t evidenceDepthHash = 0;
+	std::uint64_t evidenceMotionHash = 0;
+	std::uint64_t evidenceMaskHash = 0;
 	std::uint64_t evidenceOutputHash = 0;
 	std::uint64_t evidenceMarkedOutputHash = 0;
 	std::uint64_t evidenceWaitMicroseconds = 0;

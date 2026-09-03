@@ -920,12 +920,16 @@ void DX11Renderer::logNeuralConsumerStatus(
 		loggedEvidenceCaptureFailures = stats.evidenceCaptureFailures;
 		NOTICE_LOG(RENDERER,
 			"DLSS 5 developer evidence: captures=%llu failures=%llu frame=%llu "
-			"input_fnv64=%016llX returned_fnv64=%016llX marked_fnv64=%016llX wait_us=%llu "
+			"color_fnv64=%016llX depth_fnv64=%016llX motion_fnv64=%016llX mask_fnv64=%016llX "
+			"returned_fnv64=%016llX marked_fnv64=%016llX wait_us=%llu "
 			"marker=32x32-magenta-cyan; synchronous developer mode",
 			static_cast<unsigned long long>(stats.evidenceCaptures),
 			static_cast<unsigned long long>(stats.evidenceCaptureFailures),
 			static_cast<unsigned long long>(stats.evidenceFrameId),
 			static_cast<unsigned long long>(stats.evidenceInputHash),
+			static_cast<unsigned long long>(stats.evidenceDepthHash),
+			static_cast<unsigned long long>(stats.evidenceMotionHash),
+			static_cast<unsigned long long>(stats.evidenceMaskHash),
 			static_cast<unsigned long long>(stats.evidenceOutputHash),
 			static_cast<unsigned long long>(stats.evidenceMarkedOutputHash),
 			static_cast<unsigned long long>(stats.evidenceWaitMicroseconds));
@@ -1057,6 +1061,8 @@ bool DX11Renderer::syncNeuralMode()
 			stageConfig.dlss5RebuildMaxAttempts = static_cast<std::uint32_t>(
 				std::clamp(config::NeuralDlss5RebuildMaxAttempts.get(), 0, 4));
 			stageConfig.dlss5EvidenceCapture = config::NeuralDlss5EvidenceCapture.get();
+			stageConfig.dlss5EvidenceCaptureFrames = static_cast<std::uint32_t>(
+				std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
 		}
 		neuralStage = NeuralStage(stageConfig);
 		if (stageConfig.api == Api::D3D11)

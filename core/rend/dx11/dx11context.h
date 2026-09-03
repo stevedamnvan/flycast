@@ -124,7 +124,7 @@ private:
 	std::uint64_t pendingNeuralOutputFrameId = 0;
 	bool pendingNeuralOutputPresent = false;
 	std::uint64_t neuralOutputPresentCount = 0;
-	bool neuralEvidenceBackBufferAttempted = false;
+	std::uint32_t neuralEvidenceBackBufferAttempts = 0;
 	void acquireWrappedBackBuffer() noexcept;
 	void releaseWrappedBackBuffer() noexcept;
 	void captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcept;

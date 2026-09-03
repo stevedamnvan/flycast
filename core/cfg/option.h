@@ -470,6 +470,7 @@ extern Option<bool> NeuralD3D12Surface;
 extern Option<int> NeuralDlss5RebuildGraceEvaluations;
 extern Option<int> NeuralDlss5RebuildMaxAttempts;
 extern Option<bool> NeuralDlss5EvidenceCapture;
+extern Option<int> NeuralDlss5EvidenceCaptureFrames;
 extern Option<int> NeuralDlss5EvidenceStartDelayMs;
 extern Option<int> NeuralDebugView;
 #endif

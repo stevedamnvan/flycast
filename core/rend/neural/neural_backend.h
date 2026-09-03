@@ -34,6 +34,7 @@ struct StageConfig {
 	std::uint32_t dlss5RebuildGraceEvaluations = 300;
 	std::uint32_t dlss5RebuildMaxAttempts = 2;
 	bool dlss5EvidenceCapture = false;
+	std::uint32_t dlss5EvidenceCaptureFrames = 1;
 };
 
 enum class BackendEvalStatus : std::uint8_t {
@@ -59,6 +60,9 @@ struct BackendStats {
 	Dlss5HookComponents dlss5Components{};
 	std::uint64_t evidenceFrameId = 0;
 	std::uint64_t evidenceInputHash = 0;
+	std::uint64_t evidenceDepthHash = 0;
+	std::uint64_t evidenceMotionHash = 0;
+	std::uint64_t evidenceMaskHash = 0;
 	std::uint64_t evidenceOutputHash = 0;
 	std::uint64_t evidenceMarkedOutputHash = 0;
 	std::uint64_t evidenceWaitMicroseconds = 0;

@@ -119,7 +119,7 @@ constexpr std::uint32_t EvidenceMarkerHeight = 32;
 constexpr std::uint32_t EvidenceRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
 
 std::uint64_t HashMappedTexture(ID3D12Resource *resource, std::uint32_t width,
-	std::uint32_t height, std::uint32_t rowPitch) noexcept
+	std::uint32_t height, std::uint32_t rowPitch, std::uint32_t bytesPerPixel) noexcept
 {
 	if (!resource) return 0;
 	const std::uint64_t size = static_cast<std::uint64_t>(rowPitch) * height;
@@ -133,7 +133,7 @@ std::uint64_t HashMappedTexture(ID3D12Resource *resource, std::uint32_t width,
 	for (std::uint32_t y = 0; y < height; ++y)
 	{
 		const auto *row = bytes + static_cast<std::size_t>(y) * rowPitch;
-		for (std::uint32_t x = 0; x < width * 4; ++x)
+		for (std::uint32_t x = 0; x < width * bytesPerPixel; ++x)
 		{
 			hash ^= row[x];
 			hash *= prime;
@@ -356,8 +356,10 @@ public:
 		evaluate.InExposureScale = 1.f;
 		const bool markEvidence = config_.dlss5EvidenceCapture && evidenceMarkerUpload_;
 		const bool captureEvidence = markEvidence
-			&& stats_.evidenceCaptures == 0 && stats_.evidenceCaptureFailures == 0
-			&& evidenceInputReadback_ && evidenceOutputReadback_
+			&& stats_.evidenceCaptures < config_.dlss5EvidenceCaptureFrames
+			&& stats_.evidenceCaptureFailures == 0
+			&& evidenceInputReadback_ && evidenceDepthReadback_
+			&& evidenceMotionReadback_ && evidenceMaskReadback_ && evidenceOutputReadback_
 			&& evidenceMarkedOutputReadback_;
 		const auto evidenceStart = captureEvidence
 			? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
@@ -375,14 +377,26 @@ public:
 			D3D12_RESOURCE_BARRIER barriers[] = {
 				Transition(static_cast<ID3D12Resource *>(frame.color.resource),
 					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.depth.resource),
+					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.motion.resource),
+					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.mask.resource),
+					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE),
 				Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 					D3D12_RESOURCE_STATE_COPY_SOURCE),
 			};
 			list_[slot]->ResourceBarrier(static_cast<UINT>(std::size(barriers)), barriers);
 			CopyTextureToBuffer(list_[slot], static_cast<ID3D12Resource *>(frame.color.resource),
-				evidenceInputReadback_, frame.renderWidth, frame.renderHeight);
+				evidenceInputReadback_, frame.renderWidth, frame.renderHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+			CopyTextureToBuffer(list_[slot], static_cast<ID3D12Resource *>(frame.depth.resource),
+				evidenceDepthReadback_, frame.renderWidth, frame.renderHeight, DXGI_FORMAT_R32_FLOAT);
+			CopyTextureToBuffer(list_[slot], static_cast<ID3D12Resource *>(frame.motion.resource),
+				evidenceMotionReadback_, frame.renderWidth, frame.renderHeight, DXGI_FORMAT_R16G16_FLOAT);
+			CopyTextureToBuffer(list_[slot], static_cast<ID3D12Resource *>(frame.mask.resource),
+				evidenceMaskReadback_, frame.renderWidth, frame.renderHeight, DXGI_FORMAT_R8_UNORM);
 			CopyTextureToBuffer(list_[slot], output_[slot], evidenceOutputReadback_,
-				config_.outputWidth, config_.outputHeight);
+				config_.outputWidth, config_.outputHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 			auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
 				D3D12_RESOURCE_STATE_COPY_DEST);
 			list_[slot]->ResourceBarrier(1, &barrier);
@@ -391,9 +405,15 @@ public:
 				D3D12_RESOURCE_STATE_COPY_SOURCE);
 			list_[slot]->ResourceBarrier(1, &barrier);
 			CopyTextureToBuffer(list_[slot], output_[slot], evidenceMarkedOutputReadback_,
-				config_.outputWidth, config_.outputHeight);
+				config_.outputWidth, config_.outputHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
 			D3D12_RESOURCE_BARRIER restore[] = {
 				Transition(static_cast<ID3D12Resource *>(frame.color.resource),
+					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.depth.resource),
+					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.motion.resource),
+					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				Transition(static_cast<ID3D12Resource *>(frame.mask.resource),
 					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 				Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
@@ -439,11 +459,17 @@ public:
 			{
 				stats_.evidenceFrameId = frame.frameId;
 				stats_.evidenceInputHash = HashMappedTexture(evidenceInputReadback_,
-					frame.renderWidth, frame.renderHeight, evidenceRowPitch_);
+					frame.renderWidth, frame.renderHeight, evidenceRowPitch_, 4);
+				stats_.evidenceDepthHash = HashMappedTexture(evidenceDepthReadback_,
+					frame.renderWidth, frame.renderHeight, evidenceRowPitch_, 4);
+				stats_.evidenceMotionHash = HashMappedTexture(evidenceMotionReadback_,
+					frame.renderWidth, frame.renderHeight, evidenceRowPitch_, 4);
+				stats_.evidenceMaskHash = HashMappedTexture(evidenceMaskReadback_,
+					frame.renderWidth, frame.renderHeight, evidenceRowPitch_, 1);
 				stats_.evidenceOutputHash = HashMappedTexture(evidenceOutputReadback_,
-					config_.outputWidth, config_.outputHeight, evidenceRowPitch_);
+					config_.outputWidth, config_.outputHeight, evidenceRowPitch_, 4);
 				stats_.evidenceMarkedOutputHash = HashMappedTexture(evidenceMarkedOutputReadback_,
-					config_.outputWidth, config_.outputHeight, evidenceRowPitch_);
+					config_.outputWidth, config_.outputHeight, evidenceRowPitch_, 4);
 				stats_.evidenceWaitMicroseconds = static_cast<std::uint64_t>(
 					std::chrono::duration_cast<std::chrono::microseconds>(
 						std::chrono::steady_clock::now() - evidenceStart).count());
@@ -496,6 +522,9 @@ public:
 		for (auto& allocator : allocator_) allocator.reset();
 		for (auto& output : output_) output.reset();
 		evidenceInputReadback_.reset();
+		evidenceDepthReadback_.reset();
+		evidenceMotionReadback_.reset();
+		evidenceMaskReadback_.reset();
 		evidenceOutputReadback_.reset();
 		evidenceMarkedOutputReadback_.reset();
 		evidenceMarkerUpload_.reset();
@@ -517,6 +546,9 @@ public:
 		stats_.dlss5Components = {};
 		stats_.evidenceFrameId = 0;
 		stats_.evidenceInputHash = 0;
+		stats_.evidenceDepthHash = 0;
+		stats_.evidenceMotionHash = 0;
+		stats_.evidenceMaskHash = 0;
 		stats_.evidenceOutputHash = 0;
 		stats_.evidenceMarkedOutputHash = 0;
 		stats_.evidenceWaitMicroseconds = 0;
@@ -656,6 +688,12 @@ private:
 		if (!CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
 			D3D12_RESOURCE_STATE_COPY_DEST, evidenceInputReadback_)
 			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+				D3D12_RESOURCE_STATE_COPY_DEST, evidenceDepthReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+				D3D12_RESOURCE_STATE_COPY_DEST, evidenceMotionReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+				D3D12_RESOURCE_STATE_COPY_DEST, evidenceMaskReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
 				D3D12_RESOURCE_STATE_COPY_DEST, evidenceOutputReadback_)
 			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
 				D3D12_RESOURCE_STATE_COPY_DEST, evidenceMarkedOutputReadback_)
@@ -686,12 +724,13 @@ private:
 	}
 
 	void CopyTextureToBuffer(ID3D12GraphicsCommandList *list, ID3D12Resource *texture,
-		ID3D12Resource *buffer, std::uint32_t width, std::uint32_t height) noexcept
+		ID3D12Resource *buffer, std::uint32_t width, std::uint32_t height,
+		DXGI_FORMAT format) noexcept
 	{
 		D3D12_TEXTURE_COPY_LOCATION destination{};
 		destination.pResource = buffer;
 		destination.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		destination.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		destination.PlacedFootprint.Footprint.Format = format;
 		destination.PlacedFootprint.Footprint.Width = width;
 		destination.PlacedFootprint.Footprint.Height = height;
 		destination.PlacedFootprint.Footprint.Depth = 1;
@@ -787,6 +826,9 @@ private:
 	std::array<D3D12_RESOURCE_STATES, 3> outputState_{};
 	std::array<std::uint64_t, 3> slotFence_{};
 	ComPtr<ID3D12Resource> evidenceInputReadback_;
+	ComPtr<ID3D12Resource> evidenceDepthReadback_;
+	ComPtr<ID3D12Resource> evidenceMotionReadback_;
+	ComPtr<ID3D12Resource> evidenceMaskReadback_;
 	ComPtr<ID3D12Resource> evidenceOutputReadback_;
 	ComPtr<ID3D12Resource> evidenceMarkedOutputReadback_;
 	ComPtr<ID3D12Resource> evidenceMarkerUpload_;
