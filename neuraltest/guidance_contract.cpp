@@ -62,8 +62,8 @@ struct Targets {
 	ComPtr<ID3D11RenderTargetView> colorTarget;
 	ComPtr<ID3D11Texture2D> depth;
 	ComPtr<ID3D11DepthStencilView> depthTarget;
-	std::array<ComPtr<ID3D11Texture2D>, 4> guidance;
-	std::array<ComPtr<ID3D11RenderTargetView>, 4> guidanceTargets;
+	std::array<ComPtr<ID3D11Texture2D>, 5> guidance;
+	std::array<ComPtr<ID3D11RenderTargetView>, 5> guidanceTargets;
 };
 
 std::string HrText(const char *operation, HRESULT hr)
@@ -245,7 +245,7 @@ bool CreateTargets(ID3D11Device *device, Targets& targets, std::string& error)
 		hr = device->CreateDepthStencilView(targets.depth.Get(), &dsv,
 			targets.depthTarget.GetAddressOf());
 	const DXGI_FORMAT formats[] = {DXGI_FORMAT_R16G16_FLOAT, DXGI_FORMAT_R8_UNORM,
-		DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_R16_UINT};
+		DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R16_UINT};
 	for (std::size_t i = 0; SUCCEEDED(hr) && i < targets.guidance.size(); ++i)
 	{
 		D3D11_TEXTURE2D_DESC desc = color;
@@ -354,7 +354,7 @@ bool ReadProductionGuidance(ID3D11Device *device, ID3D11DeviceContext *context,
 	const Targets& targets, ProductionMotionResult& result, bool trusted,
 	bool oversized, std::string& error)
 {
-	std::array<std::array<std::uint8_t, 4>, 4> samples{};
+	std::array<std::array<std::uint8_t, 4>, 5> samples{};
 	for (std::size_t i = 0; i < targets.guidance.size(); ++i)
 	{
 		D3D11_TEXTURE2D_DESC desc{};
@@ -370,8 +370,8 @@ bool ReadProductionGuidance(ID3D11Device *device, ID3D11DeviceContext *context,
 		if (FAILED(hr)) { error = HrText("read production motion guidance", hr); return false; }
 		const auto *pixel = static_cast<const std::uint8_t *>(mapped.pData)
 			+ static_cast<std::size_t>(Height / 2) * mapped.RowPitch
-			+ static_cast<std::size_t>(Width / 2) * (i == 0 ? 4 : i == 3 ? 2 : 1);
-		std::memcpy(samples[i].data(), pixel, i == 0 ? 4 : i == 3 ? 2 : 1);
+			+ static_cast<std::size_t>(Width / 2) * (i == 0 ? 4 : i >= 3 ? 2 : 1);
+		std::memcpy(samples[i].data(), pixel, i == 0 ? 4 : i >= 3 ? 2 : 1);
 		context->Unmap(staging.Get(), 0);
 	}
 	std::uint16_t motionHalf[2]{};
@@ -385,6 +385,8 @@ bool ReadProductionGuidance(ID3D11Device *device, ID3D11DeviceContext *context,
 		result.trustedMask = samples[1][0];
 		result.trustedConfidence = samples[2][0];
 		std::memcpy(&result.trustedDrawId, samples[3].data(), sizeof(result.trustedDrawId));
+		std::memcpy(&result.trustedPreviousDrawId, samples[4].data(),
+			sizeof(result.trustedPreviousDrawId));
 	}
 	else if (oversized)
 	{
@@ -424,7 +426,7 @@ bool RenderPass(Surface& surface, Targets& targets, ID3D11VertexShader *vertexSh
 	{
 		ID3D11RenderTargetView *views[] = {targets.guidanceTargets[0].Get(),
 			targets.guidanceTargets[1].Get(), targets.guidanceTargets[2].Get(),
-			targets.guidanceTargets[3].Get()};
+			targets.guidanceTargets[3].Get(), targets.guidanceTargets[4].Get()};
 		context->OMSetRenderTargets(static_cast<UINT>(std::size(views)), views,
 			targets.depthTarget.Get());
 		for (auto& view : targets.guidanceTargets)
@@ -738,11 +740,12 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	struct alignas(16) PixelConstants { float values[24]; } pixelConstants{};
 	struct alignas(16) PolyConstants {
 		float clip[4]; float palette; float trilinear; float confidence;
-		std::uint32_t drawId; float bias; float padding[3];
+		std::uint32_t drawId; float bias; std::uint32_t previousDrawId; float padding[2];
 	} polyConstants{};
 	polyConstants.trilinear = 1.f;
 	polyConstants.confidence = 1.f;
 	polyConstants.drawId = 7;
+	polyConstants.previousDrawId = 5;
 	auto constantBuffer = [&](const void *data, UINT bytes, ID3D11Buffer **buffer) {
 		return createBuffer(data, bytes, D3D11_BIND_CONSTANT_BUFFER,
 			D3D11_USAGE_IMMUTABLE, buffer);
@@ -783,10 +786,11 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		surface.context->ClearRenderTargetView(targets.guidanceTargets[1].Get(), one);
 		surface.context->ClearRenderTargetView(targets.guidanceTargets[2].Get(), zero);
 		surface.context->ClearRenderTargetView(targets.guidanceTargets[3].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[4].Get(), zero);
 		surface.context->ClearDepthStencilView(targets.depthTarget.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
 		ID3D11RenderTargetView *views[] = {targets.guidanceTargets[0].Get(),
 			targets.guidanceTargets[1].Get(), targets.guidanceTargets[2].Get(),
-			targets.guidanceTargets[3].Get()};
+			targets.guidanceTargets[3].Get(), targets.guidanceTargets[4].Get()};
 		surface.context->OMSetRenderTargets(static_cast<UINT>(std::size(views)), views,
 			targets.depthTarget.Get());
 		D3D11_VIEWPORT viewport{0,0,static_cast<float>(Width),static_cast<float>(Height),0,1};
@@ -816,7 +820,7 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	const auto close = [](float a, float b) { return std::abs(a - b) <= .01f; };
 	result.analyticTruth = close(result.trustedX, -4.f) && close(result.trustedY, 3.f)
 		&& result.trustedMask == 0 && result.trustedConfidence == 255
-		&& result.trustedDrawId == 7;
+		&& result.trustedDrawId == 7 && result.trustedPreviousDrawId == 5;
 	result.invalidProtected = result.invalidX == 0.f && result.invalidY == 0.f
 		&& result.invalidMask == 255 && result.invalidConfidence == 0;
 	result.magnitudeProtected = result.oversizedX == 0.f && result.oversizedY == 0.f
@@ -830,7 +834,8 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 			<< result.trustedX << ',' << result.trustedY << "] mask="
 			<< static_cast<unsigned>(result.trustedMask) << " confidence="
 			<< static_cast<unsigned>(result.trustedConfidence) << " draw="
-			<< result.trustedDrawId << " invalid=[" << result.invalidX << ','
+			<< result.trustedDrawId << " previous_draw=" << result.trustedPreviousDrawId
+			<< " invalid=[" << result.invalidX << ','
 			<< result.invalidY << "] mask=" << static_cast<unsigned>(result.invalidMask)
 			<< " confidence=" << static_cast<unsigned>(result.invalidConfidence)
 			<< " oversized=[" << result.oversizedX << ',' << result.oversizedY

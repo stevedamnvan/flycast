@@ -446,3 +446,29 @@ Gate 13 controls cover reordered repeated objects, texture/palette/RTT revision,
 oversized and reactive particle cases, rigid reindex, non-rigid residual,
 shared-vertex conflict, skipped history, and scene cut. Pixel-level accepted
 depth/draw-ID disocclusion is separate Gate 14 work.
+
+## D-035: disocclusion compares against only accepted GPU guidance
+
+Each production draw exports both its current R16 identity and the matched
+accepted-frame identity. After OP/PT guidance rasterization, a full-screen pass
+reprojects by the proven current-to-previous render-pixel vector and samples the
+depth and draw-ID textures belonging to the last successfully submitted frame.
+The resolved public bias mask is one when reprojection is outside the raster,
+either depth is clear, accepted identity disagrees, or encoded logarithmic depth
+differs by more than `max(0.0015, 0.01 * max(current, previous))`. It preserves
+the renderer-authentic logarithmic depth rather than substituting a linear form.
+
+The three-slot renderer ring never chooses the retained accepted-guidance slot
+for a new export after a busy or failed evaluation. Accepted ownership advances
+only beside `MarkEvaluated` after `SubmitStatus::Submitted`; resize, mode/surface
+change, and resource release discard it. The first frame copies the rasterized
+base mask byte-for-byte. D3D11On12 acquires and releases accepted wrapped depth
+and identity resources separately from the current export set.
+
+The Gate 14 production-shader fixture proves static, depth-tolerant, and
+camera-pan continuation remains trusted while out-of-bounds motion, depth
+disagreement, crossing identities, newly visible pixels, revealed background,
+and scene-cut pixels are protected. Native D3D11 and D3D11On12 masks are exact.
+Removing the pass misses 192 protected pixels and leaves synthetic trail energy
+12,288 versus zero with the pass. This closes disocclusion behavior, not yet
+translucency or overlay classification.

@@ -77,8 +77,17 @@ overflow resets history rather than allocating without bound.
 History age advances from the last successfully accepted frame. Confidence is
 attenuated for one and two skipped evaluations and rejected after three. An
 unmatched-area scene cut invalidates the complete previous-position stream and
-sets an explicit reset. These CPU diagnostics are not yet Gate 14: current depth
-has not yet been reprojected against the accepted depth/draw-ID surfaces.
+sets an explicit reset. Gate 14 then reprojects current depth against only the
+last successfully accepted depth/draw-ID surfaces in the production post-pass.
+
+The guidance replay writes an internal expected-previous R16 draw ID in addition
+to the captured current draw ID. The disocclusion pass point-loads accepted
+depth and draw ID at `current pixel + motion`, protects out-of-raster and clear
+samples, requires the expected accepted identity, and applies the documented
+encoded-depth threshold. Its R8 output, not the pre-pass base mask, is submitted
+as public `BiasCurrentColorMask`. The internal expected-ID surface is not a
+consumer input. A retained accepted ring slot is excluded from new exports until
+a later submission becomes the accepted reference.
 
 The dedicated neural input layout drives both normal DX11 and the base guidance
 replay used after an OIT scene resolve. Current and previous unjittered screen
@@ -108,3 +117,11 @@ alpha-independent RGB, and alpha output. It also verifies the exact requested
 4:3/16:9 rectangles and a sweep of odd output sizes. Public DLAA color runs
 must set `FLYCAST_NGX_FEATURE_PATH` to the separately supplied public feature
 DLL directory when it is not beside `neuraltest.exe`.
+
+The ROM-free Gate 14 command is `neuraltest disocclusion-contract --api
+d3d11|d3d11on12 --out DIR`. It compiles the production post-pass and writes
+`resolved-mask.png`, `wrong-disocclusion-mask.png`, and
+`disocclusion-contract.json`. The report separates trusted static/camera/depth-
+tolerant regions from protected outside, depth-disagreement, crossing,
+newly-visible, revealed-background, and scene-cut regions, and records trail
+energy for the deliberately omitted-pass control.

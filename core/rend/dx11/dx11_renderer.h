@@ -106,6 +106,7 @@ protected:
 		float neuralConfidence;
 		std::uint32_t neuralDrawId;
 		float neuralBiasMask;
+		std::uint32_t neuralPreviousDrawId;
 		float neuralPadding[2];
 	};
 
@@ -133,6 +134,7 @@ protected:
 	bool syncNeuralMode();
 	bool ensureNeuralResources();
 	bool renderNeuralExports();
+	bool renderNeuralDisocclusion();
 	void releaseNeuralResources() noexcept;
 	void logNeuralConsumerStatus(flycast::rend::neural::SubmitStatus status) noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
@@ -144,6 +146,8 @@ protected:
 	bool wrapNeuralOutput(ID3D12Resource *resource, std::uint64_t frameId);
 	void acquireNeuralInputs();
 	void releaseNeuralInputs();
+	void acquireNeuralHistory();
+	void releaseNeuralHistory();
 	void releaseNeuralPresentation();
 #endif
 
@@ -193,8 +197,10 @@ protected:
 	NeuralTargetRing neuralColor;
 	NeuralTargetRing neuralMotion;
 	NeuralTargetRing neuralMask;
+	NeuralTargetRing neuralResolvedMask;
 	NeuralTargetRing neuralConfidence;
 	NeuralTargetRing neuralDrawId;
+	NeuralTargetRing neuralPreviousDrawId;
 	std::uint32_t neuralDepthWidth = 0;
 	std::uint32_t neuralDepthHeight = 0;
 	std::size_t neuralExportSlot = 0;
@@ -208,6 +214,9 @@ protected:
 	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralOutputWrappedTextures;
 	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralOutputWrappedViews;
 	bool neuralInputsAcquired = false;
+	bool neuralHistoryAcquired = false;
+	bool hasNeuralAcceptedGuidance = false;
+	std::size_t neuralAcceptedGuidanceSlot = 0;
 	bool neuralPresentationAcquired = false;
 	std::size_t neuralPresentationSlot = 0;
 	std::uint64_t pendingNeuralPresentationFrameId = 0;

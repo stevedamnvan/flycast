@@ -75,6 +75,8 @@ Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
 float Halton(std::uint32_t index, std::uint32_t base) noexcept;
 Point2 HaltonJitter(std::uint64_t frameId, std::uint32_t phaseCount) noexcept;
 std::uint32_t JitterPhaseCount(std::uint32_t renderWidth, std::uint32_t outputWidth) noexcept;
+std::size_t NextHistorySafeRingSlot(std::size_t currentSlot, std::size_t acceptedSlot,
+	std::size_t ringSize, bool hasAcceptedHistory) noexcept;
 
 class HistoryTracker final {
 public:

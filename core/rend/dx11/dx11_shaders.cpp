@@ -262,6 +262,7 @@ cbuffer polyConstantBuffer : register(b1)
 	float neuralConfidence;
 	uint neuralDrawId;
 	float neuralBiasMask;
+	uint neuralPreviousDrawId;
 	float2 neuralPadding;
 };
 
@@ -286,6 +287,7 @@ struct PSO
 	float mask : SV_TARGET1;
 	float confidence : SV_TARGET2;
 	uint drawId : SV_TARGET3;
+	uint previousDrawId : SV_TARGET4;
 	#else
 	float4 col : SV_TARGET;
 	#endif
@@ -407,6 +409,7 @@ PSO main(in Pixel inpix)
 	pso.mask = max(neuralBiasMask, 1.f - trusted);
 	pso.confidence = neuralConfidence * trusted;
 	pso.drawId = neuralDrawId;
+	pso.previousDrawId = trusted >= .5f ? neuralPreviousDrawId : 0;
 	#else
 	pso.col = color;
 	#endif
@@ -489,6 +492,46 @@ float4 main(in VertexIn vin) : SV_Target
 	return color * texture0.Sample(sampler0, vin.uv);
 }
 
+)";
+
+const char * const NeuralDisocclusionPixelShader = R"(
+struct VertexIn
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+Texture2D<float> currentMask : register(t0);
+Texture2D<float> currentDepth : register(t1);
+Texture2D<float2> currentMotion : register(t2);
+Texture2D<float> currentConfidence : register(t3);
+Texture2D<uint> expectedPreviousDrawId : register(t4);
+Texture2D<float> previousDepth : register(t5);
+Texture2D<uint> previousDrawId : register(t6);
+
+float main(in VertexIn input) : SV_Target
+{
+	int2 currentPixel = int2(input.pos.xy);
+	float baseMask = currentMask.Load(int3(currentPixel, 0));
+	if (baseMask >= .5f || currentConfidence.Load(int3(currentPixel, 0)) < .5f)
+		return 1.f;
+	float2 motion = currentMotion.Load(int3(currentPixel, 0));
+	int2 reprojected = int2(floor(input.pos.xy + motion));
+	uint previousWidth;
+	uint previousHeight;
+	previousDepth.GetDimensions(previousWidth, previousHeight);
+	if (reprojected.x < 0 || reprojected.y < 0
+		|| reprojected.x >= int(previousWidth) || reprojected.y >= int(previousHeight))
+		return 1.f;
+	float depth = currentDepth.Load(int3(currentPixel, 0));
+	float historyDepth = previousDepth.Load(int3(reprojected, 0));
+	uint expectedId = expectedPreviousDrawId.Load(int3(currentPixel, 0));
+	uint historyId = previousDrawId.Load(int3(reprojected, 0));
+	if (depth <= 0.f || historyDepth <= 0.f || expectedId == 0 || historyId != expectedId)
+		return 1.f;
+	float threshold = max(.0015f, max(abs(depth), abs(historyDepth)) * .01f);
+	return abs(depth - historyDepth) > threshold ? 1.f : baseMask;
+}
 )";
 
 struct IncludeManager : public ID3DInclude
@@ -771,6 +814,14 @@ ComPtr<ID3DBlob> DX11Shaders::getVertexShaderBlob()
 	return compileShader(source.c_str(), "main", "vs_4_0", VertexMacros);
 }
 
+const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralDisocclusionPixelShader()
+{
+	if (!neuralDisocclusionPixelShader)
+		neuralDisocclusionPixelShader = compilePS(NeuralDisocclusionPixelShader, "main", nullptr);
+
+	return neuralDisocclusionPixelShader;
+}
+
 ComPtr<ID3DBlob> DX11Shaders::getNeuralVertexShaderBlob()
 {
 	VertexMacros[MacroGouraud].Definition = MacroValues[true];
@@ -821,6 +872,7 @@ void DX11Shaders::term()
 	quadVertexShader.reset();
 	quadRotateVertexShader.reset();
 	quadPixelShader.reset();
+	neuralDisocclusionPixelShader.reset();
 	device.reset();
 }
 

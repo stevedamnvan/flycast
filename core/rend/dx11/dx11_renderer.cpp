@@ -714,8 +714,11 @@ bool DX11Renderer::ensureNeuralResources()
 	if (!createTargetRing(neuralColor, DXGI_FORMAT_R8G8B8A8_UNORM, "RGBA color")
 		|| !createTargetRing(neuralMotion, DXGI_FORMAT_R16G16_FLOAT, "motion")
 		|| !createTargetRing(neuralMask, DXGI_FORMAT_R8_UNORM, "bias mask")
+		|| !createTargetRing(neuralResolvedMask, DXGI_FORMAT_R8_UNORM, "resolved bias mask")
 		|| !createTargetRing(neuralConfidence, DXGI_FORMAT_R8_UNORM, "confidence")
-		|| !createTargetRing(neuralDrawId, DXGI_FORMAT_R16_UINT, "draw ID"))
+		|| !createTargetRing(neuralDrawId, DXGI_FORMAT_R16_UINT, "draw ID")
+		|| !createTargetRing(neuralPreviousDrawId, DXGI_FORMAT_R16_UINT,
+			"expected previous draw ID"))
 	{
 		releaseNeuralResources();
 		return false;
@@ -729,6 +732,7 @@ void DX11Renderer::releaseNeuralResources() noexcept
 {
 	releaseNeuralPresentation();
 	releaseNeuralInputs();
+	releaseNeuralHistory();
 	neuralPresentationView.reset();
 	auto releaseTargetRing = [](NeuralTargetRing& ring) {
 		for (auto& view : ring.views) view.reset();
@@ -739,8 +743,10 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	releaseTargetRing(neuralColor);
 	releaseTargetRing(neuralMotion);
 	releaseTargetRing(neuralMask);
+	releaseTargetRing(neuralResolvedMask);
 	releaseTargetRing(neuralConfidence);
 	releaseTargetRing(neuralDrawId);
+	releaseTargetRing(neuralPreviousDrawId);
 	for (auto& view : neuralDepthViews) view.reset();
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
@@ -750,6 +756,8 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	for (auto& resource : neuralOutputD3D12Resources) resource.reset();
 	neuralDepthWidth = neuralDepthHeight = 0;
 	neuralExportSlot = 0;
+	neuralAcceptedGuidanceSlot = 0;
+	hasNeuralAcceptedGuidance = false;
 	neuralExportActive = false;
 	neuralPreviousPositionBuffer.reset();
 	neuralPreviousPositionBufferSize = 0;
@@ -775,6 +783,7 @@ bool DX11Renderer::renderNeuralExports()
 		neuralMask.targets[neuralExportSlot].get(),
 		neuralConfidence.targets[neuralExportSlot].get(),
 		neuralDrawId.targets[neuralExportSlot].get(),
+		neuralPreviousDrawId.targets[neuralExportSlot].get(),
 	};
 	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets,
 		neuralDepthTargets[neuralExportSlot]);
@@ -783,6 +792,7 @@ bool DX11Renderer::renderNeuralExports()
 	deviceContext->ClearRenderTargetView(neuralMask.targets[neuralExportSlot], masked);
 	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot], black);
 	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot], black);
+	deviceContext->ClearRenderTargetView(neuralPreviousDrawId.targets[neuralExportSlot], black);
 	deviceContext->ClearDepthStencilView(neuralDepthTargets[neuralExportSlot], D3D11_CLEAR_DEPTH, 0.f, 0);
 	const auto previousPositions = neuralInstrumentation.PreviousPositions();
 	const u32 previousPositionBytes = static_cast<u32>(previousPositions.size
@@ -833,7 +843,47 @@ bool DX11Renderer::renderNeuralExports()
 	}
 	neuralExportActive = false;
 	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	if (!renderNeuralDisocclusion())
+	{
+		releaseNeuralInputs();
+		return false;
+	}
 	releaseNeuralInputs();
+	return true;
+}
+
+bool DX11Renderer::renderNeuralDisocclusion()
+{
+	if (!hasNeuralAcceptedGuidance)
+	{
+		deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],
+			neuralMask.textures[neuralExportSlot]);
+		return true;
+	}
+	ID3D11RenderTargetView *target = neuralResolvedMask.targets[neuralExportSlot];
+	deviceContext->OMSetRenderTargets(1, &target, nullptr);
+	const float masked[4] = {1.f, 1.f, 1.f, 1.f};
+	deviceContext->ClearRenderTargetView(target, masked);
+	acquireNeuralHistory();
+	ID3D11ShaderResourceView *views[] = {
+		neuralMask.views[neuralExportSlot],
+		neuralDepthViews[neuralExportSlot],
+		neuralMotion.views[neuralExportSlot],
+		neuralConfidence.views[neuralExportSlot],
+		neuralPreviousDrawId.views[neuralExportSlot],
+		neuralDepthViews[neuralAcceptedGuidanceSlot],
+		neuralDrawId.views[neuralAcceptedGuidanceSlot],
+	};
+	const auto& shader = shaders->getNeuralDisocclusionPixelShader();
+	if (!shader)
+	{
+		releaseNeuralHistory();
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		return false;
+	}
+	quad->drawCustom(shader, views, static_cast<UINT>(std::size(views)));
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	releaseNeuralHistory();
 	return true;
 }
 
@@ -858,8 +908,10 @@ void DX11Renderer::acquireNeuralInputs()
 		neuralDepthTextures[neuralExportSlot],
 		neuralMotion.textures[neuralExportSlot],
 		neuralMask.textures[neuralExportSlot],
+		neuralResolvedMask.textures[neuralExportSlot],
 		neuralConfidence.textures[neuralExportSlot],
 		neuralDrawId.textures[neuralExportSlot],
+		neuralPreviousDrawId.textures[neuralExportSlot],
 	};
 	DX11Context::Instance()->AcquireWrappedResources(resources,
 		static_cast<UINT>(std::size(resources)));
@@ -875,12 +927,40 @@ void DX11Renderer::releaseNeuralInputs()
 		neuralDepthTextures[neuralExportSlot],
 		neuralMotion.textures[neuralExportSlot],
 		neuralMask.textures[neuralExportSlot],
+		neuralResolvedMask.textures[neuralExportSlot],
 		neuralConfidence.textures[neuralExportSlot],
 		neuralDrawId.textures[neuralExportSlot],
+		neuralPreviousDrawId.textures[neuralExportSlot],
 	};
 	DX11Context::Instance()->ReleaseWrappedResources(resources,
 		static_cast<UINT>(std::size(resources)));
 	neuralInputsAcquired = false;
+}
+
+void DX11Renderer::acquireNeuralHistory()
+{
+	if (!activeNeuralSurface || neuralHistoryAcquired || !hasNeuralAcceptedGuidance)
+		return;
+	ID3D11Resource *resources[] = {
+		neuralDepthTextures[neuralAcceptedGuidanceSlot],
+		neuralDrawId.textures[neuralAcceptedGuidanceSlot],
+	};
+	DX11Context::Instance()->AcquireWrappedResources(resources,
+		static_cast<UINT>(std::size(resources)));
+	neuralHistoryAcquired = true;
+}
+
+void DX11Renderer::releaseNeuralHistory()
+{
+	if (!neuralHistoryAcquired)
+		return;
+	ID3D11Resource *resources[] = {
+		neuralDepthTextures[neuralAcceptedGuidanceSlot],
+		neuralDrawId.textures[neuralAcceptedGuidanceSlot],
+	};
+	DX11Context::Instance()->ReleaseWrappedResources(resources,
+		static_cast<UINT>(std::size(resources)));
+	neuralHistoryAcquired = false;
 }
 
 void DX11Renderer::releaseNeuralPresentation()
@@ -1014,7 +1094,8 @@ void DX11Renderer::submitNeuralFrame()
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
 	if (!ensureNeuralResources()) return;
-	neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
+	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
+		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
 	if (!renderNeuralExports()) return;
 	TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
 		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
@@ -1031,8 +1112,8 @@ void DX11Renderer::submitNeuralFrame()
 			neuralDepthD3D12Resources, DXGI_FORMAT_R32_FLOAT);
 		motion = getNeuralTexture(neuralMotion.textures, neuralMotion.views,
 			neuralMotion.d3d12Resources, DXGI_FORMAT_R16G16_FLOAT);
-		mask = getNeuralTexture(neuralMask.textures, neuralMask.views,
-			neuralMask.d3d12Resources, DXGI_FORMAT_R8_UNORM);
+		mask = getNeuralTexture(neuralResolvedMask.textures, neuralResolvedMask.views,
+			neuralResolvedMask.d3d12Resources, DXGI_FORMAT_R8_UNORM);
 		confidence = getNeuralTexture(neuralConfidence.textures, neuralConfidence.views,
 			neuralConfidence.d3d12Resources, DXGI_FORMAT_R8_UNORM);
 		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views,
@@ -1044,6 +1125,8 @@ void DX11Renderer::submitNeuralFrame()
 	if (status == SubmitStatus::Submitted)
 	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
+		neuralAcceptedGuidanceSlot = neuralExportSlot;
+		hasNeuralAcceptedGuidance = true;
 		const auto stats = neuralStage.GetStats();
 		if (activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
 			&& stats.dlss5Readiness != Dlss5HookReadiness::ContractEvaluated)
@@ -1306,6 +1389,8 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 		const auto *match = neuralInstrumentation.MatchForOrdinal(ordinal);
 		constants.neuralConfidence = match ? match->confidence : 0.f;
 		constants.neuralBiasMask = constants.neuralConfidence >= .5f ? 0.f : 1.f;
+		constants.neuralPreviousDrawId = match && constants.neuralConfidence >= .5f
+			? static_cast<std::uint32_t>(match->prevOrdinal + 1) : 0;
 	}
 #endif
 

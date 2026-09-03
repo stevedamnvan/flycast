@@ -619,6 +619,10 @@ int RunSelfTests()
 			"jitter phase count");
 	}
 	suite.Expect(IsSceneCut(34, 100) && !IsSceneCut(35, 100), "scene-cut threshold");
+	suite.Expect(NextHistorySafeRingSlot(0, 1, 3, false) == 1
+		&& NextHistorySafeRingSlot(0, 1, 3, true) == 2
+		&& NextHistorySafeRingSlot(2, 1, 3, true) == 0,
+		"guidance ring cannot overwrite retained accepted history after skips");
 	{
 		const auto fourThree = ComputeContentRect(1920, 1080, 4.f / 3.f, false, 480);
 		const auto widescreen = ComputeContentRect(1920, 1080, 16.f / 9.f, false, 480);
@@ -673,7 +677,8 @@ int RunSelfTests()
 			&& Near(native.trustedY, on12.trustedY)
 			&& native.trustedMask == on12.trustedMask
 			&& native.trustedConfidence == on12.trustedConfidence
-			&& native.trustedDrawId == on12.trustedDrawId,
+			&& native.trustedDrawId == on12.trustedDrawId
+			&& native.trustedPreviousDrawId == on12.trustedPreviousDrawId,
 			"production motion guidance is exact across D3D11 surfaces");
 		suite.Expect(nativeOk && on12Ok && native.invalidProtected && on12.invalidProtected
 			&& native.magnitudeProtected && on12.magnitudeProtected,
@@ -688,6 +693,24 @@ int RunSelfTests()
 			"production SDR quad path preserves color and alpha exactly");
 		suite.Expect(colorOk && color.contentRectsExact,
 			"content rectangle examples and odd-size rounding are exact");
+	}
+	{
+		DisocclusionContractResult native;
+		DisocclusionContractResult on12;
+		std::string fixtureError;
+		const bool nativeOk = RunDisocclusionContractFixture(false, native, fixtureError);
+		if (!nativeOk && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(nativeOk, "production disocclusion contract passes on native D3D11");
+		fixtureError.clear();
+		const bool on12Ok = RunDisocclusionContractFixture(true, on12, fixtureError);
+		if (!on12Ok && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(on12Ok, "production disocclusion contract passes on D3D11On12");
+		suite.Expect(nativeOk && on12Ok
+			&& native.resolvedMask.rgba == on12.resolvedMask.rgba,
+			"production disocclusion mask is exact across D3D11 surfaces");
+		suite.Expect(nativeOk && on12Ok && native.wrongMissedPixels > 0
+			&& native.wrongTrailEnergy > native.correctTrailEnergy,
+			"wrong disocclusion control has measurable trail energy");
 	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';

@@ -579,6 +579,16 @@ std::uint32_t JitterPhaseCount(std::uint32_t renderWidth, std::uint32_t outputWi
 	return std::max(1u, static_cast<std::uint32_t>(std::lround(8. * ratio * ratio)));
 }
 
+std::size_t NextHistorySafeRingSlot(std::size_t currentSlot, std::size_t acceptedSlot,
+	std::size_t ringSize, bool hasAcceptedHistory) noexcept
+{
+	if (ringSize == 0) return 0;
+	std::size_t next = (currentSlot + 1) % ringSize;
+	if (hasAcceptedHistory && ringSize > 1 && next == acceptedSlot)
+		next = (next + 1) % ringSize;
+	return next;
+}
+
 void HistoryTracker::Discontinuity() noexcept
 {
 	++generation_;

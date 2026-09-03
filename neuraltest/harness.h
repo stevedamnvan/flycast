@@ -140,6 +140,7 @@ struct ProductionMotionResult {
 	std::uint8_t trustedMask = 0;
 	std::uint8_t trustedConfidence = 0;
 	std::uint16_t trustedDrawId = 0;
+	std::uint16_t trustedPreviousDrawId = 0;
 	float invalidX = 0.f;
 	float invalidY = 0.f;
 	std::uint8_t invalidMask = 0;
@@ -166,6 +167,26 @@ struct ColorContractResult {
 	std::uint8_t maxDelta = 0;
 };
 
+struct DisocclusionContractResult {
+	std::string surface;
+	std::string adapter;
+	Image resolvedMask;
+	Image wrongMask;
+	std::uint32_t protectedPixels = 0;
+	std::uint32_t wrongMissedPixels = 0;
+	std::uint64_t correctTrailEnergy = 0;
+	std::uint64_t wrongTrailEnergy = 0;
+	bool staticTrusted = false;
+	bool cameraPanTrusted = false;
+	bool depthToleranceTrusted = false;
+	bool revealProtected = false;
+	bool crossingProtected = false;
+	bool depthProtected = false;
+	bool outsideProtected = false;
+	bool sceneCutProtected = false;
+	bool newlyVisibleProtected = false;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -182,6 +203,8 @@ bool RunMotionContractFixture(MotionContractResult& result, std::string& error);
 bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	std::string& error);
 bool RunColorContractFixture(ColorContractResult& result, std::string& error);
+bool RunDisocclusionContractFixture(bool d3d11On12,
+	DisocclusionContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,

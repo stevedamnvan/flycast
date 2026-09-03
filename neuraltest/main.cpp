@@ -26,6 +26,7 @@ void Usage()
 		"neuraltest depth-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest motion-contract --out DIR\n"
 		"neuraltest color-contract --out DIR\n"
+		"neuraltest disocclusion-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
@@ -459,6 +460,50 @@ int ColorContractCommand(const Args& args)
 	return 0;
 }
 
+int DisocclusionContractCommand(const Args& args)
+{
+	const auto api = Value(args, "--api", "d3d11");
+	const auto output = Value(args, "--out");
+	if ((api != "d3d11" && api != "d3d11on12") || output.empty())
+	{
+		std::cerr << "disocclusion-contract requires --api d3d11|d3d11on12 and --out DIR\n";
+		return 2;
+	}
+	neuraltest::DisocclusionContractResult result;
+	std::string error;
+	if (!neuraltest::RunDisocclusionContractFixture(api == "d3d11on12", result, error))
+	{
+		std::cerr << (error.empty() ? "disocclusion contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "resolved-mask.png",
+		result.resolvedMask, error) || !neuraltest::WritePng(std::filesystem::path(output)
+		/ "wrong-disocclusion-mask.png", result.wrongMask, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "disocclusion-contract.json");
+	report << "{\n  \"surface\": \"" << result.surface << "\",\n  \"adapter\": \""
+		<< result.adapter << "\",\n  \"static_trusted\": true,"
+		<< "\n  \"camera_pan_trusted\": true,\n  \"depth_tolerance_trusted\": true,"
+		<< "\n  \"outside_protected\": true,"
+		<< "\n  \"depth_mismatch_protected\": true,\n  \"crossing_protected\": true,"
+		<< "\n  \"reveal_protected\": true,\n  \"newly_visible_protected\": true,"
+		<< "\n  \"scene_cut_protected\": true,\n  \"protected_pixels\": "
+		<< result.protectedPixels << ",\n  \"wrong_missed_pixels\": "
+		<< result.wrongMissedPixels << ",\n  \"correct_trail_energy\": "
+		<< result.correctTrailEnergy << ",\n  \"wrong_trail_energy\": "
+		<< result.wrongTrailEnergy << "\n}\n";
+	if (!report.good()) { std::cerr << "failed to write disocclusion report\n"; return 1; }
+	std::cout << "surface=" << result.surface << " protected_pixels="
+		<< result.protectedPixels << " wrong_missed_pixels=" << result.wrongMissedPixels
+		<< " correct_trail_energy=" << result.correctTrailEnergy
+		<< " wrong_trail_energy=" << result.wrongTrailEnergy << '\n';
+	return 0;
+}
+
 int NeuralCommand(const Args& args)
 {
 	using namespace flycast::rend::neural;
@@ -731,6 +776,7 @@ int main(int argc, char **argv)
 	if (command == "depth-contract") return DepthContractCommand(args);
 	if (command == "motion-contract") return MotionContractCommand(args);
 	if (command == "color-contract") return ColorContractCommand(args);
+	if (command == "disocclusion-contract") return DisocclusionContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

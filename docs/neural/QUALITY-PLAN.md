@@ -112,6 +112,13 @@ close a temporal or title-quality gate.
   reindex fits are bounded by scale and 0.25-pixel RMS residual. Naomi 2 remains
   deliberately invalid pending accepted matrix history and does not weaken the
   normal Dreamcast gate. Pixel disocclusion remains Gate 14.
+- Gate 14: green at LOG #69. The production post-pass uses only the last
+  accepted depth/draw-ID ring slot, expected accepted identity, and
+  current-to-previous motion. Static, depth-tolerant, and camera-pan regions
+  remain trusted; outside, depth mismatch, crossing, newly visible, reveal, and
+  scene-cut regions are protected. Native D3D11/D3D11On12 masks are exact; the
+  omitted-pass control misses 192 pixels and raises trail energy from 0 to
+  12,288.
 - FC-032 previous-position stream: partial at LOG #66-#68. The bounded CPU
   stream is owned by last accepted history, maps exact topology by strip/index
   position, supports deformation, accepts only bounded rigid reindex fits, and
@@ -119,4 +126,4 @@ close a temporal or title-quality gate.
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
   Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gate 14 through Gate 18: pending.
+- Gate 15A through Gate 18: pending.
