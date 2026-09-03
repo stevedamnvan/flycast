@@ -3,6 +3,7 @@
 #include "rend/neural/neural_stage.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -12,6 +13,12 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <thread>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
 
 namespace {
 
@@ -32,7 +39,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -299,6 +306,235 @@ int NoDataCommand(const std::string& command, const Args& args)
 	}
 	std::cout << command << ": no data (production renderer instrumentation is not implemented)\n";
 	return 0;
+}
+
+#ifdef _WIN32
+std::wstring QuoteWindowsArg(const std::wstring& value)
+{
+	std::wstring result = L"\"";
+	std::size_t slashes = 0;
+	for (const wchar_t c : value)
+	{
+		if (c == L'\\') { ++slashes; continue; }
+		if (c == L'"')
+		{
+			result.append(slashes * 2 + 1, L'\\');
+			result.push_back(c);
+			slashes = 0;
+			continue;
+		}
+		result.append(slashes, L'\\');
+		slashes = 0;
+		result.push_back(c);
+	}
+	result.append(slashes * 2, L'\\');
+	result.push_back(L'"');
+	return result;
+}
+
+struct CloseWindowsContext { DWORD processId = 0; };
+
+BOOL CALLBACK CloseProcessWindows(HWND window, LPARAM parameter)
+{
+	auto *context = reinterpret_cast<CloseWindowsContext *>(parameter);
+	DWORD processId = 0;
+	GetWindowThreadProcessId(window, &processId);
+	if (processId == context->processId)
+		PostMessageW(window, WM_CLOSE, 0, 0);
+	return TRUE;
+}
+#endif
+
+int CaptureCommand(const Args& args)
+{
+	const auto gameText = Value(args, "--game");
+	const auto outputText = Value(args, "--out");
+	if (gameText.empty() || outputText.empty())
+	{
+		std::cerr << "capture requires --game and --out\n";
+		return 2;
+	}
+	std::string error;
+	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480;
+	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
+		|| !Number(args, "--skip", 0, skip, error)
+		|| !Number(args, "--render-height", 480, renderHeight, error)
+		|| renderHeight < 120 || renderHeight > 8640
+		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
+	{
+		std::cerr << (error.empty() ? "--frames must be 1..240, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
+		return 2;
+	}
+	const auto lane = Value(args, "--lane", "dlaa");
+	const auto api = Value(args, "--api", "d3d11");
+	const auto renderer = Value(args, "--renderer", "dx11");
+	const auto preset = Value(args, "--preset", "auto");
+	const auto profile = Value(args, "--profile", "faithful");
+	const auto style = Value(args, "--style", "auto");
+	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
+	{
+		std::cerr << "--lane must be native, dlaa, sr-quality, or dlss5\n";
+		return 2;
+	}
+	if (api != "d3d11" && api != "d3d11on12")
+	{
+		std::cerr << "--api must be d3d11 or d3d11on12\n";
+		return 2;
+	}
+	if (renderer != "dx11" && renderer != "dx11-oit")
+	{
+		std::cerr << "--renderer must be dx11 or dx11-oit\n";
+		return 2;
+	}
+	if (preset != "auto" && preset != "j" && preset != "k")
+	{
+		std::cerr << "--preset must be auto, j, or k\n";
+		return 2;
+	}
+	if (profile != "faithful" && profile != "enhanced" && profile != "photoreal")
+	{
+		std::cerr << "--profile must be faithful, enhanced, or photoreal\n";
+		return 2;
+	}
+	static const std::vector<std::string> styles = {
+		"auto", "realistic", "stylized", "cel", "racing", "particles", "sprite-2d", "mixed-video"
+	};
+	const auto styleIt = std::find(styles.begin(), styles.end(), style);
+	if (styleIt == styles.end())
+	{
+		std::cerr << "invalid --style\n";
+		return 2;
+	}
+	const auto game = std::filesystem::absolute(gameText);
+	const auto output = std::filesystem::absolute(outputText);
+	if (!std::filesystem::is_regular_file(game))
+	{
+		std::cerr << "game media is unavailable\n";
+		return 3;
+	}
+	if (std::filesystem::exists(output / "capture-complete.json"))
+	{
+		std::cerr << "capture output already contains a completed run\n";
+		return 2;
+	}
+#ifndef _WIN32
+	std::cerr << "production capture launcher is currently available only on Windows\n";
+	return 3;
+#else
+	wchar_t modulePath[32768]{};
+	GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
+	const std::filesystem::path defaultFlycast = std::filesystem::path(modulePath).parent_path()
+		.parent_path() / "flycast.exe";
+	const auto flycast = std::filesystem::absolute(Value(args, "--flycast",
+		defaultFlycast.string()));
+	if (!std::filesystem::is_regular_file(flycast))
+	{
+		std::cerr << "flycast executable is unavailable: " << flycast.string() << '\n';
+		return 3;
+	}
+	const int mode = lane == "native" ? 1 : lane == "dlaa" ? 2
+		: lane == "sr-quality" ? 4 : 8;
+	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
+	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
+	const int profileValue = profile == "enhanced" ? 1 : profile == "photoreal" ? 2 : 0;
+	const int styleValue = static_cast<int>(std::distance(styles.begin(), styleIt));
+	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
+		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
+		+ L",config:rend.NeuralMode=" + std::to_wstring(mode)
+		+ L",config:rend.NeuralD3D12Surface=" + (api == "d3d11on12" ? L"yes" : L"no")
+		+ L",config:rend.NeuralMatchOutputResolution=yes"
+		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
+		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
+		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
+		+ L",config:rend.NeuralDlss5EvidenceCapture=no"
+		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
+		+ L",config:rend.NeuralQualityProfile=" + std::to_wstring(profileValue)
+		+ L",config:rend.NeuralStyleFamily=" + std::to_wstring(styleValue)
+		+ L",log:LogToFile=yes";
+	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
+		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
+
+	const auto featurePath = Value(args, "--feature-path");
+	std::wstring oldFeaturePath;
+	bool restoreFeaturePath = false;
+	if (!featurePath.empty())
+	{
+		const auto path = std::filesystem::absolute(featurePath);
+		if (!std::filesystem::is_directory(path))
+		{
+			std::cerr << "public NGX feature path is unavailable\n";
+			return 3;
+		}
+		wchar_t oldValue[32768]{};
+		const DWORD oldLength = GetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
+			oldValue, static_cast<DWORD>(std::size(oldValue)));
+		if (oldLength > 0 && oldLength < std::size(oldValue)) oldFeaturePath = oldValue;
+		restoreFeaturePath = true;
+		SetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH", path.wstring().c_str());
+	}
+
+	STARTUPINFOW startup{};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process{};
+	std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
+	mutableCommand.push_back(L'\0');
+	const BOOL launched = CreateProcessW(flycast.wstring().c_str(), mutableCommand.data(),
+		nullptr, nullptr, FALSE, 0, nullptr, flycast.parent_path().wstring().c_str(),
+		&startup, &process);
+	if (restoreFeaturePath)
+		SetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
+			oldFeaturePath.empty() ? nullptr : oldFeaturePath.c_str());
+	if (!launched)
+	{
+		std::cerr << "failed to launch flycast: win32=" << GetLastError() << '\n';
+		return 1;
+	}
+	CloseHandle(process.hThread);
+	const auto completion = output / "capture-complete.json";
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+	bool complete = false;
+	bool exitedEarly = false;
+	while (std::chrono::steady_clock::now() < deadline)
+	{
+		if (std::filesystem::exists(completion)) { complete = true; break; }
+		if (WaitForSingleObject(process.hProcess, 50) == WAIT_OBJECT_0)
+		{
+			exitedEarly = true;
+			break;
+		}
+	}
+	CloseWindowsContext closeContext{process.dwProcessId};
+	EnumWindows(CloseProcessWindows, reinterpret_cast<LPARAM>(&closeContext));
+	bool forcedTermination = false;
+	if (WaitForSingleObject(process.hProcess, 5000) != WAIT_OBJECT_0)
+	{
+		TerminateProcess(process.hProcess, 4);
+		WaitForSingleObject(process.hProcess, 5000);
+		forcedTermination = true;
+	}
+	CloseHandle(process.hProcess);
+	if (!complete)
+	{
+		std::cerr << (exitedEarly ? "flycast exited before capture completed"
+			: "capture timed out before completion") << '\n';
+		return 1;
+	}
+	std::ofstream launchReport(output / "capture-launch.json");
+	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
+		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
+		<< "\",\n  \"preset\": \"" << preset
+		<< "\",\n  \"profile\": \"" << profile
+		<< "\",\n  \"style\": \"" << style
+		<< "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"requested_frames\": " << frames
+		<< ",\n  \"skip\": " << skip
+		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
+		<< ",\n  \"media_path_recorded\": false\n}\n";
+	std::cout << "capture complete frames=" << frames << " lane=" << lane
+		<< " api=" << api << " renderer=" << renderer
+		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
+	return launchReport ? 0 : 1;
+#endif
 }
 
 int DepthContractCommand(const Args& args)
@@ -878,11 +1114,7 @@ int main(int argc, char **argv)
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);
-	if (command == "capture")
-	{
-		std::cerr << "capture unavailable until the FC-054 emulator CLI is implemented\n";
-		return 3;
-	}
+	if (command == "capture") return CaptureCommand(args);
 	Usage();
 	return 2;
 }

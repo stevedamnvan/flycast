@@ -1,23 +1,47 @@
 # Neural diagnostics
 
-Each captured frame directory is immutable evidence and contains:
+The production capture command is:
 
-- `manifest.json`: Flycast SHA, fixture/game identifier, frame, renderer,
-  scale, output size, mode, jitter, history state, and config hash.
-- `color.png` and `color.raw`: scene color before OSD/ImGui.
-- `depth.raw` and `depth.png`: opaque/punch-through depth and visualization.
-- `motion.raw` and `motion.png`: render-pixel current-to-previous vectors and
-  HSV visualization.
-- `mask.png`, `confidence.png`, `draw_id.png`, `list_type.png`.
-- `history_valid.png`; optional Phase 5 `overlay_class.png`.
-- `neural_output.png`, `diff_native_vs_neural.png`, `output-flicker.png`.
-- `ngx-status.json`: device, SDK/runtime, feature parameters/results, failures,
-  frame/history IDs, fallback counters, and asynchronous GPU timings.
-- `report.md`: assertions and metrics for the command.
+`neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE]
+[--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
+[--renderer dx11|dx11-oit] [--preset auto|j|k]
+[--profile faithful|enhanced|photoreal] [--style FAMILY]
+[--render-height N] [--feature-path DIR] [--timeout-ms N]`
 
-Raw game data and user paths are excluded. Emulator capture is rate limited.
-Normal emulator execution performs no readback; readback helpers are confined
-to `neuraltest`.
+It launches Flycast with transient command-line configuration, limits a run to
+1 through 240 frames, waits for a completion marker, requests a normal window
+close, and reports whether forced termination was required. Missing media,
+invalid arguments, a completed destination, early emulator exit, and timeout
+return nonzero. It does not copy media or record the media path.
+
+Each production `frame-NNNNNN` directory contains:
+
+- `manifest.json`: Flycast SHA, game ID, frame/history/reset identity, render and
+  output dimensions, exact content rectangle, API, mode, preset, profile,
+  external recommendation, evaluation/provenance status, and the explicit
+  synchronous/performance-ineligible label.
+- `native-pvr-color.png` and `source-color.png`: original PVR scene and actual
+  public-contract RGBA input. These are separate artifacts so an export-copy
+  failure cannot hide behind a valid native image.
+- `depth.f32`, `depth.png`, `motion.rg16f`, `motion.png`, `bias-mask.png`,
+  `confidence.png`, `draw-id.r16u`, `draw-id.png`, and
+  `overlay-classification.png`.
+- `public-dlaa-output.png` only when a public NGX result exists. Native
+  passthrough is never labeled as DLAA.
+- `neural-rendering-output.png` only when the supplied external contract was
+  actually evaluated; module/readiness detection alone cannot create it.
+- `final-composited.png`, optional `native-versus-output-difference.png`, and
+  an optional `temporal-flicker.png` beginning with the second captured frame.
+- `metrics.json`: temporal variance, motion reprojection error, reactive-region
+  trail energy, silhouette/line measures, color/saturation/black drift, HUD
+  mismatch, repeat/drop counts, invalid guidance coverage, and trusted/reactive
+  percentages. GPU timings remain `null` until asynchronous production queries
+  are implemented.
+
+Raw game data and user paths are excluded. Normal emulator execution performs
+no capture readback. This synchronous developer-only path is disabled unless an
+explicit destination and positive frame limit are supplied, and every package
+is marked ineligible for performance measurements.
 
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets
@@ -47,8 +71,9 @@ confidence, and R16_UINT draw ID. Exact-topology accepted positions are bound
 as a second vertex stream. The export shader writes previous-minus-current
 motion in render pixels and gates it by draw confidence, per-vertex validity,
 and a 128-pixel magnitude limit. Any rejection writes zero motion/confidence
-and bias one. Draw IDs cover OP/PT replay only. Emulator-path artifact capture
-and Gates 13-18 remain pending.
+and bias one. Draw IDs cover OP/PT replay only. Production-path artifact capture
+now covers both DX11 surface types and normal/OIT renderers. Gates 13-15 are
+green; Gate 17 title coverage and Gate 18 performance/stability remain pending.
 
 Draw-history diagnostics refer to the last stage-accepted frame rather than
 the previous emulated frame. A FramebufferDirect package carries color,

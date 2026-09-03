@@ -31,6 +31,7 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/neural_stage.h"
+#include "rend/neural/quality_capture.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -75,6 +76,8 @@ struct DX11Renderer : public Renderer
 #endif
 
 protected:
+	virtual bool IsOitRenderer() const noexcept { return false; }
+
 	struct VertexConstants
 	{
 	    float transMatrix[4][4];
@@ -152,6 +155,7 @@ protected:
 	void acquireNeuralHistory();
 	void releaseNeuralHistory();
 	void releaseNeuralPresentation();
+	void captureNeuralQualityFrame();
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -237,6 +241,8 @@ protected:
 	std::uint64_t loggedEvidenceCaptures = 0;
 	std::uint64_t loggedEvidenceCaptureFailures = 0;
 	int loggedOverlayPolicy = -1;
+	int loggedQualityProfile = -1;
+	int loggedStyleFamily = -1;
 	std::string loggedOverlayGameId;
 	bool loggedOverlayActive = false;
 	bool neural2DBypassActive = false;
@@ -247,6 +253,9 @@ protected:
 	std::uint32_t loggedNeuralOutputWidth = 0;
 	std::uint32_t loggedNeuralOutputHeight = 0;
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
+	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
+	flycast::rend::neural::QualityCaptureMetadata neuralQualityCaptureMetadata;
+	bool neuralQualityCapturePending = false;
 #endif
 
 private:

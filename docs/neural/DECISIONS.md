@@ -561,3 +561,41 @@ on both D3D11 and D3D12, while J differed from Auto in 399 pixels in the final
 frame. Auto therefore remains the default: K has not demonstrated a benefit
 over Auto across the required title matrix. This is preset-contract evidence,
 not full Gate 16 quality acceptance.
+
+## D-039: quality capture is explicit, bounded, and provenance-conservative
+
+The production quality writer exists only when `NeuralCaptureDirectory` is
+non-empty and `NeuralCaptureFrames` is positive. It synchronously stages the
+actual DX11 production resources and is therefore developer-only, off by
+default, capped at 240 frames, and categorically excluded from performance
+measurement. It runs after the late PVR overlay composite and before Flycast
+OSD/ImGui. D3D11On12 wrapped inputs are explicitly acquired and released.
+
+Native PVR color and actual contract source color are separate artifacts. This
+separation exposed a production defect in which the copy pass inherited a stale
+blend state and wrote black source color; the copy now binds opaque blending.
+Public output is written only for non-passthrough public-NGX results, and an
+external Neural Rendering artifact is written only when the supplied contract
+reports an evaluated frame. Readiness, module detection, and passthrough cannot
+be mislabeled as DLAA or external output.
+
+`neuraltest capture` owns a transient launch configuration, preserves media
+outside the repository, never records its path, validates the destination, and
+requests clean window closure after the completion marker. Profile and style
+selection affect Flycast-owned policy and recorded recommendations only; the
+launcher never writes third-party configuration.
+
+## D-040: Faithful Dreamcast Remaster is the default policy, not a completed claim
+
+Flycast exposes Faithful Dreamcast Remaster, Enhanced Materials, and Photoreal
+Experimental labels plus explicit style families. Faithful is the default,
+retains the conservative temporal mask and character protection, and recommends
+zero tone plus the lowest useful user-controlled structure setting. Photoreal
+is marked non-faithful and is never automatic. An explicit sprite-heavy/2D
+style requests generative bypass; the independent production scene classifier
+still owns automatic menu/2D bypass.
+
+These descriptors, UI recommendations, capture metadata, and explicit 2D
+bypass are implemented. They do not yet constitute title tuning or Gate 17:
+broader Enhanced Materials trust, character/face title rules, external setting
+comparisons, and representative moving sequences remain evidence-gated.

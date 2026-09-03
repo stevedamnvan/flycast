@@ -3,8 +3,12 @@ add_library(flycast-neural STATIC
 	dlss5_hook.h
     instrumentation.cpp
     instrumentation.h
-    motion_reference.cpp
-    motion_reference.h
+	motion_reference.cpp
+	motion_reference.h
+	quality_capture.cpp
+	quality_capture.h
+	quality_profile.cpp
+	quality_profile.h
 	neural_backend.cpp
 	neural_backend.h
     neural_frame.h

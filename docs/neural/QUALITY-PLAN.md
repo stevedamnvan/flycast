@@ -150,4 +150,16 @@ close a temporal or title-quality gate.
   240-frame synthetic fixture on D3D11/D3D12, while J was observably distinct,
   so Auto remains the default. Lanes A-E, moving title comparisons, and external
   consumer quality evidence remain open; Gate 16 is not green.
-- Gate 17 through Gate 18: pending.
+- Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
+  Enhanced Materials and explicitly non-faithful Photoreal Experimental are
+  selectable; style families, user-controlled external recommendations, and an
+  explicit sprite-heavy generative bypass are visible in UI/capture metadata.
+  Per-title tuning and evidence-driven broader trust remain open.
+- Gate 17: partial at LOG #73. The bounded capture CLI writes the production
+  source, complete guidance set, public output when present, final composite,
+  differences/flicker, manifest, and component metrics on normal DX11, DX11
+  OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
+  covered. GPU timings, external-output capture, comparison-index generation,
+  moving gameplay, all profile lanes, and every other legally available title
+  remain open, so no title-quality winner is declared.
+- Gate 18: pending.

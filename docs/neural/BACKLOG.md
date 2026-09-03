@@ -17,7 +17,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-013 | 1 | Motion command | Reports error, trust, tiers, reactive pixels | doing | LOG #14; explicit no-data result, matcher pending |
 | FC-014 | 1 | Neural passthrough | Shared stage and artifact package | doing | LOG #13; shared-stage color identity green, full export package pending |
 | FC-015 | 1 | Harness NGX | D3D11/D3D12 live or precise unsupported | doing | LOG #14; precise unsupported result, live APIs pending |
-| FC-016 | 1 | Compare/capture | Threshold exit and legal capture path | doing | LOG #13-#14; compare green, capture blocked on FC-054 |
+| FC-016 | 1 | Compare/capture | Threshold exit and legal capture path | done | LOG #13-#14,#73; compare thresholds and the bounded legal-media production capture launcher return explicit success/failure codes |
 | FC-019 | 1 | Phase gate | Commands run for both renderers | todo | |
 | FC-020 | 2 | Public structures | Renderer-neutral atomic frame contract | doing | LOG #20,#29; C++17 neutral contract and complete DX11 GPU texture set attached atomically; D3D12 ownership pending |
 | FC-021 | 2 | Runtime probes | Disabled path has zero probe work | doing | LOG #20; guarded runtime branch/default-off metadata path builds, pixel-parity gate pending |
@@ -50,16 +50,16 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | doing | LOG #49; accepted D3D11 output is selected for the final content-rect blit and native output remains fallback; live emulator capture/cadence evidence pending |
 | FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | doing | LOG #49; production render/reset/save-state and source-transition call sites are connected; live game-load/renderer-switch validation pending |
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | done | LOG #63,#72; production Match Neural Output uses exact post-aspect content dimensions for target-native DX11 lanes, excludes bars, follows fullscreen size, leaves RTT/direct-framebuffer paths untouched, and preserves manual/SR sizing |
-| FC-054 | 5 | Capture CLI | Rate-limited artifact package | todo | |
+| FC-054 | 5 | Capture CLI | Rate-limited artifact package | doing | LOG #73; bounded production D3D11/D3D11On12 normal/OIT capture writes source/guidance/public/final/difference/flicker artifacts, manifests, and component metrics; GPU timings, external-output capture, index generation, and full title matrix remain |
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | done | LOG #70-#71; conservative normal/OIT translucency, modifier-volume exclusion, strict stable-HUD classification, exact late composite, safe full-frame title override, and latched 2D/menu bypass close Gates 15A/15B; representative-title acceptance remains FC-065/Gate 17 |
 | FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | done | LOG #50-#59; the selected D3D11On12 route passes Gate 10 with full-contract ON/OFF hashes, per-frame sentinel presentation, zero display-frame latency, and native fallback; direct D3D11 and bridge remain unselected candidate routes |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | doing | LOG #49; build-time presentation/fallback/reset structure is green, runtime toggles and pixel Gate 8 pending |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50,#61-#64,#66-#72; 95 checks pass in both NGX and no-NGX builds through the FC-053/FC-044 slice, including exact target-raster lane selection plus production motion/disocclusion/OIT/overlay HLSL on both surfaces |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50,#61-#64,#66-#73; 98 checks pass in both NGX and no-NGX builds, including profile/bypass policy plus exact target-raster, motion, disocclusion, OIT, and overlay contracts on both surfaces |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40,#44-#45; public RTX harness matrix green on both APIs; production captures/cadence remain pending |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |
 | FC-064 | 6 | Performance | Invariants and measured targets | todo | |
-| FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | todo | |
+| FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | doing | LOG #73; Soulcalibur intro packages cover public DLAA on normal DX11, DX11 OIT, and D3D11On12 plus native/no-NGX controls; gameplay characters, other profiles, moving sequences, external output, other legal titles, and comparison index remain |
 | FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | done | LOG #53-#59; all 120 full input contracts matched across ON/policy-OFF, 118 returned outputs differed, frame 9 distinguished native/public-DLAA/external hashes and carried 1024/1024 sentinel pixels through successful same-frame Present, and negative controls retained native fallback |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 

@@ -95,6 +95,8 @@ struct DX11OITRenderer : public DX11Renderer
 		return success;
 	}
 
+	bool IsOitRenderer() const noexcept override { return true; }
+
 	void resizeInternal(u32 width, u32 height)
 	{
 		if (width > maxWidth || height > maxHeight || opaqueTex == nullptr)

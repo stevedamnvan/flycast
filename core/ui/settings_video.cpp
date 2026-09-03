@@ -19,6 +19,9 @@
 #include "settings.h"
 #include "gui.h"
 #include "wsi/context.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/quality_profile.h"
+#endif
 
 enum RenderAPI {
 	OpenGL,
@@ -282,6 +285,47 @@ void gui_settings_video()
 		}
 		if (selectedMode != 0)
 		{
+			static const std::array<const char *, 3> profileNames = {
+				"Faithful Dreamcast Remaster", "Enhanced Materials", "Photoreal Experimental"
+			};
+			int profileIndex = std::clamp(config::NeuralQualityProfile.get(), 0, 2);
+			if (ImGui::BeginCombo("##NeuralQualityProfile", profileNames[profileIndex]))
+			{
+				for (int i = 0; i < static_cast<int>(profileNames.size()); ++i)
+				{
+					const bool selected = profileIndex == i;
+					if (ImGui::Selectable(profileNames[i], selected))
+						config::NeuralQualityProfile = i;
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s", T("Quality profile"));
+			static const std::array<const char *, 8> styleNames = {
+				"Automatic / unclassified", "Realistic 3D", "Stylized 3D", "Cel-shaded",
+				"Racing / fast camera", "Particle-heavy arcade", "Sprite-heavy / 2D",
+				"Mixed 3D and pre-rendered / video"
+			};
+			int styleIndex = std::clamp(config::NeuralStyleFamily.get(), 0, 7);
+			if (ImGui::BeginCombo("##NeuralStyleFamily", styleNames[styleIndex]))
+			{
+				for (int i = 0; i < static_cast<int>(styleNames.size()); ++i)
+				{
+					const bool selected = styleIndex == i;
+					if (ImGui::Selectable(styleNames[i], selected))
+						config::NeuralStyleFamily = i;
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s", T("Style family"));
+			const auto profile = flycast::rend::neural::ResolveQualityProfile(
+				config::NeuralQualityProfile.get(), config::NeuralStyleFamily.get());
+			ImGui::TextWrapped("%s: %s", T("External recommendation"),
+				profile.externalRecommendation.c_str());
+			ImGui::TextWrapped("%s", T("Recommendations are informational. Flycast never edits external consumer configuration."));
 			static const std::array<const char *, 3> presetNames = {"Auto", "J", "K"};
 			static const std::array<int, 3> presetValues = {0, 10, 11};
 			int presetIndex = config::NeuralDlssPreset.get() == 10 ? 1

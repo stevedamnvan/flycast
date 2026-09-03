@@ -115,6 +115,11 @@ Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
 Option<int> NeuralOverlayPolicy("rend.NeuralOverlayPolicy", 0);
 Option<bool> NeuralMatchOutputResolution("rend.NeuralMatchOutputResolution", true);
 Option<int> NeuralDlssPreset("rend.NeuralDlssPreset", 0);
+OptionString NeuralCaptureDirectory("rend.NeuralCaptureDirectory", "");
+Option<int> NeuralCaptureFrames("rend.NeuralCaptureFrames", 0);
+Option<int> NeuralCaptureSkip("rend.NeuralCaptureSkip", 0);
+Option<int> NeuralQualityProfile("rend.NeuralQualityProfile", 0);
+Option<int> NeuralStyleFamily("rend.NeuralStyleFamily", 0);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

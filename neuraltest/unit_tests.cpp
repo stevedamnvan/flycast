@@ -5,6 +5,7 @@
 #include "rend/neural/dlss5_hook.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
+#include "rend/neural/quality_profile.h"
 
 #include <algorithm>
 #include <cmath>
@@ -72,6 +73,20 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		const auto faithful = ResolveQualityProfile(0, 0);
+		const auto enhanced = ResolveQualityProfile(1, 3);
+		const auto sprite = ResolveQualityProfile(2, 6);
+		suite.Expect(faithful.faithful && faithful.conservativeTemporalMask
+			&& faithful.protectCharacters && !faithful.bypassGenerative,
+			"Faithful Dreamcast Remaster is the conservative default profile");
+		suite.Expect(enhanced.faithful && !enhanced.conservativeTemporalMask
+			&& enhanced.protectCharacters && std::string(enhanced.styleName) == "Cel-shaded",
+			"Enhanced Materials retains character protection and style metadata");
+		suite.Expect(!sprite.faithful && sprite.bypassGenerative
+			&& sprite.externalRecommendation.find("user controlled") != std::string::npos,
+			"sprite-heavy Photoreal profile remains explicit and recommends bypass");
+	}
 	{
 		std::string error;
 		const bool valid = ValidateProductionExportShader(error);

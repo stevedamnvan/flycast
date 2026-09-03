@@ -476,6 +476,11 @@ extern Option<int> NeuralDebugView;
 extern Option<int> NeuralOverlayPolicy;
 extern Option<bool> NeuralMatchOutputResolution;
 extern Option<int> NeuralDlssPreset;
+extern OptionString NeuralCaptureDirectory;
+extern Option<int> NeuralCaptureFrames;
+extern Option<int> NeuralCaptureSkip;
+extern Option<int> NeuralQualityProfile;
+extern Option<int> NeuralStyleFamily;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

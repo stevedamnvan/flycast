@@ -22,6 +22,9 @@
 #include "hw/pvr/pvr_mem.h"
 #include "ui/gui.h"
 #include "rend/sorter.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/quality_profile.h"
+#endif
 
 #include <memory>
 
@@ -781,6 +784,7 @@ bool DX11Renderer::renderNeuralExports()
 	ID3D11ShaderResourceView *nullView = nullptr;
 	deviceContext->PSSetShaderResources(0, 1, &nullView);
 	deviceContext->OMSetRenderTargets(1, &neuralColor.targets[neuralExportSlot].get(), nullptr);
+	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
 	const float black[4]{};
 	deviceContext->ClearRenderTargetView(neuralColor.targets[neuralExportSlot], black);
 	quad->draw(fbTextureView, samplers->getSampler(false));
@@ -1154,9 +1158,13 @@ void DX11Renderer::logNeuralConsumerStatus(
 void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
+	neuralQualityCapturePending = false;
 	releaseNeuralPresentation();
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
+	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
+		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)));
 	const auto contentRect = getNeuralContentRect();
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
@@ -1177,8 +1185,20 @@ void DX11Renderer::submitNeuralFrame()
 			contentRect.x, contentRect.y, contentRect.width, contentRect.height,
 			config::NeuralMatchOutputResolution && UsesMatchOutputRaster(activeNeuralMode) ? 1 : 0);
 	}
+	const auto qualityProfile = ResolveQualityProfile(config::NeuralQualityProfile.get(),
+		config::NeuralStyleFamily.get());
+	if (loggedQualityProfile != config::NeuralQualityProfile.get()
+		|| loggedStyleFamily != config::NeuralStyleFamily.get())
+	{
+		loggedQualityProfile = config::NeuralQualityProfile.get();
+		loggedStyleFamily = config::NeuralStyleFamily.get();
+		NOTICE_LOG(RENDERER,
+			"Neural quality profile: game=%s profile=%s style=%s external_recommendation=%s configuration_write=none",
+			settings.content.gameId.c_str(), qualityProfile.name, qualityProfile.styleName,
+			qualityProfile.externalRecommendation.c_str());
+	}
 	const bool bypass2DCandidate = activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
-		&& capturedFrame.predominantly2D;
+		&& (capturedFrame.predominantly2D || qualityProfile.bypassGenerative);
 	const bool bypass2D = UpdateConservativeBypass(bypass2DCandidate,
 		neural2DBypassActive, neural2DBypassEnterStreak, neural2DBypassExitStreak);
 	if (bypass2D != neural2DBypassActive)
@@ -1239,7 +1259,35 @@ void DX11Renderer::submitNeuralFrame()
 			neuralDrawId.d3d12Resources, DXGI_FORMAT_R16_UINT);
 	}
 	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
+	neuralQualityCaptureMetadata = {};
+	neuralQualityCaptureMetadata.frameId = frame.frameId;
+	neuralQualityCaptureMetadata.historyGeneration = frame.historyGeneration;
+	neuralQualityCaptureMetadata.historyAge = frame.historyAge;
+	neuralQualityCaptureMetadata.skippedFrameCount = frame.skippedFrameCount;
+	neuralQualityCaptureMetadata.renderWidth = frame.renderWidth;
+	neuralQualityCaptureMetadata.renderHeight = frame.renderHeight;
+	neuralQualityCaptureMetadata.outputWidth = frame.outputWidth;
+	neuralQualityCaptureMetadata.outputHeight = frame.outputHeight;
+	neuralQualityCaptureMetadata.drawCount = static_cast<std::uint32_t>(frame.draws.size);
+	neuralQualityCaptureMetadata.contentRect = frame.contentRect;
+	neuralQualityCaptureMetadata.historyValid = frame.historyValid;
+	neuralQualityCaptureMetadata.resetHistory = frame.resetHistory;
+	neuralQualityCaptureMetadata.sceneCut = frame.sceneCut;
+	neuralQualityCaptureMetadata.truncated = frame.truncated;
+	neuralQualityCaptureMetadata.predominantly2D = frame.predominantly2D;
+	neuralQualityCaptureMetadata.d3d11On12 = activeNeuralSurface;
+	neuralQualityCaptureMetadata.oitRenderer = IsOitRenderer();
+	neuralQualityCaptureMetadata.neuralMode = activeNeuralMode;
+	neuralQualityCaptureMetadata.dlssPreset = activeNeuralPreset;
+	neuralQualityCaptureMetadata.overlayPolicy = overlayPolicy;
+	neuralQualityCaptureMetadata.gameId = settings.content.gameId;
+	neuralQualityCaptureMetadata.profile = std::string(qualityProfile.name) + " / "
+		+ qualityProfile.styleName;
+	neuralQualityCaptureMetadata.externalRecommendation =
+		qualityProfile.externalRecommendation;
 	const auto status = neuralStage.TrySubmit(frame);
+	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
+	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
 	logNeuralConsumerStatus(status);
 	if (status == SubmitStatus::Submitted)
 	{
@@ -1247,9 +1295,14 @@ void DX11Renderer::submitNeuralFrame()
 		neuralAcceptedGuidanceSlot = neuralExportSlot;
 		hasNeuralAcceptedGuidance = true;
 		const auto stats = neuralStage.GetStats();
+		neuralQualityCaptureMetadata.externalContractEvaluated =
+			stats.dlss5Readiness == Dlss5HookReadiness::ContractEvaluated;
 		if (activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
 			&& stats.dlss5Readiness != Dlss5HookReadiness::ContractEvaluated)
+		{
+			neuralQualityCapturePending = neuralQualityCapture.WantsFrame();
 			return;
+		}
 		const auto output = neuralStage.GetOutput();
 		if (output.api == TextureApi::D3D11 && output.view)
 		{
@@ -1260,6 +1313,66 @@ void DX11Renderer::submitNeuralFrame()
 		else if (output.api == TextureApi::D3D12 && output.resource)
 			wrapNeuralOutput(static_cast<ID3D12Resource *>(output.resource), frame.frameId);
 	}
+	neuralQualityCapturePending = neuralQualityCapture.WantsFrame();
+}
+
+void DX11Renderer::captureNeuralQualityFrame()
+{
+	if (!neuralQualityCapturePending)
+		return;
+	neuralQualityCapturePending = false;
+	acquireNeuralInputs();
+	ID3D11Texture2D *publicOutput = nullptr;
+	// Passthrough presents the source texture; it is not a public-NGX result and
+	// must not be labeled as public DLAA in a quality package.
+	if (activeNeuralMode != static_cast<int>(flycast::rend::neural::NeuralMode::Passthrough)
+		&& neuralPresentationView)
+	{
+		ID3D11Resource *resource = nullptr;
+		neuralPresentationView->GetResource(&resource);
+		if (resource)
+		{
+			resource->QueryInterface(__uuidof(ID3D11Texture2D),
+				reinterpret_cast<void **>(&publicOutput));
+			resource->Release();
+		}
+	}
+	ID3D11Texture2D *finalComposite = nullptr;
+	ID3D11Resource *finalResource = nullptr;
+	DX11Context::Instance()->getRenderTarget()->GetResource(&finalResource);
+	if (finalResource)
+	{
+		finalResource->QueryInterface(__uuidof(ID3D11Texture2D),
+			reinterpret_cast<void **>(&finalComposite));
+		finalResource->Release();
+	}
+	flycast::rend::neural::QualityCaptureTextures textures;
+	textures.nativeColor = fbTex;
+	textures.sourceColor = neuralColor.textures[neuralExportSlot];
+	textures.depth = neuralDepthTextures[neuralExportSlot];
+	textures.motion = neuralMotion.textures[neuralExportSlot];
+	textures.biasMask = neuralResolvedMask.textures[neuralExportSlot];
+	textures.confidence = neuralConfidence.textures[neuralExportSlot];
+	textures.drawId = neuralDrawId.textures[neuralExportSlot];
+	textures.overlay = neuralOverlayMask.textures[neuralExportSlot];
+	textures.publicOutput = publicOutput;
+	textures.finalComposite = finalComposite;
+	std::string error;
+	const auto beforeCount = neuralQualityCapture.CapturedCount();
+	const bool captured = neuralQualityCapture.Capture(device, deviceContext,
+		neuralQualityCaptureMetadata, textures, error);
+	const auto afterCount = neuralQualityCapture.CapturedCount();
+	if (publicOutput) publicOutput->Release();
+	if (finalComposite) finalComposite->Release();
+	releaseNeuralInputs();
+	if (!captured)
+		WARN_LOG(RENDERER, "Neural quality capture failed: %s", error.c_str());
+	else if (afterCount != beforeCount)
+		NOTICE_LOG(RENDERER,
+			"Neural quality capture: game=%s frame=%llu captured=%u submit=%s synchronous-developer-only",
+			settings.content.gameId.c_str(),
+			static_cast<unsigned long long>(neuralQualityCaptureMetadata.frameId),
+			afterCount, neuralQualityCaptureMetadata.submitStatus.c_str());
 }
 
 bool DX11Renderer::syncNeuralMode()
@@ -1453,6 +1566,7 @@ void DX11Renderer::displayFramebuffer()
 				config::Rotate90);
 		}
 	}
+	captureNeuralQualityFrame();
 	if (queuedNeuralOutput)
 	{
 		++neuralAcceptedBlitCount;
