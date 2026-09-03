@@ -804,3 +804,18 @@ counts. A complete launcher run requires those fields. This complements DXGI
 local-VRAM usage: stable object count can reject an object leak even when driver
 memory accounting fluctuates, but it cannot prove the lifetime of objects owned
 inside NGX or a supplied external consumer.
+
+## D-054: active runtime-unavailable injection retires and latches
+
+The default-off `runtime-unavailable` failure control becomes eligible only
+after its exact accepted-evaluation threshold and may fire exactly once. Before
+retirement, each backend nonblockingly verifies that all submitted output-ring
+work is complete. A busy ring returns `Busy` and defers the injection; it never
+forces a flush or waits for GPU completion.
+
+Once eligible, the backend releases the public feature and parameter session,
+shuts down its NGX API instance, releases its owned output/query/command
+objects, clears the stage output, and returns a distinct terminal backend
+status. The stage then latches native fallback until recreation. This proves
+Flycast's controlled response to an active runtime becoming unavailable; it is
+not represented as physical deletion or unloading of a third-party DLL.

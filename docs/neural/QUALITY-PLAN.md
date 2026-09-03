@@ -284,3 +284,12 @@ close a temporal or title-quality gate.
   pressure; local VRAM was non-increasing. The host exposes only one monitor,
   and media discovery found only the supplied Soulcalibur Dreamcast image, so
   monitor-move and cross-title evidence remain blocked rather than inferred.
+  LOG #89 adds a default-off active-runtime-unavailable control that waits
+  nonblockingly for submitted work, retires the live public-NGX session and
+  backend objects, clears output, and latches native fallback. Four 120-sample
+  mid-window Soulcalibur runs across normal/OIT D3D11 and D3D11On12 each
+  recorded one terminal status and one explicit neural-to-native transition,
+  with zero missing/accepted-output drops, identity errors, output repeats, or
+  latency. D3D11 released 9 backend objects and D3D11On12 released 10. This is
+  controlled active-unavailability coverage; physical loaded-DLL removal and
+  actual device loss remain open.

@@ -40,9 +40,9 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -442,19 +442,26 @@ int CaptureCommand(const Args& args)
 		return 2;
 	}
 	if (injection != "none" && injection != "create" && injection != "evaluate"
-		&& injection != "ring-busy" && injection != "device-removed")
+		&& injection != "ring-busy" && injection != "device-removed"
+		&& injection != "runtime-unavailable")
 	{
 		std::cerr << "invalid capture injection\n";
 		return 2;
 	}
 	std::uint32_t injectionCount = 0;
-	if (!Number(args, "--inject-count", injection == "none" ? 0 : 3,
+	if (!Number(args, "--inject-count", injection == "none" ? 0
+		: injection == "runtime-unavailable" ? 1 : 3,
 		injectionCount, error) || injectionCount > 10000)
 	{
 		std::cerr << (error.empty() ? "invalid capture injection count" : error) << '\n';
 		return 2;
 	}
 	if (injection == "none") injectionCount = 0;
+	if (injection == "runtime-unavailable" && injectionCount != 1)
+	{
+		std::cerr << "runtime-unavailable injection count must be exactly 1\n";
+		return 2;
+	}
 	std::uint32_t injectionAfter = 0;
 	if (!Number(args, "--inject-after", 0, injectionAfter, error) || injectionAfter > 10000)
 	{
@@ -508,7 +515,8 @@ int CaptureCommand(const Args& args)
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
 	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
 	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
-		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4 : 0;
+		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4
+		: injection == "runtime-unavailable" ? 5 : 0;
 	const int profileValue = profile == "enhanced" ? 1 : profile == "photoreal" ? 2 : 0;
 	const int styleValue = static_cast<int>(std::distance(styles.begin(), styleIt));
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
@@ -693,7 +701,8 @@ int PerformanceCommand(const Args& args)
 		return 2;
 	}
 	if (injection != "none" && injection != "create" && injection != "evaluate"
-		&& injection != "ring-busy" && injection != "device-removed")
+		&& injection != "ring-busy" && injection != "device-removed"
+		&& injection != "runtime-unavailable")
 	{
 		std::cerr << "invalid performance injection\n";
 		return 2;
@@ -705,13 +714,19 @@ int PerformanceCommand(const Args& args)
 		return 2;
 	}
 	std::uint32_t injectionCount = 0;
-	if (!Number(args, "--inject-count", injection == "none" ? 0 : 3,
+	if (!Number(args, "--inject-count", injection == "none" ? 0
+		: injection == "runtime-unavailable" ? 1 : 3,
 		injectionCount, error) || injectionCount > 10000)
 	{
 		std::cerr << (error.empty() ? "invalid performance injection count" : error) << '\n';
 		return 2;
 	}
 	if (injection == "none") injectionCount = 0;
+	if (injection == "runtime-unavailable" && injectionCount != 1)
+	{
+		std::cerr << "runtime-unavailable injection count must be exactly 1\n";
+		return 2;
+	}
 	std::uint32_t injectionAfter = 0;
 	if (!Number(args, "--inject-after", 0, injectionAfter, error) || injectionAfter > 10000)
 	{
@@ -795,7 +810,8 @@ int PerformanceCommand(const Args& args)
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
 	const int presetValue = preset == "j" ? 10 : preset == "k" ? 11 : 0;
 	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
-		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4 : 0;
+		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4
+		: injection == "runtime-unavailable" ? 5 : 0;
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
 		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
 		+ L",config:rend.NeuralMode=" + std::to_wstring(mode)

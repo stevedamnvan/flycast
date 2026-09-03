@@ -265,6 +265,18 @@ public:
 		if (ConsumeInjection(FailureInjection::DeviceRemoved,
 			"injected D3D11 device-removed status"))
 			return BackendEvalStatus::DeviceRemoved;
+		if (config_.failureInjection == FailureInjection::RuntimeUnavailable
+			&& successfulEvaluations_ >= config_.failureInjectionAfter
+			&& injectedCount_ < config_.failureInjectionCount)
+		{
+			if (!AllSubmittedWorkComplete())
+				return Busy("injected D3D11 runtime retirement awaiting asynchronous work");
+			ConsumeInjection(FailureInjection::RuntimeUnavailable,
+				"injected D3D11 runtime unavailable");
+			++stats_.runtimeUnavailableStatuses;
+			Shutdown();
+			return Unsupported("injected D3D11 runtime unavailable; session retired");
+		}
 
 		if (!feature_)
 		{

@@ -349,7 +349,8 @@ void PerformanceTracker::WriteReport()
 		<< ", \"hold_entries\": " << stageStats_.holdEntries
 		<< ", \"create_failures\": " << stageStats_.createFailures
 		<< ", \"evaluate_failures\": " << stageStats_.evaluateFailures
-		<< ", \"device_removed\": " << stageStats_.deviceRemovedStatuses << "}"
+		<< ", \"device_removed\": " << stageStats_.deviceRemovedStatuses
+		<< ", \"runtime_unavailable\": " << stageStats_.runtimeUnavailableStatuses << "}"
 		<< ",\n  \"vram\": {\"initial_usage_bytes\": " << initialVramUsage_
 		<< ", \"final_usage_bytes\": " << usage << ", \"growth_bytes\": " << growth
 		<< ", \"budget_bytes\": " << budget << "}"

@@ -1406,7 +1406,7 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 		settings.content.gameId,
 		DX11Context::Instance()->isD3D11On12() ? "d3d11on12" : "d3d11",
 		IsOitRenderer() ? "dx11-oit" : "dx11", config::NeuralMode.get(),
-		std::clamp(config::NeuralFailureInjection.get(), 0, 4),
+		std::clamp(config::NeuralFailureInjection.get(), 0, 5),
 		static_cast<std::uint32_t>(std::clamp(
 			config::NeuralFailureInjectionCount.get(), 0, 10000)),
 		static_cast<std::uint32_t>(std::clamp(
@@ -1485,7 +1485,7 @@ bool DX11Renderer::syncNeuralMode()
 	const int configuredPreset = config::NeuralDlssPreset.get();
 	const int requestedPreset = configuredPreset == 10 || configuredPreset == 11
 		? configuredPreset : 0;
-	const int requestedFailureInjection = std::clamp(config::NeuralFailureInjection.get(), 0, 4);
+	const int requestedFailureInjection = std::clamp(config::NeuralFailureInjection.get(), 0, 5);
 	const int requestedFailureInjectionCount = requestedFailureInjection == 0 ? 0
 		: std::clamp(config::NeuralFailureInjectionCount.get(), 0, 10000);
 	const int requestedFailureInjectionAfter = requestedFailureInjection == 0 ? 0

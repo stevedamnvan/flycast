@@ -117,6 +117,7 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		const auto backendStats = backend_->GetStats();
 		stats_.backendResourceObjects = backendStats.liveResourceObjects;
 		stats_.createFailures = backendStats.createFailures;
+		stats_.runtimeUnavailableStatuses = backendStats.runtimeUnavailableStatuses;
 		stats_.lastNgxResult = backendStats.lastResult;
 		stats_.lastExceptionCode = backendStats.lastExceptionCode;
 		stats_.compatibilityRebuilds = backendStats.compatibilityRebuilds;
@@ -167,6 +168,7 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	stats_.backendResourceObjects = backendStats.liveResourceObjects;
 	stats_.createFailures = backendStats.createFailures;
 	stats_.evaluateFailures = backendStats.evaluateFailures;
+	stats_.runtimeUnavailableStatuses = backendStats.runtimeUnavailableStatuses;
 	stats_.lastNgxResult = backendStats.lastResult;
 	stats_.lastExceptionCode = backendStats.lastExceptionCode;
 	stats_.compatibilityRebuilds = backendStats.compatibilityRebuilds;
@@ -216,6 +218,12 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	{
 		++stats_.deviceRemovedStatuses;
 		recovery_.DeviceRemoved();
+	}
+	if (result == BackendEvalStatus::RuntimeUnavailable)
+	{
+		output_ = {};
+		backendInitialized_ = false;
+		backendPermanentlyUnsupported_ = true;
 	}
 	return result == BackendEvalStatus::DeviceRemoved ? SubmitStatus::DeviceRemoved
 		: SubmitStatus::Unsupported;

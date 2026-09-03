@@ -29,6 +29,7 @@ enum class FailureInjection : std::uint8_t {
 	Evaluate,
 	OutputBusy,
 	DeviceRemoved,
+	RuntimeUnavailable,
 };
 
 struct StageConfig {
@@ -61,6 +62,7 @@ enum class BackendEvalStatus : std::uint8_t {
 	Unsupported,
 	RecoverableFailure,
 	DeviceRemoved,
+	RuntimeUnavailable,
 };
 
 struct BackendStats {
@@ -69,6 +71,7 @@ struct BackendStats {
 	std::uint32_t liveResourceObjects = 0;
 	std::uint64_t createFailures = 0;
 	std::uint64_t evaluateFailures = 0;
+	std::uint64_t runtimeUnavailableStatuses = 0;
 	std::int32_t lastResult = 0;
 	std::uint32_t lastExceptionCode = 0;
 	std::uint64_t compatibilityRebuilds = 0;

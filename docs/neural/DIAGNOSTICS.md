@@ -57,7 +57,7 @@ Production performance measurement is separate:
 `neuraltest performance --game PATH --frames N --warmup N --out DIR
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
-[--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed]
+[--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable]
 [--inject-count N] [--inject-after N]
 [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N]
 [--renderer-reinit-after N]
@@ -175,6 +175,14 @@ status control: it latches native fallback until stage recreation but does not
 remove the actual DXGI device. A rejected capture is accepted only when its
 manifest has no public/external output and source-color and final-composited
 SHA-256 hashes match; actual device-loss recovery is not implied.
+
+`runtime-unavailable` accepts an injection count of exactly one. Once its
+accepted-evaluation threshold is reached and outstanding ring work has retired,
+it releases the live public-NGX session and backend-owned objects without a
+flush, clears the candidate output, and latches native fallback. Performance
+telemetry records the terminal status and the corresponding object-count drop.
+This is controlled active-unavailability evidence, not physical removal of a
+loaded runtime binary.
 
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets
