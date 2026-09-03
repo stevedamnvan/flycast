@@ -29,7 +29,8 @@ used for performance measurement.
    compare target-native DLAA, lower-resolution SR, 8x downsample, DLAA-only,
    and native lanes. Public preset Auto/J/K is evaluated separately from the
    external consumer.
-5. **Q5 / FC-050, FC-055, FC-065:** add faithful, enhanced-materials, and
+5. **Q5 / FC-050, FC-055, FC-065:** retain the completed live status and
+   presentation-only guidance debug UI; add faithful, enhanced-materials, and
    photoreal-experimental profiles. Recommendations are displayed and captured;
    Flycast does not write third-party settings.
 6. **Q6 / FC-054, FC-065:** implement bounded captures, component metrics, and

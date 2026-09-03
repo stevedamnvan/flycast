@@ -1004,3 +1004,27 @@ numbers to model names, infer semantic-mask behavior, or write any RenoDX,
 ReShade, RHI, or consumer configuration. A consumer log line, like module or
 Feature 18 activity, does not replace the existing exact-input mutation,
 sentinel-Present, and policy-OFF presentation proof.
+
+## D-064: live UI reads snapshots; guidance debug views are presentation-only
+
+The settings UI must not read renderer-owned `NeuralStage`, texture, or history
+state directly. The DX11 render thread publishes a self-contained copy through
+a mutex-protected Flycast-owned status boundary. The snapshot contains the
+active mode and API, submit result and reason, raster dimensions, frame IDs,
+stage counters and asynchronous evaluation timing, route/readiness, overlay
+state, bypass state, and developer-view state. Renderer termination resets the
+snapshot so a new settings page cannot display stale device data.
+
+The developer selector visualizes the current exported source color,
+logarithmic PVR depth, render-pixel motion, resolved bias mask, correspondence
+confidence, draw identity, or overlay classification. It runs only when the
+selected frame has fresh guidance; a conservative bypass or failed export
+cannot display a stale ring slot. It replaces only the PVR content blit, keeps
+Flycast OSD and ImGui later in presentation, and never changes the guidance
+buffers, evaluation, accepted-history reference, or external configuration.
+
+A debug frame is explicitly accounted as native presentation. Even when a
+neural output is ready, Flycast does not queue or log that output as presented
+while a guidance view is on screen. This prevents a developer visualization
+from becoming false Gate 10 or cadence evidence. Debug mode remains off by
+default and is not a performance-measurement lane.

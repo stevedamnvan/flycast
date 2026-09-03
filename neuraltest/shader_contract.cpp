@@ -160,6 +160,7 @@ bool ValidateProductionExportShader(std::string& error)
 	std::string naomiColor;
 	std::string reactiveCoverage;
 	std::string overlayComposite;
+	std::string neuralDebug;
 	std::string oitHeader;
 	std::string oitFinal;
 	if (!ExtractRawString(source, "PixelShaderCommon", common)
@@ -167,6 +168,7 @@ bool ValidateProductionExportShader(std::string& error)
 		|| !ExtractRawString(source, "VertexShader", vertex)
 		|| !ExtractRawString(source, "NeuralReactiveCoveragePixelShader", reactiveCoverage)
 		|| !ExtractRawString(source, "NeuralOverlayCompositePixelShader", overlayComposite)
+		|| !ExtractRawString(source, "NeuralDebugPixelShader", neuralDebug)
 		|| !ExtractRawString(naomiSource, "DX11N2VertexShader", naomiVertex)
 		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor)
 		|| !ExtractRawString(oitSource, "static const char OITShaderHeader[]", oitHeader)
@@ -181,6 +183,16 @@ bool ValidateProductionExportShader(std::string& error)
 		{"MAX_PIXELS_PER_FRAGMENT", "32"}, {"DITHERING", "1"}, {nullptr, nullptr}
 	};
 	const std::string naomi = naomiVertex + '\n' + naomiColor;
+	for (int view = 1; view <= 7; ++view)
+	{
+		const std::string value = std::to_string(view);
+		D3D_SHADER_MACRO debugMacros[] = {
+			{"DEBUG_VIEW", value.c_str()}, {nullptr, nullptr}
+		};
+		if (!CompileStandalonePixel(neuralDebug, "neural-debug", debugMacros,
+			nullptr, error))
+			return false;
+	}
 	return CompilePixel(pixel, "0", includes, error)
 		&& CompilePixel(pixel, "1", includes, error)
 		&& CompileVertex(vertex, false, false, false, error)

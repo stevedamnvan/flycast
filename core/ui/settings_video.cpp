@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "wsi/context.h"
 #ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
 #endif
 
@@ -363,6 +364,27 @@ void gui_settings_video()
 			ImGui::SameLine();
 			ImGui::Text("%s", T("Game overlay protection"));
 			ImGui::TextWrapped("%s", T("Stored per game. Full-frame protection is the safe override when automatic HUD classification is uncertain."));
+			static const std::array<const char *, 8> debugViews = {
+				"Off (normal presentation)", "Source scene color", "PVR logarithmic depth",
+				"Motion vectors", "Bias-current-color mask", "Correspondence confidence",
+				"Draw identity", "Overlay classification"
+			};
+			int debugView = std::clamp(config::NeuralDebugView.get(), 0,
+				static_cast<int>(debugViews.size() - 1));
+			if (ImGui::BeginCombo("##NeuralDebugView", debugViews[debugView]))
+			{
+				for (int i = 0; i < static_cast<int>(debugViews.size()); ++i)
+				{
+					const bool selected = debugView == i;
+					if (ImGui::Selectable(debugViews[i], selected))
+						config::NeuralDebugView = i;
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s", T("Developer debug view"));
+			ImGui::TextWrapped("%s", T("Replaces only the PVR presentation for inspection. Neural evaluation and history continue, but a debug frame is accounted as native presentation. Flycast OSD and ImGui remain visible."));
 		}
 		if (!rendererSupported)
 			ImGui::TextWrapped("%s", T("The selected graphics API is unsupported; Flycast will continue with native presentation."));
@@ -371,6 +393,55 @@ void gui_settings_video()
 #else
 		ImGui::TextUnformatted("NGX SDK: not linked; passthrough and instrumentation only.");
 #endif
+		const auto live = flycast::rend::neural::GetLiveStatus();
+		ImGui::Separator();
+		ImGui::TextUnformatted(T("Live neural status"));
+		if (!live.rendererAvailable)
+			ImGui::TextWrapped("%s", T("No live DirectX 11 renderer snapshot is available."));
+		else
+		{
+			using namespace flycast::rend::neural;
+			ImGui::Text("%s | %s | %s", NeuralModeName(live.mode), ApiName(live.api),
+				SubmitStatusName(live.lastSubmit));
+			ImGui::TextWrapped("%s: %s", T("Reason"), live.reason.c_str());
+			ImGui::Text("%s: %ux%u -> %ux%u", T("Raster contract"),
+				live.renderWidth, live.renderHeight, live.outputWidth, live.outputHeight);
+			ImGui::Text("%s: %llu | %s: %llu", T("Source frame"),
+				static_cast<unsigned long long>(live.sourceFrameId), T("Presented neural frame"),
+				static_cast<unsigned long long>(live.presentedOutputFrameId));
+			ImGui::Text("%s: %llu | %s: %llu | %s: %llu | %s: %llu", T("Accepted"),
+				static_cast<unsigned long long>(live.stage.submissions), T("Busy"),
+				static_cast<unsigned long long>(live.stage.busySkips), T("Fallbacks"),
+				static_cast<unsigned long long>(live.stage.fallbacks), T("Resets"),
+				static_cast<unsigned long long>(live.stage.resets));
+			if (live.stage.evaluateGpuSamples != 0)
+				ImGui::Text("%s: %.3f ms (frame %llu) | %s: %u", T("Evaluate GPU"),
+					live.stage.evaluateGpuMs,
+					static_cast<unsigned long long>(live.stage.evaluateGpuFrameId),
+					T("Backend resources"), live.stage.backendResourceObjects);
+			else
+				ImGui::Text("%s | %s: %u", T("Evaluate GPU: awaiting asynchronous sample"),
+					T("Backend resources"), live.stage.backendResourceObjects);
+			ImGui::Text("%s: %llu | %s: %llu | %s: %llu", T("Create failures"),
+				static_cast<unsigned long long>(live.stage.createFailures),
+				T("Evaluate failures"),
+				static_cast<unsigned long long>(live.stage.evaluateFailures),
+				T("Device removed"),
+				static_cast<unsigned long long>(live.stage.deviceRemovedStatuses));
+			ImGui::Text("%s: %s (%u draws) | %s: %s", T("Overlay protection"),
+				live.overlayProtection ? T("active") : T("inactive"), live.overlayDraws,
+				T("2D/menu bypass"), live.conservativeBypass ? T("active") : T("inactive"));
+			ImGui::Text("%s: %s (%u)", T("Developer debug presentation"),
+				live.debugViewActive ? T("active; accounted as native") : T("inactive"),
+				live.debugView);
+			if (live.mode == NeuralMode::Dlss5Experimental)
+			{
+				ImGui::Text("%s: %s | %s: %s | %s: %s", T("Consumer route"),
+					Dlss5HookRouteName(live.stage.dlss5Route), T("Readiness"),
+					Dlss5HookReadinessName(live.stage.dlss5Readiness), T("Contract"),
+					live.stage.dlss5ContractEvaluated ? T("evaluated") : T("not evaluated"));
+			}
+		}
 	}
 	ImGui::Spacing();
 #endif

@@ -1,5 +1,23 @@
 # Neural diagnostics
 
+The Video settings page exposes a thread-safe **Live neural status** block for
+the DirectX 11 renderer. It reports the active mode/API, latest submit result
+and readable reason, input/output raster, source and actually presented neural
+frame IDs, accepted/busy/fallback/reset and failure counters, the latest
+asynchronously retired evaluation timing when one exists, Flycast-owned backend
+resource count, overlay/bypass state, and DLSS 5 route/readiness. Closing or
+recreating the renderer clears the snapshot rather than leaving stale values.
+
+The developer debug selector is off by default and can replace the PVR content
+with source color, logarithmic PVR depth, motion, resolved bias mask,
+confidence, draw ID, or overlay classification. Motion encodes X and Y around
+neutral gray with magnitude in blue; draw IDs use deterministic false color;
+the scalar surfaces use grayscale. Only fresh guidance for the current source
+frame is eligible. OSD and ImGui are still drawn later. Evaluation/history are
+unchanged, but the visible debug frame is intentionally counted as native and
+cannot satisfy neural-output presentation evidence. Do not use this view for
+performance measurements or as a substitute for the raw capture package.
+
 The production capture command is:
 
 `neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE]

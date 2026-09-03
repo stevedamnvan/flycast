@@ -30,6 +30,7 @@
 #include "dx11_naomi2.h"
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/instrumentation.h"
+#include "rend/neural/live_status.h"
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/performance_tracker.h"
 #include "rend/neural/quality_capture.h"
@@ -167,6 +168,8 @@ protected:
 	void markNeuralPvrEnd();
 	void endNeuralPerformanceFrame();
 	std::uint32_t neuralResourceObjectCount() const noexcept;
+	void publishNeuralStatus(flycast::rend::neural::SubmitStatus status,
+		const char *reason = nullptr);
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -246,6 +249,8 @@ protected:
 	std::size_t neuralPresentationSlot = 0;
 	std::uint64_t pendingNeuralPresentationFrameId = 0;
 	std::uint64_t currentNeuralSourceFrameId = 0;
+	std::uint64_t currentNeuralGuidanceFrameId = 0;
+	std::uint64_t lastPresentedNeuralFrameId = 0;
 	std::uint64_t neuralWrappedOutputCount = 0;
 	std::uint64_t neuralAcceptedBlitCount = 0;
 	flycast::rend::neural::Dlss5HookRoute loggedDlss5Route =
@@ -259,9 +264,14 @@ protected:
 	int loggedOverlayPolicy = -1;
 	int loggedQualityProfile = -1;
 	int loggedStyleFamily = -1;
+	int loggedNeuralDebugView = -1;
+	bool loggedNeuralDebugActive = false;
 	std::string loggedOverlayGameId;
 	bool loggedOverlayActive = false;
 	bool neural2DBypassActive = false;
+	flycast::rend::neural::SubmitStatus lastNeuralSubmitStatus =
+		flycast::rend::neural::SubmitStatus::Disabled;
+	std::string neuralLiveReason = "off";
 	std::uint8_t neural2DBypassEnterStreak = 0;
 	std::uint8_t neural2DBypassExitStreak = 0;
 	std::uint32_t loggedNeuralRenderWidth = 0;

@@ -580,6 +580,60 @@ float4 main(in VertexIn input) : SV_Target
 }
 )";
 
+const char * const NeuralDebugPixelShader = R"(
+struct VertexIn
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+#if DEBUG_VIEW == 1
+Texture2D<float4> debugTexture : register(t0);
+#elif DEBUG_VIEW == 3
+Texture2D<float2> debugTexture : register(t0);
+#elif DEBUG_VIEW == 6
+Texture2D<uint> debugTexture : register(t0);
+#else
+Texture2D<float> debugTexture : register(t0);
+#endif
+
+int2 DebugPixel(float2 uv)
+{
+	uint width;
+	uint height;
+	debugTexture.GetDimensions(width, height);
+	return int2(clamp(uv * float2(width, height), 0.f,
+		float2(width - 1, height - 1)));
+}
+
+float4 main(in VertexIn input) : SV_Target
+{
+	int2 pixel = DebugPixel(input.uv);
+#if DEBUG_VIEW == 1
+	return float4(debugTexture.Load(int3(pixel, 0)).rgb, 1.f);
+#elif DEBUG_VIEW == 2
+	float depth = saturate(debugTexture.Load(int3(pixel, 0)));
+	return float4(depth, depth, depth, 1.f);
+#elif DEBUG_VIEW == 3
+	float2 motion = debugTexture.Load(int3(pixel, 0));
+	float2 direction = saturate(.5f + motion / 32.f);
+	return float4(direction, saturate(length(motion) / 16.f), 1.f);
+#elif DEBUG_VIEW == 6
+	uint id = debugTexture.Load(int3(pixel, 0));
+	if (id == 0)
+		return float4(0.f, 0.f, 0.f, 1.f);
+	uint hash = id * 747796405u + 2891336453u;
+	hash = ((hash >> ((hash >> 28u) + 4u)) ^ hash) * 277803737u;
+	hash = (hash >> 22u) ^ hash;
+	return float4(float3(hash & 255u, (hash >> 8u) & 255u,
+		(hash >> 16u) & 255u) / 255.f, 1.f);
+#else
+	float value = saturate(debugTexture.Load(int3(pixel, 0)));
+	return float4(value, value, value, 1.f);
+#endif
+}
+)";
+
 struct IncludeManager : public ID3DInclude
 {
 	HRESULT STDMETHODCALLTYPE Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes) override
@@ -886,6 +940,20 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralOverlayCompositePixelShad
 	return neuralOverlayCompositePixelShader;
 }
 
+const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralDebugPixelShader(int view)
+{
+	static const char *values[] = {"1", "2", "3", "4", "5", "6", "7"};
+	static_assert(std::size(values) == std::size(neuralDebugPixelShaders));
+	view = std::clamp(view, 1, 7);
+	auto& shader = neuralDebugPixelShaders[view - 1];
+	if (!shader)
+	{
+		D3D_SHADER_MACRO macros[] = {{"DEBUG_VIEW", values[view - 1]}, {nullptr, nullptr}};
+		shader = compilePS(NeuralDebugPixelShader, "main", macros);
+	}
+	return shader;
+}
+
 ComPtr<ID3DBlob> DX11Shaders::getNeuralVertexShaderBlob()
 {
 	VertexMacros[MacroGouraud].Definition = MacroValues[true];
@@ -939,6 +1007,8 @@ void DX11Shaders::term()
 	neuralDisocclusionPixelShader.reset();
 	neuralReactiveCoveragePixelShader.reset();
 	neuralOverlayCompositePixelShader.reset();
+	for (auto& shader : neuralDebugPixelShaders)
+		shader.reset();
 	device.reset();
 }
 

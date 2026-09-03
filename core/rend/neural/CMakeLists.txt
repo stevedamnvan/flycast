@@ -1,8 +1,10 @@
 add_library(flycast-neural STATIC
 	dlss5_hook.cpp
 	dlss5_hook.h
-    instrumentation.cpp
+	instrumentation.cpp
     instrumentation.h
+	live_status.cpp
+	live_status.h
 	motion_reference.cpp
 	motion_reference.h
 	performance_tracker.cpp

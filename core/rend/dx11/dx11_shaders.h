@@ -61,6 +61,7 @@ public:
 	const ComPtr<ID3D11PixelShader>& getNeuralDisocclusionPixelShader();
 	const ComPtr<ID3D11PixelShader>& getNeuralReactiveCoveragePixelShader();
 	const ComPtr<ID3D11PixelShader>& getNeuralOverlayCompositePixelShader();
+	const ComPtr<ID3D11PixelShader>& getNeuralDebugPixelShader(int view);
 	const ComPtr<ID3D11VertexShader>& getQuadVertexShader(bool rotate);
 
 	ComPtr<ID3DBlob> getVertexShaderBlob();
@@ -82,6 +83,7 @@ private:
 	ComPtr<ID3D11PixelShader> neuralDisocclusionPixelShader;
 	ComPtr<ID3D11PixelShader> neuralReactiveCoveragePixelShader;
 	ComPtr<ID3D11PixelShader> neuralOverlayCompositePixelShader;
+	ComPtr<ID3D11PixelShader> neuralDebugPixelShaders[7];
 	ComPtr<ID3D11VertexShader> quadVertexShader;
 	ComPtr<ID3D11VertexShader> quadRotateVertexShader;
 	pD3DCompile D3DCompile = nullptr;

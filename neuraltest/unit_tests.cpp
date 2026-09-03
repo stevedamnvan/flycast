@@ -3,6 +3,7 @@
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/dlss5_hook.h"
+#include "rend/neural/live_status.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/presentation_cadence.h"
@@ -87,6 +88,35 @@ int RunSelfTests()
 		suite.Expect(!sprite.faithful && sprite.bypassGenerative
 			&& sprite.externalRecommendation.find("user controlled") != std::string::npos,
 			"sprite-heavy Photoreal profile remains explicit and recommends bypass");
+	}
+	{
+		LiveStatus published;
+		published.rendererAvailable = true;
+		published.active = true;
+		published.mode = NeuralMode::Dlss5Experimental;
+		published.api = Api::D3D12;
+		published.lastSubmit = SubmitStatus::Busy;
+		published.reason = "ring busy";
+		published.stage.submissions = 17;
+		published.sourceFrameId = 42;
+		PublishLiveStatus(published);
+		const auto copied = GetLiveStatus();
+		suite.Expect(copied.rendererAvailable && copied.active
+			&& copied.mode == NeuralMode::Dlss5Experimental && copied.api == Api::D3D12
+			&& copied.lastSubmit == SubmitStatus::Busy && copied.reason == "ring busy"
+			&& copied.stage.submissions == 17 && copied.sourceFrameId == 42
+			&& copied.generation != 0,
+			"live neural status publishes a self-contained UI snapshot");
+		suite.Expect(std::string(NeuralModeName(copied.mode)) == "DLSS 5 Experimental"
+			&& std::string(SubmitStatusName(copied.lastSubmit)) == "Busy"
+			&& std::string(ApiName(copied.api)) == "D3D11On12 / D3D12",
+			"live neural status exposes stable developer labels");
+		const auto publishedGeneration = copied.generation;
+		ResetLiveStatus();
+		const auto reset = GetLiveStatus();
+		suite.Expect(!reset.rendererAvailable && !reset.active
+			&& reset.mode == NeuralMode::Off && reset.generation > publishedGeneration,
+			"live neural status reset removes stale renderer state");
 	}
 	{
 		std::string error;

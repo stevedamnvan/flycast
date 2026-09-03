@@ -23,6 +23,7 @@
 #include "ui/gui.h"
 #include "rend/sorter.h"
 #ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
 #include "version.h"
 #endif
@@ -195,6 +196,8 @@ bool DX11Renderer::Init()
 	neuralConfig.mode = flycast::rend::neural::NeuralMode::Passthrough;
 	neuralConfig.api = flycast::rend::neural::Api::D3D11;
 	neuralStage = flycast::rend::neural::NeuralStage(neuralConfig);
+	publishNeuralStatus(flycast::rend::neural::SubmitStatus::Disabled,
+		"waiting for a neural frame");
 #endif
 
 	return success;
@@ -207,6 +210,7 @@ void DX11Renderer::Term()
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
 	releaseNeuralResources();
+	flycast::rend::neural::ResetLiveStatus();
 	neuralInputLayout.reset();
 #endif
 #ifdef VIDEO_ROUTING
@@ -786,6 +790,8 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralExportSlot = 0;
 	neuralAcceptedGuidanceSlot = 0;
 	hasNeuralAcceptedGuidance = false;
+	currentNeuralGuidanceFrameId = 0;
+	lastPresentedNeuralFrameId = 0;
 	neuralExportActive = false;
 	neuralReactiveCoverageActive = false;
 	neuralPreviousPositionBuffer.reset();
@@ -1207,6 +1213,7 @@ void DX11Renderer::submitNeuralFrame()
 	using namespace flycast::rend::neural;
 	neuralQualityCapturePending = false;
 	currentNeuralSourceFrameId = 0;
+	currentNeuralGuidanceFrameId = 0;
 	releaseNeuralPresentation();
 	neuralPresentationView.reset();
 	if (!syncNeuralMode()) return;
@@ -1262,7 +1269,11 @@ void DX11Renderer::submitNeuralFrame()
 			static_cast<unsigned>(capturedFrame.draws.size));
 	}
 	if (bypass2D)
+	{
+		publishNeuralStatus(SubmitStatus::Disabled,
+			"conservative 2D/menu/FMV bypass");
 		return;
+	}
 	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 	if (loggedOverlayPolicy != overlayPolicy || loggedOverlayGameId != settings.content.gameId)
 	{
@@ -1285,13 +1296,24 @@ void DX11Renderer::submitNeuralFrame()
 			settings.content.gameId.c_str(), overlayActive ? 1 : 0,
 			static_cast<unsigned>(neuralInstrumentation.OverlayDrawCount()));
 	}
-	if (!ensureNeuralResources()) return;
+	if (!ensureNeuralResources())
+	{
+		publishNeuralStatus(SubmitStatus::RecoverableFailure,
+			"guidance resource allocation failed");
+		return;
+	}
 	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
 		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::GuidanceBegin);
-	if (!renderNeuralExports()) return;
+	if (!renderNeuralExports())
+	{
+		publishNeuralStatus(SubmitStatus::RecoverableFailure,
+			"guidance export failed");
+		return;
+	}
+	currentNeuralGuidanceFrameId = capturedFrame.frameId;
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceEnd);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::GuidanceEnd);
@@ -1361,6 +1383,7 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.evaluationAccepted = status == SubmitStatus::Submitted;
 	neuralQualityCaptureMetadata.submitStatus = neuralStage.GetStatusReason();
 	logNeuralConsumerStatus(status);
+	publishNeuralStatus(status);
 	if (status == SubmitStatus::Submitted)
 	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
@@ -1544,6 +1567,37 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 	return count;
 }
 
+void DX11Renderer::publishNeuralStatus(
+	flycast::rend::neural::SubmitStatus status, const char *reason)
+{
+	using namespace flycast::rend::neural;
+	lastNeuralSubmitStatus = status;
+	const std::string nextReason = reason ? reason : neuralStage.GetStatusReason();
+	neuralLiveReason = nextReason;
+	LiveStatus live;
+	live.rendererAvailable = true;
+	live.active = activeNeuralMode > 0 && neuralInstrumentation.IsEnabled();
+	live.d3d11On12 = activeNeuralSurface;
+	live.conservativeBypass = neural2DBypassActive;
+	live.overlayProtection = loggedOverlayActive;
+	live.debugViewActive = loggedNeuralDebugActive;
+	live.mode = static_cast<NeuralMode>(std::clamp(activeNeuralMode, 0, 8));
+	live.api = activeNeuralSurface ? Api::D3D12 : Api::D3D11;
+	live.lastSubmit = status;
+	live.stage = neuralStage.GetStats();
+	live.reason = neuralLiveReason;
+	live.renderWidth = loggedNeuralRenderWidth;
+	live.renderHeight = loggedNeuralRenderHeight;
+	live.outputWidth = loggedNeuralOutputWidth;
+	live.outputHeight = loggedNeuralOutputHeight;
+	live.overlayDraws = static_cast<std::uint32_t>(neuralInstrumentation.OverlayDrawCount());
+	live.debugView = static_cast<std::uint32_t>(
+		std::clamp(config::NeuralDebugView.get(), 0, 7));
+	live.sourceFrameId = currentNeuralSourceFrameId;
+	live.presentedOutputFrameId = lastPresentedNeuralFrameId;
+	PublishLiveStatus(std::move(live));
+}
+
 bool DX11Renderer::syncNeuralMode()
 {
 	using namespace flycast::rend::neural;
@@ -1563,7 +1617,11 @@ bool DX11Renderer::syncNeuralMode()
 					static_cast<unsigned long long>(delayMs));
 			}
 			if (GetTickCount64() < neuralEvidenceArmDeadlineMs)
+			{
+				publishNeuralStatus(SubmitStatus::Disabled,
+					"developer evidence capture arm delay");
 				return false;
+			}
 		}
 	}
 	else
@@ -1643,6 +1701,8 @@ bool DX11Renderer::syncNeuralMode()
 			WARN_LOG(RENDERER, "D3D11On12 neural surface was requested after native D3D11 initialization; restart the renderer to activate it");
 		if (requestedMode == 0)
 			releaseNeuralResources();
+		publishNeuralStatus(SubmitStatus::Disabled,
+			requestedMode == 0 ? "neural rendering is off" : "waiting for a neural frame");
 	}
 	return neuralInstrumentation.IsEnabled();
 }
@@ -1662,6 +1722,8 @@ void DX11Renderer::submitNeuralFramebuffer()
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect);
 	const auto status = neuralStage.TrySubmit(frame);
 	logNeuralConsumerStatus(status);
+	publishNeuralStatus(status,
+		"framebuffer-direct content uses native fallback unless explicitly supported");
 	if (status == SubmitStatus::Submitted)
 	{
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
@@ -1744,19 +1806,70 @@ void DX11Renderer::displayFramebuffer()
 #else
 		fbTextureView;
 #endif
+	bool neuralDebugActive = false;
+#ifdef FLYCAST_ENABLE_NEURAL
+	const int neuralDebugSelection = std::clamp(config::NeuralDebugView.get(), 0, 7);
+	ID3D11ShaderResourceView *neuralDebugTexture = nullptr;
+	if (activeNeuralMode > 0 && currentNeuralGuidanceFrameId != 0
+		&& currentNeuralGuidanceFrameId == currentNeuralSourceFrameId
+		&& neuralDepthWidth != 0 && neuralDepthHeight != 0)
+	{
+		switch (neuralDebugSelection)
+		{
+		case 1: neuralDebugTexture = neuralColor.views[neuralExportSlot]; break;
+		case 2: neuralDebugTexture = neuralDepthViews[neuralExportSlot]; break;
+		case 3: neuralDebugTexture = neuralMotion.views[neuralExportSlot]; break;
+		case 4: neuralDebugTexture = neuralResolvedMask.views[neuralExportSlot]; break;
+		case 5: neuralDebugTexture = neuralConfidence.views[neuralExportSlot]; break;
+		case 6: neuralDebugTexture = neuralDrawId.views[neuralExportSlot]; break;
+		case 7: neuralDebugTexture = neuralOverlayMask.views[neuralExportSlot]; break;
+		default: break;
+		}
+	}
+	const ComPtr<ID3D11PixelShader> *neuralDebugShader = nullptr;
+	if (neuralDebugTexture)
+	{
+		const auto& shader = shaders->getNeuralDebugPixelShader(neuralDebugSelection);
+		if (shader)
+			neuralDebugShader = &shader;
+	}
+	neuralDebugActive = neuralDebugShader != nullptr;
+	if (neuralDebugSelection != loggedNeuralDebugView
+		|| neuralDebugActive != loggedNeuralDebugActive)
+	{
+		static const char *names[] = {"off", "source-color", "depth", "motion",
+			"bias-mask", "confidence", "draw-id", "overlay-classification"};
+		loggedNeuralDebugView = neuralDebugSelection;
+		loggedNeuralDebugActive = neuralDebugActive;
+		NOTICE_LOG(RENDERER,
+			"Neural developer debug view: view=%s active=%d history_effect=none presentation_accounting=%s",
+			names[neuralDebugSelection], neuralDebugActive ? 1 : 0,
+			neuralDebugActive ? "native" : "normal");
+	}
+#endif
 	const bool queuedNeuralOutput =
 #ifdef FLYCAST_ENABLE_NEURAL
-		neuralPresentationAcquired;
+		neuralPresentationAcquired && !neuralDebugActive;
 	const auto queuedNeuralFrameId = pendingNeuralPresentationFrameId;
-	const auto displayedNeuralFrameId = neuralPresentationView
+	const auto displayedNeuralFrameId = neuralPresentationView && !neuralDebugActive
 		? pendingNeuralPresentationFrameId : 0;
 #else
 		false;
 #endif
-	quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
-		x, y, w, h, config::Rotate90);
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (neuralPresentationView && config::NeuralOverlayPolicy.get() != 2
+	if (neuralDebugActive)
+	{
+		acquireNeuralInputs();
+		quad->drawCustom(*neuralDebugShader, &neuralDebugTexture, 1, {},
+			x, y, w, h, config::Rotate90);
+		releaseNeuralInputs();
+	}
+	else
+#endif
+		quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
+			x, y, w, h, config::Rotate90);
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (!neuralDebugActive && neuralPresentationView && config::NeuralOverlayPolicy.get() != 2
 		&& neuralOverlayMask.views[neuralExportSlot])
 	{
 		const auto& shader = shaders->getNeuralOverlayCompositePixelShader();
@@ -1800,7 +1913,11 @@ void DX11Renderer::displayFramebuffer()
 				static_cast<unsigned long long>(queuedNeuralFrameId));
 		pendingNeuralPresentationFrameId = 0;
 	}
+	lastPresentedNeuralFrameId = displayedNeuralFrameId;
 	releaseNeuralPresentation();
+	publishNeuralStatus(lastNeuralSubmitStatus,
+		neuralDebugActive ? "developer guidance debug view active; neural output not presented"
+			: neuralLiveReason.c_str());
 	const bool capturedGpuTiming = neuralQualityCaptureGpuTimer.EndAndResolve(deviceContext,
 		neuralQualityCaptureMetadata.gpuTimings);
 	if (!neuralQualityCaptureMetadata.evaluationAccepted || activeNeuralSurface)
