@@ -40,6 +40,10 @@ static bool forceReinit;
 #ifdef FLYCAST_ENABLE_NEURAL
 static bool neuralDeveloperReinitTriggered;
 static bool neuralDeveloperReinitPending;
+static bool neuralDeveloperSwitchTriggered;
+static bool neuralDeveloperSwitchPending;
+static int neuralDeveloperSwitchFrom;
+static int neuralDeveloperSwitchTo;
 
 static void writeNeuralDeveloperReinitMarker()
 {
@@ -52,6 +56,20 @@ static void writeNeuralDeveloperReinitMarker()
 	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
 		<< MainFrameCount << ",\n  \"renderer\": "
 		<< static_cast<int>(config::RendererType.get())
+		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
+}
+
+static void writeNeuralDeveloperSwitchMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "renderer-switch-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
+		<< MainFrameCount << ",\n  \"renderer_from\": " << neuralDeveloperSwitchFrom
+		<< ",\n  \"renderer_to\": " << neuralDeveloperSwitchTo
 		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
 }
 #endif
@@ -139,6 +157,7 @@ void mainui_loop(bool forceStart)
 
 #ifdef FLYCAST_ENABLE_NEURAL
 		const int neuralReinitAfter = std::clamp(config::NeuralRendererReinitAfter.get(), 0, 10000);
+		const int neuralSwitchAfter = std::clamp(config::NeuralRendererSwitchAfter.get(), 0, 10000);
 		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
 			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
 		{
@@ -148,6 +167,22 @@ void mainui_loop(bool forceStart)
 			NOTICE_LOG(RENDERER,
 				"Neural developer renderer reinit requested at main frame %u",
 				MainFrameCount);
+		}
+		else if (!neuralDeveloperSwitchTriggered && neuralReinitAfter == 0
+			&& neuralSwitchAfter > 0 && MainFrameCount >= static_cast<u32>(neuralSwitchAfter)
+			&& (currentRenderer == RenderType::DirectX11
+				|| currentRenderer == RenderType::DirectX11_OIT))
+		{
+			neuralDeveloperSwitchTriggered = true;
+			neuralDeveloperSwitchPending = true;
+			neuralDeveloperSwitchFrom = static_cast<int>(currentRenderer);
+			const RenderType target = currentRenderer == RenderType::DirectX11
+				? RenderType::DirectX11_OIT : RenderType::DirectX11;
+			neuralDeveloperSwitchTo = static_cast<int>(target);
+			config::RendererType = target;
+			NOTICE_LOG(RENDERER,
+				"Neural developer renderer switch requested at main frame %u: %d -> %d",
+				MainFrameCount, neuralDeveloperSwitchFrom, neuralDeveloperSwitchTo);
 		}
 #endif
 
@@ -186,6 +221,14 @@ void mainui_loop(bool forceStart)
 					"Neural developer renderer reinit completed at main frame %u",
 					MainFrameCount);
 			}
+			if (neuralDeveloperSwitchPending)
+			{
+				neuralDeveloperSwitchPending = false;
+				writeNeuralDeveloperSwitchMarker();
+				NOTICE_LOG(RENDERER,
+					"Neural developer renderer switch completed at main frame %u: %d -> %d",
+					MainFrameCount, neuralDeveloperSwitchFrom, neuralDeveloperSwitchTo);
+			}
 #endif
 			forceReinit = false;
 			currentRenderer = config::RendererType;
@@ -202,6 +245,8 @@ void mainui_start()
 #ifdef FLYCAST_ENABLE_NEURAL
 	neuralDeveloperReinitTriggered = false;
 	neuralDeveloperReinitPending = false;
+	neuralDeveloperSwitchTriggered = false;
+	neuralDeveloperSwitchPending = false;
 #endif
 	mainui_enabled = true;
 }

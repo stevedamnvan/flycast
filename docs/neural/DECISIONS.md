@@ -699,3 +699,17 @@ interval from the replacement renderer. Native fallback remains available
 through the transition, and no synchronous evidence mode is enabled. This test
 proves same-renderer context restart; it does not stand in for a renderer/API
 switch, game load/unload, real device removal, or fullscreen coverage.
+
+## D-047: renderer-variant switching is bidirectional and destination-measured
+
+The developer transition may switch between normal DX11 and DX11 OIT in either
+direction while preserving the selected native-D3D11 or D3D11On12 surface. It
+is mutually exclusive with same-renderer reinitialization. The process-lifetime
+trigger changes Flycast's real renderer selection; the ordinary main loop owns
+teardown and replacement initialization.
+
+The marker must contain the exact main frame, source renderer, destination
+renderer, and sampler restart. Acceptance then requires the destination
+renderer to identify itself in a fresh completed performance report. This is
+stronger than merely observing a settings change, but it is not evidence for a
+D3D11/D3D11On12 surface change or another graphics API.

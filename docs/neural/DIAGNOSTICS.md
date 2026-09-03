@@ -61,6 +61,7 @@ Production performance measurement is separate:
 [--inject-count N] [--inject-after N]
 [--transition none|resize-minimize-restore] [--transition-delay-ms N]
 [--renderer-reinit-after N]
+[--renderer-switch-after N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -99,6 +100,14 @@ fresh warmup plus the requested samples from the replacement renderer. Thus a
 passing launch proves both the reinitialization marker and a complete bounded
 post-restart rendering interval; it does not claim an API switch, game reload,
 fullscreen transition, or device-loss recovery.
+
+`--renderer-switch-after N` is mutually exclusive with renderer reinit and
+switches normal DX11 to DX11 OIT, or DX11 OIT to normal DX11, at the exact main
+frame. The launched process is not replaced. The completion marker records and
+the launcher verifies the exact source and destination renderer. As with
+reinit, the final performance report must identify the destination renderer
+and complete a fresh warmup and measured interval. This proves both directions
+within the DX11 API; it does not claim a D3D11-to-D3D11On12 surface switch.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket
