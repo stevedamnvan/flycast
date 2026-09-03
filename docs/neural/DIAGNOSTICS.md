@@ -564,3 +564,19 @@ disabled-path neural activity/allocation.
 the zero-activity counters. `native-parity-report.json` records every exact
 pair plus changed-pixel/max/mean-delta data for the negative control. This is a
 synchronous developer proof, disabled by default and never performance data.
+
+## Production genuine-scaling proof
+
+Use `neuraltest production-scaling --game PATH --flycast EXE --input-replay
+FILE --out DIR --api d3d11|d3d11on12 --renderer dx11|dx11-oit --frames 1
+--skip N --base-height 480`. It launches the same production binary and replay
+at 1x, 4x, and 8x, verifies the actual API/renderer/mode-zero markers, and
+requires exact 4x/8x dimensions and source-frame identity.
+
+`production-scaling-report.json` records raw hashes, full-frame differences
+from an exact nearest enlargement, edge-only differences, subpixel-diverse edge
+blocks, maximum delta, and mean absolute delta. The nearest control has zero
+differences/diversity and must fail the same predicate. Completed output reuse,
+missing inputs, invalid frame counts, dimension drift, surface drift, and weak
+edge evidence return nonzero. Raw captures and input media remain outside Git;
+the synchronous proof is never performance data.

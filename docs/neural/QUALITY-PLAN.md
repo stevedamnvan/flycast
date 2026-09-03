@@ -458,3 +458,21 @@ replay. The material wrong-frame controls change more than 569000 of 1555200
 pixels, and 14 synthetic fixtures under both renderer labels remain
 deterministic across five runs. The proof capture is synchronous and excluded
 from all performance evidence.
+
+## Pre-quality Gate 2 closure
+
+LOG #112 closes FC-023 with the production PVR scene capture rather than the
+test-only rasterizer. One exact replayed Soulcalibur source frame is captured
+at 640x480, 2560x1920, and 5120x3840 on normal and OIT DX11 under both native
+D3D11 and D3D11On12. The command compares each 4x/8x sample against the exact
+nearest-neighbor enlargement of the 1x frame. It also isolates 1x source edges
+with an RGB-neighbor threshold of eight and requires material differing edge
+samples and subpixel-diverse high-resolution blocks.
+
+Normal DX11 changes 713193/4915200 pixels at 4x and 2842727/19660800 at 8x;
+160244 and 639317 of those changes lie in source-edge blocks, with 14888 and
+15020 subpixel-diverse edge blocks. OIT changes 714179 and 2842153 pixels,
+including 160653 and 642093 edge samples and 14959/15083 diverse blocks. The
+native-D3D11 and D3D11On12 results are exact per renderer. A zero-difference,
+zero-diversity nearest control is executed through the same acceptance predicate
+and rejected. Capture is synchronous, developer-only, and performance-ineligible.

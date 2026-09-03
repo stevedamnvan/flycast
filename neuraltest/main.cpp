@@ -43,6 +43,7 @@ void Usage()
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest native-parity --game PATH --enabled-flycast EXE --feature-off-flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 5] [--skip N] [--render-height N] [--timeout-ms N]\n"
+		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
@@ -2012,6 +2013,353 @@ bool ReadTextFile(const std::filesystem::path& path, std::string& text)
 	return static_cast<bool>(stream) || stream.eof();
 }
 
+bool JsonUint32Field(const std::string& json, const std::string& field,
+	std::uint32_t& value)
+{
+	const auto scalar = JsonScalarField(json, field);
+	if (scalar.empty()) return false;
+	try
+	{
+		const auto parsed = std::stoull(scalar);
+		if (parsed > std::numeric_limits<std::uint32_t>::max()) return false;
+		value = static_cast<std::uint32_t>(parsed);
+		return true;
+	}
+	catch (const std::exception&)
+	{
+		return false;
+	}
+}
+
+struct ProductionScaleStats {
+	std::uint64_t comparedPixels = 0;
+	std::uint64_t differingPixels = 0;
+	std::uint64_t edgeSourcePixels = 0;
+	std::uint64_t edgeComparedPixels = 0;
+	std::uint64_t edgeDifferingPixels = 0;
+	std::uint64_t subpixelDiverseEdgeBlocks = 0;
+	std::uint64_t absoluteDelta = 0;
+	std::uint32_t maxDelta = 0;
+};
+
+bool ReadExactBytes(const std::filesystem::path& path, std::size_t expected,
+	std::vector<std::uint8_t>& bytes)
+{
+	std::error_code ec;
+	if (std::filesystem::file_size(path, ec) != expected || ec) return false;
+	bytes.resize(expected);
+	std::ifstream stream(path, std::ios::binary);
+	stream.read(reinterpret_cast<char *>(bytes.data()),
+		static_cast<std::streamsize>(bytes.size()));
+	return stream.gcount() == static_cast<std::streamsize>(bytes.size())
+		&& stream.peek() == std::char_traits<char>::eof();
+}
+
+bool IsSourceEdge(const std::vector<std::uint8_t>& source, std::uint32_t width,
+	std::uint32_t height, std::uint32_t x, std::uint32_t y)
+{
+	constexpr int edgeThreshold = 8;
+	const auto differs = [&](std::uint32_t nx, std::uint32_t ny) {
+		const std::size_t a = (static_cast<std::size_t>(y) * width + x) * 4;
+		const std::size_t b = (static_cast<std::size_t>(ny) * width + nx) * 4;
+		for (std::size_t channel = 0; channel < 3; ++channel)
+			if (std::abs(static_cast<int>(source[a + channel])
+				- static_cast<int>(source[b + channel])) >= edgeThreshold)
+				return true;
+		return false;
+	};
+	return (x > 0 && differs(x - 1, y))
+		|| (x + 1 < width && differs(x + 1, y))
+		|| (y > 0 && differs(x, y - 1))
+		|| (y + 1 < height && differs(x, y + 1));
+}
+
+ProductionScaleStats CompareProductionScale(const std::vector<std::uint8_t>& source,
+	std::uint32_t width, std::uint32_t height, const std::vector<std::uint8_t>& scaled,
+	std::uint32_t scale)
+{
+	ProductionScaleStats stats;
+	const std::uint32_t scaledWidth = width * scale;
+	for (std::uint32_t y = 0; y < height; ++y)
+	for (std::uint32_t x = 0; x < width; ++x)
+	{
+		const std::size_t sourceOffset = (static_cast<std::size_t>(y) * width + x) * 4;
+		const bool edge = IsSourceEdge(source, width, height, x, y);
+		stats.edgeSourcePixels += edge ? 1 : 0;
+		bool diverse = false;
+		std::array<std::uint8_t, 4> first{};
+		for (std::uint32_t sy = 0; sy < scale; ++sy)
+		for (std::uint32_t sx = 0; sx < scale; ++sx)
+		{
+			const std::size_t scaledOffset = ((static_cast<std::size_t>(y) * scale + sy)
+				* scaledWidth + static_cast<std::size_t>(x) * scale + sx) * 4;
+			bool pixelDiffers = false;
+			for (std::size_t channel = 0; channel < 4; ++channel)
+			{
+				const auto scaledValue = scaled[scaledOffset + channel];
+				if (sx == 0 && sy == 0) first[channel] = scaledValue;
+				else diverse = diverse || scaledValue != first[channel];
+				const auto delta = static_cast<std::uint32_t>(std::abs(
+					static_cast<int>(scaledValue) - static_cast<int>(source[sourceOffset + channel])));
+				stats.absoluteDelta += delta;
+				stats.maxDelta = std::max(stats.maxDelta, delta);
+				pixelDiffers = pixelDiffers || delta != 0;
+			}
+			++stats.comparedPixels;
+			stats.differingPixels += pixelDiffers ? 1 : 0;
+			if (edge)
+			{
+				++stats.edgeComparedPixels;
+				stats.edgeDifferingPixels += pixelDiffers ? 1 : 0;
+			}
+		}
+		stats.subpixelDiverseEdgeBlocks += edge && diverse ? 1 : 0;
+	}
+	return stats;
+}
+
+bool AcceptProductionScaleStats(const ProductionScaleStats& stats)
+{
+	const auto minimumDifferent = std::max<std::uint64_t>(1000, stats.comparedPixels / 1000);
+	const auto minimumEdgeDifferent = std::max<std::uint64_t>(1000,
+		stats.edgeComparedPixels / 100);
+	const auto minimumDiverse = std::max<std::uint64_t>(100,
+		stats.edgeSourcePixels / 100);
+	return stats.differingPixels >= minimumDifferent
+		&& stats.edgeDifferingPixels >= minimumEdgeDifferent
+		&& stats.subpixelDiverseEdgeBlocks >= minimumDiverse;
+}
+
+int ProductionScalingCommand(const Args& args)
+{
+	const auto gameText = Value(args, "--game");
+	const auto flycastText = Value(args, "--flycast");
+	const auto replayText = Value(args, "--input-replay");
+	const auto outputText = Value(args, "--out");
+	if (gameText.empty() || flycastText.empty() || replayText.empty() || outputText.empty())
+	{
+		std::cerr << "production-scaling requires --game, --flycast, --input-replay, and --out\n";
+		return 2;
+	}
+	const auto renderer = Value(args, "--renderer", "dx11");
+	const auto api = Value(args, "--api", "d3d11");
+	if ((renderer != "dx11" && renderer != "dx11-oit")
+		|| (api != "d3d11" && api != "d3d11on12"))
+	{
+		std::cerr << "production-scaling requires a dx11 renderer and d3d11 or d3d11on12 API\n";
+		return 2;
+	}
+	std::string error;
+	std::uint32_t frames = 1, skip = 0, baseHeight = 480, timeoutMs = 120000;
+	if (!Number(args, "--frames", 1, frames, error) || frames == 0 || frames > 10
+		|| !Number(args, "--skip", 0, skip, error)
+		|| !Number(args, "--base-height", 480, baseHeight, error)
+		|| baseHeight < 120 || baseHeight > 1080
+		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
+	{
+		std::cerr << (error.empty()
+			? "production-scaling requires 1..10 frames, base height 120..1080, and timeout at least 1000"
+			: error) << '\n';
+		return 2;
+	}
+	const auto game = std::filesystem::absolute(gameText);
+	const auto flycast = std::filesystem::absolute(flycastText);
+	const auto replay = std::filesystem::absolute(replayText);
+	const auto output = std::filesystem::absolute(outputText);
+	for (const auto& required : {game, flycast, replay})
+		if (!std::filesystem::is_regular_file(required))
+		{
+			std::cerr << "required production-scaling input is unavailable: "
+				<< required.string() << '\n';
+			return 3;
+		}
+	if (std::filesystem::exists(output / "production-scaling-report.json"))
+	{
+		std::cerr << "production-scaling output already contains a completed report\n";
+		return 2;
+	}
+#ifndef _WIN32
+	std::cerr << "production-scaling launcher is currently available only on Windows\n";
+	return 3;
+#else
+	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
+	for (const auto scale : {1u, 4u, 8u})
+	{
+		const auto scaleOutput = output / (std::to_string(scale) + "x");
+		if (!RunNativeParityProcess(flycast, game, scaleOutput, replay, rendererValue,
+			frames, skip, baseHeight * scale, timeoutMs, true, api == "d3d11on12", error))
+		{
+			std::cerr << "production " << scale << "x capture failed: " << error << '\n';
+			return 1;
+		}
+		std::string marker;
+		if (!ReadTextFile(scaleOutput / "native-parity-capture-complete.json", marker)
+			|| marker.find("\"renderer\": \"" + renderer + "\"") == std::string::npos
+			|| marker.find(std::string("\"d3d11on12_surface\": ")
+				+ (api == "d3d11on12" ? "true" : "false")) == std::string::npos
+			|| marker.find("\"neural_compiled\": true") == std::string::npos
+			|| marker.find("\"neural_mode\": 0") == std::string::npos
+			|| marker.find("\"neural_instrumentation_enabled\": false") == std::string::npos)
+		{
+			std::cerr << "production " << scale
+				<< "x capture did not use the requested renderer/API or disabled neural path\n";
+			return 1;
+		}
+	}
+
+	std::uint64_t replayHash = 0;
+	if (!HashFileFnv64Standard(replay, replayHash))
+	{
+		std::cerr << "cannot hash production-scaling input replay\n";
+		return 1;
+	}
+	std::error_code ec;
+	std::filesystem::create_directories(output, ec);
+	std::filesystem::copy_file(replay, output / "input-replay.input",
+		std::filesystem::copy_options::overwrite_existing, ec);
+	if (ec)
+	{
+		std::cerr << "cannot retain production-scaling replay: " << ec.message() << '\n';
+		return 1;
+	}
+
+	const auto incompleteReport = output / "production-scaling-report.incomplete.json";
+	std::ofstream report(incompleteReport);
+	report.imbue(std::locale::classic());
+	report << "{\n  \"schema\": 1,\n  \"status\": \"pass\",\n"
+		<< "  \"scope\": \"production-pvr-genuine-scaling\",\n"
+		<< "  \"api\": \"" << api << "\",\n"
+		<< "  \"renderer\": \"" << renderer << "\",\n"
+		<< "  \"frames\": " << frames << ",\n"
+		<< "  \"skip\": " << skip << ",\n"
+		<< "  \"base_height\": " << baseHeight << ",\n"
+		<< "  \"input_replay_fnv64\": \"" << Hex64(replayHash) << "\",\n"
+		<< "  \"edge_threshold\": 8,\n"
+		<< "  \"minimum_differing_pixels\": \"max(1000,compared/1000)\",\n"
+		<< "  \"minimum_edge_differing_pixels\": \"max(1000,edge_compared/100)\",\n"
+		<< "  \"minimum_diverse_edge_blocks\": \"max(100,edge_source/100)\",\n"
+		<< "  \"results\": [\n";
+	bool firstResult = true;
+	std::string expectedSha;
+	for (std::uint32_t frame = 0; frame < frames; ++frame)
+	{
+		std::ostringstream name;
+		name << "frame-" << std::setfill('0') << std::setw(6) << frame;
+		std::string baseJson;
+		if (!ReadTextFile(output / "1x" / (name.str() + ".json"), baseJson))
+		{
+			std::cerr << "cannot read production 1x metadata\n";
+			return 1;
+		}
+		std::uint32_t width = 0, height = 0, sourceFrame = 0;
+		if (!JsonUint32Field(baseJson, "width", width)
+			|| !JsonUint32Field(baseJson, "height", height)
+			|| !JsonUint32Field(baseJson, "source_frame_index", sourceFrame)
+			|| height != baseHeight || sourceFrame != skip || width == 0)
+		{
+			std::cerr << "invalid production 1x metadata contract\n";
+			return 1;
+		}
+		const auto sha = JsonStringField(baseJson, "git_sha");
+		if (sha.empty() || (!expectedSha.empty() && sha != expectedSha))
+		{
+			std::cerr << "production-scaling Git identity changed across captures\n";
+			return 1;
+		}
+		expectedSha = sha;
+		std::vector<std::uint8_t> source;
+		if (!ReadExactBytes(output / "1x" / (name.str() + ".bgra8"),
+			static_cast<std::size_t>(width) * height * 4, source))
+		{
+			std::cerr << "invalid production 1x raw frame\n";
+			return 1;
+		}
+		for (const std::uint32_t scale : {4u, 8u})
+		{
+			std::string scaledJson;
+			if (!ReadTextFile(output / (std::to_string(scale) + "x")
+				/ (name.str() + ".json"), scaledJson))
+			{
+				std::cerr << "cannot read production scaled metadata\n";
+				return 1;
+			}
+			std::uint32_t scaledWidth = 0, scaledHeight = 0, scaledSourceFrame = 0;
+			if (!JsonUint32Field(scaledJson, "width", scaledWidth)
+				|| !JsonUint32Field(scaledJson, "height", scaledHeight)
+				|| !JsonUint32Field(scaledJson, "source_frame_index", scaledSourceFrame)
+				|| scaledWidth != width * scale || scaledHeight != height * scale
+				|| scaledSourceFrame != sourceFrame
+				|| JsonStringField(scaledJson, "git_sha") != expectedSha)
+			{
+				std::cerr << "scaled production frame identity/dimension contract failed at "
+					<< scale << "x\n";
+				return 1;
+			}
+			std::vector<std::uint8_t> scaled;
+			if (!ReadExactBytes(output / (std::to_string(scale) + "x")
+				/ (name.str() + ".bgra8"),
+				static_cast<std::size_t>(scaledWidth) * scaledHeight * 4, scaled))
+			{
+				std::cerr << "invalid production scaled raw frame\n";
+				return 1;
+			}
+			const auto stats = CompareProductionScale(source, width, height, scaled, scale);
+			if (!AcceptProductionScaleStats(stats))
+			{
+				std::cerr << "production " << scale
+					<< "x is indistinguishable from nearest or lacks material edge sampling: differing="
+					<< stats.differingPixels << " edge=" << stats.edgeDifferingPixels
+					<< " diverse=" << stats.subpixelDiverseEdgeBlocks << '\n';
+				return 1;
+			}
+			std::uint64_t rawHash = 0;
+			if (!HashFileFnv64Standard(output / (std::to_string(scale) + "x")
+				/ (name.str() + ".bgra8"), rawHash))
+				return 1;
+			if (!firstResult) report << ",\n";
+			firstResult = false;
+			report << "    {\"frame\": " << frame << ", \"source_frame_index\": "
+				<< sourceFrame << ", \"scale\": " << scale << ", \"dimensions\": ["
+				<< scaledWidth << ", " << scaledHeight << "], \"fnv64\": \""
+				<< Hex64(rawHash) << "\", \"compared_pixels\": " << stats.comparedPixels
+				<< ", \"differing_pixels\": " << stats.differingPixels
+				<< ", \"edge_source_pixels\": " << stats.edgeSourcePixels
+				<< ", \"edge_compared_pixels\": " << stats.edgeComparedPixels
+				<< ", \"edge_differing_pixels\": " << stats.edgeDifferingPixels
+				<< ", \"subpixel_diverse_edge_blocks\": " << stats.subpixelDiverseEdgeBlocks
+				<< ", \"max_delta\": " << stats.maxDelta
+				<< ", \"mean_absolute_delta\": "
+				<< (stats.comparedPixels == 0 ? 0.0 : static_cast<double>(stats.absoluteDelta)
+					/ static_cast<double>(stats.comparedPixels * 4)) << "}";
+		}
+	}
+	report << "\n  ],\n  \"wrong_nearest_control\": {\"differing_pixels\": 0, "
+		"\"edge_differing_pixels\": 0, \"subpixel_diverse_edge_blocks\": 0, "
+		"\"accepted\": false},\n"
+		<< "  \"git_sha\": \"" << expectedSha << "\",\n"
+		<< "  \"synchronous_developer_capture\": true,\n"
+		<< "  \"clean_close\": true,\n"
+		<< "  \"performance_eligible\": false,\n"
+		<< "  \"media_path_recorded\": false\n}\n";
+	const bool reportWritten = static_cast<bool>(report);
+	report.close();
+	if (!reportWritten || AcceptProductionScaleStats({}))
+	{
+		std::cerr << "cannot write production-scaling report or nearest negative was accepted\n";
+		return 1;
+	}
+	std::filesystem::rename(incompleteReport, output / "production-scaling-report.json", ec);
+	if (ec)
+	{
+		std::cerr << "cannot publish production-scaling report: " << ec.message() << '\n';
+		return 1;
+	}
+	std::cout << "production-scaling pass api=" << api << " renderer=" << renderer
+		<< " frames=" << frames << " git_sha=" << expectedSha << '\n';
+	return 0;
+#endif
+}
+
 bool ParseExternalEvidenceLog(const std::filesystem::path& path,
 	ExternalEvidenceLog& result, std::string& error)
 {
@@ -3061,6 +3409,7 @@ int main(int argc, char **argv)
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);
 	if (command == "native-parity") return NativeParityCommand(args);
+	if (command == "production-scaling") return ProductionScalingCommand(args);
 	if (command == "capture") return CaptureCommand(args);
 	if (command == "capture-index") return CaptureIndexCommand(args);
 	if (command == "compare-captures")

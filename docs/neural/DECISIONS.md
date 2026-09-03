@@ -1088,3 +1088,20 @@ compares the enabled/mode-off production PVR path on an explicitly verified
 D3D11On12 device against the compile-time feature-off native-D3D11 baseline.
 The actual surface of each process is recorded; it is never inferred from a
 requested option.
+
+## D-068: Gate 2 compares production high-resolution pixels to exact nearest
+
+Genuine PVR scaling is proven at the same pre-neural, pre-overlay production
+scene boundary used by Gate 1. The deterministic launcher captures one source
+frame at 1x, 4x, and 8x with the same executable and replay, and requires exact
+integer dimensions, source-frame identity, Git identity, renderer, active API
+surface, and mode-zero instrumentation state before comparing pixels.
+
+The rejected hypothesis is an exact nearest-neighbor enlargement of the 1x
+BGRA8 frame. Acceptance requires material differences over the complete high-
+resolution raster, material differences inside source-edge blocks, and many
+edge blocks with more than one high-resolution subpixel value. This prevents
+texture-wide differences alone from masquerading as geometry sampling. The
+all-zero nearest control is evaluated by the same predicate and must fail.
+The command is synchronous, developer-only, disabled by default, and excluded
+from performance claims.
