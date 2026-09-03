@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -39,7 +40,8 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n";
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--timeout-ms N]\n"
+		"neuraltest capture-index --root DIR [--out HTML]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -535,6 +537,179 @@ int CaptureCommand(const Args& args)
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
 	return launchReport ? 0 : 1;
 #endif
+}
+
+std::string HtmlEscape(const std::string& value)
+{
+	std::string result;
+	for (const char c : value)
+	{
+		switch (c)
+		{
+		case '&': result += "&amp;"; break;
+		case '<': result += "&lt;"; break;
+		case '>': result += "&gt;"; break;
+		case '"': result += "&quot;"; break;
+		default: result.push_back(c); break;
+		}
+	}
+	return result;
+}
+
+std::string JsonStringField(const std::string& json, const std::string& field)
+{
+	const auto marker = "\"" + field + "\":";
+	auto position = json.find(marker);
+	if (position == std::string::npos) return {};
+	position = json.find('"', position + marker.size());
+	if (position == std::string::npos) return {};
+	std::string result;
+	bool escaped = false;
+	for (++position; position < json.size(); ++position)
+	{
+		const char c = json[position];
+		if (escaped) { result.push_back(c); escaped = false; continue; }
+		if (c == '\\') { escaped = true; continue; }
+		if (c == '"') break;
+		result.push_back(c);
+	}
+	return result;
+}
+
+std::string JsonScalarField(const std::string& json, const std::string& field)
+{
+	const auto marker = "\"" + field + "\":";
+	auto begin = json.find(marker);
+	if (begin == std::string::npos) return {};
+	begin += marker.size();
+	while (begin < json.size() && std::isspace(static_cast<unsigned char>(json[begin]))) ++begin;
+	auto end = begin;
+	while (end < json.size() && json[end] != ',' && json[end] != '\n' && json[end] != '}') ++end;
+	while (end > begin && std::isspace(static_cast<unsigned char>(json[end - 1]))) --end;
+	return json.substr(begin, end - begin);
+}
+
+int CaptureIndexCommand(const Args& args)
+{
+	const auto rootText = Value(args, "--root");
+	if (rootText.empty())
+	{
+		std::cerr << "capture-index requires --root DIR\n";
+		return 2;
+	}
+	const auto root = std::filesystem::absolute(rootText);
+	if (!std::filesystem::is_directory(root))
+	{
+		std::cerr << "capture-index root is unavailable\n";
+		return 3;
+	}
+	const auto output = std::filesystem::absolute(Value(args, "--out",
+		(root / "comparison-index.html").string()));
+	std::vector<std::filesystem::path> manifests;
+	std::error_code ec;
+	for (std::filesystem::recursive_directory_iterator iterator(root, ec), end;
+		!ec && iterator != end; iterator.increment(ec))
+	{
+		if (!iterator->is_regular_file() || iterator->path().filename() != "manifest.json")
+			continue;
+		const auto frameRoot = iterator->path().parent_path();
+		if (std::filesystem::is_regular_file(frameRoot / "source-color.png")
+			&& std::filesystem::is_regular_file(frameRoot / "final-composited.png"))
+			manifests.push_back(iterator->path());
+	}
+	if (ec)
+	{
+		std::cerr << "capture-index scan failed: " << ec.message() << '\n';
+		return 1;
+	}
+	std::sort(manifests.begin(), manifests.end());
+	std::filesystem::create_directories(output.parent_path(), ec);
+	if (ec)
+	{
+		std::cerr << "capture-index output directory failed: " << ec.message() << '\n';
+		return 1;
+	}
+	std::ofstream html(output);
+	if (!html)
+	{
+		std::cerr << "capture-index output is unwritable\n";
+		return 1;
+	}
+	html << "<!doctype html><meta charset=\"utf-8\"><title>Flycast neural quality captures</title>"
+		"<style>body{font:14px system-ui;background:#111;color:#eee;margin:24px}"
+		"h1{margin-bottom:4px}.note{color:#bbb}.card{border:1px solid #444;margin:18px 0;padding:14px}"
+		".images{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}"
+		"figure{margin:0;background:#1b1b1b;padding:8px}img{width:100%;image-rendering:auto}"
+		"figcaption{margin-top:5px;color:#ccc}a{color:#8cf}code{overflow-wrap:anywhere}</style>"
+		"<h1>Flycast neural quality captures</h1><p class=\"note\">Evidence index only; no winner is inferred from still frames.</p>";
+	static constexpr const char *artifacts[][2] = {
+		{"native-pvr-color.png", "Native PVR"}, {"source-color.png", "Contract source"},
+		{"depth.png", "Depth"}, {"motion.png", "Motion"},
+		{"bias-mask.png", "Bias mask"}, {"confidence.png", "Confidence"},
+		{"draw-id.png", "Draw ID"}, {"overlay-classification.png", "Overlay"},
+		{"public-dlaa-output.png", "Public DLAA"},
+		{"neural-rendering-output.png", "External Neural Rendering"},
+		{"final-composited.png", "Final composite"},
+		{"native-versus-output-difference.png", "Native/output difference"},
+		{"temporal-flicker.png", "Temporal flicker"}
+	};
+	std::vector<std::string> relativeManifests;
+	for (const auto& manifest : manifests)
+	{
+		std::ifstream stream(manifest);
+		const std::string json((std::istreambuf_iterator<char>(stream)), {});
+		const auto frameRoot = manifest.parent_path();
+		const auto relativeFrame = std::filesystem::relative(frameRoot, output.parent_path(), ec);
+		if (ec) { ec.clear(); continue; }
+		const auto relativeText = relativeFrame.generic_string();
+		relativeManifests.push_back(relativeText + "/manifest.json");
+		html << "<section class=\"card\"><h2>" << HtmlEscape(JsonStringField(json, "game_id"))
+			<< " - " << HtmlEscape(frameRoot.filename().string()) << "</h2><p><code>"
+			<< HtmlEscape(JsonStringField(json, "profile")) << "</code><br>"
+			<< HtmlEscape(JsonStringField(json, "renderer")) << " / "
+			<< HtmlEscape(JsonStringField(json, "api")) << "; accepted="
+			<< HtmlEscape(JsonScalarField(json, "evaluation_accepted")) << "; external="
+			<< HtmlEscape(JsonScalarField(json, "external_contract_evaluated"))
+			<< "; status=" << HtmlEscape(JsonStringField(json, "submit_status"))
+			<< "<br><code>"
+			<< HtmlEscape(relativeText) << "</code><br><a href=\"" << HtmlEscape(relativeText)
+			<< "/manifest.json\">manifest</a> | <a href=\"" << HtmlEscape(relativeText)
+			<< "/metrics.json\">metrics</a></p><div class=\"images\">";
+		for (const auto& artifact : artifacts)
+		{
+			if (!std::filesystem::is_regular_file(frameRoot / artifact[0])) continue;
+			html << "<figure><img loading=\"lazy\" src=\"" << HtmlEscape(relativeText)
+				<< '/' << artifact[0] << "\"><figcaption>" << artifact[1]
+				<< "</figcaption></figure>";
+		}
+		html << "</div></section>";
+	}
+	html << "<p class=\"note\">Packages: " << manifests.size()
+		<< ". Review moving sequences and numeric components before acceptance.</p>";
+	if (!html)
+	{
+		std::cerr << "capture-index HTML write failed\n";
+		return 1;
+	}
+	auto jsonOutput = output;
+	jsonOutput.replace_extension(".json");
+	std::ofstream report(jsonOutput);
+	report << "{\n  \"schema\": 1,\n  \"winner_declared\": false,\n  \"package_count\": "
+		<< relativeManifests.size() << ",\n  \"manifests\": [";
+	for (std::size_t i = 0; i < relativeManifests.size(); ++i)
+	{
+		if (i != 0) report << ',';
+		report << "\n    \"" << relativeManifests[i] << "\"";
+	}
+	report << "\n  ]\n}\n";
+	if (!report)
+	{
+		std::cerr << "capture-index JSON write failed\n";
+		return 1;
+	}
+	std::cout << "capture index packages=" << manifests.size()
+		<< " html=" << output.string() << '\n';
+	return manifests.empty() ? 3 : 0;
 }
 
 int DepthContractCommand(const Args& args)
@@ -1115,6 +1290,7 @@ int main(int argc, char **argv)
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);
 	if (command == "capture") return CaptureCommand(args);
+	if (command == "capture-index") return CaptureIndexCommand(args);
 	Usage();
 	return 2;
 }

@@ -43,6 +43,15 @@ no capture readback. This synchronous developer-only path is disabled unless an
 explicit destination and positive frame limit are supplied, and every package
 is marked ineligible for performance measurements.
 
+`neuraltest capture-index --root DIR [--out HTML]` recursively discovers only
+production packages containing both source and final images. It writes a lazy-
+loading HTML contact sheet and a machine-readable JSON manifest using relative
+paths. Every card shows game/profile, actual renderer/API, acceptance, external-
+evaluation state, and submit status; available native/guidance/public/external/
+final/difference/flicker artifacts are linked in place. The index explicitly
+sets `winner_declared=false` and does not convert still images into a title-
+quality decision. An empty root writes an empty diagnostic index and exits 3.
+
 During Phase 1, the test-only D3D11 fixture driver writes the implemented subset:
 `manifest.json`, `color.png`, `color.raw`, and `report.md`. The manifest sets
 `production_renderer` to `false` and the report explicitly labels depth and

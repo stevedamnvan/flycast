@@ -159,7 +159,8 @@ close a temporal or title-quality gate.
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
-  covered. GPU timings, external-output capture, comparison-index generation,
-  moving gameplay, all profile lanes, and every other legally available title
+  covered. LOG #74 adds a relative-path HTML/JSON comparison index which
+  explicitly refuses to declare a still-frame winner. GPU timings, external-
+  output capture, moving gameplay, all profile lanes, and every other legally available title
   remain open, so no title-quality winner is declared.
 - Gate 18: pending.

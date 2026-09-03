@@ -599,3 +599,13 @@ These descriptors, UI recommendations, capture metadata, and explicit 2D
 bypass are implemented. They do not yet constitute title tuning or Gate 17:
 broader Enhanced Materials trust, character/face title rules, external setting
 comparisons, and representative moving sequences remain evidence-gated.
+
+## D-041: comparison indexes expose provenance and never choose a winner
+
+The capture index discovers only production packages that contain actual source
+and final-composite images. It emits relative paths, lazy-loads only artifacts
+that exist, and displays the manifest's actual renderer/API, evaluation status,
+external-contract state, and failure reason beside every frame. Earlier failed
+or incomplete packages may therefore remain visible without being presented as
+accepted results. Its JSON contract fixes `winner_declared` to false; moving
+sequences and numeric review remain required for Gate 17.
