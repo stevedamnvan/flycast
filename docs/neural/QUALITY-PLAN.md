@@ -233,3 +233,10 @@ close a temporal or title-quality gate.
   windows had flat VRAM; D3D11-to-On12 OIT grew by 131072 bytes and On12-to-
   D3D11 OIT by 3334144 bytes, so longer OIT/resource-object evidence remains
   required.
+  LOG #83 adds paired 10000-sample OIT soaks after 600 warmup frames. Native
+  D3D11 and D3D11On12 each presented 10000/10000 accepted neural frames with
+  zero native, missing, dropped, repeated, gapped, mismatched, alternating, or
+  latent frames, zero query-ring pressure, and clean close. Native D3D11 OIT
+  local VRAM grew by a bounded 647168 bytes; D3D11On12 OIT remained exactly
+  flat. This closes the bounded OIT long-run cadence check, not resource-object
+  accounting, external-consumer timing, or broader-title stability.
