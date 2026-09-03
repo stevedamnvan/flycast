@@ -413,9 +413,11 @@ stream from the last stage-accepted geometry snapshot. Each element stores XYZ
 and an explicit validity bit. Mapping follows index position, including repeated
 strip indices. Reindexed geometry is accepted only through a similarity fit with
 at most 0.25 render-pixel RMS residual and bounded scale; deformation above that
-threshold remains invalid. Naomi 2 until transform history is implemented,
-out-of-range indices, reset/truncation, and conflicting mappings of one current
-vertex remain invalid. The history caps are 1,048,576 vertices and indices;
+threshold remains invalid. Exact-topology Naomi 2 draws additionally retain the
+accepted model-view/projection pair and apply it to accepted object-space XYZ in
+the neural vertex shader. Reindexed Naomi 2, missing matrix history, out-of-range
+indices, reset/truncation, and conflicting mappings of one current vertex remain
+invalid. The history caps are 1,048,576 vertices and indices;
 overflow resets history rather than allocating without bound.
 
 History age advances from the last successfully accepted frame. Confidence is
@@ -436,8 +438,9 @@ a later submission becomes the accepted reference.
 The dedicated neural input layout drives both normal DX11 and the base guidance
 replay used after an OIT scene resolve. Current and previous unjittered screen
 positions are separate interpolants; raster position is not used to derive
-motion. Naomi 2 remains invalid until accepted historical model/projection
-matrices are available.
+motion. The Naomi 2 permutation uses the same current NDC matrix with its
+accepted prior model/projection pair; matrix validity and vertex validity both
+gate output.
 
 The ROM-free Gate 11 command is `neuraltest depth-contract --api
 d3d11|d3d11on12 --out DIR`. It compiles the production pixel shader, writes
@@ -452,6 +455,11 @@ writes previous/current color, correct/reversed/doubled RG16F motion, and a JSON
 report containing analytic samples and reprojection MAE. Public DLAA consumes
 the same pair through harness-only `neural --previous-in ... --motion-x ...
 --motion-y ...`; this temporal input override is not a production setting.
+Both selftest builds also execute the production normal and Naomi 2 neural
+vertex/pixel permutations on native D3D11 and D3D11On12. Naomi 2 must rasterize
+analytic `[-4,+3]` render-pixel motion identically on both surfaces, while its
+missing-history control must produce zero motion/confidence and full current-
+color bias.
 
 The Q1 SDR command is `neuraltest color-contract --out DIR`. It writes
 `source-color.png`, `roundtrip-color.png`, and `color-contract.json`. The test

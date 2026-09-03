@@ -2220,6 +2220,7 @@ void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride
 		constants.trilinearAlpha = 1.f;
 
 #ifdef FLYCAST_ENABLE_NEURAL
+	std::size_t neuralOrdinal = flycast::rend::neural::NeuralInstrumentation::MaxDraws;
 	if (neuralExportActive)
 	{
 		std::size_t ordinal = 0;
@@ -2233,6 +2234,7 @@ void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride
 				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
 		if (neuralOrdinalOverride != ~0u)
 			ordinal = neuralOrdinalOverride;
+		neuralOrdinal = ordinal;
 		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
 		const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 		constants.neuralOverlayMask = overlayPolicy == 0
@@ -2380,7 +2382,19 @@ void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride
 			zfunc, config::ModifierVolumes), stencil);
 
 	if (gp->isNaomi2())
-		n2Helper.setConstants(*gp, 0, *rendContext); // poly number only used in OIT
+	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		const auto *previousTransform = neuralExportActive
+			? neuralInstrumentation.PreviousNaomi2TransformForOrdinal(neuralOrdinal)
+			: nullptr;
+		n2Helper.setConstants(*gp, 0, *rendContext,
+			previousTransform ? previousTransform->modelView.data() : nullptr,
+			previousTransform ? previousTransform->projection.data() : nullptr);
+#else
+		n2Helper.setConstants(*gp, 0, *rendContext);
+#endif
+		// Polygon number is used only by the OIT renderer.
+	}
 }
 
 template <u32 Type, bool SortingEnabled>

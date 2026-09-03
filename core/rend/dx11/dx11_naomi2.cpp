@@ -72,6 +72,8 @@ cbuffer shaderConstants : register(b0)
 	float4 topPlane;
 	float4 rightPlane;
 	float4 bottomPlane;
+	float2 neuralRenderSize;
+	float2 neuralPadding;
 };
 
 cbuffer polyConstants : register(b1)
@@ -86,6 +88,10 @@ cbuffer polyConstants : register(b1)
 
 	float4 glossCoef;
 	int4 constantColor;
+
+	float4x4 previousMvMat;
+	float4x4 previousProjMat;
+	float4 neuralPreviousValid;
 };
 
 void computeColors(inout float4 baseCol, inout float4 offsetCol, in int volIdx, in float3 position, in float3 normal);
@@ -164,11 +170,24 @@ VertexOut main(in VertexIn vin)
 	vo.pos.w = 1.f;
 	vo.pos.z = 0.f;
 	#if NEURAL_EXPORT == 1
-	// Prior Naomi 2 model/projection matrices are not retained yet. The CPU
-	// stream marks these vertices invalid, and the shader keeps that contract
-	// explicit instead of applying current matrices to a previous model pose.
-	vo.neuralScreen = float4(0.f, 0.f, 0.f, 0.f);
-	vo.neuralPositionValid = 0.f;
+	float4 previousView = mul(previousMvMat, float4(vin.previousPos.xyz, 1.f));
+	float4 previousClip = mul(previousProjMat, previousView);
+	float previousWValid = abs(previousClip.w) > 0.000001f ? 1.f : 0.f;
+	float safePreviousW = previousWValid != 0.f ? previousClip.w : 1.f;
+	float4 previousProjected = float4(previousClip.xy / safePreviousW,
+		1.f / safePreviousW, 1.f);
+	float4 previousRaster = mul(ndcMat, previousProjected);
+	float previousRasterWValid = abs(previousRaster.w) > 0.000001f ? 1.f : 0.f;
+	float safePreviousRasterW = previousRasterWValid != 0.f ? previousRaster.w : 1.f;
+	float2 currentNdc = vo.pos.xy / vo.pos.w;
+	float2 previousNdc = previousRaster.xy / safePreviousRasterW;
+	vo.neuralScreen = float4(
+		(currentNdc.x * .5f + .5f) * neuralRenderSize.x,
+		(.5f - currentNdc.y * .5f) * neuralRenderSize.y,
+		(previousNdc.x * .5f + .5f) * neuralRenderSize.x,
+		(.5f - previousNdc.y * .5f) * neuralRenderSize.y);
+	vo.neuralPositionValid = vin.previousPos.w * neuralPreviousValid.x
+		* previousWValid * previousRasterWValid;
 	#endif
 
 	return vo;
@@ -406,9 +425,12 @@ struct N2PolyConstants
 
 	float glossCoef[4];		// 208
 	int constantColor[4];	// 224
-							// 240
+	float previousMvMat[4][4];	// 240
+	float previousProjMat[4][4];	// 304
+	float neuralPreviousValid[4];	// 368
+							// 384
 };
-static_assert(sizeof(N2PolyConstants) == 240, "sizeof(N2PolyConstants) should be 240");
+static_assert(sizeof(N2PolyConstants) == 384, "sizeof(N2PolyConstants) should be 384");
 
 void  Naomi2Helper::init(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext> deviceContext)
 {
@@ -429,12 +451,29 @@ void  Naomi2Helper::init(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContex
 	resetCache();
 }
 
-void Naomi2Helper::setConstants(const PolyParam& pp, u32 polyNumber, const rend_context& ctx)
+void Naomi2Helper::setConstants(const PolyParam& pp, u32 polyNumber,
+	const rend_context& ctx, const float *previousMvMatrix,
+	const float *previousProjMatrix)
 {
-	N2PolyConstants polyConstants;
+	N2PolyConstants polyConstants{};
 	memcpy(polyConstants.mvMat, ctx.matrices[pp.mvMatrix].mat, sizeof(polyConstants.mvMat));
 	memcpy(polyConstants.normalMat, ctx.matrices[pp.normalMatrix].mat, sizeof(polyConstants.normalMat));
 	memcpy(polyConstants.projMat, ctx.matrices[pp.projMatrix].mat, sizeof(polyConstants.projMat));
+	if (previousMvMatrix != nullptr && previousProjMatrix != nullptr)
+	{
+		memcpy(polyConstants.previousMvMat, previousMvMatrix,
+			sizeof(polyConstants.previousMvMat));
+		memcpy(polyConstants.previousProjMat, previousProjMatrix,
+			sizeof(polyConstants.previousProjMat));
+		polyConstants.neuralPreviousValid[0] = 1.f;
+	}
+	else
+	{
+		memcpy(polyConstants.previousMvMat, polyConstants.mvMat,
+			sizeof(polyConstants.previousMvMat));
+		memcpy(polyConstants.previousProjMat, polyConstants.projMat,
+			sizeof(polyConstants.previousProjMat));
+	}
 	polyConstants.envMapping[0] = pp.envMapping[0];
 	polyConstants.envMapping[1] = pp.envMapping[1];
 	polyConstants.bumpMapping = pp.pcw.Texture == 1 && pp.tcw.PixelFmt == PixelBumpMap;
@@ -457,7 +496,7 @@ void Naomi2Helper::setConstants(const PolyParam& pp, u32 polyNumber, const rend_
 
 void Naomi2Helper::setConstants(const float *mvMatrix, const float *projMatrix)
 {
-	N2PolyConstants polyConstants;
+	N2PolyConstants polyConstants{};
 	memcpy(polyConstants.mvMat, mvMatrix, sizeof(polyConstants.mvMat));
 	memcpy(polyConstants.projMat, projMatrix, sizeof(polyConstants.projMat));
 	setConstBuffer(polyConstantsBuffer, polyConstants);

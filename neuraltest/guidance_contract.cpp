@@ -41,6 +41,23 @@ struct ProductionVertex {
 	float v;
 };
 
+struct Naomi2ProductionVertex {
+	float x;
+	float y;
+	float z;
+	std::uint32_t color;
+	std::uint32_t specular;
+	float u;
+	float v;
+	std::uint32_t color1;
+	std::uint32_t specular1;
+	float u1;
+	float v1;
+	float nx;
+	float ny;
+	float nz;
+};
+
 struct PreviousPosition {
 	float x;
 	float y;
@@ -148,12 +165,13 @@ VSOut main(VSIn i) { VSOut o; o.pos=float4(i.pos, 0, 1); o.uv=float4(0,0,0,i.sou
 	return false;
 }
 
-bool CompileProductionVertex(const std::string& source, ComPtr<ID3DBlob>& code,
-	std::string& error)
+bool CompileProductionVertex(const std::string& source, bool naomi2,
+	ComPtr<ID3DBlob>& code, std::string& error)
 {
 	D3D_SHADER_MACRO macros[] = {
 		{"pp_Gouraud", "1"}, {"DIV_POS_Z", "0"}, {"POSITION_ONLY", "0"},
-		{"pp_TwoVolumes", "0"}, {"LIGHT_ON", "1"}, {"MODIFIER_VOLUME", "0"},
+		{"pp_Texture", "0"}, {"pp_TwoVolumes", "0"},
+		{"LIGHT_ON", naomi2 ? "0" : "1"}, {"MODIFIER_VOLUME", "0"},
 		{"NEURAL_EXPORT", "1"}, {nullptr, nullptr}
 	};
 	ComPtr<ID3DBlob> diagnostics;
@@ -670,12 +688,32 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	PixelInclude includes(common);
 	ComPtr<ID3DBlob> vsCode;
 	ComPtr<ID3DBlob> psCode;
-	if (!CompileProductionVertex(vertex, vsCode, error)
+	if (!CompileProductionVertex(vertex, false, vsCode, error)
 		|| !CompilePixel(pixel, includes, true, false, psCode, error)) return false;
+	std::ifstream naomi2Input(std::string(NEURAL_SOURCE_DIR)
+		+ "/core/rend/dx11/dx11_naomi2.cpp", std::ios::binary);
+	if (!naomi2Input) { error = "cannot open production dx11_naomi2.cpp"; return false; }
+	std::ostringstream naomi2Stream;
+	naomi2Stream << naomi2Input.rdbuf();
+	std::string naomi2Vertex;
+	std::string naomi2Color;
+	if (!ExtractRawString(naomi2Stream.str(), "DX11N2VertexShader", naomi2Vertex)
+		|| !ExtractRawString(naomi2Stream.str(), "DX11N2ColorShader", naomi2Color))
+	{
+		error = "cannot extract production Naomi 2 motion shader";
+		return false;
+	}
+	ComPtr<ID3DBlob> naomi2VsCode;
+	if (!CompileProductionVertex(naomi2Vertex + "\n" + naomi2Color, true,
+		naomi2VsCode, error)) return false;
 	ComPtr<ID3D11VertexShader> vs;
+	ComPtr<ID3D11VertexShader> naomi2Vs;
 	ComPtr<ID3D11PixelShader> ps;
 	HRESULT hr = surface.device->CreateVertexShader(vsCode->GetBufferPointer(),
 		vsCode->GetBufferSize(), nullptr, vs.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = surface.device->CreateVertexShader(
+		naomi2VsCode->GetBufferPointer(), naomi2VsCode->GetBufferSize(), nullptr,
+		naomi2Vs.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(psCode->GetBufferPointer(),
 		psCode->GetBufferSize(), nullptr, ps.GetAddressOf());
 	const D3D11_INPUT_ELEMENT_DESC elements[] = {
@@ -687,9 +725,22 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 			D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 	ComPtr<ID3D11InputLayout> layout;
+	ComPtr<ID3D11InputLayout> naomi2Layout;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(elements,
 		static_cast<UINT>(std::size(elements)), vsCode->GetBufferPointer(), vsCode->GetBufferSize(),
 		layout.GetAddressOf());
+	const D3D11_INPUT_ELEMENT_DESC naomi2Elements[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 1, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 44, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,
+			D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(naomi2Elements,
+		static_cast<UINT>(std::size(naomi2Elements)), naomi2VsCode->GetBufferPointer(),
+		naomi2VsCode->GetBufferSize(), naomi2Layout.GetAddressOf());
 	if (FAILED(hr)) { error = HrText("create production motion shaders/layout", hr); return false; }
 
 	const ProductionVertex vertices[] = {
@@ -709,6 +760,16 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	const auto trustedPrevious = makePrevious(-8.f / Width, -6.f / Height, 1.f);
 	const auto invalidPrevious = makePrevious(-8.f / Width, -6.f / Height, 0.f);
 	const auto oversizedPrevious = makePrevious(3.f, 0.f, 1.f);
+	const Naomi2ProductionVertex naomi2Vertices[] = {
+		{-.5f, .5f, 1.f, 0xffffffffu, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{ .5f, .5f, 1.f, 0xffffffffu, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+		{-.5f,-.5f, 1.f, 0xffffffffu, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
+		{ .5f,-.5f, 1.f, 0xffffffffu, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+	};
+	const std::array<PreviousPosition, 4> naomi2Previous{{
+		{-.5f, .5f, 1.f, 1.f}, { .5f, .5f, 1.f, 1.f},
+		{-.5f,-.5f, 1.f, 1.f}, { .5f,-.5f, 1.f, 1.f},
+	}};
 	auto createBuffer = [&](const void *data, UINT bytes, UINT bind, D3D11_USAGE usage,
 		ID3D11Buffer **buffer) {
 		D3D11_BUFFER_DESC desc{};
@@ -720,11 +781,15 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		return surface.device->CreateBuffer(&desc, &initial, buffer);
 	};
 	ComPtr<ID3D11Buffer> vertexBuffer;
+	ComPtr<ID3D11Buffer> naomi2VertexBuffer;
 	ComPtr<ID3D11Buffer> previousBuffer;
 	hr = createBuffer(vertices, sizeof(vertices), D3D11_BIND_VERTEX_BUFFER,
 		D3D11_USAGE_IMMUTABLE, vertexBuffer.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = createBuffer(trustedPrevious.data(), sizeof(trustedPrevious),
 		D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT, previousBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = createBuffer(naomi2Vertices, sizeof(naomi2Vertices),
+		D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_IMMUTABLE,
+		naomi2VertexBuffer.GetAddressOf());
 
 	struct alignas(16) VertexConstants {
 		float matrix[16]; float planes[16]; float renderSize[2]; float padding[2];
@@ -742,6 +807,29 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		float clip[4]; float palette; float trilinear; float confidence;
 		std::uint32_t drawId; float bias; std::uint32_t previousDrawId; float padding[2];
 	} polyConstants{};
+	struct alignas(16) Naomi2PolyConstants {
+		float modelView[16];
+		float normal[16];
+		float projection[16];
+		std::int32_t values[4];
+		float gloss[4];
+		std::int32_t constantColor[4];
+		float previousModelView[16];
+		float previousProjection[16];
+		float previousValid[4];
+	} naomi2Constants{};
+	static_assert(sizeof(Naomi2PolyConstants) == 384);
+	auto setIdentity = [](float *matrix) {
+		matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1.f;
+	};
+	setIdentity(naomi2Constants.modelView);
+	setIdentity(naomi2Constants.normal);
+	setIdentity(naomi2Constants.projection);
+	setIdentity(naomi2Constants.previousModelView);
+	setIdentity(naomi2Constants.previousProjection);
+	naomi2Constants.modelView[12] = 8.f / Width;
+	naomi2Constants.modelView[13] = 6.f / Height;
+	naomi2Constants.previousValid[0] = 1.f;
 	polyConstants.trilinear = 1.f;
 	polyConstants.confidence = 1.f;
 	polyConstants.drawId = 7;
@@ -753,12 +841,16 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	ComPtr<ID3D11Buffer> vertexConstantBuffer;
 	ComPtr<ID3D11Buffer> pixelConstantBuffer;
 	ComPtr<ID3D11Buffer> polyConstantBuffer;
+	ComPtr<ID3D11Buffer> naomi2ConstantBuffer;
 	if (SUCCEEDED(hr)) hr = constantBuffer(&vertexConstants, sizeof(vertexConstants),
 		vertexConstantBuffer.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = constantBuffer(&pixelConstants, sizeof(pixelConstants),
 		pixelConstantBuffer.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = constantBuffer(&polyConstants, sizeof(polyConstants),
 		polyConstantBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = createBuffer(&naomi2Constants, sizeof(naomi2Constants),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT,
+		naomi2ConstantBuffer.GetAddressOf());
 	D3D11_RASTERIZER_DESC rasterDesc{};
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_NONE;
@@ -817,6 +909,60 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	if (!render(trustedPrevious, true, false)
 		|| !render(invalidPrevious, false, false)
 		|| !render(oversizedPrevious, false, true)) return false;
+	auto renderNaomi2 = [&](float valid, ProductionMotionResult& readback,
+		bool trusted) {
+		naomi2Constants.previousValid[0] = valid;
+		surface.context->UpdateSubresource(previousBuffer.Get(), 0, nullptr,
+			naomi2Previous.data(), 0, 0);
+		surface.context->UpdateSubresource(naomi2ConstantBuffer.Get(), 0, nullptr,
+			&naomi2Constants, 0, 0);
+		const float zero[4]{};
+		const float one[4] = {1,1,1,1};
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[0].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[1].Get(), one);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[2].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[3].Get(), zero);
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[4].Get(), zero);
+		surface.context->ClearDepthStencilView(targets.depthTarget.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
+		ID3D11RenderTargetView *views[] = {targets.guidanceTargets[0].Get(),
+			targets.guidanceTargets[1].Get(), targets.guidanceTargets[2].Get(),
+			targets.guidanceTargets[3].Get(), targets.guidanceTargets[4].Get()};
+		surface.context->OMSetRenderTargets(static_cast<UINT>(std::size(views)), views,
+			targets.depthTarget.Get());
+		D3D11_VIEWPORT viewport{0,0,static_cast<float>(Width),static_cast<float>(Height),0,1};
+		surface.context->RSSetViewports(1, &viewport);
+		surface.context->RSSetState(raster.Get());
+		surface.context->OMSetDepthStencilState(depthState.Get(), 0);
+		ID3D11Buffer *buffers[] = {naomi2VertexBuffer.Get(), previousBuffer.Get()};
+		const UINT strides[] = {sizeof(Naomi2ProductionVertex), sizeof(PreviousPosition)};
+		const UINT offsets[] = {0,0};
+		surface.context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+		surface.context->IASetInputLayout(naomi2Layout.Get());
+		surface.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		surface.context->VSSetShader(naomi2Vs.Get(), nullptr, 0);
+		ID3D11Buffer *vsConstants[] = {vertexConstantBuffer.Get(),
+			naomi2ConstantBuffer.Get()};
+		surface.context->VSSetConstantBuffers(0, 2, vsConstants);
+		surface.context->PSSetShader(ps.Get(), nullptr, 0);
+		ID3D11Buffer *psConstants[] = {pixelConstantBuffer.Get(), polyConstantBuffer.Get()};
+		surface.context->PSSetConstantBuffers(0, 2, psConstants);
+		surface.context->Draw(4, 0);
+		surface.context->Flush();
+		return ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
+			readback, trusted, false, error);
+	};
+	ProductionMotionResult naomi2Trusted;
+	ProductionMotionResult naomi2Invalid;
+	if (!renderNaomi2(1.f, naomi2Trusted, true)
+		|| !renderNaomi2(0.f, naomi2Invalid, false)) return false;
+	result.naomi2X = naomi2Trusted.trustedX;
+	result.naomi2Y = naomi2Trusted.trustedY;
+	result.naomi2Mask = naomi2Trusted.trustedMask;
+	result.naomi2Confidence = naomi2Trusted.trustedConfidence;
+	result.naomi2InvalidX = naomi2Invalid.invalidX;
+	result.naomi2InvalidY = naomi2Invalid.invalidY;
+	result.naomi2InvalidMask = naomi2Invalid.invalidMask;
+	result.naomi2InvalidConfidence = naomi2Invalid.invalidConfidence;
 	const auto close = [](float a, float b) { return std::abs(a - b) <= .01f; };
 	result.analyticTruth = close(result.trustedX, -4.f) && close(result.trustedY, 3.f)
 		&& result.trustedMask == 0 && result.trustedConfidence == 255
@@ -825,8 +971,15 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		&& result.invalidMask == 255 && result.invalidConfidence == 0;
 	result.magnitudeProtected = result.oversizedX == 0.f && result.oversizedY == 0.f
 		&& result.oversizedMask == 255 && result.oversizedConfidence == 0;
+	result.naomi2AnalyticTruth = close(result.naomi2X, -4.f)
+		&& close(result.naomi2Y, 3.f) && result.naomi2Mask == 0
+		&& result.naomi2Confidence == 255;
+	result.naomi2InvalidProtected = result.naomi2InvalidX == 0.f
+		&& result.naomi2InvalidY == 0.f && result.naomi2InvalidMask == 255
+		&& result.naomi2InvalidConfidence == 0;
 	const bool passed = result.analyticTruth && result.invalidProtected
-		&& result.magnitudeProtected;
+		&& result.magnitudeProtected && result.naomi2AnalyticTruth
+		&& result.naomi2InvalidProtected;
 	if (!passed)
 	{
 		std::ostringstream detail;
@@ -840,7 +993,14 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 			<< " confidence=" << static_cast<unsigned>(result.invalidConfidence)
 			<< " oversized=[" << result.oversizedX << ',' << result.oversizedY
 			<< "] mask=" << static_cast<unsigned>(result.oversizedMask)
-			<< " confidence=" << static_cast<unsigned>(result.oversizedConfidence);
+			<< " confidence=" << static_cast<unsigned>(result.oversizedConfidence)
+			<< " naomi2=[" << result.naomi2X << ',' << result.naomi2Y
+			<< "] mask=" << static_cast<unsigned>(result.naomi2Mask)
+			<< " confidence=" << static_cast<unsigned>(result.naomi2Confidence)
+			<< " naomi2_invalid=[" << result.naomi2InvalidX << ','
+			<< result.naomi2InvalidY << "] mask="
+			<< static_cast<unsigned>(result.naomi2InvalidMask)
+			<< " confidence=" << static_cast<unsigned>(result.naomi2InvalidConfidence);
 		error = detail.str();
 	}
 	return passed;

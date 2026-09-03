@@ -102,7 +102,8 @@ struct PreviousPosition {
 	float z = 0.f;
 	// One only when exact index-position correspondence or a bounded, low-residual
 	// reindex fit makes the accepted-frame position authoritative. Zero covers
-	// new, ambiguous, conflicted, rejected-fit, and Naomi 2 vertices.
+	// new, ambiguous, conflicted, and rejected-fit vertices. Naomi 2 exact-
+	// topology vertices use this stream together with accepted prior matrices.
 	float valid = 0.f;
 };
 

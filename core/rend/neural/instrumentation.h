@@ -13,6 +13,12 @@ struct rend_context;
 
 namespace flycast::rend::neural {
 
+struct Naomi2Transform {
+	std::array<float, 16> modelView{};
+	std::array<float, 16> projection{};
+	bool valid = false;
+};
+
 class NeuralInstrumentation final {
 public:
 	static constexpr std::size_t MaxDraws = 8192;
@@ -50,6 +56,8 @@ public:
 	{
 		return ordinal < drawCounts_[currentBuffer_] ? &matchBuffer_[ordinal] : nullptr;
 	}
+	const Naomi2Transform *PreviousNaomi2TransformForOrdinal(
+		std::size_t ordinal) const noexcept;
 	bool IsOverlayOrdinal(std::size_t ordinal) const noexcept
 	{
 		return ordinal < drawCounts_[currentBuffer_] && overlayBuffer_[ordinal] != 0;
@@ -64,6 +72,7 @@ private:
 	using MatchBuffer = std::array<DrawMatch, MaxDraws>;
 	void BeginSource(FrameSource source) noexcept;
 	bool CapturePositionSnapshot(const ::rend_context& context) noexcept;
+	void CaptureNaomi2Transforms(const ::rend_context& context) noexcept;
 	void BuildPreviousPositions(const ::rend_context& context) noexcept;
 	void FinalizeConfidence() noexcept;
 	void ClassifyOverlays(std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept;
@@ -76,6 +85,7 @@ private:
 	std::size_t drawCounts_[2]{};
 	std::vector<PreviousPosition> positionBuffers_[2];
 	std::vector<std::uint32_t> indexBuffers_[2];
+	std::array<Naomi2Transform, MaxDraws> naomi2TransformBuffers_[2]{};
 	std::vector<PreviousPosition> previousPositions_;
 	std::size_t trustedPreviousVertexCount_ = 0;
 	CorrespondenceStats correspondenceStats_{};

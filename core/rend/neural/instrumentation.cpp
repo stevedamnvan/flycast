@@ -381,6 +381,8 @@ void NeuralInstrumentation::SetEnabled(bool enabled) noexcept
 		positionBuffers_[1].clear();
 		indexBuffers_[0].clear();
 		indexBuffers_[1].clear();
+		naomi2TransformBuffers_[0].fill({});
+		naomi2TransformBuffers_[1].fill({});
 		previousPositions_.clear();
 		trustedPreviousVertexCount_ = 0;
 		referenceBuffer_ = 0;
@@ -693,6 +695,41 @@ bool NeuralInstrumentation::CapturePositionSnapshot(const rend_context& context)
 	}
 }
 
+void NeuralInstrumentation::CaptureNaomi2Transforms(const rend_context& context) noexcept
+{
+	auto& transforms = naomi2TransformBuffers_[currentBuffer_];
+	transforms.fill({});
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+	{
+		const auto& draw = drawBuffers_[currentBuffer_][i];
+		if ((draw.flags & DrawNaomi2) == 0 || draw.n2Mv < 0 || draw.n2Proj < 0)
+			continue;
+		const auto mv = static_cast<std::size_t>(draw.n2Mv);
+		const auto projection = static_cast<std::size_t>(draw.n2Proj);
+		if (mv >= context.matrices.size() || projection >= context.matrices.size())
+			continue;
+		auto& transform = transforms[i];
+		std::copy(std::begin(context.matrices[mv].mat),
+			std::end(context.matrices[mv].mat), transform.modelView.begin());
+		std::copy(std::begin(context.matrices[projection].mat),
+			std::end(context.matrices[projection].mat), transform.projection.begin());
+		transform.valid = true;
+	}
+}
+
+const Naomi2Transform *NeuralInstrumentation::PreviousNaomi2TransformForOrdinal(
+	std::size_t ordinal) const noexcept
+{
+	if (ordinal >= drawCounts_[currentBuffer_]) return nullptr;
+	const auto& draw = drawBuffers_[currentBuffer_][ordinal];
+	const auto& match = matchBuffer_[ordinal];
+	if ((draw.flags & DrawNaomi2) == 0 || match.confidence < .5f
+		|| match.prevOrdinal >= drawCounts_[referenceBuffer_])
+		return nullptr;
+	const auto& transform = naomi2TransformBuffers_[referenceBuffer_][match.prevOrdinal];
+	return transform.valid ? &transform : nullptr;
+}
+
 void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) noexcept
 {
 	trustedPreviousVertexCount_ = 0;
@@ -724,10 +761,17 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 		const auto& currentDraw = drawBuffers_[currentBuffer_][ci];
 		auto& match = matchBuffer_[ci];
 		if (match.tier == 0 || match.confidence < .5f ||
-			(currentDraw.flags & DrawNaomi2) != 0 ||
 			match.prevOrdinal >= drawCounts_[referenceBuffer_])
 			continue;
 		const auto& previousDraw = drawBuffers_[referenceBuffer_][match.prevOrdinal];
+		const bool naomi2 = (currentDraw.flags & DrawNaomi2) != 0;
+		if (naomi2 && ((previousDraw.flags & DrawNaomi2) == 0
+			|| !naomi2TransformBuffers_[currentBuffer_][ci].valid
+			|| !naomi2TransformBuffers_[referenceBuffer_][match.prevOrdinal].valid))
+		{
+			match.confidence = 0.f;
+			continue;
+		}
 		auto writeCandidate = [&](std::uint32_t currentVertex,
 			const PreviousPosition& candidate) {
 			if (currentVertex >= previousPositions_.size()) return;
@@ -761,6 +805,14 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 				if (previousVertex >= previousVertices.size()) continue;
 				writeCandidate(currentVertex, previousVertices[previousVertex]);
 			}
+			continue;
+		}
+		// A reindexed Naomi 2 draw would require proving correspondence in object
+		// space independently of its per-draw matrix history. Reject it until that
+		// stronger evidence exists rather than fitting projected motion.
+		if (naomi2)
+		{
+			match.confidence = 0.f;
 			continue;
 		}
 		// Reindexed geometry is accepted only when stable local vertex ordinals
@@ -921,6 +973,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	AppendList(context, context.global_param_tr, ListType_Translucent, current,
 		drawCounts_[currentBuffer_], truncated_);
 	AppendSortedTranslucent(context, current, drawCounts_[currentBuffer_], truncated_);
+	CaptureNaomi2Transforms(context);
 	ClassifyOverlays(screenWidth, screenHeight);
 	if (!CapturePositionSnapshot(context))
 		truncated_ = true;

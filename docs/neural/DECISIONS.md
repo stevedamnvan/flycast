@@ -410,10 +410,10 @@ draws map one current vertex to different accepted positions, that vertex is
 invalidated. Reindexed geometry with the same vertex cardinality may use local
 vertex ordinals only when a least-squares similarity fit has RMS residual at or
 below 0.25 render pixel and scale in `[0.5, 2.0]`; otherwise it is rejected.
-Resets, truncated frames, and out-of-range indices emit validity zero. Naomi 2
-is also validity zero until previous matrix state is carried and proven;
-applying current matrices to prior model-space positions would create false
-camera/object motion.
+Resets, truncated frames, and out-of-range indices emit validity zero. The
+original Naomi 2 zero-validity boundary is superseded only for the exact-
+topology, accepted-matrix case proven by D-073; applying current matrices to
+prior model-space positions remains forbidden.
 
 ## D-033: production motion is a validity-gated second vertex stream
 
@@ -429,8 +429,8 @@ Match confidence below 0.5, any invalid vertex in a draw, or motion above 128
 render pixels produces zero motion, zero confidence, and public
 `BiasCurrentColorMask=1`. The production-shader fixture proves `[-4,+3]`, draw
 ID 7, mask 0, and confidence 255 for trusted motion on native D3D11 and
-D3D11On12; invalid and excessive controls are fully protected. Naomi 2 stays
-invalid until prior model/projection matrices are retained and proven.
+D3D11On12; invalid and excessive controls are fully protected. D-073 extends
+the same contract to exact-topology Naomi 2 using retained accepted matrices.
 
 If the second stream cannot be allocated or uploaded, the atomic export reports
 failure and the frame is not submitted to the neural stage, so it cannot advance
@@ -1170,3 +1170,20 @@ transitions, and valid only on the selected D3D11On12 neural surface. It is
 stronger than the synthetic removed-status injection because it invalidates the
 actual process device and its resources. It is still bounded controlled-removal
 evidence, not a claim that a spontaneous driver reset or TDR was observed.
+
+## D-073: Naomi 2 motion requires both accepted matrices and exact topology
+
+Each captured Naomi 2 draw copies its model-view and projection matrices into
+the same double-buffered history generation as its draw and vertex/index
+snapshot. The matrix buffer swaps only when `MarkEvaluated` accepts that exact
+frame. During neural replay, the current object-space vertex uses current
+matrices while the second vertex stream uses the accepted object-space XYZ and
+accepted matrices; both paths share the current unjittered NDC transform before
+producing render-pixel previous-minus-current motion.
+
+Matrix presence, exact strip/index topology, draw confidence, and every vertex
+validity bit are all required. Reindexed Naomi 2 is deliberately rejected even
+when ordinary Dreamcast geometry could use a similarity fit, because the fit
+would not independently prove object-space correspondence under per-draw
+matrix history. The production HLSL fixture must return analytic `[-4,+3]` on
+native D3D11 and D3D11On12 and its missing-history control must fail closed.

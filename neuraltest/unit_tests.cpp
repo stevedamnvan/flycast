@@ -721,6 +721,64 @@ int RunSelfTests()
 			"Naomi 2 exact matrix path follows column-major shader transform");
 	}
 	{
+		const float identity[16] = {1, 0, 0, 0, 0, 1, 0, 0,
+			0, 0, 1, 0, 0, 0, 0, 1};
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(3);
+		context.verts[0].x = -1.f; context.verts[0].y = -1.f; context.verts[0].z = 1.f;
+		context.verts[1].x = 1.f; context.verts[1].y = -1.f; context.verts[1].z = 1.f;
+		context.verts[2].x = 0.f; context.verts[2].y = 1.f; context.verts[2].z = 1.f;
+		context.idx = {0, 1, 2};
+		context.matrices.resize(3);
+		for (auto& matrix : context.matrices)
+			std::copy(std::begin(identity), std::end(identity), matrix.mat);
+		PolyParam poly{};
+		poly.init();
+		poly.first = 0;
+		poly.count = 3;
+		poly.tcw.full = 91;
+		poly.mvMatrix = 0;
+		poly.normalMatrix = 1;
+		poly.projMatrix = 2;
+		context.global_param_op.push_back(poly);
+		RenderPass pass{};
+		pass.op_count = 1;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& first = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		instrumentation->MarkEvaluated(first.frameId);
+		context.matrices[0].mat[12] = 4.f;
+		context.matrices[0].mat[13] = -3.f;
+		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		const auto *previousTransform =
+			instrumentation->PreviousNaomi2TransformForOrdinal(0);
+		const auto previousPositions = instrumentation->PreviousPositions();
+		const auto previousProjected = previousTransform
+			? ProjectNaomi2(previousTransform->modelView.data(),
+				previousTransform->projection.data(), identity, {-1.f, -1.f, 1.f})
+			: Point2{};
+		const auto currentProjected = ProjectNaomi2(context.matrices[0].mat,
+			context.matrices[2].mat, identity, {-1.f, -1.f, 1.f});
+		suite.Expect(moved.matches.data[0].confidence >= .5f && previousTransform
+			&& Near(previousTransform->modelView[12], 0.f)
+			&& previousPositions.size == 3 && previousPositions.data[0].valid == 1.f
+			&& Near(currentProjected.x - previousProjected.x, 4.f)
+			&& Near(currentProjected.y - previousProjected.y, -3.f),
+			"accepted Naomi 2 matrices and exact topology produce analytic prior motion");
+		context.idx = {0, 2, 1};
+		const auto& reindexed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(reindexed.matches.data[0].confidence == 0.f
+			&& instrumentation->PreviousNaomi2TransformForOrdinal(0) == nullptr
+			&& instrumentation->TrustedPreviousVertexCount() == 0,
+			"reindexed Naomi 2 geometry remains current-color protected");
+	}
+	{
 		DrawMatch unmatched{};
 		const auto rejected = ClassifyMotion(unmatched, {40.f, -7.f}, false, false);
 		DrawMatch exact{};
@@ -1194,6 +1252,15 @@ int RunSelfTests()
 		suite.Expect(nativeOk && on12Ok && native.invalidProtected && on12.invalidProtected
 			&& native.magnitudeProtected && on12.magnitudeProtected,
 			"invalid and excessive production motion are current-color protected");
+		suite.Expect(nativeOk && on12Ok && native.naomi2AnalyticTruth
+			&& on12.naomi2AnalyticTruth && Near(native.naomi2X, on12.naomi2X)
+			&& Near(native.naomi2Y, on12.naomi2Y)
+			&& native.naomi2Mask == on12.naomi2Mask
+			&& native.naomi2Confidence == on12.naomi2Confidence,
+			"accepted-history Naomi 2 HLSL motion is analytic and cross-surface exact");
+		suite.Expect(nativeOk && on12Ok && native.naomi2InvalidProtected
+			&& on12.naomi2InvalidProtected,
+			"missing Naomi 2 matrix history remains current-color protected");
 	}
 	{
 		ColorContractResult color;

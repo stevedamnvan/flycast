@@ -98,7 +98,10 @@ close a temporal or title-quality gate.
   LOG #67 additionally proves the real production PVR vertex/pixel shader pair
   emits `[-4,+3]` render-pixel motion identically on native D3D11 and
   D3D11On12. Invalid and over-limit controls emit zero motion/confidence and
-  full current-color bias.
+  full current-color bias. LOG #117 adds the production Naomi 2 permutation:
+  accepted exact topology and matrices emit the same analytic `[-4,+3]` on
+  both surfaces, while missing history fails closed. Production raster jitter
+  application remains separate.
 - Q1 SDR/color/rectangle contract: green at LOG #63. The production quad path
   is byte-exact for the deterministic chart; public DLAA is exact in 214,320
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
@@ -110,9 +113,9 @@ close a temporal or title-quality gate.
   texture/palette/RTT revisions, large/reactive particle buckets, rejected
   reindex fits, shared-vertex conflicts, excessive motion, stale accepted
   history, and scene cuts cannot produce trusted production motion. Rigid
-  reindex fits are bounded by scale and 0.25-pixel RMS residual. Naomi 2 remains
-  deliberately invalid pending accepted matrix history and does not weaken the
-  normal Dreamcast gate. Pixel disocclusion remains Gate 14.
+  reindex fits are bounded by scale and 0.25-pixel RMS residual. LOG #117 adds
+  accepted-matrix, exact-topology Naomi 2 correspondence and keeps reindexed or
+  missing-matrix draws deliberately invalid. Pixel disocclusion remains Gate 14.
   LOG #94 adds a real deterministic Soulcalibur combat control: it exposed and
   corrected rejection of `0xFFFFFFFF` primitive-restart indices during the
   final previous-position validity check. The fixed 30-frame target-DLAA run
@@ -127,13 +130,14 @@ close a temporal or title-quality gate.
   scene-cut regions are protected. Native D3D11/D3D11On12 masks are exact; the
   omitted-pass control misses 192 pixels and raises trail energy from 0 to
   12,288.
-- FC-032 previous-position stream: partial at LOG #66-#68. The bounded CPU
+- FC-032 previous-position stream: partial through LOG #117. The bounded CPU
   stream is owned by last accepted history, maps exact topology by strip/index
   position, supports deformation, accepts only bounded rigid reindex fits, and
   rejects non-rigid residuals and shared-vertex conflicts. It is bound to a
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
-  Naomi 2 transform history is still required and is
-  deliberately validity zero rather than using current matrices on prior pose.
+  Exact-topology Naomi 2 now carries accepted model/projection history through
+  the production HLSL permutation; missing history and reindexing remain
+  validity zero rather than using current matrices on prior pose.
 - Gate 15A: partial through LOG #105. The synthetic
   LOG #70-#71 controls remain green and actual sorted-submission indexing now
   participates in the bounded Soulcalibur normal/OIT capture path.
@@ -520,10 +524,11 @@ ambiguity controls that emit zero confidence and current-color bias for wrong
 history. Gate 7 is green: current-SHA passthrough runs on packages rendered
 under both DX11 renderer labels report byte-identical stage color.
 
-Legacy Gate 5 is green for normal Dreamcast geometry: +4X is exactly `[-4,0]`,
+Legacy Gate 5 is green: normal Dreamcast +4X is exactly `[-4,0]`,
 camera/deformation truth is within the analytic bound, changed-count edge clips
 retain at least 90 percent in the CPU control, topology changes are rejected,
-and particles remain reactive. It is not closed overall because Naomi 2 still
-has only an exact CPU column-major projection test; accepted prior matrices are
-not yet carried through the production HLSL export. That deliberate zero-trust
-fallback remains correct until the missing path is implemented and proven.
+and particles remain reactive. LOG #117 carries accepted prior Naomi 2 model-
+view/projection matrices through the production HLSL export and proves analytic
+`[-4,+3]` motion on native D3D11 and D3D11On12. A missing-history control and
+reindexed geometry remain zero-trust, so legacy Gate 5 is now closed without
+manufacturing correspondence.

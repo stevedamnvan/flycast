@@ -151,9 +151,19 @@ struct ProductionMotionResult {
 	float oversizedY = 0.f;
 	std::uint8_t oversizedMask = 0;
 	std::uint8_t oversizedConfidence = 0;
+	float naomi2X = 0.f;
+	float naomi2Y = 0.f;
+	std::uint8_t naomi2Mask = 0;
+	std::uint8_t naomi2Confidence = 0;
+	float naomi2InvalidX = 0.f;
+	float naomi2InvalidY = 0.f;
+	std::uint8_t naomi2InvalidMask = 0;
+	std::uint8_t naomi2InvalidConfidence = 0;
 	bool analyticTruth = false;
 	bool invalidProtected = false;
 	bool magnitudeProtected = false;
+	bool naomi2AnalyticTruth = false;
+	bool naomi2InvalidProtected = false;
 };
 
 struct ColorContractResult {

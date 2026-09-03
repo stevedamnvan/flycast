@@ -37,7 +37,9 @@ public:
 		deviceContext.reset();
 	}
 
-	void setConstants(const PolyParam& pp, u32 polyNumber, const rend_context& ctx);
+	void setConstants(const PolyParam& pp, u32 polyNumber, const rend_context& ctx,
+		const float *previousMvMatrix = nullptr,
+		const float *previousProjMatrix = nullptr);
 	void setConstants(const float *mvMatrix, const float *projMatrix);
 
 	void resetCache() {
