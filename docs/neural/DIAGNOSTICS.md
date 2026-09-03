@@ -8,7 +8,8 @@ The production capture command is:
 [--profile faithful|enhanced|photoreal] [--style FAMILY]
 [--render-height N] [--feature-path DIR] [--input-replay yes|no]
 [--evidence-frames 0..480] [--evidence-start-frame N]
-[--evidence-mask zero|production] [--timeout-ms N]`
+[--evidence-mask zero|production]
+[--evidence-presentation marker|restored] [--timeout-ms N]`
 
 It launches Flycast with transient command-line configuration, limits a run to
 1 through 240 frames, waits for a completion marker, requests a normal window
@@ -39,8 +40,9 @@ Each production `frame-NNNNNN` directory contains:
 - `metrics.json`: temporal variance, motion reprojection error, reactive-region
   trail energy, silhouette/line measures, color/saturation/black drift, HUD
   mismatch, repeat/drop counts, invalid guidance coverage, and trusted/reactive
-  percentages. GPU timings remain `null` until asynchronous production queries
-  are implemented.
+  percentages plus capture-only GPU spans where available. An exact D3D12
+  evaluation timestamp may remain `null` when its delayed result cannot retire
+  for the captured frame within the bounded developer poll.
 
 Raw game data and user paths are excluded. Normal emulator execution performs
 no capture readback. This synchronous developer-only path is disabled unless an
@@ -62,6 +64,19 @@ with the classic locale. `--evidence-frames` remains synchronous and is valid
 only for the experimental D3D11On12 lane. Its default `--evidence-mask zero`
 preserves the Gate 10 sentinel contract; `production` retains the real resolved
 mask and disocclusion path for an exact quality-capture replay.
+
+`--evidence-presentation marker` is the default and presents Gate 10's sentinel
+unchanged. `restored` snapshots the evaluated output, performs the same marked
+proof and swapchain readback, then restores the unmarked output before final
+sampling. Candidate packages therefore contain zero marker pixels while the ON
+log still proves 1024/1024 marker pixels and completed Present. Both modes are
+synchronous, developer-only, and excluded from performance measurements.
+
+On an experimental policy-OFF run, restored synchronous capture may retain the
+accepted public result solely as `public-dlaa-output.png` for an exact-input
+comparison. It never becomes the presentation view: `final-composited.png`
+must remain byte-identical to the native PVR source. This exception is inactive
+outside an explicit bounded quality capture.
 
 An unmarked external candidate is promoted only by:
 

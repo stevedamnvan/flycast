@@ -892,3 +892,24 @@ consumer cost. The bounded synchronous quality-capture path may request the
 same exact-frame timing, but remains labeled capture-only and ineligible for
 performance claims. Ordinary rendering creates no query resources and performs
 no timing readback.
+
+## D-059: restored evidence presentation enables exact-input temporal review
+
+The synchronous developer evidence path has two explicit presentation modes.
+The default `marker` mode preserves Gate 10 exactly: the 32 by 32 sentinel is
+presented and read back from the D3D11 swapchain. The opt-in `restored` mode
+snapshots the evaluated D3D12 output, performs both unmarked and marked
+readbacks, then restores the unmarked output before D3D11On12 release and final
+sampling. Its log record reports `marker_presentation=restored`; a zero-marker
+final candidate is not accepted without the same five-hash ON proof, marked
+swapchain readback, completed Present, and exact-input policy-OFF control used
+by D-057. This path remains synchronous, developer-only, and performance-
+ineligible.
+
+For exact-input quality comparison only, an experimental policy-OFF capture may
+retain the accepted public D3D12 output through the existing D3D11On12 wrapper
+when quality capture, synchronous evidence, and restored presentation are all
+active. That retained view is written only as `public-dlaa-output.png`; it is
+never assigned to the experimental presentation view. Final composition stays
+native, and its byte identity is required by the capture. Ordinary policy-OFF,
+performance, and presentation paths do not create or retain this reference.
