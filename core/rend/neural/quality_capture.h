@@ -48,6 +48,8 @@ struct QualityCaptureMetadata {
 	std::uint32_t renderHeight = 0;
 	std::uint32_t outputWidth = 0;
 	std::uint32_t outputHeight = 0;
+	std::uint32_t screenWidth = 0;
+	std::uint32_t screenHeight = 0;
 	std::uint32_t drawCount = 0;
 	CorrespondenceStats correspondence{};
 	Rect contentRect{};
@@ -64,6 +66,7 @@ struct QualityCaptureMetadata {
 	int neuralMode = 0;
 	int dlssPreset = 0;
 	int overlayPolicy = 0;
+	OverlayProfile overlayProfile = OverlayProfile::None;
 	std::string gameId;
 	std::string submitStatus;
 	std::string profile = "unassigned";

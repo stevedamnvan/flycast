@@ -252,12 +252,44 @@ int RunSelfTests()
 		physical.list = 0;
 		DrawRecord perspective = hud;
 		perspective.zMax += .02f;
+		DrawRecord earlySingle = hud;
+		earlySingle.ordinal = 0;
+		DrawRecord earlyBatch = earlySingle;
+		earlyBatch.screenAlignedPrimitiveCount = 2;
 		suite.Expect(!IsHighConfidenceOverlay(interior, 20, 320, 240, 3, 4)
 			&& !IsHighConfidenceOverlay(physical, 20, 320, 240, 3, 4)
 			&& !IsHighConfidenceOverlay(perspective, 20, 320, 240, 3, 4)
 			&& !IsHighConfidenceOverlay(hud, 20, 320, 240, 2, 4)
-			&& !IsHighConfidenceOverlay(hud, 20, 320, 240, 3, 1),
-			"interior world, opaque, perspective, unstable, and unique-texture controls stay world geometry");
+			&& !IsHighConfidenceOverlay(hud, 20, 320, 240, 3, 1)
+			&& !IsHighConfidenceOverlay(earlySingle, 20, 320, 240, 3, 4)
+			&& IsHighConfidenceOverlay(earlyBatch, 20, 320, 240, 3, 4),
+			"world negatives and early single quads fail while a stable proven edge batch need not be late");
+		DrawRecord soulcaliburBar = earlySingle;
+		soulcaliburBar.list = 2;
+		soulcaliburBar.ordinal = 18;
+		soulcaliburBar.bboxMin[0] = 20; soulcaliburBar.bboxMin[1] = 37;
+		soulcaliburBar.bboxMax[0] = 272; soulcaliburBar.bboxMax[1] = 65;
+		soulcaliburBar.zMin = soulcaliburBar.zMax = .198f;
+		DrawRecord soulcaliburCounter = soulcaliburBar;
+		soulcaliburCounter.bboxMin[0] = 236; soulcaliburCounter.bboxMin[1] = 66;
+		soulcaliburCounter.bboxMax[0] = 276; soulcaliburCounter.bboxMax[1] = 86;
+		DrawRecord layeredName = soulcaliburCounter;
+		layeredName.screenAlignedPrimitiveCount = 2;
+		layeredName.bboxMin[0] = 26; layeredName.bboxMax[0] = 97;
+		layeredName.zMin = .178f; layeredName.zMax = .198f;
+		DrawRecord worldControl = soulcaliburBar;
+		worldControl.bboxMin[1] = 140; worldControl.bboxMax[1] = 168;
+		suite.Expect(IsTitleSpecificOverlay(soulcaliburBar, 20, 640, 480, 3,
+				OverlayProfile::SoulcaliburT1401nHudV1)
+			&& IsTitleSpecificOverlay(soulcaliburCounter, 20, 640, 480, 3,
+				OverlayProfile::SoulcaliburT1401nHudV1)
+			&& IsTitleSpecificOverlay(layeredName, 20, 640, 480, 3,
+				OverlayProfile::SoulcaliburT1401nHudV1)
+			&& !IsTitleSpecificOverlay(worldControl, 20, 640, 480, 3,
+				OverlayProfile::SoulcaliburT1401nHudV1)
+			&& !IsTitleSpecificOverlay(soulcaliburBar, 20, 640, 480, 3,
+				OverlayProfile::None),
+			"Soulcalibur profile admits captured top HUD controls without weakening the generic world negative");
 	}
 	{
 		DrawRecord menu[4]{};
@@ -377,6 +409,180 @@ int RunSelfTests()
 			&& instrumentation->IsOverlayOrdinal(1)
 			&& !instrumentation->IsOverlayOrdinal(2),
 			"accepted-frame overlay classifier protects stable HUD quads and rejects moving world control");
+	}
+	{
+		// A real renderer may merge many HUD quads into one indexed strip batch.
+		// UV/topology churn is permitted, but every strip must independently prove
+		// an axis-aligned rectangle and the draw must remain stationary.
+		rend_context context{};
+		context.globClip = {640, 480};
+		context.framebufferWidth = 1920;
+		context.framebufferHeight = 1440;
+		context.verts.resize(24);
+		auto quad = [&](int base, float left, float top, float right, float bottom) {
+			const float xy[4][2] = {{left,top},{left,bottom},{right,top},{right,bottom}};
+			for (int i = 0; i < 4; ++i)
+			{
+				auto& v = context.verts[base + i];
+				v.x = xy[i][0]; v.y = xy[i][1]; v.z = .5f;
+				v.u = i >= 2 ? 1.f : 0.f; v.v = i & 1 ? 1.f : 0.f;
+			}
+		};
+		quad(0, 20, 37, 90, 65);
+		quad(4, 91, 37, 180, 65);
+		quad(8, 181, 37, 272, 65);
+		quad(12, 4, 110, 48, 150);
+		context.verts[15].x += 3.f; // deliberate skewed negative
+		quad(16, 120, 160, 160, 180);
+		quad(20, 161, 160, 201, 180);
+		context.idx = {0,1,2,3,~u32{0},4,5,6,7,~u32{0},8,9,10,11,
+			12,13,14,15, 16,17,18,19,~u32{0},20,21,22,23};
+		for (const auto range : {std::pair<u32,u32>{0,14}, {14,4}, {18,9}})
+		{
+			PolyParam poly{}; poly.init(); poly.first = range.first; poly.count = range.second;
+			poly.tcw.full = 71; context.global_param_tr.push_back(poly);
+		}
+		RenderPass pass{}; pass.tr_count = 3; context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		for (int frameIndex = 0; frameIndex < 3; ++frameIndex)
+		{
+			for (int i = 0; i < 12; ++i) context.verts[i].u += .03125f;
+			if (frameIndex == 1)
+			{
+				std::swap(context.idx[0], context.idx[2]);
+				std::swap(context.idx[5], context.idx[7]);
+			}
+			const auto& frame = instrumentation->CaptureGeometry(context, {}, {}, 1920, 1440,
+				1920, 1440, {0,0,1920,1440}, {});
+			instrumentation->MarkEvaluated(frame.frameId);
+		}
+		const auto diagnostics = instrumentation->CaptureOverlayDiagnostics();
+		suite.Expect(instrumentation->OverlayDrawCount() == 1
+			&& instrumentation->IsOverlayOrdinal(0)
+			&& !instrumentation->IsOverlayOrdinal(1)
+			&& !instrumentation->IsOverlayOrdinal(2),
+			"merged HUD strips survive UV/topology churn while skewed and interior controls fail");
+		suite.Expect(diagnostics.size() == 3
+			&& diagnostics[0].draw.screenAlignedPrimitiveCount == 3
+			&& diagnostics[0].textureUseCount == 3
+			&& diagnostics[1].draw.screenAlignedPrimitiveCount == 0
+			&& diagnostics[2].draw.screenAlignedPrimitiveCount == 2,
+			"quad-batch evidence counts proven rectangles without degenerate texture inflation");
+		const auto& frame = instrumentation->CaptureGeometry(context, {}, {}, 1920, 1440,
+			1920, 1440, {0,0,1920,1440}, {});
+		suite.Expect(frame.screenWidth == 640 && frame.screenHeight == 480,
+			"overlay anchoring uses native PVR coordinates under target-matched raster scaling");
+		instrumentation->SetOverlayGameId("T1401N");
+		for (int i = 12; i < 16; ++i) context.verts[i].y -= 80.f;
+		for (int frameIndex = 0; frameIndex < 3; ++frameIndex)
+		{
+			for (int i = 12; i < 16; ++i) context.verts[i].u += .0625f;
+			std::swap(context.idx[14], context.idx[16]);
+			const auto& titleFrame = instrumentation->CaptureGeometry(context, {}, {}, 1920, 1440,
+				1920, 1440, {0,0,1920,1440}, {});
+			instrumentation->MarkEvaluated(titleFrame.frameId);
+		}
+		suite.Expect(instrumentation->IsOverlayOrdinal(1),
+			"Soulcalibur profile continuity retains a captured top-HUD batch across UV/topology churn");
+	}
+	{
+		// Normal sorted translucency submits each Soulcalibur character name as
+		// two coincident quads at distinct depths. The exact title profile pairs
+		// this bounded duplicate bucket one-to-one; a changed bucket is rejected.
+		rend_context context{};
+		context.globClip = {640, 480};
+		context.framebufferWidth = 640; context.framebufferHeight = 480;
+		context.verts.resize(12);
+		context.idx = {0,1,2,3, 4,5,6,7, 8,9,10,11};
+		for (int layer = 0; layer < 3; ++layer)
+		{
+			const float xy[4][2] = {{26,62},{26,86},{97,62},{97,86}};
+			for (int i = 0; i < 4; ++i)
+			{
+				auto& vertex = context.verts[layer * 4 + i];
+				vertex.x = xy[i][0]; vertex.y = xy[i][1];
+				vertex.z = .18f + layer * .02f;
+				vertex.u = i >= 2 ? 1.f : 0.f; vertex.v = i & 1 ? 1.f : 0.f;
+			}
+			PolyParam poly{}; poly.init(); poly.first = layer * 4; poly.count = 4;
+			poly.tcw.full = 93; context.global_param_tr.push_back(poly);
+		}
+		context.global_param_tr.resize(2);
+		RenderPass pass{}; pass.tr_count = 2; context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		instrumentation->SetOverlayGameId("T1401N");
+		std::vector<OverlayDrawDiagnostic> accepted;
+		for (int frameIndex = 0; frameIndex < 3; ++frameIndex)
+		{
+			for (int i = 0; i < 8; ++i) context.verts[i].u += .03125f;
+			const auto& frame = instrumentation->CaptureGeometry(context, {}, {}, 640, 480,
+				640, 480, {0,0,640,480}, {});
+			if (frameIndex == 2) accepted = instrumentation->CaptureOverlayDiagnostics();
+			instrumentation->MarkEvaluated(frame.frameId);
+		}
+		const bool duplicateContinuity = instrumentation->OverlayDrawCount() == 2
+			&& instrumentation->IsOverlayOrdinal(0)
+			&& instrumentation->IsOverlayOrdinal(1)
+			&& accepted.size() == 2
+			&& accepted[0].stableAcceptedFrames == 3
+			&& accepted[1].stableAcceptedFrames == 3;
+		suite.Expect(duplicateContinuity,
+			"Soulcalibur duplicate name layers retain one-to-one depth continuity"
+			+ std::string(" (overlays=") + std::to_string(instrumentation->OverlayDrawCount())
+			+ ", stability=" + (accepted.empty() ? std::string("none")
+				: std::to_string(accepted[0].stableAcceptedFrames)) + ")");
+		context.global_param_tr.push_back([&] {
+			PolyParam poly{}; poly.init(); poly.first = 8; poly.count = 4;
+			poly.tcw.full = 93; return poly;
+		}());
+		context.render_passes[0].tr_count = 3;
+		const auto& changedFrame = instrumentation->CaptureGeometry(context, {}, {}, 640, 480,
+			640, 480, {0,0,640,480}, {});
+		instrumentation->MarkEvaluated(changedFrame.frameId);
+		suite.Expect(instrumentation->OverlayDrawCount() == 0,
+			"Soulcalibur duplicate overlay continuity rejects a changed occurrence count");
+	}
+	{
+		// Sorted translucency arrives as triangle lists; accept only complete
+		// two-triangle rectangles, never a repeated single-triangle control.
+		rend_context context{};
+		context.globClip = {640, 480};
+		context.framebufferWidth = 640; context.framebufferHeight = 480;
+		context.verts.resize(12);
+		const float xy[12][2] = {{28,22},{28,38},{120,22},{120,38},
+			{121,22},{121,38},{220,22},{220,38}, {4,4},{4,24},{44,4},{44,24}};
+		for (int i = 0; i < 12; ++i)
+		{
+			context.verts[i].x=xy[i][0]; context.verts[i].y=xy[i][1];
+			context.verts[i].z=.5f; context.verts[i].u=float(i)/12.f;
+		}
+		context.idx = {0,1,2,2,1,3, 4,5,6,6,5,7, 8,9,10,8,9,10};
+		for (int i = 0; i < 2; ++i)
+		{
+			PolyParam poly{}; poly.init(); poly.first = i * 4; poly.count = 4;
+			poly.tcw.full = 85; context.global_param_tr.push_back(poly);
+		}
+		context.sortedTriangles = {{0,0,12},{1,12,6}};
+		RenderPass pass{}; pass.tr_count=2; pass.autosort=true; pass.sorted_tr_count=2;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		for (int frameIndex = 0; frameIndex < 3; ++frameIndex)
+		{
+			for (auto& vertex : context.verts) vertex.u += .015625f;
+			const auto& frame = instrumentation->CaptureGeometry(context, {}, {}, 640, 480,
+				640, 480, {0,0,640,480}, {});
+			instrumentation->MarkEvaluated(frame.frameId);
+		}
+		const auto diagnostics = instrumentation->CaptureOverlayDiagnostics();
+		suite.Expect(diagnostics.size() == 4
+			&& diagnostics[2].draw.screenAlignedPrimitiveCount == 2
+			&& diagnostics[3].draw.screenAlignedPrimitiveCount == 0
+			&& instrumentation->IsOverlayOrdinal(2)
+			&& !instrumentation->IsOverlayOrdinal(3),
+			"sorted quad batches classify while an incomplete triangle-pair control fails");
 	}
 	{
 		// Sorted translucent PolyParam.first still addresses vertices. Only the

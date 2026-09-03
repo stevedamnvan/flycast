@@ -79,6 +79,10 @@ bool IsSceneCut(std::uint64_t matchedArea, std::uint64_t totalArea,
 bool IsHighConfidenceOverlay(const DrawRecord& draw, std::size_t drawCount,
 	std::uint32_t renderWidth, std::uint32_t renderHeight,
 	std::uint8_t stableAcceptedFrames, std::uint16_t textureUseCount) noexcept;
+bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
+	std::uint32_t screenWidth, std::uint32_t screenHeight,
+	std::uint8_t stableAcceptedFrames, OverlayProfile profile) noexcept;
+const char *OverlayProfileName(OverlayProfile profile) noexcept;
 bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,
 	std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept;
 bool UpdateConservativeBypass(bool candidate, bool active,

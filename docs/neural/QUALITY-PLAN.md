@@ -133,8 +133,9 @@ close a temporal or title-quality gate.
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
   Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gate 15A: partial after the LOG #104 real-game correction. The synthetic
-  LOG #70-#71 controls remain green but did not cover sorted submission indexing.
+- Gate 15A: partial through LOG #105. The synthetic
+  LOG #70-#71 controls remain green and actual sorted-submission indexing now
+  participates in the bounded Soulcalibur normal/OIT capture path.
   Normal DX11 translucent lists replay only into
   current-color bias with depth disabled. The OIT final visible fragment stack
   emits separate R8 reactive coverage, merged without creating depth or trusted
@@ -144,20 +145,23 @@ close a temporal or title-quality gate.
   depth path and framebuffer-direct rendering retains native fallback. LOG #71
   records and corrects an RT1-versus-`SV_Target0` merge-slot bug and adds a
   direct base-mask-union regression on both surfaces.
-- Gate 15B: partial after LOG #104. The LOG #71 synthetic production-composite
-  mechanism remains green, but complete real-game HUD classification is not
-  proven. Protected pixels are restored from original PVR color
+- Gate 15B: partial through LOG #105. The LOG #71 synthetic production-composite
+  mechanism remains green. Protected pixels are restored from original PVR color
   after neural scene presentation but before Flycast OSD/ImGui; the exact GPU
   fixture restores 33/33 pixels byte-for-byte and changes 0 unclassified
   pixels on native D3D11 and D3D11On12. Strict world-geometry negatives, a
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
-  The earlier Soulcalibur zero-mismatch reports had zero protected pixels;
-  they did not prove HUD coverage. The sorted-index correction now protects
-  some name pixels, while batched text, bars, repeated draws, and scale-aware
-  classification still require their own captured validation. This does not
-  reopen the separate Gate 10 transport/provenance result.
+  The earlier Soulcalibur zero-mismatch reports had zero protected pixels and
+  did not prove HUD coverage. LOG #105 closes that named bounded defect with
+  topology-proven batches, PVR-native coordinate classification, and an exact
+  `T1401N` profile: 30 moving normal-DX11 and 30 moving-OIT frames protect text,
+  bars, timer, counters, and both character names with zero byte mismatches and
+  zero mask pixels at or below y=100. Native D3D11 and D3D11On12 short-sequence
+  buffers are exact per renderer. Gate 15B remains partial until representative
+  titles and uncertain-overlay controls establish that profiles neither miss
+  other HUDs nor remove world geometry. This does not reopen Gate 10.
 - Gate 16: partial through LOG #103. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane

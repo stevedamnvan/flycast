@@ -422,10 +422,12 @@ unprotected output byte to equal the neural scene, and the deliberately omitted
 composite to mismatch every protected pixel.
 
 That synthetic compositor result is not real-game classifier coverage. Bounded
-captures now include `overlay-draws.json` with PVR-native-screen bounds,
-resource generations, structural signatures, accepted-frame stability,
-texture-use counts, and classification for every captured draw. For sorted
-translucency the original PolyParam slots are empty placeholders; actual
+captures now include schema-2 `overlay-draws.json` with `screen_size`, the active
+`overlay_profile`, PVR-native-screen bounds, resource generations, structural
+signatures, accepted-frame stability, texture-use counts, topology-proven
+`screen_aligned_primitive_count`, and classification for every captured draw.
+`manifest.json` separately records `pvr_screen_size` and `overlay_profile`.
+For sorted translucency the original PolyParam slots are empty placeholders; actual
 SortedTriangle submissions follow all three original list ranges, in sorted
 submission order, with flag 64 (triangle list). Their motion is always reactive.
 The live replay uses those same triangle ranges; it must never reinterpret
@@ -440,6 +442,14 @@ It proves only those selected pixels, not complete HUD coverage or correct
 classification. The initial diagnostic-before and sorted-fix-on12 development
 captures used the older provisional name `hud_preservation_verified` for this
 same limited check. Historical zero mismatches with an empty mask are vacuous.
+
+The exact game ID `T1401N` selects `soulcalibur-t1401n-hud-v1`. It does not
+write an external consumer configuration. The profile is restricted to late,
+bounded, stable translucent geometry wholly inside the top fifth of the native
+PVR screen. Generic single quads retain exact UV/topology continuity. Proven
+quad batches may tolerate atlas churn, while a bounded duplicate name-plate
+bucket is paired one-to-one by depth; a changed or oversized bucket resets to
+untrusted. Every active profile is visible in runtime notices and captures.
 
 `NeuralOverlayPolicy` is stored through Flycast's existing per-game option
 system: 0 is the strict automatic classifier, 1 restores the complete PVR frame

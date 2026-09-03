@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "quality_capture.h"
+#include "motion_reference.h"
 #include "version.h"
 
 #include <stb/stb_image_write.h>
@@ -663,8 +664,11 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 
 	std::ofstream overlayDraws(frameRoot / "overlay-draws.json");
 	overlayDraws.imbue(std::locale::classic());
-	overlayDraws << "{\n  \"schema\": 1,\n  \"frame_id\": " << metadata.frameId
-		<< ",\n  \"coordinate_space\": \"PVR-native-screen\",\n  \"draws\": [";
+	overlayDraws << "{\n  \"schema\": 2,\n  \"frame_id\": " << metadata.frameId
+		<< ",\n  \"coordinate_space\": \"PVR-native-screen\""
+		<< ",\n  \"screen_size\": [" << metadata.screenWidth << ',' << metadata.screenHeight << ']'
+		<< ",\n  \"overlay_profile\": \"" << OverlayProfileName(metadata.overlayProfile) << "\""
+		<< ",\n  \"draws\": [";
 	bool firstOverlayDraw = true;
 	for (const auto& evidence : metadata.overlayDraws)
 	{
@@ -680,6 +684,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 			<< ",\"state_signature\":" << draw.stateSig << ",\"uv_signature\":" << draw.uvSig
 			<< ",\"topology_signature\":" << draw.topologySig
 			<< ",\"vertex_count\":" << draw.vertexCount << ",\"index_count\":" << draw.indexCount
+			<< ",\"screen_aligned_primitive_count\":" << draw.screenAlignedPrimitiveCount
 			<< ",\"bbox\":[" << draw.bboxMin[0] << ',' << draw.bboxMin[1] << ','
 			<< draw.bboxMax[0] << ',' << draw.bboxMax[1] << ']'
 			<< ",\"depth_range\":[";
@@ -777,6 +782,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< "\n  }"
 		<< ",\n  \"render_size\": [" << metadata.renderWidth << ", " << metadata.renderHeight << "]"
 		<< ",\n  \"output_size\": [" << metadata.outputWidth << ", " << metadata.outputHeight << "]"
+		<< ",\n  \"pvr_screen_size\": [" << metadata.screenWidth << ", " << metadata.screenHeight << "]"
 		<< ",\n  \"content_rect\": [" << metadata.contentRect.x << ", " << metadata.contentRect.y
 		<< ", " << metadata.contentRect.width << ", " << metadata.contentRect.height << "]"
 		<< ",\n  \"api\": \"" << (metadata.d3d11On12 ? "d3d11on12" : "d3d11") << "\""
@@ -784,6 +790,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"neural_mode\": " << metadata.neuralMode
 		<< ",\n  \"public_dlss_preset\": " << metadata.dlssPreset
 		<< ",\n  \"overlay_policy\": " << metadata.overlayPolicy
+		<< ",\n  \"overlay_profile\": \"" << OverlayProfileName(metadata.overlayProfile) << "\""
 		<< ",\n  \"profile\": \"" << Json(metadata.profile) << "\""
 		<< ",\n  \"external_settings\": \"" << Json(metadata.externalRecommendation) << "\""
 		<< ",\n  \"evaluation_accepted\": " << (metadata.evaluationAccepted ? "true" : "false")

@@ -182,6 +182,7 @@ std::uint64_t DrawSignature(const DrawRecord& d) noexcept
 	HashValue(hash, d.textureGeneration); HashValue(hash, d.paletteGeneration);
 	HashValue(hash, d.rttGeneration); HashValue(hash, d.firstVertex); HashValue(hash, d.vertexCount);
 	HashValue(hash, d.firstIndex); HashValue(hash, d.indexCount); HashValue(hash, d.stripCount);
+	HashValue(hash, d.screenAlignedPrimitiveCount);
 	HashValue(hash, d.uvSig); HashValue(hash, d.topologySig); HashValue(hash, d.ordinal);
 	HashValue(hash, d.blend); HashValue(hash, d.flags);
 	HashValue(hash, FloatBits(d.zMin)); HashValue(hash, FloatBits(d.zMax));
@@ -199,6 +200,7 @@ std::uint64_t DrawStructuralSignature(const DrawRecord& d) noexcept
 	HashValue(hash, d.list); HashValue(hash, d.pass); HashValue(hash, d.stateSig);
 	HashValue(hash, d.texId); HashValue(hash, d.texId2);
 	HashValue(hash, d.vertexCount); HashValue(hash, d.indexCount); HashValue(hash, d.stripCount);
+	HashValue(hash, d.screenAlignedPrimitiveCount);
 	HashValue(hash, d.uvSig); HashValue(hash, d.topologySig);
 	HashValue(hash, d.blend); HashValue(hash, d.flags);
 	return hash;
@@ -239,7 +241,47 @@ bool IsHighConfidenceOverlay(const DrawRecord& draw, std::size_t drawCount,
 		|| bottom >= static_cast<int>(renderHeight) - edgeY;
 	const std::size_t lateWindow = std::max<std::size_t>(4, drawCount / 8);
 	const bool late = static_cast<std::size_t>(draw.ordinal) + lateWindow >= drawCount;
-	return edgeAnchored && late;
+	const bool provenBatch = draw.screenAlignedPrimitiveCount >= 2;
+	return edgeAnchored && (late || provenBatch);
+}
+
+const char *OverlayProfileName(OverlayProfile profile) noexcept
+{
+	switch (profile)
+	{
+	case OverlayProfile::SoulcaliburT1401nHudV1: return "soulcalibur-t1401n-hud-v1";
+	default: return "none";
+	}
+}
+
+bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
+	std::uint32_t screenWidth, std::uint32_t screenHeight,
+	std::uint8_t stableAcceptedFrames, OverlayProfile profile) noexcept
+{
+	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || drawCount == 0
+		|| screenWidth == 0 || screenHeight == 0 || stableAcceptedFrames < 3
+		|| draw.list != 2 || draw.indexCount == 0
+		|| (draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) != 0)
+		return false;
+	const int left = draw.bboxMin[0];
+	const int top = draw.bboxMin[1];
+	const int right = draw.bboxMax[0];
+	const int bottom = draw.bboxMax[1];
+	const int width = right - left;
+	const int height = bottom - top;
+	if (left < 0 || top < 0 || right > static_cast<int>(screenWidth)
+		|| bottom > static_cast<int>(screenHeight / 5) || width <= 0 || height <= 0)
+		return false;
+	const auto area = static_cast<std::uint64_t>(width) * height;
+	const auto frameArea = static_cast<std::uint64_t>(screenWidth) * screenHeight;
+	if (area > frameArea / 32) return false;
+	const std::size_t lateWindow = std::max<std::size_t>(4, drawCount / 8);
+	if (static_cast<std::size_t>(draw.ordinal) + lateWindow < drawCount) return false;
+	const float depthSpan = std::abs(draw.zMax - draw.zMin);
+	const bool planar = depthSpan <= .002f;
+	const bool boundedLayeredGlyph = draw.screenAlignedPrimitiveCount >= 2
+		&& area <= frameArea / 128 && depthSpan <= .025f;
+	return planar || boundedLayeredGlyph;
 }
 
 bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,

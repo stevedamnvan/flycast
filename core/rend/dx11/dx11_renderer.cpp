@@ -1214,6 +1214,7 @@ void DX11Renderer::submitNeuralFrame()
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)));
 	const auto contentRect = getNeuralContentRect();
+	neuralInstrumentation.SetOverlayGameId(settings.content.gameId);
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
@@ -1269,8 +1270,11 @@ void DX11Renderer::submitNeuralFrame()
 		loggedOverlayGameId = settings.content.gameId;
 		const char *policyName = overlayPolicy == 0 ? "auto-high-confidence"
 			: overlayPolicy == 1 ? "protect-full-frame" : "disabled";
-		NOTICE_LOG(RENDERER, "Neural game overlay policy: game=%s policy=%s per-title=%d",
-			settings.content.gameId.c_str(), policyName, overlayPolicy != 0 ? 1 : 0);
+		NOTICE_LOG(RENDERER,
+			"Neural game overlay policy: game=%s policy=%s profile=%s per-title=%d",
+			settings.content.gameId.c_str(), policyName,
+			OverlayProfileName(capturedFrame.overlayProfile),
+			(overlayPolicy != 0 || capturedFrame.overlayProfile != OverlayProfile::None) ? 1 : 0);
 	}
 	const bool overlayActive = overlayPolicy == 1
 		|| (overlayPolicy == 0 && neuralInstrumentation.OverlayDrawCount() != 0);
@@ -1323,6 +1327,8 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.renderHeight = frame.renderHeight;
 	neuralQualityCaptureMetadata.outputWidth = frame.outputWidth;
 	neuralQualityCaptureMetadata.outputHeight = frame.outputHeight;
+	neuralQualityCaptureMetadata.screenWidth = frame.screenWidth;
+	neuralQualityCaptureMetadata.screenHeight = frame.screenHeight;
 	neuralQualityCaptureMetadata.drawCount = static_cast<std::uint32_t>(frame.draws.size);
 	neuralQualityCaptureMetadata.correspondence = frame.correspondence;
 	neuralQualityCaptureMetadata.contentRect = frame.contentRect;
@@ -1336,6 +1342,7 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.neuralMode = activeNeuralMode;
 	neuralQualityCaptureMetadata.dlssPreset = activeNeuralPreset;
 	neuralQualityCaptureMetadata.overlayPolicy = overlayPolicy;
+	neuralQualityCaptureMetadata.overlayProfile = frame.overlayProfile;
 	neuralQualityCaptureMetadata.gameId = settings.content.gameId;
 	neuralQualityCaptureMetadata.profile = std::string(qualityProfile.name) + " / "
 		+ qualityProfile.styleName;

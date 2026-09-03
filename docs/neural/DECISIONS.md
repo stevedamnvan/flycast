@@ -955,3 +955,27 @@ classification. LOG #104 reopens FC-055 and real-title Gates 15A/15B while
 retaining their narrower synthetic evidence. Keep classifier widening and title
 rules separate from this indexing correction; unchanged original scene/depth
 buffers are a regression control, not a substitute for moving-title validation.
+
+## D-062: overlay proof is topology-first; exact title profiles stay bounded
+
+Screen-aligned classification is primitive evidence, not a loose draw bounding
+box. Indexed strips and sorted triangle lists must decompose into complete pairs
+of nondegenerate triangles whose six submitted vertices prove exactly four
+axis-aligned corners. Primitive restart and degenerate connectors may separate
+valid pairs; an incomplete, skewed, or mixed pair invalidates the batch. Empty
+sorted placeholders do not count as texture use or geometry.
+
+Overlay continuity is separate from motion structural identity. Generic single
+quads retain UV and topology in their continuity signature. A topology-proven
+batch may change atlas UVs or rebuild indices while its PVR-native bounds,
+resource generations, state, and accepted depth remain stable. Large or
+ambiguous occurrence buckets stay untrusted.
+
+The exact Dreamcast game ID `T1401N` selects the visible diagnostic profile
+`soulcalibur-t1401n-hud-v1`. It admits only late, bounded, stable translucent
+draws wholly inside the top fifth of the 640x480 PVR screen. The two coincident
+depth layers used for each name plate form a maximum-four occurrence bucket and
+are paired one-to-one in sorted depth order; changed counts or depth disagreement
+reset protection. This Flycast profile never writes or changes external model
+settings. A named-title capture proves only that title and scene, not the
+representative Gate 17 matrix.

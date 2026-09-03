@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
 #include <vector>
 
 struct rend_context;
@@ -21,6 +22,7 @@ public:
 	void SetEnabled(bool enabled) noexcept;
 	bool IsEnabled() const noexcept { return enabled_; }
 	void Discontinuity() noexcept;
+	void SetOverlayGameId(std::string_view gameId) noexcept;
 	const NeuralFrame& CaptureGeometry(const ::rend_context& context, TextureRef color,
 		TextureRef depth, std::uint32_t renderWidth, std::uint32_t renderHeight,
 		std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect,
@@ -95,6 +97,7 @@ private:
 	bool resetPending_ = true;
 	bool hasCapturedFrame_ = false;
 	bool hasSource_ = false;
+	OverlayProfile overlayProfile_ = OverlayProfile::None;
 	FrameSource lastSource_ = FrameSource::Geometry;
 	NeuralFrame frame_{};
 };

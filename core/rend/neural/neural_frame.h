@@ -42,6 +42,11 @@ enum class FrameSource : std::uint8_t {
 	RenderToTexture,
 };
 
+enum class OverlayProfile : std::uint8_t {
+	None,
+	SoulcaliburT1401nHudV1,
+};
+
 struct DrawRecord {
 	std::uint16_t list = 0;
 	std::uint16_t pass = 0;
@@ -56,6 +61,9 @@ struct DrawRecord {
 	std::uint32_t firstIndex = 0;
 	std::uint32_t indexCount = 0;
 	std::uint16_t stripCount = 0;
+	// Number of independently proven axis-aligned quads in this submission.
+	// Zero means the complete indexed topology did not satisfy the proof.
+	std::uint16_t screenAlignedPrimitiveCount = 0;
 	std::uint32_t uvSig = 0;
 	std::uint32_t topologySig = 0;
 	float centroid[2]{};
@@ -129,6 +137,8 @@ struct NeuralFrame {
 	std::uint32_t renderHeight = 0;
 	std::uint32_t outputWidth = 0;
 	std::uint32_t outputHeight = 0;
+	std::uint32_t screenWidth = 0;
+	std::uint32_t screenHeight = 0;
 	Rect contentRect;
 	float jitterX = 0.f;
 	float jitterY = 0.f;
@@ -141,6 +151,7 @@ struct NeuralFrame {
 	bool sceneCut = false;
 	bool truncated = false;
 	bool predominantly2D = false;
+	OverlayProfile overlayProfile = OverlayProfile::None;
 	FrameSource source = FrameSource::Geometry;
 	ArrayView<DrawRecord> draws;
 	ArrayView<DrawMatch> matches;
