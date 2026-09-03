@@ -50,6 +50,9 @@ struct StageConfig {
 	bool dlss5EvidenceCapture = false;
 	std::uint32_t dlss5EvidenceCaptureFrames = 1;
 	std::uint64_t dlss5EvidenceStartFrame = 0;
+	// A capture-candidate control may restore the evaluated output after the
+	// sentinel readback. The default keeps the Gate 10 marker presentation.
+	bool dlss5EvidencePresentMarker = true;
 	// Optional asynchronous GPU telemetry. Disabled for ordinary rendering and
 	// for synchronous developer evidence capture.
 	bool performanceGpuTiming = false;

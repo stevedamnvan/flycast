@@ -422,9 +422,9 @@ public:
 		evaluate.InMVScaleY = 1.f;
 		evaluate.InPreExposure = 1.f;
 		evaluate.InExposureScale = 1.f;
-		const bool markEvidence = config_.dlss5EvidenceCapture && evidenceMarkerUpload_
+		const bool evidenceActive = config_.dlss5EvidenceCapture && evidenceMarkerUpload_
 			&& frame.frameId >= config_.dlss5EvidenceStartFrame;
-		const bool captureEvidence = markEvidence
+		const bool captureEvidence = evidenceActive
 			&& stats_.evidenceCaptures < config_.dlss5EvidenceCaptureFrames
 			&& stats_.evidenceCaptureFailures == 0
 			&& evidenceInputReadback_ && evidenceDepthReadback_
@@ -483,6 +483,13 @@ public:
 				evidenceMaskReadback_, frame.renderWidth, frame.renderHeight, DXGI_FORMAT_R8_UNORM);
 			CopyTextureToBuffer(list_[slot], output_[slot], evidenceOutputReadback_,
 				config_.outputWidth, config_.outputHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+			if (!config_.dlss5EvidencePresentMarker)
+			{
+				list_[slot]->CopyResource(evidenceRestoreTexture_, output_[slot]);
+				const auto restoreSource = Transition(evidenceRestoreTexture_,
+					D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				list_[slot]->ResourceBarrier(1, &restoreSource);
+			}
 			auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
 				D3D12_RESOURCE_STATE_COPY_DEST);
 			list_[slot]->ResourceBarrier(1, &barrier);
@@ -492,6 +499,16 @@ public:
 			list_[slot]->ResourceBarrier(1, &barrier);
 			CopyTextureToBuffer(list_[slot], output_[slot], evidenceMarkedOutputReadback_,
 				config_.outputWidth, config_.outputHeight, DXGI_FORMAT_R8G8B8A8_UNORM);
+			if (!config_.dlss5EvidencePresentMarker)
+			{
+				barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
+					D3D12_RESOURCE_STATE_COPY_DEST);
+				list_[slot]->ResourceBarrier(1, &barrier);
+				list_[slot]->CopyResource(output_[slot], evidenceRestoreTexture_);
+				const auto restoreDestination = Transition(evidenceRestoreTexture_,
+					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+				list_[slot]->ResourceBarrier(1, &restoreDestination);
+			}
 			D3D12_RESOURCE_BARRIER restore[] = {
 				Transition(static_cast<ID3D12Resource *>(frame.color.resource),
 					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
@@ -501,13 +518,14 @@ public:
 					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 				Transition(static_cast<ID3D12Resource *>(frame.mask.resource),
 					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
-				Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
+				Transition(output_[slot], config_.dlss5EvidencePresentMarker
+					? D3D12_RESOURCE_STATE_COPY_SOURCE : D3D12_RESOURCE_STATE_COPY_DEST,
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 						| D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
 			};
 			list_[slot]->ResourceBarrier(static_cast<UINT>(std::size(restore)), restore);
 		}
-		else if (markEvidence)
+		else if (evidenceActive && config_.dlss5EvidencePresentMarker)
 		{
 			auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 				D3D12_RESOURCE_STATE_COPY_DEST);
@@ -603,6 +621,7 @@ public:
 		result.liveResourceObjects += evidenceOutputReadback_ ? 1u : 0u;
 		result.liveResourceObjects += evidenceMarkedOutputReadback_ ? 1u : 0u;
 		result.liveResourceObjects += evidenceMarkerUpload_ ? 1u : 0u;
+		result.liveResourceObjects += evidenceRestoreTexture_ ? 1u : 0u;
 		return result;
 	}
 	TextureRef GetOutput() const noexcept override
@@ -646,6 +665,7 @@ public:
 		evidenceOutputReadback_.reset();
 		evidenceMarkedOutputReadback_.reset();
 		evidenceMarkerUpload_.reset();
+		evidenceRestoreTexture_.reset();
 		fence_.reset();
 		queue_ = nullptr;
 		device_ = nullptr;
@@ -870,6 +890,17 @@ private:
 			* config_.outputHeight;
 		const std::uint64_t markerBytes = static_cast<std::uint64_t>(EvidenceRowAlignment)
 			* EvidenceMarkerHeight;
+		D3D12_HEAP_PROPERTIES defaultHeap{};
+		defaultHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
+		D3D12_RESOURCE_DESC restoreDesc{};
+		restoreDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		restoreDesc.Width = config_.outputWidth;
+		restoreDesc.Height = config_.outputHeight;
+		restoreDesc.DepthOrArraySize = 1;
+		restoreDesc.MipLevels = 1;
+		restoreDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		restoreDesc.SampleDesc.Count = 1;
+		restoreDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		if (!CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
 			D3D12_RESOURCE_STATE_COPY_DEST, evidenceInputReadback_)
 			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
@@ -883,7 +914,11 @@ private:
 			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
 				D3D12_RESOURCE_STATE_COPY_DEST, evidenceMarkedOutputReadback_)
 			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_UPLOAD, markerBytes,
-				D3D12_RESOURCE_STATE_GENERIC_READ, evidenceMarkerUpload_))
+				D3D12_RESOURCE_STATE_GENERIC_READ, evidenceMarkerUpload_)
+			|| FAILED(device_->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE,
+				&restoreDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+				__uuidof(ID3D12Resource),
+				reinterpret_cast<void **>(&evidenceRestoreTexture_.get()))))
 			return false;
 		D3D12_RANGE noRead{0, 0};
 		void *mapped = nullptr;
@@ -1023,6 +1058,7 @@ private:
 	ComPtr<ID3D12Resource> evidenceOutputReadback_;
 	ComPtr<ID3D12Resource> evidenceMarkedOutputReadback_;
 	ComPtr<ID3D12Resource> evidenceMarkerUpload_;
+	ComPtr<ID3D12Resource> evidenceRestoreTexture_;
 	std::uint32_t evidenceRowPitch_ = 0;
 	std::uint64_t nextFence_ = 1;
 	std::size_t outputSlot_ = 0;

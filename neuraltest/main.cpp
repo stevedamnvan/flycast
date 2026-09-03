@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
@@ -455,6 +455,7 @@ int CaptureCommand(const Args& args)
 	const auto profile = Value(args, "--profile", "faithful");
 	const auto style = Value(args, "--style", "auto");
 	const auto evidenceMask = Value(args, "--evidence-mask", "zero");
+	const auto evidencePresentation = Value(args, "--evidence-presentation", "marker");
 	const auto inputReplay = Value(args, "--input-replay", "no");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
@@ -474,6 +475,16 @@ int CaptureCommand(const Args& args)
 	if (evidenceMask != "zero" && evidenceMask != "production")
 	{
 		std::cerr << "--evidence-mask must be zero or production\n";
+		return 2;
+	}
+	if (evidencePresentation != "marker" && evidencePresentation != "restored")
+	{
+		std::cerr << "--evidence-presentation must be marker or restored\n";
+		return 2;
+	}
+	if (evidenceFrames == 0 && evidencePresentation != "marker")
+	{
+		std::cerr << "restored evidence presentation requires --evidence-frames\n";
 		return 2;
 	}
 	if (inputReplay != "yes" && inputReplay != "no")
@@ -622,6 +633,8 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralDlss5EvidenceStartFrame=" + std::to_wstring(evidenceStartFrame)
 		+ L",config:rend.NeuralDlss5EvidencePreserveMask="
 		+ (evidenceFrames != 0 && evidenceMask == "production" ? L"yes" : L"no")
+		+ L",config:rend.NeuralDlss5EvidencePresentMarker="
+		+ (evidencePresentation == "marker" ? L"yes" : L"no")
 		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
 		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
 		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
@@ -708,6 +721,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"evidence_frames\": " << evidenceFrames
 		<< ",\n  \"evidence_start_frame\": " << evidenceStartFrame
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
+		<< ",\n  \"evidence_presentation\": \"" << evidencePresentation << "\""
 		<< ",\n  \"input_replay_requested\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""
