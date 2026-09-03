@@ -103,15 +103,20 @@ close a temporal or title-quality gate.
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
   Content-rectangle examples and odd-size centering are exact. Black-border
   exclusion still depends on the production target-resolution work in FC-053.
-- Gate 13/Q2 correspondence: partial at LOG #64 and #67. Structural identity is
-  pose-independent, texture/palette/RTT generations are explicit, repeated
-  small buckets use minimum-cost assignment, and large buckets are ambiguous.
-  Previous-position rasterization is now live for exact topology; full
-  confidence/disocclusion evidence remains open, so Gate 13 is not yet green.
-- FC-032 previous-position stream: partial at LOG #66 and #67. The bounded CPU stream
-  is owned by last accepted history, maps exact topology by strip/index
-  position, supports deformation, and rejects reindex and shared-vertex
-  conflicts. It is bound to a dedicated DX11 input layout and drives the normal
-  and OIT guidance replay. Naomi 2 transform history is still required and is
+- Gate 13/Q2 correspondence: green at LOG #68 for normal Dreamcast geometry.
+  Structural identity is pose-independent; exact and compatible repeated
+  buckets use minimum-cost one-to-one assignment with best/second cost;
+  texture/palette/RTT revisions, large/reactive particle buckets, rejected
+  reindex fits, shared-vertex conflicts, excessive motion, stale accepted
+  history, and scene cuts cannot produce trusted production motion. Rigid
+  reindex fits are bounded by scale and 0.25-pixel RMS residual. Naomi 2 remains
+  deliberately invalid pending accepted matrix history and does not weaken the
+  normal Dreamcast gate. Pixel disocclusion remains Gate 14.
+- FC-032 previous-position stream: partial at LOG #66-#68. The bounded CPU
+  stream is owned by last accepted history, maps exact topology by strip/index
+  position, supports deformation, accepts only bounded rigid reindex fits, and
+  rejects non-rigid residuals and shared-vertex conflicts. It is bound to a
+  dedicated DX11 input layout and drives the normal and OIT guidance replay.
+  Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gates 13 through 18: pending.
+- Gate 14 through Gate 18: pending.

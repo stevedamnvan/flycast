@@ -58,17 +58,27 @@ geometry or temporal input views. RTT passes produce no stage submission.
 Each captured draw separates structural topology and UV identity from pose
 (centroid, bounds, and depth range). Texture TCW identity is accompanied by
 decoded-content, palette-content, and rendered-texture generations. Small
-repeated structural buckets record deterministic minimum-cost assignment plus
-best/second-best costs; buckets above eight are reported as ambiguous with zero
-confidence instead of receiving manufactured motion.
+repeated exact and topology-compatible buckets record deterministic minimum-cost
+assignment plus best/second-best costs; buckets above eight are reported as
+ambiguous with zero confidence instead of receiving manufactured motion. Match
+diagnostics also retain similarity-fit residual, accepted-history age,
+skipped-frame count, and scene-cut state.
 
 Exact-topology matches also build a bounded per-current-vertex previous-position
 stream from the last stage-accepted geometry snapshot. Each element stores XYZ
 and an explicit validity bit. Mapping follows index position, including repeated
-strip indices; topology changes, Naomi 2 until transform history is implemented,
+strip indices. Reindexed geometry is accepted only through a similarity fit with
+at most 0.25 render-pixel RMS residual and bounded scale; deformation above that
+threshold remains invalid. Naomi 2 until transform history is implemented,
 out-of-range indices, reset/truncation, and conflicting mappings of one current
 vertex remain invalid. The history caps are 1,048,576 vertices and indices;
 overflow resets history rather than allocating without bound.
+
+History age advances from the last successfully accepted frame. Confidence is
+attenuated for one and two skipped evaluations and rejected after three. An
+unmatched-area scene cut invalidates the complete previous-position stream and
+sets an explicit reset. These CPU diagnostics are not yet Gate 14: current depth
+has not yet been reprojected against the accepted depth/draw-ID surfaces.
 
 The dedicated neural input layout drives both normal DX11 and the base guidance
 replay used after an OIT scene resolve. Current and previous unjittered screen

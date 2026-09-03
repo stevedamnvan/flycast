@@ -293,18 +293,72 @@ void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> curren
 			MarkPreviousOrdinalUsed(consumed, prior.ordinal);
 		}
 	}
+	std::array<std::uint8_t, 8192> structuralBucketed{};
 	for (std::size_t ci = 0; ci < count; ++ci)
 	{
-		if (matches[ci].confidence != 0.f || matches[ci].reason != 0)
-			continue;
-		for (std::size_t pi = 0; pi < previous.size; ++pi)
-			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal) &&
-				StructurallyCompatible(previous.data[pi], current.data[ci]))
+		if (matches[ci].confidence != 0.f || matches[ci].reason != 0
+			|| structuralBucketed[ci]) continue;
+		std::size_t currentIndices[AssignmentLimit]{};
+		std::size_t previousIndices[AssignmentLimit]{};
+		std::size_t currentCount = 0;
+		std::size_t previousCount = 0;
+		bool oversized = false;
+		for (std::size_t cj = ci; cj < count; ++cj)
+			if (matches[cj].confidence == 0.f && matches[cj].reason == 0
+				&& StructurallyCompatible(current.data[cj], current.data[ci]))
 			{
-				matches[ci] = MakeMatch(previous.data[pi], .8f, 2, MatchReason::Structural);
-				MarkPreviousOrdinalUsed(consumed, previous.data[pi].ordinal);
-				break;
+				structuralBucketed[cj] = 1;
+				if (currentCount < AssignmentLimit) currentIndices[currentCount++] = cj;
+				else oversized = true;
 			}
+		for (std::size_t pi = 0; pi < previous.size; ++pi)
+			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal)
+				&& StructurallyCompatible(previous.data[pi], current.data[ci]))
+			{
+				if (previousCount < AssignmentLimit) previousIndices[previousCount++] = pi;
+				else oversized = true;
+			}
+		if (oversized)
+		{
+			for (std::size_t row = 0; row < currentCount; ++row)
+				matches[currentIndices[row]].reason = static_cast<std::uint8_t>(
+					MatchReason::Ambiguous);
+			continue;
+		}
+		if (currentCount == 0 || previousCount == 0) continue;
+		float costs[AssignmentLimit][AssignmentLimit]{};
+		for (std::size_t row = 0; row < currentCount; ++row)
+			for (std::size_t column = 0; column < previousCount; ++column)
+			{
+				const auto& prior = previous.data[previousIndices[column]];
+				const auto& candidate = current.data[currentIndices[row]];
+				costs[row][column] = AssignmentCost(prior, candidate)
+					+ std::abs(static_cast<int>(prior.vertexCount)
+						- static_cast<int>(candidate.vertexCount)) * .02f
+					+ std::abs(static_cast<int>(prior.indexCount)
+						- static_cast<int>(candidate.indexCount)) * .01f;
+			}
+		std::int8_t assignment[AssignmentLimit]{};
+		MinimumCostAssignment(costs, currentCount, previousCount, assignment);
+		for (std::size_t row = 0; row < currentCount; ++row)
+		{
+			if (assignment[row] < 0) continue;
+			const auto column = static_cast<std::size_t>(assignment[row]);
+			const float assignedCost = costs[row][column];
+			if (assignedCost >= 1024.f) continue;
+			const auto& prior = previous.data[previousIndices[column]];
+			float second = std::numeric_limits<float>::infinity();
+			for (std::size_t other = 0; other < previousCount; ++other)
+				if (other != column && costs[row][other] < second) second = costs[row][other];
+			const float confidence = std::clamp(.8f - assignedCost * .02f -
+				(std::isfinite(second) ? std::max(0.f, 1.f - (second - assignedCost)) * .2f : 0.f),
+				.5f, .8f);
+			matches[currentIndices[row]] = MakeMatch(prior, confidence, 2,
+				MatchReason::Structural);
+			matches[currentIndices[row]].bestCost = assignedCost;
+			matches[currentIndices[row]].secondBestCost = second;
+			MarkPreviousOrdinalUsed(consumed, prior.ordinal);
+		}
 	}
 	for (std::size_t ci = 0; ci < count; ++ci)
 	{

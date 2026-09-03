@@ -195,8 +195,86 @@ void NeuralInstrumentation::SetEnabled(bool enabled) noexcept
 		referenceBuffer_ = 0;
 		currentBuffer_ = 1;
 		hasCapturedFrame_ = false;
+		hasAcceptedFrame_ = false;
+		historyAge_ = 0;
+		skippedFrameCount_ = 0;
+		sceneCut_ = false;
 		hasSource_ = false;
 		frame_ = {};
+	}
+}
+
+void NeuralInstrumentation::FinalizeConfidence() noexcept
+{
+	historyAge_ = hasAcceptedFrame_ ? static_cast<std::uint32_t>(std::min<std::uint64_t>(
+		frameId_ - lastAcceptedFrameId_, std::numeric_limits<std::uint32_t>::max())) : 0;
+	skippedFrameCount_ = historyAge_ > 0 ? historyAge_ - 1 : 0;
+	sceneCut_ = false;
+	if (resetPending_ || truncated_ || drawCounts_[referenceBuffer_] == 0)
+		return;
+	std::uint64_t matchedArea = 0;
+	std::uint64_t totalArea = 0;
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+	{
+		const auto& draw = drawBuffers_[currentBuffer_][i];
+		const auto width = std::max(0, static_cast<int>(draw.bboxMax[0]) - draw.bboxMin[0]);
+		const auto height = std::max(0, static_cast<int>(draw.bboxMax[1]) - draw.bboxMin[1]);
+		const auto area = static_cast<std::uint64_t>(width) * height;
+		totalArea += area;
+		if (matchBuffer_[i].confidence >= .5f) matchedArea += area;
+	}
+	if (IsSceneCut(matchedArea, totalArea))
+	{
+		sceneCut_ = true;
+		Discontinuity();
+		for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+			matchBuffer_[i].confidence = 0.f;
+		for (auto& position : previousPositions_) position.valid = 0.f;
+		trustedPreviousVertexCount_ = 0;
+		return;
+	}
+	const float ageFactor = skippedFrameCount_ == 0 ? 1.f
+		: skippedFrameCount_ == 1 ? .8f
+		: skippedFrameCount_ == 2 ? .6f : 0.f;
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+	{
+		auto& confidence = matchBuffer_[i].confidence;
+		confidence *= ageFactor;
+		if (confidence < .5f) confidence = 0.f;
+	}
+	// BuildPreviousPositions runs before final age/scene evidence is known. Keep
+	// its diagnostic vertex count aligned with what the production shader can
+	// actually trust after that final confidence decision.
+	try
+	{
+		std::vector<std::uint8_t> trusted(previousPositions_.size(), 0);
+		const auto& currentIndices = indexBuffers_[currentBuffer_];
+		for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+		{
+			if (matchBuffer_[i].confidence < .5f) continue;
+			const auto& draw = drawBuffers_[currentBuffer_][i];
+			for (std::uint32_t j = 0; j < draw.indexCount; ++j)
+			{
+				const auto offset = static_cast<std::size_t>(draw.firstIndex) + j;
+				if (offset >= currentIndices.size()) break;
+				const auto vertex = currentIndices[offset];
+				if (vertex < previousPositions_.size()
+					&& previousPositions_[vertex].valid == 1.f) trusted[vertex] = 1;
+			}
+		}
+		trustedPreviousVertexCount_ = 0;
+		for (std::size_t i = 0; i < previousPositions_.size(); ++i)
+		{
+			if (!trusted[i]) previousPositions_[i].valid = 0.f;
+			else ++trustedPreviousVertexCount_;
+		}
+	}
+	catch (...)
+	{
+		for (auto& position : previousPositions_) position.valid = 0.f;
+		trustedPreviousVertexCount_ = 0;
+		for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+			matchBuffer_[i].confidence = 0.f;
 	}
 }
 
@@ -255,34 +333,23 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 	for (std::size_t ci = 0; ci < drawCounts_[currentBuffer_]; ++ci)
 	{
 		const auto& currentDraw = drawBuffers_[currentBuffer_][ci];
-		const auto& match = matchBuffer_[ci];
+		auto& match = matchBuffer_[ci];
 		if (match.tier == 0 || match.confidence < .5f ||
 			(currentDraw.flags & DrawNaomi2) != 0 ||
 			match.prevOrdinal >= drawCounts_[referenceBuffer_])
 			continue;
 		const auto& previousDraw = drawBuffers_[referenceBuffer_][match.prevOrdinal];
-		if (currentDraw.topologySig != previousDraw.topologySig ||
-			currentDraw.indexCount != previousDraw.indexCount)
-			continue;
-		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
-		{
-			const std::size_t currentOffset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
-			const std::size_t previousOffset = static_cast<std::size_t>(previousDraw.firstIndex) + i;
-			if (currentOffset >= currentIndices.size() || previousOffset >= previousIndices.size())
-				break;
-			const auto currentVertex = currentIndices[currentOffset];
-			const auto previousVertex = previousIndices[previousOffset];
-			if (currentVertex >= previousPositions_.size() || previousVertex >= previousVertices.size())
-				continue;
+		auto writeCandidate = [&](std::uint32_t currentVertex,
+			const PreviousPosition& candidate) {
+			if (currentVertex >= previousPositions_.size()) return;
 			auto& output = previousPositions_[currentVertex];
-			const auto& candidate = previousVertices[previousVertex];
-			if (output.valid < 0.f) continue;
-			if (output.valid > 0.f && (output.x != candidate.x || output.y != candidate.y ||
-				output.z != candidate.z))
+			if (output.valid < 0.f) return;
+			if (output.valid > 0.f && (output.x != candidate.x || output.y != candidate.y
+				|| output.z != candidate.z))
 			{
 				output.valid = -1.f;
 				--trustedPreviousVertexCount_;
-				continue;
+				return;
 			}
 			if (output.valid == 0.f)
 			{
@@ -290,6 +357,120 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 				output.valid = 1.f;
 				++trustedPreviousVertexCount_;
 			}
+		};
+		if (currentDraw.topologySig == previousDraw.topologySig
+			&& currentDraw.indexCount == previousDraw.indexCount)
+		{
+			for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+			{
+				const std::size_t currentOffset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+				const std::size_t previousOffset = static_cast<std::size_t>(previousDraw.firstIndex) + i;
+				if (currentOffset >= currentIndices.size() || previousOffset >= previousIndices.size())
+					break;
+				const auto currentVertex = currentIndices[currentOffset];
+				const auto previousVertex = previousIndices[previousOffset];
+				if (previousVertex >= previousVertices.size()) continue;
+				writeCandidate(currentVertex, previousVertices[previousVertex]);
+			}
+			continue;
+		}
+		// Reindexed geometry is accepted only when stable local vertex ordinals
+		// prove a low-residual similarity transform to the accepted pose.
+		if (currentDraw.vertexCount != previousDraw.vertexCount
+			|| currentDraw.vertexCount < 2) continue;
+		double currentX = 0., currentY = 0., previousX = 0., previousY = 0.;
+		std::uint32_t sampleCount = 0;
+		auto pairedVertex = [&](std::uint32_t currentVertex,
+			const PreviousPosition *&previous) {
+			if (currentVertex < currentDraw.firstVertex) return false;
+			const auto local = currentVertex - currentDraw.firstVertex;
+			const auto previousVertex = static_cast<std::size_t>(previousDraw.firstVertex) + local;
+			if (local >= currentDraw.vertexCount || currentVertex >= context.verts.size()
+				|| previousVertex >= previousVertices.size()) return false;
+			previous = &previousVertices[previousVertex];
+			return true;
+		};
+		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+		{
+			const auto offset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+			if (offset >= currentIndices.size()) break;
+			const auto currentVertex = currentIndices[offset];
+			const PreviousPosition *previous = nullptr;
+			if (!pairedVertex(currentVertex, previous)) continue;
+			currentX += context.verts[currentVertex].x;
+			currentY += context.verts[currentVertex].y;
+			previousX += previous->x;
+			previousY += previous->y;
+			++sampleCount;
+		}
+		if (sampleCount < 2) continue;
+		const double inverseCount = 1. / sampleCount;
+		currentX *= inverseCount; currentY *= inverseCount;
+		previousX *= inverseCount; previousY *= inverseCount;
+		double dot = 0., cross = 0., norm = 0.;
+		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+		{
+			const auto offset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+			if (offset >= currentIndices.size()) break;
+			const auto currentVertex = currentIndices[offset];
+			const PreviousPosition *previous = nullptr;
+			if (!pairedVertex(currentVertex, previous)) continue;
+			const double cx = context.verts[currentVertex].x - currentX;
+			const double cy = context.verts[currentVertex].y - currentY;
+			const double px = previous->x - previousX;
+			const double py = previous->y - previousY;
+			dot += cx * px + cy * py;
+			cross += cx * py - cy * px;
+			norm += cx * cx + cy * cy;
+		}
+		if (norm <= std::numeric_limits<double>::epsilon()) continue;
+		const double scaleCos = dot / norm;
+		const double scaleSin = cross / norm;
+		const double translateX = previousX - scaleCos * currentX + scaleSin * currentY;
+		const double translateY = previousY - scaleSin * currentX - scaleCos * currentY;
+		const double scale = std::sqrt(scaleCos * scaleCos + scaleSin * scaleSin);
+		double squaredResidual = 0.;
+		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+		{
+			const auto offset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+			if (offset >= currentIndices.size()) break;
+			const auto currentVertex = currentIndices[offset];
+			const PreviousPosition *previous = nullptr;
+			if (!pairedVertex(currentVertex, previous)) continue;
+			const double fitX = scaleCos * context.verts[currentVertex].x
+				- scaleSin * context.verts[currentVertex].y + translateX;
+			const double fitY = scaleSin * context.verts[currentVertex].x
+				+ scaleCos * context.verts[currentVertex].y + translateY;
+			const double dx = fitX - previous->x;
+			const double dy = fitY - previous->y;
+			squaredResidual += dx * dx + dy * dy;
+		}
+		match.fitResidual = static_cast<float>(std::sqrt(squaredResidual * inverseCount));
+		if (match.fitResidual > .25f || scale < .5 || scale > 2.)
+		{
+			match.confidence = 0.f;
+			continue;
+		}
+		match.rigid[0] = static_cast<float>(scaleCos);
+		match.rigid[1] = static_cast<float>(scaleSin);
+		match.rigid[2] = static_cast<float>(translateX);
+		match.rigid[3] = static_cast<float>(translateY);
+		match.confidence *= std::max(.65f, 1.f - match.fitResidual / .25f);
+		for (std::uint32_t i = 0; i < currentDraw.indexCount; ++i)
+		{
+			const auto offset = static_cast<std::size_t>(currentDraw.firstIndex) + i;
+			if (offset >= currentIndices.size()) break;
+			const auto currentVertex = currentIndices[offset];
+			const PreviousPosition *previous = nullptr;
+			if (!pairedVertex(currentVertex, previous)) continue;
+			PreviousPosition candidate{};
+			candidate.x = match.rigid[0] * context.verts[currentVertex].x
+				- match.rigid[1] * context.verts[currentVertex].y + match.rigid[2];
+			candidate.y = match.rigid[1] * context.verts[currentVertex].x
+				+ match.rigid[0] * context.verts[currentVertex].y + match.rigid[3];
+			candidate.z = previous->z;
+			candidate.valid = 1.f;
+			writeCandidate(currentVertex, candidate);
 		}
 	}
 	for (auto& position : previousPositions_)
@@ -350,6 +531,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
 		{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
 	BuildPreviousPositions(context);
+	FinalizeConfidence();
 	drawSnapshotHash_ = 1469598103934665603ull;
 	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
 	{
@@ -370,8 +552,11 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	capturedFrameId_ = frame_.frameId;
 	hasCapturedFrame_ = true;
 	frame_.historyGeneration = historyGeneration_;
+	frame_.historyAge = historyAge_;
+	frame_.skippedFrameCount = skippedFrameCount_;
 	frame_.historyValid = drawCounts_[referenceBuffer_] != 0 && !resetPending_;
 	frame_.resetHistory = resetPending_;
+	frame_.sceneCut = sceneCut_;
 	frame_.truncated = truncated_;
 	frame_.source = FrameSource::Geometry;
 	frame_.draws = {current.data(), drawCounts_[currentBuffer_]};
@@ -397,6 +582,8 @@ const NeuralFrame& NeuralInstrumentation::CaptureSource(FrameSource source, Text
 	capturedFrameId_ = frame_.frameId;
 	hasCapturedFrame_ = true;
 	frame_.historyGeneration = historyGeneration_;
+	frame_.historyAge = 0;
+	frame_.skippedFrameCount = 0;
 	frame_.resetHistory = true;
 	frame_.source = source;
 	return frame_;
@@ -420,6 +607,8 @@ void NeuralInstrumentation::MarkEvaluated(std::uint64_t frameId) noexcept
 		return;
 	std::swap(referenceBuffer_, currentBuffer_);
 	resetPending_ = false;
+	lastAcceptedFrameId_ = frameId;
+	hasAcceptedFrame_ = true;
 }
 
 } // namespace flycast::rend::neural

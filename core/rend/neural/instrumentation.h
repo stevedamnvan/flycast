@@ -55,6 +55,7 @@ private:
 	void BeginSource(FrameSource source) noexcept;
 	bool CapturePositionSnapshot(const ::rend_context& context) noexcept;
 	void BuildPreviousPositions(const ::rend_context& context) noexcept;
+	void FinalizeConfidence() noexcept;
 
 	DrawBuffer drawBuffers_[2]{};
 	MatchBuffer matchBuffer_{};
@@ -67,6 +68,11 @@ private:
 	std::uint32_t currentBuffer_ = 1;
 	std::uint64_t frameId_ = 0;
 	std::uint64_t capturedFrameId_ = 0;
+	std::uint64_t lastAcceptedFrameId_ = 0;
+	std::uint32_t historyAge_ = 0;
+	std::uint32_t skippedFrameCount_ = 0;
+	bool hasAcceptedFrame_ = false;
+	bool sceneCut_ = false;
 	std::uint32_t historyGeneration_ = 0;
 	std::uint64_t drawSnapshotHash_ = 0;
 	bool enabled_ = false;

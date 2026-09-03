@@ -75,6 +75,7 @@ struct DrawMatch {
 	float confidence = 0.f;
 	float bestCost = 0.f;
 	float secondBestCost = 0.f;
+	float fitResidual = 0.f;
 	std::uint8_t tier = 0;
 	std::uint8_t reason = 0;
 	float rigid[4]{};
@@ -84,8 +85,9 @@ struct PreviousPosition {
 	float x = 0.f;
 	float y = 0.f;
 	float z = 0.f;
-	// One only when exact index-position correspondence is authoritative.
-	// Zero covers new, ambiguous, conflicted, reindexed, and Naomi 2 vertices.
+	// One only when exact index-position correspondence or a bounded, low-residual
+	// reindex fit makes the accepted-frame position authoritative. Zero covers
+	// new, ambiguous, conflicted, rejected-fit, and Naomi 2 vertices.
 	float valid = 0.f;
 };
 
@@ -105,8 +107,11 @@ struct NeuralFrame {
 	float jitterY = 0.f;
 	std::uint64_t frameId = 0;
 	std::uint32_t historyGeneration = 0;
+	std::uint32_t historyAge = 0;
+	std::uint32_t skippedFrameCount = 0;
 	bool historyValid = false;
 	bool resetHistory = false;
+	bool sceneCut = false;
 	bool truncated = false;
 	FrameSource source = FrameSource::Geometry;
 	ArrayView<DrawRecord> draws;

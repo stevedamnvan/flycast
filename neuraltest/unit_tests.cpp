@@ -112,7 +112,8 @@ int RunSelfTests()
 		current[0].topologySig++;
 		current[0].ordinal = 30;
 		const auto result = MatchDraws({previous, 1}, {current, 1});
-		suite.Expect(result[0].tier == 2 && Near(result[0].confidence, .8f),
+		suite.Expect(result[0].tier == 2 && result[0].confidence >= .5f
+			&& result[0].confidence < .8f && result[0].bestCost > 0.f,
 			"matcher tier 2 reordered structural");
 	}
 	{
@@ -135,6 +136,24 @@ int RunSelfTests()
 			&& result[0].bestCost < result[0].secondBestCost
 			&& result[1].bestCost < result[1].secondBestCost,
 			"minimum-cost assignment follows repeated-object pose across reorder");
+	}
+	{
+		DrawRecord previous[] = {BaseDraw(11), BaseDraw(12)};
+		previous[0].topologySig = 101;
+		previous[0].centroid[0] = 10.f;
+		previous[1].topologySig = 102;
+		previous[1].centroid[0] = 110.f;
+		DrawRecord current[] = {BaseDraw(0), BaseDraw(1)};
+		current[0].topologySig = 201;
+		current[0].centroid[0] = 108.f;
+		current[1].topologySig = 202;
+		current[1].centroid[0] = 12.f;
+		const auto result = MatchDraws({previous, 2}, {current, 2});
+		suite.Expect(result[0].tier == 2 && result[1].tier == 2
+			&& result[0].prevOrdinal == 12 && result[1].prevOrdinal == 11
+			&& result[0].bestCost < result[0].secondBestCost
+			&& result[1].bestCost < result[1].secondBestCost,
+			"structural bucket uses minimum-cost one-to-one assignment");
 	}
 	{
 		DrawRecord previous[9];
@@ -415,8 +434,9 @@ int RunSelfTests()
 		context.global_param_op[0].tcw.full = 56;
 		const auto& skipped = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
-		suite.Expect(skipped.matches.data[0].confidence == 0.f,
-			"unevaluated draw does not replace history reference");
+		suite.Expect(skipped.matches.data[0].confidence == 0.f && skipped.sceneCut
+			&& skipped.resetHistory,
+			"unmatched scene cut rejects motion and resets history");
 		context.global_param_op[0].tcw.full = 55;
 		const auto& afterSkip = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
@@ -463,6 +483,7 @@ int RunSelfTests()
 		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		const auto previousPositions = instrumentation->PreviousPositions();
+		const float movedConfidence = moved.matches.data[0].confidence;
 		suite.Expect(moved.matches.data[0].tier == 1 &&
 			DrawStructuralSignature(moved.draws.data[0]) == originalStructure &&
 			moved.draws.data[0].centroid[0] > 40.f,
@@ -474,24 +495,81 @@ int RunSelfTests()
 			previousPositions.data[2].valid == 1.f && previousPositions.data[2].x == 40.f,
 			"accepted exact topology emits prior positions by strip index");
 		for (auto& vertex : context.verts) vertex.x += 6.f;
-		instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+		const auto& afterOneSkip = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		const auto afterSkippedPositions = instrumentation->PreviousPositions();
-		suite.Expect(afterSkippedPositions.size == 3 &&
+		const float oneSkipConfidence = afterOneSkip.matches.data[0].confidence;
+		suite.Expect(afterOneSkip.historyAge == 2 && afterOneSkip.skippedFrameCount == 1
+			&& oneSkipConfidence >= .5f && oneSkipConfidence < movedConfidence
+			&& afterSkippedPositions.size == 3 &&
 			afterSkippedPositions.data[0].x == 10.f &&
 			afterSkippedPositions.data[1].x == 80.f &&
 			afterSkippedPositions.data[2].x == 40.f,
-			"unevaluated pose cannot replace accepted previous-position history");
+			"one skipped pose ages confidence without replacing accepted history");
+		const auto& afterTwoSkips = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		const bool twoSkipsRetainBoundedTrust = afterTwoSkips.historyAge == 3
+			&& afterTwoSkips.skippedFrameCount == 2
+			&& afterTwoSkips.matches.data[0].confidence >= .5f
+			&& afterTwoSkips.matches.data[0].confidence < oneSkipConfidence;
+		const auto& afterThreeSkips = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(twoSkipsRetainBoundedTrust && afterThreeSkips.historyAge == 4
+			&& afterThreeSkips.skippedFrameCount == 3
+			&& afterThreeSkips.matches.data[0].confidence == 0.f
+			&& instrumentation->TrustedPreviousVertexCount() == 0
+			&& std::all_of(instrumentation->PreviousPositions().begin(),
+				instrumentation->PreviousPositions().end(),
+				[](const PreviousPosition& position) { return position.valid == 0.f; }),
+			"history age degrades then rejects confidence after three skipped frames");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(3);
+		context.verts[0].x = 10; context.verts[0].y = 20; context.verts[0].z = .2f;
+		context.verts[1].x = 80; context.verts[1].y = 25; context.verts[1].z = .3f;
+		context.verts[2].x = 40; context.verts[2].y = 90; context.verts[2].z = .4f;
+		context.idx = {0, 1, 2};
+		PolyParam poly{};
+		poly.init();
+		poly.first = 0;
+		poly.count = 3;
+		poly.tcw.full = 63;
+		context.global_param_op.push_back(poly);
+		RenderPass pass{};
+		pass.op_count = 1;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& original = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		instrumentation->MarkEvaluated(original.frameId);
+		for (auto& vertex : context.verts) { vertex.x += 12.f; vertex.y -= 4.f; }
 		context.idx = {0, 2, 1};
 		const auto& reindexed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
-		suite.Expect(reindexed.matches.data[0].tier != 0 &&
-			reindexed.matches.data[0].confidence == 0.f &&
-			instrumentation->TrustedPreviousVertexCount() == 0 &&
-			std::all_of(instrumentation->PreviousPositions().begin(),
+		const auto fittedPositions = instrumentation->PreviousPositions();
+		suite.Expect(reindexed.matches.data[0].tier == 2
+			&& reindexed.matches.data[0].confidence >= .5f
+			&& Near(reindexed.matches.data[0].fitResidual, 0.f, .001f)
+			&& instrumentation->TrustedPreviousVertexCount() == 3
+			&& fittedPositions.data[0].valid == 1.f && Near(fittedPositions.data[0].x, 10.f)
+			&& fittedPositions.data[1].valid == 1.f && Near(fittedPositions.data[1].x, 80.f)
+			&& fittedPositions.data[2].valid == 1.f && Near(fittedPositions.data[2].x, 40.f),
+			"reindexed rigid geometry uses bounded low-residual similarity fit");
+		context.verts[2].x += 25.f;
+		const auto& deformed = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(deformed.matches.data[0].tier != 0
+			&& deformed.matches.data[0].fitResidual > .25f
+			&& deformed.matches.data[0].confidence == 0.f
+			&& instrumentation->TrustedPreviousVertexCount() == 0
+			&& std::all_of(instrumentation->PreviousPositions().begin(),
 				instrumentation->PreviousPositions().end(),
 				[](const PreviousPosition& position) { return position.valid == 0.f; }),
-			"reindexed topology cannot emit exact previous-position motion");
+			"reindexed deformation above residual threshold rejects false motion");
 	}
 	{
 		rend_context context{};

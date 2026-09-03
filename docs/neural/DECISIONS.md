@@ -399,10 +399,13 @@ For exact topology, current and accepted indices are paired at the same strip
 position and the accepted XYZ is written at the current vertex index. This
 retains per-vertex deformation and repeated/degenerate strip positions. If two
 draws map one current vertex to different accepted positions, that vertex is
-invalidated. Reindexed topology, resets, truncated frames, and out-of-range
-indices emit validity zero. Naomi 2 is also validity zero until previous matrix
-state is carried and proven; applying current matrices to prior model-space
-positions would create false camera/object motion.
+invalidated. Reindexed geometry with the same vertex cardinality may use local
+vertex ordinals only when a least-squares similarity fit has RMS residual at or
+below 0.25 render pixel and scale in `[0.5, 2.0]`; otherwise it is rejected.
+Resets, truncated frames, and out-of-range indices emit validity zero. Naomi 2
+is also validity zero until previous matrix state is carried and proven;
+applying current matrices to prior model-space positions would create false
+camera/object motion.
 
 ## D-033: production motion is a validity-gated second vertex stream
 
@@ -424,3 +427,22 @@ invalid until prior model/projection matrices are retained and proven.
 If the second stream cannot be allocated or uploaded, the atomic export reports
 failure and the frame is not submitted to the neural stage, so it cannot advance
 accepted history with cleared or stale guidance.
+
+## D-034: confidence is accepted-history evidence, not a fixed tier constant
+
+Both exact-identity and topology-compatible repeated buckets use deterministic
+minimum-cost one-to-one assignment and retain the selected and next-best costs.
+Resource-generation disagreement cannot enter either assignment. Oversized
+buckets and explicitly reactive draws remain zero-confidence. A reindexed draw
+must additionally pass the bounded similarity-fit residual and scale gates.
+
+Confidence is aged against the last successfully accepted neural frame, not the
+last emulated frame: one and two skipped evaluations attenuate trust, while
+three skips reject it. Less than 35 percent matched current draw area is a scene
+cut; all current matches and previous positions are invalidated and history is
+reset. Production magnitude and per-vertex validity gates remain the last line
+of defense and write zero motion/confidence plus full current-color bias. The
+Gate 13 controls cover reordered repeated objects, texture/palette/RTT revision,
+oversized and reactive particle cases, rigid reindex, non-rigid residual,
+shared-vertex conflict, skipped history, and scene cut. Pixel-level accepted
+depth/draw-ID disocclusion is separate Gate 14 work.
