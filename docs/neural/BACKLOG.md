@@ -68,3 +68,22 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 - Direct D3D11: blocked for the exact supplied add-on; LOG #51 proves Flycast's D3D11 contract evaluates while the add-on arms D3D12 NGX hooks only. Retest only with a compatible direct-D3D11 consumer.
 - D3D11 bridge: blocked pending a compatible contract-preserving runtime or an authorized bounded build; Feeder's image-derived contract is not Flycast provenance.
 - Conditional D3D11On12/native D3D12: selected experimental consumer route; LOG #52-#59 prove stable queue-owned presentation, public-contract interception, repeated feature-18 evaluation, exact full-contract ON/OFF pairing, three-way pixel-hash differentiation, per-frame public-output sentinels, and same-frame Present. This completes Gate 10 for the named supplied-component route. FC-045's resize/fullscreen/device-loss/OIT/OSD/ImGui and production-performance matrix remains open and prevents a general production-readiness claim.
+
+## Quality-phase gate mapping
+
+The quality rebaseline does not replace existing FC identifiers. Detailed
+acceptance is in `QUALITY-PLAN.md`.
+
+- Gate 11: FC-024, FC-044, FC-060, FC-061 — depth polarity, clear semantics,
+  OP/PT agreement, API parity, and NGX flag A/B.
+- Gate 12: FC-032, FC-035, FC-036, FC-044 — analytic render-pixel motion and
+  explicit sign/scale/jitter negative controls.
+- Gate 13: FC-025, FC-031, FC-033, FC-036 — structural matching, generations,
+  ambiguity, and confidence.
+- Gate 14: FC-033, FC-034, FC-036 — reprojection/disocclusion protection.
+- Gate 15A/15B: FC-025, FC-050, FC-055, FC-065 — transparency, OIT, modifier
+  volumes, and byte-identical overlay composition.
+- Gate 16: FC-044, FC-053, FC-065 — exact target resolution and preset lanes.
+- Gate 17: FC-054, FC-065 — capture CLI, metrics, and moving title matrix.
+- Gate 18: FC-045, FC-063, FC-064 — transitions, failures, performance, and
+  long-run stability.

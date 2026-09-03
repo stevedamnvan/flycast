@@ -286,3 +286,20 @@ FC-056 and FC-066 are complete for this named route. This does not make the
 whole neural-rendering project or the On12 surface production-ready: FC-045's
 transition matrix, Dreamcast temporal-quality work, Gate 8, failure injection,
 and production performance remain open.
+
+## D-027: quality work follows renderer truth and conservative protection
+
+The post-Gate-10 critical path is the public guidance contract, structural PVR
+correspondence, geometry-derived motion, disocclusion/reactive protection,
+exact content-rectangle resolution, overlay post-composition, moving title
+quality, and production hardening. D3D11On12 remains the selected proven route,
+not an assertion that other contract-preserving routes are impossible.
+
+Depth polarity, motion sign/scale, SDR exposure, and content-rectangle behavior
+must be established by deterministic GPU fixtures and falsifying controls before
+they change production inputs. The renderer's logarithmic depth is preserved by
+default. Ambiguous geometry, particles, changed texture generations, invalid
+reprojection, and newly revealed pixels prefer zero motion plus current-color
+bias. Public `BiasCurrentColorMask` is a temporal-safety input only; no private
+semantic meaning is inferred. The full plan and Gates 11-18 are recorded in
+`QUALITY-PLAN.md`.
