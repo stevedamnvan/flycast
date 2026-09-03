@@ -52,7 +52,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | todo | |
 | FC-054 | 5 | Capture CLI | Rate-limited artifact package | todo | |
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
-| FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | doing | LOG #50-#53; supplied add-on does not consume D3D11 NGX, while D3D11On12 produced an intercepted feature-18 stream reaching count 60 and a frame-tagged public-output present candidate; visual mutation remains unconfirmed |
+| FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | doing | LOG #50-#57; D3D11On12 has intercepted feature-18 activity plus frame-tagged public-output consumption; an opt-in sentinel reached all 1024 expected swapchain pixels, but the pre-marker returned hash equaled the input hash, so external visual mutation remains unconfirmed |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | doing | LOG #49; build-time presentation/fallback/reset structure is green, runtime toggles and pixel Gate 8 pending |
 | FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50; 45 checks pass in NGX and no-NGX builds, including route-neutral readiness and bounded compatibility rebuild policy; numerical HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
@@ -60,11 +60,11 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |
 | FC-064 | 6 | Performance | Invariants and measured targets | todo | |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | todo | |
-| FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | doing | LOG #53; named On12 route, genuine public-contract interception, feature-18 create, and repeated evaluation through count 60 are positive; external-output identity, sentinel/pixel proof, F6 A/B, and latency remain open |
+| FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | doing | LOG #53-#57; route identity, public-contract interception, feature-18 create/evaluate, public-output frame association including frame 0, accepted blit, 1024/1024 public-output sentinel pixels, and clean add-on-off fallback are positive; exact feature-18-to-public-output identity, neural pixel differentiation, valid F6 A/B, and production latency remain open |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
 ## FC-056 / FC-066 route sub-items
 
 - Direct D3D11: blocked for the exact supplied add-on; LOG #51 proves Flycast's D3D11 contract evaluates while the add-on arms D3D12 NGX hooks only. Retest only with a compatible direct-D3D11 consumer.
 - D3D11 bridge: blocked pending a compatible contract-preserving runtime or an authorized bounded build; Feeder's image-derived contract is not Flycast provenance.
-- Conditional D3D11On12/native D3D12: active; LOG #52-#53 prove stable queue-owned presentation after tracking both flip-model backbuffers, public-contract interception, and repeated feature-18 evaluation through count 60. Gate 10 resource identity, pixel/sentinel, F6 A/B, latency, and the full transition matrix remain open.
+- Conditional D3D11On12/native D3D12: active; LOG #52-#57 prove stable queue-owned presentation, public-contract interception, repeated feature-18 evaluation through count 60, and a developer-only marker copied into the public output then found at 1024/1024 expected pixels in the presented swapchain backbuffer. The frame-0 edge case retains one identity through capture, blit, backbuffer verification, and Present. The unmarked public-output hash still equaled the source hash; exact external-output identity, neural pixel differentiation, valid F6 A/B, production latency, and the full transition matrix remain open.

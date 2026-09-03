@@ -239,3 +239,17 @@ and controlled add-on A/B prove that the presented pixels are neural output.
 If the experimental route has not reached `contract-evaluated`, the public NGX
 call may still run for detection/rebuild telemetry, but its output is not selected
 and Flycast keeps the native framebuffer as the presentation source.
+
+## D-025: sentinel evidence is explicit, synchronous, and non-production
+
+`rend.NeuralDlss5EvidenceCapture` is off by default and is accepted only for the
+experimental DLSS 5 mode. When enabled, the diagnostic forces the bias-current-
+color mask to zero, reads back one exact input/output pair, writes a 32x32
+magenta/cyan marker into the returned public-output resource, reads that resource
+back again, and checks the final D3D11On12 swapchain backbuffer before Present.
+The diagnostic deliberately waits for GPU completion and logs the wait duration;
+it is prohibited from performance claims and from the normal emulator path.
+`rend.NeuralDlss5EvidenceStartDelayMs` may delay arming by at most 30 seconds so a
+consumer toggle can be attempted before the first contract evaluation. A marker
+seen in the backbuffer proves Flycast's public-output ownership and presentation
+path, not that an external feature modified the pre-marker pixels.

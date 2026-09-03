@@ -12,7 +12,9 @@
 #include "windows/comptr.h"
 
 #include <array>
+#include <chrono>
 #include <cstdio>
+#include <cstring>
 
 namespace flycast::rend::neural {
 namespace {
@@ -110,6 +112,36 @@ D3D12_RESOURCE_BARRIER Transition(ID3D12Resource *resource,
 	barrier.Transition.StateAfter = after;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	return barrier;
+}
+
+constexpr std::uint32_t EvidenceMarkerWidth = 32;
+constexpr std::uint32_t EvidenceMarkerHeight = 32;
+constexpr std::uint32_t EvidenceRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+
+std::uint64_t HashMappedTexture(ID3D12Resource *resource, std::uint32_t width,
+	std::uint32_t height, std::uint32_t rowPitch) noexcept
+{
+	if (!resource) return 0;
+	const std::uint64_t size = static_cast<std::uint64_t>(rowPitch) * height;
+	D3D12_RANGE readRange{0, static_cast<SIZE_T>(size)};
+	void *mapped = nullptr;
+	if (FAILED(resource->Map(0, &readRange, &mapped)) || !mapped) return 0;
+	constexpr std::uint64_t offset = 14695981039346656037ull;
+	constexpr std::uint64_t prime = 1099511628211ull;
+	std::uint64_t hash = offset;
+	const auto *bytes = static_cast<const std::uint8_t *>(mapped);
+	for (std::uint32_t y = 0; y < height; ++y)
+	{
+		const auto *row = bytes + static_cast<std::size_t>(y) * rowPitch;
+		for (std::uint32_t x = 0; x < width * 4; ++x)
+		{
+			hash ^= row[x];
+			hash *= prime;
+		}
+	}
+	D3D12_RANGE writtenRange{0, 0};
+	resource->Unmap(0, &writtenRange);
+	return hash;
 }
 
 class NgxD3D12Backend final : public INeuralBackend
@@ -322,6 +354,13 @@ public:
 		evaluate.InMVScaleY = 1.f;
 		evaluate.InPreExposure = 1.f;
 		evaluate.InExposureScale = 1.f;
+		const bool markEvidence = config_.dlss5EvidenceCapture && evidenceMarkerUpload_;
+		const bool captureEvidence = markEvidence
+			&& stats_.evidenceCaptures == 0 && stats_.evidenceCaptureFailures == 0
+			&& evidenceInputReadback_ && evidenceOutputReadback_
+			&& evidenceMarkedOutputReadback_;
+		const auto evidenceStart = captureEvidence
+			? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
 		const auto call = EvaluateLeaf(list_[slot], feature_, parameters_, &evaluate);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
@@ -331,9 +370,54 @@ public:
 			return DeviceOrFailure(call.exceptionCode ? "NGX D3D12 evaluate raised an exception"
 				: "NGX D3D12 evaluate failed");
 		}
-		const auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		list_[slot]->ResourceBarrier(1, &barrier);
+		if (captureEvidence)
+		{
+			D3D12_RESOURCE_BARRIER barriers[] = {
+				Transition(static_cast<ID3D12Resource *>(frame.color.resource),
+					D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE),
+				Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+					D3D12_RESOURCE_STATE_COPY_SOURCE),
+			};
+			list_[slot]->ResourceBarrier(static_cast<UINT>(std::size(barriers)), barriers);
+			CopyTextureToBuffer(list_[slot], static_cast<ID3D12Resource *>(frame.color.resource),
+				evidenceInputReadback_, frame.renderWidth, frame.renderHeight);
+			CopyTextureToBuffer(list_[slot], output_[slot], evidenceOutputReadback_,
+				config_.outputWidth, config_.outputHeight);
+			auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
+				D3D12_RESOURCE_STATE_COPY_DEST);
+			list_[slot]->ResourceBarrier(1, &barrier);
+			CopyMarkerToTexture(list_[slot], output_[slot]);
+			barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_DEST,
+				D3D12_RESOURCE_STATE_COPY_SOURCE);
+			list_[slot]->ResourceBarrier(1, &barrier);
+			CopyTextureToBuffer(list_[slot], output_[slot], evidenceMarkedOutputReadback_,
+				config_.outputWidth, config_.outputHeight);
+			D3D12_RESOURCE_BARRIER restore[] = {
+				Transition(static_cast<ID3D12Resource *>(frame.color.resource),
+					D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+				Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_SOURCE,
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+						| D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE),
+			};
+			list_[slot]->ResourceBarrier(static_cast<UINT>(std::size(restore)), restore);
+		}
+		else if (markEvidence)
+		{
+			auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+				D3D12_RESOURCE_STATE_COPY_DEST);
+			list_[slot]->ResourceBarrier(1, &barrier);
+			CopyMarkerToTexture(list_[slot], output_[slot]);
+			barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_COPY_DEST,
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+					| D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			list_[slot]->ResourceBarrier(1, &barrier);
+		}
+		else
+		{
+			const auto barrier = Transition(output_[slot], D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+			list_[slot]->ResourceBarrier(1, &barrier);
+		}
 		outputState_[slot] = static_cast<D3D12_RESOURCE_STATES>(
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 		if (FAILED(list_[slot]->Close()))
@@ -349,6 +433,25 @@ public:
 			return DeviceOrFailure("D3D12 neural fence signal failed");
 		slotFence_[slot] = value;
 		outputSlot_ = slot;
+		if (captureEvidence)
+		{
+			if (WaitForFence(value))
+			{
+				stats_.evidenceFrameId = frame.frameId;
+				stats_.evidenceInputHash = HashMappedTexture(evidenceInputReadback_,
+					frame.renderWidth, frame.renderHeight, evidenceRowPitch_);
+				stats_.evidenceOutputHash = HashMappedTexture(evidenceOutputReadback_,
+					config_.outputWidth, config_.outputHeight, evidenceRowPitch_);
+				stats_.evidenceMarkedOutputHash = HashMappedTexture(evidenceMarkedOutputReadback_,
+					config_.outputWidth, config_.outputHeight, evidenceRowPitch_);
+				stats_.evidenceWaitMicroseconds = static_cast<std::uint64_t>(
+					std::chrono::duration_cast<std::chrono::microseconds>(
+						std::chrono::steady_clock::now() - evidenceStart).count());
+				++stats_.evidenceCaptures;
+			}
+			else
+				++stats_.evidenceCaptureFailures;
+		}
 		resetRequested_ = false;
 		++successfulEvaluations_;
 		if (config_.mode == NeuralMode::Dlss5Experimental)
@@ -392,6 +495,10 @@ public:
 		for (auto& list : list_) list.reset();
 		for (auto& allocator : allocator_) allocator.reset();
 		for (auto& output : output_) output.reset();
+		evidenceInputReadback_.reset();
+		evidenceOutputReadback_.reset();
+		evidenceMarkedOutputReadback_.reset();
+		evidenceMarkerUpload_.reset();
 		fence_.reset();
 		queue_ = nullptr;
 		device_ = nullptr;
@@ -408,6 +515,13 @@ public:
 		stats_.dlss5Readiness = Dlss5HookReadiness::Disabled;
 		stats_.dlss5Route = Dlss5HookRoute::None;
 		stats_.dlss5Components = {};
+		stats_.evidenceFrameId = 0;
+		stats_.evidenceInputHash = 0;
+		stats_.evidenceOutputHash = 0;
+		stats_.evidenceMarkedOutputHash = 0;
+		stats_.evidenceWaitMicroseconds = 0;
+		stats_.evidenceCaptures = 0;
+		stats_.evidenceCaptureFailures = 0;
 	}
 
 private:
@@ -510,7 +624,109 @@ private:
 			}
 			outputState_[i] = D3D12_RESOURCE_STATE_COMMON;
 		}
+		return !config_.dlss5EvidenceCapture || CreateEvidenceResources();
+	}
+
+	bool CreateEvidenceBuffer(D3D12_HEAP_TYPE heapType, std::uint64_t size,
+		D3D12_RESOURCE_STATES initialState, ComPtr<ID3D12Resource>& resource) noexcept
+	{
+		D3D12_HEAP_PROPERTIES heap{};
+		heap.Type = heapType;
+		D3D12_RESOURCE_DESC desc{};
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		desc.Width = size;
+		desc.Height = 1;
+		desc.DepthOrArraySize = 1;
+		desc.MipLevels = 1;
+		desc.SampleDesc.Count = 1;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		return SUCCEEDED(device_->CreateCommittedResource(&heap, D3D12_HEAP_FLAG_NONE,
+			&desc, initialState, nullptr, __uuidof(ID3D12Resource),
+			reinterpret_cast<void **>(&resource.get())));
+	}
+
+	bool CreateEvidenceResources() noexcept
+	{
+		evidenceRowPitch_ = (config_.outputWidth * 4 + EvidenceRowAlignment - 1)
+			& ~(EvidenceRowAlignment - 1);
+		const std::uint64_t textureBytes = static_cast<std::uint64_t>(evidenceRowPitch_)
+			* config_.outputHeight;
+		const std::uint64_t markerBytes = static_cast<std::uint64_t>(EvidenceRowAlignment)
+			* EvidenceMarkerHeight;
+		if (!CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+			D3D12_RESOURCE_STATE_COPY_DEST, evidenceInputReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+				D3D12_RESOURCE_STATE_COPY_DEST, evidenceOutputReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_READBACK, textureBytes,
+				D3D12_RESOURCE_STATE_COPY_DEST, evidenceMarkedOutputReadback_)
+			|| !CreateEvidenceBuffer(D3D12_HEAP_TYPE_UPLOAD, markerBytes,
+				D3D12_RESOURCE_STATE_GENERIC_READ, evidenceMarkerUpload_))
+			return false;
+		D3D12_RANGE noRead{0, 0};
+		void *mapped = nullptr;
+		if (FAILED(evidenceMarkerUpload_->Map(0, &noRead, &mapped)) || !mapped)
+			return false;
+		std::memset(mapped, 0, static_cast<std::size_t>(markerBytes));
+		auto *bytes = static_cast<std::uint8_t *>(mapped);
+		for (std::uint32_t y = 0; y < EvidenceMarkerHeight; ++y)
+		{
+			for (std::uint32_t x = 0; x < EvidenceMarkerWidth; ++x)
+			{
+				auto *pixel = bytes + static_cast<std::size_t>(y) * EvidenceRowAlignment + x * 4;
+				const bool cyan = ((x / 8) + (y / 8)) % 2 != 0;
+				pixel[0] = cyan ? 0 : 255;
+				pixel[1] = cyan ? 255 : 0;
+				pixel[2] = 255;
+				pixel[3] = 255;
+			}
+		}
+		D3D12_RANGE written{0, static_cast<SIZE_T>(markerBytes)};
+		evidenceMarkerUpload_->Unmap(0, &written);
 		return true;
+	}
+
+	void CopyTextureToBuffer(ID3D12GraphicsCommandList *list, ID3D12Resource *texture,
+		ID3D12Resource *buffer, std::uint32_t width, std::uint32_t height) noexcept
+	{
+		D3D12_TEXTURE_COPY_LOCATION destination{};
+		destination.pResource = buffer;
+		destination.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		destination.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		destination.PlacedFootprint.Footprint.Width = width;
+		destination.PlacedFootprint.Footprint.Height = height;
+		destination.PlacedFootprint.Footprint.Depth = 1;
+		destination.PlacedFootprint.Footprint.RowPitch = evidenceRowPitch_;
+		D3D12_TEXTURE_COPY_LOCATION source{};
+		source.pResource = texture;
+		source.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		list->CopyTextureRegion(&destination, 0, 0, 0, &source, nullptr);
+	}
+
+	void CopyMarkerToTexture(ID3D12GraphicsCommandList *list, ID3D12Resource *texture) noexcept
+	{
+		D3D12_TEXTURE_COPY_LOCATION destination{};
+		destination.pResource = texture;
+		destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		D3D12_TEXTURE_COPY_LOCATION source{};
+		source.pResource = evidenceMarkerUpload_;
+		source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		source.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		source.PlacedFootprint.Footprint.Width = EvidenceMarkerWidth;
+		source.PlacedFootprint.Footprint.Height = EvidenceMarkerHeight;
+		source.PlacedFootprint.Footprint.Depth = 1;
+		source.PlacedFootprint.Footprint.RowPitch = EvidenceRowAlignment;
+		list->CopyTextureRegion(&destination, 0, 0, 0, &source, nullptr);
+	}
+
+	bool WaitForFence(std::uint64_t target) noexcept
+	{
+		if (!fence_ || fence_->GetCompletedValue() >= target) return true;
+		HANDLE eventHandle = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+		if (!eventHandle) return false;
+		const bool armed = SUCCEEDED(fence_->SetEventOnCompletion(target, eventHandle));
+		const bool complete = armed && WaitForSingleObject(eventHandle, 30000) == WAIT_OBJECT_0;
+		CloseHandle(eventHandle);
+		return complete;
 	}
 
 	void Poison(std::size_t slot) noexcept
@@ -570,6 +786,11 @@ private:
 	std::array<ComPtr<ID3D12Resource>, 3> output_;
 	std::array<D3D12_RESOURCE_STATES, 3> outputState_{};
 	std::array<std::uint64_t, 3> slotFence_{};
+	ComPtr<ID3D12Resource> evidenceInputReadback_;
+	ComPtr<ID3D12Resource> evidenceOutputReadback_;
+	ComPtr<ID3D12Resource> evidenceMarkedOutputReadback_;
+	ComPtr<ID3D12Resource> evidenceMarkerUpload_;
+	std::uint32_t evidenceRowPitch_ = 0;
 	std::uint64_t nextFence_ = 1;
 	std::size_t outputSlot_ = 0;
 	bool initialized_ = false;

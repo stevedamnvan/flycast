@@ -57,6 +57,7 @@ public:
 	void QueueNeuralOutputPresent(std::uint64_t frameId) noexcept
 	{
 		pendingNeuralOutputFrameId = frameId;
+		pendingNeuralOutputPresent = true;
 	}
 #endif
 
@@ -121,9 +122,12 @@ private:
 	bool wrappedBackBufferAcquired = false;
 	std::size_t wrappedBackBufferIndex = 0;
 	std::uint64_t pendingNeuralOutputFrameId = 0;
+	bool pendingNeuralOutputPresent = false;
 	std::uint64_t neuralOutputPresentCount = 0;
+	bool neuralEvidenceBackBufferAttempted = false;
 	void acquireWrappedBackBuffer() noexcept;
 	void releaseWrappedBackBuffer() noexcept;
+	void captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcept;
 #endif
 	bool overlayOnly = false;
 	DX11Overlay overlay;

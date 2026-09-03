@@ -33,6 +33,7 @@ struct StageConfig {
 	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
 	std::uint32_t dlss5RebuildGraceEvaluations = 300;
 	std::uint32_t dlss5RebuildMaxAttempts = 2;
+	bool dlss5EvidenceCapture = false;
 };
 
 enum class BackendEvalStatus : std::uint8_t {
@@ -56,6 +57,13 @@ struct BackendStats {
 	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
 	Dlss5HookReadiness dlss5Readiness = Dlss5HookReadiness::Disabled;
 	Dlss5HookComponents dlss5Components{};
+	std::uint64_t evidenceFrameId = 0;
+	std::uint64_t evidenceInputHash = 0;
+	std::uint64_t evidenceOutputHash = 0;
+	std::uint64_t evidenceMarkedOutputHash = 0;
+	std::uint64_t evidenceWaitMicroseconds = 0;
+	std::uint64_t evidenceCaptures = 0;
+	std::uint64_t evidenceCaptureFailures = 0;
 };
 
 class INeuralBackend

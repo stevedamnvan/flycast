@@ -268,6 +268,7 @@ void DX11Context::term()
 	for (auto& buffer : wrappedBackBuffers) buffer.reset();
 	swapchain3.reset();
 	pendingNeuralOutputFrameId = 0;
+	pendingNeuralOutputPresent = false;
 #endif
 	renderTargetView.reset();
 	swapchain1.reset();
@@ -293,6 +294,8 @@ void DX11Context::Present()
 		return;
 	frameRendered = false;
 #ifdef FLYCAST_ENABLE_NEURAL
+	if (pendingNeuralOutputPresent && config::NeuralDlss5EvidenceCapture.get())
+		captureNeuralEvidenceBackBuffer(pendingNeuralOutputFrameId);
 	releaseWrappedBackBuffer();
 #endif
 	bool swapOnVSync = !settings.input.fastForwardMode && config::VSync;
@@ -320,7 +323,7 @@ void DX11Context::Present()
 		WARN_LOG(RENDERER, "Present failed %x", hr);
 	}
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (SUCCEEDED(hr) && pendingNeuralOutputFrameId != 0)
+	if (SUCCEEDED(hr) && pendingNeuralOutputPresent)
 	{
 		++neuralOutputPresentCount;
 		if (neuralOutputPresentCount == 1)
@@ -328,9 +331,13 @@ void DX11Context::Present()
 				"DLSS 5 candidate public-output present completed: frame=%llu route=d3d11on12; external mutation unconfirmed",
 				static_cast<unsigned long long>(pendingNeuralOutputFrameId));
 		pendingNeuralOutputFrameId = 0;
+		pendingNeuralOutputPresent = false;
 	}
 	else if (FAILED(hr) && hr != DXGI_ERROR_WAS_STILL_DRAWING)
+	{
 		pendingNeuralOutputFrameId = 0;
+		pendingNeuralOutputPresent = false;
+	}
 	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET)
 		acquireWrappedBackBuffer();
 #endif
@@ -373,6 +380,7 @@ void DX11Context::resize()
 		for (auto& buffer : wrappedBackBuffers) buffer.reset();
 		swapchain3.reset();
 		pendingNeuralOutputFrameId = 0;
+		pendingNeuralOutputPresent = false;
 #endif
 		renderTargetView.reset();
 #ifdef TARGET_UWP
@@ -502,6 +510,75 @@ void DX11Context::releaseWrappedBackBuffer() noexcept
 		ReleaseWrappedResources(&resource, 1);
 		wrappedBackBufferAcquired = false;
 	}
+}
+
+void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcept
+{
+	if (neuralEvidenceBackBufferAttempted || !renderTargetView)
+		return;
+	neuralEvidenceBackBufferAttempted = true;
+	ComPtr<ID3D11Resource> resource;
+	renderTargetView->GetResource(&resource.get());
+	ComPtr<ID3D11Texture2D> texture;
+	resource.as(texture);
+	if (!texture)
+	{
+		WARN_LOG(RENDERER, "DLSS 5 developer present evidence failed: no backbuffer texture");
+		return;
+	}
+	D3D11_TEXTURE2D_DESC desc{};
+	texture->GetDesc(&desc);
+	desc.Usage = D3D11_USAGE_STAGING;
+	desc.BindFlags = 0;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	desc.MiscFlags = 0;
+	ComPtr<ID3D11Texture2D> staging;
+	if (FAILED(pDevice->CreateTexture2D(&desc, nullptr, &staging.get())))
+	{
+		WARN_LOG(RENDERER, "DLSS 5 developer present evidence failed: staging texture creation");
+		return;
+	}
+	pDeviceContext->CopyResource(staging, texture);
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	if (FAILED(pDeviceContext->Map(staging, 0, D3D11_MAP_READ, 0, &mapped)))
+	{
+		WARN_LOG(RENDERER, "DLSS 5 developer present evidence failed: staging map");
+		return;
+	}
+	constexpr std::uint64_t offset = 14695981039346656037ull;
+	constexpr std::uint64_t prime = 1099511628211ull;
+	std::uint64_t hash = offset;
+	std::uint32_t markerPixels = 0;
+	const auto *bytes = static_cast<const std::uint8_t *>(mapped.pData);
+	for (UINT y = 0; y < desc.Height; ++y)
+	{
+		const auto *row = bytes + static_cast<std::size_t>(y) * mapped.RowPitch;
+		for (UINT x = 0; x < desc.Width * 4; ++x)
+		{
+			hash ^= row[x];
+			hash *= prime;
+		}
+		if (y < 32)
+		{
+			for (UINT x = 0; x < std::min<UINT>(32, desc.Width); ++x)
+			{
+				const auto *pixel = row + x * 4;
+				const bool cyan = ((x / 8) + (y / 8)) % 2 != 0;
+				const auto nearByte = [](std::uint8_t value, std::uint8_t expected) {
+					return value >= expected - std::min<std::uint8_t>(expected, 2)
+						&& value <= expected + std::min<std::uint8_t>(static_cast<std::uint8_t>(255 - expected), 2);
+				};
+				if (nearByte(pixel[0], 255) && nearByte(pixel[1], cyan ? 255 : 0)
+					&& nearByte(pixel[2], cyan ? 0 : 255))
+					++markerPixels;
+			}
+		}
+	}
+	pDeviceContext->Unmap(staging, 0);
+	NOTICE_LOG(RENDERER,
+		"DLSS 5 developer present evidence: frame=%llu backbuffer_fnv64=%016llX marker_pixels=%u/1024 size=%ux%u; synchronous developer mode",
+		static_cast<unsigned long long>(frameId), static_cast<unsigned long long>(hash),
+		markerPixels, desc.Width, desc.Height);
 }
 #endif
 

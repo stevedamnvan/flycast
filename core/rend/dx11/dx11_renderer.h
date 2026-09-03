@@ -214,6 +214,9 @@ protected:
 		flycast::rend::neural::Dlss5HookReadiness::Disabled;
 	std::uint64_t loggedCompatibilityRebuildAttempts = 0;
 	bool loggedDlss5ContractEvaluated = false;
+	std::uint64_t loggedEvidenceCaptures = 0;
+	std::uint64_t loggedEvidenceCaptureFailures = 0;
+	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 #endif
 
 private:

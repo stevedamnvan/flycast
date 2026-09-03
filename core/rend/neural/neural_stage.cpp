@@ -128,6 +128,13 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 			? config_.dlss5Route : backendStats.dlss5Route;
 		stats_.dlss5Readiness = backendStats.dlss5Readiness;
 		stats_.dlss5Components = backendStats.dlss5Components;
+		stats_.evidenceFrameId = backendStats.evidenceFrameId;
+		stats_.evidenceInputHash = backendStats.evidenceInputHash;
+		stats_.evidenceOutputHash = backendStats.evidenceOutputHash;
+		stats_.evidenceMarkedOutputHash = backendStats.evidenceMarkedOutputHash;
+		stats_.evidenceWaitMicroseconds = backendStats.evidenceWaitMicroseconds;
+		stats_.evidenceCaptures = backendStats.evidenceCaptures;
+		stats_.evidenceCaptureFailures = backendStats.evidenceCaptureFailures;
 		if (init != BackendEvalStatus::Success)
 		{
 			++stats_.fallbacks;
@@ -162,6 +169,13 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		? config_.dlss5Route : backendStats.dlss5Route;
 	stats_.dlss5Readiness = backendStats.dlss5Readiness;
 	stats_.dlss5Components = backendStats.dlss5Components;
+	stats_.evidenceFrameId = backendStats.evidenceFrameId;
+	stats_.evidenceInputHash = backendStats.evidenceInputHash;
+	stats_.evidenceOutputHash = backendStats.evidenceOutputHash;
+	stats_.evidenceMarkedOutputHash = backendStats.evidenceMarkedOutputHash;
+	stats_.evidenceWaitMicroseconds = backendStats.evidenceWaitMicroseconds;
+	stats_.evidenceCaptures = backendStats.evidenceCaptures;
+	stats_.evidenceCaptureFailures = backendStats.evidenceCaptureFailures;
 	if (result == BackendEvalStatus::Success)
 	{
 		output_ = backend_->GetOutput();

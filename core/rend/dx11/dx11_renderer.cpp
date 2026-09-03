@@ -777,6 +777,12 @@ void DX11Renderer::renderNeuralExports()
 			previousPass.pt_count, currentPass.pt_count - previousPass.pt_count);
 		previousPass = currentPass;
 	}
+	if (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
+		&& config::NeuralDlss5EvidenceCapture.get())
+	{
+		const float zero[4]{};
+		deviceContext->ClearRenderTargetView(neuralMask.targets[neuralExportSlot], zero);
+	}
 	neuralExportActive = false;
 	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 	releaseNeuralInputs();
@@ -907,6 +913,23 @@ void DX11Renderer::logNeuralConsumerStatus(
 	if (activeNeuralMode != static_cast<int>(NeuralMode::Dlss5Experimental))
 		return;
 	const auto stats = neuralStage.GetStats();
+	if (stats.evidenceCaptures != loggedEvidenceCaptures
+		|| stats.evidenceCaptureFailures != loggedEvidenceCaptureFailures)
+	{
+		loggedEvidenceCaptures = stats.evidenceCaptures;
+		loggedEvidenceCaptureFailures = stats.evidenceCaptureFailures;
+		NOTICE_LOG(RENDERER,
+			"DLSS 5 developer evidence: captures=%llu failures=%llu frame=%llu "
+			"input_fnv64=%016llX returned_fnv64=%016llX marked_fnv64=%016llX wait_us=%llu "
+			"marker=32x32-magenta-cyan; synchronous developer mode",
+			static_cast<unsigned long long>(stats.evidenceCaptures),
+			static_cast<unsigned long long>(stats.evidenceCaptureFailures),
+			static_cast<unsigned long long>(stats.evidenceFrameId),
+			static_cast<unsigned long long>(stats.evidenceInputHash),
+			static_cast<unsigned long long>(stats.evidenceOutputHash),
+			static_cast<unsigned long long>(stats.evidenceMarkedOutputHash),
+			static_cast<unsigned long long>(stats.evidenceWaitMicroseconds));
+	}
 	if (stats.dlss5Route == loggedDlss5Route
 		&& stats.dlss5Readiness == loggedDlss5Readiness
 		&& stats.compatibilityRebuildAttempts == loggedCompatibilityRebuildAttempts
@@ -990,6 +1013,26 @@ bool DX11Renderer::syncNeuralMode()
 {
 	using namespace flycast::rend::neural;
 	const int requestedMode = std::clamp(config::NeuralMode.get(), 0, 8);
+	if (requestedMode == static_cast<int>(NeuralMode::Dlss5Experimental)
+		&& config::NeuralDlss5EvidenceCapture.get())
+	{
+		const auto delayMs = static_cast<std::uint64_t>(
+			std::clamp(config::NeuralDlss5EvidenceStartDelayMs.get(), 0, 30000));
+		if (delayMs != 0)
+		{
+			if (neuralEvidenceArmDeadlineMs == 0)
+			{
+				neuralEvidenceArmDeadlineMs = GetTickCount64() + delayMs;
+				NOTICE_LOG(RENDERER,
+					"DLSS 5 developer evidence arming delayed by %llu ms; native presentation retained",
+					static_cast<unsigned long long>(delayMs));
+			}
+			if (GetTickCount64() < neuralEvidenceArmDeadlineMs)
+				return false;
+		}
+	}
+	else
+		neuralEvidenceArmDeadlineMs = 0;
 	const bool surfaceRequested = config::NeuralD3D12Surface.get();
 	const bool requestedSurface = surfaceRequested && DX11Context::Instance()->isD3D11On12();
 	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface)
@@ -1013,6 +1056,7 @@ bool DX11Renderer::syncNeuralMode()
 				std::max(0, config::NeuralDlss5RebuildGraceEvaluations.get()));
 			stageConfig.dlss5RebuildMaxAttempts = static_cast<std::uint32_t>(
 				std::clamp(config::NeuralDlss5RebuildMaxAttempts.get(), 0, 4));
+			stageConfig.dlss5EvidenceCapture = config::NeuralDlss5EvidenceCapture.get();
 		}
 		neuralStage = NeuralStage(stageConfig);
 		if (stageConfig.api == Api::D3D11)
@@ -1122,7 +1166,7 @@ void DX11Renderer::displayFramebuffer()
 #endif
 	const bool queuedNeuralOutput =
 #ifdef FLYCAST_ENABLE_NEURAL
-		neuralPresentationAcquired && pendingNeuralPresentationFrameId != 0;
+		neuralPresentationAcquired;
 	const auto queuedNeuralFrameId = pendingNeuralPresentationFrameId;
 #else
 		false;

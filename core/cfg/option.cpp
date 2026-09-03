@@ -108,6 +108,8 @@ Option<int> NeuralMode("rend.NeuralMode", 0);
 Option<bool> NeuralD3D12Surface("rend.NeuralD3D12Surface", false);
 Option<int> NeuralDlss5RebuildGraceEvaluations("rend.NeuralDlss5RebuildGraceEvaluations", 300);
 Option<int> NeuralDlss5RebuildMaxAttempts("rend.NeuralDlss5RebuildMaxAttempts", 2);
+Option<bool> NeuralDlss5EvidenceCapture("rend.NeuralDlss5EvidenceCapture", false);
+Option<int> NeuralDlss5EvidenceStartDelayMs("rend.NeuralDlss5EvidenceStartDelayMs", 0);
 Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
