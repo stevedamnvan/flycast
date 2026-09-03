@@ -305,3 +305,8 @@ close a temporal or title-quality gate.
   validation produced 150 accepted and 30 rejected packages. Gameplay scenes,
   external output, and other legally supplied titles remain required for Gate
   17.
+  LOG #91 attempted ten current-build frames through the unchanged supplied
+  Gate 10 staging route. The contract and consumer components were observed,
+  but every status explicitly said returned neural output was unconfirmed.
+  Those candidate files are retained but rejected as presentation evidence;
+  Feature 18 activity alone does not satisfy Gate 17.
