@@ -257,11 +257,15 @@ it is prohibited from performance claims and from the normal emulator path.
 consumer toggle can be attempted before the first contract evaluation. A marker
 seen in the backbuffer proves Flycast's public-output ownership and presentation
 path, not that an external feature modified the pre-marker pixels.
-`rend.NeuralDlss5EvidenceCaptureFrames` defaults to one and is bounded to 240. A
+`rend.NeuralDlss5EvidenceCaptureFrames` defaults to one and is bounded to 480. A
 larger value exists only to find exact source-hash matches across controlled
 external-consumer ON/OFF runs; every captured frame retains the diagnostic GPU
 wait, and the same bounded count applies to pre-Present swapchain verification.
 All such measurements are excluded from production timing or performance claims.
+The legacy sentinel continues to force a zero bias mask by default.
+`rend.NeuralDlss5EvidencePreserveMask` is a developer-only, default-off control
+used by the capture verifier to replay the exact production mask and
+disocclusion contract. It changes no normal rendering path.
 
 ## D-026: the supplied D3D11On12 route passes Gate 10
 
@@ -845,3 +849,21 @@ until a capture-specific mutation and presentation proof is implemented.
 Public output is still retained as `public-dlaa-output.png`. This prevents an
 unconfirmed candidate from being relabeled while preserving the data needed
 for a later paired proof.
+
+## D-057: external quality capture confirmation is a fail-closed three-run proof
+
+An unmarked quality capture is not confirmed in-process from module state or
+Feature 18 logging. Its schema-3 manifest records the exact raw color, depth,
+motion, bias-mask, and returned-output FNV-64 values. A separate bounded
+verifier requires a same-build ON sentinel replay with all five values equal,
+1024/1024 marker pixels observed in the swapchain, and completed Present on
+that evidence frame. It also requires a same-build, explicit-policy-OFF replay
+with the four input values equal and the returned output different.
+
+The ON sentinel and OFF policy records may corroborate the result but cannot
+individually promote it. Validation is completed for every candidate before
+any write, and a mismatch leaves the clean capture unlabeled. Successful
+promotion copies the already captured unmarked candidate, attaches the exact
+ON/OFF frame and hash record, and remains categorically ineligible for
+performance claims. The verifier reads logs only; it does not inspect or write
+the supplied component binaries or configuration.

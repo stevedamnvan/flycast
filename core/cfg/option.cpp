@@ -111,6 +111,7 @@ Option<int> NeuralDlss5RebuildMaxAttempts("rend.NeuralDlss5RebuildMaxAttempts", 
 Option<bool> NeuralDlss5EvidenceCapture("rend.NeuralDlss5EvidenceCapture", false);
 Option<int> NeuralDlss5EvidenceCaptureFrames("rend.NeuralDlss5EvidenceCaptureFrames", 1);
 Option<int> NeuralDlss5EvidenceStartDelayMs("rend.NeuralDlss5EvidenceStartDelayMs", 0);
+Option<bool> NeuralDlss5EvidencePreserveMask("rend.NeuralDlss5EvidencePreserveMask", false);
 Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
 Option<int> NeuralOverlayPolicy("rend.NeuralOverlayPolicy", 0);
 Option<bool> NeuralMatchOutputResolution("rend.NeuralMatchOutputResolution", true);

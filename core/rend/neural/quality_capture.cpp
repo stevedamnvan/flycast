@@ -225,6 +225,27 @@ std::uint64_t Hash(const QualityCaptureWriter::RgbaImage& image)
 	return hash;
 }
 
+std::uint64_t Hash(const RawTexture& texture)
+{
+	constexpr std::uint64_t offset = 14695981039346656037ull;
+	constexpr std::uint64_t prime = 1099511628211ull;
+	std::uint64_t hash = offset;
+	for (const auto byte : texture.bytes)
+	{
+		hash ^= byte;
+		hash *= prime;
+	}
+	return hash;
+}
+
+std::string Hex(std::uint64_t value)
+{
+	std::ostringstream stream;
+	stream.imbue(std::locale::classic());
+	stream << std::uppercase << std::hex << std::setw(16) << std::setfill('0') << value;
+	return stream.str();
+}
+
 QualityCaptureWriter::RgbaImage Difference(const QualityCaptureWriter::RgbaImage& a,
 	const QualityCaptureWriter::RgbaImage& b)
 {
@@ -546,7 +567,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 
 	std::ofstream manifest(frameRoot / "manifest.json");
 	manifest.imbue(std::locale::classic());
-	manifest << "{\n  \"schema\": 2,\n  \"git_sha\": \"" << GIT_HASH
+	manifest << "{\n  \"schema\": 3,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"game_id\": \"" << Json(metadata.gameId)
 		<< "\",\n  \"frame_id\": " << metadata.frameId
 		<< ",\n  \"history_generation\": " << metadata.historyGeneration
@@ -575,6 +596,13 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< (metadata.externalContractEvaluated ? "true" : "false")
 		<< ",\n  \"external_output_confirmed\": "
 		<< (metadata.externalOutputConfirmed ? "true" : "false")
+		<< ",\n  \"contract_hashes\": {"
+		<< "\n    \"color_fnv64\": \"" << Hex(Hash(sourceRaw)) << "\","
+		<< "\n    \"depth_fnv64\": \"" << Hex(Hash(depthRaw)) << "\","
+		<< "\n    \"motion_fnv64\": \"" << Hex(Hash(motionRaw)) << "\","
+		<< "\n    \"mask_fnv64\": \"" << Hex(Hash(maskRaw)) << "\","
+		<< "\n    \"returned_fnv64\": \""
+		<< (hasPublicOutput ? Hex(Hash(publicRaw)) : std::string{}) << "\"\n  }"
 		<< ",\n  \"public_output_present\": " << (hasPublicOutput ? "true" : "false")
 		<< ",\n  \"neural_rendering_output_present\": "
 		<< (hasPublicOutput && metadata.externalOutputConfirmed ? "true" : "false")

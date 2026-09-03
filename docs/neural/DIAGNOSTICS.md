@@ -6,7 +6,8 @@ The production capture command is:
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k]
 [--profile faithful|enhanced|photoreal] [--style FAMILY]
-[--render-height N] [--feature-path DIR] [--timeout-ms N]`
+[--render-height N] [--feature-path DIR] [--evidence-frames 0..480]
+[--evidence-mask zero|production] [--timeout-ms N]`
 
 It launches Flycast with transient command-line configuration, limits a run to
 1 through 240 frames, waits for a completion marker, requests a normal window
@@ -43,6 +44,29 @@ Raw game data and user paths are excluded. Normal emulator execution performs
 no capture readback. This synchronous developer-only path is disabled unless an
 explicit destination and positive frame limit are supplied, and every package
 is marked ineligible for performance measurements.
+
+Schema-3 manifests include exact FNV-64 hashes of the raw color, depth,
+motion, bias-mask, and returned-output contract resources. Hash text is emitted
+with the classic locale. `--evidence-frames` remains synchronous and is valid
+only for the experimental D3D11On12 lane. Its default `--evidence-mask zero`
+preserves the Gate 10 sentinel contract; `production` retains the real resolved
+mask and disocclusion path for an exact quality-capture replay.
+
+An unmarked external candidate is promoted only by:
+
+`neuraltest confirm-external-capture --capture DIR --on-log FILE
+--on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA`
+
+The command first validates every frame without writing. Each candidate must
+match a same-build ON evidence record in all five hashes; that ON frame must
+have a distinct marked hash, 1024/1024 marker pixels in the swapchain, and a
+completed same-frame Present. It must also match an explicit-host-policy-OFF
+record in color/depth/motion/mask while the returned hash differs. ON consumer
+activity and the OFF `EnableHooks=0` safe-mode record are required controls,
+but neither is treated as presentation proof by itself. Only then is the clean
+unmarked image copied to `neural-rendering-output.png`, the manifest marked
+confirmed, and `external-confirmation.json` written. A mismatch leaves every
+candidate unpromoted. All sentinel timings remain excluded from performance.
 
 `neuraltest capture-index --root DIR [--out HTML]` recursively discovers only
 production packages containing both source and final images plus strict two-

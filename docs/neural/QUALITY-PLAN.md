@@ -155,14 +155,15 @@ close a temporal or title-quality gate.
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
   Per-title tuning and evidence-driven broader trust remain open.
-- Gate 17: partial at LOG #73. The bounded capture CLI writes the production
+- Gate 17: partial through LOG #93. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
   covered. LOG #74 adds a relative-path HTML/JSON comparison index which
-  explicitly refuses to declare a still-frame winner. GPU timings, external-
-  output capture, moving gameplay, all profile lanes, and every other legally available title
-  remain open, so no title-quality winner is declared.
+  explicitly refuses to declare a still-frame winner. Two externally confirmed
+  moving frames are now captured, but capture GPU timings, moving gameplay, all
+  profile lanes, and every other legally available title remain open, so no
+  title-quality winner is declared.
 - Gate 18: partial at LOG #75 and LOG #77. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
@@ -314,3 +315,11 @@ close a temporal or title-quality gate.
   three-frame live negative control observed the contract and public output but
   correctly emitted no external label or file. Capture-specific external
   mutation/presentation proof remains required.
+  LOG #93 implements that proof without marking the quality artifact: schema-3
+  captures carry exact raw contract/output hashes, and a separate verifier
+  requires a same-build ON sentinel replay, 1024/1024 swapchain marker pixels,
+  completed same-frame Present, and an exact-input policy-OFF output
+  difference. Two moving Soulcalibur frames were confirmed through the
+  unchanged supplied route, while a zero-mask mismatch was rejected without
+  promotion. This closes the capture-provenance mechanism and a bounded live
+  sample, not Gate 17's gameplay/profile/title matrix.

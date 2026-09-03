@@ -24,6 +24,7 @@
 #include "rend/sorter.h"
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/quality_profile.h"
+#include "version.h"
 #endif
 
 #include <memory>
@@ -875,7 +876,8 @@ bool DX11Renderer::renderNeuralExports()
 			protectedFrame);
 	}
 	if (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
-		&& config::NeuralDlss5EvidenceCapture.get())
+		&& config::NeuralDlss5EvidenceCapture.get()
+		&& !config::NeuralDlss5EvidencePreserveMask.get())
 	{
 		const float zero[4]{};
 		deviceContext->ClearRenderTargetView(neuralMask.targets[neuralExportSlot], zero);
@@ -937,7 +939,8 @@ bool DX11Renderer::renderNeuralDisocclusion()
 {
 	if (!hasNeuralAcceptedGuidance
 		|| (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
-			&& config::NeuralDlss5EvidenceCapture.get()))
+			&& config::NeuralDlss5EvidenceCapture.get()
+			&& !config::NeuralDlss5EvidencePreserveMask.get()))
 	{
 		deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],
 			neuralMask.textures[neuralExportSlot]);
@@ -1131,11 +1134,11 @@ void DX11Renderer::logNeuralConsumerStatus(
 		loggedEvidenceCaptures = stats.evidenceCaptures;
 		loggedEvidenceCaptureFailures = stats.evidenceCaptureFailures;
 		NOTICE_LOG(RENDERER,
-			"DLSS 5 developer evidence: captures=%llu failures=%llu frame=%llu "
+			"DLSS 5 developer evidence: git_sha=%s captures=%llu failures=%llu frame=%llu "
 			"color_fnv64=%016llX depth_fnv64=%016llX motion_fnv64=%016llX mask_fnv64=%016llX "
 			"returned_fnv64=%016llX marked_fnv64=%016llX wait_us=%llu "
 			"marker=32x32-magenta-cyan; synchronous developer mode",
-			static_cast<unsigned long long>(stats.evidenceCaptures),
+			GIT_HASH, static_cast<unsigned long long>(stats.evidenceCaptures),
 			static_cast<unsigned long long>(stats.evidenceCaptureFailures),
 			static_cast<unsigned long long>(stats.evidenceFrameId),
 			static_cast<unsigned long long>(stats.evidenceInputHash),
@@ -1527,7 +1530,7 @@ bool DX11Renderer::syncNeuralMode()
 				std::clamp(config::NeuralDlss5RebuildMaxAttempts.get(), 0, 4));
 			stageConfig.dlss5EvidenceCapture = config::NeuralDlss5EvidenceCapture.get();
 			stageConfig.dlss5EvidenceCaptureFrames = static_cast<std::uint32_t>(
-				std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
+				std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 480));
 		}
 		neuralStage = NeuralStage(stageConfig);
 		NOTICE_LOG(RENDERER, "Public DLSS preset: %s (%d); external Neural Rendering model selection is independent",

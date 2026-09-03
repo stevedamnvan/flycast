@@ -472,6 +472,7 @@ extern Option<int> NeuralDlss5RebuildMaxAttempts;
 extern Option<bool> NeuralDlss5EvidenceCapture;
 extern Option<int> NeuralDlss5EvidenceCaptureFrames;
 extern Option<int> NeuralDlss5EvidenceStartDelayMs;
+extern Option<bool> NeuralDlss5EvidencePreserveMask;
 extern Option<int> NeuralDebugView;
 extern Option<int> NeuralOverlayPolicy;
 extern Option<bool> NeuralMatchOutputResolution;

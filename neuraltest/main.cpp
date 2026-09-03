@@ -12,6 +12,8 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -40,8 +42,9 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--evidence-frames 0..480] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
+		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
@@ -404,14 +407,16 @@ int CaptureCommand(const Args& args)
 		return 2;
 	}
 	std::string error;
-	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480;
+	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
+		evidenceFrames = 0;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
 		|| !Number(args, "--skip", 0, skip, error)
 		|| !Number(args, "--render-height", 480, renderHeight, error)
 		|| renderHeight < 120 || renderHeight > 8640
+		|| !Number(args, "--evidence-frames", 0, evidenceFrames, error) || evidenceFrames > 480
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
-		std::cerr << (error.empty() ? "--frames must be 1..240, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
+		std::cerr << (error.empty() ? "--frames must be 1..240, --evidence-frames 0..480, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
 		return 2;
 	}
 	const auto lane = Value(args, "--lane", "dlaa");
@@ -421,6 +426,7 @@ int CaptureCommand(const Args& args)
 	const auto injection = Value(args, "--inject", "none");
 	const auto profile = Value(args, "--profile", "faithful");
 	const auto style = Value(args, "--style", "auto");
+	const auto evidenceMask = Value(args, "--evidence-mask", "zero");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "--lane must be native, dlaa, sr-quality, or dlss5\n";
@@ -429,6 +435,16 @@ int CaptureCommand(const Args& args)
 	if (api != "d3d11" && api != "d3d11on12")
 	{
 		std::cerr << "--api must be d3d11 or d3d11on12\n";
+		return 2;
+	}
+	if (evidenceFrames != 0 && (lane != "dlss5" || api != "d3d11on12"))
+	{
+		std::cerr << "evidence capture requires the dlss5 D3D11On12 lane\n";
+		return 2;
+	}
+	if (evidenceMask != "zero" && evidenceMask != "production")
+	{
+		std::cerr << "--evidence-mask must be zero or production\n";
 		return 2;
 	}
 	if (renderer != "dx11" && renderer != "dx11-oit")
@@ -527,7 +543,11 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
-		+ L",config:rend.NeuralDlss5EvidenceCapture=no"
+		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (evidenceFrames != 0 ? L"yes" : L"no")
+		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames="
+		+ std::to_wstring(evidenceFrames == 0 ? 1 : evidenceFrames)
+		+ L",config:rend.NeuralDlss5EvidencePreserveMask="
+		+ (evidenceFrames != 0 && evidenceMask == "production" ? L"yes" : L"no")
 		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
 		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
 		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
@@ -610,6 +630,8 @@ int CaptureCommand(const Args& args)
 		<< "\",\n  \"profile\": \"" << profile
 		<< "\",\n  \"style\": \"" << style
 		<< "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"evidence_frames\": " << evidenceFrames
+		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
 		<< ",\n  \"failure_injection\": \"" << injection
 		<< "\",\n  \"failure_injection_count\": " << injectionCount
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
@@ -1303,6 +1325,332 @@ bool JsonUnsignedArrayField(const std::string& json, const std::string& field,
 	}
 	skipSpace();
 	return position < json.size() && json[position] == ']';
+}
+
+struct ExternalEvidenceRecord {
+	std::string gitSha;
+	std::uint64_t frameId = 0;
+	std::string color;
+	std::string depth;
+	std::string motion;
+	std::string mask;
+	std::string returned;
+	std::string marked;
+};
+
+struct ExternalEvidenceLog {
+	std::vector<ExternalEvidenceRecord> records;
+	std::set<std::uint64_t> markerPresentedFrames;
+	std::set<std::uint64_t> completedPresentFrames;
+	bool contractEvaluated = false;
+};
+
+bool ReadTextFile(const std::filesystem::path& path, std::string& text)
+{
+	std::ifstream stream(path, std::ios::binary);
+	if (!stream) return false;
+	text.assign(std::istreambuf_iterator<char>(stream), {});
+	text.erase(std::remove(text.begin(), text.end(), '\r'), text.end());
+	return static_cast<bool>(stream) || stream.eof();
+}
+
+bool ParseExternalEvidenceLog(const std::filesystem::path& path,
+	ExternalEvidenceLog& result, std::string& error)
+{
+	std::ifstream stream(path);
+	if (!stream)
+	{
+		error = "evidence log is unavailable: " + path.string();
+		return false;
+	}
+	const std::regex evidence(
+		R"(DLSS 5 developer evidence: git_sha=([0-9A-Fa-f]+) captures=[0-9]+ failures=([0-9]+) frame=([0-9]+) color_fnv64=([0-9A-Fa-f]{16}) depth_fnv64=([0-9A-Fa-f]{16}) motion_fnv64=([0-9A-Fa-f]{16}) mask_fnv64=([0-9A-Fa-f]{16}) returned_fnv64=([0-9A-Fa-f]{16}) marked_fnv64=([0-9A-Fa-f]{16}))");
+	const std::regex marker(
+		R"(DLSS 5 developer present evidence: capture=[0-9]+ frame=([0-9]+).*marker_pixels=1024/1024)");
+	const std::regex present(
+		R"(DLSS 5 candidate public-output present completed: frame=([0-9]+) route=d3d11on12)");
+	std::string line;
+	while (std::getline(stream, line))
+	{
+		std::smatch match;
+		if (std::regex_search(line, match, evidence))
+		{
+			if (match[2] != "0")
+			{
+				error = "evidence log contains a capture failure";
+				return false;
+			}
+			ExternalEvidenceRecord record;
+			record.gitSha = match[1];
+			record.frameId = std::stoull(match[3]);
+			record.color = match[4];
+			record.depth = match[5];
+			record.motion = match[6];
+			record.mask = match[7];
+			record.returned = match[8];
+			record.marked = match[9];
+			result.records.push_back(std::move(record));
+		}
+		if (std::regex_search(line, match, marker))
+			result.markerPresentedFrames.insert(std::stoull(match[1]));
+		if (std::regex_search(line, match, present))
+			result.completedPresentFrames.insert(std::stoull(match[1]));
+		result.contractEvaluated = result.contractEvaluated
+			|| line.find("readiness=contract-evaluated contract_evaluated=1") != std::string::npos;
+	}
+	if (result.records.empty())
+	{
+		error = "evidence log has no current-schema records";
+		return false;
+	}
+	return true;
+}
+
+bool ShaMatches(const std::string& recorded, const std::string& expected)
+{
+	if (recorded.empty() || expected.empty()) return false;
+	return recorded.size() <= expected.size()
+		? expected.compare(0, recorded.size(), recorded) == 0
+		: recorded.compare(0, expected.size(), expected) == 0;
+}
+
+bool ReplaceExactlyOnce(std::string& text, const std::string& from,
+	const std::string& to)
+{
+	const auto position = text.find(from);
+	if (position == std::string::npos || text.find(from, position + from.size()) != std::string::npos)
+		return false;
+	text.replace(position, from.size(), to);
+	return true;
+}
+
+int ConfirmExternalCaptureCommand(const Args& args)
+{
+	const auto captureText = Value(args, "--capture");
+	const auto onLogText = Value(args, "--on-log");
+	const auto onHostLogText = Value(args, "--on-host-log");
+	const auto offLogText = Value(args, "--off-log");
+	const auto offHostLogText = Value(args, "--off-host-log");
+	const auto expectedSha = Value(args, "--git-sha");
+	if (captureText.empty() || onLogText.empty() || onHostLogText.empty()
+		|| offLogText.empty() || offHostLogText.empty() || expectedSha.empty())
+	{
+		std::cerr << "confirm-external-capture requires --capture, --on-log, --on-host-log, --off-log, --off-host-log, and --git-sha\n";
+		return 2;
+	}
+	const auto captureRoot = std::filesystem::absolute(captureText);
+	if (!std::filesystem::is_directory(captureRoot))
+	{
+		std::cerr << "capture root is unavailable\n";
+		return 3;
+	}
+	ExternalEvidenceLog on, off;
+	std::string error;
+	if (!ParseExternalEvidenceLog(std::filesystem::absolute(onLogText), on, error)
+		|| !ParseExternalEvidenceLog(std::filesystem::absolute(offLogText), off, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	std::string onHostLog, offHostLog;
+	if (!ReadTextFile(std::filesystem::absolute(onHostLogText), onHostLog)
+		|| !ReadTextFile(std::filesystem::absolute(offHostLogText), offHostLog))
+	{
+		std::cerr << "host evidence log is unavailable\n";
+		return 1;
+	}
+	if (!on.contractEvaluated
+		|| onHostLog.find("feature 18 created") == std::string::npos
+		|| onHostLog.find("feature 18 evaluation succeeded") == std::string::npos)
+	{
+		std::cerr << "ON evidence lacks the bounded contract and consumer activity controls\n";
+		return 1;
+	}
+	if (offHostLog.find("SAFE MODE: EnableHooks=0, all hooks off (no NR)") == std::string::npos)
+	{
+		std::cerr << "OFF evidence lacks the explicit no-neural host-policy control\n";
+		return 1;
+	}
+	for (const auto& record : on.records)
+		if (!ShaMatches(record.gitSha, expectedSha))
+		{
+			std::cerr << "ON evidence Git SHA does not match the requested build\n";
+			return 1;
+		}
+	for (const auto& record : off.records)
+		if (!ShaMatches(record.gitSha, expectedSha))
+		{
+			std::cerr << "OFF evidence Git SHA does not match the requested build\n";
+			return 1;
+		}
+
+	struct Promotion {
+		std::filesystem::path manifest;
+		std::string json;
+		const ExternalEvidenceRecord *on = nullptr;
+		const ExternalEvidenceRecord *off = nullptr;
+		std::filesystem::path imagePending;
+		std::filesystem::path manifestPending;
+	};
+	std::vector<Promotion> promotions;
+	std::error_code ec;
+	for (std::filesystem::recursive_directory_iterator iterator(captureRoot, ec), end;
+		!ec && iterator != end; iterator.increment(ec))
+	{
+		if (!iterator->is_regular_file() || iterator->path().filename() != "manifest.json")
+			continue;
+		Promotion promotion;
+		promotion.manifest = iterator->path();
+		if (!ReadTextFile(promotion.manifest, promotion.json)
+			|| !ShaMatches(JsonStringField(promotion.json, "git_sha"), expectedSha)
+			|| JsonScalarField(promotion.json, "external_output_confirmed") != "false"
+			|| JsonScalarField(promotion.json, "external_contract_evaluated") != "true"
+			|| JsonScalarField(promotion.json, "public_output_present") != "true")
+		{
+			std::cerr << "capture manifest is not an eligible unconfirmed external candidate: "
+				<< promotion.manifest.string() << '\n';
+			return 1;
+		}
+		const auto color = JsonStringField(promotion.json, "color_fnv64");
+		const auto depth = JsonStringField(promotion.json, "depth_fnv64");
+		const auto motion = JsonStringField(promotion.json, "motion_fnv64");
+		const auto mask = JsonStringField(promotion.json, "mask_fnv64");
+		const auto returned = JsonStringField(promotion.json, "returned_fnv64");
+		for (const auto& record : on.records)
+			if (record.color == color && record.depth == depth && record.motion == motion
+				&& record.mask == mask && record.returned == returned
+				&& record.returned != record.marked
+				&& on.markerPresentedFrames.count(record.frameId) != 0
+				&& on.completedPresentFrames.count(record.frameId) != 0)
+			{
+				promotion.on = &record;
+				break;
+			}
+		if (!promotion.on)
+		{
+			std::cerr << "no exact ON mutation-plus-presentation proof for "
+				<< promotion.manifest.string() << '\n';
+			return 1;
+		}
+		for (const auto& record : off.records)
+			if (record.color == color && record.depth == depth && record.motion == motion
+				&& record.mask == mask && record.returned != returned)
+			{
+				promotion.off = &record;
+				break;
+			}
+		if (!promotion.off)
+		{
+			std::cerr << "no exact-input policy-OFF difference proof for "
+				<< promotion.manifest.string() << '\n';
+			return 1;
+		}
+		const auto frameRoot = promotion.manifest.parent_path();
+		if (!std::filesystem::is_regular_file(frameRoot / "public-dlaa-output.png")
+			|| std::filesystem::exists(frameRoot / "neural-rendering-output.png"))
+		{
+			std::cerr << "candidate output is missing or already promoted\n";
+			return 1;
+		}
+		promotions.push_back(std::move(promotion));
+	}
+	if (ec || promotions.empty())
+	{
+		std::cerr << (ec ? "capture scan failed: " + ec.message()
+			: "capture contains no manifests") << '\n';
+		return 1;
+	}
+
+	for (auto& promotion : promotions)
+	{
+		const auto frameRoot = promotion.manifest.parent_path();
+		if (!ReplaceExactlyOnce(promotion.json, "\"external_output_confirmed\": false",
+			"\"external_output_confirmed\": true")
+			|| !ReplaceExactlyOnce(promotion.json, "\"neural_rendering_output_present\": false",
+				"\"neural_rendering_output_present\": true"))
+		{
+			std::cerr << "manifest promotion fields are ambiguous\n";
+			return 1;
+		}
+		const std::string proof = ",\n  \"external_output_proof\": {"
+			"\n    \"schema\": 1,"
+			"\n    \"method\": \"exact-input ON/OFF mutation plus same-frame sentinel Present\","
+			"\n    \"git_sha\": \"" + expectedSha + "\","
+			"\n    \"on_frame_id\": " + std::to_string(promotion.on->frameId) + ","
+			"\n    \"off_frame_id\": " + std::to_string(promotion.off->frameId) + ","
+			"\n    \"on_returned_fnv64\": \"" + promotion.on->returned + "\","
+			"\n    \"off_returned_fnv64\": \"" + promotion.off->returned + "\","
+			"\n    \"sentinel_marker_pixels\": 1024,"
+			"\n    \"same_frame_present_completed\": true"
+			"\n  }";
+		if (!ReplaceExactlyOnce(promotion.json, ",\n  \"capture_stalls_gpu\": true",
+			proof + ",\n  \"capture_stalls_gpu\": true"))
+		{
+			std::cerr << "manifest proof insertion point is unavailable\n";
+			return 1;
+		}
+		promotion.imagePending = frameRoot / "neural-rendering-output.png.pending";
+		promotion.manifestPending = frameRoot / "manifest.json.pending";
+		std::filesystem::remove(promotion.imagePending, ec);
+		ec.clear();
+		std::filesystem::remove(promotion.manifestPending, ec);
+		ec.clear();
+		std::filesystem::copy_file(frameRoot / "public-dlaa-output.png",
+			promotion.imagePending, std::filesystem::copy_options::none, ec);
+		if (ec)
+		{
+			std::cerr << "failed to stage external output: " << ec.message() << '\n';
+			return 1;
+		}
+		std::ofstream manifest(promotion.manifestPending, std::ios::trunc);
+		manifest << promotion.json;
+		if (!manifest)
+		{
+			std::filesystem::remove(promotion.imagePending, ec);
+			std::cerr << "failed to stage promoted manifest\n";
+			return 1;
+		}
+	}
+	for (auto& promotion : promotions)
+	{
+		const auto frameRoot = promotion.manifest.parent_path();
+		const auto manifestBackup = frameRoot / "manifest.json.unconfirmed-backup";
+		std::filesystem::remove(manifestBackup, ec);
+		ec.clear();
+		std::filesystem::rename(promotion.manifest, manifestBackup, ec);
+		if (!ec)
+			std::filesystem::rename(promotion.imagePending,
+				frameRoot / "neural-rendering-output.png", ec);
+		if (!ec)
+			std::filesystem::rename(promotion.manifestPending, promotion.manifest, ec);
+		if (ec)
+		{
+			std::error_code cleanup;
+			std::filesystem::remove(frameRoot / "neural-rendering-output.png", cleanup);
+			std::filesystem::remove(promotion.imagePending, cleanup);
+			std::filesystem::remove(promotion.manifestPending, cleanup);
+			if (!std::filesystem::exists(promotion.manifest))
+				std::filesystem::rename(manifestBackup, promotion.manifest, cleanup);
+			std::cerr << "failed to commit promoted capture: " << ec.message() << '\n';
+			return 1;
+		}
+		std::filesystem::remove(manifestBackup, ec);
+		ec.clear();
+	}
+	std::ofstream report(captureRoot / "external-confirmation.json");
+	report << "{\n  \"schema\": 1,\n  \"git_sha\": \"" << expectedSha
+		<< "\",\n  \"confirmed_frames\": " << promotions.size()
+		<< ",\n  \"method\": \"exact-input ON/OFF mutation plus same-frame sentinel Present\","
+		<< "\n  \"synchronous_evidence_excluded_from_performance\": true,"
+		<< "\n  \"status\": \"confirmed\"\n}\n";
+	if (!report)
+	{
+		std::cerr << "failed to write confirmation report\n";
+		return 1;
+	}
+	std::cout << "external capture confirmed frames=" << promotions.size()
+		<< " git_sha=" << expectedSha << '\n';
+	return 0;
 }
 
 int CaptureIndexCommand(const Args& args)
@@ -2022,6 +2370,7 @@ int main(int argc, char **argv)
 	if (command == "compare") return CompareCommand(args);
 	if (command == "capture") return CaptureCommand(args);
 	if (command == "capture-index") return CaptureIndexCommand(args);
+	if (command == "confirm-external-capture") return ConfirmExternalCaptureCommand(args);
 	if (command == "performance") return PerformanceCommand(args);
 	Usage();
 	return 2;

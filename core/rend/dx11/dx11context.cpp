@@ -328,7 +328,7 @@ void DX11Context::Present()
 	{
 		++neuralOutputPresentCount;
 		const auto evidenceLimit = static_cast<std::uint64_t>(
-			std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
+			std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 480));
 		if (neuralOutputPresentCount == 1
 			|| (config::NeuralDlss5EvidenceCapture.get() && neuralOutputPresentCount <= evidenceLimit))
 			NOTICE_LOG(RENDERER,
@@ -520,7 +520,7 @@ void DX11Context::releaseWrappedBackBuffer() noexcept
 void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcept
 {
 	const auto captureLimit = static_cast<std::uint32_t>(
-		std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
+		std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 480));
 	if (neuralEvidenceBackBufferAttempts >= captureLimit || !renderTargetView)
 		return;
 	const auto captureNumber = ++neuralEvidenceBackBufferAttempts;
