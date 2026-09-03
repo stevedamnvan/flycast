@@ -400,6 +400,19 @@ int RunSelfTests()
 			Near(InvertLegacyDepth(nativeEncoded, true), sourceDepth, 1e-3f),
 			"depth visualization inverse covers legacy and DIV_POS_Z paths");
 	}
+	{
+		DepthContractResult native;
+		DepthContractResult on12;
+		std::string fixtureError;
+		const bool nativeOk = RunDepthContractFixture(false, native, fixtureError);
+		suite.Expect(nativeOk, "production depth contract passes on native D3D11");
+		fixtureError.clear();
+		const bool on12Ok = RunDepthContractFixture(true, on12, fixtureError);
+		suite.Expect(on12Ok, "production depth contract passes on D3D11On12");
+		suite.Expect(nativeOk && on12Ok && native.correctDepth == on12.correctDepth
+			&& native.correctColor.rgba == on12.correctColor.rgba,
+			"production depth contract is exact across D3D11 surfaces");
+	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;

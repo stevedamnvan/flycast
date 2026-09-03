@@ -303,3 +303,22 @@ reprojection, and newly revealed pixels prefer zero motion plus current-color
 bias. Public `BiasCurrentColorMask` is a temporal-safety input only; no private
 semantic meaning is inferred. The full plan and Gates 11-18 are recorded in
 `QUALITY-PLAN.md`.
+
+## D-028: PVR neural depth is inverted and retains its logarithmic encoding
+
+The deterministic Gate 11 fixture compiles the production DX11 pixel shader in
+native-color and neural-export permutations. With the production zero clear and
+greater/equal depth comparison, exact R32 samples are `0` for no geometry,
+`0.166836038` for the farther opaque surface, and `0.263784289` for both the
+near opaque and near punch-through surfaces. Color ordering agrees, reversing
+submission order is byte-identical, and a deliberately conventional less/equal
+control leaves the farther surface visible over the nearer one. Native D3D11
+and D3D11On12 color/depth artifacts are exact.
+
+Both public D3D11 and D3D12 NGX feature paths therefore declare
+`NVSDK_NGX_DLSS_Feature_Flags_DepthInverted`; `MVLowRes` remains additive and
+SR-only. Correct/inverted and deliberately normal feature declarations each
+created and evaluated 8/8 frames on the RTX 5090. Their static-chart outputs
+were byte-identical, so API acceptance/output equality is not used as polarity
+evidence. The falsifying production-shader ordering control is the authority.
+The logarithmic PVR representation is preserved.

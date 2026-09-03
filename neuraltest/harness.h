@@ -80,6 +80,30 @@ struct NeuralRunResult {
 	flycast::rend::neural::Dlss5HookComponents dlss5Components{};
 };
 
+struct DepthContractResult {
+	std::string surface;
+	std::string adapter;
+	Image correctColor;
+	Image reversedColor;
+	Image wrongColor;
+	std::vector<float> correctDepth;
+	std::vector<float> reversedDepth;
+	std::vector<float> wrongDepth;
+	float clearDepth = 0.f;
+	float farDepth = 0.f;
+	float nearDepth = 0.f;
+	float punchDepth = 0.f;
+	float expectedFarDepth = 0.f;
+	float expectedNearDepth = 0.f;
+	bool nearIsGreater = false;
+	bool clearIsNoGeometry = false;
+	bool visibleOrderingAgrees = false;
+	bool punchThroughAgrees = false;
+	bool reversedSubmissionStable = false;
+	bool wrongOrderFailed = false;
+	bool nativeExportExact = false;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -91,12 +115,15 @@ double ComputePsnr(const Image& a, const Image& b, std::uint32_t& differingPixel
 bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixture,
 	const RenderOptions& options, const RenderResult& result, std::string& error);
 bool ValidateProductionExportShader(std::string& error);
+bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error);
+	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	NeuralRunResult& result, std::string& error);
 bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error);
+	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	NeuralRunResult& result, std::string& error);
 int RunSelfTests();
 
 } // namespace neuraltest

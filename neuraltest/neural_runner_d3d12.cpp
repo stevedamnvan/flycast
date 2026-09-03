@@ -357,7 +357,8 @@ bool ReadbackOutput(ID3D12Device *device, ID3D12CommandQueue *queue,
 
 bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, std::uint32_t frames, NeuralRunResult& result, std::string& error)
+	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	NeuralRunResult& result, std::string& error)
 {
 	using namespace flycast::rend::neural;
 	if (input.width == 0 || input.height == 0 || input.rgba.size()
@@ -455,6 +456,7 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	config.outputHeight = outputHeight;
 	config.contentRect = {0, 0, static_cast<std::int32_t>(outputWidth),
 		static_cast<std::int32_t>(outputHeight)};
+	config.depthInverted = depthInverted;
 	config.hookCompatibility = config.mode == NeuralMode::DlaaHook
 		|| config.mode == NeuralMode::Dlss5Experimental;
 	if (config.mode == NeuralMode::Dlss5Experimental)

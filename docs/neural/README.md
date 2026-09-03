@@ -23,6 +23,12 @@ The harness accepts standard SR as `neural --backend sr --mode quality` (or
 optimal input size and rejects an input package of any other dimensions instead
 of silently stretching or treating a 1:1 evaluation as SR.
 
+The production-shader depth contract is exercised without game media by
+`neuraltest depth-contract --api d3d11|d3d11on12 --out DIR`. Public NGX polarity
+creation can be A/B tested in the harness with `neural --depth-polarity
+inverted|normal`; production Flycast always uses the proven inverted PVR depth
+declaration.
+
 Project state is recorded in `BACKLOG.md`; commands and evidence are in
 `LOG.md`; deviations are in `DECISIONS.md`; artifact definitions are in
 `DIAGNOSTICS.md`.

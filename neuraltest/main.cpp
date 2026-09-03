@@ -23,8 +23,9 @@ void Usage()
 		"neuraltest render --fixture NAME --renderer dx11|dx11-oit --scale 1|4|8 --frames N --out DIR [--jitter on|off] [--warp]\n"
 		"neuraltest determinism --fixture NAME --renderer dx11|dx11-oit [--runs 5] [--warp]\n"
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
+		"neuraltest depth-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
-		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
+		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
 	std::cout << "neuraltest selftest\n";
@@ -273,6 +274,63 @@ int NoDataCommand(const std::string& command, const Args& args)
 	return 0;
 }
 
+int DepthContractCommand(const Args& args)
+{
+	const auto api = Value(args, "--api", "d3d11");
+	const auto output = Value(args, "--out");
+	if ((api != "d3d11" && api != "d3d11on12") || output.empty())
+	{
+		std::cerr << "depth-contract requires --api d3d11|d3d11on12 and --out DIR\n";
+		return 2;
+	}
+	neuraltest::DepthContractResult result;
+	std::string error;
+	if (!neuraltest::RunDepthContractFixture(api == "d3d11on12", result, error))
+	{
+		std::cerr << (error.empty() ? "depth contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "correct-color.png",
+		result.correctColor, error) || !neuraltest::WritePng(std::filesystem::path(output) /
+		"reversed-color.png", result.reversedColor, error) ||
+		!neuraltest::WritePng(std::filesystem::path(output) / "wrong-polarity-color.png",
+		result.wrongColor, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	auto writeRaw = [&](const char *name, const std::vector<float>& values) {
+		std::ofstream file(std::filesystem::path(output) / name, std::ios::binary);
+		file.write(reinterpret_cast<const char *>(values.data()),
+			static_cast<std::streamsize>(values.size() * sizeof(float)));
+		return file.good();
+	};
+	if (!writeRaw("correct-depth-r32.raw", result.correctDepth) ||
+		!writeRaw("reversed-depth-r32.raw", result.reversedDepth) ||
+		!writeRaw("wrong-polarity-depth-r32.raw", result.wrongDepth))
+	{
+		std::cerr << "failed to write depth-contract raw artifacts\n";
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "depth-contract.json");
+	report << std::setprecision(9) << "{\n  \"surface\": \"" << result.surface
+		<< "\",\n  \"adapter\": \"" << result.adapter << "\",\n  \"samples\": {"
+		<< "\n    \"clear\": " << result.clearDepth << ",\n    \"far_opaque\": "
+		<< result.farDepth << ",\n    \"near_opaque\": " << result.nearDepth
+		<< ",\n    \"near_punch_through\": " << result.punchDepth
+		<< ",\n    \"expected_far\": " << result.expectedFarDepth
+		<< ",\n    \"expected_near\": " << result.expectedNearDepth << "\n  },"
+		<< "\n  \"near_is_greater\": true,\n  \"clear_is_no_geometry\": true,"
+		<< "\n  \"visible_ordering_agrees\": true,\n  \"punch_through_agrees\": true,"
+		<< "\n  \"reversed_submission_stable\": true,\n  \"wrong_polarity_failed\": true,"
+		<< "\n  \"native_export_exact\": true\n}\n";
+	std::cout << std::setprecision(9) << "surface=" << result.surface << " clear="
+		<< result.clearDepth << " far=" << result.farDepth << " near=" << result.nearDepth
+		<< " punch=" << result.punchDepth << " near_is_greater=yes wrong_control=failed\n";
+	return 0;
+}
+
 int NeuralCommand(const Args& args)
 {
 	using namespace flycast::rend::neural;
@@ -281,6 +339,7 @@ int NeuralCommand(const Args& args)
 	const auto backend = Value(args, "--backend", "passthrough");
 	const auto api = Value(args, "--api", "d3d11");
 	const auto mode = Value(args, "--mode", "quality");
+	const auto depthPolarity = Value(args, "--depth-polarity", "inverted");
 	const auto effectiveMode = backend == "sr" ? mode : backend;
 	if (input.empty() || output.empty())
 	{
@@ -302,6 +361,11 @@ int NeuralCommand(const Args& args)
 		&& mode != "ultra-performance")
 	{
 		std::cerr << "unsupported --mode value\n";
+		return 2;
+	}
+	if (depthPolarity != "inverted" && depthPolarity != "normal")
+	{
+		std::cerr << "--depth-polarity must be inverted or normal\n";
 		return 2;
 	}
 	neuraltest::Image image;
@@ -328,9 +392,11 @@ int NeuralCommand(const Args& args)
 		neuraltest::NeuralRunResult run;
 		if (!(api == "d3d12"
 			? neuraltest::RunLiveNeuralD3D12(image, backend, mode, outputWidth, outputHeight,
-				args.count("--no-ngx") != 0, args.count("--warp") != 0, frames, run, error)
+				args.count("--no-ngx") != 0, args.count("--warp") != 0,
+				depthPolarity == "inverted", frames, run, error)
 			: neuraltest::RunLiveNeuralD3D11(image, backend, mode, outputWidth, outputHeight,
-				args.count("--no-ngx") != 0, args.count("--warp") != 0, frames, run, error)))
+				args.count("--no-ngx") != 0, args.count("--warp") != 0,
+				depthPolarity == "inverted", frames, run, error)))
 		{
 			std::cerr << error << '\n';
 			return 1;
@@ -338,6 +404,7 @@ int NeuralCommand(const Args& args)
 		std::ofstream statusFile(std::filesystem::path(output) / "ngx-status.json");
 		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"mode\": \"" << effectiveMode
 			<< "\",\n  \"api\": \"" << api
+			<< "\",\n  \"depth_polarity\": \"" << depthPolarity
 			<< "\",\n  \"surface\": \"" << run.surface
 			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
 			<< "\",\n  \"reason\": \"" << run.reason << "\",\n  \"requested_frames\": " << frames
@@ -366,6 +433,7 @@ int NeuralCommand(const Args& args)
 		std::ofstream report(std::filesystem::path(output) / "report.md");
 		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nMode: `" << effectiveMode
 			<< "`  \nAPI: `" << api
+			<< "`  \nDepth polarity: `" << depthPolarity
 			<< "`  \nSurface: `" << run.surface
 			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter
 			<< "`  \nRender/output: " << image.width << 'x' << image.height << " -> "
@@ -510,6 +578,7 @@ int main(int argc, char **argv)
 	if (command == "render") return RenderCommand(args);
 	if (command == "determinism") return DeterminismCommand(args);
 	if (command == "scaling") return ScalingCommand(args);
+	if (command == "depth-contract") return DepthContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

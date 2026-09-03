@@ -313,6 +313,9 @@ public:
 			create.InFeatureCreateFlags = IsSr(config_.mode)
 				? NVSDK_NGX_DLSS_Feature_Flags_MVLowRes
 				: NVSDK_NGX_DLSS_Feature_Flags_None;
+			if (config_.depthInverted)
+				create.InFeatureCreateFlags = static_cast<NVSDK_NGX_DLSS_Feature_Flags>(
+					create.InFeatureCreateFlags | NVSDK_NGX_DLSS_Feature_Flags_DepthInverted);
 			create.InEnableOutputSubrects = false;
 			const auto call = CreateLeaf(list_[slot], &feature_, parameters_, &create);
 			Record(call);

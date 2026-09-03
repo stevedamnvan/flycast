@@ -53,3 +53,11 @@ Draw-history diagnostics refer to the last stage-accepted frame rather than
 the previous emulated frame. A FramebufferDirect package carries color,
 dimensions, content rect, frame/history identity, and an explicit reset, but no
 geometry or temporal input views. RTT passes produce no stage submission.
+
+The ROM-free Gate 11 command is `neuraltest depth-contract --api
+d3d11|d3d11on12 --out DIR`. It compiles the production pixel shader, writes
+`correct-color.png`, `reversed-color.png`, `wrong-polarity-color.png`, exact
+R32 files for each control, and `depth-contract.json`. These are synchronous
+harness artifacts, not emulator performance evidence. Public NGX polarity A/B
+uses `neural --depth-polarity inverted|normal`; the override exists only in
+`neuraltest` and does not expose a production user setting.

@@ -1,5 +1,6 @@
 add_executable(neuraltest
     artifacts.cpp
+	guidance_contract.cpp
     fixtures.cpp
     harness.h
     main.cpp
