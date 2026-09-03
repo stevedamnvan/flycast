@@ -50,6 +50,41 @@ private:
 	const std::string& common_;
 };
 
+class OitInclude final : public ID3DInclude
+{
+public:
+	explicit OitInclude(const std::string& header) : header_(header) {}
+
+	HRESULT STDMETHODCALLTYPE Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID,
+		LPCVOID *data, UINT *bytes) override
+	{
+		if (std::strcmp(fileName, "oit_header.hlsl") != 0)
+			return E_FAIL;
+		*data = header_.data();
+		*bytes = static_cast<UINT>(header_.size());
+		return S_OK;
+	}
+	HRESULT STDMETHODCALLTYPE Close(LPCVOID) override { return S_OK; }
+
+private:
+	const std::string& header_;
+};
+
+bool CompileStandalonePixel(const std::string& source, const char *name,
+	const D3D_SHADER_MACRO *macros, ID3DInclude *includes, std::string& error)
+{
+	ComPtr<ID3DBlob> code;
+	ComPtr<ID3DBlob> diagnostics;
+	const HRESULT result = D3DCompile(source.data(), source.size(), name, macros,
+		includes, "main", "ps_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
+		code.GetAddressOf(), diagnostics.GetAddressOf());
+	if (SUCCEEDED(result))
+		return true;
+	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
+		diagnostics->GetBufferSize()) : "D3DCompile failed without diagnostics";
+	return false;
+}
+
 bool CompilePixel(const std::string& source, const char *neuralExport,
 	PixelInclude& includes, std::string& error)
 {
@@ -110,8 +145,10 @@ bool ValidateProductionExportShader(std::string& error)
 {
 	std::string source;
 	std::string naomiSource;
+	std::string oitSource;
 	if (!ReadSource("core/rend/dx11/dx11_shaders.cpp", source)
-		|| !ReadSource("core/rend/dx11/dx11_naomi2.cpp", naomiSource))
+		|| !ReadSource("core/rend/dx11/dx11_naomi2.cpp", naomiSource)
+		|| !ReadSource("core/rend/dx11/oit/dx11_oitshaders.cpp", oitSource))
 	{
 		error = "cannot open production DX11 shader sources";
 		return false;
@@ -121,16 +158,26 @@ bool ValidateProductionExportShader(std::string& error)
 	std::string vertex;
 	std::string naomiVertex;
 	std::string naomiColor;
+	std::string reactiveCoverage;
+	std::string oitHeader;
+	std::string oitFinal;
 	if (!ExtractRawString(source, "PixelShaderCommon", common)
 		|| !ExtractRawString(source, "PixelShader", pixel)
 		|| !ExtractRawString(source, "VertexShader", vertex)
+		|| !ExtractRawString(source, "NeuralReactiveCoveragePixelShader", reactiveCoverage)
 		|| !ExtractRawString(naomiSource, "DX11N2VertexShader", naomiVertex)
-		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor))
+		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor)
+		|| !ExtractRawString(oitSource, "static const char OITShaderHeader[]", oitHeader)
+		|| !ExtractRawString(oitSource, "static const char OITFinalShaderSource[]", oitFinal))
 	{
 		error = "cannot extract production DX11 shader raw strings";
 		return false;
 	}
 	PixelInclude includes(common);
+	OitInclude oitIncludes(oitHeader);
+	D3D_SHADER_MACRO oitMacros[] = {
+		{"MAX_PIXELS_PER_FRAGMENT", "32"}, {"DITHERING", "1"}, {nullptr, nullptr}
+	};
 	const std::string naomi = naomiVertex + '\n' + naomiColor;
 	return CompilePixel(pixel, "0", includes, error)
 		&& CompilePixel(pixel, "1", includes, error)
@@ -139,7 +186,13 @@ bool ValidateProductionExportShader(std::string& error)
 		&& CompileVertex(vertex, false, true, false, error)
 		&& CompileVertex(vertex, true, true, false, error)
 		&& CompileVertex(naomi, false, false, true, error)
-		&& CompileVertex(naomi, false, true, true, error);
+		&& CompileVertex(naomi, false, true, true, error)
+		&& CompileStandalonePixel(reactiveCoverage, "neural-reactive-coverage",
+			nullptr, nullptr, error)
+		&& oitFinal.find("reactiveCoverage = num_frag > 0") != std::string::npos
+		&& oitFinal.find("SV_Target1") != std::string::npos
+		&& CompileStandalonePixel(oitFinal, "oit-final-reactive", oitMacros,
+			&oitIncludes, error);
 }
 
 } // namespace neuraltest

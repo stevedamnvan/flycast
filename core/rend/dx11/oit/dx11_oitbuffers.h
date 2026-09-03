@@ -105,7 +105,9 @@ public:
 	{
 		ID3D11UnorderedAccessView *uavs[] { pixelsBufferView, abufferPointersView };
 		UINT initialCounts[] { 0, (UINT)-1 };
-		deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 1, std::size(uavs), uavs, initialCounts);
+		// Keep u0/u1 free for the two final-resolve render targets (scene color and
+		// neural reactive coverage). All OIT passes use the same stable UAV layout.
+		deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, std::size(uavs), uavs, initialCounts);
 	}
 
 	void term()

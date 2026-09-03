@@ -712,6 +712,25 @@ int RunSelfTests()
 			&& native.wrongTrailEnergy > native.correctTrailEnergy,
 			"wrong disocclusion control has measurable trail energy");
 	}
+	{
+		TransparencyContractResult native;
+		TransparencyContractResult on12;
+		std::string fixtureError;
+		const bool nativeOk = RunTransparencyContractFixture(false, native, fixtureError);
+		if (!nativeOk && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(nativeOk, "production OIT visible fragments are reactive on native D3D11");
+		fixtureError.clear();
+		const bool on12Ok = RunTransparencyContractFixture(true, on12, fixtureError);
+		if (!on12Ok && !fixtureError.empty()) std::cerr << fixtureError << '\n';
+		suite.Expect(on12Ok, "production OIT visible fragments are reactive on D3D11On12");
+		suite.Expect(nativeOk && on12Ok
+			&& native.reactiveMask.rgba == on12.reactiveMask.rgba,
+			"production OIT reactive coverage is exact across D3D11 surfaces");
+		suite.Expect(nativeOk && on12Ok && native.emptyAndModifierClear
+			&& native.singleLayerReactive && native.multiLayerReactive
+			&& native.wrongControlFailed,
+			"empty/modifier-only pixels stay clear while single and multi-layer translucency reject the omitted-mask control");
+	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;

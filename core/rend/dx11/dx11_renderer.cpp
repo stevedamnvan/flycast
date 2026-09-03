@@ -759,6 +759,7 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralAcceptedGuidanceSlot = 0;
 	hasNeuralAcceptedGuidance = false;
 	neuralExportActive = false;
+	neuralReactiveCoverageActive = false;
 	neuralPreviousPositionBuffer.reset();
 	neuralPreviousPositionBufferSize = 0;
 }
@@ -835,6 +836,13 @@ bool DX11Renderer::renderNeuralExports()
 			previousPass.pt_count, currentPass.pt_count - previousPass.pt_count);
 		previousPass = currentPass;
 	}
+	if (!renderNeuralReactiveCoverage())
+	{
+		neuralExportActive = false;
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		releaseNeuralInputs();
+		return false;
+	}
 	if (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
 		&& config::NeuralDlss5EvidenceCapture.get())
 	{
@@ -852,9 +860,52 @@ bool DX11Renderer::renderNeuralExports()
 	return true;
 }
 
+bool DX11Renderer::renderNeuralReactiveCoverage()
+{
+	ID3D11RenderTargetView *targets[] = {
+		nullptr,
+		neuralMask.targets[neuralExportSlot].get(),
+	};
+	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets, nullptr);
+	neuralReactiveCoverageActive = true;
+	RenderPass previousPass{};
+	for (const RenderPass& currentPass : rendContext->render_passes)
+	{
+		drawList<ListType_Translucent, false>(rendContext->global_param_tr,
+			previousPass.tr_count, currentPass.tr_count - previousPass.tr_count);
+		previousPass = currentPass;
+	}
+	neuralReactiveCoverageActive = false;
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	return true;
+}
+
+bool DX11Renderer::mergeNeuralReactiveCoverage(ID3D11ShaderResourceView *coverageView)
+{
+	if (!coverageView)
+		return true;
+	ID3D11RenderTargetView *targets[] = {
+		nullptr,
+		neuralMask.targets[neuralExportSlot].get(),
+	};
+	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets, nullptr);
+	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+	const auto& shader = shaders->getNeuralReactiveCoveragePixelShader();
+	if (!shader)
+	{
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		return false;
+	}
+	quad->drawCustom(shader, &coverageView, 1);
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	return true;
+}
+
 bool DX11Renderer::renderNeuralDisocclusion()
 {
-	if (!hasNeuralAcceptedGuidance)
+	if (!hasNeuralAcceptedGuidance
+		|| (activeNeuralMode == static_cast<int>(flycast::rend::neural::NeuralMode::Dlss5Experimental)
+			&& config::NeuralDlss5EvidenceCapture.get()))
 	{
 		deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],
 			neuralMask.textures[neuralExportSlot]);
@@ -1386,11 +1437,20 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			ordinal = rendContext->global_param_op.size() + rendContext->global_param_pt.size()
 				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
 		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
-		const auto *match = neuralInstrumentation.MatchForOrdinal(ordinal);
-		constants.neuralConfidence = match ? match->confidence : 0.f;
-		constants.neuralBiasMask = constants.neuralConfidence >= .5f ? 0.f : 1.f;
-		constants.neuralPreviousDrawId = match && constants.neuralConfidence >= .5f
-			? static_cast<std::uint32_t>(match->prevOrdinal + 1) : 0;
+		if (neuralReactiveCoverageActive)
+		{
+			constants.neuralConfidence = 0.f;
+			constants.neuralBiasMask = 1.f;
+			constants.neuralPreviousDrawId = 0;
+		}
+		else
+		{
+			const auto *match = neuralInstrumentation.MatchForOrdinal(ordinal);
+			constants.neuralConfidence = match ? match->confidence : 0.f;
+			constants.neuralBiasMask = constants.neuralConfidence >= .5f ? 0.f : 1.f;
+			constants.neuralPreviousDrawId = match && constants.neuralConfidence >= .5f
+				? static_cast<std::uint32_t>(match->prevOrdinal + 1) : 0;
+		}
 	}
 #endif
 
@@ -1511,7 +1571,13 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			zwriteEnable = !gp->isp.ZWriteDis;
 	}
 	const u32 stencil = (gp->pcw.Shadow != 0) ? 0x80 : 0;
-	deviceContext->OMSetDepthStencilState(depthStencilStates.getState(true, zwriteEnable, zfunc, config::ModifierVolumes), stencil);
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (neuralReactiveCoverageActive)
+		deviceContext->OMSetDepthStencilState(depthStencilStates.getState(false, false, 7, false), 0);
+	else
+#endif
+		deviceContext->OMSetDepthStencilState(depthStencilStates.getState(true, zwriteEnable,
+			zfunc, config::ModifierVolumes), stencil);
 
 	if (gp->isNaomi2())
 		n2Helper.setConstants(*gp, 0, *rendContext); // poly number only used in OIT

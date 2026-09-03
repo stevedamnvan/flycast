@@ -534,6 +534,23 @@ float main(in VertexIn input) : SV_Target
 }
 )";
 
+const char * const NeuralReactiveCoveragePixelShader = R"(
+struct VertexIn
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD0;
+};
+
+Texture2D<float> reactiveCoverage : register(t0);
+
+float main(in VertexIn input) : SV_Target
+{
+	if (reactiveCoverage.Load(int3(int2(input.pos.xy), 0)) < .5f)
+		discard;
+	return 1.f;
+}
+)";
+
 struct IncludeManager : public ID3DInclude
 {
 	HRESULT STDMETHODCALLTYPE Open(D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID *ppData, UINT *pBytes) override
@@ -822,6 +839,15 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralDisocclusionPixelShader()
 	return neuralDisocclusionPixelShader;
 }
 
+const ComPtr<ID3D11PixelShader>& DX11Shaders::getNeuralReactiveCoveragePixelShader()
+{
+	if (!neuralReactiveCoveragePixelShader)
+		neuralReactiveCoveragePixelShader = compilePS(NeuralReactiveCoveragePixelShader,
+			"main", nullptr);
+
+	return neuralReactiveCoveragePixelShader;
+}
+
 ComPtr<ID3DBlob> DX11Shaders::getNeuralVertexShaderBlob()
 {
 	VertexMacros[MacroGouraud].Definition = MacroValues[true];
@@ -873,6 +899,7 @@ void DX11Shaders::term()
 	quadRotateVertexShader.reset();
 	quadPixelShader.reset();
 	neuralDisocclusionPixelShader.reset();
+	neuralReactiveCoveragePixelShader.reset();
 	device.reset();
 }
 

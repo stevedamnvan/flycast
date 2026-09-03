@@ -27,6 +27,7 @@ void Usage()
 		"neuraltest motion-contract --out DIR\n"
 		"neuraltest color-contract --out DIR\n"
 		"neuraltest disocclusion-contract --api d3d11|d3d11on12 --out DIR\n"
+		"neuraltest transparency-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
@@ -504,6 +505,45 @@ int DisocclusionContractCommand(const Args& args)
 	return 0;
 }
 
+int TransparencyContractCommand(const Args& args)
+{
+	const auto api = Value(args, "--api", "d3d11");
+	const auto output = Value(args, "--out");
+	if ((api != "d3d11" && api != "d3d11on12") || output.empty())
+	{
+		std::cerr << "transparency-contract requires --api d3d11|d3d11on12 and --out DIR\n";
+		return 2;
+	}
+	neuraltest::TransparencyContractResult result;
+	std::string error;
+	if (!neuraltest::RunTransparencyContractFixture(api == "d3d11on12", result, error))
+	{
+		std::cerr << (error.empty() ? "transparency contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	neuraltest::Image wrong = result.reactiveMask;
+	for (std::size_t i = 0; i < wrong.rgba.size(); i += 4)
+		wrong.rgba[i] = wrong.rgba[i + 1] = wrong.rgba[i + 2] = 0;
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "reactive-mask.png",
+		result.reactiveMask, error) || !neuraltest::WritePng(std::filesystem::path(output)
+		/ "wrong-omitted-mask.png", wrong, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "transparency-contract.json");
+	report << "{\n  \"surface\": \"" << result.surface << "\",\n  \"adapter\": \""
+		<< result.adapter << "\",\n  \"empty_modifier_clear\": true,"
+		<< "\n  \"single_layer_reactive\": true,\n  \"multi_layer_reactive\": true,"
+		<< "\n  \"wrong_omitted_mask_failed\": true\n}\n";
+	if (!report.good()) { std::cerr << "failed to write transparency report\n"; return 1; }
+	std::cout << "surface=" << result.surface
+		<< " empty_modifier_clear=yes single_layer_reactive=yes"
+		<< " multi_layer_reactive=yes wrong_omitted_mask_failed=yes\n";
+	return 0;
+}
+
 int NeuralCommand(const Args& args)
 {
 	using namespace flycast::rend::neural;
@@ -777,6 +817,7 @@ int main(int argc, char **argv)
 	if (command == "motion-contract") return MotionContractCommand(args);
 	if (command == "color-contract") return ColorContractCommand(args);
 	if (command == "disocclusion-contract") return DisocclusionContractCommand(args);
+	if (command == "transparency-contract") return TransparencyContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

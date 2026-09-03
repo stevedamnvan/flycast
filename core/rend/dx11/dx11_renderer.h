@@ -135,6 +135,8 @@ protected:
 	bool ensureNeuralResources();
 	bool renderNeuralExports();
 	bool renderNeuralDisocclusion();
+	virtual bool renderNeuralReactiveCoverage();
+	bool mergeNeuralReactiveCoverage(ID3D11ShaderResourceView *coverageView);
 	void releaseNeuralResources() noexcept;
 	void logNeuralConsumerStatus(flycast::rend::neural::SubmitStatus status) noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
@@ -207,6 +209,7 @@ protected:
 	int activeNeuralMode = -1;
 	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
+	bool neuralReactiveCoverageActive = false;
 	ComPtr<ID3D11Buffer> neuralPreviousPositionBuffer;
 	u32 neuralPreviousPositionBufferSize = 0;
 	ComPtr<ID3D11ShaderResourceView> neuralPresentationView;

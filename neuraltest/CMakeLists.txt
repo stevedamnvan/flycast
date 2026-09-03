@@ -10,7 +10,8 @@ add_executable(neuraltest
 	neural_runner.cpp
 	neural_runner_d3d12.cpp
     renderer.cpp
-    shader_contract.cpp
+	shader_contract.cpp
+	transparency_contract.cpp
     unit_tests.cpp)
 target_compile_features(neuraltest PRIVATE cxx_std_17)
 target_include_directories(neuraltest PRIVATE "${CMAKE_SOURCE_DIR}/core/deps/stb")

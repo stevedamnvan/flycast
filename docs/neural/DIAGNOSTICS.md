@@ -125,3 +125,12 @@ d3d11|d3d11on12 --out DIR`. It compiles the production post-pass and writes
 tolerant regions from protected outside, depth-disagreement, crossing,
 newly-visible, revealed-background, and scene-cut regions, and records trail
 energy for the deliberately omitted-pass control.
+
+The ROM-free Gate 15A command is `neuraltest transparency-contract --api
+d3d11|d3d11on12 --out DIR`. It compiles and executes the production OIT final
+resolve with the production u2/u3 UAV layout and writes `reactive-mask.png`,
+`wrong-omitted-mask.png`, and `transparency-contract.json`. The fixture labels
+empty/modifier-only pixels, single-layer translucency, and a visible two-layer
+stack. It proves mask coverage only; translucent geometry never becomes
+authoritative depth or motion. Normal sorted translucency is protected by a
+separate production list replay into the same base mask.

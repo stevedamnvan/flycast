@@ -122,7 +122,7 @@ cbuffer constantBuffer : register(b0)
 	float alphaTestValue;
 };
 
-RWTexture2D<uint> abufferPointers : register(u2);
+RWTexture2D<uint> abufferPointers : register(u3);
 
 struct Pixel {
 	uint color;
@@ -254,7 +254,7 @@ float4 unpackColors(in uint u)
 	return float4(float((u >> 24) & 255u) / 255.f, float((u >> 16) & 255u) / 255.f, float((u >> 8) & 255u) / 255.f, float(u & 255u) / 255.f);
 }
 
-RWStructuredBuffer<Pixel> Pixels : register(u1);
+RWStructuredBuffer<Pixel> Pixels : register(u2);
 
 uint getNextPixelIndex()
 {
@@ -543,12 +543,13 @@ int fillAndSortFragmentArray(in uint2 coords, out uint pixel_list[MAX_PIXELS_PER
 }
 
 // Blend fragments back-to-front
-float4 resolveAlphaBlend(in float2 pos)
+float4 resolveAlphaBlend(in float2 pos, out float reactiveCoverage)
 {
 	// Copy and sort indexes into a local array
 	uint2 coords = uint2(pos);
 	uint pixel_list[MAX_PIXELS_PER_FRAGMENT];
 	int num_frag = fillAndSortFragmentArray(coords, pixel_list);
+	reactiveCoverage = num_frag > 0 ? 1.f : 0.f;
 	
 	float2 dim;
 	opaqueTex.GetDimensions(dim.x, dim.y);
@@ -659,14 +660,22 @@ float4 resolveAlphaBlend(in float2 pos)
 	return finalColor;
 }
 
-float4 main(float4 pos : SV_Position) : SV_Target
+struct FinalOutput
+{
+	float4 color : SV_Target0;
+	float reactiveCoverage : SV_Target1;
+};
+
+FinalOutput main(float4 pos : SV_Position)
 {
 	// Visualize the number of layers in use
 	//uint pixel_list[MAX_PIXELS_PER_FRAGMENT];
 	//return float4(float(fillAndSortFragmentArray(uint2(pos.xy), pixel_list)) / MAX_PIXELS_PER_FRAGMENT * 8.f, 0.f, 0.f, 1.f);
 
 	// Compute and output final color for the frame buffer
-	return resolveAlphaBlend(pos.xy);
+	FinalOutput output;
+	output.color = resolveAlphaBlend(pos.xy, output.reactiveCoverage);
+	return output;
 }
 )";
 

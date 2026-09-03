@@ -472,3 +472,25 @@ and scene-cut pixels are protected. Native D3D11 and D3D11On12 masks are exact.
 Removing the pass misses 192 protected pixels and leaves synthetic trail energy
 12,288 versus zero with the pass. This closes disocclusion behavior, not yet
 translucency or overlay classification.
+
+## D-036: translucent pixels are reactive coverage, never opaque neural depth
+
+The normal DX11 path replays the translucent list after opaque/punch-through
+guidance into only `BiasCurrentColorMask`. It binds no depth target, forces
+zero confidence and full current-color bias, and therefore cannot turn smoke,
+particles, glass, or framebuffer feedback into authoritative geometry. The
+existing texture/alpha/clip shader permutations determine raster coverage;
+modifier volumes are not replayed and remain lighting/shadow operations.
+
+The DX11 OIT final resolve additionally writes an R8 reactive target from the
+actually visible A-buffer stack. OIT UAVs occupy u2/u3 so scene color and
+reactive coverage can coexist at RT0/RT1. The final coverage is merged into the
+same conservative base mask with a discard-on-zero pass. Earlier multipass and
+non-auto-sorted translucent geometry remain protected by the normal list
+replay. No translucent fragment writes neural depth or trusted motion.
+
+The exact production OIT resolve is compiled and executed by the Gate 15A GPU
+fixture. Empty/modifier-only, single-layer, and multi-layer controls run on
+native D3D11 and D3D11On12 and must be byte-identical. The synchronous Gate 10
+evidence mode still copies its explicitly cleared base mask and does not allow
+the later disocclusion pass to change that diagnostic contract.

@@ -126,4 +126,11 @@ close a temporal or title-quality gate.
   dedicated DX11 input layout and drives the normal and OIT guidance replay.
   Naomi 2 transform history is still required and is
   deliberately validity zero rather than using current matrices on prior pose.
-- Gate 15A through Gate 18: pending.
+- Gate 15A: green at LOG #70. Normal DX11 translucent lists replay only into
+  current-color bias with depth disabled. The OIT final visible fragment stack
+  emits separate R8 reactive coverage, merged without creating depth or trusted
+  motion. The exact production resolve passes empty/modifier-only, single-layer,
+  and multi-layer controls on native D3D11 and D3D11On12 with byte-identical
+  masks; omitted coverage fails. Punch-through remains in the proven physical
+  depth path and framebuffer-direct rendering retains native fallback.
+- Gate 15B through Gate 18: pending.

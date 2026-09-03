@@ -124,6 +124,29 @@ struct DX11OITRenderer : public DX11Renderer
 			viewDesc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 			device->CreateShaderResourceView(depthStencilTex2, &viewDesc, &depthView.get());
 
+#ifdef FLYCAST_ENABLE_NEURAL
+			D3D11_TEXTURE2D_DESC reactiveDesc{};
+			reactiveDesc.Width = maxWidth;
+			reactiveDesc.Height = maxHeight;
+			reactiveDesc.MipLevels = 1;
+			reactiveDesc.ArraySize = 1;
+			reactiveDesc.Format = DXGI_FORMAT_R8_UNORM;
+			reactiveDesc.SampleDesc.Count = 1;
+			reactiveDesc.Usage = D3D11_USAGE_DEFAULT;
+			reactiveDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+			oitReactiveTexture.reset();
+			oitReactiveTarget.reset();
+			oitReactiveView.reset();
+			if (SUCCEEDED(device->CreateTexture2D(&reactiveDesc, nullptr,
+				&oitReactiveTexture.get())))
+			{
+				device->CreateRenderTargetView(oitReactiveTexture, nullptr,
+					&oitReactiveTarget.get());
+				device->CreateShaderResourceView(oitReactiveTexture, nullptr,
+					&oitReactiveView.get());
+			}
+#endif
+
 			createDepthTexAndView(depthTex, depthTexView, maxWidth, maxHeight, DXGI_FORMAT_R32G8X24_TYPELESS);
 		}
 		else if (!depthTex)
@@ -154,6 +177,11 @@ struct DX11OITRenderer : public DX11Renderer
 		opaqueTextureView.reset();
 		opaqueRenderTarget.reset();
 		opaqueTex.reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+		oitReactiveView.reset();
+		oitReactiveTarget.reset();
+		oitReactiveTexture.reset();
+#endif
 		shaders.term();
 		buffers.term();
 		maxWidth = maxHeight = 0;
@@ -450,7 +478,25 @@ struct DX11OITRenderer : public DX11Renderer
 		else if (rendContext->isRTT)
 			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &rttRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
 		else
-			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &fbRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
+		{
+#ifdef FLYCAST_ENABLE_NEURAL
+			if (oitReactiveTarget && config::NeuralMode.get() != 0)
+			{
+				ID3D11RenderTargetView *targets[] = {
+					fbRenderTarget.get(), oitReactiveTarget.get()
+				};
+				const float clear[4]{};
+				deviceContext->ClearRenderTargetView(oitReactiveTarget, clear);
+				deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+					static_cast<UINT>(std::size(targets)), targets, nullptr, 0,
+					D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
+			}
+			else
+#endif
+				deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1,
+					&fbRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS,
+					nullptr, nullptr);
+		}
 		deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
 		deviceContext->PSSetShaderResources(0, 1, &opaqueTextureView.get());
         auto sampler = samplers->getSampler(false);
@@ -466,6 +512,17 @@ struct DX11OITRenderer : public DX11Renderer
 		deviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		deviceContext->Draw(4, 0);
 	}
+
+#ifdef FLYCAST_ENABLE_NEURAL
+	bool renderNeuralReactiveCoverage() override
+	{
+		if (!DX11Renderer::renderNeuralReactiveCoverage())
+			return false;
+		if (!oitReactiveView)
+			return true;
+		return mergeNeuralReactiveCoverage(oitReactiveView);
+	}
+#endif
 
 	void drawStrips()
 	{
@@ -713,6 +770,11 @@ private:
 	ComPtr<ID3D11ShaderResourceView> multipassTextureView;
 	ComPtr<ID3D11ShaderResourceView> stencilView;
 	ComPtr<ID3D11ShaderResourceView> depthView;
+#ifdef FLYCAST_ENABLE_NEURAL
+	ComPtr<ID3D11Texture2D> oitReactiveTexture;
+	ComPtr<ID3D11RenderTargetView> oitReactiveTarget;
+	ComPtr<ID3D11ShaderResourceView> oitReactiveView;
+#endif
 	ComPtr<ID3D11Texture2D> depthStencilTex2;
 	ComPtr<ID3D11DepthStencilView> depthStencilView2;
 	ComPtr<ID3D11Buffer> trPolyParamsBuffer;

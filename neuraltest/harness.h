@@ -187,6 +187,16 @@ struct DisocclusionContractResult {
 	bool newlyVisibleProtected = false;
 };
 
+struct TransparencyContractResult {
+	std::string surface;
+	std::string adapter;
+	Image reactiveMask;
+	bool emptyAndModifierClear = false;
+	bool singleLayerReactive = false;
+	bool multiLayerReactive = false;
+	bool wrongControlFailed = false;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -205,6 +215,8 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 bool RunColorContractFixture(ColorContractResult& result, std::string& error);
 bool RunDisocclusionContractFixture(bool d3d11On12,
 	DisocclusionContractResult& result, std::string& error);
+bool RunTransparencyContractFixture(bool d3d11On12,
+	TransparencyContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
