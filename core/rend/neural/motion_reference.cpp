@@ -21,29 +21,38 @@ void HashValue(std::uint64_t& hash, T value) noexcept
 	}
 }
 
-bool ExactCompatible(const DrawRecord& a, const DrawRecord& b) noexcept
-{
-	return a.list == b.list && a.pass == b.pass && a.stateSig == b.stateSig &&
-		a.texId == b.texId && a.vertexCount == b.vertexCount && a.indexCount == b.indexCount &&
-		a.stripCount == b.stripCount && a.uvSig == b.uvSig && a.geomSig == b.geomSig &&
-		std::abs(static_cast<int>(a.ordinal) - static_cast<int>(b.ordinal)) <= 2;
-}
-
 bool StructurallyCompatible(const DrawRecord& a, const DrawRecord& b) noexcept
 {
 	return a.list == b.list && a.pass == b.pass && a.stateSig == b.stateSig &&
-		a.texId == b.texId && a.uvSig == b.uvSig && a.stripCount == b.stripCount;
+		a.texId == b.texId && a.texId2 == b.texId2 && a.uvSig == b.uvSig &&
+		a.stripCount == b.stripCount && a.textureGeneration == b.textureGeneration &&
+		a.paletteGeneration == b.paletteGeneration && a.rttGeneration == b.rttGeneration;
+}
+
+bool SameStructuralIdentity(const DrawRecord& a, const DrawRecord& b) noexcept
+{
+	return a.list == b.list && a.pass == b.pass && a.stateSig == b.stateSig &&
+		a.texId == b.texId && a.texId2 == b.texId2 &&
+		a.vertexCount == b.vertexCount && a.indexCount == b.indexCount &&
+		a.stripCount == b.stripCount && a.uvSig == b.uvSig &&
+		a.topologySig == b.topologySig && a.blend == b.blend && a.flags == b.flags;
 }
 
 float SimilarityScore(const DrawRecord& previous, const DrawRecord& current) noexcept
 {
 	if (previous.list != current.list || previous.pass != current.pass)
 		return -1.f;
+	if (previous.texId != current.texId || previous.texId2 != current.texId2)
+		return -1.f;
 	float score = 0.f;
 	score += previous.stateSig == current.stateSig ? 3.f : 0.f;
-	score += previous.texId == current.texId ? 3.f : 0.f;
+	score += 3.f; // texture identity was required above
 	score += previous.uvSig == current.uvSig ? 2.f : 0.f;
-	score += previous.geomSig == current.geomSig ? 2.f : 0.f;
+	score += previous.topologySig == current.topologySig ? 2.f : 0.f;
+	if (previous.textureGeneration != current.textureGeneration ||
+		previous.paletteGeneration != current.paletteGeneration ||
+		previous.rttGeneration != current.rttGeneration)
+		return -1.f;
 	const auto vertexDelta = std::abs(static_cast<int>(previous.vertexCount) -
 		static_cast<int>(current.vertexCount));
 	score += vertexDelta == 0 ? 2.f : (vertexDelta <= 4 ? 1.f : 0.f);
@@ -66,6 +75,77 @@ DrawMatch MakeMatch(const DrawRecord& previous, float confidence, std::uint8_t t
 }
 
 constexpr std::size_t OrdinalWordCount = 65536 / 64;
+constexpr std::size_t AssignmentLimit = 8;
+
+float AssignmentCost(const DrawRecord& previous, const DrawRecord& current) noexcept
+{
+	if (previous.textureGeneration != current.textureGeneration ||
+		previous.paletteGeneration != current.paletteGeneration ||
+		previous.rttGeneration != current.rttGeneration)
+		return 2048.f;
+	const float dx = previous.centroid[0] - current.centroid[0];
+	const float dy = previous.centroid[1] - current.centroid[1];
+	const float previousWidth = static_cast<float>(previous.bboxMax[0] - previous.bboxMin[0]);
+	const float previousHeight = static_cast<float>(previous.bboxMax[1] - previous.bboxMin[1]);
+	const float currentWidth = static_cast<float>(current.bboxMax[0] - current.bboxMin[0]);
+	const float currentHeight = static_cast<float>(current.bboxMax[1] - current.bboxMin[1]);
+	const float position = std::sqrt(dx * dx + dy * dy) * .05f;
+	const float scale = (std::abs(previousWidth - currentWidth) +
+		std::abs(previousHeight - currentHeight)) * .05f;
+	const float depth = (std::abs(previous.zMin - current.zMin) +
+		std::abs(previous.zMax - current.zMax)) * 10.f;
+	const float order = std::abs(static_cast<int>(previous.ordinal) -
+		static_cast<int>(current.ordinal)) * .05f;
+	return position + scale + depth + order;
+}
+
+void MinimumCostAssignment(const float costs[AssignmentLimit][AssignmentLimit],
+	std::size_t rows, std::size_t columns, std::int8_t *assignment) noexcept
+{
+	const std::size_t size = std::max(rows, columns);
+	float u[AssignmentLimit + 1]{};
+	float v[AssignmentLimit + 1]{};
+	std::size_t p[AssignmentLimit + 1]{};
+	std::size_t way[AssignmentLimit + 1]{};
+	for (std::size_t i = 1; i <= size; ++i)
+	{
+		p[0] = i;
+		std::size_t j0 = 0;
+		float minv[AssignmentLimit + 1];
+		bool used[AssignmentLimit + 1]{};
+		std::fill(std::begin(minv), std::end(minv), std::numeric_limits<float>::infinity());
+		do
+		{
+			used[j0] = true;
+			const std::size_t i0 = p[j0];
+			float delta = std::numeric_limits<float>::infinity();
+			std::size_t j1 = 0;
+			for (std::size_t j = 1; j <= size; ++j)
+			{
+				if (used[j]) continue;
+				const float value = i0 <= rows && j <= columns ? costs[i0 - 1][j - 1]
+					: (i0 <= rows ? 1024.f : 0.f);
+				const float current = value - u[i0] - v[j];
+				if (current < minv[j]) { minv[j] = current; way[j] = j0; }
+				if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+			}
+			for (std::size_t j = 0; j <= size; ++j)
+				if (used[j]) { u[p[j]] += delta; v[j] -= delta; }
+				else minv[j] -= delta;
+			j0 = j1;
+		} while (p[j0] != 0);
+		do
+		{
+			const std::size_t j1 = way[j0];
+			p[j0] = p[j1];
+			j0 = j1;
+		} while (j0 != 0);
+	}
+	std::fill(assignment, assignment + rows, static_cast<std::int8_t>(-1));
+	for (std::size_t j = 1; j <= size; ++j)
+		if (p[j] != 0 && p[j] <= rows && j <= columns)
+			assignment[p[j] - 1] = static_cast<std::int8_t>(j - 1);
+}
 
 bool PreviousOrdinalUsed(const std::array<std::uint64_t, OrdinalWordCount>& used,
 	std::uint16_t ordinal) noexcept
@@ -98,15 +178,29 @@ std::uint64_t DrawSignature(const DrawRecord& d) noexcept
 {
 	std::uint64_t hash = 1469598103934665603ull;
 	HashValue(hash, d.list); HashValue(hash, d.pass); HashValue(hash, d.stateSig);
-	HashValue(hash, d.texId); HashValue(hash, d.firstVertex); HashValue(hash, d.vertexCount);
+	HashValue(hash, d.texId); HashValue(hash, d.texId2);
+	HashValue(hash, d.textureGeneration); HashValue(hash, d.paletteGeneration);
+	HashValue(hash, d.rttGeneration); HashValue(hash, d.firstVertex); HashValue(hash, d.vertexCount);
 	HashValue(hash, d.firstIndex); HashValue(hash, d.indexCount); HashValue(hash, d.stripCount);
-	HashValue(hash, d.uvSig); HashValue(hash, d.geomSig); HashValue(hash, d.ordinal);
+	HashValue(hash, d.uvSig); HashValue(hash, d.topologySig); HashValue(hash, d.ordinal);
 	HashValue(hash, d.blend); HashValue(hash, d.flags);
 	HashValue(hash, FloatBits(d.zMin)); HashValue(hash, FloatBits(d.zMax));
+	HashValue(hash, FloatBits(d.centroid[0])); HashValue(hash, FloatBits(d.centroid[1]));
 	HashValue(hash, static_cast<std::uint16_t>(d.n2Mv));
 	HashValue(hash, static_cast<std::uint16_t>(d.n2Proj));
 	for (auto value : d.bboxMin) HashValue(hash, static_cast<std::uint16_t>(value));
 	for (auto value : d.bboxMax) HashValue(hash, static_cast<std::uint16_t>(value));
+	return hash;
+}
+
+std::uint64_t DrawStructuralSignature(const DrawRecord& d) noexcept
+{
+	std::uint64_t hash = 1469598103934665603ull;
+	HashValue(hash, d.list); HashValue(hash, d.pass); HashValue(hash, d.stateSig);
+	HashValue(hash, d.texId); HashValue(hash, d.texId2);
+	HashValue(hash, d.vertexCount); HashValue(hash, d.indexCount); HashValue(hash, d.stripCount);
+	HashValue(hash, d.uvSig); HashValue(hash, d.topologySig);
+	HashValue(hash, d.blend); HashValue(hash, d.flags);
 	return hash;
 }
 
@@ -129,30 +223,79 @@ std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous, ArrayView<Draw
 void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> current,
 	DrawMatch *matches, std::size_t outputCapacity) noexcept
 {
-	const std::size_t count = std::min(current.size, outputCapacity);
+	const std::size_t count = std::min({current.size, outputCapacity, std::size_t{8192}});
 	std::fill(matches, matches + count, DrawMatch{});
 	std::array<std::uint64_t, OrdinalWordCount> consumed{};
+	std::array<std::uint8_t, 8192> bucketed{};
+	// Exact structural buckets use a true minimum-cost one-to-one assignment.
+	// Large repeated buckets are intentionally ambiguous rather than generating
+	// confident particle/HUD matches.
 	for (std::size_t ci = 0; ci < count; ++ci)
 	{
-		const auto& draw = current.data[ci];
-		if (IsReactive(draw))
+		if (bucketed[ci]) continue;
+		std::size_t currentIndices[AssignmentLimit]{};
+		std::size_t previousIndices[AssignmentLimit]{};
+		std::size_t currentCount = 0;
+		std::size_t previousCount = 0;
+		bool oversized = false;
+		for (std::size_t cj = ci; cj < count; ++cj)
+			if (!bucketed[cj] && !IsReactive(current.data[cj]) &&
+				SameStructuralIdentity(current.data[cj], current.data[ci]))
+			{
+				bucketed[cj] = 1;
+				if (currentCount < AssignmentLimit) currentIndices[currentCount++] = cj;
+				else oversized = true;
+			}
+		for (std::size_t pi = 0; pi < previous.size; ++pi)
+			if (SameStructuralIdentity(previous.data[pi], current.data[ci]))
+			{
+				if (previousCount < AssignmentLimit) previousIndices[previousCount++] = pi;
+				else oversized = true;
+			}
+		if (IsReactive(current.data[ci]))
 		{
 			matches[ci].reason = static_cast<std::uint8_t>(MatchReason::Reactive);
 			continue;
 		}
-		for (std::size_t pi = 0; pi < previous.size; ++pi)
-			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal) &&
-				ExactCompatible(previous.data[pi], draw))
-			{
-				matches[ci] = MakeMatch(previous.data[pi], 1.f, 1, MatchReason::Exact);
-				MarkPreviousOrdinalUsed(consumed, previous.data[pi].ordinal);
-				break;
-			}
+		if (oversized)
+		{
+			for (std::size_t cj = ci; cj < count; ++cj)
+				if (SameStructuralIdentity(current.data[cj], current.data[ci]))
+					matches[cj].reason = static_cast<std::uint8_t>(MatchReason::Ambiguous);
+			continue;
+		}
+		if (currentCount == 0 || previousCount == 0) continue;
+		float costs[AssignmentLimit][AssignmentLimit]{};
+		for (std::size_t row = 0; row < currentCount; ++row)
+			for (std::size_t column = 0; column < previousCount; ++column)
+				costs[row][column] = AssignmentCost(previous.data[previousIndices[column]],
+					current.data[currentIndices[row]]);
+		std::int8_t assignment[AssignmentLimit]{};
+		MinimumCostAssignment(costs, currentCount, previousCount, assignment);
+		for (std::size_t row = 0; row < currentCount; ++row)
+		{
+			if (assignment[row] < 0) continue;
+			const auto column = static_cast<std::size_t>(assignment[row]);
+			const float assignedCost = costs[row][column];
+			if (assignedCost >= 1024.f) continue;
+			const auto& prior = previous.data[previousIndices[column]];
+			if (PreviousOrdinalUsed(consumed, prior.ordinal)) continue;
+			float second = std::numeric_limits<float>::infinity();
+			for (std::size_t other = 0; other < previousCount; ++other)
+				if (other != column && costs[row][other] < second) second = costs[row][other];
+			const float confidence = assignedCost == 0.f && !std::isfinite(second) ? 1.f :
+				std::clamp(.95f - assignedCost * .02f -
+					(std::isfinite(second) ? std::max(0.f, 1.f - (second - assignedCost)) * .2f : 0.f),
+					.5f, .95f);
+			matches[currentIndices[row]] = MakeMatch(prior, confidence, 1, MatchReason::Exact);
+			matches[currentIndices[row]].bestCost = assignedCost;
+			matches[currentIndices[row]].secondBestCost = second;
+			MarkPreviousOrdinalUsed(consumed, prior.ordinal);
+		}
 	}
 	for (std::size_t ci = 0; ci < count; ++ci)
 	{
-		if (matches[ci].confidence != 0.f ||
-			matches[ci].reason == static_cast<std::uint8_t>(MatchReason::Reactive))
+		if (matches[ci].confidence != 0.f || matches[ci].reason != 0)
 			continue;
 		for (std::size_t pi = 0; pi < previous.size; ++pi)
 			if (!PreviousOrdinalUsed(consumed, previous.data[pi].ordinal) &&
@@ -165,8 +308,7 @@ void MatchDrawsInto(ArrayView<DrawRecord> previous, ArrayView<DrawRecord> curren
 	}
 	for (std::size_t ci = 0; ci < count; ++ci)
 	{
-		if (matches[ci].confidence != 0.f ||
-			matches[ci].reason == static_cast<std::uint8_t>(MatchReason::Reactive))
+		if (matches[ci].confidence != 0.f || matches[ci].reason != 0)
 			continue;
 		float bestScore = 7.f;
 		float secondScore = -1.f;
@@ -198,6 +340,7 @@ float StripCoverage(const DrawRecord& previous, const DrawRecord& current) noexc
 {
 	if (previous.list != current.list || previous.pass != current.pass ||
 		previous.stateSig != current.stateSig || previous.texId != current.texId ||
+		previous.texId2 != current.texId2 ||
 		previous.uvSig != current.uvSig || previous.stripCount == 0 || current.stripCount == 0)
 		return 0.f;
 	const int left = std::max<int>(previous.bboxMin[0], current.bboxMin[0]);

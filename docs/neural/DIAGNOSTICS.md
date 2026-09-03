@@ -54,6 +54,13 @@ the previous emulated frame. A FramebufferDirect package carries color,
 dimensions, content rect, frame/history identity, and an explicit reset, but no
 geometry or temporal input views. RTT passes produce no stage submission.
 
+Each captured draw separates structural topology and UV identity from pose
+(centroid, bounds, and depth range). Texture TCW identity is accompanied by
+decoded-content, palette-content, and rendered-texture generations. Small
+repeated structural buckets record deterministic minimum-cost assignment plus
+best/second-best costs; buckets above eight are reported as ambiguous with zero
+confidence instead of receiving manufactured motion.
+
 The ROM-free Gate 11 command is `neuraltest depth-contract --api
 d3d11|d3d11on12 --out DIR`. It compiles the production pixel shader, writes
 `correct-color.png`, `reversed-color.png`, `wrong-polarity-color.png`, exact

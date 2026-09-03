@@ -54,6 +54,7 @@ struct SimilarityTransform {
 };
 
 std::uint64_t DrawSignature(const DrawRecord& draw) noexcept;
+std::uint64_t DrawStructuralSignature(const DrawRecord& draw) noexcept;
 bool IsReactive(const DrawRecord& draw) noexcept;
 std::vector<DrawMatch> MatchDraws(ArrayView<DrawRecord> previous,
 	ArrayView<DrawRecord> current);

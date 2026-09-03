@@ -2,6 +2,7 @@
 #include "instrumentation.h"
 
 #include "hw/pvr/ta_ctx.h"
+#include "rend/TexCache.h"
 
 #include <algorithm>
 #include <cmath>
@@ -67,14 +68,27 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	Mix(state, poly.pcw.full & 0x300ceu);
 	Mix(state, poly.isp.full & 0xf4000000u);
 	Mix(state, poly.tsp.full);
-	Mix(state, poly.tcw.full);
 	Mix(state, poly.tileclip);
 	Mix(state, poly.tsp1.full);
-	Mix(state, poly.tcw1.full);
-	Mix(state, static_cast<std::uint32_t>(poly.mvMatrix));
-	Mix(state, static_cast<std::uint32_t>(poly.projMatrix));
 	record.stateSig = Fold(state);
 	record.texId = poly.tcw.full;
+	record.texId2 = poly.tcw1.full;
+	if (poly.texture != nullptr)
+	{
+		record.textureGeneration = poly.texture->Updates;
+		record.paletteGeneration = poly.texture->palette_hash;
+		record.rttGeneration = poly.texture->rttGeneration;
+		if (record.rttGeneration != 0) record.flags |= DrawRtt;
+	}
+	if (poly.texture1 != nullptr)
+	{
+		// Fold the second-volume resource revisions without confusing them with
+		// either texture's immutable TCW identity.
+		record.textureGeneration ^= poly.texture1->Updates * 0x9e3779b9u;
+		record.paletteGeneration ^= poly.texture1->palette_hash * 0x85ebca6bu;
+		record.rttGeneration ^= poly.texture1->rttGeneration * 0xc2b2ae35u;
+		if (poly.texture1->rttGeneration != 0) record.flags |= DrawRtt;
+	}
 	record.firstIndex = poly.first;
 	record.indexCount = poly.count;
 	record.stripCount = poly.count == 0 ? 0 : 1;
@@ -86,7 +100,7 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	if (list == ListType_Translucent && poly.count <= 6) record.flags |= DrawReactive;
 
 	std::uint64_t uvHash = 1469598103934665603ull;
-	std::uint64_t geomHash = 1469598103934665603ull;
+	std::uint64_t topologyHash = 1469598103934665603ull;
 	float zMin = std::numeric_limits<float>::infinity();
 	float zMax = -std::numeric_limits<float>::infinity();
 	float xMin = std::numeric_limits<float>::infinity();
@@ -95,6 +109,9 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	float yMax = -std::numeric_limits<float>::infinity();
 	std::uint32_t firstVertex = std::numeric_limits<std::uint32_t>::max();
 	std::uint32_t lastVertex = 0;
+	float xSum = 0.f;
+	float ySum = 0.f;
+	std::uint32_t sampleCount = 0;
 	const auto end = std::min<std::size_t>(context.idx.size(),
 		static_cast<std::size_t>(poly.first) + poly.count);
 	for (std::size_t i = poly.first; i < end; ++i)
@@ -109,9 +126,9 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 		zMin = std::min(zMin, vertex.z); zMax = std::max(zMax, vertex.z);
 		Mix(uvHash, QuantizeFloat(vertex.u, 4096.f));
 		Mix(uvHash, QuantizeFloat(vertex.v, 4096.f));
-		Mix(geomHash, QuantizeFloat(vertex.x, 16.f));
-		Mix(geomHash, QuantizeFloat(vertex.y, 16.f));
-		Mix(geomHash, QuantizeFloat(vertex.z, 4096.f));
+		xSum += vertex.x;
+		ySum += vertex.y;
+		++sampleCount;
 	}
 	if (firstVertex == std::numeric_limits<std::uint32_t>::max())
 	{
@@ -122,9 +139,17 @@ DrawRecord MakeRecord(const rend_context& context, const PolyParam& poly,
 	record.firstVertex = firstVertex;
 	record.vertexCount = lastVertex >= firstVertex ? lastVertex - firstVertex + 1 : 0;
 	record.uvSig = Fold(uvHash);
-	Mix(geomHash, QuantizeFloat((xMin + xMax) * .5f, 16.f));
-	Mix(geomHash, QuantizeFloat((yMin + yMax) * .5f, 16.f));
-	record.geomSig = Fold(geomHash);
+	for (std::size_t i = poly.first; i < end; ++i)
+	{
+		const std::uint32_t vertexIndex = context.idx[i];
+		Mix(topologyHash, vertexIndex >= firstVertex ? vertexIndex - firstVertex : vertexIndex);
+	}
+	record.topologySig = Fold(topologyHash);
+	if (sampleCount != 0)
+	{
+		record.centroid[0] = xSum / sampleCount;
+		record.centroid[1] = ySum / sampleCount;
+	}
 	record.zMin = zMin;
 	record.zMax = zMax;
 	record.bboxMin[0] = QuantizeCoord(xMin);

@@ -100,4 +100,9 @@ close a temporal or title-quality gate.
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
   Content-rectangle examples and odd-size centering are exact. Black-border
   exclusion still depends on the production target-resolution work in FC-053.
+- Gate 13/Q2 correspondence: partial at LOG #64. Structural identity is
+  pose-independent, texture/palette/RTT generations are explicit, repeated
+  small buckets use minimum-cost assignment, and large buckets are ambiguous.
+  Previous-position rasterization and full confidence/disocclusion evidence
+  remain open, so Gate 13 is not yet green.
 - Gates 13 through 18: pending.

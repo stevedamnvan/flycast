@@ -363,3 +363,25 @@ feature flag. This does not assert an HDR path.
 centered over an odd-dimension sweep with no one-pixel accounting mismatch.
 The neural input remains scene content rather than a composed letterboxed
 backbuffer; production Match Content Rectangle raster sizing is still FC-053.
+
+## D-031: draw identity excludes pose and content revisions gate trust
+
+PVR draw records now keep structural topology, normalized index order, UVs,
+texture/second-volume identity, render list/pass/state, and strip shape apart
+from centroid, bounds, depth range, matrix indices, and draw ordinal. Absolute
+vertex positions no longer participate in structural identity, so a translated
+object remains the same structure. Full diagnostic signatures still include
+pose and revisions so captures detect actual frame changes.
+
+The existing texture-cache `Updates` counter is carried as decoded-content
+generation, the palette content hash is carried separately, and direct DX11
+render-to-texture replacement increments a dedicated monotonic RTT generation.
+A matching TCW/VRAM address with any changed generation is not trusted.
+Second-volume generations are folded independently from immutable TCW identity.
+
+For exact structural buckets of at most eight draws, correspondence uses a
+deterministic Hungarian minimum-cost assignment over centroid displacement,
+bounds/scale change, depth-range change, and ordinal proximity. Each accepted
+match records its assigned and next candidate cost for later confidence work.
+Larger repeated buckets are classified ambiguous at zero confidence. This is
+the conservative particle policy; it does not manufacture a confident match.

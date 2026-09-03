@@ -47,13 +47,18 @@ struct DrawRecord {
 	std::uint16_t pass = 0;
 	std::uint32_t stateSig = 0;
 	std::uint32_t texId = 0;
+	std::uint32_t texId2 = 0;
+	std::uint32_t textureGeneration = 0;
+	std::uint32_t paletteGeneration = 0;
+	std::uint32_t rttGeneration = 0;
 	std::uint32_t firstVertex = 0;
 	std::uint32_t vertexCount = 0;
 	std::uint32_t firstIndex = 0;
 	std::uint32_t indexCount = 0;
 	std::uint16_t stripCount = 0;
 	std::uint32_t uvSig = 0;
-	std::uint32_t geomSig = 0;
+	std::uint32_t topologySig = 0;
+	float centroid[2]{};
 	float zMin = 0.f;
 	float zMax = 0.f;
 	std::int16_t bboxMin[2]{};
@@ -68,6 +73,8 @@ struct DrawRecord {
 struct DrawMatch {
 	std::uint16_t prevOrdinal = 0;
 	float confidence = 0.f;
+	float bestCost = 0.f;
+	float secondBestCost = 0.f;
 	std::uint8_t tier = 0;
 	std::uint8_t reason = 0;
 	float rigid[4]{};

@@ -49,7 +49,9 @@ DrawRecord BaseDraw(std::uint16_t ordinal = 4)
 	draw.indexCount = 6;
 	draw.stripCount = 1;
 	draw.uvSig = 0xabc;
-	draw.geomSig = 0xdef;
+	draw.topologySig = 0xdef;
+	draw.textureGeneration = 3;
+	draw.paletteGeneration = 7;
 	draw.zMin = .2f;
 	draw.zMax = .7f;
 	draw.bboxMin[0] = 10;
@@ -85,6 +87,17 @@ int RunSelfTests()
 	changed = base;
 	changed.zMax += .01f;
 	suite.Expect(DrawSignature(base) != DrawSignature(changed), "draw signature covers depth bounds");
+	changed = base;
+	changed.centroid[0] += 24.f;
+	changed.bboxMin[0] += 24;
+	changed.bboxMax[0] += 24;
+	suite.Expect(DrawStructuralSignature(base) == DrawStructuralSignature(changed)
+		&& DrawSignature(base) != DrawSignature(changed),
+		"structural identity is independent of pose");
+	changed = base;
+	changed.textureGeneration++;
+	suite.Expect(DrawStructuralSignature(base) == DrawStructuralSignature(changed),
+		"texture content generation is separate from structural identity");
 
 	{
 		DrawRecord previous[] = {base};
@@ -96,7 +109,7 @@ int RunSelfTests()
 	{
 		DrawRecord previous[] = {base};
 		DrawRecord current[] = {base};
-		current[0].geomSig++;
+		current[0].topologySig++;
 		current[0].ordinal = 30;
 		const auto result = MatchDraws({previous, 1}, {current, 1});
 		suite.Expect(result[0].tier == 2 && Near(result[0].confidence, .8f),
@@ -104,11 +117,54 @@ int RunSelfTests()
 	}
 	{
 		DrawRecord previous[] = {BaseDraw(3), BaseDraw(8)};
-		previous[1].geomSig = 0x999;
+		previous[1].topologySig = 0x999;
 		DrawRecord current[] = {previous[1], previous[0]};
 		const auto result = MatchDraws({previous, 2}, {current, 2});
 		suite.Expect(result[0].prevOrdinal == 8 && result[1].prevOrdinal == 3,
 			"matcher one-to-one duplicate textures");
+	}
+	{
+		DrawRecord previous[] = {BaseDraw(0), BaseDraw(1)};
+		previous[0].centroid[0] = 10.f;
+		previous[1].centroid[0] = 110.f;
+		DrawRecord current[] = {BaseDraw(0), BaseDraw(1)};
+		current[0].centroid[0] = 108.f;
+		current[1].centroid[0] = 12.f;
+		const auto result = MatchDraws({previous, 2}, {current, 2});
+		suite.Expect(result[0].prevOrdinal == 1 && result[1].prevOrdinal == 0
+			&& result[0].bestCost < result[0].secondBestCost
+			&& result[1].bestCost < result[1].secondBestCost,
+			"minimum-cost assignment follows repeated-object pose across reorder");
+	}
+	{
+		DrawRecord previous[9];
+		DrawRecord current[9];
+		for (std::uint16_t i = 0; i < 9; ++i)
+		{
+			previous[i] = BaseDraw(i);
+			current[i] = BaseDraw(i);
+		}
+		const auto result = MatchDraws({previous, 9}, {current, 9});
+		const bool allAmbiguous = std::all_of(result.begin(), result.end(), [](const DrawMatch& match) {
+			return match.confidence == 0.f &&
+				match.reason == static_cast<std::uint8_t>(MatchReason::Ambiguous);
+		});
+		suite.Expect(allAmbiguous, "large repeated bucket is reactive-ambiguous with zero motion trust");
+	}
+	{
+		for (int generationKind = 0; generationKind < 3; ++generationKind)
+		{
+			DrawRecord previous[] = {base};
+			DrawRecord current[] = {base};
+			if (generationKind == 0) ++current[0].textureGeneration;
+			if (generationKind == 1) ++current[0].paletteGeneration;
+			if (generationKind == 2) ++current[0].rttGeneration;
+			const auto result = MatchDraws({previous, 1}, {current, 1});
+			suite.Expect(result[0].tier == 0 && result[0].confidence == 0.f,
+				generationKind == 0 ? "same-address texture replacement is untrusted" :
+				generationKind == 1 ? "palette replacement is untrusted" :
+				"rendered-texture replacement is untrusted");
+		}
 	}
 	{
 		DrawRecord previous[] = {base};
@@ -124,7 +180,7 @@ int RunSelfTests()
 		DrawRecord current = base;
 		current.vertexCount += 2;
 		current.indexCount += 2;
-		current.geomSig++;
+		current.topologySig++;
 		current.ordinal += 8;
 		current.bboxMin[0] += 4;
 		const auto result = MatchDraws({&previous, 1}, {&current, 1});
@@ -377,6 +433,39 @@ int RunSelfTests()
 		suite.Expect(geometryAgain.resetHistory &&
 			geometryAgain.historyGeneration == generation + 2,
 			"framebuffer-direct to geometry transition increments history generation");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
+		context.verts.resize(3);
+		context.verts[0].x = 10; context.verts[0].y = 20; context.verts[0].z = .2f;
+		context.verts[1].x = 80; context.verts[1].y = 25; context.verts[1].z = .3f;
+		context.verts[2].x = 40; context.verts[2].y = 90; context.verts[2].z = .4f;
+		context.idx = {0, 1, 2};
+		PolyParam poly{};
+		poly.init();
+		poly.first = 0;
+		poly.count = 3;
+		poly.tcw.full = 55;
+		context.global_param_op.push_back(poly);
+		RenderPass pass{};
+		pass.op_count = 1;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& original = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		const auto originalFrame = original.frameId;
+		const auto originalStructure = DrawStructuralSignature(original.draws.data[0]);
+		instrumentation->MarkEvaluated(originalFrame);
+		for (auto& vertex : context.verts) { vertex.x += 24.f; vertex.y -= 7.f; }
+		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(moved.matches.data[0].tier == 1 &&
+			DrawStructuralSignature(moved.draws.data[0]) == originalStructure &&
+			moved.draws.data[0].centroid[0] > 40.f,
+			"production draw capture retains identity across pose translation");
 	}
 	{
 		const auto jitter = HaltonJitter(0, 8);

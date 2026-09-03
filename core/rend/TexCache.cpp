@@ -308,6 +308,7 @@ BaseTextureCacheData::BaseTextureCacheData(TSP tsp, TCW tcw, int area)
 
 	//Reset state info ..
 	Updates = 0;
+	rttGeneration = 0;
 	dirty = FrameCount;
 	lock_block = nullptr;
 	custom_image_data = nullptr;

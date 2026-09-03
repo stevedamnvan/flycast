@@ -1803,7 +1803,7 @@ void DX11Renderer::readRttRenderTarget(u32 texAddress)
 			viewDesc.Texture2D.MipLevels = 1;
 			device->CreateShaderResourceView(texture->texture, &viewDesc, &texture->textureView.get());
 
-			texture->dirty = 0;
+			texture->MarkRenderToTextureUpdate();
 			texture->unprotectVRam();
 		}
 	}

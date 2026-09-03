@@ -58,6 +58,7 @@ public:
 		tex_type = other.tex_type;
 		startAddress = other.startAddress;
 		dirty = other.dirty;
+		rttGeneration = other.rttGeneration;
 		std::swap(lock_block, other.lock_block);
 		mmStartAddress = other.mmStartAddress;
 		width = other.width;
@@ -100,6 +101,9 @@ public:
 	TexConvFP8 texconv8;
 
 	u32 Updates;
+	// Monotonic content generations used by temporal consumers. Updates counts
+	// decoded VRAM uploads; RTT generation counts direct GPU render replacements.
+	u32 rttGeneration;
 
 	//used for palette updates
 	u32 palette_hash;			// Palette hash at time of last update
@@ -159,6 +163,12 @@ public:
 	void protectVRam();
 	void unprotectVRam();
 	void invalidate();
+	void MarkRenderToTextureUpdate()
+	{
+		++Updates;
+		++rttGeneration;
+		dirty = 0;
+	}
 
 	static bool IsGpuHandledPaletted(TSP tsp, TCW tcw, int area)
 	{
