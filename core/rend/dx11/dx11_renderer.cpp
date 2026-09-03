@@ -566,9 +566,10 @@ flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
 		renderAspect, config::IntegerScale, config::RenderResolution);
 }
 
-bool DX11Renderer::ensureNeuralDepthResources()
+bool DX11Renderer::ensureNeuralResources()
 {
-	if (neuralDepthTextures[0] && neuralDepthWidth == width && neuralDepthHeight == height)
+	if (neuralDepthTextures[0] && neuralColor.textures[0]
+		&& neuralDepthWidth == width && neuralDepthHeight == height)
 		return true;
 	releaseNeuralResources();
 	D3D11_TEXTURE2D_DESC desc{};
@@ -604,6 +605,41 @@ bool DX11Renderer::ensureNeuralDepthResources()
 			return false;
 		}
 	}
+	auto createTargetRing = [&](NeuralTargetRing& ring, DXGI_FORMAT format, const char *name) {
+		D3D11_TEXTURE2D_DESC targetDesc{};
+		targetDesc.Width = width;
+		targetDesc.Height = height;
+		targetDesc.MipLevels = 1;
+		targetDesc.ArraySize = 1;
+		targetDesc.Format = format;
+		targetDesc.SampleDesc.Count = 1;
+		targetDesc.Usage = D3D11_USAGE_DEFAULT;
+		targetDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		for (std::size_t i = 0; i < NeuralExportRingSize; ++i)
+		{
+			HRESULT result = device->CreateTexture2D(&targetDesc, nullptr, &ring.textures[i].get());
+			if (SUCCEEDED(result))
+				result = device->CreateRenderTargetView(ring.textures[i], nullptr, &ring.targets[i].get());
+			if (SUCCEEDED(result))
+				result = device->CreateShaderResourceView(ring.textures[i], nullptr, &ring.views[i].get());
+			if (FAILED(result))
+			{
+				WARN_LOG(RENDERER, "Neural %s ring creation failed at slot %d: %x",
+					name, static_cast<int>(i), result);
+				return false;
+			}
+		}
+		return true;
+	};
+	if (!createTargetRing(neuralColor, DXGI_FORMAT_R8G8B8A8_UNORM, "RGBA color")
+		|| !createTargetRing(neuralMotion, DXGI_FORMAT_R16G16_FLOAT, "motion")
+		|| !createTargetRing(neuralMask, DXGI_FORMAT_R8_UNORM, "bias mask")
+		|| !createTargetRing(neuralConfidence, DXGI_FORMAT_R8_UNORM, "confidence")
+		|| !createTargetRing(neuralDrawId, DXGI_FORMAT_R16_UINT, "draw ID"))
+	{
+		releaseNeuralResources();
+		return false;
+	}
 	neuralDepthWidth = width;
 	neuralDepthHeight = height;
 	return true;
@@ -611,26 +647,60 @@ bool DX11Renderer::ensureNeuralDepthResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	auto releaseTargetRing = [](NeuralTargetRing& ring) {
+		for (auto& view : ring.views) view.reset();
+		for (auto& target : ring.targets) target.reset();
+		for (auto& texture : ring.textures) texture.reset();
+	};
+	releaseTargetRing(neuralColor);
+	releaseTargetRing(neuralMotion);
+	releaseTargetRing(neuralMask);
+	releaseTargetRing(neuralConfidence);
+	releaseTargetRing(neuralDrawId);
 	for (auto& view : neuralDepthViews) view.reset();
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
 	neuralDepthWidth = neuralDepthHeight = 0;
 	neuralExportSlot = 0;
+	neuralExportActive = false;
 }
 
-void DX11Renderer::renderNeuralDepth()
+void DX11Renderer::renderNeuralExports()
 {
 	ID3D11UnorderedAccessView *nullUavs[2]{};
 	deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
 		D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr,
 		1, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
-	deviceContext->OMSetRenderTargets(0, nullptr, neuralDepthTargets[neuralExportSlot]);
+	ID3D11ShaderResourceView *nullView = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullView);
+	deviceContext->OMSetRenderTargets(1, &neuralColor.targets[neuralExportSlot].get(), nullptr);
+	const float black[4]{};
+	deviceContext->ClearRenderTargetView(neuralColor.targets[neuralExportSlot], black);
+	quad->draw(fbTextureView, samplers->getSampler(false));
+	deviceContext->PSSetShaderResources(0, 1, &nullView);
+
+	ID3D11RenderTargetView *targets[] = {
+		neuralMotion.targets[neuralExportSlot].get(),
+		neuralMask.targets[neuralExportSlot].get(),
+		neuralConfidence.targets[neuralExportSlot].get(),
+		neuralDrawId.targets[neuralExportSlot].get(),
+	};
+	deviceContext->OMSetRenderTargets(static_cast<UINT>(std::size(targets)), targets,
+		neuralDepthTargets[neuralExportSlot]);
+	const float masked[4] = {1.f, 1.f, 1.f, 1.f};
+	deviceContext->ClearRenderTargetView(neuralMotion.targets[neuralExportSlot], black);
+	deviceContext->ClearRenderTargetView(neuralMask.targets[neuralExportSlot], masked);
+	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot], black);
+	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot], black);
 	deviceContext->ClearDepthStencilView(neuralDepthTargets[neuralExportSlot], D3D11_CLEAR_DEPTH, 0.f, 0);
+	configVertexShader();
+	setupPixelShaderConstants();
 	deviceContext->IASetInputLayout(mainInputLayout);
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
 	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.get(), &stride, &offset);
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	neuralExportActive = true;
 	RenderPass previousPass{};
 	for (const RenderPass& currentPass : rendContext->render_passes)
 	{
@@ -640,34 +710,48 @@ void DX11Renderer::renderNeuralDepth()
 			previousPass.pt_count, currentPass.pt_count - previousPass.pt_count);
 		previousPass = currentPass;
 	}
+	neuralExportActive = false;
 	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-flycast::rend::neural::TextureRef DX11Renderer::getNeuralDepthTexture()
+flycast::rend::neural::TextureRef DX11Renderer::getNeuralTexture(
+	std::array<ComPtr<ID3D11Texture2D>, 3>& textures,
+	std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views, DXGI_FORMAT format)
 {
-	return {flycast::rend::neural::TextureApi::D3D11, neuralDepthTextures[neuralExportSlot].get(),
-		neuralDepthViews[neuralExportSlot].get(),
-		static_cast<std::uint32_t>(DXGI_FORMAT_R32_FLOAT)};
+	return {flycast::rend::neural::TextureApi::D3D11, textures[neuralExportSlot].get(),
+		views[neuralExportSlot].get(), static_cast<std::uint32_t>(format)};
 }
 
 void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
 	if (!syncNeuralMode()) return;
-	TextureRef depth{};
-	if (ensureNeuralDepthResources())
-	{
-		neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
-		renderNeuralDepth();
-		depth = getNeuralDepthTexture();
-	}
-	const TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
-		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
 	const auto contentRect = getNeuralContentRect();
-	const auto& frame = neuralInstrumentation.CaptureGeometry(*rendContext, color,
-		depth, width, height,
+	neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	if (ensureNeuralResources())
+	{
+		neuralExportSlot = (neuralExportSlot + 1) % NeuralExportRingSize;
+		renderNeuralExports();
+	}
+	TextureRef color{TextureApi::D3D11, fbTex.get(), fbTextureView.get(),
+		static_cast<std::uint32_t>(DXGI_FORMAT_B8G8R8A8_UNORM)};
+	TextureRef depth{};
+	TextureRef motion{};
+	TextureRef mask{};
+	TextureRef confidence{};
+	TextureRef drawId{};
+	if (neuralColor.textures[0])
+	{
+		color = getNeuralTexture(neuralColor.textures, neuralColor.views, DXGI_FORMAT_R8G8B8A8_UNORM);
+		depth = getNeuralTexture(neuralDepthTextures, neuralDepthViews, DXGI_FORMAT_R32_FLOAT);
+		motion = getNeuralTexture(neuralMotion.textures, neuralMotion.views, DXGI_FORMAT_R16G16_FLOAT);
+		mask = getNeuralTexture(neuralMask.textures, neuralMask.views, DXGI_FORMAT_R8_UNORM);
+		confidence = getNeuralTexture(neuralConfidence.textures, neuralConfidence.views, DXGI_FORMAT_R8_UNORM);
+		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views, DXGI_FORMAT_R16_UINT);
+	}
+	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
 	if (neuralStage.TrySubmit(frame) == SubmitStatus::Submitted)
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
 }
@@ -798,7 +882,7 @@ TileClipping DX11Renderer::setTileClip(u32 tileclip, Rect& clip_rect)
 template <u32 Type, bool SortingEnabled>
 void DX11Renderer::setRenderState(const PolyParam *gp)
 {
-	PixelPolyConstants constants;
+	PixelPolyConstants constants{};
 	if (gp->pcw.Texture && gp->tsp.FilterMode > 1 && Type != ListType_Punch_Through && gp->tcw.MipMapped == 1)
 	{
 		constants.trilinearAlpha = 0.25f * (gp->tsp.MipMapD & 0x3);
@@ -808,6 +892,24 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 	}
 	else
 		constants.trilinearAlpha = 1.f;
+
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (neuralExportActive)
+	{
+		std::size_t ordinal = 0;
+		if constexpr (Type == ListType_Opaque)
+			ordinal = static_cast<std::size_t>(gp - rendContext->global_param_op.data());
+		else if constexpr (Type == ListType_Punch_Through)
+			ordinal = rendContext->global_param_op.size()
+				+ static_cast<std::size_t>(gp - rendContext->global_param_pt.data());
+		else
+			ordinal = rendContext->global_param_op.size() + rendContext->global_param_pt.size()
+				+ static_cast<std::size_t>(gp - rendContext->global_param_tr.data());
+		constants.neuralDrawId = static_cast<std::uint32_t>(ordinal + 1);
+		constants.neuralConfidence = 0.f;
+		constants.neuralBiasMask = 1.f;
+	}
+#endif
 
 	bool color_clamp = gp->tsp.ColorClamp && (rendContext->fog_clamp_min.full != 0 || rendContext->fog_clamp_max.full != 0xffffffff);
 	int fog_ctrl = config::Fog ? gp->tsp.FogCtrl : 2;
@@ -841,7 +943,11 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 			gp->pcw.Gouraud,
 			Type == ListType_Punch_Through,
 			clipmode == TileClipping::Inside,
-			dithering);
+			dithering
+#ifdef FLYCAST_ENABLE_NEURAL
+			, neuralExportActive
+#endif
+			);
 	deviceContext->PSSetShader(pixelShader, nullptr, 0);
 
 	if (gpuPalette != 0)
@@ -859,7 +965,11 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 		constants.clipTest[2] = (float)clip_rect.bottomRight().x;
 		constants.clipTest[3] = (float)clip_rect.bottomRight().y;
 	}
-	if (constants.trilinearAlpha != 1.f || gpuPalette != 0 || clipmode == TileClipping::Inside)
+	if (constants.trilinearAlpha != 1.f || gpuPalette != 0 || clipmode == TileClipping::Inside
+#ifdef FLYCAST_ENABLE_NEURAL
+		|| neuralExportActive
+#endif
+		)
 	{
 		D3D11_MAPPED_SUBRESOURCE mappedSubres;
 		deviceContext->Map(pxlPolyConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
@@ -884,7 +994,12 @@ void DX11Renderer::setRenderState(const PolyParam *gp)
 	}
 
 	// Apparently punch-through polys support blending, or at least some combinations
-	deviceContext->OMSetBlendState(blendStates.getState(true, gp->tsp.SrcInstr, gp->tsp.DstInstr), nullptr, 0xffffffff);
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (neuralExportActive)
+		deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+	else
+#endif
+		deviceContext->OMSetBlendState(blendStates.getState(true, gp->tsp.SrcInstr, gp->tsp.DstInstr), nullptr, 0xffffffff);
 
 	setCullMode(gp->isp.CullMode);
 

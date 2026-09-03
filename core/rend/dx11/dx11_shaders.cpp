@@ -233,6 +233,10 @@ cbuffer polyConstantBuffer : register(b1)
 	float4 clipTest;
 	float paletteIndex;
 	float trilinearAlpha;
+	float neuralConfidence;
+	uint neuralDrawId;
+	float neuralBiasMask;
+	float2 neuralPadding;
 };
 
 #include "pixel_common.hlsl"
@@ -247,7 +251,14 @@ struct Pixel
 
 struct PSO
 {
+	#if NEURAL_EXPORT == 1
+	float2 motion : SV_TARGET0;
+	float mask : SV_TARGET1;
+	float confidence : SV_TARGET2;
+	uint drawId : SV_TARGET3;
+	#else
 	float4 col : SV_TARGET;
+	#endif
 	float z : SV_DEPTH;
 };
 
@@ -357,7 +368,16 @@ PSO main(in Pixel inpix)
 	float w = 100000.0f * inpix.uv.w;
 #endif
 	pso.z = log2(1.0f + max(w, -0.999999f)) / 34.0f;
+	#if NEURAL_EXPORT == 1
+	// Zero motion remains explicitly untrusted until the correspondence vertex
+	// stream is supplied; consumers must use current color for these pixels.
+	pso.motion = float2(0.f, 0.f);
+	pso.mask = neuralBiasMask;
+	pso.confidence = neuralConfidence;
+	pso.drawId = neuralDrawId;
+	#else
 	pso.col = color;
+	#endif
 
 	return pso;
 }
@@ -377,7 +397,14 @@ PSO modifierVolume(in MVPixel inpix)
 	float w = 100000.0f * inpix.uv.w;
 #endif
 	pso.z = log2(1.0f + max(w, -0.999999f)) / 34.0f;
+	#if NEURAL_EXPORT == 1
+	pso.motion = float2(0.f, 0.f);
+	pso.mask = 1.f;
+	pso.confidence = 0.f;
+	pso.drawId = 0;
+	#else
 	pso.col = float4(0, 0, 0, 1.f - shadowScale);
+	#endif
 
 	return pso;
 }
@@ -485,7 +512,8 @@ enum PixelMacroEnum {
 	MacroPalette,
 	MacroAlphaTest,
 	MacroClipInside,
-	MacroDithering
+	MacroDithering,
+	MacroNeuralExport
 };
 
 static D3D_SHADER_MACRO PixelMacros[]
@@ -505,12 +533,14 @@ static D3D_SHADER_MACRO PixelMacros[]
 	{ "cp_AlphaTest", "0" },
 	{ "pp_ClipInside", "0" },
 	{ "DITHERING", "0" },
+	{ "NEURAL_EXPORT", "0" },
 	{ nullptr, nullptr }
 };
 
 const ComPtr<ID3D11PixelShader>& DX11Shaders::getShader(bool pp_Texture, bool pp_UseAlpha, bool pp_IgnoreTexA, u32 pp_ShadInstr,
 		bool pp_Offset, u32 pp_FogCtrl, bool pp_BumpMap, bool fog_clamping,
-		bool trilinear, int palette, bool gouraud, bool alphaTest, bool clipInside, bool dithering)
+		bool trilinear, int palette, bool gouraud, bool alphaTest, bool clipInside, bool dithering,
+		bool neuralExport)
 {
 	bool divPosZ = !settings.platform.isNaomi2() && config::NativeDepthInterpolation;
 	const u32 hash = (int)pp_Texture
@@ -527,7 +557,8 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getShader(bool pp_Texture, bool pp
 			| (alphaTest << 14)
 			| (clipInside << 15)
 			| (divPosZ << 16)
-			| (dithering << 17);
+			| (dithering << 17)
+			| (neuralExport << 18);
 	auto& shader = shaders[hash];
 	if (shader == nullptr)
 	{
@@ -548,6 +579,7 @@ const ComPtr<ID3D11PixelShader>& DX11Shaders::getShader(bool pp_Texture, bool pp
 		PixelMacros[MacroClipInside].Definition = MacroValues[clipInside];
 		PixelMacros[MacroDivPosZ].Definition = MacroValues[divPosZ];
 		PixelMacros[MacroDithering].Definition = MacroValues[dithering];
+		PixelMacros[MacroNeuralExport].Definition = MacroValues[neuralExport];
 
 		shader = compilePS(PixelShader, "main", PixelMacros);
 		verify(shader != nullptr);
@@ -611,7 +643,10 @@ const ComPtr<ID3D11VertexShader>& DX11Shaders::getMVVertexShader(bool naomi2)
 const ComPtr<ID3D11PixelShader>& DX11Shaders::getModVolShader()
 {
 	if (!modVolShader)
+	{
+		PixelMacros[MacroNeuralExport].Definition = MacroValues[false];
 		modVolShader = compilePS(PixelShader, "modifierVolume", PixelMacros);
+	}
 
 	return modVolShader;
 }

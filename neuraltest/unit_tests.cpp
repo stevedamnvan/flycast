@@ -69,6 +69,13 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		std::string error;
+		const bool valid = ValidateProductionExportShader(error);
+		suite.Expect(valid, "production native and neural-export pixel shaders compile");
+		if (!valid && !error.empty())
+			std::cerr << error << '\n';
+	}
 	const DrawRecord base = BaseDraw();
 	suite.Expect(DrawSignature(base) == DrawSignature(base), "draw signature deterministic");
 	auto changed = base;
@@ -260,6 +267,25 @@ int RunSelfTests()
 			second.historyValid && instrumentation->DrawSnapshotHash() == firstHash,
 			"rend_context snapshot and draw hash are deterministic");
 		suite.Expect(!second.truncated, "atomic frame carries draw-overflow state");
+		std::uint32_t resources[6]{};
+		const TextureRef refs[] = {
+			{TextureApi::D3D11, &resources[0], nullptr, 28},
+			{TextureApi::D3D11, &resources[1], nullptr, 41},
+			{TextureApi::D3D11, &resources[2], nullptr, 34},
+			{TextureApi::D3D11, &resources[3], nullptr, 61},
+			{TextureApi::D3D11, &resources[4], nullptr, 61},
+			{TextureApi::D3D11, &resources[5], nullptr, 57},
+		};
+		const auto& attached = instrumentation->AttachTextures(refs[0], refs[1], refs[2],
+			refs[3], refs[4], refs[5]);
+		suite.Expect(attached.color.resource == &resources[0]
+			&& attached.depth.resource == &resources[1]
+			&& attached.motion.resource == &resources[2]
+			&& attached.mask.resource == &resources[3]
+			&& attached.confidence.resource == &resources[4]
+			&& attached.drawId.resource == &resources[5]
+			&& attached.frameId == second.frameId,
+			"atomic frame attaches the complete GPU export set");
 		context.global_param_op[0].tcw.full = 56;
 		const auto& skipped = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});

@@ -95,6 +95,10 @@ protected:
 		float clipTest[4];
 		float paletteIndex;
 		float trilinearAlpha;
+		float neuralConfidence;
+		std::uint32_t neuralDrawId;
+		float neuralBiasMask;
+		float neuralPadding[2];
 	};
 
 	virtual void resize(int w, int h);
@@ -119,11 +123,14 @@ protected:
 	void submitNeuralFrame();
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();
-	bool ensureNeuralDepthResources();
-	void renderNeuralDepth();
+	bool ensureNeuralResources();
+	void renderNeuralExports();
 	void releaseNeuralResources() noexcept;
 	flycast::rend::neural::Rect getNeuralContentRect() const;
-	flycast::rend::neural::TextureRef getNeuralDepthTexture();
+	flycast::rend::neural::TextureRef getNeuralTexture(
+		std::array<ComPtr<ID3D11Texture2D>, 3>& textures,
+		std::array<ComPtr<ID3D11ShaderResourceView>, 3>& views,
+		DXGI_FORMAT format);
 #endif
 
 	ComPtr<ID3D11Device> device;
@@ -157,13 +164,25 @@ protected:
 	flycast::rend::neural::NeuralInstrumentation neuralInstrumentation;
 	flycast::rend::neural::NeuralStage neuralStage;
 	static constexpr std::size_t NeuralExportRingSize = 3;
+	struct NeuralTargetRing
+	{
+		std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> textures;
+		std::array<ComPtr<ID3D11RenderTargetView>, NeuralExportRingSize> targets;
+		std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> views;
+	};
 	std::array<ComPtr<ID3D11Texture2D>, NeuralExportRingSize> neuralDepthTextures;
 	std::array<ComPtr<ID3D11DepthStencilView>, NeuralExportRingSize> neuralDepthTargets;
 	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralDepthViews;
+	NeuralTargetRing neuralColor;
+	NeuralTargetRing neuralMotion;
+	NeuralTargetRing neuralMask;
+	NeuralTargetRing neuralConfidence;
+	NeuralTargetRing neuralDrawId;
 	std::uint32_t neuralDepthWidth = 0;
 	std::uint32_t neuralDepthHeight = 0;
 	std::size_t neuralExportSlot = 0;
 	int activeNeuralMode = -1;
+	bool neuralExportActive = false;
 #endif
 
 private:

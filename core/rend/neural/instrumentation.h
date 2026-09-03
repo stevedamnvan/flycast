@@ -26,6 +26,8 @@ public:
 		std::uint32_t renderWidth, std::uint32_t renderHeight,
 		std::uint32_t outputWidth, std::uint32_t outputHeight,
 		Rect contentRect) noexcept;
+	const NeuralFrame& AttachTextures(TextureRef color, TextureRef depth, TextureRef motion,
+		TextureRef mask, TextureRef confidence, TextureRef drawId) noexcept;
 	void MarkEvaluated(std::uint64_t frameId) noexcept;
 
 	bool Truncated() const noexcept { return truncated_; }

@@ -87,3 +87,14 @@ reference buffers. `CaptureGeometry` never rotates them. The renderer calls
 work buffer. A Geometry/FramebufferDirect source transition increments
 `historyGeneration`, and direct frames carry no draw views and always request a
 reset. RTT branches do not call the stage.
+
+## D-011: incomplete motion is always biased to current color
+
+The production DX11 export ring now owns the complete required texture format
+set. Its export-only pixel-shader permutation reuses the existing texture,
+alpha-test, clipping, and depth behavior for opaque and punch-through replay.
+Until previous-position geometry is bound, motion is cleared to zero and every
+pixel's bias-current-color mask remains one; confidence is zero. This is a safe
+intermediate contract, not motion evidence. Draw ID zero remains background and
+opaque/punch-through draws use global snapshot ordinal plus one. Translucent
+draw-ID/mask coverage remains pending and cannot close FC-025 or FC-033.

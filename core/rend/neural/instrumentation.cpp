@@ -250,6 +250,18 @@ const NeuralFrame& NeuralInstrumentation::CaptureSource(FrameSource source, Text
 	return frame_;
 }
 
+const NeuralFrame& NeuralInstrumentation::AttachTextures(TextureRef color, TextureRef depth,
+	TextureRef motion, TextureRef mask, TextureRef confidence, TextureRef drawId) noexcept
+{
+	frame_.color = color;
+	frame_.depth = depth;
+	frame_.motion = motion;
+	frame_.mask = mask;
+	frame_.confidence = confidence;
+	frame_.drawId = drawId;
+	return frame_;
+}
+
 void NeuralInstrumentation::MarkEvaluated(std::uint64_t frameId) noexcept
 {
 	if (!hasCapturedFrame_ || capturedFrameId_ != frameId || frame_.source != FrameSource::Geometry)

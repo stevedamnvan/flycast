@@ -58,6 +58,7 @@ std::uint64_t HashImage(const Image& image);
 double ComputePsnr(const Image& a, const Image& b, std::uint32_t& differingPixels, std::uint8_t& maxDelta);
 bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixture,
 	const RenderOptions& options, const RenderResult& result, std::string& error);
+bool ValidateProductionExportShader(std::string& error);
 int RunSelfTests();
 
 } // namespace neuraltest

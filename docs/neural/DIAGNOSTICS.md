@@ -41,11 +41,13 @@ The inverse is unit-checked for both shader branches: legacy returns
 visualization rather than infinity.
 
 The production seam exposes bounded draw metadata, deterministic snapshot
-hashes, frame/history identity, and existing color ownership. When enabled it
-also exposes the current slot of an isolated three-deep R32 depth ring populated
-by OP/PT-only replay. No emulator-path readback exists. Runtime depth artifacts
-and Gate 3 remain pending; motion, mask, confidence, and draw-ID artifacts are
-not synthesized while their exports are absent.
+hashes, frame/history identity, and a three-deep atomic export set: converted
+RGBA8 scene color, OP/PT-only R32 depth, RG16F motion, R8 bias mask, R8
+confidence, and R16_UINT draw ID. The current intermediate export clears motion
+and confidence to zero and bias to one because previous-position geometry is
+not yet bound. Draw IDs cover OP/PT replay only. No emulator-path readback
+exists. Runtime artifacts and Gates 3-6 remain pending; these allocated/bound
+resources are not accepted as pixel evidence.
 
 Draw-history diagnostics refer to the last stage-accepted frame rather than
 the previous emulated frame. A FramebufferDirect package carries color,
