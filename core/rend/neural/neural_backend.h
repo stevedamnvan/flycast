@@ -49,6 +49,7 @@ struct StageConfig {
 	std::uint32_t dlss5RebuildMaxAttempts = 2;
 	bool dlss5EvidenceCapture = false;
 	std::uint32_t dlss5EvidenceCaptureFrames = 1;
+	std::uint64_t dlss5EvidenceStartFrame = 0;
 	// Developer-only deterministic failure controls. Production defaults never
 	// enter these paths and no real device state is modified.
 	FailureInjection failureInjection = FailureInjection::None;

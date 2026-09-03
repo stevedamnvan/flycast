@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
@@ -435,12 +435,13 @@ int CaptureCommand(const Args& args)
 	}
 	std::string error;
 	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
-		evidenceFrames = 0;
+		evidenceFrames = 0, evidenceStartFrame = 0;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
 		|| !Number(args, "--skip", 0, skip, error)
 		|| !Number(args, "--render-height", 480, renderHeight, error)
 		|| renderHeight < 120 || renderHeight > 8640
 		|| !Number(args, "--evidence-frames", 0, evidenceFrames, error) || evidenceFrames > 480
+		|| !Number(args, "--evidence-start-frame", 0, evidenceStartFrame, error)
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
 		std::cerr << (error.empty() ? "--frames must be 1..240, --evidence-frames 0..480, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
@@ -618,6 +619,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (evidenceFrames != 0 ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames="
 		+ std::to_wstring(evidenceFrames == 0 ? 1 : evidenceFrames)
+		+ L",config:rend.NeuralDlss5EvidenceStartFrame=" + std::to_wstring(evidenceStartFrame)
 		+ L",config:rend.NeuralDlss5EvidencePreserveMask="
 		+ (evidenceFrames != 0 && evidenceMask == "production" ? L"yes" : L"no")
 		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
@@ -704,6 +706,7 @@ int CaptureCommand(const Args& args)
 		<< "\",\n  \"style\": \"" << style
 		<< "\",\n  \"render_height\": " << renderHeight
 		<< ",\n  \"evidence_frames\": " << evidenceFrames
+		<< ",\n  \"evidence_start_frame\": " << evidenceStartFrame
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
 		<< ",\n  \"input_replay_requested\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")

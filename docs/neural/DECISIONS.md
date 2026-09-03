@@ -262,6 +262,10 @@ larger value exists only to find exact source-hash matches across controlled
 external-consumer ON/OFF runs; every captured frame retains the diagnostic GPU
 wait, and the same bounded count applies to pre-Present swapchain verification.
 All such measurements are excluded from production timing or performance claims.
+`rend.NeuralDlss5EvidenceStartFrame` defaults to zero and delays both the marker
+and synchronous readback until the requested emulated frame ID. This developer-only
+control permits an input-replayed gameplay frame to be proven without stalling and
+marking every preceding frame; it does not alter evaluation or accepted history.
 The legacy sentinel continues to force a zero bias mask by default.
 `rend.NeuralDlss5EvidencePreserveMask` is a developer-only, default-off control
 used by the capture verifier to replay the exact production mask and

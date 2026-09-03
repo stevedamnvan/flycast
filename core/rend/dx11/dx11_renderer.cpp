@@ -1532,6 +1532,8 @@ bool DX11Renderer::syncNeuralMode()
 			stageConfig.dlss5EvidenceCapture = config::NeuralDlss5EvidenceCapture.get();
 			stageConfig.dlss5EvidenceCaptureFrames = static_cast<std::uint32_t>(
 				std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 480));
+			stageConfig.dlss5EvidenceStartFrame = static_cast<std::uint64_t>(
+				std::max(0, config::NeuralDlss5EvidenceStartFrame.get()));
 		}
 		neuralStage = NeuralStage(stageConfig);
 		NOTICE_LOG(RENDERER, "Public DLSS preset: %s (%d); external Neural Rendering model selection is independent",

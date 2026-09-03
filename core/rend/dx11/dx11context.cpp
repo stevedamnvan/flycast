@@ -270,6 +270,7 @@ void DX11Context::term()
 	pendingNeuralOutputFrameId = 0;
 	pendingNeuralOutputPresent = false;
 	neuralEvidenceBackBufferAttempts = 0;
+	neuralEvidenceLastCapturedFrameId = ~std::uint64_t{0};
 #endif
 	renderTargetView.reset();
 	swapchain1.reset();
@@ -295,7 +296,9 @@ void DX11Context::Present()
 		return;
 	frameRendered = false;
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (pendingNeuralOutputPresent && config::NeuralDlss5EvidenceCapture.get())
+	if (pendingNeuralOutputPresent && config::NeuralDlss5EvidenceCapture.get()
+		&& pendingNeuralOutputFrameId >= static_cast<std::uint64_t>(
+			std::max(0, config::NeuralDlss5EvidenceStartFrame.get())))
 		captureNeuralEvidenceBackBuffer(pendingNeuralOutputFrameId);
 	releaseWrappedBackBuffer();
 #endif
@@ -327,10 +330,9 @@ void DX11Context::Present()
 	if (SUCCEEDED(hr) && pendingNeuralOutputPresent)
 	{
 		++neuralOutputPresentCount;
-		const auto evidenceLimit = static_cast<std::uint64_t>(
-			std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 480));
-		if (neuralOutputPresentCount == 1
-			|| (config::NeuralDlss5EvidenceCapture.get() && neuralOutputPresentCount <= evidenceLimit))
+		const bool inEvidenceWindow = config::NeuralDlss5EvidenceCapture.get()
+			&& neuralEvidenceLastCapturedFrameId == pendingNeuralOutputFrameId;
+		if (neuralOutputPresentCount == 1 || inEvidenceWindow)
 			NOTICE_LOG(RENDERER,
 				"DLSS 5 candidate public-output present completed: frame=%llu route=d3d11on12; external mutation unconfirmed",
 				static_cast<unsigned long long>(pendingNeuralOutputFrameId));
@@ -386,6 +388,7 @@ void DX11Context::resize()
 		pendingNeuralOutputFrameId = 0;
 		pendingNeuralOutputPresent = false;
 		neuralEvidenceBackBufferAttempts = 0;
+		neuralEvidenceLastCapturedFrameId = ~std::uint64_t{0};
 #endif
 		renderTargetView.reset();
 #ifdef TARGET_UWP
@@ -524,6 +527,7 @@ void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcep
 	if (neuralEvidenceBackBufferAttempts >= captureLimit || !renderTargetView)
 		return;
 	const auto captureNumber = ++neuralEvidenceBackBufferAttempts;
+	neuralEvidenceLastCapturedFrameId = frameId;
 	ComPtr<ID3D11Resource> resource;
 	renderTargetView->GetResource(&resource.get());
 	ComPtr<ID3D11Texture2D> texture;

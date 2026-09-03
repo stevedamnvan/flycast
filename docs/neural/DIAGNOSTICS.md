@@ -7,7 +7,7 @@ The production capture command is:
 [--renderer dx11|dx11-oit] [--preset auto|j|k]
 [--profile faithful|enhanced|photoreal] [--style FAMILY]
 [--render-height N] [--feature-path DIR] [--input-replay yes|no]
-[--evidence-frames 0..480]
+[--evidence-frames 0..480] [--evidence-start-frame N]
 [--evidence-mask zero|production] [--timeout-ms N]`
 
 It launches Flycast with transient command-line configuration, limits a run to
@@ -393,3 +393,6 @@ requires `pause-roundtrip-complete.json` to record the exact main-frame pair,
 an observed `GuiState::Pause`, and an observed return to `GuiState::Closed`.
 The performance interval spans the pause and must retain explicit source gaps
 without stale output, identity errors, accepted-output loss, or frame latency.
+`--evidence-start-frame` delays evidence marking and readback until that exact or
+next emulated frame ID. It is intended for deterministic input-replayed gameplay;
+frames before it evaluate and present normally and remain outside the evidence set.

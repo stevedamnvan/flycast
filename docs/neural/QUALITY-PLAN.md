@@ -150,7 +150,7 @@ close a temporal or title-quality gate.
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
-- Gate 16: partial through LOG #94. The production match-output option and public
+- Gate 16: partial through LOG #95. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
   remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
@@ -162,14 +162,19 @@ close a temporal or title-quality gate.
   K materially matched Auto and did not justify promotion. Public NGX rejected
   the legacy 426x320 Quality-SR raster while requesting 427x320; the corrected
   exact-width path submitted 427x320 into 640x480 successfully without changing
-  ordinary manual even-width modes. Gameplay 8x and confirmed external lanes,
-  broader titles, and final acceptance remain open; Gate 16 is not green.
+  ordinary manual even-width modes. A current-SHA ten-frame 5120x3840 8x-native
+  reference completed with exact 640x480 output, nine valid-history frames, one
+  conservative scene cut, zero repeats/drops, and 77.07% average trusted pixels.
+  It differs materially from target-native Auto (`PSNR 33.02` at frame 1802), so
+  it remains a reference rather than the default. One active-combat Faithful
+  external frame is provenance-confirmed, but a confirmed external temporal
+  sequence, broader titles, and final acceptance remain open; Gate 16 is not green.
 - Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
   Enhanced Materials and explicitly non-faithful Photoreal Experimental are
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
   Per-title tuning and evidence-driven broader trust remain open.
-- Gate 17: partial through LOG #94. The bounded capture CLI writes the production
+- Gate 17: partial through LOG #95. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
@@ -181,7 +186,12 @@ close a temporal or title-quality gate.
   sequence and makes the developer-only launcher retain the exact input script,
   hash, and byte count. Two independent frame-1802 native scouts were
   pixel-identical and all four initial native/Auto/J/K sequences had identical
-  source frames before output comparisons were accepted.
+  source frames before output comparisons were accepted. LOG #95 adds a current
+  8x combat reference and promotes one frame of active Kilik-versus-Taki combat
+  only after exact five-hash ON evidence, exact four-input policy-OFF evidence,
+  1024/1024 same-frame sentinel pixels, and completed Present. A 671-package
+  comparison index retains every accepted and rejected attempt. This is one
+  externally proven gameplay frame, not a proven external temporal sequence.
 - Gate 18: partial at LOG #75 and LOG #77. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur

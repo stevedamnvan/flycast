@@ -421,7 +421,8 @@ public:
 		evaluate.InMVScaleY = 1.f;
 		evaluate.InPreExposure = 1.f;
 		evaluate.InExposureScale = 1.f;
-		const bool markEvidence = config_.dlss5EvidenceCapture && evidenceMarkerUpload_;
+		const bool markEvidence = config_.dlss5EvidenceCapture && evidenceMarkerUpload_
+			&& frame.frameId >= config_.dlss5EvidenceStartFrame;
 		const bool captureEvidence = markEvidence
 			&& stats_.evidenceCaptures < config_.dlss5EvidenceCaptureFrames
 			&& stats_.evidenceCaptureFailures == 0
