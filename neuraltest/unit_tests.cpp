@@ -739,6 +739,19 @@ int RunSelfTests()
 		suite.Expect(fourThree.x == 240 && fourThree.y == 0 && fourThree.width == 1440 &&
 			fourThree.height == 1080 && widescreen.x == 0 && widescreen.width == 1920,
 			"content rect respects 4:3 and widescreen aspect");
+		const auto matchHd = ComputeMatchOutputRasterSize(1920, 1080, 4.f / 3.f, false);
+		const auto matchQhd = ComputeMatchOutputRasterSize(2560, 1440, 4.f / 3.f, false);
+		const auto matchUhd = ComputeMatchOutputRasterSize(3840, 2160, 4.f / 3.f, false);
+		const auto matchWide = ComputeMatchOutputRasterSize(3840, 2160, 16.f / 9.f, false);
+		suite.Expect(matchHd.width == 1440 && matchHd.height == 1080
+			&& matchQhd.width == 1920 && matchQhd.height == 1440
+			&& matchUhd.width == 2880 && matchUhd.height == 2160
+			&& matchWide.width == 3840 && matchWide.height == 2160,
+			"match-output raster uses exact post-aspect content dimensions");
+		suite.Expect(UsesMatchOutputRaster(2) && UsesMatchOutputRaster(3)
+			&& UsesMatchOutputRaster(8) && !UsesMatchOutputRaster(0)
+			&& !UsesMatchOutputRaster(1) && !UsesMatchOutputRaster(4),
+			"match-output raster is limited to target-native lanes");
 	}
 	{
 		const float sourceDepth = .375f;

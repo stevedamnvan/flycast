@@ -236,12 +236,12 @@ bool RunOverlayContractFixture(bool d3d11On12,
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
-	float motionX, float motionY, std::uint32_t frames,
+	float motionX, float motionY, std::uint32_t frames, std::uint32_t dlssPreset,
 	NeuralRunResult& result, std::string& error);
 bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
-	float motionX, float motionY, std::uint32_t frames,
+	float motionX, float motionY, std::uint32_t frames, std::uint32_t dlssPreset,
 	NeuralRunResult& result, std::string& error);
 int RunSelfTests();
 

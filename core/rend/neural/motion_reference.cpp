@@ -639,6 +639,29 @@ Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
 	return result;
 }
 
+RasterSize ComputeMatchOutputRasterSize(std::uint32_t outputWidth,
+	std::uint32_t outputHeight, float renderAspect, bool rotate) noexcept
+{
+	if (rotate)
+	{
+		std::swap(outputWidth, outputHeight);
+		if (renderAspect > 0.f)
+			renderAspect = 1.f / renderAspect;
+	}
+	const auto content = ComputeContentRect(outputWidth, outputHeight,
+		renderAspect, false, 0);
+	return {static_cast<std::uint32_t>(std::max(0, content.width)),
+		static_cast<std::uint32_t>(std::max(0, content.height))};
+}
+
+bool UsesMatchOutputRaster(int neuralMode) noexcept
+{
+	// Passthrough and SR lanes intentionally retain the selected manual raster.
+	// DLAA, hook-compatible DLAA, and the external-consumer experiment require
+	// equal input/output dimensions for their default target-native contract.
+	return neuralMode == 2 || neuralMode == 3 || neuralMode == 8;
+}
+
 float Halton(std::uint32_t index, std::uint32_t base) noexcept
 {
 	float result = 0.f;

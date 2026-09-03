@@ -113,6 +113,8 @@ Option<int> NeuralDlss5EvidenceCaptureFrames("rend.NeuralDlss5EvidenceCaptureFra
 Option<int> NeuralDlss5EvidenceStartDelayMs("rend.NeuralDlss5EvidenceStartDelayMs", 0);
 Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
 Option<int> NeuralOverlayPolicy("rend.NeuralOverlayPolicy", 0);
+Option<bool> NeuralMatchOutputResolution("rend.NeuralMatchOutputResolution", true);
+Option<int> NeuralDlssPreset("rend.NeuralDlssPreset", 0);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

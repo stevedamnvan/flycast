@@ -18,6 +18,9 @@
 */
 #define GLM_FORCE_SWIZZLE 1
 #include "transform_matrix.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "neural/motion_reference.h"
+#endif
 #include <glm/gtx/transform.hpp>
 
 static void getTAViewport(const rend_context& rendCtx, int& width, int& height) {
@@ -261,6 +264,22 @@ void getScaledFramebufferSize(const rend_context& rendCtx, int& width, int& heig
 		// Render to screen
 		if (!config::EmulateFramebuffer)
 		{
+#ifdef FLYCAST_ENABLE_NEURAL
+			const bool neuralMatchOutput = config::NeuralMatchOutputResolution
+				&& flycast::rend::neural::UsesMatchOutputRaster(config::NeuralMode.get())
+				&& (config::RendererType == RenderType::DirectX11
+					|| config::RendererType == RenderType::DirectX11_OIT);
+			if (neuralMatchOutput)
+			{
+				const auto raster = flycast::rend::neural::ComputeMatchOutputRasterSize(
+					static_cast<std::uint32_t>(std::max(0, settings.display.width)),
+					static_cast<std::uint32_t>(std::max(0, settings.display.height)),
+					getOutputFramebufferAspectRatio(), config::Rotate90);
+				width = static_cast<int>(raster.width);
+				height = static_cast<int>(raster.height);
+				return;
+			}
+#endif
 			float upscaling = config::RenderResolution / 480.f;
 			float w = width * upscaling;
 			float h = height * upscaling;

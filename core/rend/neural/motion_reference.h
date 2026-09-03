@@ -37,6 +37,11 @@ struct Point3 {
 	float z = 0.f;
 };
 
+struct RasterSize {
+	std::uint32_t width = 0;
+	std::uint32_t height = 0;
+};
+
 struct MotionTrust {
 	Point2 motion{};
 	float confidence = 0.f;
@@ -81,6 +86,9 @@ bool UpdateConservativeBypass(bool candidate, bool active,
 float InvertLegacyDepth(float encodedDepth, bool divPosZ) noexcept;
 Rect ComputeContentRect(std::uint32_t outputWidth, std::uint32_t outputHeight,
 	float renderAspect, bool integerScale, std::uint32_t renderResolution) noexcept;
+RasterSize ComputeMatchOutputRasterSize(std::uint32_t outputWidth,
+	std::uint32_t outputHeight, float renderAspect, bool rotate) noexcept;
+bool UsesMatchOutputRaster(int neuralMode) noexcept;
 float Halton(std::uint32_t index, std::uint32_t base) noexcept;
 Point2 HaltonJitter(std::uint64_t frameId, std::uint32_t phaseCount) noexcept;
 std::uint32_t JitterPhaseCount(std::uint32_t renderWidth, std::uint32_t outputWidth) noexcept;

@@ -585,7 +585,10 @@ flycast::rend::neural::Rect DX11Renderer::getNeuralContentRect() const
 		renderAspect = 1.f / renderAspect;
 	}
 	return flycast::rend::neural::ComputeContentRect(outputWidth, outputHeight,
-		renderAspect, config::IntegerScale, config::RenderResolution);
+		renderAspect, config::NeuralMatchOutputResolution
+			&& flycast::rend::neural::UsesMatchOutputRaster(activeNeuralMode)
+			? false : config::IntegerScale.get(),
+		config::RenderResolution);
 }
 
 bool DX11Renderer::ensureNeuralResources()
@@ -1158,6 +1161,22 @@ void DX11Renderer::submitNeuralFrame()
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	if (loggedNeuralRenderWidth != capturedFrame.renderWidth
+		|| loggedNeuralRenderHeight != capturedFrame.renderHeight
+		|| loggedNeuralOutputWidth != capturedFrame.outputWidth
+		|| loggedNeuralOutputHeight != capturedFrame.outputHeight)
+	{
+		loggedNeuralRenderWidth = capturedFrame.renderWidth;
+		loggedNeuralRenderHeight = capturedFrame.renderHeight;
+		loggedNeuralOutputWidth = capturedFrame.outputWidth;
+		loggedNeuralOutputHeight = capturedFrame.outputHeight;
+		NOTICE_LOG(RENDERER,
+			"Neural raster contract: input=%ux%u output=%ux%u content=(%d,%d %dx%d) match=%d",
+			capturedFrame.renderWidth, capturedFrame.renderHeight,
+			capturedFrame.outputWidth, capturedFrame.outputHeight,
+			contentRect.x, contentRect.y, contentRect.width, contentRect.height,
+			config::NeuralMatchOutputResolution && UsesMatchOutputRaster(activeNeuralMode) ? 1 : 0);
+	}
 	const bool bypass2DCandidate = activeNeuralMode == static_cast<int>(NeuralMode::Dlss5Experimental)
 		&& capturedFrame.predominantly2D;
 	const bool bypass2D = UpdateConservativeBypass(bypass2DCandidate,
@@ -1269,17 +1288,23 @@ bool DX11Renderer::syncNeuralMode()
 		neuralEvidenceArmDeadlineMs = 0;
 	const bool surfaceRequested = config::NeuralD3D12Surface.get();
 	const bool requestedSurface = surfaceRequested && DX11Context::Instance()->isD3D11On12();
-	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface)
+	const int configuredPreset = config::NeuralDlssPreset.get();
+	const int requestedPreset = configuredPreset == 10 || configuredPreset == 11
+		? configuredPreset : 0;
+	if (requestedMode != activeNeuralMode || requestedSurface != activeNeuralSurface
+		|| requestedPreset != activeNeuralPreset)
 	{
 		releaseNeuralResources();
 		neuralPresentationView.reset();
 		activeNeuralMode = requestedMode;
+		activeNeuralPreset = requestedPreset;
 		activeNeuralSurface = requestedSurface;
 		neuralInstrumentation.SetEnabled(requestedMode != 0);
 		neuralStage.Shutdown();
 		StageConfig stageConfig;
 		stageConfig.mode = static_cast<NeuralMode>(requestedMode);
 		stageConfig.api = requestedSurface ? Api::D3D12 : Api::D3D11;
+		stageConfig.dlssPreset = static_cast<std::uint32_t>(requestedPreset);
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook
 			|| stageConfig.mode == NeuralMode::Dlss5Experimental;
 		if (stageConfig.mode == NeuralMode::Dlss5Experimental)
@@ -1295,6 +1320,9 @@ bool DX11Renderer::syncNeuralMode()
 				std::clamp(config::NeuralDlss5EvidenceCaptureFrames.get(), 1, 240));
 		}
 		neuralStage = NeuralStage(stageConfig);
+		NOTICE_LOG(RENDERER, "Public DLSS preset: %s (%d); external Neural Rendering model selection is independent",
+			requestedPreset == 10 ? "J" : requestedPreset == 11 ? "K" : "Auto",
+			requestedPreset);
 		if (stageConfig.api == Api::D3D11)
 			neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());
 		else

@@ -201,6 +201,11 @@ void gui_settings_video()
         ImGui::Text("%s", T("Internal Resolution"));
         ImGui::SameLine();
         ShowHelpMarker(T("Internal render resolution. Higher is better, but more demanding on the GPU. Values higher than your display resolution (but no more than double your display resolution) can be used for supersampling, which provides high-quality antialiasing without reducing sharpness."));
+#ifdef FLYCAST_ENABLE_NEURAL
+		OptionCheckbox(T("Match Neural Output / Content Rectangle"),
+			config::NeuralMatchOutputResolution,
+			T("For target-native DLAA and external-consumer modes on DirectX 11, rasterizes PVR scene content at the exact final content dimensions and excludes black bars. SR and passthrough lanes retain the selected manual resolution."));
+#endif
 		OptionCheckbox(T("Integer Scaling"), config::IntegerScale, T("Scales the output by the maximum integer multiple allowed by the display resolution."));
 		OptionCheckbox(T("Linear Interpolation"), config::LinearInterpolation, T("Scales the output with linear interpolation. Will use nearest neighbor interpolation otherwise. Disable with integer scaling."));
 #ifndef TARGET_IPHONE
@@ -277,6 +282,24 @@ void gui_settings_video()
 		}
 		if (selectedMode != 0)
 		{
+			static const std::array<const char *, 3> presetNames = {"Auto", "J", "K"};
+			static const std::array<int, 3> presetValues = {0, 10, 11};
+			int presetIndex = config::NeuralDlssPreset.get() == 10 ? 1
+				: config::NeuralDlssPreset.get() == 11 ? 2 : 0;
+			if (ImGui::BeginCombo("##NeuralDlssPreset", presetNames[presetIndex]))
+			{
+				for (int i = 0; i < static_cast<int>(presetNames.size()); ++i)
+				{
+					const bool selected = presetIndex == i;
+					if (ImGui::Selectable(presetNames[i], selected))
+						config::NeuralDlssPreset = presetValues[i];
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s", T("Public DLSS Preset"));
+			ImGui::TextWrapped("%s", T("Controls public DLAA/SR only. It does not select or configure an external Neural Rendering model. Sharpness remains zero."));
 			static const std::array<const char *, 3> overlayPolicies = {
 				"Auto (high-confidence HUD)", "Protect full PVR frame", "Disable post-composite"
 			};

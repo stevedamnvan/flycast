@@ -30,7 +30,7 @@ void Usage()
 		"neuraltest transparency-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest overlay-contract --api d3d11|d3d11on12 --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
-		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
+		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
 	std::cout << "neuraltest selftest\n";
@@ -600,6 +600,8 @@ int NeuralCommand(const Args& args)
 	const auto api = Value(args, "--api", "d3d11");
 	const auto mode = Value(args, "--mode", "quality");
 	const auto depthPolarity = Value(args, "--depth-polarity", "inverted");
+	const auto preset = Value(args, "--preset", "auto");
+	const std::uint32_t dlssPreset = preset == "j" ? 10u : preset == "k" ? 11u : 0u;
 	const auto effectiveMode = backend == "sr" ? mode : backend;
 	if (input.empty() || output.empty())
 	{
@@ -626,6 +628,11 @@ int NeuralCommand(const Args& args)
 	if (depthPolarity != "inverted" && depthPolarity != "normal")
 	{
 		std::cerr << "--depth-polarity must be inverted or normal\n";
+		return 2;
+	}
+	if (preset != "auto" && preset != "j" && preset != "k")
+	{
+		std::cerr << "--preset must be auto, j, or k\n";
 		return 2;
 	}
 	neuraltest::Image image;
@@ -672,11 +679,11 @@ int NeuralCommand(const Args& args)
 			? neuraltest::RunLiveNeuralD3D12(image, backend, mode, outputWidth, outputHeight,
 				args.count("--no-ngx") != 0, args.count("--warp") != 0,
 				depthPolarity == "inverted", previousInput.empty() ? nullptr : &previousImage,
-				motionX, motionY, frames, run, error)
+				motionX, motionY, frames, dlssPreset, run, error)
 			: neuraltest::RunLiveNeuralD3D11(image, backend, mode, outputWidth, outputHeight,
 				args.count("--no-ngx") != 0, args.count("--warp") != 0,
 				depthPolarity == "inverted", previousInput.empty() ? nullptr : &previousImage,
-				motionX, motionY, frames, run, error)))
+				motionX, motionY, frames, dlssPreset, run, error)))
 		{
 			std::cerr << error << '\n';
 			return 1;
@@ -685,6 +692,7 @@ int NeuralCommand(const Args& args)
 		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"mode\": \"" << effectiveMode
 			<< "\",\n  \"api\": \"" << api
 			<< "\",\n  \"depth_polarity\": \"" << depthPolarity
+			<< "\",\n  \"preset\": \"" << preset
 			<< "\",\n  \"motion\": [" << motionX << ", " << motionY << ']'
 			<< ",\n  \"surface\": \"" << run.surface
 			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
@@ -715,6 +723,7 @@ int NeuralCommand(const Args& args)
 		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nMode: `" << effectiveMode
 			<< "`  \nAPI: `" << api
 			<< "`  \nDepth polarity: `" << depthPolarity
+			<< "`  \nPublic DLSS preset: `" << preset
 			<< "`  \nMotion: `[" << motionX << ", " << motionY << "]`"
 			<< "  \nSurface: `" << run.surface
 			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter

@@ -66,6 +66,26 @@ NgxCallResult CreateLeaf(ID3D11DeviceContext *context, NVSDK_NGX_Handle **handle
 	NGX_SEH_CALL(NGX_D3D11_CREATE_DLSS_EXT(context, handle, parameters, create));
 }
 
+NgxCallResult ApplyPresetLeaf(NVSDK_NGX_Parameter *parameters,
+	std::uint32_t preset) noexcept
+{
+	NgxCallResult call;
+	__try
+	{
+		parameters->Set(NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA, preset);
+		parameters->Set(NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality, preset);
+		parameters->Set(NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced, preset);
+		parameters->Set(NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance, preset);
+		parameters->Set(NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance, preset);
+		call.result = NVSDK_NGX_Result_Success;
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		call.exceptionCode = GetExceptionCode();
+	}
+	return call;
+}
+
 NgxCallResult OptimalSettingsLeaf(NVSDK_NGX_Parameter *parameters,
 	unsigned int outputWidth, unsigned int outputHeight, NVSDK_NGX_PerfQuality_Value quality,
 	unsigned int *optimalWidth, unsigned int *optimalHeight, unsigned int *maxWidth,
@@ -248,6 +268,10 @@ public:
 			if (compatibilityCreate && !rebuildPolicy_.BeginCreateAttempt())
 				return Unsupported("DLSS 5 compatibility rebuild retry limit reached");
 			NVSDK_NGX_DLSS_Create_Params create{};
+			const auto presetCall = ApplyPresetLeaf(parameters_, config_.dlssPreset);
+			Record(presetCall);
+			if (presetCall.exceptionCode != 0 || NVSDK_NGX_FAILED(presetCall.result))
+				return Unsupported("NGX public render-preset hint raised an exception");
 			create.Feature.InWidth = frame.renderWidth;
 			create.Feature.InHeight = frame.renderHeight;
 			create.Feature.InTargetWidth = config_.outputWidth;

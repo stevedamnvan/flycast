@@ -150,3 +150,16 @@ the game ID, policy, active protected-draw count, and conservative 2D/menu
 bypass transitions. Those transitions require three consecutive classifications
 and are active only for experimental generative mode; public DLAA remains a
 separately selectable feature.
+
+`NeuralMatchOutputResolution=yes` applies only to target-native DLAA and
+experimental external-consumer modes. The runtime `Neural raster contract`
+notice records input, output, global content rectangle, and whether match mode
+was actually active. SR modes intentionally log `match=0` and retain the manual
+PVR resolution.
+
+The public preset harness form is `neuraltest neural --in PNG --out DIR
+--backend dlaa --api d3d11|d3d12 --preset auto|j|k --frames N`. Its JSON and
+Markdown reports record the selected hint. The production log likewise records
+Auto/J/K and states that external Neural Rendering model selection is
+independent. A successful preset test proves public feature creation/evaluation;
+it does not prove that the external consumer changed models.

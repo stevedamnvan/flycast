@@ -533,3 +533,31 @@ leaves every unclassified pixel equal to the neural input. Omitting the
 composite creates 33 protected-pixel mismatches. Native D3D11 and D3D11On12
 artifacts are byte-identical. This closes the mechanism and conservative default
 classifier, while title-level visual acceptance remains Gate 17.
+
+## D-038: target-native modes own the exact content raster; SR retains manual input
+
+`NeuralMatchOutputResolution` is enabled by default but takes effect only for
+public DLAA, hook-compatible DLAA, and the external-consumer experiment on the
+normal or OIT DirectX 11 renderer. For a screen frame it replaces the discrete
+height scale with the exact aspect-correct content dimensions after final output
+size and rotation are known. It never changes RTT sizing, framebuffer-direct
+fallback, non-DX11 rendering, or the stored manual 0.5x through 9x choice.
+
+Public SR and passthrough deliberately retain the manual raster so a lower input
+can be supplied. On the 2560x1440 production fullscreen control, Soulcalibur's
+4:3 target-native input/output was exactly 1920x1440 with content origin (320,0),
+while the 2x SR lane remained 1280x960 into 1920x1440. This separation prevents
+the match option from silently turning Quality SR into an invalid same-size
+contract.
+
+The public preset selector exposes only the documented Auto, J, and K hints and
+sets the corresponding public DLAA/Quality/Balanced/Performance/Ultra-
+Performance parameter keys before feature creation. Sharpness remains zero.
+Flycast explicitly labels this as a public DLAA/SR control; it does not claim to
+select or configure the external Neural Rendering model.
+
+On the 240-frame textured-checker-edge fixture, Auto and K were pixel-identical
+on both D3D11 and D3D12, while J differed from Auto in 399 pixels in the final
+frame. Auto therefore remains the default: K has not demonstrated a benefit
+over Auto across the required title matrix. This is preset-contract evidence,
+not full Gate 16 quality acceptance.

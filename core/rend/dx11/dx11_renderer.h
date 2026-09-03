@@ -209,6 +209,7 @@ protected:
 	std::uint32_t neuralDepthHeight = 0;
 	std::size_t neuralExportSlot = 0;
 	int activeNeuralMode = -1;
+	int activeNeuralPreset = -1;
 	bool activeNeuralSurface = false;
 	bool neuralExportActive = false;
 	bool neuralReactiveCoverageActive = false;
@@ -241,6 +242,10 @@ protected:
 	bool neural2DBypassActive = false;
 	std::uint8_t neural2DBypassEnterStreak = 0;
 	std::uint8_t neural2DBypassExitStreak = 0;
+	std::uint32_t loggedNeuralRenderWidth = 0;
+	std::uint32_t loggedNeuralRenderHeight = 0;
+	std::uint32_t loggedNeuralOutputWidth = 0;
+	std::uint32_t loggedNeuralOutputHeight = 0;
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 #endif
 

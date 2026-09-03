@@ -33,6 +33,8 @@ struct StageConfig {
 	// Flycast's PVR depth clears to zero and increases toward the camera. This
 	// is independently exercised by neuraltest's production-shader fixture.
 	bool depthInverted = true;
+	// Public DLSS render-preset hint: 0 Auto, 10 J, 11 K.
+	std::uint32_t dlssPreset = 0;
 	Dlss5HookRoute dlss5Route = Dlss5HookRoute::None;
 	std::uint32_t dlss5RebuildGraceEvaluations = 300;
 	std::uint32_t dlss5RebuildMaxAttempts = 2;

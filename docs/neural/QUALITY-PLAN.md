@@ -143,4 +143,11 @@ close a temporal or title-quality gate.
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
-- Gate 16 through Gate 18: pending.
+- Gate 16: partial at LOG #72. The production match-output option and public
+  Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
+  rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
+  remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
+  240-frame synthetic fixture on D3D11/D3D12, while J was observably distinct,
+  so Auto remains the default. Lanes A-E, moving title comparisons, and external
+  consumer quality evidence remain open; Gate 16 is not green.
+- Gate 17 through Gate 18: pending.

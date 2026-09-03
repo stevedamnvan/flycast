@@ -160,7 +160,7 @@ const char *StatusName(flycast::rend::neural::SubmitStatus status)
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
 	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
-	float motionX, float motionY, std::uint32_t frames,
+	float motionX, float motionY, std::uint32_t frames, std::uint32_t dlssPreset,
 	NeuralRunResult& result, std::string& error)
 {
 	using namespace flycast::rend::neural;
@@ -240,6 +240,7 @@ bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	config.contentRect = {0, 0, static_cast<std::int32_t>(outputWidth),
 		static_cast<std::int32_t>(outputHeight)};
 	config.depthInverted = depthInverted;
+	config.dlssPreset = dlssPreset;
 	config.hookCompatibility = config.mode == NeuralMode::DlaaHook
 		|| config.mode == NeuralMode::Dlss5Experimental;
 	if (config.mode == NeuralMode::Dlss5Experimental)
