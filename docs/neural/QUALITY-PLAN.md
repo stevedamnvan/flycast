@@ -364,3 +364,12 @@ close a temporal or title-quality gate.
   OFF 13.4586/14.6828/16.1706 ms. The D3D12/external evaluation remains outside
   Flycast's D3D11 timestamp domain and is still reported null rather than
   inferred from end-to-end intervals, so external timing remains partial.
+  LOG #97 repeats that external ON/OFF combat measurement through DX11 OIT.
+  ON presented 600/600 accepted outputs; OFF presented 600/600 native frames
+  and retained all public candidates as unpresented. Both covered source frames
+  1802-2401 with zero missing Presents, identity errors, source gaps/repeats,
+  output repeats, alternations, latency, or query pressure and clean close.
+  ON/OFF kept 125/116 Flycast-owned objects constant and each grew local VRAM
+  by 131072 bytes. ON Present P50/P95/P99 was 13.8293/15.2448/16.5339 ms versus
+  OFF 13.4453/14.6009/15.0220 ms. The isolated D3D12/external evaluation remains
+  null for the same cross-queue reason.
