@@ -684,3 +684,18 @@ telemetry must count native/neural transitions and accepted-output disposition.
 No stale output, identity mismatch, repeat, missing Present, or unbounded wait
 is permitted. This bounded sequence does not substitute for the remaining
 fullscreen, monitor-move, renderer-restart, or actual device-loss matrix.
+
+## D-046: renderer-restart evidence must finish after a fresh sampler lifetime
+
+The production launcher may request one hidden, default-off in-process
+renderer/API-context teardown and recreation at an exact main-frame threshold.
+The process-lifetime trigger prevents a restart loop. Flycast emits a completion
+marker only after the replacement renderer initializes, and the launcher checks
+the marker's exact frame and renderer instead of accepting file existence.
+
+Renderer destruction also destroys the asynchronous performance tracker. A
+passing run therefore requires a new warmup and the full requested measured
+interval from the replacement renderer. Native fallback remains available
+through the transition, and no synchronous evidence mode is enabled. This test
+proves same-renderer context restart; it does not stand in for a renderer/API
+switch, game load/unload, real device removal, or fullscreen coverage.

@@ -126,6 +126,7 @@ Option<int> NeuralPerformanceWarmup("rend.NeuralPerformanceWarmup", 120);
 Option<int> NeuralFailureInjection("rend.NeuralFailureInjection", 0);
 Option<int> NeuralFailureInjectionCount("rend.NeuralFailureInjectionCount", 0);
 Option<int> NeuralFailureInjectionAfter("rend.NeuralFailureInjectionAfter", 0);
+Option<int> NeuralRendererReinitAfter("rend.NeuralRendererReinitAfter", 0);
 #endif
 Option<bool> IntegerScale("rend.IntegerScale", false);
 Option<bool> LinearInterpolation("rend.LinearInterpolation", true);

@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore] [--transition-delay-ms N] [--renderer-reinit-after N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -608,10 +608,13 @@ int PerformanceCommand(const Args& args)
 	}
 	std::string error;
 	std::uint32_t frames = 0, warmup = 120, timeoutMs = 120000, renderHeight = 480;
+	std::uint32_t rendererReinitAfter = 0;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 10000
 		|| !Number(args, "--warmup", 120, warmup, error) || warmup > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
 		|| renderHeight < 120 || renderHeight > 8640
+		|| !Number(args, "--renderer-reinit-after", 0, rendererReinitAfter, error)
+		|| rendererReinitAfter > 10000
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
 		std::cerr << (error.empty() ? "invalid performance bounds" : error) << '\n';
@@ -689,6 +692,12 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "performance output already contains a completed run\n";
 		return 2;
 	}
+	if (rendererReinitAfter != 0
+		&& std::filesystem::exists(output / "renderer-reinit-complete.json"))
+	{
+		std::cerr << "performance output already contains a renderer-reinit marker\n";
+		return 2;
+	}
 #ifndef _WIN32
 	std::cerr << "production performance launcher is currently available only on Windows\n";
 	return 3;
@@ -723,6 +732,7 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
 		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
 		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
+		+ L",config:rend.NeuralRendererReinitAfter=" + std::to_wstring(rendererReinitAfter)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
@@ -865,6 +875,22 @@ int PerformanceCommand(const Args& args)
 	CloseHandle(process.hProcess);
 	const bool transitionComplete = transitionStep == 5 && resizeOutPassed
 		&& minimizePassed && restorePassed && resizeBackPassed;
+	bool rendererReinitComplete = rendererReinitAfter == 0;
+	if (rendererReinitAfter != 0)
+	{
+		std::ifstream markerStream(output / "renderer-reinit-complete.json");
+		const bool markerOpened = markerStream.is_open();
+		const std::string marker((std::istreambuf_iterator<char>(markerStream)),
+			std::istreambuf_iterator<char>());
+		rendererReinitComplete = markerOpened
+			&& marker.find("\"completed\": true") != std::string::npos
+			&& marker.find("\"main_frame\": " + std::to_string(rendererReinitAfter))
+				!= std::string::npos
+			&& marker.find("\"renderer\": " + std::to_string(rendererValue))
+				!= std::string::npos
+			&& marker.find("\"performance_sampling_restarted\": true")
+				!= std::string::npos;
+	}
 	if (!complete)
 	{
 		std::cerr << (exitedEarly ? "flycast exited before performance run completed"
@@ -887,6 +913,9 @@ int PerformanceCommand(const Args& args)
 		<< ", \"minimize\": " << (minimizePassed ? "true" : "false")
 		<< ", \"restore\": " << (restorePassed ? "true" : "false")
 		<< ", \"resize_back\": " << (resizeBackPassed ? "true" : "false") << "}"
+		<< ",\n  \"renderer_reinit_after_main_frames\": " << rendererReinitAfter
+		<< ",\n  \"renderer_reinit_completed\": "
+		<< (rendererReinitComplete ? "true" : "false")
 		<< ",\n  \"requested_samples\": " << frames << ",\n  \"warmup_frames\": " << warmup
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
@@ -894,8 +923,9 @@ int PerformanceCommand(const Args& args)
 		<< " api=" << api << " renderer=" << renderer
 		<< " injection=" << injection << ':' << injectionCount
 		<< " transition=" << transition << ':' << (transitionComplete ? "pass" : "fail")
+		<< " renderer_reinit=" << (rendererReinitComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
-	return launchReport && transitionComplete ? 0 : 1;
+	return launchReport && transitionComplete && rendererReinitComplete ? 0 : 1;
 #endif
 }
 

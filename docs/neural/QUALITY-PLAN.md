@@ -208,3 +208,11 @@ close a temporal or title-quality gate.
   bounded normal-renderer long-run growth/cadence check, not OIT long-run,
   resource-object accounting, external-consumer timing, or the remaining
   transition/failure matrix.
+  LOG #80 adds exact-frame renderer/API-context teardown and recreation on
+  normal DX11 and DX11 OIT across native D3D11 and D3D11On12. Each replacement
+  renderer completed a fresh 60-frame warmup and 600 measured frames with
+  600/600 neural Presents, zero native fallback, missing or accepted-but-not-
+  presented frames, identity errors, repeats, latency, or query-ring pressure,
+  and clean close. Three runs had flat measured-window VRAM; native-D3D11 OIT
+  decreased by 3612672 bytes. Renderer/API switching, fullscreen, game
+  load/unload, active runtime removal, and real device loss remain open.

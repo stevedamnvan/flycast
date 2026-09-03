@@ -28,12 +28,33 @@
 #include "profiler/fc_profiler.h"
 #include "oslib/i18n.h"
 
+#include <algorithm>
 #include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <thread>
 
 static bool mainui_enabled;
 u32 MainFrameCount;
 static bool forceReinit;
+#ifdef FLYCAST_ENABLE_NEURAL
+static bool neuralDeveloperReinitTriggered;
+static bool neuralDeveloperReinitPending;
+
+static void writeNeuralDeveloperReinitMarker()
+{
+	const auto root = std::filesystem::path(config::NeuralPerformanceDirectory.get());
+	if (root.empty()) return;
+	std::error_code ec;
+	std::filesystem::create_directories(root, ec);
+	if (ec) return;
+	std::ofstream marker(root / "renderer-reinit-complete.json");
+	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
+		<< MainFrameCount << ",\n  \"renderer\": "
+		<< static_cast<int>(config::RendererType.get())
+		<< ",\n  \"performance_sampling_restarted\": true\n}\n";
+}
+#endif
 
 bool mainui_rend_frame()
 {
@@ -116,6 +137,20 @@ void mainui_loop(bool forceStart)
 		if (imguiDriver == nullptr)
 			forceReinit = true;
 
+#ifdef FLYCAST_ENABLE_NEURAL
+		const int neuralReinitAfter = std::clamp(config::NeuralRendererReinitAfter.get(), 0, 10000);
+		if (!neuralDeveloperReinitTriggered && neuralReinitAfter > 0
+			&& MainFrameCount >= static_cast<u32>(neuralReinitAfter))
+		{
+			neuralDeveloperReinitTriggered = true;
+			neuralDeveloperReinitPending = true;
+			forceReinit = true;
+			NOTICE_LOG(RENDERER,
+				"Neural developer renderer reinit requested at main frame %u",
+				MainFrameCount);
+		}
+#endif
+
 		if (config::RendererType != currentRenderer || forceReinit)
 		{
 			mainui_term();
@@ -142,6 +177,16 @@ void mainui_loop(bool forceStart)
 				}
 			}
 			mainui_init();
+#ifdef FLYCAST_ENABLE_NEURAL
+			if (neuralDeveloperReinitPending)
+			{
+				neuralDeveloperReinitPending = false;
+				writeNeuralDeveloperReinitMarker();
+				NOTICE_LOG(RENDERER,
+					"Neural developer renderer reinit completed at main frame %u",
+					MainFrameCount);
+			}
+#endif
 			forceReinit = false;
 			currentRenderer = config::RendererType;
 		}
@@ -154,6 +199,10 @@ void mainui_loop(bool forceStart)
 
 void mainui_start()
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	neuralDeveloperReinitTriggered = false;
+	neuralDeveloperReinitPending = false;
+#endif
 	mainui_enabled = true;
 }
 

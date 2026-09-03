@@ -487,6 +487,7 @@ extern Option<int> NeuralPerformanceWarmup;
 extern Option<int> NeuralFailureInjection;
 extern Option<int> NeuralFailureInjectionCount;
 extern Option<int> NeuralFailureInjectionAfter;
+extern Option<int> NeuralRendererReinitAfter;
 #endif
 extern Option<bool> IntegerScale;
 extern Option<bool> LinearInterpolation;

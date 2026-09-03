@@ -60,6 +60,7 @@ Production performance measurement is separate:
 [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed]
 [--inject-count N] [--inject-after N]
 [--transition none|resize-minimize-restore] [--transition-delay-ms N]
+[--renderer-reinit-after N]
 [--timeout-ms N]`
 
 This command forces synchronous capture and Gate 10 evidence readback off. A
@@ -87,6 +88,17 @@ through the sequence, so fallback, reset, frame-identity, cadence, and VRAM
 effects are retained. This covers window resize and minimize/restore; it does
 not claim borderless/exclusive-fullscreen, cross-monitor movement, alt-tab, or
 renderer restart.
+
+`--renderer-reinit-after N` is a separate hidden, default-off developer check
+for a real in-process renderer/API-context teardown and recreation after main
+frame `N` (1..10000). Flycast writes `renderer-reinit-complete.json` only after
+the replacement renderer initializes; the launcher verifies its exact frame,
+renderer, completion, and sampler-restart fields. The old asynchronous tracker
+is destroyed with the renderer, and the final `performance.json` contains a
+fresh warmup plus the requested samples from the replacement renderer. Thus a
+passing launch proves both the reinitialization marker and a complete bounded
+post-restart rendering interval; it does not claim an API switch, game reload,
+fullscreen transition, or device-loss recovery.
 
 Native performance means NeuralMode off, unlike native artifact capture which
 uses the passthrough stage to retain guidance images. Native D3D11 can bracket
