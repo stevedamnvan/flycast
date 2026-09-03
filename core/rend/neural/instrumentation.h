@@ -73,6 +73,10 @@ private:
 	std::vector<std::uint32_t> indexBuffers_[2];
 	std::vector<PreviousPosition> previousPositions_;
 	std::size_t trustedPreviousVertexCount_ = 0;
+	CorrespondenceStats correspondenceStats_{};
+	std::uint32_t candidateDrawsBeforePositionValidation_ = 0;
+	std::uint32_t candidateTierDraws_[3]{};
+	std::uint64_t candidateAreaBeforePositionValidation_ = 0;
 	std::uint32_t referenceBuffer_ = 0;
 	std::uint32_t currentBuffer_ = 1;
 	std::uint64_t frameId_ = 0;

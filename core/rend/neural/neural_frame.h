@@ -91,6 +91,26 @@ struct PreviousPosition {
 	float valid = 0.f;
 };
 
+struct CorrespondenceStats {
+	std::uint32_t opaqueDraws = 0;
+	std::uint32_t punchThroughDraws = 0;
+	std::uint32_t translucentDraws = 0;
+	std::uint32_t trustedDrawsBeforeSceneCut = 0;
+	std::uint32_t candidateDrawsBeforePositionValidation = 0;
+	std::uint32_t candidateTier1Draws = 0;
+	std::uint32_t candidateTier2Draws = 0;
+	std::uint32_t candidateTier3Draws = 0;
+	std::uint32_t trustedPreviousVertices = 0;
+	std::uint32_t reactiveDraws = 0;
+	std::uint32_t ambiguousDraws = 0;
+	std::uint32_t unmatchedDraws = 0;
+	std::uint64_t matchedAreaBeforeSceneCut = 0;
+	std::uint64_t candidateAreaBeforePositionValidation = 0;
+	std::uint64_t totalAreaForSceneCut = 0;
+	std::uint64_t matchedOpaqueAreaBeforeSceneCut = 0;
+	std::uint64_t totalOpaqueAreaForSceneCut = 0;
+};
+
 struct NeuralFrame {
 	TextureRef color;
 	TextureRef depth;
@@ -117,6 +137,7 @@ struct NeuralFrame {
 	FrameSource source = FrameSource::Geometry;
 	ArrayView<DrawRecord> draws;
 	ArrayView<DrawMatch> matches;
+	CorrespondenceStats correspondence;
 };
 
 } // namespace flycast::rend::neural

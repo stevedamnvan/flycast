@@ -26,6 +26,8 @@
 #include "mouse.h"
 
 #include <algorithm>
+#include <cinttypes>
+#include <filesystem>
 #include <mutex>
 #include <vector>
 
@@ -92,7 +94,7 @@ bool GamepadDevice::handleButtonInput(int port, DreamcastKey key, bool pressed)
 			kcode[port] |= key;
 #ifdef TEST_AUTOMATION
 		if (record_input != NULL)
-			fprintf(record_input, "%ld button %x %04x\n", sh4_sched_now64(), port, kcode[port]);
+			fprintf(record_input, "%" PRIu64 " button %x %04x\n", sh4_sched_now64(), port, kcode[port]);
 #endif
 	}
 	else
@@ -779,11 +781,10 @@ static FILE *get_record_input(bool write)
 		return NULL;
 	if (!write && !config::loadBool("record", "replay_input", false))
 		return NULL;
-	std::string game_dir = settings.content.path;
-	size_t slash = game_dir.find_last_of("/");
-	size_t dot = game_dir.find_last_of(".");
-	std::string input_file = "scripts/" + game_dir.substr(slash + 1, dot - slash) + "input";
-	return nowide::fopen(input_file.c_str(), write ? "w" : "r");
+	const std::filesystem::path contentPath(settings.content.path);
+	const std::filesystem::path inputFile = std::filesystem::path("scripts")
+		/ (contentPath.stem().u8string() + ".input");
+	return nowide::fopen(inputFile.u8string().c_str(), write ? "w" : "r");
 }
 #endif
 
@@ -914,6 +915,7 @@ u64 next_event;
 u32 next_port;
 u32 next_kcode;
 bool do_screenshot;
+u32 replay_event_count;
 
 void replay_input()
 {
@@ -921,15 +923,17 @@ void replay_input()
 	{
 		replay_file = get_record_input(false);
 		replay_inited = true;
+		if (replay_file != nullptr)
+			NOTICE_LOG(INPUT, "Input replay opened");
 	}
 	u64 now = sh4_sched_now64();
 	if (config::UseReios)
 	{
 		// Account for the swirl time
 		if (config::Broadcast == 0)
-			now = std::max((int64_t)now - 2152626532L, 0L);
+			now = static_cast<u64>(std::max<int64_t>(static_cast<int64_t>(now) - 2152626532LL, 0));
 		else
-			now = std::max((int64_t)now - 2191059108L, 0L);
+			now = static_cast<u64>(std::max<int64_t>(static_cast<int64_t>(now) - 2191059108LL, 0));
 	}
 	if (replay_file == NULL)
 	{
@@ -940,14 +944,18 @@ void replay_input()
 	while (next_event <= now)
 	{
 		if (next_event > 0)
+		{
 			kcode[next_port] = next_kcode;
+			if (++replay_event_count == 1)
+				NOTICE_LOG(INPUT, "Input replay active at cycle %" PRIu64, next_event);
+		}
 
 		char action[32];
-		if (fscanf(replay_file, "%ld %s %x %x\n", &next_event, action, &next_port, &next_kcode) != 4)
+		if (fscanf(replay_file, "%" SCNu64 " %31s %x %x\n", &next_event, action, &next_port, &next_kcode) != 4)
 		{
 			fclose(replay_file);
 			replay_file = NULL;
-			NOTICE_LOG(INPUT, "Input replay terminated");
+			NOTICE_LOG(INPUT, "Input replay terminated after %u events", replay_event_count);
 			do_screenshot = true;
 			break;
 		}

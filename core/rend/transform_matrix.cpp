@@ -291,7 +291,18 @@ void getScaledFramebufferSize(const rend_context& rendCtx, int& width, int& heig
 					w *= 4.f / 3.f;
 			}
 			if (!config::Rotate90)
+			{
+#ifdef FLYCAST_ENABLE_NEURAL
+				const bool exactQualitySr = config::NeuralMatchOutputResolution
+					&& config::NeuralMode.get() == 4
+					&& (config::RendererType == RenderType::DirectX11
+						|| config::RendererType == RenderType::DirectX11_OIT);
+				w = static_cast<float>(flycast::rend::neural::RoundManualRasterWidth(
+					w, exactQualitySr));
+#else
 				w = std::round(w / 2.f) * 2.f;
+#endif
+			}
 			h = std::round(h);
 			width = w;
 			height = h;

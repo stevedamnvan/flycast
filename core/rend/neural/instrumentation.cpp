@@ -314,20 +314,47 @@ void NeuralInstrumentation::FinalizeConfidence() noexcept
 		frameId_ - lastAcceptedFrameId_, std::numeric_limits<std::uint32_t>::max())) : 0;
 	skippedFrameCount_ = historyAge_ > 0 ? historyAge_ - 1 : 0;
 	sceneCut_ = false;
-	if (resetPending_ || truncated_ || drawCounts_[referenceBuffer_] == 0)
-		return;
-	std::uint64_t matchedArea = 0;
-	std::uint64_t totalArea = 0;
+	correspondenceStats_ = {};
+	correspondenceStats_.candidateDrawsBeforePositionValidation =
+		candidateDrawsBeforePositionValidation_;
+	correspondenceStats_.candidateTier1Draws = candidateTierDraws_[0];
+	correspondenceStats_.candidateTier2Draws = candidateTierDraws_[1];
+	correspondenceStats_.candidateTier3Draws = candidateTierDraws_[2];
+	correspondenceStats_.candidateAreaBeforePositionValidation =
+		candidateAreaBeforePositionValidation_;
+	correspondenceStats_.trustedPreviousVertices = static_cast<std::uint32_t>(
+		std::min<std::size_t>(trustedPreviousVertexCount_, std::numeric_limits<std::uint32_t>::max()));
 	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
 	{
 		const auto& draw = drawBuffers_[currentBuffer_][i];
+		const auto& match = matchBuffer_[i];
+		if (draw.list == ListType_Opaque) ++correspondenceStats_.opaqueDraws;
+		else if (draw.list == ListType_Punch_Through) ++correspondenceStats_.punchThroughDraws;
+		else if (draw.list == ListType_Translucent) ++correspondenceStats_.translucentDraws;
+		if (match.reason == static_cast<std::uint8_t>(MatchReason::Reactive))
+			++correspondenceStats_.reactiveDraws;
+		else if (match.reason == static_cast<std::uint8_t>(MatchReason::Ambiguous))
+			++correspondenceStats_.ambiguousDraws;
+		else if (match.confidence == 0.f)
+			++correspondenceStats_.unmatchedDraws;
 		const auto width = std::max(0, static_cast<int>(draw.bboxMax[0]) - draw.bboxMin[0]);
 		const auto height = std::max(0, static_cast<int>(draw.bboxMax[1]) - draw.bboxMin[1]);
 		const auto area = static_cast<std::uint64_t>(width) * height;
-		totalArea += area;
-		if (matchBuffer_[i].confidence >= .5f) matchedArea += area;
+		correspondenceStats_.totalAreaForSceneCut += area;
+		if (draw.list != ListType_Translucent && !IsReactive(draw))
+			correspondenceStats_.totalOpaqueAreaForSceneCut += area;
+		if (match.confidence >= .5f)
+		{
+			++correspondenceStats_.trustedDrawsBeforeSceneCut;
+			correspondenceStats_.matchedAreaBeforeSceneCut += area;
+			if (draw.list != ListType_Translucent && !IsReactive(draw))
+				correspondenceStats_.matchedOpaqueAreaBeforeSceneCut += area;
+		}
 	}
-	if (IsSceneCut(matchedArea, totalArea))
+	if (resetPending_ || truncated_ || drawCounts_[referenceBuffer_] == 0)
+		return;
+	if (IsSceneCut(correspondenceStats_.matchedAreaBeforeSceneCut,
+		correspondenceStats_.totalAreaForSceneCut))
 	{
 		sceneCut_ = true;
 		Discontinuity();
@@ -590,6 +617,8 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 		for (std::uint32_t i = 0; i < draw.indexCount; ++i)
 		{
 			const std::size_t offset = static_cast<std::size_t>(draw.firstIndex) + i;
+			if (offset < currentIndices.size() && currentIndices[offset] == ~std::uint32_t{0})
+				continue;
 			if (offset >= currentIndices.size() || currentIndices[offset] >= previousPositions_.size()
 				|| previousPositions_[currentIndices[offset]].valid != 1.f)
 			{
@@ -635,6 +664,21 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	if (truncated_) Discontinuity();
 	MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
 		{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
+	candidateDrawsBeforePositionValidation_ = 0;
+	candidateTierDraws_[0] = candidateTierDraws_[1] = candidateTierDraws_[2] = 0;
+	candidateAreaBeforePositionValidation_ = 0;
+	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
+	{
+		const auto& match = matchBuffer_[i];
+		if (match.confidence < .5f) continue;
+		++candidateDrawsBeforePositionValidation_;
+		if (match.tier >= 1 && match.tier <= 3)
+			++candidateTierDraws_[match.tier - 1];
+		const auto& draw = current[i];
+		const auto width = std::max(0, static_cast<int>(draw.bboxMax[0]) - draw.bboxMin[0]);
+		const auto height = std::max(0, static_cast<int>(draw.bboxMax[1]) - draw.bboxMin[1]);
+		candidateAreaBeforePositionValidation_ += static_cast<std::uint64_t>(width) * height;
+	}
 	BuildPreviousPositions(context);
 	FinalizeConfidence();
 	drawSnapshotHash_ = 1469598103934665603ull;
@@ -668,6 +712,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	frame_.source = FrameSource::Geometry;
 	frame_.draws = {current.data(), drawCounts_[currentBuffer_]};
 	frame_.matches = {matchBuffer_.data(), drawCounts_[currentBuffer_]};
+	frame_.correspondence = correspondenceStats_;
 	return frame_;
 }
 

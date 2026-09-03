@@ -301,6 +301,39 @@ int RunSelfTests()
 		rend_context context{};
 		context.framebufferWidth = 320;
 		context.framebufferHeight = 240;
+		context.verts.resize(6);
+		for (std::size_t i = 0; i < context.verts.size(); ++i)
+		{
+			context.verts[i].x = static_cast<float>(10 + i * 11);
+			context.verts[i].y = static_cast<float>(20 + i * 7);
+			context.verts[i].z = .2f + static_cast<float>(i) * .01f;
+		}
+		context.idx = {0, 1, 2, ~u32{0}, 3, 4, 5};
+		PolyParam poly{};
+		poly.init();
+		poly.first = 0;
+		poly.count = static_cast<u32>(context.idx.size());
+		poly.tcw.full = 77;
+		context.global_param_op.push_back(poly);
+		RenderPass pass{};
+		pass.op_count = 1;
+		context.render_passes.push_back(pass);
+		auto instrumentation = std::make_unique<NeuralInstrumentation>();
+		instrumentation->SetEnabled(true);
+		const auto& first = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		instrumentation->MarkEvaluated(first.frameId);
+		for (auto& vertex : context.verts) vertex.x += 4.f;
+		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
+			320, 240, {0, 0, 320, 240}, {});
+		suite.Expect(moved.matches.data[0].confidence >= .5f && moved.historyValid
+			&& !moved.sceneCut && instrumentation->TrustedPreviousVertexCount() == 6,
+			"primitive-restart strip breaks preserve trusted previous positions");
+	}
+	{
+		rend_context context{};
+		context.framebufferWidth = 320;
+		context.framebufferHeight = 240;
 		context.verts.resize(12);
 		auto setQuad = [&](int baseVertex, float left, float top, float right, float bottom,
 			float uvOffset) {
@@ -789,6 +822,9 @@ int RunSelfTests()
 			&& matchUhd.width == 2880 && matchUhd.height == 2160
 			&& matchWide.width == 3840 && matchWide.height == 2160,
 			"match-output raster uses exact post-aspect content dimensions");
+		suite.Expect(RoundManualRasterWidth(640.f * (320.f / 480.f), false) == 426
+			&& RoundManualRasterWidth(640.f * (320.f / 480.f), true) == 427,
+			"Quality SR exact-width path avoids the one-pixel NGX contract mismatch");
 		suite.Expect(UsesMatchOutputRaster(2) && UsesMatchOutputRaster(3)
 			&& UsesMatchOutputRaster(8) && !UsesMatchOutputRaster(0)
 			&& !UsesMatchOutputRaster(1) && !UsesMatchOutputRaster(4),

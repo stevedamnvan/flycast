@@ -1287,6 +1287,7 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.outputWidth = frame.outputWidth;
 	neuralQualityCaptureMetadata.outputHeight = frame.outputHeight;
 	neuralQualityCaptureMetadata.drawCount = static_cast<std::uint32_t>(frame.draws.size);
+	neuralQualityCaptureMetadata.correspondence = frame.correspondence;
 	neuralQualityCaptureMetadata.contentRect = frame.contentRect;
 	neuralQualityCaptureMetadata.historyValid = frame.historyValid;
 	neuralQualityCaptureMetadata.resetHistory = frame.resetHistory;

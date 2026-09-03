@@ -42,7 +42,7 @@ void Usage()
 		"neuraltest depth|motion --in DIR\n"
 		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--preset auto|j|k] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--evidence-frames 0..480] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
@@ -102,6 +102,33 @@ bool Number(const Args& args, const std::string& name, std::uint32_t fallback,
 		error = "invalid integer for " + name + ": " + text;
 		return false;
 	}
+}
+
+bool HashFileFnv64(const std::filesystem::path& path, std::uint64_t& hash)
+{
+	std::ifstream stream(path, std::ios::binary);
+	if (!stream)
+		return false;
+	hash = 1469598103934665603ull;
+	char buffer[64 * 1024];
+	while (stream)
+	{
+		stream.read(buffer, sizeof(buffer));
+		for (std::streamsize index = 0; index < stream.gcount(); ++index)
+		{
+			hash ^= static_cast<unsigned char>(buffer[index]);
+			hash *= 1099511628211ull;
+		}
+	}
+	return stream.eof();
+}
+
+std::string Hex64(std::uint64_t value)
+{
+	std::ostringstream stream;
+	stream.imbue(std::locale::classic());
+	stream << std::uppercase << std::hex << std::setw(16) << std::setfill('0') << value;
+	return stream.str();
 }
 
 bool Scalar(const Args& args, const std::string& name, float fallback,
@@ -427,6 +454,7 @@ int CaptureCommand(const Args& args)
 	const auto profile = Value(args, "--profile", "faithful");
 	const auto style = Value(args, "--style", "auto");
 	const auto evidenceMask = Value(args, "--evidence-mask", "zero");
+	const auto inputReplay = Value(args, "--input-replay", "no");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "--lane must be native, dlaa, sr-quality, or dlss5\n";
@@ -445,6 +473,11 @@ int CaptureCommand(const Args& args)
 	if (evidenceMask != "zero" && evidenceMask != "production")
 	{
 		std::cerr << "--evidence-mask must be zero or production\n";
+		return 2;
+	}
+	if (inputReplay != "yes" && inputReplay != "no")
+	{
+		std::cerr << "--input-replay must be yes or no\n";
 		return 2;
 	}
 	if (renderer != "dx11" && renderer != "dx11-oit")
@@ -526,6 +559,45 @@ int CaptureCommand(const Args& args)
 		std::cerr << "flycast executable is unavailable: " << flycast.string() << '\n';
 		return 3;
 	}
+	std::uint64_t inputReplayHash = 0;
+	std::uintmax_t inputReplayBytes = 0;
+	if (inputReplay == "yes")
+	{
+		const auto source = flycast.parent_path() / "scripts" / (game.stem().string() + ".input");
+		if (!std::filesystem::is_regular_file(source) || !HashFileFnv64(source, inputReplayHash))
+		{
+			std::cerr << "input replay file is unavailable: " << source.string() << '\n';
+			return 3;
+		}
+		std::error_code ec;
+		inputReplayBytes = std::filesystem::file_size(source, ec);
+		if (ec)
+		{
+			std::cerr << "cannot size input replay: " << ec.message() << '\n';
+			return 1;
+		}
+		std::filesystem::create_directories(output, ec);
+		if (ec)
+		{
+			std::cerr << "cannot create capture output for input replay: " << ec.message() << '\n';
+			return 1;
+		}
+		const auto retained = output / "input-replay.input";
+		if (std::filesystem::exists(retained))
+		{
+			std::uint64_t retainedHash = 0;
+			if (!HashFileFnv64(retained, retainedHash) || retainedHash != inputReplayHash)
+			{
+				std::cerr << "capture output contains a different retained input replay\n";
+				return 2;
+			}
+		}
+		else if (!std::filesystem::copy_file(source, retained, std::filesystem::copy_options::none, ec))
+		{
+			std::cerr << "cannot retain input replay: " << ec.message() << '\n';
+			return 1;
+		}
+	}
 	const int mode = lane == "native" ? 1 : lane == "dlaa" ? 2
 		: lane == "sr-quality" ? 4 : 8;
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
@@ -554,6 +626,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",config:rend.NeuralQualityProfile=" + std::to_wstring(profileValue)
 		+ L",config:rend.NeuralStyleFamily=" + std::to_wstring(styleValue)
+		+ L",record:replay_input=" + (inputReplay == "yes" ? L"yes" : L"no")
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
 		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
@@ -632,6 +705,10 @@ int CaptureCommand(const Args& args)
 		<< "\",\n  \"render_height\": " << renderHeight
 		<< ",\n  \"evidence_frames\": " << evidenceFrames
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
+		<< ",\n  \"input_replay_requested\": " << (inputReplay == "yes" ? "true" : "false")
+		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
+		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""
+		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
 		<< ",\n  \"failure_injection\": \"" << injection
 		<< "\",\n  \"failure_injection_count\": " << injectionCount
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter

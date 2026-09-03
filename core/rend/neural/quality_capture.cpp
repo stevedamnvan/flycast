@@ -419,6 +419,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	}
 
 	std::ostringstream frameName;
+	frameName.imbue(std::locale::classic());
 	frameName << "frame-" << std::setw(6) << std::setfill('0') << metadata.frameId;
 	const auto frameRoot = root_ / frameName.str();
 	std::error_code ec;
@@ -579,6 +580,25 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"truncated\": " << (metadata.truncated ? "true" : "false")
 		<< ",\n  \"predominantly_2d\": " << (metadata.predominantly2D ? "true" : "false")
 		<< ",\n  \"draw_count\": " << metadata.drawCount
+		<< ",\n  \"correspondence\": {"
+		<< "\n    \"opaque_draws\": " << metadata.correspondence.opaqueDraws
+		<< ",\n    \"punch_through_draws\": " << metadata.correspondence.punchThroughDraws
+		<< ",\n    \"translucent_draws\": " << metadata.correspondence.translucentDraws
+		<< ",\n    \"trusted_draws_before_scene_cut\": " << metadata.correspondence.trustedDrawsBeforeSceneCut
+		<< ",\n    \"candidate_draws_before_position_validation\": " << metadata.correspondence.candidateDrawsBeforePositionValidation
+		<< ",\n    \"candidate_tier1_draws\": " << metadata.correspondence.candidateTier1Draws
+		<< ",\n    \"candidate_tier2_draws\": " << metadata.correspondence.candidateTier2Draws
+		<< ",\n    \"candidate_tier3_draws\": " << metadata.correspondence.candidateTier3Draws
+		<< ",\n    \"trusted_previous_vertices\": " << metadata.correspondence.trustedPreviousVertices
+		<< ",\n    \"reactive_draws\": " << metadata.correspondence.reactiveDraws
+		<< ",\n    \"ambiguous_draws\": " << metadata.correspondence.ambiguousDraws
+		<< ",\n    \"unmatched_draws\": " << metadata.correspondence.unmatchedDraws
+		<< ",\n    \"matched_area_before_scene_cut\": " << metadata.correspondence.matchedAreaBeforeSceneCut
+		<< ",\n    \"candidate_area_before_position_validation\": " << metadata.correspondence.candidateAreaBeforePositionValidation
+		<< ",\n    \"total_area_for_scene_cut\": " << metadata.correspondence.totalAreaForSceneCut
+		<< ",\n    \"matched_opaque_area_before_scene_cut\": " << metadata.correspondence.matchedOpaqueAreaBeforeSceneCut
+		<< ",\n    \"total_opaque_area_for_scene_cut\": " << metadata.correspondence.totalOpaqueAreaForSceneCut
+		<< "\n  }"
 		<< ",\n  \"render_size\": [" << metadata.renderWidth << ", " << metadata.renderHeight << "]"
 		<< ",\n  \"output_size\": [" << metadata.outputWidth << ", " << metadata.outputHeight << "]"
 		<< ",\n  \"content_rect\": [" << metadata.contentRect.x << ", " << metadata.contentRect.y

@@ -112,6 +112,13 @@ close a temporal or title-quality gate.
   reindex fits are bounded by scale and 0.25-pixel RMS residual. Naomi 2 remains
   deliberately invalid pending accepted matrix history and does not weaken the
   normal Dreamcast gate. Pixel disocclusion remains Gate 14.
+  LOG #94 adds a real deterministic Soulcalibur combat control: it exposed and
+  corrected rejection of `0xFFFFFFFF` primitive-restart indices during the
+  final previous-position validity check. The fixed 30-frame target-DLAA run
+  retained valid history on 29 frames, averaged 82.81% trusted pixels, and
+  used one conservative reset on a genuine topology transition. The prior
+  all-reactive run and the failed candidate/validated area diagnostics are
+  retained rather than counted as passing evidence.
 - Gate 14: green at LOG #69. The production post-pass uses only the last
   accepted depth/draw-ID ring slot, expected accepted identity, and
   current-to-previous motion. Static, depth-tolerant, and camera-pan regions
@@ -143,19 +150,26 @@ close a temporal or title-quality gate.
   per-game full-frame protection override, framebuffer-direct native fallback,
   and a three-frame-latched 2D/menu bypass are covered. Representative-title
   visual acceptance remains Gate 17 and is not inferred from this gate.
-- Gate 16: partial at LOG #72. The production match-output option and public
+- Gate 16: partial through LOG #94. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
   remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
   240-frame synthetic fixture on D3D11/D3D12, while J was observably distinct,
-  so Auto remains the default. Lanes A-E, moving title comparisons, and external
-  consumer quality evidence remain open; Gate 16 is not green.
+  so Auto remains the default. A pixel-aligned 30-frame Soulcalibur combat
+  matrix now shows target-native Auto at average temporal variance 9.67 versus
+  native 31.93, with zero repeats, drops, or HUD mismatches. J reached 9.51 but
+  increased trail, silhouette, saturation, black-level, and thin-line error;
+  K materially matched Auto and did not justify promotion. Public NGX rejected
+  the legacy 426x320 Quality-SR raster while requesting 427x320; the corrected
+  exact-width path submitted 427x320 into 640x480 successfully without changing
+  ordinary manual even-width modes. Gameplay 8x and confirmed external lanes,
+  broader titles, and final acceptance remain open; Gate 16 is not green.
 - Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
   Enhanced Materials and explicitly non-faithful Photoreal Experimental are
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
   Per-title tuning and evidence-driven broader trust remain open.
-- Gate 17: partial through LOG #93. The bounded capture CLI writes the production
+- Gate 17: partial through LOG #94. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11
   OIT, and D3D11On12. Soulcalibur intro frames and native/no-NGX controls are
@@ -163,7 +177,11 @@ close a temporal or title-quality gate.
   explicitly refuses to declare a still-frame winner. Two externally confirmed
   moving frames are now captured, but capture GPU timings, moving gameplay, all
   profile lanes, and every other legally available title remain open, so no
-  title-quality winner is declared.
+  title-quality winner is declared. LOG #94 adds a repeatable real combat
+  sequence and makes the developer-only launcher retain the exact input script,
+  hash, and byte count. Two independent frame-1802 native scouts were
+  pixel-identical and all four initial native/Auto/J/K sequences had identical
+  source frames before output comparisons were accepted.
 - Gate 18: partial at LOG #75 and LOG #77. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur

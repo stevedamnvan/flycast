@@ -21,6 +21,7 @@ struct QualityCaptureMetadata {
 	std::uint32_t outputWidth = 0;
 	std::uint32_t outputHeight = 0;
 	std::uint32_t drawCount = 0;
+	CorrespondenceStats correspondence{};
 	Rect contentRect{};
 	bool historyValid = false;
 	bool resetHistory = false;

@@ -6,7 +6,8 @@ The production capture command is:
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k]
 [--profile faithful|enhanced|photoreal] [--style FAMILY]
-[--render-height N] [--feature-path DIR] [--evidence-frames 0..480]
+[--render-height N] [--feature-path DIR] [--input-replay yes|no]
+[--evidence-frames 0..480]
 [--evidence-mask zero|production] [--timeout-ms N]`
 
 It launches Flycast with transient command-line configuration, limits a run to
@@ -18,7 +19,8 @@ return nonzero. It does not copy media or record the media path.
 Each production `frame-NNNNNN` directory contains:
 
 - `manifest.json`: Flycast SHA, game ID, frame/history/reset identity, render and
-  output dimensions, exact content rectangle, API, mode, preset, profile,
+  output dimensions, exact content rectangle, correspondence rejection/area
+  counts, API, mode, preset, profile,
   external recommendation, evaluation/provenance status, and the explicit
   synchronous/performance-ineligible label.
 - `native-pvr-color.png` and `source-color.png`: original PVR scene and actual
@@ -44,6 +46,15 @@ Raw game data and user paths are excluded. Normal emulator execution performs
 no capture readback. This synchronous developer-only path is disabled unless an
 explicit destination and positive frame limit are supplied, and every package
 is marked ineligible for performance measurements.
+
+`--input-replay yes` is a developer-only reproducibility control and requires a
+Flycast build configured with `TEST_AUTOMATION=ON`. The launcher resolves
+`scripts/<media-stem>.input` beside the selected executable, fails if it is
+missing, and retains the exact sequence as `input-replay.input`. The launch
+record includes its locale-stable FNV-64 and byte count without recording the
+source path. Normal builds and the default `--input-replay no` path are
+unchanged. The Flycast log reports both successful file open and first event
+application; a mere requested flag is not proof that replay occurred.
 
 Schema-3 manifests include exact FNV-64 hashes of the raw color, depth,
 motion, bias-mask, and returned-output contract resources. Hash text is emitted

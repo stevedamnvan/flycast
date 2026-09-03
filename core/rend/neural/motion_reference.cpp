@@ -662,6 +662,15 @@ bool UsesMatchOutputRaster(int neuralMode) noexcept
 	return neuralMode == 2 || neuralMode == 3 || neuralMode == 8;
 }
 
+std::uint32_t RoundManualRasterWidth(float scaledWidth, bool exactQualitySr) noexcept
+{
+	if (!std::isfinite(scaledWidth) || scaledWidth <= 0.f)
+		return 0;
+	const float rounded = exactQualitySr ? std::round(scaledWidth)
+		: std::round(scaledWidth / 2.f) * 2.f;
+	return static_cast<std::uint32_t>(std::max(0.f, rounded));
+}
+
 float Halton(std::uint32_t index, std::uint32_t base) noexcept
 {
 	float result = 0.f;
