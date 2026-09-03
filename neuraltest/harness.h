@@ -159,11 +159,16 @@ struct ProductionMotionResult {
 	float naomi2InvalidY = 0.f;
 	std::uint8_t naomi2InvalidMask = 0;
 	std::uint8_t naomi2InvalidConfidence = 0;
+	float jitterOnlyMotionX = 0.f;
+	float jitterOnlyMotionY = 0.f;
 	bool analyticTruth = false;
 	bool invalidProtected = false;
 	bool magnitudeProtected = false;
 	bool naomi2AnalyticTruth = false;
 	bool naomi2InvalidProtected = false;
+	bool rasterJitterShiftedCoverage = false;
+	bool jitterExcludedFromMotion = false;
+	bool naomi2RasterJitterShiftedCoverage = false;
 };
 
 struct ColorContractResult {

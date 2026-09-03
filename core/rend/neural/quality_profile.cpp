@@ -8,7 +8,7 @@ namespace flycast::rend::neural {
 QualityProfileDescriptor ResolveQualityProfile(int profileValue, int styleValue)
 {
 	QualityProfileDescriptor result;
-	result.profile = static_cast<QualityProfile>(std::clamp(profileValue, 0, 2));
+	result.profile = static_cast<QualityProfile>(std::clamp(profileValue, 0, 3));
 	result.style = static_cast<StyleFamily>(std::clamp(styleValue, 0, 7));
 	static constexpr const char *styleNames[] = {
 		"Automatic / unclassified", "Realistic 3D", "Stylized 3D", "Cel-shaded",
@@ -30,6 +30,14 @@ QualityProfileDescriptor ResolveQualityProfile(int profileValue, int styleValue)
 		result.name = "Photoreal Experimental";
 		result.externalRecommendation =
 			"Higher Structure and Tone are optional; explicitly non-faithful and user controlled";
+		result.faithful = false;
+		result.conservativeTemporalMask = false;
+		result.protectCharacters = false;
+		break;
+	case QualityProfile::UncannyCinematic:
+		result.name = "Uncanny Cinematic";
+		result.externalRecommendation =
+			"Cinematic model; Structure Intensity 200%; Tone Intensity 75%; maximum scene coverage; explicitly non-faithful and user controlled";
 		result.faithful = false;
 		result.conservativeTemporalMask = false;
 		result.protectCharacters = false;

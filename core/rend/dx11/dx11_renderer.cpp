@@ -394,7 +394,7 @@ void DX11Renderer::resetContextState()
 	deviceContext->SOSetTargets(0, nullptr, nullptr);
 }
 
-void DX11Renderer::configVertexShader()
+void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY)
 {
 	matrices.CalcMatrices(rendContext, rendContext->framebufferWidth, rendContext->framebufferHeight);
 	setBaseScissor();
@@ -425,6 +425,8 @@ void DX11Renderer::configVertexShader()
 #ifdef FLYCAST_ENABLE_NEURAL
 	constant.neuralRenderSize[0] = static_cast<float>(width);
 	constant.neuralRenderSize[1] = static_cast<float>(height);
+	constant.neuralRasterJitter[0] = rasterJitterX;
+	constant.neuralRasterJitter[1] = rasterJitterY;
 #endif
 	D3D11_MAPPED_SUBRESOURCE mappedSubres;
 	deviceContext->Map(vtxConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
@@ -868,6 +870,39 @@ bool DX11Renderer::ensureNeuralResources()
 			return false;
 		}
 	}
+	createDepthTexAndView(neuralSceneDepthTexture, neuralSceneDepthTarget,
+		static_cast<int>(width), static_cast<int>(height));
+	if (!neuralSceneDepthTexture || !neuralSceneDepthTarget)
+	{
+		WARN_LOG(RENDERER, "Neural scene-replay depth creation failed");
+		releaseNeuralResources();
+		return false;
+	}
+	D3D11_TEXTURE2D_DESC retainedDesc{};
+	retainedDesc.Width = width;
+	retainedDesc.Height = height;
+	retainedDesc.MipLevels = 1;
+	retainedDesc.ArraySize = 1;
+	retainedDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	retainedDesc.SampleDesc.Count = 1;
+	retainedDesc.Usage = D3D11_USAGE_DEFAULT;
+	retainedDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	HRESULT retainedResult = device->CreateTexture2D(&retainedDesc, nullptr,
+		&neuralRetainedSceneTexture.get());
+	if (SUCCEEDED(retainedResult))
+		retainedResult = device->CreateRenderTargetView(neuralRetainedSceneTexture,
+			nullptr, &neuralRetainedSceneTarget.get());
+	if (SUCCEEDED(retainedResult))
+		retainedResult = device->CreateShaderResourceView(neuralRetainedSceneTexture,
+			nullptr, &neuralRetainedSceneView.get());
+	if (FAILED(retainedResult))
+	{
+		WARN_LOG(RENDERER, "Neural retained-scene resource creation failed: %x",
+			retainedResult);
+		releaseNeuralResources();
+		return false;
+	}
+	neuralRetainedSceneValid = false;
 	auto createTargetRing = [&](NeuralTargetRing& ring, DXGI_FORMAT format, const char *name,
 		bool allowWrapped = true) {
 		D3D11_TEXTURE2D_DESC targetDesc{};
@@ -963,6 +998,12 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
 	for (auto& resource : neuralDepthD3D12Resources) resource.reset();
+	neuralSceneDepthTarget.reset();
+	neuralSceneDepthTexture.reset();
+	neuralRetainedSceneView.reset();
+	neuralRetainedSceneTarget.reset();
+	neuralRetainedSceneTexture.reset();
+	neuralRetainedSceneValid = false;
 	for (auto& view : neuralOutputWrappedViews) view.reset();
 	for (auto& texture : neuralOutputWrappedTextures) texture.reset();
 	for (auto& resource : neuralOutputD3D12Resources) resource.reset();
@@ -978,7 +1019,61 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralPreviousPositionBufferSize = 0;
 }
 
-bool DX11Renderer::renderNeuralExports()
+bool DX11Renderer::renderNeuralSceneColor(float rasterJitterX, float rasterJitterY)
+{
+	ID3D11RenderTargetView *target = neuralColor.targets[neuralExportSlot].get();
+	deviceContext->OMSetRenderTargets(1, &target, neuralSceneDepthTarget);
+	if (rendContext->clearFramebuffer)
+	{
+		float clearColor[4];
+		VO_BORDER_COL.getRGBColor(clearColor);
+		clearColor[3] = 1.f;
+		deviceContext->ClearRenderTargetView(target, clearColor);
+	}
+	else
+	{
+		if (!neuralRetainedSceneValid || !neuralRetainedSceneView)
+			return false;
+		deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+		quad->draw(neuralRetainedSceneView, samplers->getSampler(false));
+		ID3D11ShaderResourceView *nullView = nullptr;
+		deviceContext->PSSetShaderResources(0, 1, &nullView);
+	}
+	deviceContext->ClearDepthStencilView(neuralSceneDepthTarget,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
+	configVertexShader(rasterJitterX, rasterJitterY);
+	setupPixelShaderConstants();
+	deviceContext->IASetInputLayout(mainInputLayout);
+	ID3D11Buffer *buffer = vertexBuffer.get();
+	const unsigned int stride = sizeof(Vertex);
+	const unsigned int offset = 0;
+	deviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	n2Helper.resetCache();
+	drawStrips();
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	return true;
+}
+
+bool DX11Renderer::updateNeuralRetainedScene()
+{
+	if (!neuralRetainedSceneTarget || !fbTextureView)
+	{
+		neuralRetainedSceneValid = false;
+		return false;
+	}
+	ID3D11RenderTargetView *target = neuralRetainedSceneTarget.get();
+	deviceContext->OMSetRenderTargets(1, &target, nullptr);
+	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+	quad->draw(fbTextureView, samplers->getSampler(false));
+	ID3D11ShaderResourceView *nullView = nullptr;
+	deviceContext->PSSetShaderResources(0, 1, &nullView);
+	deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	neuralRetainedSceneValid = true;
+	return true;
+}
+
+bool DX11Renderer::renderNeuralExports(float rasterJitterX, float rasterJitterY)
 {
 	++neuralGuidanceReplayCount;
 	acquireNeuralInputs();
@@ -988,12 +1083,21 @@ bool DX11Renderer::renderNeuralExports()
 		1, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
 	ID3D11ShaderResourceView *nullView = nullptr;
 	deviceContext->PSSetShaderResources(0, 1, &nullView);
-	deviceContext->OMSetRenderTargets(1, &neuralColor.targets[neuralExportSlot].get(), nullptr);
-	deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
 	const float black[4]{};
-	deviceContext->ClearRenderTargetView(neuralColor.targets[neuralExportSlot], black);
-	quad->draw(fbTextureView, samplers->getSampler(false));
-	deviceContext->PSSetShaderResources(0, 1, &nullView);
+	if (rasterJitterX == 0.f && rasterJitterY == 0.f)
+	{
+		deviceContext->OMSetRenderTargets(1,
+			&neuralColor.targets[neuralExportSlot].get(), nullptr);
+		deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+		deviceContext->ClearRenderTargetView(neuralColor.targets[neuralExportSlot], black);
+		quad->draw(fbTextureView, samplers->getSampler(false));
+		deviceContext->PSSetShaderResources(0, 1, &nullView);
+	}
+	else if (!renderNeuralSceneColor(rasterJitterX, rasterJitterY))
+	{
+		releaseNeuralInputs();
+		return false;
+	}
 
 	ID3D11RenderTargetView *targets[] = {
 		neuralMotion.targets[neuralExportSlot].get(),
@@ -1035,7 +1139,7 @@ bool DX11Renderer::renderNeuralExports()
 	}
 	memcpy(previousMapped.pData, previousPositions.data, previousPositionBytes);
 	deviceContext->Unmap(neuralPreviousPositionBuffer, 0);
-	configVertexShader();
+	configVertexShader(rasterJitterX, rasterJitterY);
 	setupPixelShaderConstants();
 	deviceContext->IASetInputLayout(neuralInputLayout);
 	ID3D11Buffer *vertexBuffers[] = {vertexBuffer.get(), neuralPreviousPositionBuffer.get()};
@@ -1407,6 +1511,38 @@ void DX11Renderer::submitNeuralFrame()
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
 		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+	const auto mode = static_cast<NeuralMode>(std::clamp(activeNeuralMode, 0, 8));
+	const bool publicTemporalMode = mode == NeuralMode::Dlaa
+		|| mode == NeuralMode::SrQuality || mode == NeuralMode::SrBalanced
+		|| mode == NeuralMode::SrPerformance || mode == NeuralMode::SrUltraPerformance;
+	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
+	const bool overlayProtectionNeeded = overlayPolicy != 2
+		&& neuralInstrumentation.OverlayDrawCount() != 0;
+	const bool retainedSceneReady = neuralRetainedSceneValid
+		&& neuralDepthWidth == width && neuralDepthHeight == height;
+	const bool rasterJitterEligible = publicTemporalMode && !IsOitRenderer()
+		&& (rendContext->clearFramebuffer || retainedSceneReady)
+		&& !capturedFrame.predominantly2D && !overlayProtectionNeeded;
+	Point2 rasterJitter{};
+	if (rasterJitterEligible)
+	{
+		const auto phases = JitterPhaseCount(capturedFrame.renderWidth,
+			capturedFrame.outputWidth);
+		rasterJitter = HaltonJitter(capturedFrame.frameId - 1, phases);
+	}
+	neuralInstrumentation.SetCurrentJitter(rasterJitter);
+	if (!hasLoggedNeuralRasterJitter || loggedNeuralRasterJitter != rasterJitterEligible)
+	{
+		hasLoggedNeuralRasterJitter = true;
+		loggedNeuralRasterJitter = rasterJitterEligible;
+		NOTICE_LOG(RENDERER,
+			"Neural production raster jitter: active=%d mode=%u renderer=%s clear=%d overlay_draws=%u predominantly_2d=%d motion_space=unjittered",
+			rasterJitterEligible ? 1 : 0, static_cast<unsigned>(mode),
+			IsOitRenderer() ? "dx11-oit" : "dx11",
+			rendContext->clearFramebuffer ? 1 : 0,
+			static_cast<unsigned>(neuralInstrumentation.OverlayDrawCount()),
+			capturedFrame.predominantly2D ? 1 : 0);
+	}
 	currentNeuralSourceFrameId = capturedFrame.frameId;
 	if (loggedNeuralRenderWidth != capturedFrame.renderWidth
 		|| loggedNeuralRenderHeight != capturedFrame.renderHeight
@@ -1456,7 +1592,6 @@ void DX11Renderer::submitNeuralFrame()
 			"conservative 2D/menu/FMV bypass");
 		return;
 	}
-	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 	if (loggedOverlayPolicy != overlayPolicy || loggedOverlayGameId != settings.content.gameId)
 	{
 		loggedOverlayPolicy = overlayPolicy;
@@ -1489,12 +1624,14 @@ void DX11Renderer::submitNeuralFrame()
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::GuidanceBegin);
-	if (!renderNeuralExports())
+	if (!renderNeuralExports(capturedFrame.jitterX, capturedFrame.jitterY))
 	{
 		publishNeuralStatus(SubmitStatus::RecoverableFailure,
 			"guidance export failed");
 		return;
 	}
+	if (!updateNeuralRetainedScene())
+		WARN_LOG(RENDERER, "Neural retained-scene update failed; next retained frame will use zero jitter");
 	currentNeuralGuidanceFrameId = capturedFrame.frameId;
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceEnd);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
@@ -1534,6 +1671,17 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.screenWidth = frame.screenWidth;
 	neuralQualityCaptureMetadata.screenHeight = frame.screenHeight;
 	neuralQualityCaptureMetadata.drawCount = static_cast<std::uint32_t>(frame.draws.size);
+	neuralQualityCaptureMetadata.jitterX = frame.jitterX;
+	neuralQualityCaptureMetadata.jitterY = frame.jitterY;
+	neuralQualityCaptureMetadata.rasterJitterApplied = rasterJitterEligible;
+	neuralQualityCaptureMetadata.rasterJitterReason = rasterJitterEligible
+		? "separate-neural-scene-replay"
+		: !publicTemporalMode ? "mode-requires-zero-jitter"
+		: IsOitRenderer() ? "oit-scene-replay-pending"
+		: !rendContext->clearFramebuffer && !retainedSceneReady ? "retained-base-unavailable"
+		: capturedFrame.predominantly2D ? "predominantly-2d"
+		: overlayProtectionNeeded ? "protected-overlay-present"
+		: "conservative-disabled";
 	neuralQualityCaptureMetadata.correspondence = frame.correspondence;
 	neuralQualityCaptureMetadata.contentRect = frame.contentRect;
 	neuralQualityCaptureMetadata.historyValid = frame.historyValid;
@@ -1750,6 +1898,11 @@ void DX11Renderer::endNeuralPerformanceFrame()
 std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 {
 	std::uint32_t count = neuralPreviousPositionBuffer ? 1u : 0u;
+	count += neuralSceneDepthTexture ? 1u : 0u;
+	count += neuralSceneDepthTarget ? 1u : 0u;
+	count += neuralRetainedSceneTexture ? 1u : 0u;
+	count += neuralRetainedSceneTarget ? 1u : 0u;
+	count += neuralRetainedSceneView ? 1u : 0u;
 	auto countArray = [&count](const auto& objects) {
 		for (const auto& object : objects) count += object ? 1u : 0u;
 	};

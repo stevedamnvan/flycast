@@ -423,6 +423,47 @@ bool ReadProductionGuidance(ID3D11Device *device, ID3D11DeviceContext *context,
 	return true;
 }
 
+struct CoverageBounds {
+	int minX = Width;
+	int minY = Height;
+	int maxX = -1;
+	int maxY = -1;
+	std::uint32_t pixels = 0;
+};
+
+bool ReadCoverageBounds(ID3D11Device *device, ID3D11DeviceContext *context,
+	ID3D11Texture2D *source, CoverageBounds& bounds, std::string& error)
+{
+	D3D11_TEXTURE2D_DESC desc{};
+	source->GetDesc(&desc);
+	desc.Usage = D3D11_USAGE_STAGING;
+	desc.BindFlags = 0;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	ComPtr<ID3D11Texture2D> staging;
+	HRESULT hr = device->CreateTexture2D(&desc, nullptr, staging.GetAddressOf());
+	if (SUCCEEDED(hr)) context->CopyResource(staging.Get(), source);
+	D3D11_MAPPED_SUBRESOURCE mapped{};
+	if (SUCCEEDED(hr)) hr = context->Map(staging.Get(), 0, D3D11_MAP_READ, 0, &mapped);
+	if (FAILED(hr)) { error = HrText("read production jitter coverage", hr); return false; }
+	bounds = {};
+	for (UINT y = 0; y < desc.Height; ++y)
+	{
+		const auto *row = static_cast<const std::uint8_t *>(mapped.pData)
+			+ static_cast<std::size_t>(y) * mapped.RowPitch;
+		for (UINT x = 0; x < desc.Width; ++x)
+		{
+			if (row[x] == 0) continue;
+			bounds.minX = (std::min)(bounds.minX, static_cast<int>(x));
+			bounds.minY = (std::min)(bounds.minY, static_cast<int>(y));
+			bounds.maxX = (std::max)(bounds.maxX, static_cast<int>(x));
+			bounds.maxY = (std::max)(bounds.maxY, static_cast<int>(y));
+			++bounds.pixels;
+		}
+	}
+	context->Unmap(staging.Get(), 0);
+	return bounds.pixels != 0;
+}
+
 bool PixelIs(const Image& image, UINT x, UINT y, std::array<std::uint8_t, 3> rgb)
 {
 	const auto offset = (static_cast<std::size_t>(y) * image.width + x) * 4;
@@ -792,7 +833,7 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		naomi2VertexBuffer.GetAddressOf());
 
 	struct alignas(16) VertexConstants {
-		float matrix[16]; float planes[16]; float renderSize[2]; float padding[2];
+		float matrix[16]; float planes[16]; float renderSize[2]; float rasterJitter[2];
 	} vertexConstants{};
 	vertexConstants.matrix[0] = vertexConstants.matrix[5] =
 		vertexConstants.matrix[10] = vertexConstants.matrix[15] = 1.f;
@@ -842,7 +883,8 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	ComPtr<ID3D11Buffer> pixelConstantBuffer;
 	ComPtr<ID3D11Buffer> polyConstantBuffer;
 	ComPtr<ID3D11Buffer> naomi2ConstantBuffer;
-	if (SUCCEEDED(hr)) hr = constantBuffer(&vertexConstants, sizeof(vertexConstants),
+	if (SUCCEEDED(hr)) hr = createBuffer(&vertexConstants, sizeof(vertexConstants),
+		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT,
 		vertexConstantBuffer.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = constantBuffer(&pixelConstants, sizeof(pixelConstants),
 		pixelConstantBuffer.GetAddressOf());
@@ -869,7 +911,13 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	Targets targets;
 	if (!CreateTargets(surface.device.Get(), targets, error)) return false;
 
-	auto render = [&](const auto& positions, bool trusted, bool oversized) {
+	auto render = [&](const auto& positions, bool trusted, bool oversized,
+		float jitterX, float jitterY, ProductionMotionResult& readback,
+		CoverageBounds *coverage = nullptr) {
+		vertexConstants.rasterJitter[0] = jitterX;
+		vertexConstants.rasterJitter[1] = jitterY;
+		surface.context->UpdateSubresource(vertexConstantBuffer.Get(), 0, nullptr,
+			&vertexConstants, 0, 0);
 		surface.context->UpdateSubresource(previousBuffer.Get(), 0, nullptr,
 			positions.data(), 0, 0);
 		const float zero[4]{};
@@ -903,14 +951,39 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		surface.context->PSSetConstantBuffers(0, 2, psConstants);
 		surface.context->Draw(4, 0);
 		surface.context->Flush();
-		return ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
-			result, trusted, oversized, error);
+		if (!ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
+			readback, trusted, oversized, error)) return false;
+		return coverage == nullptr || ReadCoverageBounds(surface.device.Get(),
+			surface.context.Get(), targets.guidance[2].Get(), *coverage, error);
 	};
-	if (!render(trustedPrevious, true, false)
-		|| !render(invalidPrevious, false, false)
-		|| !render(oversizedPrevious, false, true)) return false;
+	if (!render(trustedPrevious, true, false, 0.f, 0.f, result)
+		|| !render(invalidPrevious, false, false, 0.f, 0.f, result)
+		|| !render(oversizedPrevious, false, true, 0.f, 0.f, result)) return false;
+	const auto staticPrevious = makePrevious(0.f, 0.f, 1.f);
+	ProductionMotionResult staticReadback;
+	ProductionMotionResult jitteredReadback;
+	CoverageBounds staticCoverage;
+	CoverageBounds jitteredCoverage;
+	if (!render(staticPrevious, true, false, 0.f, 0.f, staticReadback,
+			&staticCoverage)
+		|| !render(staticPrevious, true, false, 1.f, 1.f, jitteredReadback,
+			&jitteredCoverage)) return false;
+	result.jitterOnlyMotionX = jitteredReadback.trustedX;
+	result.jitterOnlyMotionY = jitteredReadback.trustedY;
+	result.jitterExcludedFromMotion = result.jitterOnlyMotionX == 0.f
+		&& result.jitterOnlyMotionY == 0.f;
+	result.rasterJitterShiftedCoverage = jitteredCoverage.pixels == staticCoverage.pixels
+		&& jitteredCoverage.minX == staticCoverage.minX + 1
+		&& jitteredCoverage.maxX == staticCoverage.maxX + 1
+		&& jitteredCoverage.minY == staticCoverage.minY + 1
+		&& jitteredCoverage.maxY == staticCoverage.maxY + 1;
 	auto renderNaomi2 = [&](float valid, ProductionMotionResult& readback,
-		bool trusted) {
+		bool trusted, float jitterX = 0.f, float jitterY = 0.f,
+		CoverageBounds *coverage = nullptr) {
+		vertexConstants.rasterJitter[0] = jitterX;
+		vertexConstants.rasterJitter[1] = jitterY;
+		surface.context->UpdateSubresource(vertexConstantBuffer.Get(), 0, nullptr,
+			&vertexConstants, 0, 0);
 		naomi2Constants.previousValid[0] = valid;
 		surface.context->UpdateSubresource(previousBuffer.Get(), 0, nullptr,
 			naomi2Previous.data(), 0, 0);
@@ -948,8 +1021,10 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		surface.context->PSSetConstantBuffers(0, 2, psConstants);
 		surface.context->Draw(4, 0);
 		surface.context->Flush();
-		return ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
-			readback, trusted, false, error);
+		if (!ReadProductionGuidance(surface.device.Get(), surface.context.Get(), targets,
+			readback, trusted, false, error)) return false;
+		return coverage == nullptr || ReadCoverageBounds(surface.device.Get(),
+			surface.context.Get(), targets.guidance[2].Get(), *coverage, error);
 	};
 	ProductionMotionResult naomi2Trusted;
 	ProductionMotionResult naomi2Invalid;
@@ -963,6 +1038,23 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	result.naomi2InvalidY = naomi2Invalid.invalidY;
 	result.naomi2InvalidMask = naomi2Invalid.invalidMask;
 	result.naomi2InvalidConfidence = naomi2Invalid.invalidConfidence;
+	naomi2Constants.modelView[12] = 0.f;
+	naomi2Constants.modelView[13] = 0.f;
+	ProductionMotionResult naomi2Static;
+	ProductionMotionResult naomi2Jittered;
+	CoverageBounds naomi2StaticCoverage;
+	CoverageBounds naomi2JitteredCoverage;
+	if (!renderNaomi2(1.f, naomi2Static, true, 0.f, 0.f,
+			&naomi2StaticCoverage)
+		|| !renderNaomi2(1.f, naomi2Jittered, true, 1.f, 1.f,
+			&naomi2JitteredCoverage)) return false;
+	result.naomi2RasterJitterShiftedCoverage =
+		naomi2Jittered.trustedX == 0.f && naomi2Jittered.trustedY == 0.f
+		&& naomi2JitteredCoverage.pixels == naomi2StaticCoverage.pixels
+		&& naomi2JitteredCoverage.minX == naomi2StaticCoverage.minX + 1
+		&& naomi2JitteredCoverage.maxX == naomi2StaticCoverage.maxX + 1
+		&& naomi2JitteredCoverage.minY == naomi2StaticCoverage.minY + 1
+		&& naomi2JitteredCoverage.maxY == naomi2StaticCoverage.maxY + 1;
 	const auto close = [](float a, float b) { return std::abs(a - b) <= .01f; };
 	result.analyticTruth = close(result.trustedX, -4.f) && close(result.trustedY, 3.f)
 		&& result.trustedMask == 0 && result.trustedConfidence == 255
@@ -979,7 +1071,9 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		&& result.naomi2InvalidConfidence == 0;
 	const bool passed = result.analyticTruth && result.invalidProtected
 		&& result.magnitudeProtected && result.naomi2AnalyticTruth
-		&& result.naomi2InvalidProtected;
+		&& result.naomi2InvalidProtected && result.rasterJitterShiftedCoverage
+		&& result.jitterExcludedFromMotion
+		&& result.naomi2RasterJitterShiftedCoverage;
 	if (!passed)
 	{
 		std::ostringstream detail;
@@ -1000,7 +1094,11 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 			<< " naomi2_invalid=[" << result.naomi2InvalidX << ','
 			<< result.naomi2InvalidY << "] mask="
 			<< static_cast<unsigned>(result.naomi2InvalidMask)
-			<< " confidence=" << static_cast<unsigned>(result.naomi2InvalidConfidence);
+			<< " confidence=" << static_cast<unsigned>(result.naomi2InvalidConfidence)
+			<< " jitter_motion=[" << result.jitterOnlyMotionX << ','
+			<< result.jitterOnlyMotionY << "] jitter_shift="
+			<< result.rasterJitterShiftedCoverage << " naomi2_jitter_shift="
+			<< result.naomi2RasterJitterShiftedCoverage;
 		error = detail.str();
 	}
 	return passed;

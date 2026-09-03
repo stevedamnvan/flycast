@@ -286,10 +286,11 @@ void gui_settings_video()
 		}
 		if (selectedMode != 0)
 		{
-			static const std::array<const char *, 3> profileNames = {
-				"Faithful Dreamcast Remaster", "Enhanced Materials", "Photoreal Experimental"
+			static const std::array<const char *, 4> profileNames = {
+				"Faithful Dreamcast Remaster", "Enhanced Materials", "Photoreal Experimental",
+				"Uncanny Cinematic"
 			};
-			int profileIndex = std::clamp(config::NeuralQualityProfile.get(), 0, 2);
+			int profileIndex = std::clamp(config::NeuralQualityProfile.get(), 0, 3);
 			if (ImGui::BeginCombo("##NeuralQualityProfile", profileNames[profileIndex]))
 			{
 				for (int i = 0; i < static_cast<int>(profileNames.size()); ++i)

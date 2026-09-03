@@ -595,11 +595,14 @@ launcher never writes third-party configuration.
 
 ## D-040: Faithful Dreamcast Remaster is the default policy, not a completed claim
 
-Flycast exposes Faithful Dreamcast Remaster, Enhanced Materials, and Photoreal
-Experimental labels plus explicit style families. Faithful is the default,
+Flycast exposes Faithful Dreamcast Remaster, Enhanced Materials, Photoreal
+Experimental, and Uncanny Cinematic labels plus explicit style families.
+Faithful is the factory/automatic default,
 retains the conservative temporal mask and character protection, and recommends
 zero tone plus the lowest useful user-controlled structure setting. Photoreal
-is marked non-faithful and is never automatic. An explicit sprite-heavy/2D
+and Uncanny are marked non-faithful and are never automatic. Uncanny remains a
+persistent user-selectable candidate default and recommends the exact proven
+Cinematic/Structure-200/Tone-75/max-coverage experiment. An explicit sprite-heavy/2D
 style requests generative bypass; the independent production scene classifier
 still owns automatic menu/2D bypass.
 
@@ -1187,3 +1190,55 @@ when ordinary Dreamcast geometry could use a similarity fit, because the fit
 would not independently prove object-space correspondence under per-draw
 matrix history. The production HLSL fixture must return analytic `[-4,+3]` on
 native D3D11 and D3D11On12 and its missing-history control must fail closed.
+
+## D-074: Faithful settings must preserve identity before adding enhancement
+
+External Neural Rendering settings are accepted only when the consumer reports
+the active tuple and the existing marker/policy-OFF proof binds it to exact
+color, depth, motion, and mask inputs. A lower raw frame-to-frame delta alone is
+not a win. Trail energy, silhouette displacement, thin-line continuity, color,
+saturation, black level, source identity, and moving visual review are Faithful
+constraints; material uplift is considered only inside them.
+
+For the deterministic Soulcalibur interval, intensity 0.125 with Natural style
+is the least damaging nonzero tuple tested, but it still loses public DLAA Auto
+on every listed constraint and shows no clear material benefit. Global tone 0
+does not change this SDR output, and external preset 2 is byte-identical to
+preset 0 with upscaling disabled. Intensity 0 is not an external winner: it
+fails provenance because no policy-OFF output difference exists. Public DLAA
+Auto remains the Faithful default until a nonzero external candidate wins after
+production raster jitter and broader legal-title evidence.
+
+## D-075: external control UX remains separate from Flycast's neural contract
+
+The supplied consumer already honors `NRLocalStructure`: an exact-input
+Soulcalibur A/B that changed only `NRLocalStructure` from absent to `2.0`
+changed all 30 returned frames (mean RGB MAE `1.401243`, maximum channel delta
+36). The host log did not report that field, so it is labeled requested plus
+isolated-output-proven rather than consumer-reported. This is sufficient to
+prove the control is functional, but not to weaken fail-closed provenance.
+
+Do not insert DLSS5-Feeder into Flycast's selected D3D11On12 route. It produces
+a separate image-derived contract and would compete with the emulator-native
+depth, motion, mask, history, and presentation contract. A source-controlled
+companion in the Feeder checkout may edit only an explicitly selected text
+configuration after explicit `--apply`, create an exact backup, and print the
+requested tuple. It must never load or implement Neural Rendering, claim the
+consumer's active state without log/capture evidence, or become a Flycast
+runtime dependency.
+
+## D-076: production jitter uses a separate scene replay and never owns fallback
+
+Normal DX11 may apply bounded Halton jitter only to the separately replayed
+neural scene. Current and accepted previous positions remain unjittered for
+motion, and the jitter is reported independently to NGX. The ordinary PVR
+framebuffer is never jittered or replaced in place. Protected overlays disable
+the replay for that frame, and DX11 OIT remains zero-jitter with explicit reason
+`oit-scene-replay-pending` until it gains an equivalent proven replay.
+
+Acceptance requires content-bearing production frames, not a uniform startup
+frame. Exact native-control comparison must prove the PVR framebuffer is
+byte-identical while the neural source differs. An injected failure on an
+actively jittered frame must emit no public output and present that same native
+frame byte-for-byte. These conditions hold independently of the selected
+Faithful, Enhanced, Photoreal, or Uncanny quality-profile metadata.

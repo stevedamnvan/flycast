@@ -92,7 +92,7 @@ protected:
 		float rightPlane[4];
 		float bottomPlane[4];
 		float neuralRenderSize[2];
-		float neuralPadding[2];
+		float neuralRasterJitter[2];
 	};
 
 	struct PixelConstants
@@ -124,7 +124,7 @@ protected:
 	bool ensureBufferSize(ComPtr<ID3D11Buffer>& buffer, D3D11_BIND_FLAG bind, u32& currentSize, u32 minSize);
 	void createDepthTexAndView(ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11DepthStencilView>& view, int width, int height, DXGI_FORMAT format = DXGI_FORMAT_D24_UNORM_S8_UINT, UINT bindFlags = 0);
 	void createTexAndRenderTarget(ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11RenderTargetView>& renderTarget, int width, int height);
-	void configVertexShader();
+	void configVertexShader(float rasterJitterX = 0.f, float rasterJitterY = 0.f);
 	void uploadGeometryBuffers();
 	void setupPixelShaderConstants();
 	void updateFogTexture();
@@ -144,7 +144,9 @@ protected:
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();
 	bool ensureNeuralResources();
-	bool renderNeuralExports();
+	bool renderNeuralExports(float rasterJitterX, float rasterJitterY);
+	bool renderNeuralSceneColor(float rasterJitterX, float rasterJitterY);
+	bool updateNeuralRetainedScene();
 	bool renderNeuralDisocclusion();
 	virtual bool renderNeuralReactiveCoverage();
 	bool mergeNeuralReactiveCoverage(ID3D11ShaderResourceView *coverageView);
@@ -217,6 +219,12 @@ protected:
 	std::array<ComPtr<ID3D11DepthStencilView>, NeuralExportRingSize> neuralDepthTargets;
 	std::array<ComPtr<ID3D11ShaderResourceView>, NeuralExportRingSize> neuralDepthViews;
 	std::array<ComPtr<ID3D12Resource>, NeuralExportRingSize> neuralDepthD3D12Resources;
+	ComPtr<ID3D11Texture2D> neuralSceneDepthTexture;
+	ComPtr<ID3D11DepthStencilView> neuralSceneDepthTarget;
+	ComPtr<ID3D11Texture2D> neuralRetainedSceneTexture;
+	ComPtr<ID3D11RenderTargetView> neuralRetainedSceneTarget;
+	ComPtr<ID3D11ShaderResourceView> neuralRetainedSceneView;
+	bool neuralRetainedSceneValid = false;
 	NeuralTargetRing neuralColor;
 	NeuralTargetRing neuralMotion;
 	NeuralTargetRing neuralMask;
@@ -238,6 +246,8 @@ protected:
 	bool neuralExportActive = false;
 	std::uint64_t neuralGuidanceReplayCount = 0;
 	bool neuralReactiveCoverageActive = false;
+	bool loggedNeuralRasterJitter = false;
+	bool hasLoggedNeuralRasterJitter = false;
 	ComPtr<ID3D11Buffer> neuralPreviousPositionBuffer;
 	u32 neuralPreviousPositionBufferSize = 0;
 	ComPtr<ID3D11ShaderResourceView> neuralPresentationView;

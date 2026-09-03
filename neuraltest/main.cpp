@@ -44,7 +44,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest native-parity --game PATH --enabled-flycast EXE --feature-off-flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 5] [--skip N] [--render-height N] [--timeout-ms N]\n"
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
@@ -834,6 +834,7 @@ int CaptureCommand(const Args& args)
 	const auto inputReplay = Value(args, "--input-replay", "no");
 	const bool lateOverlayProof = args.count("--late-overlay-proof") != 0;
 	const auto proofOverlay = Value(args, "--proof-overlay", "fps");
+	const auto overlayPolicy = Value(args, "--overlay-policy", "auto");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "--lane must be native, dlaa, sr-quality, or dlss5\n";
@@ -872,6 +873,12 @@ int CaptureCommand(const Args& args)
 	if (proofOverlay != "fps" && proofOverlay != "none")
 	{
 		std::cerr << "--proof-overlay must be fps or none\n";
+		return 2;
+	}
+	if (overlayPolicy != "auto" && overlayPolicy != "full"
+		&& overlayPolicy != "disabled")
+	{
+		std::cerr << "--overlay-policy must be auto, full, or disabled\n";
 		return 2;
 	}
 	if (!lateOverlayProof && args.count("--proof-overlay") != 0)
@@ -917,9 +924,10 @@ int CaptureCommand(const Args& args)
 		return 2;
 	}
 	if (injection == "none") injectionAfter = 0;
-	if (profile != "faithful" && profile != "enhanced" && profile != "photoreal")
+	if (profile != "faithful" && profile != "enhanced" && profile != "photoreal"
+		&& profile != "uncanny")
 	{
-		std::cerr << "--profile must be faithful, enhanced, or photoreal\n";
+		std::cerr << "--profile must be faithful, enhanced, photoreal, or uncanny\n";
 		return 2;
 	}
 	static const std::vector<std::string> styles = {
@@ -1004,7 +1012,10 @@ int CaptureCommand(const Args& args)
 	const int injectionValue = injection == "create" ? 1 : injection == "evaluate" ? 2
 		: injection == "ring-busy" ? 3 : injection == "device-removed" ? 4
 		: injection == "runtime-unavailable" ? 5 : 0;
-	const int profileValue = profile == "enhanced" ? 1 : profile == "photoreal" ? 2 : 0;
+	const int profileValue = profile == "enhanced" ? 1 : profile == "photoreal" ? 2
+		: profile == "uncanny" ? 3 : 0;
+	const int overlayPolicyValue = overlayPolicy == "full" ? 1
+		: overlayPolicy == "disabled" ? 2 : 0;
 	const int styleValue = static_cast<int>(std::distance(styles.begin(), styleIt));
 	std::wstring config = L"config:pvr.rend=" + std::to_wstring(rendererValue)
 		+ L",config:rend.Resolution=" + std::to_wstring(renderHeight)
@@ -1031,6 +1042,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",config:rend.NeuralQualityProfile=" + std::to_wstring(profileValue)
 		+ L",config:rend.NeuralStyleFamily=" + std::to_wstring(styleValue)
+		+ L",config:rend.NeuralOverlayPolicy=" + std::to_wstring(overlayPolicyValue)
 		+ L",record:replay_input=" + (inputReplay == "yes" ? L"yes" : L"no")
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "

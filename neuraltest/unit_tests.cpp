@@ -79,6 +79,7 @@ int RunSelfTests()
 		const auto faithful = ResolveQualityProfile(0, 0);
 		const auto enhanced = ResolveQualityProfile(1, 3);
 		const auto sprite = ResolveQualityProfile(2, 6);
+		const auto uncanny = ResolveQualityProfile(3, 1);
 		suite.Expect(faithful.faithful && faithful.conservativeTemporalMask
 			&& faithful.protectCharacters && !faithful.bypassGenerative,
 			"Faithful Dreamcast Remaster is the conservative default profile");
@@ -88,6 +89,11 @@ int RunSelfTests()
 		suite.Expect(!sprite.faithful && sprite.bypassGenerative
 			&& sprite.externalRecommendation.find("user controlled") != std::string::npos,
 			"sprite-heavy Photoreal profile remains explicit and recommends bypass");
+		suite.Expect(!uncanny.faithful && !uncanny.conservativeTemporalMask
+			&& !uncanny.protectCharacters && !uncanny.bypassGenerative
+			&& std::string(uncanny.name) == "Uncanny Cinematic"
+			&& uncanny.externalRecommendation.find("Structure Intensity 200%") != std::string::npos,
+			"Uncanny Cinematic is a selectable non-faithful maximum-coverage profile");
 	}
 	{
 		LiveStatus published;
@@ -1261,6 +1267,13 @@ int RunSelfTests()
 		suite.Expect(nativeOk && on12Ok && native.naomi2InvalidProtected
 			&& on12.naomi2InvalidProtected,
 			"missing Naomi 2 matrix history remains current-color protected");
+		suite.Expect(nativeOk && on12Ok && native.rasterJitterShiftedCoverage
+			&& on12.rasterJitterShiftedCoverage && native.jitterExcludedFromMotion
+			&& on12.jitterExcludedFromMotion,
+			"production raster jitter shifts coverage but remains absent from motion");
+		suite.Expect(nativeOk && on12Ok && native.naomi2RasterJitterShiftedCoverage
+			&& on12.naomi2RasterJitterShiftedCoverage,
+			"Naomi 2 production raster jitter shifts coverage without contaminating motion");
 	}
 	{
 		ColorContractResult color;

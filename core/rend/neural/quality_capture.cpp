@@ -787,6 +787,10 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< "\n  }"
 		<< ",\n  \"render_size\": [" << metadata.renderWidth << ", " << metadata.renderHeight << "]"
 		<< ",\n  \"output_size\": [" << metadata.outputWidth << ", " << metadata.outputHeight << "]"
+		<< ",\n  \"raster_jitter\": [" << metadata.jitterX << ", " << metadata.jitterY << "]"
+		<< ",\n  \"raster_jitter_applied\": "
+		<< (metadata.rasterJitterApplied ? "true" : "false")
+		<< ",\n  \"raster_jitter_reason\": \"" << Json(metadata.rasterJitterReason) << "\""
 		<< ",\n  \"pvr_screen_size\": [" << metadata.screenWidth << ", " << metadata.screenHeight << "]"
 		<< ",\n  \"content_rect\": [" << metadata.contentRect.x << ", " << metadata.contentRect.y
 		<< ", " << metadata.contentRect.width << ", " << metadata.contentRect.height << "]"

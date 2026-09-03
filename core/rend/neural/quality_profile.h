@@ -9,6 +9,7 @@ enum class QualityProfile : int {
 	FaithfulDreamcastRemaster = 0,
 	EnhancedMaterials = 1,
 	PhotorealExperimental = 2,
+	UncannyCinematic = 3,
 };
 
 enum class StyleFamily : int {

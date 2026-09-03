@@ -60,7 +60,7 @@ cbuffer constantBuffer : register(b0)
 	float4 rightPlane;
 	float4 bottomPlane;
 	float2 neuralRenderSize;
-	float2 neuralPadding;
+	float2 neuralRasterJitter;
 };
 
 [clipplanes(leftPlane, topPlane, rightPlane, bottomPlane)]
@@ -105,6 +105,8 @@ VertexOut main(in VertexIn vin)
 		(.5f - previousNdc.y * .5f) * neuralRenderSize.y);
 	vo.neuralPositionValid = vin.previousPos.w;
 	#endif
+	vo.pos.xy += float2(2.f * neuralRasterJitter.x / neuralRenderSize.x,
+		-2.f * neuralRasterJitter.y / neuralRenderSize.y) * vo.pos.w;
 
 	return vo;
 }
@@ -130,6 +132,8 @@ cbuffer constantBuffer : register(b0)
 	float4 topPlane;
 	float4 rightPlane;
 	float4 bottomPlane;
+	float2 neuralRenderSize;
+	float2 neuralRasterJitter;
 };
 
 VertexOut main(in VertexIn vin)
@@ -145,6 +149,8 @@ VertexOut main(in VertexIn vin)
 	vo.pos.w = 1.f;
 	vo.pos.z = 0.f;
 #endif
+	vo.pos.xy += float2(2.f * neuralRasterJitter.x / neuralRenderSize.x,
+		-2.f * neuralRasterJitter.y / neuralRenderSize.y) * vo.pos.w;
 	return vo;
 }
 

@@ -92,7 +92,8 @@ close a temporal or title-quality gate.
   exact across native D3D11 and D3D11On12; the wrong-polarity control fails;
   public NGX D3D11/D3D12 create and evaluate both polarity declarations. The
   static NGX chart is polarity-invariant, which is recorded as a limitation.
-- Gate 12: green at LOG #62 for the synthetic guidance contract. RG16F motion
+- Gate 12: green at LOG #122. LOG #62 established the synthetic guidance
+  contract: RG16F motion
   matches analytic static/translation/camera/deformation truth; jitter-only is
   zero; pixel reprojection and public DLAA both reject reversed/doubled motion.
   LOG #67 additionally proves the real production PVR vertex/pixel shader pair
@@ -100,8 +101,12 @@ close a temporal or title-quality gate.
   D3D11On12. Invalid and over-limit controls emit zero motion/confidence and
   full current-color bias. LOG #117 adds the production Naomi 2 permutation:
   accepted exact topology and matrices emit the same analytic `[-4,+3]` on
-  both surfaces, while missing history fails closed. Production raster jitter
-  application remains separate.
+  both surfaces, while missing history fails closed. LOG #122 proves bounded
+  Halton jitter on content-bearing normal-DX11 production frames while the
+  unjittered native framebuffer remains byte-identical. An active injected
+  failure returns exact native output with no stale public artifact; automatic
+  HUD protection remains zero-jitter and byte-exact; OIT remains explicitly
+  zero-jitter pending its separate scene replay.
 - Q1 SDR/color/rectangle contract: green at LOG #63. The production quad path
   is byte-exact for the deterministic chart; public DLAA is exact in 214,320
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
@@ -174,7 +179,7 @@ close a temporal or title-quality gate.
   nonzero late-only pixel delta; the no-OSD control contains zero delta and is
   rejected. This proves ordering and buffer exclusion, not broader game-HUD
   classification or title quality.
-- Gate 16: partial through LOG #106. The production match-output option and public
+- Gate 16: partial through LOG #118. The production match-output option and public
   Auto/J/K selector are implemented. A 2560x1440 Soulcalibur fullscreen run
   rasterized 4:3 content at exactly 1920x1440; the manual 2x Quality-SR lane
   remained 1280x960 into 1920x1440. Auto and K were pixel-identical over the
@@ -208,14 +213,44 @@ close a temporal or title-quality gate.
   10.256009/0.932040. External also lost the trail, edge, thin-line, color,
   saturation, and black-level components. The interval contained no protected
   HUD pixels, so it is settings/source evidence rather than a second real-HUD
-  proof. No causal single-control conclusion or new winner is claimed. Broader
-  titles and a winning verified external setting remain open; Gate 16 is not
-  green.
-- Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the default;
-  Enhanced Materials and explicitly non-faithful Photoreal Experimental are
+  proof. LOG #118 then performs the authorized, fail-closed external settings
+  sweep on the same exact-input interval. Seven nonzero tuples are accepted:
+  intensity 1, 0.5, 0.25, and 0.125; global tone 1/0; Default/Natural style;
+  and external preset 0/2 where applicable. Global tone 0 is byte-identical to
+  tone 1 on this SDR interval, and preset 2 is byte-identical to preset 0 while
+  upscaling is off. Natural plus intensity 0.125 is the least damaging accepted
+  external result, but still records trail 2.08 versus 1.45, edge displacement
+  0.65 versus 0.60, thin-line continuity 82.69 versus 83.95, color drift 0.82
+  versus 0.62, saturation drift 2.11 versus 1.51, black drift 1.39 versus 1.26,
+  and raw temporal RGB MAE 2.7836 versus 2.7747 for public Auto. Moving review
+  shows a barely visible effect with softer hair/face detail and no clear
+  material benefit. Intensity 0 correctly fails external provenance because it
+  cannot be distinguished from policy-OFF. Public Auto therefore remains the
+  Faithful baseline; broader legal titles, completed raster jitter, and any
+  Enhanced/Photoreal winner remain open, so Gate 16 is not green.
+- Q5 profiles: partial at LOG #73. Faithful Dreamcast Remaster is the factory
+  default; Enhanced Materials, explicitly non-faithful Photoreal Experimental,
+  and explicitly non-faithful Uncanny Cinematic are
   selectable; style families, user-controlled external recommendations, and an
   explicit sprite-heavy generative bypass are visible in UI/capture metadata.
-  Per-title tuning and evidence-driven broader trust remain open.
+  LOG #119 captures the Photoreal profile at consumer-reported intensity 1.5,
+  global tone 1.5, preset 2, Default style. It visibly changes face, skin,
+  lighting, hair mass, and color, but exact-input comparison proves all 30
+  outputs byte-identical to the intensity-1/tone-0/preset-0 Default-style run.
+  The available Default-style path therefore saturates at intensity 1 for this
+  interval; the stronger numbers do not create a stronger image. LOG #120 then
+  exercises the requested uncanny lane: Cinematic style, intensity 2,
+  global/local tone 0.75, local structure 2, automatic mask off, and UI
+  correction on. Cinematic intensity 2 is byte-identical to intensity 1 when
+  structure remains absent, but an isolation A/B changing only
+  `NRLocalStructure=2.0` changes 30/30 exact-input outputs. Structure is
+  functionally active even though the host log omits it; captures label the
+  field requested plus isolated-output-proven, not consumer-reported. The result
+  deliberately leaves the Faithful envelope and remains Photoreal Experimental.
+  Per-title tuning and broader trust remain open. LOG #121 makes that exact
+  uncanny tuple a persistent user-selectable Flycast profile and capture-CLI
+  value. It is eligible to be the user's chosen default, but is not promoted to
+  the factory/automatic default without representative Gate 17 evidence.
 - Gate 17: partial through LOG #103. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11

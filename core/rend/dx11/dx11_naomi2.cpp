@@ -73,7 +73,7 @@ cbuffer shaderConstants : register(b0)
 	float4 rightPlane;
 	float4 bottomPlane;
 	float2 neuralRenderSize;
-	float2 neuralPadding;
+	float2 neuralRasterJitter;
 };
 
 cbuffer polyConstants : register(b1)
@@ -189,6 +189,8 @@ VertexOut main(in VertexIn vin)
 	vo.neuralPositionValid = vin.previousPos.w * neuralPreviousValid.x
 		* previousWValid * previousRasterWValid;
 	#endif
+	vo.pos.xy += float2(2.f * neuralRasterJitter.x / neuralRenderSize.x,
+		-2.f * neuralRasterJitter.y / neuralRenderSize.y) * vo.pos.w;
 
 	return vo;
 }

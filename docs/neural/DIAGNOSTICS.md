@@ -23,7 +23,7 @@ The production capture command is:
 `neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE]
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k]
-[--profile faithful|enhanced|photoreal] [--style FAMILY]
+[--profile faithful|enhanced|photoreal|uncanny] [--style FAMILY]
 [--render-height N] [--feature-path DIR] [--input-replay yes|no]
 [--evidence-frames 0..480] [--evidence-start-frame N]
 [--evidence-mask zero|production]

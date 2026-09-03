@@ -51,6 +51,10 @@ struct QualityCaptureMetadata {
 	std::uint32_t screenWidth = 0;
 	std::uint32_t screenHeight = 0;
 	std::uint32_t drawCount = 0;
+	float jitterX = 0.f;
+	float jitterY = 0.f;
+	bool rasterJitterApplied = false;
+	std::string rasterJitterReason = "not-selected";
 	CorrespondenceStats correspondence{};
 	Rect contentRect{};
 	bool historyValid = false;
