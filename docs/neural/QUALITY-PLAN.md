@@ -192,12 +192,14 @@ close a temporal or title-quality gate.
   1024/1024 same-frame sentinel pixels, and completed Present. A 671-package
   comparison index retains every accepted and rejected attempt. This is one
   externally proven gameplay frame, not a proven external temporal sequence.
-- Gate 18: partial through LOG #96. Asynchronous production D3D11 timestamp queries,
+- Gate 18: partial through LOG #98. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
   native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
-  D3D12-queue evaluation is honestly unavailable rather than inferred. The full
-  transition/failure matrix, external timing, longer runs, resource-object
+  LOG #98 adds accepted-frame-filtered asynchronous D3D12 queue timestamps for
+  public and intercepted evaluation without waits or per-frame misassociation.
+  The full transition/failure matrix, isolated external timing, longer runs,
+  resource-object
   counts, latency, resize/fullscreen/device-removal cases, and title coverage
   remain open. LOG #76 adds bounded injected feature-create, evaluate,
   output-ring/delayed-fence-busy, and synthetic device-removed-status coverage
@@ -371,5 +373,9 @@ close a temporal or title-quality gate.
   output repeats, alternations, latency, or query pressure and clean close.
   ON/OFF kept 125/116 Flycast-owned objects constant and each grew local VRAM
   by 131072 bytes. ON Present P50/P95/P99 was 13.8293/15.2448/16.5339 ms versus
-  OFF 13.4453/14.6009/15.0220 ms. The isolated D3D12/external evaluation remains
-  null for the same cross-queue reason.
+  OFF 13.4453/14.6009/15.0220 ms. LOG #98 directly measures the inclusive D3D12
+  evaluation span: ON normal/OIT P50/P95/P99 is
+  2.653568/2.916768/2.961088 ms and 2.487072/2.896224/3.016384 ms, while explicit
+  policy-OFF is 0.171040/0.195104/0.627168 ms and
+  0.225024/0.290720/0.319744 ms. These separately reported runs are not treated
+  as an isolated external-cost subtraction.
