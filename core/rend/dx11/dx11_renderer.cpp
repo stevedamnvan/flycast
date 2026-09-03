@@ -770,6 +770,7 @@ bool DX11Renderer::syncNeuralMode()
 		stageConfig.api = config::NeuralD3D12Surface ? Api::D3D12 : Api::D3D11;
 		stageConfig.hookCompatibility = stageConfig.mode == NeuralMode::DlaaHook;
 		neuralStage = NeuralStage(stageConfig);
+		neuralStage.SetGraphicsDevice(stageConfig.api, device.get(), deviceContext.get());
 		if (requestedMode == 0)
 			releaseNeuralResources();
 	}

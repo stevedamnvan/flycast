@@ -13,6 +13,31 @@ std::uint64_t MonotonicMilliseconds() noexcept
 }
 }
 
+NeuralStage::NeuralStage() = default;
+NeuralStage::NeuralStage(const StageConfig& config) : config_(config) {}
+NeuralStage::~NeuralStage() { Shutdown(); }
+NeuralStage::NeuralStage(NeuralStage&&) noexcept = default;
+NeuralStage& NeuralStage::operator=(NeuralStage&&) noexcept = default;
+
+void NeuralStage::SetGraphicsDevice(Api api, void *device, void *context) noexcept
+{
+	if (config_.api != api || device_ != device || context_ != context)
+	{
+		if (backend_) backend_->Shutdown();
+		backend_.reset();
+		backendInitialized_ = false;
+		backendPermanentlyUnsupported_ = false;
+		device_ = device;
+		context_ = context;
+		config_.api = api;
+	}
+}
+
+const char *NeuralStage::GetStatusReason() const noexcept
+{
+	return backend_ ? backend_->GetStatusReason() : "not initialized";
+}
+
 SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 {
 	if (config_.mode == NeuralMode::Off)
@@ -47,6 +72,9 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 	if (recreateRequested_)
 	{
 		recreateRequested_ = false;
+		if (backend_) backend_->Shutdown();
+		backendInitialized_ = false;
+		backendPermanentlyUnsupported_ = false;
 		history_.Discontinuity();
 		++stats_.resets;
 	}
@@ -59,14 +87,92 @@ SubmitStatus NeuralStage::TrySubmit(const NeuralFrame& frame) noexcept
 		++stats_.submissions;
 		return SubmitStatus::Submitted;
 	}
-	// Phase 0 skeleton. Backends replace this explicit unsupported result before
-	// presentation integration is enabled.
+	const bool dimensionsChanged = backendRenderWidth_ != frame.renderWidth
+		|| backendRenderHeight_ != frame.renderHeight
+		|| config_.outputWidth != frame.outputWidth || config_.outputHeight != frame.outputHeight
+		|| config_.contentRect.x != frame.contentRect.x || config_.contentRect.y != frame.contentRect.y
+		|| config_.contentRect.width != frame.contentRect.width
+		|| config_.contentRect.height != frame.contentRect.height;
+	if (dimensionsChanged && backend_)
+	{
+		backend_->Shutdown();
+		backendInitialized_ = false;
+		backendPermanentlyUnsupported_ = false;
+	}
+	config_.outputWidth = frame.outputWidth;
+	config_.outputHeight = frame.outputHeight;
+	config_.contentRect = frame.contentRect;
+	backendRenderWidth_ = frame.renderWidth;
+	backendRenderHeight_ = frame.renderHeight;
+	if (!backend_)
+		backend_ = CreateNeuralBackend(config_.mode, config_.api);
+	if (backendPermanentlyUnsupported_)
+	{
+		++stats_.fallbacks;
+		return SubmitStatus::Unsupported;
+	}
+	if (!backendInitialized_)
+	{
+		const auto init = backend_->Initialize(config_, device_, context_);
+		const auto backendStats = backend_->GetStats();
+		stats_.createFailures = backendStats.createFailures;
+		stats_.lastNgxResult = backendStats.lastResult;
+		stats_.lastExceptionCode = backendStats.lastExceptionCode;
+		if (init != BackendEvalStatus::Success)
+		{
+			++stats_.fallbacks;
+			if (init == BackendEvalStatus::Unsupported)
+				backendPermanentlyUnsupported_ = true;
+			else if (init == BackendEvalStatus::RecoverableFailure)
+			{
+				recovery_.RecordTransientFailure(frame.frameId, MonotonicMilliseconds());
+				stats_.holdEntries = recovery_.HoldEntries();
+			}
+			return init == BackendEvalStatus::DeviceRemoved ? SubmitStatus::DeviceRemoved
+				: init == BackendEvalStatus::RecoverableFailure ? SubmitStatus::RecoverableFailure
+				: SubmitStatus::Unsupported;
+		}
+		backendInitialized_ = true;
+	}
+	if (frame.resetHistory)
+		backend_->ResetHistory();
+	const auto result = backend_->Evaluate(frame);
+	const auto backendStats = backend_->GetStats();
+	stats_.createFailures = backendStats.createFailures;
+	stats_.evaluateFailures = backendStats.evaluateFailures;
+	stats_.lastNgxResult = backendStats.lastResult;
+	stats_.lastExceptionCode = backendStats.lastExceptionCode;
+	if (result == BackendEvalStatus::Success)
+	{
+		output_ = backend_->GetOutput();
+		history_.Evaluated(frame.frameId);
+		hasEvaluated_ = true;
+		recovery_.RecordSuccess(frame.frameId);
+		++stats_.submissions;
+		return SubmitStatus::Submitted;
+	}
 	++stats_.fallbacks;
-	return SubmitStatus::Unsupported;
+	if (result == BackendEvalStatus::Busy)
+	{
+		++stats_.busySkips;
+		recovery_.RecordTransientFailure(frame.frameId, MonotonicMilliseconds());
+		stats_.holdEntries = recovery_.HoldEntries();
+		return SubmitStatus::Busy;
+	}
+	if (result == BackendEvalStatus::RecoverableFailure)
+	{
+		recovery_.RecordTransientFailure(frame.frameId, MonotonicMilliseconds());
+		stats_.holdEntries = recovery_.HoldEntries();
+		return SubmitStatus::RecoverableFailure;
+	}
+	return result == BackendEvalStatus::DeviceRemoved ? SubmitStatus::DeviceRemoved
+		: SubmitStatus::Unsupported;
 }
 
 void NeuralStage::Shutdown() noexcept
 {
+	if (backend_) backend_->Shutdown();
+	backend_.reset();
 	output_ = {};
 	history_ = {};
 	recovery_ = {};
@@ -75,6 +181,9 @@ void NeuralStage::Shutdown() noexcept
 	hasFrame_ = false;
 	hasEvaluated_ = false;
 	recreateRequested_ = false;
+	backendRenderWidth_ = backendRenderHeight_ = 0;
+	backendInitialized_ = false;
+	backendPermanentlyUnsupported_ = false;
 }
 
 } // namespace flycast::rend::neural

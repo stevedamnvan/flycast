@@ -98,3 +98,17 @@ pixel's bias-current-color mask remains one; confidence is zero. This is a safe
 intermediate contract, not motion evidence. Draw ID zero remains background and
 opaque/punch-through draws use global snapshot ordinal plus one. Translucent
 draw-ID/mask coverage remains pending and cannot close FC-025 or FC-033.
+
+## D-012: public NGX calls terminate at SEH leaf wrappers
+
+The D3D11 backend uses SDK v310.7.0's Project-ID initialization, capability
+parameters, `NGX_D3D11_CREATE_DLSS_EXT`, and
+`NGX_D3D11_EVALUATE_DLSS_EXT`. Every external init/query/create/evaluate/
+release/destroy/shutdown call is made by a POD-only SEH leaf; C++ ownership and
+fallback policy remain outside those leaves. Output uses a fixed three-slot
+RGBA8 UAV/SRV ring with `D3D11_QUERY_EVENT` readiness checks and
+`D3D11_ASYNC_GETDATA_DONOTFLUSH`, so a busy slot skips instead of waiting.
+Create uses only `MVLowRes`; HDR, jittered-MV, inverted-depth, auto-exposure,
+alpha-upscale, sharpening, and output subrect flags are off. The stable custom
+Project ID is Flycast-specific but still requires maintainer/NVIDIA review
+before distribution.

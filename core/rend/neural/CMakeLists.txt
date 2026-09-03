@@ -3,11 +3,17 @@ add_library(flycast-neural STATIC
     instrumentation.h
     motion_reference.cpp
     motion_reference.h
+	neural_backend.cpp
+	neural_backend.h
     neural_frame.h
     neural_stage.cpp
     neural_stage.h
     recovery_controller.cpp
     recovery_controller.h)
+
+if(FLYCAST_NEURAL_NGX)
+    target_sources(flycast-neural PRIVATE ngx_d3d11_backend.cpp)
+endif()
 
 target_include_directories(flycast-neural PUBLIC
     "${CMAKE_SOURCE_DIR}/core"

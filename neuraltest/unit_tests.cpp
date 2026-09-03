@@ -233,6 +233,16 @@ int RunSelfTests()
 			"framebuffer-direct bypasses stage");
 	}
 	{
+		auto experimental = CreateNeuralBackend(NeuralMode::Dlss5Experimental, Api::D3D12);
+		suite.Expect(experimental->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
+			&& std::string(experimental->GetStatusReason()).find("public NVIDIA") != std::string::npos,
+			"experimental DLSS 5 backend is an explicit public-contract stub");
+		auto d3d12 = CreateNeuralBackend(NeuralMode::DlaaHook, Api::D3D12);
+		suite.Expect(d3d12->Initialize({}, nullptr, nullptr) == BackendEvalStatus::Unsupported
+			&& std::string(d3d12->GetStatusReason()).find("D3D11On12") != std::string::npos,
+			"D3D12 backend reports the uninitialized surface precisely");
+	}
+	{
 		rend_context context{};
 		context.framebufferWidth = 320;
 		context.framebufferHeight = 240;

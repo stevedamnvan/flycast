@@ -1,36 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#include "neural_frame.h"
+#include "neural_backend.h"
 #include "motion_reference.h"
 #include "recovery_controller.h"
 
 #include <cstdint>
+#include <memory>
 
 namespace flycast::rend::neural {
-
-enum class NeuralMode : std::uint8_t {
-	Off,
-	Passthrough,
-	Dlaa,
-	DlaaHook,
-	SrQuality,
-	SrBalanced,
-	SrPerformance,
-	SrUltraPerformance,
-	Dlss5Experimental,
-};
-
-enum class Api : std::uint8_t { D3D11, D3D12 };
-
-struct StageConfig {
-	NeuralMode mode = NeuralMode::Off;
-	Api api = Api::D3D11;
-	std::uint32_t outputWidth = 0;
-	std::uint32_t outputHeight = 0;
-	Rect contentRect;
-	bool hookCompatibility = false;
-};
 
 enum class SubmitStatus : std::uint8_t {
 	Submitted,
@@ -59,15 +37,22 @@ struct StageStats {
 
 class NeuralStage final {
 public:
-	NeuralStage() = default;
-	explicit NeuralStage(const StageConfig& config) : config_(config) {}
+	NeuralStage();
+	explicit NeuralStage(const StageConfig& config);
+	~NeuralStage();
+	NeuralStage(NeuralStage&&) noexcept;
+	NeuralStage& operator=(NeuralStage&&) noexcept;
+	NeuralStage(const NeuralStage&) = delete;
+	NeuralStage& operator=(const NeuralStage&) = delete;
 
+	void SetGraphicsDevice(Api api, void *device, void *context) noexcept;
 	SubmitStatus TrySubmit(const NeuralFrame& frame) noexcept;
 	StageStats GetStats() const noexcept { return stats_; }
 	TextureRef GetOutput() const noexcept { return output_; }
 	void RequestRecreate() noexcept { recreateRequested_ = true; }
 	void NotifyHostPresent() noexcept { recovery_.OnHostPresent(); }
 	void Shutdown() noexcept;
+	const char *GetStatusReason() const noexcept;
 
 private:
 	StageConfig config_{};
@@ -75,6 +60,13 @@ private:
 	TextureRef output_{};
 	HistoryTracker history_{};
 	RecoveryController recovery_{};
+	std::unique_ptr<INeuralBackend> backend_;
+	void *device_ = nullptr;
+	void *context_ = nullptr;
+	std::uint32_t backendRenderWidth_ = 0;
+	std::uint32_t backendRenderHeight_ = 0;
+	bool backendInitialized_ = false;
+	bool backendPermanentlyUnsupported_ = false;
 	std::uint32_t lastHistoryGeneration_ = 0;
 	FrameSource lastSource_ = FrameSource::Geometry;
 	bool hasFrame_ = false;

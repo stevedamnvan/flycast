@@ -61,3 +61,7 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #28 2026-09-02 ed2baff | first source-extracted production HLSL contract test | export permutation failed at compile because the shared modifier-volume function referenced native-only `PSO.col`; corrected with an explicit export branch | failed attempt retained; no gate claim
 
 #29 2026-09-02 ed2baff | build fixed three-slot DX11 export package with neural/NGX ON, compile native/export production HLSL from source, run `neuraltest selftest`, and rebuild feature OFF | enabled and disabled `flycast.exe` links exit 0; current selftest 39/39; package owns RGBA8 color, R32 depth, RG16F motion, R8 bias/confidence, and R16_UINT draw-ID resources | resource/atomic-contract and shader-compile pass only; no runtime game capture, OP/PT draw IDs only, and motion is intentionally zero with mask 1, so Gates 3-6 remain open
+
+#30 2026-09-02 2bd9bf9 | first NGX backend compile | failed on an anonymous-namespace boundary, exact SDK engine enumerator spelling, and const access through Flycast's custom `ComPtr`; all three were corrected directly | failed attempt retained; no runtime or build claim
+
+#31 2026-09-02 2bd9bf9 | build public NGX D3D11 backend in SDK-enabled tree; fresh configure/build instrumentation-only tree; run both selftests | NGX-enabled and NGX-disabled `flycast.exe`/`neuraltest.exe` linked; 41/41 checks pass in both binaries | lifecycle/resource/fallback structure build pass; live NGX create/evaluate remains unrun pending harness GPU texture wiring
