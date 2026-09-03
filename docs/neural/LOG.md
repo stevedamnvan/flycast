@@ -65,3 +65,13 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #30 2026-09-02 2bd9bf9 | first NGX backend compile | failed on an anonymous-namespace boundary, exact SDK engine enumerator spelling, and const access through Flycast's custom `ComPtr`; all three were corrected directly | failed attempt retained; no runtime or build claim
 
 #31 2026-09-02 2bd9bf9 | build public NGX D3D11 backend in SDK-enabled tree; fresh configure/build instrumentation-only tree; run both selftests | NGX-enabled and NGX-disabled `flycast.exe`/`neuraltest.exe` linked; 41/41 checks pass in both binaries | lifecycle/resource/fallback structure build pass; live NGX create/evaluate remains unrun pending harness GPU texture wiring
+
+#32 2026-09-02 cdefd7f | first live-harness compile | MSVC rejected `std::max(1u, frames)` after the Windows `max` macro expanded; replaced it with an explicit zero-frame normalization and rebuilt both targets | failed attempt retained; no runtime claim
+
+#33 2026-09-02 working tree | first RTX 5090 live D3D11 DLAA probes | initial directory-level input failed because `neural` requires a frame package; corrected input reached NGX but reported availability 0 because the code used the wrong project GUID and `PATH` did not populate NGX's feature search list | failed attempts retained; exact specification GUID, `GIT_VERSION`, and documented external feature path then applied
+
+#34 2026-09-02 working tree | live `neural --api d3d11 --backend dlaa --frames 240` on `camera-translate`, `particles`, and `textured-checker-edge` using SDK v310.7.0 release runtime | RTX 5090: each run submitted 240/240, result 1 (`Success`), exception 0, busy/fallback 0, invalid frames 0; final hashes `cbbbf5ea47d3eb30`, `bf648c0497c22f21`, `1b68d2f0356be50c`; per-frame readback is harness-only | public D3D11 DLAA lifecycle/cadence subset pass; inputs are deterministic harness frames, not production PVR captures
+
+#35 2026-09-02 working tree | D3D11 unsupported matrix on the same harness | WARP returned init `0xBAD00001`; missing feature runtime returned availability 0 / feature-init `0xBAD00004`; `--no-ngx` returned explicit disabled reason; all exited cleanly without exception | missing-runtime, WARP/non-NVIDIA, and explicit-disable failure subset pass; injected failures remain pending
+
+#36 2026-09-02 working tree | rebuild SDK-enabled `flycast`/`neuraltest`, instrumentation-only `flycast`/`neuraltest`, and feature-off `flycast`; run both enabled selftests | all targets linked; SDK and no-SDK harnesses each passed 41/41 | three-configuration build matrix remains green after live-runner integration

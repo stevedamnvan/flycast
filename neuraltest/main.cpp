@@ -302,8 +302,63 @@ int NeuralCommand(const Args& args)
 		std::cerr << error << '\n';
 		return 1;
 	}
+	std::uint32_t frames = 1;
+	if (!Number(args, "--frames", 1, frames, error) || frames == 0)
+	{
+		std::cerr << (error.empty() ? "--frames must be positive" : error) << '\n';
+		return 2;
+	}
+	if (backend != "passthrough")
+	{
+		std::filesystem::create_directories(output);
+		neuraltest::NeuralRunResult run;
+		if (args.count("--no-ngx") != 0)
+		{
+			run.status = "unsupported";
+			run.reason = "--no-ngx requested; live SDK calls disabled";
+		}
+		else if (api == "d3d12")
+		{
+			run.status = "unsupported";
+			run.reason = "D3D11On12 neural surface is not implemented";
+		}
+		else if (!neuraltest::RunLiveNeuralD3D11(image, backend,
+			args.count("--warp") != 0, frames, run, error))
+		{
+			std::cerr << error << '\n';
+			return 1;
+		}
+		std::ofstream statusFile(std::filesystem::path(output) / "ngx-status.json");
+		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"api\": \"" << api
+			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
+			<< "\",\n  \"reason\": \"" << run.reason << "\",\n  \"requested_frames\": " << frames
+			<< ",\n  \"submissions\": " << run.submissions << ",\n  \"busy_skips\": " << run.busySkips
+			<< ",\n  \"fallbacks\": " << run.fallbacks << ",\n  \"last_ngx_result\": "
+			<< run.lastNgxResult << ",\n  \"last_exception_code\": " << run.lastExceptionCode
+			<< ",\n  \"invalid_frames\": " << run.invalidFrames
+			<< ",\n  \"output_hash\": \"0x" << std::hex << run.outputHash << std::dec << "\"\n}\n";
+		std::ofstream report(std::filesystem::path(output) / "report.md");
+		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nAPI: `" << api
+			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter
+			<< "`  \nSubmissions: " << run.submissions << "/" << frames
+			<< "  \nInvalid frames: " << run.invalidFrames << "  \nOutput hash: `0x"
+			<< std::hex << run.outputHash << std::dec << "`\n\nReason: " << run.reason << "\n";
+		if (run.status == "submitted"
+			&& !neuraltest::WritePng(std::filesystem::path(output) / "neural_output.png",
+				run.output, error))
+		{
+			std::cerr << error << '\n';
+			return 1;
+		}
+		std::cout << "status=" << run.status << " adapter=\"" << run.adapter
+			<< "\" submissions=" << run.submissions << '/' << frames
+			<< " ngx_result=" << run.lastNgxResult << " exception=" << run.lastExceptionCode
+			<< " invalid_frames=" << run.invalidFrames << " output_hash=0x" << std::hex
+			<< run.outputHash << std::dec << " reason=\"" << run.reason << "\"\n";
+		return run.invalidFrames == 0 ? 0 : 1;
+	}
 	StageConfig config;
-	config.mode = backend == "passthrough" ? NeuralMode::Passthrough : NeuralMode::Dlaa;
+	config.mode = NeuralMode::Passthrough;
 	config.api = api == "d3d12" ? Api::D3D12 : Api::D3D11;
 	config.outputWidth = image.width;
 	config.outputHeight = image.height;
@@ -342,7 +397,6 @@ int NeuralCommand(const Args& args)
 		std::cout << "passthrough submitted; output is byte-identical to input\n";
 		return 0;
 	}
-	std::cout << "unsupported: live " << backend << " evaluation is not implemented\n";
 	return 0;
 }
 

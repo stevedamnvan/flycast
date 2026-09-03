@@ -3,6 +3,7 @@ add_executable(neuraltest
     fixtures.cpp
     harness.h
     main.cpp
+	neural_runner.cpp
     renderer.cpp
     shader_contract.cpp
     unit_tests.cpp)

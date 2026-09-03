@@ -48,6 +48,20 @@ struct RenderResult {
 	std::uint64_t hash = 0;
 };
 
+struct NeuralRunResult {
+	Image output;
+	std::string adapter;
+	std::string status;
+	std::string reason;
+	std::uint64_t submissions = 0;
+	std::uint64_t busySkips = 0;
+	std::uint64_t fallbacks = 0;
+	std::uint64_t invalidFrames = 0;
+	std::uint64_t outputHash = 0;
+	std::int32_t lastNgxResult = 0;
+	std::uint32_t lastExceptionCode = 0;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -59,6 +73,8 @@ double ComputePsnr(const Image& a, const Image& b, std::uint32_t& differingPixel
 bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixture,
 	const RenderOptions& options, const RenderResult& result, std::string& error);
 bool ValidateProductionExportShader(std::string& error);
+bool RunLiveNeuralD3D11(const Image& input, const std::string& backend, bool warp,
+	std::uint32_t frames, NeuralRunResult& result, std::string& error);
 int RunSelfTests();
 
 } // namespace neuraltest

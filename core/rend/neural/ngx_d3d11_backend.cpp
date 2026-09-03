@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "neural_backend.h"
+#include "version.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -27,15 +28,16 @@ struct NgxCallResult
 	__except (EXCEPTION_EXECUTE_HANDLER) { call.exceptionCode = GetExceptionCode(); } \
 	return call
 
-NgxCallResult InitLeaf(const wchar_t *path, ID3D11Device *device) noexcept
+NgxCallResult InitLeaf(const wchar_t *path, ID3D11Device *device,
+	const NVSDK_NGX_FeatureCommonInfo *featureInfo) noexcept
 {
 	NGX_SEH_CALL(NVSDK_NGX_D3D11_Init_with_ProjectID(
-		"3f414bda-13c4-4e2f-8778-92cb584d9157", NVSDK_NGX_ENGINE_TYPE_CUSTOM,
-		"Flycast", path, device, nullptr, NVSDK_NGX_Version_API));
+		"7d5f2a1c-3b8e-4c6a-9f0d-2e4b6c8a1d3f", NVSDK_NGX_ENGINE_TYPE_CUSTOM,
+		GIT_VERSION, path, device, featureInfo, NVSDK_NGX_Version_API));
 }
 
 NgxCallResult CapabilityLeaf(NVSDK_NGX_Parameter **parameters, int *available,
-	int *needsDriver, unsigned int *major, unsigned int *minor) noexcept
+	int *needsDriver, unsigned int *major, unsigned int *minor, int *featureInitResult) noexcept
 {
 	NgxCallResult call;
 	__try
@@ -47,6 +49,8 @@ NgxCallResult CapabilityLeaf(NVSDK_NGX_Parameter **parameters, int *available,
 			NVSDK_NGX_Parameter_GetI(*parameters, NVSDK_NGX_Parameter_SuperSampling_NeedsUpdatedDriver, needsDriver);
 			NVSDK_NGX_Parameter_GetUI(*parameters, NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMajor, major);
 			NVSDK_NGX_Parameter_GetUI(*parameters, NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMinor, minor);
+			NVSDK_NGX_Parameter_GetI(*parameters, NVSDK_NGX_Parameter_SuperSampling_FeatureInitResult,
+				featureInitResult);
 		}
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
@@ -104,7 +108,17 @@ public:
 		wchar_t path[MAX_PATH]{};
 		if (GetTempPathW(static_cast<DWORD>(std::size(path)), path) == 0)
 			return Unsupported("no writable NGX application-data path");
-		auto call = InitLeaf(path, device_);
+		wchar_t featurePath[32768]{};
+		const DWORD featurePathLength = GetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
+			featurePath, static_cast<DWORD>(std::size(featurePath)));
+		const wchar_t *featurePaths[] = {featurePath};
+		NVSDK_NGX_FeatureCommonInfo featureInfo{};
+		if (featurePathLength > 0 && featurePathLength < std::size(featurePath))
+		{
+			featureInfo.PathListInfo.Path = featurePaths;
+			featureInfo.PathListInfo.Length = 1;
+		}
+		auto call = InitLeaf(path, device_, featureInfo.PathListInfo.Length ? &featureInfo : nullptr);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result))
 		{
@@ -117,7 +131,9 @@ public:
 		int needsDriver = 0;
 		unsigned int driverMajor = 0;
 		unsigned int driverMinor = 0;
-		call = CapabilityLeaf(&parameters_, &available, &needsDriver, &driverMajor, &driverMinor);
+		int featureInitResult = 0;
+		call = CapabilityLeaf(&parameters_, &available, &needsDriver, &driverMajor, &driverMinor,
+			&featureInitResult);
 		Record(call);
 		if (call.exceptionCode != 0 || NVSDK_NGX_FAILED(call.result) || !available)
 		{
@@ -128,8 +144,12 @@ public:
 					driverMajor, driverMinor);
 				return BackendEvalStatus::Unsupported;
 			}
-			return Unsupported(call.exceptionCode ? "NGX capability query raised an exception"
-				: "NGX Super Sampling is unavailable");
+			if (call.exceptionCode)
+				return Unsupported("NGX capability query raised an exception");
+			std::snprintf(reason_, sizeof(reason_),
+				"NGX Super Sampling unavailable (availability=%d, driver-update=%d, feature-init=0x%08X)",
+				available, needsDriver, static_cast<unsigned int>(featureInitResult));
+			return BackendEvalStatus::Unsupported;
 		}
 		if (!CreateOutputRing(config.outputWidth, config.outputHeight))
 		{

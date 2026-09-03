@@ -36,11 +36,11 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-035 | 3 | Jitter | All VS variants; Halton; unjittered motion | doing | LOG #17; sequence/phase utility implemented, shaders pending |
 | FC-036 | 3 | Gates 4-6 | Fixture thresholds pass | todo | |
 | FC-039 | 3 | Phase gate | CPU/HLSL evidence and unit tests | todo | |
-| FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | doing | LOG #18,#31; backend interface/factory, device binding, passthrough, dedupe, and source bypass build; live validation pending |
+| FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | done | LOG #18,#31,#34; 720 live D3D11 submissions use shared stage and return output without production waits |
 | FC-041 | 4 | Resource rings | Three deep; fixed; deferred retirement | doing | LOG #25,#29,#31; fixed D3D11 input and NGX output/query rings implemented; deferred retirement pending |
-| FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | doing | LOG #31; SDK lifecycle, capability, create/evaluate, cleanup, and SEH leaves compile/link; live runtime evidence pending |
+| FC-042 | 4 | NGX D3D11 lifecycle | RAII, SEH leaves, readable capability | done | LOG #31,#33-#35; exact project identity/version, external feature path, live create/evaluate/cleanup and readable unsupported paths verified |
 | FC-043 | 4 | Recovery/timing | State machine, removal, async timings | doing | LOG #18,#31; sliding-window hold, nonblocking ring readiness, exception and device-removal mapping implemented; GPU timing/retry evidence pending |
-| FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | todo | |
+| FC-044 | 4 | D3D11 DLAA/SR | 240-frame public NGX matrix | doing | LOG #34; three DLAA fixtures pass 240/240 with zero invalid frames; SR modes/reference comparisons pending |
 | FC-045 | 4 | D3D11On12 surface | Same renderer, dedicated D3D12 lists | todo | |
 | FC-046 | 4 | Cross-API parity | Identical inputs within 1 LSB | todo | |
 | FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | todo | |
@@ -57,7 +57,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #17-#31; 41 checks pass in NGX and no-NGX builds, including explicit DLSS5/D3D12 stubs; numerical HLSL equivalence pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | todo | |
-| FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | todo | |
+| FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |
 | FC-064 | 6 | Performance | Invariants and measured targets | todo | |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | todo | |
 | FC-066 | 6 | Optional hook test | User-supplied real-emulator components | todo | |

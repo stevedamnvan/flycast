@@ -112,3 +112,14 @@ Create uses only `MVLowRes`; HDR, jittered-MV, inverted-depth, auto-exposure,
 alpha-upscale, sharpening, and output subrect flags are off. The stable custom
 Project ID is Flycast-specific but still requires maintainer/NVIDIA review
 before distribution.
+
+## D-013: external NGX feature discovery is explicit
+
+NGX initialization uses the specification's stable custom project ID
+`7d5f2a1c-3b8e-4c6a-9f0d-2e4b6c8a1d3f` and the generated `GIT_VERSION` string.
+Packaged builds rely on NGX's default application-directory lookup. Local
+development may set `FLYCAST_NGX_FEATURE_PATH`; its single directory is passed
+through `NVSDK_NGX_FeatureCommonInfo::PathListInfo`. This keeps the separately
+licensed feature DLL outside the repository while making the harness invocation
+deterministic. The first attempted live run exposed that `PATH` alone does not
+satisfy NGX feature discovery.
