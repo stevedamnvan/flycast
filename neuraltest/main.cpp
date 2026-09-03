@@ -24,8 +24,9 @@ void Usage()
 		"neuraltest determinism --fixture NAME --renderer dx11|dx11-oit [--runs 5] [--warp]\n"
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
 		"neuraltest depth-contract --api d3d11|d3d11on12 --out DIR\n"
+		"neuraltest motion-contract --out DIR\n"
 		"neuraltest depth|motion --in DIR\n"
-		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
+		"neuraltest neural --in DIR --out DIR --backend passthrough|dlaa|dlaa-hook|dlss5-hook|sr --api d3d11|d3d12 [--mode quality|balanced|performance|ultra-performance] [--depth-polarity inverted|normal] [--previous-in DIR|PNG --motion-x N --motion-y N] [--output-width N --output-height N] [--no-ngx] [--warp]\n"
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR\n";
 	std::cout << "neuraltest selftest\n";
@@ -82,6 +83,28 @@ bool Number(const Args& args, const std::string& name, std::uint32_t fallback,
 	catch (const std::exception&)
 	{
 		error = "invalid integer for " + name + ": " + text;
+		return false;
+	}
+}
+
+bool Scalar(const Args& args, const std::string& name, float fallback,
+	float& value, std::string& error)
+{
+	const auto text = Value(args, name);
+	if (text.empty())
+	{
+		value = fallback;
+		return true;
+	}
+	try
+	{
+		value = std::stof(text);
+		if (!std::isfinite(value)) throw std::out_of_range("non-finite");
+		return true;
+	}
+	catch (const std::exception&)
+	{
+		error = "invalid scalar for " + name + ": " + text;
 		return false;
 	}
 }
@@ -331,6 +354,66 @@ int DepthContractCommand(const Args& args)
 	return 0;
 }
 
+int MotionContractCommand(const Args& args)
+{
+	const auto output = Value(args, "--out");
+	if (output.empty())
+	{
+		std::cerr << "motion-contract requires --out DIR\n";
+		return 2;
+	}
+	neuraltest::MotionContractResult result;
+	std::string error;
+	if (!neuraltest::RunMotionContractFixture(result, error))
+	{
+		std::cerr << (error.empty() ? "motion contract assertions failed" : error) << '\n';
+		return 1;
+	}
+	std::filesystem::create_directories(output);
+	if (!neuraltest::WritePng(std::filesystem::path(output) / "previous-color.png",
+		result.previousColor, error) || !neuraltest::WritePng(std::filesystem::path(output) /
+		"current-color.png", result.currentColor, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	auto writeMotion = [&](const char *name, const std::vector<std::uint16_t>& values) {
+		std::ofstream file(std::filesystem::path(output) / name, std::ios::binary);
+		file.write(reinterpret_cast<const char *>(values.data()),
+			static_cast<std::streamsize>(values.size() * sizeof(std::uint16_t)));
+		return file.good();
+	};
+	if (!writeMotion("correct-motion-rg16f.raw", result.correctMotion) ||
+		!writeMotion("reversed-motion-rg16f.raw", result.reversedMotion) ||
+		!writeMotion("doubled-motion-rg16f.raw", result.doubledMotion))
+	{
+		std::cerr << "failed to write motion-contract raw artifacts\n";
+		return 1;
+	}
+	std::ofstream report(std::filesystem::path(output) / "motion-contract.json");
+	report << std::setprecision(9) << "{\n  \"adapter\": \"" << result.adapter
+		<< "\",\n  \"samples\": {\n    \"static\": [" << result.staticX << ','
+		<< result.staticY << "],\n    \"translate_plus_4_x\": [" << result.translateX
+		<< ',' << result.translateY << "],\n    \"translate_minus_3_y\": ["
+		<< result.verticalX << ',' << result.verticalY << "],\n    \"camera\": ["
+		<< result.cameraX << ',' << result.cameraY << "],\n    \"deformation\": ["
+		<< result.deformationX << ',' << result.deformationY
+		<< "],\n    \"deformation_expected\": [" << result.expectedDeformationX << ','
+		<< result.expectedDeformationY << "],\n    \"jitter_only\": [" << result.jitterX
+		<< ',' << result.jitterY << "]\n  },\n  \"reprojection_mae\": {"
+		<< "\n    \"correct\": " << result.correctReprojectionError
+		<< ",\n    \"reversed\": " << result.reversedReprojectionError
+		<< ",\n    \"doubled\": " << result.doubledReprojectionError
+		<< "\n  },\n  \"analytic_truth\": true,\n  \"negative_controls_fail\": true\n}\n";
+	std::cout << std::setprecision(9) << "static=[" << result.staticX << ',' << result.staticY
+		<< "] plus4x=[" << result.translateX << ',' << result.translateY << "] minus3y=["
+		<< result.verticalX << ',' << result.verticalY << "] camera=[" << result.cameraX
+		<< ',' << result.cameraY << "] reprojection_mae=" << result.correctReprojectionError
+		<< " reversed=" << result.reversedReprojectionError << " doubled="
+		<< result.doubledReprojectionError << '\n';
+	return 0;
+}
+
 int NeuralCommand(const Args& args)
 {
 	using namespace flycast::rend::neural;
@@ -369,18 +452,36 @@ int NeuralCommand(const Args& args)
 		return 2;
 	}
 	neuraltest::Image image;
+	neuraltest::Image previousImage;
 	std::string error;
 	if (!neuraltest::ReadPng(ResolveImage(input), image, error))
 	{
 		std::cerr << error << '\n';
 		return 1;
 	}
+	const auto previousInput = Value(args, "--previous-in");
+	if (!previousInput.empty() && !neuraltest::ReadPng(ResolveImage(previousInput),
+		previousImage, error))
+	{
+		std::cerr << error << '\n';
+		return 1;
+	}
+	if (!previousInput.empty() && (previousImage.width != image.width ||
+		previousImage.height != image.height))
+	{
+		std::cerr << "--previous-in dimensions must match --in\n";
+		return 2;
+	}
 	std::uint32_t frames = 1;
 	std::uint32_t outputWidth = image.width;
 	std::uint32_t outputHeight = image.height;
+	float motionX = 0.f;
+	float motionY = 0.f;
 	if (!Number(args, "--frames", 1, frames, error)
 		|| !Number(args, "--output-width", image.width, outputWidth, error)
 		|| !Number(args, "--output-height", image.height, outputHeight, error)
+		|| !Scalar(args, "--motion-x", 0.f, motionX, error)
+		|| !Scalar(args, "--motion-y", 0.f, motionY, error)
 		|| frames == 0 || outputWidth == 0 || outputHeight == 0)
 	{
 		std::cerr << (error.empty() ? "frame count and output dimensions must be positive" : error) << '\n';
@@ -393,10 +494,12 @@ int NeuralCommand(const Args& args)
 		if (!(api == "d3d12"
 			? neuraltest::RunLiveNeuralD3D12(image, backend, mode, outputWidth, outputHeight,
 				args.count("--no-ngx") != 0, args.count("--warp") != 0,
-				depthPolarity == "inverted", frames, run, error)
+				depthPolarity == "inverted", previousInput.empty() ? nullptr : &previousImage,
+				motionX, motionY, frames, run, error)
 			: neuraltest::RunLiveNeuralD3D11(image, backend, mode, outputWidth, outputHeight,
 				args.count("--no-ngx") != 0, args.count("--warp") != 0,
-				depthPolarity == "inverted", frames, run, error)))
+				depthPolarity == "inverted", previousInput.empty() ? nullptr : &previousImage,
+				motionX, motionY, frames, run, error)))
 		{
 			std::cerr << error << '\n';
 			return 1;
@@ -405,7 +508,8 @@ int NeuralCommand(const Args& args)
 		statusFile << "{\n  \"backend\": \"" << backend << "\",\n  \"mode\": \"" << effectiveMode
 			<< "\",\n  \"api\": \"" << api
 			<< "\",\n  \"depth_polarity\": \"" << depthPolarity
-			<< "\",\n  \"surface\": \"" << run.surface
+			<< "\",\n  \"motion\": [" << motionX << ", " << motionY << ']'
+			<< ",\n  \"surface\": \"" << run.surface
 			<< "\",\n  \"status\": \"" << run.status << "\",\n  \"adapter\": \"" << run.adapter
 			<< "\",\n  \"reason\": \"" << run.reason << "\",\n  \"requested_frames\": " << frames
 			<< ",\n  \"submissions\": " << run.submissions << ",\n  \"busy_skips\": " << run.busySkips
@@ -434,7 +538,8 @@ int NeuralCommand(const Args& args)
 		report << "# neuraltest neural report\n\nBackend: `" << backend << "`  \nMode: `" << effectiveMode
 			<< "`  \nAPI: `" << api
 			<< "`  \nDepth polarity: `" << depthPolarity
-			<< "`  \nSurface: `" << run.surface
+			<< "`  \nMotion: `[" << motionX << ", " << motionY << "]`"
+			<< "  \nSurface: `" << run.surface
 			<< "`  \nStatus: `" << run.status << "`  \nAdapter: `" << run.adapter
 			<< "`  \nRender/output: " << image.width << 'x' << image.height << " -> "
 			<< outputWidth << 'x' << outputHeight
@@ -579,6 +684,7 @@ int main(int argc, char **argv)
 	if (command == "determinism") return DeterminismCommand(args);
 	if (command == "scaling") return ScalingCommand(args);
 	if (command == "depth-contract") return DepthContractCommand(args);
+	if (command == "motion-contract") return MotionContractCommand(args);
 	if (command == "depth" || command == "motion") return NoDataCommand(command, args);
 	if (command == "neural") return NeuralCommand(args);
 	if (command == "compare") return CompareCommand(args);

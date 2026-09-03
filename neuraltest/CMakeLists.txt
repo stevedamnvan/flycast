@@ -3,7 +3,8 @@ add_executable(neuraltest
 	guidance_contract.cpp
     fixtures.cpp
     harness.h
-    main.cpp
+	main.cpp
+	motion_contract.cpp
 	neural_runner.cpp
 	neural_runner_d3d12.cpp
     renderer.cpp

@@ -61,3 +61,9 @@ R32 files for each control, and `depth-contract.json`. These are synchronous
 harness artifacts, not emulator performance evidence. Public NGX polarity A/B
 uses `neural --depth-polarity inverted|normal`; the override exists only in
 `neuraltest` and does not expose a production user setting.
+
+The ROM-free Gate 12 command is `neuraltest motion-contract --out DIR`. It
+writes previous/current color, correct/reversed/doubled RG16F motion, and a JSON
+report containing analytic samples and reprojection MAE. Public DLAA consumes
+the same pair through harness-only `neural --previous-in ... --motion-x ...
+--motion-y ...`; this temporal input override is not a production setting.

@@ -30,10 +30,10 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-029 | 2 | Phase gate | Gates 1-3 and deterministic snapshots | todo | |
 | FC-030 | 3 | Previous selection | Last successfully evaluated frame | done | LOG #17,#26; renderer commits reference history only after `Submitted`, skip-reference unit control green |
 | FC-031 | 3 | Draw matching | Three tiers, strips, rigid fit, reactive/N2 | doing | LOG #17,#27; CPU tiers/one-to-one/strip coverage/rigid/reactive/N2 matrix path green; renderer vertex correspondence pending |
-| FC-032 | 3 | Motion rasterization | RG16F render-pixel current-to-previous | doing | LOG #27,#29; RG16F target exists but safely emits zero masked as untrusted; real previous-position rasterization pending |
+| FC-032 | 3 | Motion rasterization | RG16F render-pixel current-to-previous | doing | LOG #27,#29,#62; synthetic GPU Gate 12 proves RG16F previous-minus-current render-pixel convention, scale 1, deformation interpolation, and DLAA sign/scale controls; production previous-position rasterization remains pending |
 | FC-033 | 3 | Confidence/mask | R8 confidence and required bias rules | doing | LOG #27,#29; R8 targets exist and incomplete motion is forced to bias 1/confidence 0; trusted/untrusted HLSL classification pending |
 | FC-034 | 3 | Reset rules | All cadence and scene-cut resets | doing | LOG #17,#26; CPU tracker/scene-cut and framebuffer transitions implemented, remaining global call sites pending |
-| FC-035 | 3 | Jitter | All VS variants; Halton; unjittered motion | doing | LOG #17; sequence/phase utility implemented, shaders pending |
+| FC-035 | 3 | Jitter | All VS variants; Halton; unjittered motion | doing | LOG #17,#62; sequence/phase utility and synthetic jitter-only zero-motion contract are green; production shader variants remain pending |
 | FC-036 | 3 | Gates 4-6 | Fixture thresholds pass | todo | |
 | FC-039 | 3 | Phase gate | CPU/HLSL evidence and unit tests | todo | |
 | FC-040 | 4 | Stage API | Nonblocking submit/status/output contract | done | LOG #18,#31,#34; 720 live D3D11 submissions use shared stage and return output without production waits |
@@ -54,7 +54,7 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | todo | |
 | FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | done | LOG #50-#59; the selected D3D11On12 route passes Gate 10 with full-contract ON/OFF hashes, per-frame sentinel presentation, zero display-frame latency, and native fallback; direct D3D11 and bridge remain unselected candidate routes |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | doing | LOG #49; build-time presentation/fallback/reset structure is green, runtime toggles and pixel Gate 8 pending |
-| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50,#61; 48 checks pass in both NGX and no-NGX builds, including exact production depth behavior on native D3D11 and D3D11On12; numerical motion HLSL equivalence pending |
+| FC-060 | 6 | Unit tests | Fifteen specified behaviors pass | doing | LOG #50,#61,#62; 50 checks pass in both NGX and no-NGX builds, including exact depth and GPU analytic/reprojection motion controls; production numerical HLSL equivalence remains pending |
 | FC-061 | 6 | Harness acceptance | Gates 1-8 and cross-API/debug checks | todo | |
 | FC-062 | 6 | Public NGX acceptance | Live matrix or exact hardware blocks | doing | LOG #34,#38-#40,#44-#45; public RTX harness matrix green on both APIs; production captures/cadence remain pending |
 | FC-063 | 6 | Failure acceptance | No crash/stall/poison/leak | doing | LOG #35; missing runtime, WARP/non-NVIDIA, and explicit no-NGX return clean unsupported status; injected create/evaluate/SEH/busy controls pending |

@@ -32,6 +32,22 @@ std::string HrText(const char *operation, HRESULT hr)
 	return text;
 }
 
+std::uint16_t FloatToHalf(float value)
+{
+	std::uint32_t bits = 0;
+	std::memcpy(&bits, &value, sizeof(bits));
+	const std::uint32_t sign = (bits >> 16) & 0x8000u;
+	int exponent = static_cast<int>((bits >> 23) & 0xffu) - 127 + 15;
+	std::uint32_t mantissa = bits & 0x7fffffu;
+	if (exponent <= 0) return static_cast<std::uint16_t>(sign);
+	if (exponent >= 31) return static_cast<std::uint16_t>(sign | 0x7c00u);
+	mantissa += 0x1000u;
+	if ((mantissa & 0x800000u) != 0) { mantissa = 0; ++exponent; }
+	if (exponent >= 31) return static_cast<std::uint16_t>(sign | 0x7c00u);
+	return static_cast<std::uint16_t>(sign | (static_cast<std::uint32_t>(exponent) << 10)
+		| (mantissa >> 13));
+}
+
 const char *StatusName(flycast::rend::neural::SubmitStatus status)
 {
 	using flycast::rend::neural::SubmitStatus;
@@ -357,7 +373,8 @@ bool ReadbackOutput(ID3D12Device *device, ID3D12CommandQueue *queue,
 
 bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
+	float motionX, float motionY, std::uint32_t frames,
 	NeuralRunResult& result, std::string& error)
 {
 	using namespace flycast::rend::neural;
@@ -365,6 +382,12 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 		!= static_cast<std::size_t>(input.width) * input.height * 4)
 	{
 		error = "invalid RGBA input image";
+		return false;
+	}
+	if (previousInput && (previousInput->width != input.width || previousInput->height != input.height
+		|| previousInput->rgba.size() != input.rgba.size()))
+	{
+		error = "invalid previous RGBA input image";
 		return false;
 	}
 	ComPtr<IDXGIFactory4> factory;
@@ -418,9 +441,13 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	result.surface = "d3d11on12-same-queue";
 	const std::size_t pixels = static_cast<std::size_t>(input.width) * input.height;
 	std::vector<float> depth(pixels, .5f);
-	std::vector<std::uint32_t> motion(pixels, 0);
-	std::vector<std::uint8_t> mask(pixels, 255);
-	ComPtr<ID3D12Resource> color, depthTexture, motionTexture, maskTexture;
+	const std::uint32_t packedMotion = static_cast<std::uint32_t>(FloatToHalf(motionX))
+		| (static_cast<std::uint32_t>(FloatToHalf(motionY)) << 16);
+	std::vector<std::uint32_t> motion(pixels, packedMotion);
+	std::vector<std::uint32_t> zeroMotion(pixels, 0);
+	std::vector<std::uint8_t> mask(pixels, previousInput ? 0 : 255);
+	ComPtr<ID3D12Resource> color, previousColor, depthTexture, motionTexture,
+		zeroMotionTexture, maskTexture;
 	std::vector<ComPtr<ID3D12Resource>> uploads;
 	if (!CreateInput(device.Get(), list.Get(), input.width, input.height,
 		DXGI_FORMAT_R8G8B8A8_UNORM, input.rgba.data(), input.width * 4, color, uploads, error)
@@ -428,6 +455,12 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 			DXGI_FORMAT_R32_FLOAT, depth.data(), input.width * 4, depthTexture, uploads, error)
 		|| !CreateInput(device.Get(), list.Get(), input.width, input.height,
 			DXGI_FORMAT_R16G16_FLOAT, motion.data(), input.width * 4, motionTexture, uploads, error)
+		|| (previousInput && !CreateInput(device.Get(), list.Get(), input.width, input.height,
+			DXGI_FORMAT_R8G8B8A8_UNORM, previousInput->rgba.data(), input.width * 4,
+			previousColor, uploads, error))
+		|| (previousInput && !CreateInput(device.Get(), list.Get(), input.width, input.height,
+			DXGI_FORMAT_R16G16_FLOAT, zeroMotion.data(), input.width * 4,
+			zeroMotionTexture, uploads, error))
 		|| !CreateInput(device.Get(), list.Get(), input.width, input.height,
 			DXGI_FORMAT_R8_UNORM, mask.data(), input.width, maskTexture, uploads, error)
 		|| !ExecuteAndWait(queue.Get(), list.Get(), fence.Get(), eventHandle, harnessFence++, error))
@@ -486,6 +519,20 @@ bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::uint32_t frameCount = frames == 0 ? 1 : frames;
 	for (std::uint32_t i = 0; i < frameCount; ++i)
 	{
+		if (previousInput && i == 0)
+		{
+			frame.color = {TextureApi::D3D12, previousColor.Get(), nullptr,
+				static_cast<std::uint32_t>(DXGI_FORMAT_R8G8B8A8_UNORM)};
+			frame.motion = {TextureApi::D3D12, zeroMotionTexture.Get(), nullptr,
+				static_cast<std::uint32_t>(DXGI_FORMAT_R16G16_FLOAT)};
+		}
+		else
+		{
+			frame.color = {TextureApi::D3D12, color.Get(), nullptr,
+				static_cast<std::uint32_t>(DXGI_FORMAT_R8G8B8A8_UNORM)};
+			frame.motion = {TextureApi::D3D12, motionTexture.Get(), nullptr,
+				static_cast<std::uint32_t>(DXGI_FORMAT_R16G16_FLOAT)};
+		}
 		frame.frameId = i;
 		frame.resetHistory = i == 0;
 		frame.historyValid = i != 0;

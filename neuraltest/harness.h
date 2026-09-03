@@ -104,6 +104,34 @@ struct DepthContractResult {
 	bool nativeExportExact = false;
 };
 
+struct MotionContractResult {
+	std::string adapter;
+	Image previousColor;
+	Image currentColor;
+	std::vector<std::uint16_t> correctMotion;
+	std::vector<std::uint16_t> reversedMotion;
+	std::vector<std::uint16_t> doubledMotion;
+	float staticX = 0.f;
+	float staticY = 0.f;
+	float translateX = 0.f;
+	float translateY = 0.f;
+	float verticalX = 0.f;
+	float verticalY = 0.f;
+	float cameraX = 0.f;
+	float cameraY = 0.f;
+	float deformationX = 0.f;
+	float deformationY = 0.f;
+	float expectedDeformationX = 0.f;
+	float expectedDeformationY = 0.f;
+	float jitterX = 0.f;
+	float jitterY = 0.f;
+	double correctReprojectionError = 0.;
+	double reversedReprojectionError = 0.;
+	double doubledReprojectionError = 0.;
+	bool analyticTruth = false;
+	bool negativeControlsFail = false;
+};
+
 const std::vector<std::string>& FixtureNames();
 bool MakeFixture(const std::string& name, std::uint32_t frame, Fixture& fixture, std::string& error);
 bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderResult& result, std::string& error);
@@ -116,13 +144,16 @@ bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixtur
 	const RenderOptions& options, const RenderResult& result, std::string& error);
 bool ValidateProductionExportShader(std::string& error);
 bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::string& error);
+bool RunMotionContractFixture(MotionContractResult& result, std::string& error);
 bool RunLiveNeuralD3D11(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
+	float motionX, float motionY, std::uint32_t frames,
 	NeuralRunResult& result, std::string& error);
 bool RunLiveNeuralD3D12(const Image& input, const std::string& backend,
 	const std::string& mode, std::uint32_t outputWidth, std::uint32_t outputHeight,
-	bool disableNgx, bool warp, bool depthInverted, std::uint32_t frames,
+	bool disableNgx, bool warp, bool depthInverted, const Image *previousInput,
+	float motionX, float motionY, std::uint32_t frames,
 	NeuralRunResult& result, std::string& error);
 int RunSelfTests();
 

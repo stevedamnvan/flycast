@@ -29,6 +29,11 @@ creation can be A/B tested in the harness with `neural --depth-polarity
 inverted|normal`; production Flycast always uses the proven inverted PVR depth
 declaration.
 
+The synthetic motion convention is exercised by `neuraltest motion-contract
+--out DIR`. A harness-only temporal DLAA pair can supply `--previous-in` and
+constant `--motion-x/--motion-y` values; production motion remains geometry
+derived and does not expose those overrides.
+
 Project state is recorded in `BACKLOG.md`; commands and evidence are in
 `LOG.md`; deviations are in `DECISIONS.md`; artifact definitions are in
 `DIAGNOSTICS.md`.

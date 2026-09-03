@@ -91,4 +91,8 @@ close a temporal or title-quality gate.
   exact across native D3D11 and D3D11On12; the wrong-polarity control fails;
   public NGX D3D11/D3D12 create and evaluate both polarity declarations. The
   static NGX chart is polarity-invariant, which is recorded as a limitation.
-- Gates 12 through 18: pending.
+- Gate 12: green at LOG #62 for the synthetic guidance contract. RG16F motion
+  matches analytic static/translation/camera/deformation truth; jitter-only is
+  zero; pixel reprojection and public DLAA both reject reversed/doubled motion.
+  Production PVR previous-position wiring remains Q2 work under FC-032/FC-035.
+- Gates 13 through 18: pending.

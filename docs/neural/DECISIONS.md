@@ -322,3 +322,22 @@ created and evaluated 8/8 frames on the RTX 5090. Their static-chart outputs
 were byte-identical, so API acceptance/output equality is not used as polarity
 evidence. The falsifying production-shader ordering control is the authority.
 The logarithmic PVR representation is preserved.
+
+## D-029: motion is previous minus current in render-pixel units
+
+The Gate 12 GPU fixture carries separate unjittered current/previous positions
+and applies jitter only to current raster position. Rasterized RG16F truth is
+`[0,0]` for static geometry, `[-4,0]` when current geometry moves +4 render
+pixels in X, `[0,+3]` when it moves -3 render pixels in Y, approximately
+`[-6,+2]` for the camera-style case, and barycentrically interpolated
+per-vertex displacement for deformation. Jitter without object motion remains
+exactly zero.
+
+Reprojection selects the convention empirically: correct motion has zero color
+MAE, while reversed and doubled controls have MAE `47.8868056` and
+`37.318971`. Public DLAA on the same previous/current pair reaches `34.529586`
+dB against current color with correct motion, versus `23.734309` reversed and
+`25.660892` doubled. D3D11 and D3D12 final hashes are exact for all three
+cases. Production therefore retains `InMVScaleX/Y = 1`, unjittered motion plus
+separate render-pixel jitter, no `MVJittered`, and `MVLowRes` only for actual
+low-resolution SR inputs. This proves the contract, not yet PVR history wiring.

@@ -413,6 +413,15 @@ int RunSelfTests()
 			&& native.correctColor.rgba == on12.correctColor.rgba,
 			"production depth contract is exact across D3D11 surfaces");
 	}
+	{
+		MotionContractResult motion;
+		std::string fixtureError;
+		const bool motionOk = RunMotionContractFixture(motion, fixtureError);
+		suite.Expect(motionOk && motion.analyticTruth,
+			"GPU motion contract matches analytic render-pixel truth");
+		suite.Expect(motionOk && motion.negativeControlsFail,
+			"reversed and doubled motion fail pixel reprojection");
+	}
 
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;
