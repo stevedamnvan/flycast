@@ -192,7 +192,7 @@ close a temporal or title-quality gate.
   1024/1024 same-frame sentinel pixels, and completed Present. A 671-package
   comparison index retains every accepted and rejected attempt. This is one
   externally proven gameplay frame, not a proven external temporal sequence.
-- Gate 18: partial at LOG #75 and LOG #77. Asynchronous production D3D11 timestamp queries,
+- Gate 18: partial through LOG #96. Asynchronous production D3D11 timestamp queries,
   Present-call intervals, stage counters, ring pressure, and post-warmup VRAM
   growth are now available without synchronous capture. Initial Soulcalibur
   native, normal-DLAA, OIT-DLAA, and D3D11On12 intervals are bounded and clean;
@@ -351,3 +351,16 @@ close a temporal or title-quality gate.
   unchanged supplied route, while a zero-mask mismatch was rejected without
   promotion. This closes the capture-provenance mechanism and a bounded live
   sample, not Gate 17's gameplay/profile/title matrix.
+  LOG #96 adds a deterministic production-performance replay spanning
+  Soulcalibur frames 1802 through 2401 with all synchronous capture/evidence
+  disabled. The supplied consumer ON run presented 600/600 accepted outputs;
+  the explicit-policy-OFF control presented 600/600 native frames and counted
+  all accepted public candidates as unpresented. Both had zero missing Presents,
+  identity errors, source gaps/repeats, output repeats, alternations, frame
+  latency, or query-ring pressure; both closed cleanly and retained the same
+  `0A96F4E2FB52C75C` replay. ON kept 125 Flycast-owned neural objects constant
+  and grew local VRAM by 196608 bytes; OFF kept 116 constant and grew by 131072
+  bytes. ON Present-interval P50/P95/P99 was 13.8265/14.8639/15.6154 ms versus
+  OFF 13.4586/14.6828/16.1706 ms. The D3D12/external evaluation remains outside
+  Flycast's D3D11 timestamp domain and is still reported null rather than
+  inferred from end-to-end intervals, so external timing remains partial.

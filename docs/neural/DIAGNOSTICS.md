@@ -100,7 +100,8 @@ Production performance measurement is separate:
 `neuraltest performance --game PATH --frames N --warmup N --out DIR
 [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12]
 [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N]
-[--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable]
+[--feature-path DIR] [--input-replay yes|no]
+[--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable]
 [--inject-count N] [--inject-after N]
 [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N]
 [--renderer-reinit-after N]
@@ -126,6 +127,12 @@ accepted-output latency in emulated frames. Native D3D11 and D3D11On12 use the
 same accounting; a public evaluation that is deliberately withheld because an
 experimental external contract is not ready is counted as accepted but not
 presented, never as neural presentation.
+
+Developer automation builds may add `--input-replay yes`. The launcher requires
+`scripts/<media-stem>.input` beside the selected executable, passes the replay
+through the transient `record:` namespace, and retains its FNV64 and byte count
+in the performance output. Production builds and the default `no` path are
+unchanged.
 
 The same report records `resource_objects` for Flycast-owned neural GPU
 resources, views, queries, command allocators, command lists, and fences. It

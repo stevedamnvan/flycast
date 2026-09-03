@@ -45,7 +45,7 @@ void Usage()
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
-		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
+		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--timeout-ms N]\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -782,6 +782,7 @@ int PerformanceCommand(const Args& args)
 	const auto preset = Value(args, "--preset", "auto");
 	const auto injection = Value(args, "--inject", "none");
 	const auto transition = Value(args, "--transition", "none");
+	const auto inputReplay = Value(args, "--input-replay", "no");
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "invalid performance lane\n";
@@ -800,6 +801,11 @@ int PerformanceCommand(const Args& args)
 	if (preset != "auto" && preset != "j" && preset != "k")
 	{
 		std::cerr << "invalid performance preset\n";
+		return 2;
+	}
+	if (inputReplay != "yes" && inputReplay != "no")
+	{
+		std::cerr << "--input-replay must be yes or no\n";
 		return 2;
 	}
 	if (injection != "none" && injection != "create" && injection != "evaluate"
@@ -907,6 +913,45 @@ int PerformanceCommand(const Args& args)
 		std::cerr << "flycast executable is unavailable: " << flycast.string() << '\n';
 		return 3;
 	}
+	std::uint64_t inputReplayHash = 0;
+	std::uintmax_t inputReplayBytes = 0;
+	if (inputReplay == "yes")
+	{
+		const auto source = flycast.parent_path() / "scripts" / (game.stem().string() + ".input");
+		if (!std::filesystem::is_regular_file(source) || !HashFileFnv64(source, inputReplayHash))
+		{
+			std::cerr << "input replay file is unavailable: " << source.string() << '\n';
+			return 3;
+		}
+		std::error_code ec;
+		inputReplayBytes = std::filesystem::file_size(source, ec);
+		if (ec)
+		{
+			std::cerr << "cannot size input replay: " << ec.message() << '\n';
+			return 1;
+		}
+		std::filesystem::create_directories(output, ec);
+		if (ec)
+		{
+			std::cerr << "cannot create performance output for input replay: " << ec.message() << '\n';
+			return 1;
+		}
+		const auto retained = output / "input-replay.input";
+		if (std::filesystem::exists(retained))
+		{
+			std::uint64_t retainedHash = 0;
+			if (!HashFileFnv64(retained, retainedHash) || retainedHash != inputReplayHash)
+			{
+				std::cerr << "performance output contains a different retained input replay\n";
+				return 2;
+			}
+		}
+		else if (!std::filesystem::copy_file(source, retained, std::filesystem::copy_options::none, ec))
+		{
+			std::cerr << "cannot retain input replay: " << ec.message() << '\n';
+			return 1;
+		}
+	}
 	const int mode = lane == "native" ? 0 : lane == "dlaa" ? 2
 		: lane == "sr-quality" ? 4 : 8;
 	const int rendererValue = renderer == "dx11-oit" ? 6 : 2;
@@ -936,6 +981,7 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralPauseAfter=" + std::to_wstring(pauseAfter)
 		+ L",config:rend.NeuralPauseDuration=" + std::to_wstring(pauseDuration)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
+		+ L",record:replay_input=" + (inputReplay == "yes" ? L"yes" : L"no")
 		+ L",log:LogToFile=yes";
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
 		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
@@ -1256,6 +1302,10 @@ int PerformanceCommand(const Args& args)
 	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
 		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
 		<< "\",\n  \"preset\": \"" << preset << "\",\n  \"render_height\": " << renderHeight
+		<< ",\n  \"input_replay_requested\": " << (inputReplay == "yes" ? "true" : "false")
+		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
+		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""
+		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
 		<< ",\n  \"failure_injection\": \"" << injection
 		<< "\",\n  \"failure_injection_count\": " << injectionCount
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
