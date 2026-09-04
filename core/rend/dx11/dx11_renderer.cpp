@@ -1514,7 +1514,8 @@ void DX11Renderer::submitNeuralFrame()
 	const auto mode = static_cast<NeuralMode>(std::clamp(activeNeuralMode, 0, 8));
 	const bool publicTemporalMode = mode == NeuralMode::Dlaa
 		|| mode == NeuralMode::SrQuality || mode == NeuralMode::SrBalanced
-		|| mode == NeuralMode::SrPerformance || mode == NeuralMode::SrUltraPerformance;
+		|| mode == NeuralMode::SrPerformance || mode == NeuralMode::SrUltraPerformance
+		|| mode == NeuralMode::Dlss5Experimental;
 	const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 	const bool overlayProtectionNeeded = overlayPolicy != 2
 		&& neuralInstrumentation.OverlayDrawCount() != 0;
