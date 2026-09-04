@@ -124,6 +124,13 @@ Required implementation and evidence:
 6. Keep accepted-history-indexed jitter. Absolute-frame jitter phase is a rejected design.
 7. Restore any authorized external text config byte-for-byte and keep all third-party files, captures, media, and user paths outside Git.
 
+LOG #125 records one additional rejected control. The exact 30-frame OIT
+candidate/marker/policy-off inputs match, but protected HUD composition covers
+35 pixels of the fixed proof sentinel in 26 frames. The verifier correctly
+rejects 989/1024 as presentation proof. Do not accept, compare, or present
+those external outputs unless a focused future diagnostic change proves a
+non-overlapping or explicitly overlay-aware sentinel without weakening Gate 10.
+
 ## Required independent test sequence
 
 1. Read `docs/neural/BACKLOG.md`, `docs/neural/DECISIONS.md`, `docs/neural/LOG.md`, `docs/neural/DIAGNOSTICS.md`, and `docs/neural/QUALITY-PLAN.md`.
