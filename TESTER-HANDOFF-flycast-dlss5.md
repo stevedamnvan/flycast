@@ -107,36 +107,29 @@ The process closed cleanly and all three public-DLAA evaluations were accepted. 
 
 That is the intended conservative guard because Soulcalibur did not clear the retained PVR framebuffer during those frames. Do not relabel this run as jitter success, failure, or title-quality evidence.
 
-## Next bounded implementor task — post-jitter Gate 16/17 comparison
+## Next bounded implementor task — Gate 17 style-family expansion
 
-FC-035 and quality Gate 12 are accepted at LOG #122. The next task is to rerun the leading external candidates because the production jitter contract materially changes their exact inputs.
-
-LOG #123 adds a required comparison correction: Halton phase follows the
-accepted-evaluation count and resets with neural history. An exact-SHA
-30-frame attempt using absolute frame IDs matched native scene content at a
-one-frame offset but matched zero complete input contracts because external
-host startup shifted the phase. The accepted-history implementation then
-matched 3/3 short policy-on/off color/depth/motion/mask contracts and identical
-jitter phases. Do not compare lanes built with the rejected absolute-frame
-phase rule.
+LOG #124 completes the exact-commit post-jitter Soulcalibur comparison. The
+conservative and both Uncanny lanes pass 30/30 external provenance. Public Auto
+remains Faithful; Uncanny is a valid user-selected transformative preset whose
+automatic-HUD lane has zero protected-pixel mismatches.
 
 Required implementation and evidence:
 
-1. Preserve every LOG #118-#122 artifact. Do not reset, clean, stash, rebase, or overwrite them.
-2. Capture the same deterministic moving Soulcalibur interval through target-native public DLAA Auto with active production jitter.
-3. Capture the conservative intensity-0.125/Natural candidate and Uncanny Cinematic candidate with exact matching color/depth/motion/mask inputs.
-4. Uncanny uses Cinematic, Structure 200 percent, Tone 75 percent, and maximum scene coverage as its requested external recommendation. Keep automatic HUD protection enabled in the candidate-default lane; any disabled-overlay maximum-coverage run is a separately labeled visual experiment.
-5. Require the consumer-reported active tuple for fields the host reports. Continue labeling local structure as requested plus isolated-output-proven unless the host positively reports it.
-6. Retain moving comparisons and all component metrics. Judge Faithful, Enhanced, and Uncanny separately; a dramatic image is not automatically a faithful winner.
-7. Restore the supplied text configuration byte-for-byte and verify its original hash after every bounded sweep.
-8. Do not acquire proprietary media, inspect or patch third-party binaries, or stage configurations, captures, game media, or user paths.
+1. Preserve every LOG #118-#124 artifact. Do not reset, clean, stash, rebase, or overwrite them.
+2. When the user supplies another legal title, choose one deterministic moving interval that fills a missing style family.
+3. Capture native, public DLAA Auto, Uncanny automatic-HUD, and maximum-coverage experiment lanes with exact candidate/marker/policy-off provenance.
+4. Require zero protected-pixel mismatch for the candidate-default lane and keep maximum coverage separately labeled.
+5. Judge the title independently. Do not infer a factory-default win from Soulcalibur or still images.
+6. Keep accepted-history-indexed jitter. Absolute-frame jitter phase is a rejected design.
+7. Restore any authorized external text config byte-for-byte and keep all third-party files, captures, media, and user paths outside Git.
 
 ## Required independent test sequence
 
 1. Read `docs/neural/BACKLOG.md`, `docs/neural/DECISIONS.md`, `docs/neural/LOG.md`, `docs/neural/DIAGNOSTICS.md`, and `docs/neural/QUALITY-PLAN.md`.
 2. Record current HEAD and worktree state. Confirm the FC-035/profile slice is committed before beginning another production change.
-3. Re-run the four-build matrix and both selftests if code changes. Expected current count is `156/156`; report the actual count.
-4. Verify the public and external captures use nonzero production jitter and exact matching input hashes.
+3. Re-run the four-build matrix and all available selftests if code changes. Expected current count is `159/159`; report the actual count.
+4. Verify eligible public and external frames use accepted-history production jitter and exact matching input hashes; protected-overlay frames may conservatively report zero jitter.
 5. Verify automatic overlay protection still has zero protected-pixel mismatches in any default-candidate run.
 6. Compare native PVR, public Auto, conservative external, and Uncanny with source, temporal, trail, edge, thin-line, color, saturation, black-level, repeat/drop, and HUD metrics plus moving visual review.
 7. Reject any run whose requested external settings cannot be bound to the exact consumer output under the existing fail-closed provenance rules.

@@ -1257,3 +1257,20 @@ This is required for both temporal correctness and exact-input visual
 comparison. The consumer-enabled and policy-off controls must receive the same
 color, depth, motion, mask, and jitter for the same accepted-history sample;
 host startup timing is not part of the image contract.
+
+## D-078: Uncanny may be user-selected without becoming the Faithful default
+
+The exact-commit post-jitter Soulcalibur comparison accepts Uncanny Cinematic
+as a valid, persistent, deliberately transformative profile. Maximum-coverage
+and automatic-HUD-protection lanes both pass 30/30 exact-input external
+provenance. The HUD-safe lane protects an average 15,313 pixels per frame with
+zero mismatches, repeats, or drops.
+
+This is not evidence for replacing Faithful Dreamcast Remaster. Against public
+DLAA Auto, the maximum-coverage Uncanny lane raises mean source RGB MAE from
+3.383 to 10.500, trail energy from 6.025 to 13.254, silhouette displacement
+from 0.817 to 1.192, saturation drift from 3.893 to 12.646, and black-level
+drift from 2.771 to 8.796 while reducing thin-line continuity from 77.871 to
+64.874. Its lower raw frame-to-frame MAE is not sufficient to override those
+identity and artifact failures. Faithful therefore remains public DLAA Auto;
+Uncanny remains an explicit user preference pending broader-title review.

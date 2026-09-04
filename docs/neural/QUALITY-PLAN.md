@@ -249,6 +249,13 @@ close a temporal or title-quality gate.
   functionally active even though the host log omits it; captures label the
   field requested plus isolated-output-proven, not consumer-reported. The result
   deliberately leaves the Faithful envelope and remains Photoreal Experimental.
+  LOG #124 repeats the leading conservative and Uncanny lanes after production
+  jitter on exact commit `c11ba8312`. All three candidate-default experiments
+  pass 30/30 exact-input provenance. Conservative still loses public Auto on
+  Faithful constraints. Uncanny is valid as a user-selected transformative
+  profile; its automatic-HUD lane protects an average 15,313 pixels with zero
+  mismatch/repeat/drop, but its trail, edge, thin-line, saturation, and black-
+  level results prohibit promotion to the Faithful factory default.
   Per-title tuning and broader trust remain open. LOG #121 makes that exact
   uncanny tuple a persistent user-selectable Flycast profile and capture-CLI
   value. It is eligible to be the user's chosen default, but is not promoted to
