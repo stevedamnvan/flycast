@@ -1274,3 +1274,17 @@ drift from 2.771 to 8.796 while reducing thin-line continuity from 77.871 to
 64.874. Its lower raw frame-to-frame MAE is not sufficient to override those
 identity and artifact failures. Faithful therefore remains public DLAA Auto;
 Uncanny remains an explicit user preference pending broader-title review.
+
+## D-079: the presentation sentinel has an explicit, strict corner
+
+The synchronous developer-only Gate 10 sentinel remains a 32x32 pattern
+copied into the returned D3D12 neural output before Flycast presentation. Its
+default origin remains top-left. A bounded bottom-right control is permitted
+when protected post-neural HUD pixels legitimately occupy the default corner,
+as observed in the Soulcalibur OIT lane.
+
+Both the D3D12 copy and D3D11 swapchain verifier derive the origin from the
+same output-relative contract, logs identify the corner, and acceptance still
+requires 1024/1024 pixels plus same-frame Present. Drawing a replacement marker
+after overlay composition is forbidden because that would no longer prove the
+returned neural resource reached presentation.

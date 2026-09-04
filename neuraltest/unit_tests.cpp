@@ -3,6 +3,7 @@
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/dlss5_hook.h"
+#include "rend/neural/evidence_marker.h"
 #include "rend/neural/live_status.h"
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
@@ -75,6 +76,17 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		const auto defaultOrigin = GetEvidenceMarkerOrigin(640, 480, false);
+		const auto oitOrigin = GetEvidenceMarkerOrigin(640, 480, true);
+		const auto clampedOrigin = GetEvidenceMarkerOrigin(16, 24, true);
+		suite.Expect(defaultOrigin.x == 0 && defaultOrigin.y == 0,
+			"evidence marker defaults to the Gate 10 top-left origin");
+		suite.Expect(oitOrigin.x == 608 && oitOrigin.y == 448,
+			"evidence marker bottom-right origin is output-relative");
+		suite.Expect(clampedOrigin.x == 0 && clampedOrigin.y == 0,
+			"evidence marker origin clamps for undersized outputs");
+	}
 	{
 		const auto faithful = ResolveQualityProfile(0, 0);
 		const auto enhanced = ResolveQualityProfile(1, 3);

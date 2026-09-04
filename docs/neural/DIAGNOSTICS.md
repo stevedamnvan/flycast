@@ -27,7 +27,8 @@ The production capture command is:
 [--render-height N] [--feature-path DIR] [--input-replay yes|no]
 [--evidence-frames 0..480] [--evidence-start-frame N]
 [--evidence-mask zero|production]
-[--evidence-presentation marker|restored] [--timeout-ms N]`
+[--evidence-presentation marker|restored]
+[--evidence-marker top-left|bottom-right] [--timeout-ms N]`
 
 It launches Flycast with transient command-line configuration, limits a run to
 1 through 240 frames, waits for a completion marker, requests a normal window
@@ -89,6 +90,13 @@ marked D3D12 readbacks, then restores the unmarked output before final sampling.
 The candidate's swapchain readback contains zero marker pixels; a separate
 ON-marker run must prove 1024/1024 marker pixels and completed Present. Both modes are
 synchronous, developer-only, and excluded from performance measurements.
+
+`--evidence-marker top-left` preserves the Gate 10 default. `bottom-right` is
+an explicit diagnostic placement for scenes whose protected post-neural HUD
+legitimately covers the top-left corner. It moves the same 32x32 sentinel
+inside the returned neural output before Flycast composition; it does not draw
+proof onto the final swapchain. Confirmation still requires all 1024 pixels,
+and the log and launch record identify the selected corner.
 
 On an experimental policy-OFF run, restored synchronous capture may retain the
 accepted public result solely as `public-dlaa-output.png` for an exact-input

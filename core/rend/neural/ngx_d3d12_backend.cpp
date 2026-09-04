@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "neural_backend.h"
 #include "dlss5_hook.h"
+#include "evidence_marker.h"
 #include "version.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -148,8 +149,6 @@ D3D12_RESOURCE_BARRIER Transition(ID3D12Resource *resource,
 	return barrier;
 }
 
-constexpr std::uint32_t EvidenceMarkerWidth = 32;
-constexpr std::uint32_t EvidenceMarkerHeight = 32;
 constexpr std::uint32_t EvidenceRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
 
 std::uint64_t HashMappedTexture(ID3D12Resource *resource, std::uint32_t width,
@@ -948,7 +947,7 @@ private:
 			for (std::uint32_t x = 0; x < EvidenceMarkerWidth; ++x)
 			{
 				auto *pixel = bytes + static_cast<std::size_t>(y) * EvidenceRowAlignment + x * 4;
-				const bool cyan = ((x / 8) + (y / 8)) % 2 != 0;
+				const bool cyan = EvidenceMarkerIsCyan(x, y);
 				pixel[0] = cyan ? 0 : 255;
 				pixel[1] = cyan ? 255 : 0;
 				pixel[2] = 255;
@@ -991,7 +990,9 @@ private:
 		source.PlacedFootprint.Footprint.Height = EvidenceMarkerHeight;
 		source.PlacedFootprint.Footprint.Depth = 1;
 		source.PlacedFootprint.Footprint.RowPitch = EvidenceRowAlignment;
-		list->CopyTextureRegion(&destination, 0, 0, 0, &source, nullptr);
+		const auto origin = GetEvidenceMarkerOrigin(config_.outputWidth, config_.outputHeight,
+			config_.dlss5EvidenceMarkerBottomRight);
+		list->CopyTextureRegion(&destination, origin.x, origin.y, 0, &source, nullptr);
 	}
 
 	bool WaitForFence(std::uint64_t target) noexcept

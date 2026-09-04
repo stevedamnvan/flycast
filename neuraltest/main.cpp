@@ -44,7 +44,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest native-parity --game PATH --enabled-flycast EXE --feature-off-flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 5] [--skip N] [--render-height N] [--timeout-ms N]\n"
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
@@ -831,6 +831,7 @@ int CaptureCommand(const Args& args)
 	const auto style = Value(args, "--style", "auto");
 	const auto evidenceMask = Value(args, "--evidence-mask", "zero");
 	const auto evidencePresentation = Value(args, "--evidence-presentation", "marker");
+	const auto evidenceMarker = Value(args, "--evidence-marker", "top-left");
 	const auto inputReplay = Value(args, "--input-replay", "no");
 	const bool lateOverlayProof = args.count("--late-overlay-proof") != 0;
 	const auto proofOverlay = Value(args, "--proof-overlay", "fps");
@@ -858,6 +859,11 @@ int CaptureCommand(const Args& args)
 	if (evidencePresentation != "marker" && evidencePresentation != "restored")
 	{
 		std::cerr << "--evidence-presentation must be marker or restored\n";
+		return 2;
+	}
+	if (evidenceMarker != "top-left" && evidenceMarker != "bottom-right")
+	{
+		std::cerr << "--evidence-marker must be top-left or bottom-right\n";
 		return 2;
 	}
 	if (evidenceFrames == 0 && evidencePresentation != "marker")
@@ -1036,6 +1042,8 @@ int CaptureCommand(const Args& args)
 		+ (evidenceFrames != 0 && evidenceMask == "production" ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidencePresentMarker="
 		+ (evidencePresentation == "marker" ? L"yes" : L"no")
+		+ L",config:rend.NeuralDlss5EvidenceMarkerBottomRight="
+		+ (evidenceMarker == "bottom-right" ? L"yes" : L"no")
 		+ L",config:rend.NeuralFailureInjection=" + std::to_wstring(injectionValue)
 		+ L",config:rend.NeuralFailureInjectionCount=" + std::to_wstring(injectionCount)
 		+ L",config:rend.NeuralFailureInjectionAfter=" + std::to_wstring(injectionAfter)
@@ -1148,6 +1156,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"evidence_start_frame\": " << evidenceStartFrame
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
 		<< ",\n  \"evidence_presentation\": \"" << evidencePresentation << "\""
+		<< ",\n  \"evidence_marker\": \"" << evidenceMarker << "\""
 		<< ",\n  \"input_replay_requested\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""

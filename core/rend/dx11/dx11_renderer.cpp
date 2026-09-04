@@ -1460,7 +1460,7 @@ void DX11Renderer::logNeuralConsumerStatus(
 			"DLSS 5 developer evidence: git_sha=%s captures=%llu failures=%llu frame=%llu "
 			"color_fnv64=%016llX depth_fnv64=%016llX motion_fnv64=%016llX mask_fnv64=%016llX "
 			"returned_fnv64=%016llX marked_fnv64=%016llX wait_us=%llu "
-			"marker=32x32-magenta-cyan marker_presentation=%s; synchronous developer mode",
+			"marker=32x32-magenta-cyan marker_origin=%s marker_presentation=%s; synchronous developer mode",
 			GIT_HASH, static_cast<unsigned long long>(stats.evidenceCaptures),
 			static_cast<unsigned long long>(stats.evidenceCaptureFailures),
 			static_cast<unsigned long long>(stats.evidenceFrameId),
@@ -1471,6 +1471,7 @@ void DX11Renderer::logNeuralConsumerStatus(
 			static_cast<unsigned long long>(stats.evidenceOutputHash),
 			static_cast<unsigned long long>(stats.evidenceMarkedOutputHash),
 			static_cast<unsigned long long>(stats.evidenceWaitMicroseconds),
+			config::NeuralDlss5EvidenceMarkerBottomRight.get() ? "bottom-right" : "top-left",
 			config::NeuralDlss5EvidencePresentMarker.get() ? "present" : "restored");
 	}
 	if (stats.dlss5Route == loggedDlss5Route
@@ -2062,6 +2063,8 @@ bool DX11Renderer::syncNeuralMode()
 				std::max(0, config::NeuralDlss5EvidenceStartFrame.get()));
 			stageConfig.dlss5EvidencePresentMarker =
 				config::NeuralDlss5EvidencePresentMarker.get();
+			stageConfig.dlss5EvidenceMarkerBottomRight =
+				config::NeuralDlss5EvidenceMarkerBottomRight.get();
 		}
 		neuralStage = NeuralStage(stageConfig);
 		NOTICE_LOG(RENDERER, "Public DLSS preset: %s (%d); external Neural Rendering model selection is independent",

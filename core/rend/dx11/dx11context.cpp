@@ -25,6 +25,7 @@
 #include "hw/pvr/Renderer_if.h"
 #include "emulator.h"
 #include "dx11_driver.h"
+#include "rend/neural/evidence_marker.h"
 #include "imgui_impl_dx11.h"
 #include <dxgi1_6.h>
 #ifdef TARGET_UWP
@@ -561,6 +562,9 @@ void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcep
 	std::uint64_t hash = offset;
 	std::uint32_t markerPixels = 0;
 	const auto *bytes = static_cast<const std::uint8_t *>(mapped.pData);
+	const bool markerBottomRight = config::NeuralDlss5EvidenceMarkerBottomRight.get();
+	const auto markerOrigin = flycast::rend::neural::GetEvidenceMarkerOrigin(
+		desc.Width, desc.Height, markerBottomRight);
 	for (UINT y = 0; y < desc.Height; ++y)
 	{
 		const auto *row = bytes + static_cast<std::size_t>(y) * mapped.RowPitch;
@@ -569,12 +573,16 @@ void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcep
 			hash ^= row[x];
 			hash *= prime;
 		}
-		if (y < 32)
+		if (y >= markerOrigin.y
+			&& y < markerOrigin.y + flycast::rend::neural::EvidenceMarkerHeight)
 		{
-			for (UINT x = 0; x < std::min<UINT>(32, desc.Width); ++x)
+			const auto markerEndX = std::min<UINT>(
+				markerOrigin.x + flycast::rend::neural::EvidenceMarkerWidth, desc.Width);
+			for (UINT x = markerOrigin.x; x < markerEndX; ++x)
 			{
 				const auto *pixel = row + x * 4;
-				const bool cyan = ((x / 8) + (y / 8)) % 2 != 0;
+				const bool cyan = flycast::rend::neural::EvidenceMarkerIsCyan(
+					x - markerOrigin.x, y - markerOrigin.y);
 				const auto nearByte = [](std::uint8_t value, std::uint8_t expected) {
 					return value >= expected - std::min<std::uint8_t>(expected, 2)
 						&& value <= expected + std::min<std::uint8_t>(static_cast<std::uint8_t>(255 - expected), 2);
@@ -587,9 +595,9 @@ void DX11Context::captureNeuralEvidenceBackBuffer(std::uint64_t frameId) noexcep
 	}
 	pDeviceContext->Unmap(staging, 0);
 	NOTICE_LOG(RENDERER,
-		"DLSS 5 developer present evidence: capture=%u frame=%llu backbuffer_fnv64=%016llX marker_pixels=%u/1024 size=%ux%u; synchronous developer mode",
+		"DLSS 5 developer present evidence: capture=%u frame=%llu backbuffer_fnv64=%016llX marker_origin=%s marker_pixels=%u/1024 size=%ux%u; synchronous developer mode",
 		captureNumber, static_cast<unsigned long long>(frameId), static_cast<unsigned long long>(hash),
-		markerPixels, desc.Width, desc.Height);
+		markerBottomRight ? "bottom-right" : "top-left", markerPixels, desc.Width, desc.Height);
 }
 #endif
 

@@ -54,6 +54,9 @@ struct StageConfig {
 	// A capture-candidate control may restore the evaluated output after the
 	// sentinel readback. The default keeps the Gate 10 marker presentation.
 	bool dlss5EvidencePresentMarker = true;
+	// Developer-only placement control for avoiding a known protected-overlay
+	// region. Both corners still mark the returned neural output itself.
+	bool dlss5EvidenceMarkerBottomRight = false;
 	// Optional asynchronous GPU telemetry. Disabled for ordinary rendering and
 	// for synchronous developer evidence capture.
 	bool performanceGpuTiming = false;
