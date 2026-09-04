@@ -62,10 +62,10 @@ Modified files at pause time:
 The intended design is:
 
 1. Keep Flycast's ordinary PVR framebuffer unjittered and untouched for fallback and protected-overlay composition.
-2. For normal DX11 public DLAA/SR only, rerender the PVR scene into the separate neural color target with a Halton render-pixel jitter.
+2. For normal DX11 public DLAA/SR and the DLSS5 experimental public-DLAA contract, rerender the PVR scene into the separate neural color target with a Halton render-pixel jitter.
 3. Apply the same jitter to current raster coverage in the normal, modifier-volume, and Naomi 2 vertex permutations.
 4. Compute motion from current and previous unjittered positions, then report the raster jitter separately through `InJitterOffsetX/Y`.
-5. Keep hook-compatible DLAA and DLSS 5 experimental modes at zero jitter.
+5. Keep hook-compatible DLAA at zero jitter; the selected DLSS 5 experimental route uses the ordinary public-DLAA jitter contract before interception.
 6. Fail conservatively to zero jitter for DX11 OIT, predominantly 2D frames, retained-framebuffer content, and frames containing protected overlay draws.
 7. Record the exact jitter and conservative reason in every quality-capture manifest.
 
@@ -110,6 +110,15 @@ That is the intended conservative guard because Soulcalibur did not clear the re
 ## Next bounded implementor task — post-jitter Gate 16/17 comparison
 
 FC-035 and quality Gate 12 are accepted at LOG #122. The next task is to rerun the leading external candidates because the production jitter contract materially changes their exact inputs.
+
+LOG #123 adds a required comparison correction: Halton phase follows the
+accepted-evaluation count and resets with neural history. An exact-SHA
+30-frame attempt using absolute frame IDs matched native scene content at a
+one-frame offset but matched zero complete input contracts because external
+host startup shifted the phase. The accepted-history implementation then
+matched 3/3 short policy-on/off color/depth/motion/mask contracts and identical
+jitter phases. Do not compare lanes built with the rejected absolute-frame
+phase rule.
 
 Required implementation and evidence:
 

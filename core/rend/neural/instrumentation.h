@@ -45,6 +45,10 @@ public:
 		frame_.jitterY = jitter.y;
 	}
 	void MarkEvaluated(std::uint64_t frameId) noexcept;
+	std::uint64_t AcceptedEvaluationCount() const noexcept
+	{
+		return acceptedEvaluationCount_;
+	}
 
 	bool Truncated() const noexcept { return truncated_; }
 	std::uint64_t DrawSnapshotHash() const noexcept { return drawSnapshotHash_; }
@@ -102,6 +106,7 @@ private:
 	std::uint64_t frameId_ = 0;
 	std::uint64_t capturedFrameId_ = 0;
 	std::uint64_t lastAcceptedFrameId_ = 0;
+	std::uint64_t acceptedEvaluationCount_ = 0;
 	std::uint32_t historyAge_ = 0;
 	std::uint32_t skippedFrameCount_ = 0;
 	bool hasAcceptedFrame_ = false;

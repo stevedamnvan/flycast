@@ -943,6 +943,7 @@ void NeuralInstrumentation::BuildPreviousPositions(const rend_context& context) 
 void NeuralInstrumentation::Discontinuity() noexcept
 {
 	++historyGeneration_;
+	acceptedEvaluationCount_ = 0;
 	resetPending_ = true;
 }
 
@@ -1080,6 +1081,7 @@ void NeuralInstrumentation::MarkEvaluated(std::uint64_t frameId) noexcept
 	resetPending_ = false;
 	lastAcceptedFrameId_ = frameId;
 	hasAcceptedFrame_ = true;
+	++acceptedEvaluationCount_;
 }
 
 } // namespace flycast::rend::neural

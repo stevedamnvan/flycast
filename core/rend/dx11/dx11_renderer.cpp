@@ -1529,7 +1529,7 @@ void DX11Renderer::submitNeuralFrame()
 	{
 		const auto phases = JitterPhaseCount(capturedFrame.renderWidth,
 			capturedFrame.outputWidth);
-		rasterJitter = HaltonJitter(capturedFrame.frameId - 1, phases);
+		rasterJitter = HaltonJitter(neuralInstrumentation.AcceptedEvaluationCount(), phases);
 	}
 	neuralInstrumentation.SetCurrentJitter(rasterJitter);
 	if (!hasLoggedNeuralRasterJitter || loggedNeuralRasterJitter != rasterJitterEligible)

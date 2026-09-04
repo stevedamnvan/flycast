@@ -1242,3 +1242,18 @@ byte-identical while the neural source differs. An injected failure on an
 actively jittered frame must emit no public output and present that same native
 frame byte-for-byte. These conditions hold independently of the selected
 Faithful, Enhanced, Photoreal, or Uncanny quality-profile metadata.
+
+## D-077: raster jitter phase follows accepted neural history
+
+Production Halton phase is indexed by the number of successfully accepted
+neural evaluations in the current history generation, not by Flycast's
+absolute emulated-frame ID. `MarkEvaluated` alone advances the phase, while
+every neural discontinuity resets it to zero with the rest of accepted
+history. A skipped, rejected, or externally delayed startup frame therefore
+cannot silently put two otherwise exact replay lanes on different jitter
+phases.
+
+This is required for both temporal correctness and exact-input visual
+comparison. The consumer-enabled and policy-off controls must receive the same
+color, depth, motion, mask, and jitter for the same accepted-history sample;
+host startup timing is not part of the image contract.

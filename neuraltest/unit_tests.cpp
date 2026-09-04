@@ -388,15 +388,22 @@ int RunSelfTests()
 		context.render_passes.push_back(pass);
 		auto instrumentation = std::make_unique<NeuralInstrumentation>();
 		instrumentation->SetEnabled(true);
+		suite.Expect(instrumentation->AcceptedEvaluationCount() == 0,
+			"jitter phase begins at zero after enable discontinuity");
 		const auto& first = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		instrumentation->MarkEvaluated(first.frameId);
+		suite.Expect(instrumentation->AcceptedEvaluationCount() == 1,
+			"jitter phase advances only after accepted evaluation");
 		for (auto& vertex : context.verts) vertex.x += 4.f;
 		const auto& moved = instrumentation->CaptureGeometry(context, {}, {}, 320, 240,
 			320, 240, {0, 0, 320, 240}, {});
 		suite.Expect(moved.matches.data[0].confidence >= .5f && moved.historyValid
 			&& !moved.sceneCut && instrumentation->TrustedPreviousVertexCount() == 6,
 			"primitive-restart strip breaks preserve trusted previous positions");
+		instrumentation->Discontinuity();
+		suite.Expect(instrumentation->AcceptedEvaluationCount() == 0,
+			"jitter phase resets with accepted-history discontinuity");
 	}
 	{
 		rend_context context{};

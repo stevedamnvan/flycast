@@ -106,7 +106,9 @@ close a temporal or title-quality gate.
   unjittered native framebuffer remains byte-identical. An active injected
   failure returns exact native output with no stale public artifact; automatic
   HUD protection remains zero-jitter and byte-exact; OIT remains explicitly
-  zero-jitter pending its separate scene replay.
+  zero-jitter pending its separate scene replay. LOG #123 extends the same
+  public-DLAA contract to DLSS5 experimental and indexes phase by accepted
+  neural-history count, eliminating policy-on/off startup-phase drift.
 - Q1 SDR/color/rectangle contract: green at LOG #63. The production quad path
   is byte-exact for the deterministic chart; public DLAA is exact in 214,320
   constant-interior RGB/alpha samples and byte-identical across D3D11/D3D12.
