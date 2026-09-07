@@ -2,11 +2,11 @@
 
 ## Current assignment -- 2026-09-07
 
-Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). An exact
-source-transform/SQ/RAM packet reaches bulk TA input with a failing wrong-offset
-control and unchanged images. Next follow that packet into its actual context
-and decoded vertex; then assess projection/camera semantics, not guessed FOV.
-No Remix GPU claim. Older assignments below are historical.
+Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). The source
+transform reaches an exact copied packet and decoded vertex; wrong context
+fails and native images remain unchanged. Next implement bounded source-matrix
+semantics/reprojection checks, expose model/view ambiguity and report the exact
+supported scene contract. Do not repeat lineage checks or guess a world camera.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
 copies and an overwrite boundary are verified. Next capture the identified

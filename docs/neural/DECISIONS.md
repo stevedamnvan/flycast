@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-095: decoded-vertex lineage does not separate model/view/projection
+
+One exact source transform now reaches the actual TA copy and xyz conversion
+of a decoded vertex, with a failing wrong-context expectation. Accept that
+lineage only. A scaled/orthogonal-looking composite matrix does not uniquely
+identify the camera, world basis, model transforms or physical scale. Next
+test algebraic/reprojection semantics and expose equivalent decompositions;
+additional linked samples must distinguish an explicit hypothesis, not repeat
+presence checks. No arbitrary FOV/world normal or runtime-integration promotion.
+
 ## D-094: TA input identity is necessary but not camera or frame identity
 
 The captured source transform reaches one exact 32-byte RAM packet through

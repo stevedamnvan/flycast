@@ -2,11 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
-Current: TRANSFORM-TA-INPUT-AUDIT.md (LOG #152, D-094). One executed source
-transform reaches an exact packet in bulk TA input via SQ/RAM. Next prove its
-TA context/decoded vertex association, then assess source projection semantics.
-Camera/world reconstruction and Remix GPU remain unproven. Older checkpoints
-below are historical, not repeat assignments.
+Current: TRANSFORM-DECODE-AUDIT.md (LOG #153, D-095). One source transform is
+linked through exact TA copy to a decoded vertex, with a wrong-context control.
+Next assess source projection/model/view semantics and decomposition ambiguity,
+using bounded falsifying checks and only necessary additional linked samples.
+World camera/Remix GPU remain unproven; older checkpoints are historical.
 
 Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
 chain is verified and stops at overwrite. Next prove the identified derived

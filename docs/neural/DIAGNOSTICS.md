@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 decoded-vertex evidence
+
+`python neuraltest/transform_context_inspect.py --positive B --negative C
+--baseline RESTORED` verifies TRANSFORM-DECODE-AUDIT.md's full source-to-decoded
+vertex chain, wrong-context control and native preservation. Run
+`python neuraltest/test_transform_context_inspect.py` for synthetic parser
+controls. This is not a recovered world camera or presented-frame association.
+
 ## FC-067 source-to-TA-input evidence
 
 `python neuraltest/transform_ta_inspect.py --positive C --negative D

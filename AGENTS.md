@@ -2,11 +2,11 @@
 
 ## Current assignment
 
-Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). One
-transform/derived-coordinate/SQ/RAM chain reaches an exact bulk TA input packet.
-Wrong packet-offset control fails with native images unchanged. Next link that
-packet to its actual TA context/decoded vertex, then assess source projection
-semantics. No camera/Remix claim; older checkpoints below are historical.
+Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). One executed
+source transform is linked through TA copy to decoded vertex 14526, with wrong
+context control and unchanged native images. Next assess projection/model/view
+semantics with algebraic/reprojection falsification; acquire only necessary
+additional linked samples. No more lineage census or camera/Remix assumption.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
 values and three RAM copies are verified; the old span terminates at an actual

@@ -2,11 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). One
-executed transform reaches a verified bulk TA input packet via SQ and RAM.
-Next establish the packet's actual context/decoded vertex and evaluate source
-projection semantics. World camera, path tracing and combined Remix/Neural
-Rendering remain unproven. Older checkpoints below are historical.
+Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). A source
+transform is now linked to one actual decoded vertex with falsifying context
+control. Next establish which projection/model/view semantics are supported,
+not merely that the data is consumed. World camera, path tracing and combined
+Remix/Neural Rendering remain unproven. Older checkpoints are historical.
 
 Current: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). An executed
 RAM consumer/copy chain is verified, ending at overwrite. Next prove the derived
