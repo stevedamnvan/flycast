@@ -2,6 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Latest source finding: `docs/neural/CAMERA-SOURCE-AUDIT.md`, LOG #147, D-090.
+Executed FTRV arithmetic is observable, but its link to submitted Soulcalibur
+vertices is not captured. Next test bounded causal lineage or report unsupported;
+do not call a matrix dump camera recovery or begin runtime integration.
+
 Implemented checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
 The source-texture/palette sidecar and 30-frame native-preservation evidence are
 accepted for that slice only. Review the material artifacts, then pursue the

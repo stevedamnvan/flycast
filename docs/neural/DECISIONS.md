@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-090: executed transforms need submission lineage before camera claims
+
+FTRV input/matrix/output is a possible executable witness, not a recovered
+camera. Require actual value lineage through arithmetic/stores to a specific
+TA packet/context; neither numerical proximity nor the last matrix at SQ/DMA
+submission is sufficient. Interpreter-only evidence remains separately labeled.
+The next bounded witness must return uncorrelated/unsupported if association
+cannot be established, without expanding into arbitrary memory scanning or a
+general decompiler. See CAMERA-SOURCE-AUDIT.md. No production contract changes.
+
 ## D-089: material sidecars preserve native source data, not inferred PBR
 
 The optional material capture is separate from the PVR scene packet. Preserve

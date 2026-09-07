@@ -64,7 +64,18 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085/086, LOG #143, REMAKE-DISPOSITION.md; M1 mock and M2 export/decoder/GPU replay implemented, 243/243 enabled selftests and 56/56 SDK mock checks. Decoded/control moving alignment exact 30/30; strict source equality 29/30 remains failed/parked. Direct current-packet Remix handoff is a limited no-go. Next: one labeled moving approximation or input-specific no-go. No world reconstruction, real Remix GPU rendering or combined presentation proven. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded assignment -- FC-067 visible approximation decision
+## Next bounded assignment -- FC-067 executed-transform witness
+
+Current source audit: CAMERA-SOURCE-AUDIT.md, LOG #147, D-090. FTRV is a
+candidate observation seam, not a proven Soulcalibur camera. Implement the
+bounded causal transform-to-TA witness described there, or return its explicit
+uncorrelated/unsupported result. Material extraction is complete for its scoped
+lane. No more approximation tuning, parity probes, or runtime integration.
+The older assignments below are historical, not the current task.
+
+LOG #148 proves actual x64 FTRV execution in the legal game run with 27/27
+native image-plane preservation. No matrices or vertex lineage captured; next
+is bounded guest-instruction/value association, not another presence census.
 
 Implemented checkpoint: `MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
 The source-texture/palette sidecar and 30-frame native-preservation evidence are

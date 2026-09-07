@@ -2,6 +2,15 @@
 
 ## Current assignment -- 2026-09-07
 
+Latest: `docs/neural/CAMERA-SOURCE-AUDIT.md` (LOG #147, D-090). Next is a bounded
+executed-transform-to-TA witness, with an explicit uncorrelated/unsupported exit.
+No camera has been recovered or newly tested. Do not repeat material extraction,
+approximation tuning or parity probes. Older assignments below are historical.
+
+LOG #148 now confirms actual x64 FTRV execution with a temporary removed
+counter and three-frame native preservation (27/27 image planes). Next trace
+bounded guest-instruction/value lineage; do not rerun the presence census.
+
 Implemented checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
 The source-texture/palette sidecar and 30-frame native-preservation evidence are
 accepted for that slice only. Review the material artifacts, then pursue the

@@ -2,6 +2,14 @@
 
 ## Current assignment
 
+Latest: `docs/neural/CAMERA-SOURCE-AUDIT.md` (LOG #147-148, D-090). Actual x64
+FTRV execution in the game run is now observed; do not repeat the usage census.
+Next is bounded instruction-site/value lineage to submitted vertices. Source inspection
+finds an executed FTRV seam but no retained transform-to-TA lineage. Next perform
+its bounded executed-transform witness experiment, not a camera extractor or
+global-last-matrix hook. Return uncorrelated/unsupported if causal association
+cannot be established. Earlier checkpoint text below is historical context.
+
 Current checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md`. The bounded
 source-texture/palette sidecar is implemented and self-reviewed with three-
 and thirty-frame native on/off evidence. Read that audit and
