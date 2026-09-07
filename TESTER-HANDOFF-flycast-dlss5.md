@@ -2,11 +2,11 @@
 
 ## Current assignment -- 2026-09-07
 
-Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). The source
-transform reaches an exact copied packet and decoded vertex; wrong context
-fails and native images remain unchanged. Next implement bounded source-matrix
-semantics/reprojection checks, expose model/view ambiguity and report the exact
-supported scene contract. Do not repeat lineage checks or guess a world camera.
+Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). Linked
+composite algebra verifies, but unique model/view split is ambiguous. Next obtain
+minimum distinct linked samples to test shared per-context projection/depth
+calibration with wrong-calibration/stale-context controls. Do not infer camera
+intrinsics from one matrix or require a unique world origin for view-space work.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
 copies and an overwrite boundary are verified. Next capture the identified

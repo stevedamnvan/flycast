@@ -2,11 +2,11 @@
 
 ## Current assignment
 
-Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). One executed
-source transform is linked through TA copy to decoded vertex 14526, with wrong
-context control and unchanged native images. Next assess projection/model/view
-semantics with algebraic/reprojection falsification; acquire only necessary
-additional linked samples. No more lineage census or camera/Remix assumption.
+Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). One
+linked composite passes algebra/projection controls; unique model/view split is
+ambiguous. Next test shared per-context projection/depth calibration across the
+minimum additional distinct causally linked geometry, with wrong/stale-context
+controls. No unique-world-origin detour, lineage census or Remix assumption.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
 values and three RAM copies are verified; the old span terminates at an actual

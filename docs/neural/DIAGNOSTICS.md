@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 linked composite semantics
+
+`python neuraltest/transform_semantics_inspect.py --capture POSITIVE_CONTEXT`
+checks the full prior lineage, exact-dot/output match, rounded projection,
+scaled-axis factorization and wrong/equivalent decomposition controls.
+`test_transform_semantics_inspect.py` contains independent synthetic tests.
+Read TRANSFORM-SEMANTICS-AUDIT.md: one sample is not shared camera calibration.
+
 ## FC-067 decoded-vertex evidence
 
 `python neuraltest/transform_context_inspect.py --positive B --negative C

@@ -2,11 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
-Current: TRANSFORM-DECODE-AUDIT.md (LOG #153, D-095). One source transform is
-linked through exact TA copy to a decoded vertex, with a wrong-context control.
-Next assess source projection/model/view semantics and decomposition ambiguity,
-using bounded falsifying checks and only necessary additional linked samples.
-World camera/Remix GPU remain unproven; older checkpoints are historical.
+Current: TRANSFORM-SEMANTICS-AUDIT.md (LOG #154, D-096). One linked composite
+passes algebra/projection controls; model/view split is not unique. Next test
+shared per-context projection/depth calibration across distinct linked geometry.
+A labeled camera-relative frame need not recover a unique world origin; it must
+have proven calibration. World reconstruction/Remix GPU remain unproven.
 
 Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
 chain is verified and stops at overwrite. Next prove the identified derived

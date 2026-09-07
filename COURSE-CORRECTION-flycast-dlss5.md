@@ -2,11 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-Current: `docs/neural/TRANSFORM-DECODE-AUDIT.md` (LOG #153, D-095). A source
-transform is now linked to one actual decoded vertex with falsifying context
-control. Next establish which projection/model/view semantics are supported,
-not merely that the data is consumed. World camera, path tracing and combined
-Remix/Neural Rendering remain unproven. Older checkpoints are historical.
+Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). One
+linked composite has verified projection algebra, not a unique model/view split.
+Next test shared per-context calibration across distinct linked geometry.
+A calibrated view-space scene is a possible bounded route, not yet a proven
+world camera, path-traced scene or combined Remix/Neural Rendering result.
 
 Current: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). An executed
 RAM consumer/copy chain is verified, ending at overwrite. Next prove the derived

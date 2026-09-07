@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-096: distinguish camera calibration from model/view gauge
+
+The linked composite's exact-dot/projection checks pass and wrong layout,
+scale and uncompensated decomposition fail. A compensated rigid model/view
+change leaves projection invariant: a unique world basis is not identifiable
+from that sample and is not required merely to evaluate a labeled view-space
+scene. Require shared per-context projection/depth calibration across additional
+distinct, causally linked geometry before using inferred scales as a camera
+contract. Do not average unlike transforms or fabricate global world semantics.
+
 ## D-095: decoded-vertex lineage does not separate model/view/projection
 
 One exact source transform now reaches the actual TA copy and xyz conversion
