@@ -22,6 +22,71 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
+#include "rend/neural/external_control.h"
+#include <future>
+#include <chrono>
+#include <cstdio>
+#endif
+
+#ifdef FLYCAST_ENABLE_NEURAL
+static void neuralConsumerControls()
+{
+	using namespace flycast::rend::neural;
+	static ExternalControlValues values;
+	static char helper[1024] = {};
+	static char consumer[1024] = {};
+	static bool initialized = false;
+	static std::future<ExternalControlResult> pending;
+	static std::string result;
+	if (!initialized)
+	{
+		std::snprintf(helper, sizeof(helper), "%s", config::NeuralControlHelper.get().c_str());
+		std::snprintf(consumer, sizeof(consumer), "%s", config::NeuralConsumerConfig.get().c_str());
+		initialized = true;
+	}
+	if (pending.valid() && pending.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+	{
+		try { result = pending.get().message; }
+		catch (const std::exception& e) { result = std::string("Companion failed: ") + e.what(); }
+	}
+	if (!ImGui::TreeNode("External consumer intensity controls")) return;
+	ImGui::TextWrapped("Pending values below are not read from the consumer. Apply explicitly writes the selected configuration through your installed companion and creates a backup. Restart Flycast afterward.");
+	{
+		DisabledScope busy(pending.valid());
+		if (ImGui::InputText("Control companion executable", helper, sizeof(helper)))
+			config::NeuralControlHelper = std::string(helper);
+		if (ImGui::InputText("Consumer configuration file", consumer, sizeof(consumer)))
+			config::NeuralConsumerConfig = std::string(consumer);
+		ImGui::TextWrapped("Choose flycast-nr-control.exe and the ReShade.ini used by this Flycast installation.");
+		ImGui::SliderInt("Overall intensity", &values.overall, 0, 200, "%d%%");
+		ImGui::SliderInt("Structure intensity", &values.structure, 0, 200, "%d%%");
+		ImGui::SliderInt("Global tone", &values.globalTone, 0, 200, "%d%%");
+		ImGui::SliderInt("Local tone", &values.localTone, 0, 200, "%d%%");
+		ImGui::Combo("Consumer style", &values.style, "Default\0Natural\0Cinematic\0");
+		ImGui::Checkbox("Consumer automatic mask", &values.autoMask);
+		ImGui::Checkbox("Consumer UI correction", &values.uiCorrection);
+		if (ImGui::Button("Use Uncanny values"))
+		{
+			values = {200, 200, 75, 75, 2, false, true};
+			result = "Uncanny values selected. Click Apply to save them to the consumer.";
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Apply to consumer"))
+		{
+			const std::string exe(helper), ini(consumer);
+			const auto requested = values;
+			try {
+				pending = std::async(std::launch::async, [exe, ini, requested] {
+					return ApplyExternalControls(exe, ini, requested);
+				});
+				result = "Applying requested values...";
+			} catch (const std::exception& e) { result = std::string("Cannot start companion: ") + e.what(); }
+		}
+	}
+	ImGui::TextWrapped("Overall values above 100%% saturated in earlier tests. Structure 200%% changed the result. Consumer masking is separate from Flycast game overlay protection; retain automatic game overlay protection for HUD safety.");
+	if (!result.empty()) ImGui::TextWrapped("%s", result.c_str());
+	ImGui::TreePop();
+}
 #endif
 
 enum RenderAPI {
@@ -278,6 +343,7 @@ void gui_settings_video()
 		ImGui::TextWrapped("%s", T("Requires the DirectX 11 renderer (with or without per-pixel transparency)."));
 		if (selectedMode == 8)
 		{
+			neuralConsumerControls();
 			ImGui::TextWrapped("%s", T("Uses public NGX as an experimental contract for a user-supplied external consumer. Component detection and contract evaluation do not prove neural-output consumption. Flycast does not bundle or inspect add-ons."));
 			OptionSlider(T("Consumer readiness grace"), config::NeuralDlss5RebuildGraceEvaluations,
 				0, 1200, T("Successful public-NGX evaluations to wait after consumer components become ready."), "%d evaluations");

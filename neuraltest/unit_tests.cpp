@@ -10,6 +10,7 @@
 #include "rend/neural/presentation_cadence.h"
 #include "rend/neural/quality_capture.h"
 #include "rend/neural/quality_profile.h"
+#include "rend/neural/external_control.h"
 
 #include <algorithm>
 #include <cmath>
@@ -77,6 +78,23 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		std::string args;
+		ExternalControlValues values{200, 200, 75, 75, 2, false, true};
+		suite.Expect(BuildExternalControlArguments(values, args)
+			&& args == " --apply --overall 2.00 --structure 2.00 --global-tone 0.75 --local-tone 0.75 --style cinematic --auto-mask off --ui-correction on",
+			"consumer controls convert percentages to the documented companion units");
+		values.structure = 201;
+		suite.Expect(!BuildExternalControlArguments(values, args) && args.empty(),
+			"consumer controls reject out-of-range values without a command");
+		values.structure = 0;
+		values.style = 3;
+		suite.Expect(!BuildExternalControlArguments(values, args),
+			"consumer controls reject undocumented styles");
+		suite.Expect(!ApplyExternalControls("", "", {}).success
+			&& !ApplyExternalControls("bad\"path", "test.ini", {}).success,
+			"consumer control launch rejects missing or quoted paths before execution");
+	}
 	{
 		QualityCaptureWriter capture;
 		capture.Configure("capture-a", 0, 2);

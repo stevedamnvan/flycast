@@ -484,6 +484,8 @@ extern Option<bool> NeuralDlss5EvidencePresentMarker;
 extern Option<bool> NeuralDlss5EvidenceMarkerBottomRight;
 extern Option<int> NeuralDebugView;
 extern Option<bool> NeuralStatusOverlay;
+extern OptionString NeuralControlHelper;
+extern OptionString NeuralConsumerConfig;
 extern Option<int> NeuralOverlayPolicy;
 extern Option<bool> NeuralMatchOutputResolution;
 extern Option<int> NeuralDlssPreset;

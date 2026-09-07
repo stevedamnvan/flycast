@@ -1,5 +1,33 @@
 # Neural diagnostics
 
+## External intensity panel
+
+In Video > Neural Rendering (Experimental), select DLSS 5 Experimental and
+expand External consumer intensity controls. Supply the installed
+`flycast-nr-control.exe` path and the existing `ReShade.ini` for that Flycast
+installation. Flycast remembers these two paths locally.
+
+Overall, Structure, global Tone, and local Tone are pending percentages from
+0 to 200. The panel also exposes Default/Natural/Cinematic style, consumer
+automatic masking, and consumer UI correction. Use Uncanny values fills
+200/200/75/75, Cinematic, automatic mask off, and UI correction on; it does not
+write anything. Apply to consumer launches the supplied companion without a
+console window and shows its backup path, requested values, and result.
+Exit and restart Flycast after a successful apply. Active consumer state still
+requires host-log/capture evidence. Initial slider values are pending defaults,
+not values read from the consumer configuration.
+
+Apply changes only the seven exposed controls. It does not enable hooks, turn
+on Neural Rendering, change the public preset, or configure output exposure.
+The companion must already be installed; it is not bundled with Flycast.
+Each apply makes an adjacent original-file backup through the companion.
+Failure or timeout can leave partial writes; the result directs the user to
+that backup. The worker is bounded to ten seconds and never runs in the
+render/evaluate path. Keep Flycast game overlay protection on Automatic when
+using Uncanny as a personal default.
+
+## Live status
+
 The Video settings page exposes a thread-safe **Live neural status** block for
 the DirectX 11 renderer. It reports the active mode/API, latest submit result
 and readable reason, input/output raster, source and actually presented neural

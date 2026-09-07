@@ -65,6 +65,14 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded implementor assignment — Gate 17 style-family expansion
 
+FC-050 explicit intensity panel extension (LOG #131): DLSS 5 mode now exposes
+pending 0-200 percent Overall/Structure/global/local Tone, style, mask, and UI
+correction controls with Use Uncanny values and an explicit Apply action. Apply
+invokes the installed settings companion, shows its backup/result, and requires
+a restart. It does not establish consumer-active provenance. The helper launch
+and exact backup/preserved-keys tests use a disposable configuration; manual
+settings-panel click/layout coverage remains pending.
+
 LOG #127 closes the focused OIT replay/jitter implementation and LOG #128 adds
 the late neural-status OSD with exact normal/OIT layer isolation. A manual
 settings-click and resize smoke remains useful UI coverage but does not block

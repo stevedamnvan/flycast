@@ -1333,6 +1333,22 @@ Acceptance compares deterministic overlay-on/off captures. All source,
 guidance, public output, protected-game composite, and native PVR artifacts must
 remain byte-identical; only the post-OSD presentation artifact may differ.
 
+## D-083: explicit user Apply may invoke the external settings companion
+
+The user authorized an integrated intensity panel with an explicit Apply action.
+This supersedes the earlier no-configuration-write boundary only for that user
+action. Sliders, profile selection, mode changes, startup, and rendering never
+write external settings. Apply launches the user-selected installed
+`flycast-nr-control.exe` with its documented controls and selected existing
+configuration. The companion creates a backup and verifies readback. Flycast
+reports requested settings and restart required, not consumer-active proof.
+It does not change hook policy or consumer activation implicitly.
+
+The UI owns a bounded background invocation, hidden window, validated argument
+values, and explicit executable launch without a shell. Files and third-party
+components remain outside the repository; saved local paths are user options.
+Public DLAA/SR and all render paths remain independent of this panel.
+
 ## D-082: bounded comparisons reset accepted history at capture start
 
 The synchronous developer-only quality capture resets neural instrumentation

@@ -2,6 +2,12 @@
 
 ## Objective and claim boundary
 
+FC-050 now includes an explicitly user-triggered external intensity panel (LOG
+#131, D-083). Pending sliders and Uncanny selection do not change the consumer;
+Apply invokes the user-selected companion with backup creation. Restart and
+consumer-reported tuple verification remain required for settings evidence.
+Manual panel interaction and restart uptake are the next focused UI checks.
+
 The quality target is a **Faithful Dreamcast Remaster**: correct PVR scene
 color, renderer-authentic depth, geometry-derived motion, conservative history
 protection, exact target-resolution DLAA, optional externally supplied Neural

@@ -1,4 +1,6 @@
 add_library(flycast-neural STATIC
+	external_control.cpp
+	external_control.h
 	dlss5_hook.cpp
 	dlss5_hook.h
 	instrumentation.cpp

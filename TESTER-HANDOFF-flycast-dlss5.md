@@ -2,6 +2,15 @@
 
 ## Current assignment — 2026-09-07
 
+LOG #131 adds the user-requested external intensity panel under DLSS 5 mode.
+Review Video > Neural Rendering > External consumer intensity controls. Set
+the installed companion and consumer INI paths, choose pending controls, then
+Apply. Use Uncanny values only fills the controls. Test any writes on a copy
+of the consumer INI first, check the adjacent exact backup and helper result,
+then restart the app. Initial sliders do not claim to reflect current config.
+Manual click/layout and consumer restart coverage remain to be exercised;
+the production launcher has passed a real-companion disposable-file test.
+
 Read `docs/neural/OIT-JITTER-IMPLEMENTATION-PLAN.md` first. LOG #127 closes
 the focused OIT replay/jitter slice in the current source: isolated color and
 A-buffer ownership, aligned reactive coverage, exact production-shader jitter,
