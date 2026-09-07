@@ -2,6 +2,13 @@
 
 ## Current assignment
 
+Current checkpoint: `docs/neural/TRANSFORM-STORE-AUDIT.md` (LOG #149, D-091).
+One executed transform is linked to four exact guest-RAM stores with a failing
+wrong-expected-word control and native-image preservation. Next follow actual
+reads/overwrites of that dynamically witnessed 16-byte span toward TA, bounded
+by event count and reset/overwrite. No matrix/site census repeat, general memory
+scan or camera claim. Older checkpoint text below is historical context.
+
 Latest: `docs/neural/CAMERA-SOURCE-AUDIT.md` (LOG #147-148, D-090). Actual x64
 FTRV execution in the game run is now observed; do not repeat the usage census.
 Next is bounded instruction-site/value lineage to submitted vertices. Source inspection

@@ -1,5 +1,11 @@
 # FC-067 camera/material extraction: approved investigation
 
+Current checkpoint: TRANSFORM-STORE-AUDIT.md, LOG #149, D-091. Material export
+is implemented. One executed transform-to-RAM link is verified; next follow
+bounded reads/overwrites of its actual output span toward TA. Do not repeat
+material extraction, site census or relighting approximation. Camera remains
+unknown; earlier task text below is historical context.
+
 User approved scoping this investigation after the preview stopping boundary.
 Starting HEAD: `20e0c11a5aaaff2c19fec2b3443a1a419d00b36c`, clean checkout.
 This supersedes the request for further scope approval in the preview handoff.

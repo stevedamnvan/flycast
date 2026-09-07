@@ -2,6 +2,12 @@
 
 ## Current assignment -- 2026-09-07
 
+Current: `docs/neural/TRANSFORM-STORE-AUDIT.md`, LOG #149, D-091. A single
+executed transform reaches four verified guest-RAM stores; wrong expectation
+fails with native images unchanged. Next follow that dynamically witnessed
+16-byte span's reads/overwrites toward TA within an event cap. No camera/TA
+association is proven. Earlier tasks below are historical.
+
 Latest: `docs/neural/CAMERA-SOURCE-AUDIT.md` (LOG #147, D-090). Next is a bounded
 executed-transform-to-TA witness, with an explicit uncorrelated/unsupported exit.
 No camera has been recovered or newly tested. Do not repeat material extraction,

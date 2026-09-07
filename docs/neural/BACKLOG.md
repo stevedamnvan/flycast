@@ -64,7 +64,13 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085/086, LOG #143, REMAKE-DISPOSITION.md; M1 mock and M2 export/decoder/GPU replay implemented, 243/243 enabled selftests and 56/56 SDK mock checks. Decoded/control moving alignment exact 30/30; strict source equality 29/30 remains failed/parked. Direct current-packet Remix handoff is a limited no-go. Next: one labeled moving approximation or input-specific no-go. No world reconstruction, real Remix GPU rendering or combined presentation proven. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded assignment -- FC-067 executed-transform witness
+## Next bounded assignment -- FC-067 witnessed-buffer consumption
+
+TRANSFORM-STORE-AUDIT.md (LOG #149, D-091): one executed FTRV result reaches four
+exact intermediate guest-RAM stores; wrong expectation fails and native planes
+match 54/54 across positive/negative runs. Next follow reads/overwrites of that
+16-byte span toward TA within an explicit event bound. Camera and TA lineage
+remain unproven; do not repeat presence/site census. Older text is historical.
 
 Current source audit: CAMERA-SOURCE-AUDIT.md, LOG #147, D-090. FTRV is a
 candidate observation seam, not a proven Soulcalibur camera. Implement the

@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-091: RAM-store provenance is not TA or camera provenance
+
+The single executed FTRV-to-RAM witness is scoped to its recorded instruction,
+cycle, source contract and four actual post-store readbacks. A diagnostic-only
+wrong expectation must fail without changing guest output. Select the final
+launch of append-only logs, not whichever records happen to match. Following
+the known 16-byte span may establish subsequent consumers, but stop on overwrite,
+reset or event cap; do not invent TA association or recover camera by labeling.
+
 ## D-090: executed transforms need submission lineage before camera claims
 
 FTRV input/matrix/output is a possible executable witness, not a recovered

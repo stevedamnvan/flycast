@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+## FC-067 single transform-to-RAM evidence
+
+`python neuraltest/transform_store_inspect.py --positive F --negative G
+--baseline B` verifies the retained diagnostic pair described in
+TRANSFORM-STORE-AUDIT.md. It requires the final launch's executed source contract,
+four actual RAM stores, a failing wrong expectation and three-frame native
+preservation. `python neuraltest/test_transform_store_inspect.py` runs parser
+failure controls. This is not a production camera extractor or a TA lineage test.
+
 ## FC-067 source materials
 
 `neuraltest material-contract --out NEW_DIR` checks native format/mip readback,

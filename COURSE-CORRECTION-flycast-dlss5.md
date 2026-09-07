@@ -2,6 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Latest: `docs/neural/TRANSFORM-STORE-AUDIT.md` (LOG #149, D-091). One actual
+transform-to-intermediate-RAM link is verified with a falsifying control.
+The remaining bridge is its executed consumption into TA, then camera semantics;
+neither is supplied by a stronger neural setting or asserted by this witness.
+
 Latest source finding: `docs/neural/CAMERA-SOURCE-AUDIT.md`, LOG #147, D-090.
 Executed FTRV arithmetic is observable, but its link to submitted Soulcalibur
 vertices is not captured. Next test bounded causal lineage or report unsupported;

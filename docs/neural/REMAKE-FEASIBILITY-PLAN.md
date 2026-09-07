@@ -2,6 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Current: TRANSFORM-STORE-AUDIT.md (LOG #149, D-091). One actual FTRV result is
+linked to four verified guest-RAM stores with a falsifying control. Next follow
+that bounded span's executed consumers toward TA. Camera/world-space and Remix
+GPU execution remain unproven; earlier checkpoints below are historical.
+
 Implemented checkpoint: `MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
 The source-texture/palette sidecar and 30-frame native-preservation evidence are
 accepted for that slice only. Review the material artifacts, then pursue the
