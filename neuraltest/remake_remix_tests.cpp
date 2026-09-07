@@ -72,6 +72,10 @@ int main() {
  { RemixScene scene(interface()); auto p=Synthetic(); expect(scene.Submit(p,7,p.game).reason=="draw-instance-discard-frame","submission failure requires frame discard"); }
  expect(calls.freedMeshes==2&&calls.freedLights==1&&calls.lightDraws==0,"failed submission cleanup");
  calls={};
+ { RemixScene scene(interface()); auto p=Synthetic();
+  p.meshes.back().topology=Topology::Strip; p.meshes.back().indices={0,0,1};
+  expect(scene.Submit(p,7,p.game).reason=="empty-triangulation"&&calls.materials==0
+   &&calls.meshes==0&&calls.cameras==0,"degenerate later mesh rejected before any API resource creation"); }
  { RemixScene scene(interface()); auto p=Synthetic(); p.camera.provenance=Provenance::Unknown;
   expect(scene.Submit(p,7,p.game).reason=="projection-unknown"&&calls.materials==0,"unknown projection makes zero API calls"); }
  { auto a=interface(); a.CreateMesh=nullptr; RemixScene scene(a); auto p=Synthetic();

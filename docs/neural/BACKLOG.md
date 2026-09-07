@@ -66,6 +66,12 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 M1 review, then M2
 
+2026-09-07 follow-up: ACCEPTED for the bounded topology-preflight correction
+(self-review, not independent review). Four builds exit 0, enabled selftests
+217/217 each, SDK mock 56/56. See LOG #135. Next: M2 disabled-by-default bounded
+PVR packet export and disk round-trip checks, then actual native replay
+alignment. None of those M2 validations has been run yet.
+
 Read `REMAKE-M1-AUDIT.md`. Review the packet limits/unknown-data guards,
 analytic controls, pinned public ABI, and resource/failure tests. Then implement
 M2's bounded Soulcalibur scene packet and native replay alignment; do not

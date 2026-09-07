@@ -111,6 +111,16 @@ These runs are not new real-game, performance, Gate 10, or image-quality proof.
 
 ## Next review and implementation
 
+### Follow-up source review (2026-09-07)
+
+Self-review of `bde1b460d` found that a later all-degenerate strip was rejected
+after earlier API resources had already been created. Cleanup existed, but
+preflight should reject this packet before external side effects. Topology
+conversion now precedes every API resource call. The added late-mesh negative
+control verifies zero material, mesh, and camera calls; the actual public-header
+mock target ran 56/56 (exit 0). This is a bounded M1 correction, not independent
+review or GPU acceptance. M2 native packet/replay validation remains pending.
+
 Review the packet limits, unknown-data rejection, strip conversion, public ABI
 pin, and failure/resource lifetime contract. On acceptance, proceed to M2:
 one bounded Soulcalibur scene packet and native replay alignment under known

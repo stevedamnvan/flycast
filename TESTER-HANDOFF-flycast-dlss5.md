@@ -2,6 +2,12 @@
 
 ## Current assignment — 2026-09-07
 
+Follow-up correction: topology preflight rejects a later all-degenerate strip
+before external resource calls. Four builds and three 217/217 selftests pass;
+the SDK mock now passes 56/56. This is self-reviewed bounded acceptance, not GPU
+proof. Continue M2 export/disk round-trip/native alignment next, retaining
+unknown game camera and normal provenance and explicit unsupported omissions.
+
 M1 implementation checkpoint: review `docs/neural/REMAKE-M1-AUDIT.md` and the
 new `neuraltest/remake_*` sources. All four builds pass; enabled selftests are
 217/217 and the opt-in public-header/mock adapter test is 55/55. No runtime was

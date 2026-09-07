@@ -15,6 +15,13 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
   || !api_.CreateLight || !api_.DestroyLight || !api_.DrawLightInstance || !api_.SetupCamera || !api_.DrawInstance)
   return {false,"incomplete-public-interface"};
  attempted_=true;
+ // Finish topology conversion before creating any external resources. A valid
+ // strip can contain only degenerate breaks and therefore no drawable surface.
+ indices_.resize(p.meshes.size());
+ for (std::size_t i=0;i<p.meshes.size();++i) {
+  indices_[i]=Triangles(p.meshes[i]);
+  if (indices_[i].empty()) return {false,"empty-triangulation"};
+ }
  // Explicit synthetic art direction, never inferred from game material/light.
  remixapi_MaterialInfoOpaqueEXT opaque{};
  opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
@@ -23,7 +30,7 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
  material.pNext=&opaque; material.hash=0xFC067001;
  if (api_.CreateMaterial(&material,&material_)!=REMIXAPI_ERROR_CODE_SUCCESS || !material_)
   return {false,"create-material"};
- vertices_.resize(p.meshes.size()); indices_.resize(p.meshes.size()); meshes_.reserve(p.meshes.size());
+ vertices_.resize(p.meshes.size()); meshes_.reserve(p.meshes.size());
  for (std::size_t i=0;i<p.meshes.size();++i) {
   const auto& mesh=p.meshes[i]; auto& vertices=vertices_[i]; vertices.resize(mesh.vertices.size());
   for (std::size_t j=0;j<vertices.size();++j) {
@@ -32,8 +39,6 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
    out.normal[0]=in.normal->x; out.normal[1]=in.normal->y; out.normal[2]=in.normal->z;
    out.texcoord[0]=in.u; out.texcoord[1]=in.v; out.color=0xffffffff;
   }
-  indices_[i]=Triangles(mesh);
-  if (indices_[i].empty()) return {false,"empty-triangulation"};
   remixapi_MeshInfoSurfaceTriangles surface{};
   surface.vertices_values=vertices.data(); surface.vertices_count=vertices.size();
   surface.indices_values=indices_[i].data(); surface.indices_count=indices_[i].size(); surface.material=material_;

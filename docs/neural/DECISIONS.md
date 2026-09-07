@@ -1373,6 +1373,11 @@ corrected by the user; do not substitute Sol/high.
 
 ## D-085: M1 scene data and public API evidence are separate from rendering
 
+Follow-up: finish topology conversion for the entire packet before the first
+external API resource creation. A later all-degenerate strip must not cause
+partial resource activity. The adapter remains single-use on this failure;
+no retry or implicit fallback presentation is introduced.
+
 The M1 packet lives entirely in neuraltest, with hard aggregate bounds and
 explicit unknown projection, normal, transform, texture, and omission metadata.
 The first adapter rejects all but a deliberately synthetic untextured subset;
