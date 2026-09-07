@@ -260,6 +260,15 @@ close a temporal or title-quality gate.
   uncanny tuple a persistent user-selectable Flycast profile and capture-CLI
   value. It is eligible to be the user's chosen default, but is not promoted to
   the factory/automatic default without representative Gate 17 evidence.
+  LOG #130 repeats the affected lanes after OIT scene-replay jitter and the
+  capture-start reset on exact commit `9466e1c2b`. Conservative,
+  maximum-coverage Uncanny, and automatic-HUD Uncanny each pass 30/30
+  exact-input provenance. The HUD-safe Uncanny lane protects an average 15,803
+  pixels with zero mismatch/repeat/drop. It slightly lowers raw temporal RGB
+  MAE from 5.7769 to 5.7359 but raises source MAE from 2.1755 to 10.0405,
+  trail from 3.3189 to 11.6503, saturation drift from 2.4714 to 12.3745, and
+  black drift from 1.8963 to 8.5058. It remains a valid transformative
+  user-selected default and an invalid Faithful factory default.
 - Gate 17: partial through LOG #103. The bounded capture CLI writes the production
   source, complete guidance set, public output when present, final composite,
   differences/flicker, manifest, and component metrics on normal DX11, DX11

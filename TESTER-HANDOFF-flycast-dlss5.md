@@ -25,11 +25,17 @@ inputs. LOG #129 adds a capture-only, one-shot discontinuity immediately before
 the first retained frame. All four builds link, all three enabled selftests pass
 168/168, and a real OIT capture records the reset on its first retained frame.
 
-The next assignment is to rebuild and stage the exact LOG #129 commit, then
-rerun the affected public Auto, conservative external, and Uncanny Gate 16/17
-OIT moving comparisons. Require identical first-frame phase and 30/30 exact
-color/depth/motion/mask contracts before accepting external output. Faithful
-remains public DLAA Auto unless exact matched evidence establishes otherwise.
+LOG #130 completes that exact-SHA rerun on commit `9466e1c2b`. Conservative
+0.125/Natural, maximum-coverage Uncanny, and automatic-HUD Uncanny each pass
+30/30 exact-input external provenance. The HUD-safe Uncanny lane protects an
+average 15,803 pixels with zero mismatch/repeat/drop, but it remains far outside
+Faithful source, trail, edge, thin-line, color, saturation, and black-level
+constraints. Faithful remains public DLAA Auto; Uncanny remains a valid
+user-selected transformative default, not the factory default.
+
+The next image-quality assignment is Gate 17 style-family expansion when the
+user supplies another legal title. The next bounded local UI check is a manual
+Video-setting toggle plus resize smoke for the optional neural-status OSD.
 
 ## Historical handoff retained for provenance
 
