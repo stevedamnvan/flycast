@@ -106,6 +106,10 @@ public:
 		std::uint32_t limit, bool lateOverlayProof = false);
 	bool WantsFrame() const noexcept;
 	bool CapturesCurrentFrame() const noexcept;
+	// Returns true once, immediately before the first retained frame. The
+	// renderer uses this capture-only boundary to start every comparison lane
+	// from the same accepted-history and raster-jitter phase.
+	bool ConsumeCaptureStart() noexcept;
 	bool Capture(ID3D11Device *device, ID3D11DeviceContext *context,
 		const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 		std::string& error);
@@ -125,6 +129,7 @@ private:
 	std::uint64_t pendingLateOverlayFrameId_ = 0;
 	Rect pendingLateOverlayContentRect_{};
 	bool lateOverlayProof_ = false;
+	bool captureStartConsumed_ = false;
 	RgbaImage previousFinal_;
 	RgbaImage previousSource_;
 	RgbaImage pendingPreFlycastOverlayFull_;

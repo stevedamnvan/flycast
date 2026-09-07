@@ -1332,3 +1332,19 @@ the UI cannot be mistaken for Gate 10 output provenance.
 Acceptance compares deterministic overlay-on/off captures. All source,
 guidance, public output, protected-game composite, and native PVR artifacts must
 remain byte-identical; only the post-OSD presentation artifact may differ.
+
+## D-082: bounded comparisons reset accepted history at capture start
+
+The synchronous developer-only quality capture resets neural instrumentation
+history exactly once, immediately before the first retained frame after its
+configured warm-up skip. The existing discontinuity contract increments the
+history generation, requests a temporal reset, and returns the accepted-
+evaluation jitter index to zero before geometry and jitter are captured.
+
+This reset is owned by `QualityCaptureWriter`, is armed only by a non-empty
+capture directory plus a positive frame limit, and does not run during ordinary
+gameplay or asynchronous performance measurement. Repeating `Configure` with
+the same capture identity cannot rearm it. Changing the capture identity does.
+Candidate, marker, and policy-off lanes must all use this boundary; weakening
+exact-input comparison or returning production jitter to absolute frame IDs is
+forbidden.

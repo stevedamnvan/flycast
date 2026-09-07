@@ -17,9 +17,19 @@ direct D3D11 and failure-state smokes also pass. It deliberately says external
 DLSS 5 output is unverified even when the public contract submits. Manual
 settings-click and resize coverage remain a small follow-up.
 
-The next assignment is the affected public Auto, conservative external, and
-Uncanny Gate 16/17 OIT moving recapture. Faithful remains public DLAA Auto
-unless exact matched evidence establishes otherwise.
+The first two post-OIT external recapture attempts were rejected rather than
+phase-shifted into a false comparison. Candidate startup accepted a different
+number of pre-capture evaluations than marker/policy-off, so nominally equal
+frame IDs carried different accepted-history jitter and different complete
+inputs. LOG #129 adds a capture-only, one-shot discontinuity immediately before
+the first retained frame. All four builds link, all three enabled selftests pass
+168/168, and a real OIT capture records the reset on its first retained frame.
+
+The next assignment is to rebuild and stage the exact LOG #129 commit, then
+rerun the affected public Auto, conservative external, and Uncanny Gate 16/17
+OIT moving comparisons. Require identical first-frame phase and 30/30 exact
+color/depth/motion/mask contracts before accepting external output. Faithful
+remains public DLAA Auto unless exact matched evidence establishes otherwise.
 
 ## Historical handoff retained for provenance
 

@@ -8,6 +8,7 @@
 #include "rend/neural/motion_reference.h"
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/presentation_cadence.h"
+#include "rend/neural/quality_capture.h"
 #include "rend/neural/quality_profile.h"
 
 #include <algorithm>
@@ -76,6 +77,22 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		QualityCaptureWriter capture;
+		capture.Configure("capture-a", 0, 2);
+		suite.Expect(capture.CapturesCurrentFrame() && capture.ConsumeCaptureStart()
+			&& !capture.ConsumeCaptureStart(),
+			"quality capture emits one temporal reset at its first retained frame");
+		capture.Configure("capture-a", 0, 2);
+		suite.Expect(!capture.ConsumeCaptureStart(),
+			"unchanged quality capture configuration cannot retrigger its reset");
+		capture.Configure("capture-b", 3, 2);
+		suite.Expect(!capture.CapturesCurrentFrame() && !capture.ConsumeCaptureStart(),
+			"quality capture does not reset during skipped warm-up frames");
+		capture.Configure("capture-c", 0, 2);
+		suite.Expect(capture.ConsumeCaptureStart(),
+			"new quality capture configuration rearms its temporal reset");
+	}
 	{
 		const auto defaultOrigin = GetEvidenceMarkerOrigin(640, 480, false);
 		const auto oitOrigin = GetEvidenceMarkerOrigin(640, 480, true);

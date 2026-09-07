@@ -400,6 +400,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 	limit_ = (std::min)(limit, 240u);
 	lateOverlayProof_ = lateOverlayProof;
 	seen_ = captured_ = lateOverlayCaptured_ = 0;
+	captureStartConsumed_ = false;
 	previousFrameId_ = 0;
 	pendingLateOverlayFrameId_ = 0;
 	pendingLateOverlayContentRect_ = {};
@@ -416,6 +417,14 @@ bool QualityCaptureWriter::WantsFrame() const noexcept
 bool QualityCaptureWriter::CapturesCurrentFrame() const noexcept
 {
 	return WantsFrame() && seen_ >= skip_;
+}
+
+bool QualityCaptureWriter::ConsumeCaptureStart() noexcept
+{
+	if (captureStartConsumed_ || !CapturesCurrentFrame())
+		return false;
+	captureStartConsumed_ = true;
+	return true;
 }
 
 void QualityCaptureGpuTimer::Reset()

@@ -1513,6 +1513,12 @@ void DX11Renderer::submitNeuralFrame()
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
 		config::NeuralLateOverlayProof.get());
+	if (neuralQualityCapture.ConsumeCaptureStart())
+	{
+		neuralInstrumentation.Discontinuity();
+		NOTICE_LOG(RENDERER,
+			"Neural bounded capture start: temporal history reset before first retained frame");
+	}
 	const auto contentRect = getNeuralContentRect();
 	neuralInstrumentation.SetOverlayGameId(settings.content.gameId);
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
