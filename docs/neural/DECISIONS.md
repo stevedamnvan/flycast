@@ -1349,6 +1349,28 @@ values, and explicit executable launch without a shell. Files and third-party
 components remain outside the repository; saved local paths are user options.
 Public DLAA/SR and all render paths remain independent of this panel.
 
+## D-084: reuse-first remake feasibility precedes bespoke renderer/assets
+
+The user authorized FC-067 as the next bounded implementation on 2026-09-07.
+Use public Remix SDK interfaces as the first candidate and PCSX2's experimental
+integration as a reference, with RTGL1 as an alternative only after a reasoned
+decision. No public-project README is accepted as Flycast runtime evidence.
+The primary unknown is a coherent scene/camera contract, not path-tracer code.
+Start with the M1 harness in REMAKE-FEASIBILITY-PLAN.md, then separately prove
+moving-game reconstruction. Do not infer world-space geometry or normals from
+screen-space PVR data or Naomi 2-only fields. Keep proprietary neural runtime
+boundaries, external settings, native rendering, and existing Gate 10 untouched.
+
+Public open-source source/header inspection and isolated builds are within the
+authorized implementation; dependency/license review precedes reuse, and no
+proprietary binary auto-downloads or vendor files are staged. A standalone
+synthetic path-traced result is not proof of scene completeness, in-emulator
+presentation, or combined DLSS 5 compatibility. Original Gates 11-18 remain
+separate. Transformative appearance may depart from source art, but not from
+stable motion, readable protected HUD, correct timing, or honest provenance.
+Implementation routing is GPT-6 Astra/low (Astra light), as explicitly
+corrected by the user; do not substitute Sol/high.
+
 ## D-082: bounded comparisons reset accepted history at capture start
 
 The synchronous developer-only quality capture resets neural instrumentation

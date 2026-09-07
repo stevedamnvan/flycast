@@ -2,6 +2,28 @@
 
 ## Current assignment — 2026-09-07
 
+**FC-067 M1 takes priority.** Read `AGENTS.md` and
+`docs/neural/REMAKE-FEASIBILITY-PLAN.md`. Implement the bounded reuse-first
+scene contract/synthetic harness and public Remix API adapter disposition,
+using GPT-6 Astra/low (Astra light). The audited implementation baseline before this plan
+is `49c96a09841bf8c0d5df6f3bc8b04d0398d5566d`; record actual HEAD.
+No SDK adapter or game reconstruction has been built/tested by this planning
+change. Independent review must distinguish analytic packet tests, adapter
+build, synthetic GPU output, and real-game reconstruction. The last two are
+not implied by the first two. Use the M1 acceptance/return contract in the plan.
+
+Next implementor task after accepted M1: M2 bounded Soulcalibur Hoko Temple
+scene export and native replay alignment, with explicit camera/depth provenance
+and wrong-camera controls. If M1 is not reviewable, first resolve its exact
+dependency or contract failure instead. Do not proceed directly to production
+path tracing, asset replacement, or combining DLSS 5 and Remix.
+
+The UI/title assignments below are retained follow-ups, not permission to
+override FC-067 priority. Current established selftest baseline is 172/172 in
+all three enabled configurations; older counts below are historical.
+
+## Retained UI and quality follow-ups
+
 LOG #131 adds the user-requested external intensity panel under DLSS 5 mode.
 Review Video > Neural Rendering > External consumer intensity controls. Set
 the installed companion and consumer INI paths, choose pending controls, then
@@ -11,7 +33,7 @@ then restart the app. Initial sliders do not claim to reflect current config.
 Manual click/layout and consumer restart coverage remain to be exercised;
 the production launcher has passed a real-companion disposable-file test.
 
-Read `docs/neural/OIT-JITTER-IMPLEMENTATION-PLAN.md` first. LOG #127 closes
+For OIT history, consult `docs/neural/OIT-JITTER-IMPLEMENTATION-PLAN.md`. LOG #127 closes
 the focused OIT replay/jitter slice in the current source: isolated color and
 A-buffer ownership, aligned reactive coverage, exact production-shader jitter,
 byte-identical native PVR controls on D3D11 and D3D11On12, 163/163 selftests in

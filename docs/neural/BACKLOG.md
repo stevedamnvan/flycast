@@ -63,7 +63,19 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | done | LOG #53-#59; all 120 full input contracts matched across ON/policy-OFF, 118 returned outputs differed, frame 9 distinguished native/public-DLAA/external hashes and carried 1024/1024 sentinel pixels through successful same-frame Present, and negative controls retained native fallback |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded implementor assignment — Gate 17 style-family expansion
+| FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084, LOG #132; user authorized implementation; M1 is the current assignment in REMAKE-FEASIBILITY-PLAN.md. Planning only at handoff: no new adapter/GPU/game test claimed. Does not replace FC-048 or FC-056/066. |
+
+## Next bounded implementor assignment -- FC-067 M1
+
+Execute `REMAKE-FEASIBILITY-PLAN.md` with GPT-6 Astra/low (Astra light). Build the bounded
+scene packet, validator, synthetic positive/negative fixtures, and a narrow
+public Remix SDK adapter where dependencies permit. Keep it developer-only
+and separate from production neural/presentation paths. Record dependency
+blocks without abandoning synthetic work. M2 real-game reconstruction and
+later relighting/DLSS 5 integration are not pre-accepted. Stop at M1 review.
+Do not start custom assets or rerun old transport proof as the first step.
+
+## Retained UI and title follow-ups (not the current assignment)
 
 FC-050 explicit intensity panel extension (LOG #131): DLSS 5 mode now exposes
 pending 0-200 percent Overall/Structure/global/local Tone, style, mask, and UI
@@ -93,7 +105,7 @@ artifacts and do not rerun them absent a focused regression.
 When another user-supplied legal title becomes available, fill one missing
 style family with native, public Auto, automatic-HUD Uncanny, and separately
 labeled maximum-coverage evidence. Until then, a manual Video-setting toggle
-and resize smoke for the optional neural-status OSD is the next bounded local
+and resize smoke for the optional neural-status OSD remains a bounded local
 UI check; it does not block the accepted image contract.
 
 ## Subsequent assignment — Gate 17 style-family expansion
@@ -112,8 +124,8 @@ restored config hash.
    experiments only.
 4. Keep accepted-history-indexed jitter and exact candidate/marker/policy-off
    provenance. Never reuse the rejected absolute-frame phase design.
-5. Continue OIT scene-replay jitter only as a focused implementation slice;
-   current OIT zero-jitter fallback remains valid and must not be weakened.
+5. Preserve completed OIT scene-replay jitter and reset-aligned evidence from
+   LOG #127-#130; rerun only if a new change creates a focused regression.
 
 ## FC-056 / FC-066 route sub-items
 

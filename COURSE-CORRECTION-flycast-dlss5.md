@@ -1,5 +1,19 @@
 # Flycast DLSS 5 course correction
 
+## Current priority -- reuse-first remake feasibility (2026-09-07)
+
+The next implementation is FC-067 / M1 in
+`docs/neural/REMAKE-FEASIBILITY-PLAN.md`, routed to GPT-6 Astra at low reasoning
+(the user's requested Astra light, not Sol/high).
+Evaluate a narrow public Remix SDK scene adapter and synthetic harness before
+custom lighting/rendering or replacement-asset investment. RTX Remix is a
+candidate, not a proven Flycast integration; scene reconstruction and later
+DLSS 5 chaining are explicitly unproven. `AGENTS.md` is the agent entry point.
+This priority supersedes older next-task scheduling, not the evidence below.
+Keep unavailable-title/hardware tests recorded but do not let them block M1.
+The new remake lane is explicitly transformative; Faithful stays public Auto
+and all existing rendering/fallback/provenance protections remain intact.
+
 ## Rebaseline
 
 Experimental transport and provenance are proven for the named D3D11On12 plus
@@ -37,8 +51,12 @@ map is in `docs/neural/QUALITY-PLAN.md`.
 - Native rendering is always available and neural modes remain off by default.
 - Public NGX DLAA/SR remains separate from experimental external consumption.
 - Flycast adds no private Feature 18 implementation or undocumented parameters.
-- Third-party binaries are not inspected, modified, bundled, downloaded, or
-  redistributed, and Flycast writes no third-party configuration.
+- Proprietary neural binaries are not inspected, modified, bundled, downloaded,
+  or redistributed. FC-067 may inspect public open-source renderer sources and
+  build them in isolation after dependency/license review; no proprietary
+  dependency auto-downloads. No automatic external configuration writes;
+  D-083's explicit user Apply and authorized byte-restored test sweeps remain
+  narrow exceptions and do not authorize M1 to edit live settings.
 - RTT never evaluates; direct-framebuffer content uses native fallback; accepted
   history advances only after successful neural submission.
 - PVR game overlays are protected before Flycast OSD and ImGui, which remain
@@ -48,4 +66,3 @@ map is in `docs/neural/QUALITY-PLAN.md`.
 
 No claim of production readiness or highest fidelity is permitted until Gates
 11 through 18 and the representative moving-title matrix are complete.
-

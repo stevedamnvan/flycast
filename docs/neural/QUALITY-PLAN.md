@@ -1,12 +1,24 @@
 # Neural rendering quality plan
 
+## Current execution priority -- FC-067
+
+As authorized on 2026-09-07, execute M1 of
+`REMAKE-FEASIBILITY-PLAN.md` before unavailable-title expansion, hardware-only
+tests, or bespoke remake asset/rendering work. This public Remix SDK reuse
+experiment has independent scene/adapter acceptance, not an implied closure
+of Gates 11-18. Existing quality execution order below is retained as the
+original roadmap. Faithful stays public Auto; transformative appearance is
+judged separately, while timing, geometry stability, HUD, and provenance remain
+constraints. Source data and SDK compatibility must be proven before committing
+to a renderer replacement or claiming the combined DLSS 5 route works.
+
 ## Objective and claim boundary
 
 FC-050 now includes an explicitly user-triggered external intensity panel (LOG
 #131, D-083). Pending sliders and Uncanny selection do not change the consumer;
 Apply invokes the user-selected companion with backup creation. Restart and
 consumer-reported tuple verification remain required for settings evidence.
-Manual panel interaction and restart uptake are the next focused UI checks.
+Manual panel interaction and restart uptake remain focused UI checks after M1.
 
 The quality target is a **Faithful Dreamcast Remaster**: correct PVR scene
 color, renderer-authentic depth, geometry-derived motion, conservative history
@@ -38,7 +50,8 @@ used for performance measurement.
 5. **Q5 / FC-050, FC-055, FC-065:** retain the completed live status and
    presentation-only guidance debug UI; add faithful, enhanced-materials, and
    photoreal-experimental profiles. Recommendations are displayed and captured;
-   Flycast does not write third-party settings.
+   Flycast does not automatically write third-party settings; D-083 permits
+   the explicit user Apply action only.
 6. **Q6 / FC-054, FC-065:** implement bounded captures, component metrics, and
    moving title sequences. A title that does not win defaults to a safer profile
    or bypass.
