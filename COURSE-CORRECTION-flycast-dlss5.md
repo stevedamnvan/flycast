@@ -2,11 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-Current: `docs/neural/TRANSFORM-DERIVED-AUDIT.md` (LOG #151, D-093). The
-observed reciprocal and screen-coordinate arithmetic/stores are verified.
-Next prove a bounded connection to an actual submitted vertex. World camera,
-path tracing and combined Remix/Neural Rendering are still unproven. Older
-checkpoints below are historical.
+Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). One
+executed transform reaches a verified bulk TA input packet via SQ and RAM.
+Next establish the packet's actual context/decoded vertex and evaluate source
+projection semantics. World camera, path tracing and combined Remix/Neural
+Rendering remain unproven. Older checkpoints below are historical.
 
 Current: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). An executed
 RAM consumer/copy chain is verified, ending at overwrite. Next prove the derived

@@ -2,10 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
-Current: TRANSFORM-DERIVED-AUDIT.md (LOG #151, D-093). Local reciprocal,
-scale and fused x/y operations plus stores verify; next is bounded submission
-lineage. Camera/world reconstruction and Remix GPU remain unproven. The
-following checkpoints are historical, not repeat assignments.
+Current: TRANSFORM-TA-INPUT-AUDIT.md (LOG #152, D-094). One executed source
+transform reaches an exact packet in bulk TA input via SQ/RAM. Next prove its
+TA context/decoded vertex association, then assess source projection semantics.
+Camera/world reconstruction and Remix GPU remain unproven. Older checkpoints
+below are historical, not repeat assignments.
 
 Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
 chain is verified and stops at overwrite. Next prove the identified derived

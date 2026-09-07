@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-094: TA input identity is necessary but not camera or frame identity
+
+The captured source transform reaches one exact 32-byte RAM packet through
+verified arithmetic, register-linked queue stores and an actual area-3 SQ
+flush. Its actual pointer is contained in a polygon TAWrite input range, with
+unchanged bytes and a failing wrong-offset expectation. This is accepted at
+TA input only. Next bind the packet to its actual context/decoded vertex and
+assess the source transform's projection/model/view semantics. Do not infer
+presentation, physical depth, world coordinates, lifetime safety or a complete
+camera from that input identity. Diagnostic overwrite coverage is explicitly
+limited; do not promote temporary observations to production tracking.
+
 ## D-093: verified local projection arithmetic is not a recovered camera
 
 The observed reciprocal, depth scale and fused x/y offsets are accepted only

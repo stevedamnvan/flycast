@@ -2,11 +2,11 @@
 
 ## Current assignment
 
-Current: `docs/neural/TRANSFORM-DERIVED-AUDIT.md` (LOG #151, D-093). Four
-executed arithmetic results and three derived-coordinate writes verify with
-wrong-offset/wrong-rounding controls and unchanged native images. Next follow
-this completed generation to one bounded SQ/DMA/TA submission or return an
-explicit uncorrelated result. No camera/Remix claim; older text is historical.
+Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). One
+transform/derived-coordinate/SQ/RAM chain reaches an exact bulk TA input packet.
+Wrong packet-offset control fails with native images unchanged. Next link that
+packet to its actual TA context/decoded vertex, then assess source projection
+semantics. No camera/Remix claim; older checkpoints below are historical.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
 values and three RAM copies are verified; the old span terminates at an actual

@@ -2,11 +2,11 @@
 
 ## Current assignment -- 2026-09-07
 
-Current: `docs/neural/TRANSFORM-DERIVED-AUDIT.md` (LOG #151, D-093). The
-arithmetic/store pair and falsifying controls verify. Next implement bounded
-lineage from the completed derived RAM generation to a specific SQ/DMA/TA
-submission, or report uncorrelated. Do not repeat arithmetic/census or claim
-camera recovery. Older assignments below are historical.
+Current: `docs/neural/TRANSFORM-TA-INPUT-AUDIT.md` (LOG #152, D-094). An exact
+source-transform/SQ/RAM packet reaches bulk TA input with a failing wrong-offset
+control and unchanged images. Next follow that packet into its actual context
+and decoded vertex; then assess projection/camera semantics, not guessed FOV.
+No Remix GPU claim. Older assignments below are historical.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
 copies and an overwrite boundary are verified. Next capture the identified

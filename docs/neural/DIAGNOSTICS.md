@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 source-to-TA-input evidence
+
+`python neuraltest/transform_ta_inspect.py --positive C --negative D
+--baseline RESTORED` verifies the full prior chain plus exact queue/RAM/bulk-TA
+input identity and wrong-packet-offset control from TRANSFORM-TA-INPUT-AUDIT.md.
+`python neuraltest/test_transform_ta_inspect.py` exercises synthetic parser
+controls only. No camera, decoded-frame ownership or runtime proof follows.
+
 ## FC-067 derived-coordinate evidence
 
 `python neuraltest/transform_derived_inspect.py --positive B --negative C
