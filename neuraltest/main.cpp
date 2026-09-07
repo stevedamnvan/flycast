@@ -46,6 +46,7 @@ void Usage()
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
+		"  capture --remake-packet yes|no: bounded developer PVR snapshot; default no; not world reconstruction\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
@@ -801,6 +802,12 @@ int NativeParityCommand(const Args& args)
 
 int CaptureCommand(const Args& args)
 {
+	const auto remakePacket = Value(args, "--remake-packet", "no");
+	if (remakePacket != "yes" && remakePacket != "no")
+	{
+		std::cerr << "--remake-packet must be yes or no\n";
+		return 2;
+	}
 	const auto gameText = Value(args, "--game");
 	const auto outputText = Value(args, "--out");
 	if (gameText.empty() || outputText.empty())
@@ -1032,6 +1039,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
+		+ L",config:rend.NeuralCapturePvrPacket=" + (remakePacket == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralLateOverlayProof=" + (lateOverlayProof ? L"yes" : L"no")
 		+ L",config:rend.ShowFPS="
 		+ (lateOverlayProof && proofOverlay == "fps" ? L"yes" : L"no")
@@ -1148,6 +1156,21 @@ int CaptureCommand(const Args& args)
 			return 1;
 		}
 	}
+	std::uint32_t pvrPacketFiles = 0;
+	if (remakePacket == "yes")
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(output))
+			if (entry.is_directory() && std::filesystem::is_regular_file(entry.path() / "manifest.json"))
+			{
+				if (!std::filesystem::is_regular_file(entry.path() / "pvr-scene.json"))
+				{
+					std::cerr << "requested PVR packet missing from captured frame\n";
+					return 1;
+				}
+				++pvrPacketFiles;
+			}
+		if (pvrPacketFiles != frames) { std::cerr << "PVR packet frame count mismatch\n"; return 1; }
+	}
 	std::ofstream launchReport(output / "capture-launch.json");
 	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
 		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
@@ -1164,6 +1187,8 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"input_replay_retained\": " << (inputReplay == "yes" ? "true" : "false")
 		<< ",\n  \"input_replay_fnv64\": \"" << (inputReplay == "yes" ? Hex64(inputReplayHash) : "") << "\""
 		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
+		<< ",\n  \"pvr_packet_requested\": " << (remakePacket == "yes" ? "true" : "false")
+		<< ",\n  \"pvr_packet_frames\": " << pvrPacketFiles
 		<< ",\n  \"late_overlay_proof_requested\": " << (lateOverlayProof ? "true" : "false")
 		<< ",\n  \"late_overlay_source\": \"" << (lateOverlayProof ? proofOverlay : "none") << "\""
 		<< ",\n  \"late_overlay_proof_frames\": " << lateOverlayProofFiles

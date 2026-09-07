@@ -2,6 +2,10 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Current continuation is M2 snapshot-to-native-replay proof, detailed in
+`docs/neural/REMAKE-M2-AUDIT.md`. Actual projected PVR packets are exported;
+disk-decoded replay, recovered camera, and Remix rendering remain unproven.
+
 M1 now has a tested CPU scene contract and real-header/mock adapter; see
 `docs/neural/REMAKE-M1-AUDIT.md` and LOG #133. Review this checkpoint before
 M2 scene capture. No synthetic GPU or real-game reconstruction is proven.

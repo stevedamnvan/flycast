@@ -1,5 +1,12 @@
 # Neural diagnostics
 
+## FC-067 M2 PVR snapshot
+
+Add `--remake-packet yes` to the bounded `neuraltest capture` command; default
+is no. Inspect with `neuraltest/validate_pvr_packet.ps1 -CaptureDirectory <run>`.
+This checks manifest identity, limits, index ranges, and nonfinite accounting,
+not GPU replay. See `REMAKE-M2-AUDIT.md` for omissions and next required proofs.
+
 ## FC-067 developer scene/Remix contract
 
 The ordinary `neuraltest selftest` includes 45 CPU scene-contract checks.

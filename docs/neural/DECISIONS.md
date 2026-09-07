@@ -1373,6 +1373,12 @@ corrected by the user; do not substitute Sol/high.
 
 ## D-085: M1 scene data and public API evidence are separate from rendering
 
+M2 snapshot policy: preserve exact PVR buffer bits, including nonfinite unused
+vertices, while separately counting invalid references. Snapshotting observed
+data is not validation for 3D reconstruction. Keep the actual raster transform
+separate from unknown world-camera provenance. Export only under the bounded,
+explicit developer capture option; never serialize live resource pointers.
+
 Follow-up: finish topology conversion for the entire packet before the first
 external API resource creation. A later all-degenerate strip must not cause
 partial resource activity. The adapter remains single-use on this failure;

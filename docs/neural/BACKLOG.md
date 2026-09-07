@@ -66,6 +66,11 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 M1 review, then M2
 
+M2 export checkpoint: `REMAKE-M2-AUDIT.md` records real Hoko Temple packets and
+225/225 enabled selftests. Export is not replay: implement bounded decoding,
+remaining native state capture, isolated raster replay, and wrong-camera/depth
+controls next. No world camera or Remix GPU success is claimed.
+
 2026-09-07 follow-up: ACCEPTED for the bounded topology-preflight correction
 (self-review, not independent review). Four builds exit 0, enabled selftests
 217/217 each, SDK mock 56/56. See LOG #135. Next: M2 disabled-by-default bounded

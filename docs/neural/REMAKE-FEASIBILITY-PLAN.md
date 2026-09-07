@@ -2,6 +2,10 @@
 
 ## M1 checkpoint -- 2026-09-07
 
+Continuation: bounded M1 preflight correction is self-reviewed and pushed;
+M2 snapshot implementation/evidence is in `REMAKE-M2-AUDIT.md`. M2 acceptance
+still requires disk-decoded native replay and falsifying camera/depth controls.
+
 See `REMAKE-M1-AUDIT.md`: the bounded CPU scene contract and real-header/mock
 Remix adapter are implemented (217/217 enabled selftests, 55/55 SDK contract).
 Synthetic GPU rendering, game reconstruction, and combined presentation are

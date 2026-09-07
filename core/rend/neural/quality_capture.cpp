@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "quality_capture.h"
+#include "pvr_scene_capture.h"
 #include "motion_reference.h"
 #include "version.h"
 
@@ -540,6 +541,11 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 {
 	if (!WantsFrame()) return true;
 	if (seen_++ < skip_) return true;
+	if (textures.pvrPacketRequested && !textures.pvrContext)
+	{
+		error = "requested PVR packet context unavailable";
+		return false;
+	}
 	if (!device || !context || !textures.nativeColor || !textures.sourceColor
 		|| !textures.finalComposite)
 	{
@@ -554,6 +560,9 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	std::error_code ec;
 	std::filesystem::create_directories(frameRoot, ec);
 	if (ec) { error = "cannot create capture directory: " + ec.message(); return false; }
+	if (textures.pvrContext && !WritePvrScenePacket(frameRoot / "pvr-scene.json",
+		*textures.pvrContext, textures.pvrViewport, metadata.frameId, metadata.gameId, error))
+		return false;
 
 	auto read = [&](ID3D11Texture2D *texture, RawTexture& raw,
 		QualityCaptureWriter::RgbaImage& rgba) {

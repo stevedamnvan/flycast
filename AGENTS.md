@@ -2,6 +2,10 @@
 
 ## Current assignment
 
+Current continuation: M2 PVR snapshot is implemented; read
+`docs/neural/REMAKE-M2-AUDIT.md`. Next is bounded disk decoding and native replay
+alignment with falsifying viewport/depth controls. M2 is not accepted yet.
+
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
 `TESTER-HANDOFF-flycast-dlss5.md`. Read `docs/neural/DECISIONS.md`, `LOG.md`,

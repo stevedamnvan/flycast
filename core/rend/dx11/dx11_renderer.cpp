@@ -1804,6 +1804,15 @@ void DX11Renderer::captureNeuralQualityFrame()
 		finalResource->Release();
 	}
 	flycast::rend::neural::QualityCaptureTextures textures;
+	if (config::NeuralCapturePvrPacket.get() && neuralQualityCapture.CapturesCurrentFrame())
+	{
+		textures.pvrContext = rendContext;
+		textures.pvrPacketRequested = true;
+		const auto& viewport = matrices.GetNormalMatrix();
+		for (int column = 0; column < 4; ++column)
+			for (int row = 0; row < 4; ++row)
+				textures.pvrViewport[column * 4 + row] = viewport[column][row];
+	}
 	textures.nativeColor = fbTex;
 	textures.sourceColor = neuralColor.textures[neuralExportSlot];
 	textures.depth = neuralDepthTextures[neuralExportSlot];

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
 #include "remake_scene.h"
+#include "rend/neural/pvr_scene_capture.h"
+#include <chrono>
+#include <fstream>
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/dlss5_hook.h"
@@ -1423,6 +1426,40 @@ int RunSelfTests()
 	for (const auto& test : CaptureComparisonSelfTests())
 		suite.Expect(test.second, test.first);
 	const auto remakeCounts = remake::TestSceneContract();
+	{
+		rend_context ctx{};
+		ctx.verts.resize(3); ctx.idx = {0,1,2};
+		PolyParam poly{}; poly.init(); poly.count=3; ctx.global_param_op.push_back(poly);
+		std::array<float,16> viewport{}; viewport[0]=viewport[5]=viewport[10]=viewport[15]=1;
+		const auto path=std::filesystem::temp_directory_path() / ("flycast-pvr-packet-"
+			+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".json");
+		std::string error;
+		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR packet bounded export");
+		std::ifstream file(path,std::ios::binary);
+		const std::string contents((std::istreambuf_iterator<char>(file)),{}); file.close();
+		suite.Expect(contents.find("\"camera_provenance\":\"unknown\"")!=std::string::npos
+			&&contents.find("1065353216")!=std::string::npos,"PVR packet retains unknown camera and exact float bits");
+		std::filesystem::remove(path);
+		ctx.verts.push_back(::Vertex{});ctx.verts.back().z=std::numeric_limits<float>::infinity();
+		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR unused nonfinite buffer data remains observable");
+		std::ifstream nonfiniteFile(path,std::ios::binary);
+		const std::string nonfiniteText((std::istreambuf_iterator<char>(nonfiniteFile)),{});nonfiniteFile.close();
+		suite.Expect(nonfiniteText.find("\"nonfinite_position_count\":1")!=std::string::npos
+			&&nonfiniteText.find("\"nonfinite_index_reference_count\":0")!=std::string::npos,
+			"PVR referenced geometry distinguished from unused nonfinite data");
+		std::filesystem::remove(path);ctx.verts.resize(3);
+		ctx.idx[2]=99;
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&error=="pvr-packet-index"&&!std::filesystem::exists(path),"PVR bad index rejected before file creation");
+		ctx.idx[2]=2;ctx.global_param_op[0].count=4;
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&error=="pvr-packet-draw-range","PVR invalid draw range rejected");
+		ctx.global_param_op[0].count=3;ctx.isRTT=true;
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR RTT export rejected");
+		ctx.isRTT=false;ctx.verts.resize(65537);
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&error=="pvr-packet-identity-or-bound","PVR vertex budget checked before output");
+	}
 	suite.passed += remakeCounts.passed;
 	suite.failed += remakeCounts.failed;
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';

@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+struct rend_context;
 
 namespace flycast::rend::neural {
 
@@ -80,6 +81,9 @@ struct QualityCaptureMetadata {
 };
 
 struct QualityCaptureTextures {
+	bool pvrPacketRequested = false;
+	const rend_context *pvrContext = nullptr;
+	std::array<float,16> pvrViewport{};
 	ID3D11Texture2D *nativeColor = nullptr;
 	ID3D11Texture2D *sourceColor = nullptr;
 	ID3D11Texture2D *depth = nullptr;

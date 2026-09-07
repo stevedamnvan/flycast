@@ -2,6 +2,11 @@
 
 ## Current assignment — 2026-09-07
 
+M2 now has an opt-in actual PVR snapshot; read `docs/neural/REMAKE-M2-AUDIT.md`.
+Next implementor: bounded disk decoder/round-trip controls, then isolated native
+replay alignment and falsifying camera/depth mutations. Snapshot export alone
+does not close M2. Keep all omitted state and unknown projection visible.
+
 Follow-up correction: topology preflight rejects a later all-degenerate strip
 before external resource calls. Four builds and three 217/217 selftests pass;
 the SDK mock now passes 56/56. This is self-reviewed bounded acceptance, not GPU
