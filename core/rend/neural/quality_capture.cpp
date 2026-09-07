@@ -587,6 +587,49 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	const bool hasPublicOutput = read(textures.publicOutput, publicRaw, publicOutput);
 	if (textures.publicOutput && !hasPublicOutput) return false;
 	const auto final = Crop(finalFull, metadata.contentRect);
+	if (textures.pvrReplay)
+	{
+		PvrReplayTextures replay;
+		if (!textures.pvrReplay(frameRoot / "pvr-scene.json", replay, error)) return false;
+		RawTexture raw; RgbaImage base;
+		if (!read(replay.priorFramebuffer, raw, base)
+			|| !WritePng(frameRoot / "pvr-pre-frame.png", base, error)) return false;
+		std::array<std::uint64_t,4> differences{};
+		std::array<unsigned,4> maxChannelDelta{};
+		RgbaImage decodedImage;
+		std::uint64_t decodedVersusRetained = 0;
+		const char *names[] = {"pvr-decoded-replay.png", "pvr-wrong-viewport.png", "pvr-wrong-depth.png", "pvr-retained-buffer-replay.png"};
+		for (size_t lane = 0; lane < 4; ++lane)
+		{
+			RgbaImage rgba;
+			if (!read(replay.color[lane], raw, rgba) || rgba.width != native.width || rgba.height != native.height)
+			{ error = "pvr-replay-readback-size"; return false; }
+			for (size_t i = 0; i < native.pixels.size(); i += 4)
+				if (std::memcmp(native.pixels.data() + i, rgba.pixels.data() + i, 4) != 0) ++differences[lane];
+			for (size_t i = 0; i < native.pixels.size(); ++i)
+				maxChannelDelta[lane] = std::max(maxChannelDelta[lane], static_cast<unsigned>(std::abs(int(native.pixels[i]) - int(rgba.pixels[i]))));
+			if (!WritePng(frameRoot / names[lane], rgba, error)) return false;
+			if (lane == 0) decodedImage = rgba;
+			if (lane == 3) for (size_t i = 0; i < rgba.pixels.size(); i += 4)
+				if (std::memcmp(rgba.pixels.data() + i, decodedImage.pixels.data() + i, 4) != 0) ++decodedVersusRetained;
+		}
+		std::ofstream proof(frameRoot / "pvr-replay-proof.json");
+		proof.imbue(std::locale::classic());
+		proof << "{\"schema\":1,\"frame_id\":" << metadata.frameId
+			<< ",\"decoded_geometry_pixels_different\":" << differences[0]
+			<< ",\"wrong_viewport_pixels_different\":" << differences[1]
+			<< ",\"wrong_depth_pixels_different\":" << differences[2]
+			<< ",\"retained_buffer_replay_pixels_different\":" << differences[3]
+			<< ",\"decoded_versus_retained_replay_pixels_different\":" << decodedVersusRetained
+			<< ",\"decoded_max_channel_delta\":" << maxChannelDelta[0]
+			<< ",\"retained_max_channel_delta\":" << maxChannelDelta[3]
+			<< ",\"geometry_alignment_passed\":" << (decodedVersusRetained == 0 ? "true" : "false")
+			<< ",\"source_frame_exact\":" << (differences[0] == 0 && differences[3] == 0 ? "true" : "false")
+			<< ",\"retained_same_frame_supplemental_state\":true,\"world_camera_recovered\":false,\"standalone_replay\":false,\"passed\":"
+			<< (differences[0] == 0 && differences[3] == 0 && decodedVersusRetained == 0
+				&& differences[1] > 100 && differences[2] > 100 ? "true" : "false") << "}\n";
+		if (!proof) { error = "pvr-replay-proof-write"; return false; }
+	}
 
 	if (!WritePng(frameRoot / "native-pvr-color.png", native, error)
 		|| !WritePng(frameRoot / "source-color.png", source, error)

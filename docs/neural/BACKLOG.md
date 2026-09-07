@@ -66,6 +66,12 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 M2 decoded native replay
 
+Current replay disposition: `REMAKE-REPLAY-AUDIT.md`. The opt-in GPU replay
+harness runs and decoded-versus-native-buffer alignment is exact in the tested
+moving interval, but repeat-render/on-off one-step pixel differences remain.
+Resolve that native-state/repeat-render issue and rerun exact-SHA moving pairs;
+do not reimplement packet export/decoding or claim M2 is closed.
+
 Snapshot export and bounded disk decoding are implemented and self-reviewed:
 243/243 enabled selftests and three actual Hoko Temple packets decoded.
 Next: resolve retained resources, capture remaining native state, replay decoded

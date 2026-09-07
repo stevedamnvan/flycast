@@ -26,6 +26,7 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
+#include "rend/neural/pvr_scene_capture.h"
 #endif
 
 #include <chrono>
@@ -394,7 +395,7 @@ void DX11Renderer::resetContextState()
 	deviceContext->SOSetTargets(0, nullptr, nullptr);
 }
 
-void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY)
+void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY, const float *capturedViewport)
 {
 	matrices.CalcMatrices(rendContext, rendContext->framebufferWidth, rendContext->framebufferHeight);
 	setBaseScissor();
@@ -413,7 +414,7 @@ void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY)
 		deviceContext->RSSetViewports(1, &vp);
 	}
 	VertexConstants constant{};
-	memcpy(&constant.transMatrix, &matrices.GetNormalMatrix(), sizeof(constant.transMatrix));
+	memcpy(&constant.transMatrix, capturedViewport ? capturedViewport : &matrices.GetNormalMatrix()[0][0], sizeof(constant.transMatrix));
 	constant.leftPlane[0] = 1;
 	constant.leftPlane[3] = 1;
 	constant.rightPlane[0] = -1;
@@ -426,6 +427,13 @@ void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY)
 	constant.neuralRenderSize[1] = static_cast<float>(height);
 	constant.neuralRasterJitter[0] = rasterJitterX;
 	constant.neuralRasterJitter[1] = rasterJitterY;
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (pvrReplayBase && !pvrReplayNativeVertexValid)
+	{
+		pvrReplayNativeVertexConstants = constant;
+		pvrReplayNativeVertexValid = true;
+	}
+#endif
 	D3D11_MAPPED_SUBRESOURCE mappedSubres;
 	deviceContext->Map(vtxConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
 	memcpy(mappedSubres.pData, &constant, sizeof(constant));
@@ -539,6 +547,10 @@ bool DX11Renderer::Render()
 			deviceContext->ClearRenderTargetView(fbRenderTarget, colors);
 		}
 	}
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (!is_rtt && !config::EmulateFramebuffer)
+		retainPvrReplayBase();
+#endif
 	configVertexShader();
 
 	deviceContext->IASetInputLayout(mainInputLayout);
@@ -550,6 +562,16 @@ bool DX11Renderer::Render()
 	updatePaletteTexture();
 
 	setupPixelShaderConstants();
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (!is_rtt && !config::EmulateFramebuffer && pvrReplayBase)
+	{
+		pvrReplayPixelConstants.reset();
+		D3D11_BUFFER_DESC desc{}; pxlConstants->GetDesc(&desc);
+		desc.Usage = D3D11_USAGE_DEFAULT; desc.CPUAccessFlags = 0;
+		if (SUCCEEDED(device->CreateBuffer(&desc, nullptr, &pvrReplayPixelConstants.get())))
+			deviceContext->CopyResource(pvrReplayPixelConstants, pxlConstants);
+	}
+#endif
 
 	drawStrips();
 	if (!is_rtt && !config::EmulateFramebuffer)
@@ -970,6 +992,8 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	pvrReplayBase.reset();
+	pvrReplayPixelConstants.reset();
 	releaseNeuralPresentation();
 	releaseNeuralInputs();
 	releaseNeuralHistory();
@@ -1015,6 +1039,158 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralReactiveCoverageActive = false;
 	neuralPreviousPositionBuffer.reset();
 	neuralPreviousPositionBufferSize = 0;
+}
+
+void DX11Renderer::retainPvrReplayBase()
+{
+	pvrReplayNativeVertexValid = false;
+	pvrReplayBase.reset();
+	pvrReplayPixelConstants.reset();
+	if (!config::NeuralCapturePvrReplay.get() || !config::NeuralCapturePvrPacket.get()
+		|| !neuralQualityCapture.CapturesCurrentFrame() || IsOitRenderer()
+		|| DX11Context::Instance()->isD3D11On12() || config::NeuralMode.get() != 1 || !fbTex)
+		return;
+	D3D11_TEXTURE2D_DESC desc{}; fbTex->GetDesc(&desc);
+	desc.BindFlags = 0; desc.MiscFlags = 0; desc.CPUAccessFlags = 0; desc.Usage = D3D11_USAGE_DEFAULT;
+	if (SUCCEEDED(device->CreateTexture2D(&desc, nullptr, &pvrReplayBase.get())))
+		deviceContext->CopyResource(pvrReplayBase, fbTex);
+}
+
+bool DX11Renderer::replayPvrPacket(const std::filesystem::path& path,
+	flycast::rend::neural::PvrReplayTextures& result, std::string& error)
+{
+	using namespace flycast::rend::neural;
+	if (!pvrReplayBase || !pvrReplayPixelConstants || !rendContext || rendContext->isRTT || IsOitRenderer()
+		|| activeNeuralSurface || activeNeuralMode != 1 || neuralExportActive)
+	{ error = "pvr-replay-unsupported-or-missing-base"; return false; }
+	PvrDecodedPacket packet;
+	if (!ReadPvrScenePacket(path, neuralQualityCaptureMetadata.frameId,
+		settings.content.gameId, packet, error)) return false;
+	if (std::memcmp(packet.viewport.data(), &pvrReplayNativeVertexConstants.transMatrix, sizeof(pvrReplayNativeVertexConstants.transMatrix)) != 0)
+	{ error = "pvr-replay-captured-versus-native-viewport-mismatch"; return false; }
+	if (packet.vertices.empty() || packet.indices.empty()
+		|| packet.framebufferSize[0] != rendContext->framebufferWidth
+		|| packet.framebufferSize[1] != rendContext->framebufferHeight
+		|| packet.clearFramebuffer != rendContext->clearFramebuffer
+		|| packet.draws.size() != rendContext->global_param_op.size() + rendContext->global_param_pt.size() + rendContext->global_param_tr.size()
+		|| packet.passes.size() != rendContext->render_passes.size()
+		|| packet.modifierTriangles != rendContext->modtrig.size()
+		|| packet.framebufferSize[0] > 4096 || packet.framebufferSize[1] > 2160
+		|| rendContext->modtrig.size() > 65536 || rendContext->global_param_mvo.size() > 8192
+		|| rendContext->global_param_mvo_tr.size() > 8192 || rendContext->sortedTriangles.size() > 262144)
+	{ error = "pvr-replay-size"; return false; }
+	// Same-frame resource-backed experiment. Global pixel state, modifiers and
+	// sorted order are retained explicitly; this is not standalone scene replay.
+	rend_context replay = *rendContext;
+	replay.verts = packet.vertices; replay.idx = packet.indices;
+	for (size_t i = 0; i < packet.passes.size(); ++i)
+	{
+		const auto& saved = packet.passes[i]; auto& live = replay.render_passes[i];
+		if (saved.op != live.op_count || saved.pt != live.pt_count || saved.tr != live.tr_count
+			|| saved.mvo != live.mvo_count || saved.sortedTr != live.sorted_tr_count
+			|| saved.autosort != live.autosort || saved.zClear != live.z_clear)
+		{ error = "pvr-replay-pass-state-mismatch"; return false; }
+		live.op_count = saved.op; live.pt_count = saved.pt; live.tr_count = saved.tr;
+		live.mvo_count = saved.mvo; live.sorted_tr_count = saved.sortedTr;
+		live.autosort = saved.autosort; live.z_clear = saved.zClear;
+	}
+	auto textureMatches = [](const std::optional<PvrCapturedTexture>& saved, const BaseTextureCacheData* live) {
+		if (!saved) return live == nullptr;
+		if (!live || saved->upload != live->Updates || saved->rtt != live->rttGeneration) return false;
+		return !saved->palette || *saved->palette == live->palette_hash;
+	};
+	for (const auto& draw : packet.draws)
+	{
+		auto& list = draw.list == 0 ? replay.global_param_op : draw.list == 1 ? replay.global_param_pt : replay.global_param_tr;
+		if (draw.ordinal >= list.size()) { error = "pvr-replay-draw-count"; return false; }
+		auto& live = list[draw.ordinal]; const auto& saved = draw.state;
+		if (live.first != saved.first || live.count != saved.count || live.tcw.full != saved.tcw.full
+			|| live.tsp.full != saved.tsp.full || live.pcw.full != saved.pcw.full || live.isp.full != saved.isp.full
+			|| live.tcw1.full != saved.tcw1.full || live.tsp1.full != saved.tsp1.full || live.tileclip != saved.tileclip
+			|| !textureMatches(draw.texture, live.texture) || !textureMatches(draw.texture1, live.texture1))
+		{ error = "pvr-replay-retained-resource-state-mismatch"; return false; }
+		auto replacement = saved; replacement.texture = live.texture; replacement.texture1 = live.texture1;
+		replacement.zvZ = live.zvZ; live = replacement;
+	}
+	D3D11_TEXTURE2D_DESC colorDesc{}; fbTex->GetDesc(&colorDesc);
+	D3D11_TEXTURE2D_DESC depthDesc{}; depthTex->GetDesc(&depthDesc);
+	ComPtr<ID3D11Texture2D> depth;
+	ComPtr<ID3D11DepthStencilView> depthView;
+	if (FAILED(device->CreateTexture2D(&depthDesc, nullptr, &depth.get()))
+		|| FAILED(device->CreateDepthStencilView(depth, nullptr, &depthView.get())))
+	{ error = "pvr-replay-depth-allocation"; return false; }
+	auto buffer = [&](const void *data, UINT bytes, UINT bind, ComPtr<ID3D11Buffer>& out) {
+		D3D11_BUFFER_DESC desc{}; desc.ByteWidth = bytes; desc.Usage = D3D11_USAGE_IMMUTABLE; desc.BindFlags = bind;
+		D3D11_SUBRESOURCE_DATA initial{}; initial.pSysMem = data;
+		return SUCCEEDED(device->CreateBuffer(&desc, &initial, &out.get()));
+	};
+	ComPtr<ID3D11Buffer> replayIndices;
+	if (!buffer(replay.idx.data(), static_cast<UINT>(replay.idx.size() * sizeof(u32)), D3D11_BIND_INDEX_BUFFER, replayIndices))
+	{ error = "pvr-replay-index-allocation"; return false; }
+	const auto originalVertices = vertexBuffer, originalIndices = indexBuffer;
+	ComPtr<ID3D11Buffer> originalPixelConstants;
+	deviceContext->PSGetConstantBuffers(0, 1, &originalPixelConstants.get());
+	auto *originalContext = rendContext;
+	ComPtr<ID3D11RenderTargetView> originalTarget; ComPtr<ID3D11DepthStencilView> originalDepth;
+	deviceContext->OMGetRenderTargets(1, &originalTarget.get(), &originalDepth.get());
+	D3D11_VIEWPORT originalViewport[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE]{};
+	UINT viewportCount = std::size(originalViewport); deviceContext->RSGetViewports(&viewportCount, originalViewport);
+	struct Restore { std::function<void()> fn; ~Restore() { fn(); } } restore{[&] {
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+		rendContext = originalContext; vertexBuffer = originalVertices; indexBuffer = originalIndices;
+		configVertexShader();
+		deviceContext->PSSetConstantBuffers(0, 1, &originalPixelConstants.get());
+		const UINT stride = sizeof(Vertex), offset = 0;
+		deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.get(), &stride, &offset);
+		deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		deviceContext->OMSetRenderTargets(1, &originalTarget.get(), originalDepth);
+		deviceContext->RSSetViewports(viewportCount, originalViewport);
+	}};
+	rendContext = &replay; indexBuffer = replayIndices;
+	for (size_t lane = 0; lane < result.color.size(); ++lane)
+	{
+		ComPtr<ID3D11RenderTargetView> target;
+		if (FAILED(device->CreateTexture2D(&colorDesc, nullptr, &result.color[lane].get()))
+			|| FAILED(device->CreateRenderTargetView(result.color[lane], nullptr, &target.get())))
+		{ error = "pvr-replay-color-allocation"; return false; }
+		if (lane == 2) for (auto& v : replay.verts) if (std::isfinite(v.z) && v.z > 0) v.z = 1.f / v.z;
+		ComPtr<ID3D11Buffer> vertices;
+		if (!buffer(replay.verts.data(), static_cast<UINT>(replay.verts.size() * sizeof(Vertex)), D3D11_BIND_VERTEX_BUFFER, vertices))
+		{ error = "pvr-replay-vertex-allocation"; return false; }
+		vertexBuffer = vertices;
+		if (lane == 3)
+		{
+			rendContext = originalContext; vertexBuffer = originalVertices; indexBuffer = originalIndices;
+		}
+		resetContextState();
+		deviceContext->CopyResource(result.color[lane], pvrReplayBase);
+		deviceContext->OMSetRenderTargets(1, &target.get(), depthView);
+		deviceContext->ClearDepthStencilView(depthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
+		auto viewport = packet.viewport;
+		if (lane == 1) viewport[12] += .05f; // Deliberately wrong camera/viewport assumption.
+		configVertexShader(0.f, 0.f, viewport.data());
+		auto capturedConstants = pvrReplayNativeVertexConstants;
+		std::memcpy(&capturedConstants.transMatrix, viewport.data(), sizeof(capturedConstants.transMatrix));
+		D3D11_MAPPED_SUBRESOURCE mapped{};
+		if (FAILED(deviceContext->Map(vtxConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+		{ error = "pvr-replay-vertex-constants-map"; return false; }
+		std::memcpy(mapped.pData, &capturedConstants, sizeof(capturedConstants));
+		deviceContext->Unmap(vtxConstants, 0);
+		ID3D11Buffer *pixelBuffers[] = {pvrReplayPixelConstants, pxlPolyConstants};
+		deviceContext->PSSetConstantBuffers(0, 2, pixelBuffers);
+		deviceContext->PSSetShaderResources(1, 1, &paletteTextureView.get());
+		deviceContext->PSSetSamplers(1, 1, &samplers->getSampler(false).get());
+		deviceContext->PSSetShaderResources(2, 1, &fogTextureView.get());
+		deviceContext->PSSetSamplers(2, 1, &samplers->getSampler(true).get());
+		deviceContext->IASetInputLayout(mainInputLayout);
+		const UINT stride = sizeof(Vertex), offset = 0;
+		deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer.get(), &stride, &offset);
+		deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		n2Helper.resetCache(); drawStrips();
+		deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	}
+	result.priorFramebuffer = pvrReplayBase;
+	return true;
 }
 
 bool DX11Renderer::prepareNeuralSceneColorTarget(ID3D11RenderTargetView *target)
@@ -1808,6 +1984,11 @@ void DX11Renderer::captureNeuralQualityFrame()
 	{
 		textures.pvrContext = rendContext;
 		textures.pvrPacketRequested = true;
+		if (config::NeuralCapturePvrReplay.get())
+			textures.pvrReplay = [this](const std::filesystem::path& path,
+				flycast::rend::neural::PvrReplayTextures& result, std::string& error) {
+				return replayPvrPacket(path, result, error);
+			};
 		const auto& viewport = matrices.GetNormalMatrix();
 		for (int column = 0; column < 4; ++column)
 			for (int row = 0; row < 4; ++row)

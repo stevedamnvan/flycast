@@ -49,6 +49,7 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
 		"  capture --remake-packet yes|no: bounded developer PVR snapshot; default no; not world reconstruction\n"
+		"  capture --remake-replay yes|no: isolated same-frame decoded geometry replay plus wrong viewport/depth controls\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
@@ -805,6 +806,12 @@ int NativeParityCommand(const Args& args)
 int CaptureCommand(const Args& args)
 {
 	const auto remakePacket = Value(args, "--remake-packet", "no");
+	const auto remakeReplay = Value(args, "--remake-replay", "no");
+	if (remakeReplay != "yes" && remakeReplay != "no")
+	{ std::cerr << "--remake-replay must be yes or no\n"; return 2; }
+	if (remakeReplay == "yes" && (remakePacket != "yes" || Value(args,"--lane","dlaa") != "native"
+		|| Value(args,"--api","d3d11") != "d3d11" || Value(args,"--renderer","dx11") != "dx11"))
+	{ std::cerr << "PVR replay requires packet=yes, native lane, native D3D11 and normal DX11\n"; return 2; }
 	if (remakePacket != "yes" && remakePacket != "no")
 	{
 		std::cerr << "--remake-packet must be yes or no\n";
@@ -1042,6 +1049,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
 		+ L",config:rend.NeuralCapturePvrPacket=" + (remakePacket == "yes" ? L"yes" : L"no")
+		+ L",config:rend.NeuralCapturePvrReplay=" + (remakeReplay == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralLateOverlayProof=" + (lateOverlayProof ? L"yes" : L"no")
 		+ L",config:rend.ShowFPS="
 		+ (lateOverlayProof && proofOverlay == "fps" ? L"yes" : L"no")
@@ -1170,6 +1178,13 @@ int CaptureCommand(const Args& args)
 					return 1;
 				}
 				++pvrPacketFiles;
+				if (remakeReplay == "yes")
+				{
+					std::ifstream proof(entry.path() / "pvr-replay-proof.json");
+					std::ostringstream text; text << proof.rdbuf();
+					if (!proof || text.str().find("\"passed\":true") == std::string::npos)
+					{ std::cerr << "PVR decoded replay or falsifying controls failed\n"; return 1; }
+				}
 			}
 		if (pvrPacketFiles != frames) { std::cerr << "PVR packet frame count mismatch\n"; return 1; }
 	}
@@ -1191,6 +1206,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
 		<< ",\n  \"pvr_packet_requested\": " << (remakePacket == "yes" ? "true" : "false")
 		<< ",\n  \"pvr_packet_frames\": " << pvrPacketFiles
+		<< ",\n  \"pvr_decoded_replay_requested\": " << (remakeReplay == "yes" ? "true" : "false")
 		<< ",\n  \"late_overlay_proof_requested\": " << (lateOverlayProof ? "true" : "false")
 		<< ",\n  \"late_overlay_source\": \"" << (lateOverlayProof ? proofOverlay : "none") << "\""
 		<< ",\n  \"late_overlay_proof_frames\": " << lateOverlayProofFiles

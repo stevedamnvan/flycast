@@ -1,5 +1,9 @@
 # FC-067 M2: PVR snapshot checkpoint
 
+Current GPU continuation: `REMAKE-REPLAY-AUDIT.md`. The decoder now reaches
+isolated native GPU replay, but a repeat-render/on-off one-step discrepancy
+prevents full M2 acceptance. Snapshot and decoder evidence below remains valid.
+
 Implementation base: `3a5051ec9` (2026-09-07), clean worktree before changes.
 The initial checkpoint was export only; the bounded decoder follow-up below
 advances it to decoded projected data. Native disk-decoded replay alignment and

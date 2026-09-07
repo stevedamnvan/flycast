@@ -2,6 +2,10 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Latest evidence and next task: `REMAKE-REPLAY-AUDIT.md`. The isolated decoded
+GPU replay diagnostic is implemented; native-repeat/on-off one-step differences
+remain under investigation and prevent complete M2 acceptance.
+
 Continuation: bounded M1 preflight correction is self-reviewed and pushed;
 M2 snapshot/decoder implementation is in `REMAKE-M2-AUDIT.md`. M2 acceptance
 still requires disk-decoded native replay and falsifying camera/depth controls.

@@ -2,9 +2,13 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-Current continuation is M2 snapshot-to-native-replay proof, detailed in
-`docs/neural/REMAKE-M2-AUDIT.md`. Actual projected PVR packets are exported and
-decoded; raster replay, recovered camera, and Remix rendering remain unproven.
+`docs/neural/REMAKE-REPLAY-AUDIT.md` is the latest diagnostic checkpoint:
+decoded GPU replay runs, but a one-step repeated-native/on-off pixel discrepancy
+is unresolved. M2 remains open; do not restart the already-built decoder.
+
+`docs/neural/REMAKE-M2-AUDIT.md` records the snapshot/decoder prerequisite.
+Actual projected packets reach isolated raster replay; recovered camera and
+Remix rendering remain unproven.
 
 M1 now has a tested CPU scene contract and real-header/mock adapter; see
 `docs/neural/REMAKE-M1-AUDIT.md` and LOG #133/#135. Its bounded corrections are

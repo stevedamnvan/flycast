@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <functional>
 struct rend_context;
 
 namespace flycast::rend::neural {
@@ -80,7 +81,12 @@ struct QualityCaptureMetadata {
 	std::vector<OverlayDrawDiagnostic> overlayDraws;
 };
 
+struct PvrReplayTextures {
+	ComPtr<ID3D11Texture2D> priorFramebuffer;
+	std::array<ComPtr<ID3D11Texture2D>,4> color; // decoded, wrong viewport, wrong depth, retained native buffers
+};
 struct QualityCaptureTextures {
+	std::function<bool(const std::filesystem::path&, PvrReplayTextures&, std::string&)> pvrReplay;
 	bool pvrPacketRequested = false;
 	const rend_context *pvrContext = nullptr;
 	std::array<float,16> pvrViewport{};

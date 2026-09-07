@@ -1373,6 +1373,15 @@ corrected by the user; do not substitute Sol/high.
 
 ## D-085: M1 scene data and public API evidence are separate from rendering
 
+M2 GPU diagnostic: retain pre-draw framebuffer content and the original shader
+contract; use new decoded buffers without repeating the flat-shading color
+adjustment. Resolve texture state only against the retained same frame, never
+serialized pointers. Include an original-GPU-buffer replay control to separate
+decoding from repeated native drawing. Keep original-source exactness separate
+from decoded/control equality and do not silently accept a one-step tolerance.
+The isolated test retains supplemental native state and is not standalone scene
+reconstruction; it is restricted to explicit native-D3D11 normal-renderer captures.
+
 M2 decode policy: parsing a saved packet never activates a renderer. Bound file
 allocation and JSON construction as well as decoded arrays, reject duplicate
 keys and narrowing conversions, and preserve the caller's previous output on

@@ -2,6 +2,13 @@
 
 ## FC-067 M2 PVR snapshot
 
+For native D3D11/normal DX11 only, add `--remake-replay yes` with packet capture
+and `--lane native` to produce four isolated replay/control images and
+`pvr-replay-proof.json`. Overall capture returns nonzero when strict source
+equality or wrong-control failures are absent. This option is off by default.
+Read `REMAKE-REPLAY-AUDIT.md` before interpreting a successful or failed run;
+decoded/native-buffer equality and original-frame equality are separate facts.
+
 Add `--remake-packet yes` to the bounded `neuraltest capture` command; default
 is no. Inspect with `neuraltest/validate_pvr_packet.ps1 -CaptureDirectory <run>`.
 This checks manifest identity, limits, index ranges, and nonfinite accounting,

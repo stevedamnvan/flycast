@@ -2,6 +2,12 @@
 
 ## Current assignment — 2026-09-07
 
+Latest: `docs/neural/REMAKE-REPLAY-AUDIT.md` governs the next action. Diagnose
+the residual one-channel-step native-repeat/on-off discrepancy, then rerun
+exact-SHA moving pairs with strict source equality and wrong controls. The GPU
+diagnostic is implemented; M2 is not closed. Keep failed runs and do not lower
+the gate or claim recovered world/camera/Remix presentation.
+
 M2 now has actual PVR snapshots and a bounded disk decoder (243/243 enabled
 selftests); read `docs/neural/REMAKE-M2-AUDIT.md`. Next implementor: retained
 resource resolution, remaining native state capture, isolated decoded replay

@@ -124,7 +124,7 @@ protected:
 	bool ensureBufferSize(ComPtr<ID3D11Buffer>& buffer, D3D11_BIND_FLAG bind, u32& currentSize, u32 minSize);
 	void createDepthTexAndView(ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11DepthStencilView>& view, int width, int height, DXGI_FORMAT format = DXGI_FORMAT_D24_UNORM_S8_UINT, UINT bindFlags = 0);
 	void createTexAndRenderTarget(ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11RenderTargetView>& renderTarget, int width, int height);
-	void configVertexShader(float rasterJitterX = 0.f, float rasterJitterY = 0.f);
+	void configVertexShader(float rasterJitterX = 0.f, float rasterJitterY = 0.f, const float *capturedViewport = nullptr);
 	void uploadGeometryBuffers();
 	void setupPixelShaderConstants();
 	void updateFogTexture();
@@ -168,6 +168,8 @@ protected:
 	void releaseNeuralHistory();
 	void releaseNeuralPresentation();
 	void captureNeuralQualityFrame();
+	void retainPvrReplayBase();
+	bool replayPvrPacket(const std::filesystem::path&, flycast::rend::neural::PvrReplayTextures&, std::string&);
 	void captureNeuralLateOverlayFrame();
 	void beginNeuralPerformanceFrame();
 	void markNeuralPvrEnd();
@@ -226,6 +228,10 @@ protected:
 	ComPtr<ID3D11RenderTargetView> neuralRetainedSceneTarget;
 	ComPtr<ID3D11ShaderResourceView> neuralRetainedSceneView;
 	bool neuralRetainedSceneValid = false;
+	ComPtr<ID3D11Texture2D> pvrReplayBase;
+	ComPtr<ID3D11Buffer> pvrReplayPixelConstants;
+	VertexConstants pvrReplayNativeVertexConstants{};
+	bool pvrReplayNativeVertexValid = false;
 	NeuralTargetRing neuralColor;
 	NeuralTargetRing neuralMotion;
 	NeuralTargetRing neuralMask;

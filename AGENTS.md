@@ -2,10 +2,11 @@
 
 ## Current assignment
 
-Current continuation: M2 PVR snapshot and bounded disk decoder are implemented;
-read `docs/neural/REMAKE-M2-AUDIT.md`. Next is retained-resource resolution and
-isolated native replay of decoded data with falsifying viewport/depth controls.
-M2 is not accepted yet.
+Current continuation: read `docs/neural/REMAKE-REPLAY-AUDIT.md` and
+`docs/neural/REMAKE-M2-AUDIT.md`. M2 decoded GPU replay and wrong controls are
+implemented, but repeated native drawing/on-off captures have an unresolved
+one-channel-step discrepancy. Next is identifying that remaining native-state
+or repeat-render difference and rerunning exact-SHA moving pairs. M2 is open.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
