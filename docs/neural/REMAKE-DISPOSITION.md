@@ -66,6 +66,11 @@ The current-input no-go is accepted only as a feasibility/scheduling disposition
 
 ## Next implementor task: one visible, labeled approximation
 
+Checkpoint: this bounded task is implemented; see `REMAKE-PREVIEW-AUDIT.md`.
+The 30-frame result is a no-go for promotion. Deliver the animation and stop
+this approximation branch. The numbered body below is retained as its scope,
+not an instruction to repeat it or start a new tuning phase.
+
 Use Astra/low in the existing checkout. Do not repeat M1, packet decoding,
 transport proof, or the parked precision investigation. Complete one bounded
 offline visual experiment using the already captured moving Hoko Temple

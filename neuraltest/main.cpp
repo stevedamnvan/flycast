@@ -49,6 +49,7 @@ void Usage()
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
+		"neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id ID --first N --frames 1..30 --fov-deg 30..100 (offline approximation, NOT Remix/DLSS5)\n"
 		"  capture --remake-packet yes|no: bounded developer PVR snapshot; default no; not world reconstruction\n"
 		"  capture --remake-replay yes|no: isolated same-frame decoded geometry replay plus wrong viewport/depth controls\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
@@ -3667,6 +3668,14 @@ int main(int argc, char **argv)
 			<<" indices="<<packet.indices.size()<<" draws="<<packet.draws.size()<<" omissions="<<packet.omissions.size()
 			<<" camera=unknown native_replay=false gpu_rendered=false\n";
 		return 0;
+	}
+	if (command == "remake-preview") {
+		std::uint32_t first=0,frames=0,fov=0;
+		if(!Number(args,"--first",0,first,error)||!Number(args,"--frames",0,frames,error)||!Number(args,"--fov-deg",0,fov,error)
+			||Value(args,"--in").empty()||Value(args,"--out").empty()||Value(args,"--game-id").empty()) return 2;
+		if(!neuraltest::RunRemakePreview(Value(args,"--in"),Value(args,"--out"),Value(args,"--game-id"),first,frames,fov,error))
+		{std::cerr<<error<<'\n';return 1;}
+		std::cout<<"camera-relative preview written; NOT Remix, path tracing or DLSS5\n";return 0;
 	}
 	if (command == "capture-index") return CaptureIndexCommand(args);
 	if (command == "compare-captures")

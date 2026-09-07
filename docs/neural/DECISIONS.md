@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-087: hypothetical relighting remains offline and is not promoted
+
+The FC-067 preview reuses captured indexed geometry and source-color identity
+but explicitly assumes projection and reciprocal depth, derives face normals,
+and modulates baked SDR appearance. No material separation, shadow rays,
+offscreen scene, actual runtime, or neural output is implied. Conservative
+uncertain-depth coverage and a declared world crop limit the experiment;
+unchanged crop-exterior pixels do not prove a general HUD classifier.
+
+REMAKE-PREVIEW-AUDIT.md records the 30-frame result and failed attempts. Visible
+faceting and over-brightening reject its promotion. Deliver the comparison and
+stop this approximation branch. Any genuine camera/material extraction or
+runtime integration needs its own bounded scope, not another tuning loop or
+implicit closure of M2's parked strict source-equality failure.
+
 ## D-086: park precision diagnosis and require a visible feasibility decision
 
 The user's 2026-09-07 "Are we spinning wheels?" / "Proceed" correction ends

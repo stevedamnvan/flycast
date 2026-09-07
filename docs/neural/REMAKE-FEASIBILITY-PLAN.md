@@ -2,6 +2,12 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Latest visible decision: `REMAKE-PREVIEW-AUDIT.md`. A 30-frame camera-relative
+approximation exists, but faceting and baked-lighting conflicts reject its
+promotion. Deliver the comparison and stop that branch. The prior assignment
+below is retained for scope; actual camera/material reconstruction and runtime
+execution are not completed or silently authorized by this preview.
+
 Current disposition and next task: `REMAKE-DISPOSITION.md`. The user approved
 parking the small replay residual. Direct current-packet/current-Remix-adapter
 handoff is a source-contract no-go. Next produce one explicitly labeled moving

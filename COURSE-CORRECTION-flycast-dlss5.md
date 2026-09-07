@@ -2,6 +2,12 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Latest result: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The bounded moving
+approximation has been produced and is not promoted. Deliver the labeled
+comparison, then stop this branch. Camera/material reconstruction and an actual
+GPU runtime harness require their own scope. The previous launch text below
+is historical; no additional pixel-probe or light-tuning phase is assigned.
+
 `docs/neural/REMAKE-DISPOSITION.md` governs the user-approved pivot: park the
 small replay residual without passing or relaxing its gate. The current packet
 cannot directly feed the current Remix adapter. Next deliver one explicitly

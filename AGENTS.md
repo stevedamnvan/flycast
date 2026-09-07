@@ -2,6 +2,13 @@
 
 ## Current assignment
 
+Latest result: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The requested moving
+approximation is implemented and captured; it is not suitable for promotion.
+Stop this approximation branch after delivering its comparison. Do not resume
+pixel probes or light tuning. A further genuine remake step needs a separately
+scoped camera/material strategy and runtime harness; no such integration is
+accepted by the preview. The task text below records the completed assignment.
+
 Current continuation: read `docs/neural/REMAKE-DISPOSITION.md` first. The user
 approved parking the small replay mismatch and prioritizing a visible result.
 The current PVR packet cannot directly feed the current world-only Remix

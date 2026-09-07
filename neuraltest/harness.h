@@ -245,6 +245,8 @@ bool RenderFixture(const Fixture& fixture, const RenderOptions& options, RenderR
 bool WritePng(const std::filesystem::path& path, const Image& image, std::string& error);
 bool WriteRaw(const std::filesystem::path& path, const Image& image, std::string& error);
 bool ReadPng(const std::filesystem::path& path, Image& image, std::string& error);
+bool RunRemakePreview(const std::filesystem::path& input, const std::filesystem::path& output,
+ const std::string& game, unsigned first, unsigned frames, unsigned fov, std::string& error);
 std::uint64_t HashImage(const Image& image);
 double ComputePsnr(const Image& a, const Image& b, std::uint32_t& differingPixels, std::uint8_t& maxDelta);
 bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixture,

@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+## Offline FC-067 camera-relative preview (not Remix/DLSS 5)
+
+`neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id T1401N
+--first 1804 --frames 30 --fov-deg 60` reads existing native/PVR captures without
+launching Flycast or changing live configuration. See `REMAKE-PREVIEW-AUDIT.md`.
+Package labeled moving outputs with `python neuraltest/remake_preview_animation.py
+NEW_DIR` using Pillow. This offline SDR multiplier is not real-time performance,
+material separation or external neural output evidence.
+
 ## FC-067 repeated raster fixture
 
 `neuraltest repeat-raster --api d3d11|d3d11on12 --out <NEW_DIR>` runs 512

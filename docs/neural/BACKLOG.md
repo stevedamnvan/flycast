@@ -66,6 +66,14 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 visible approximation decision
 
+Current result: `REMAKE-PREVIEW-AUDIT.md`, LOG #144. The 30-frame offline
+approximation exists and passes source identity/light-off/protection controls,
+but sampled images expose faceting and over-brightening. No promotion.
+Deliver the moving comparison and stop this approximation branch. FC-067
+remains doing: actual camera/material reconstruction, Remix GPU execution,
+and the parked strict source-equality gate are not closed. The assignment
+below is historical, not authorization for another tuning loop.
+
 `REMAKE-DISPOSITION.md` governs the user-approved pivot. Stop trace-53/parity
 diagnosis. Current real-packet/current-Remix-adapter handoff is a limited no-go
 because scene and GPU execution requirements are missing, not because Remix

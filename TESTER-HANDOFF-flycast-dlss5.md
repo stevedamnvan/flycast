@@ -2,6 +2,13 @@
 
 ## Current assignment -- 2026-09-07
 
+Latest: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The 30-frame labeled moving
+comparison is implemented. Review it as an approximation only; it exposes
+faceting and baked-lighting conflicts and is not promoted. Deliver it, then
+stop this branch. No more pixel probes or light tuning; a genuine remake step
+needs a separately scoped camera/material and actual GPU-runtime task.
+The implementor instructions below describe the completed preview assignment.
+
 Read `docs/neural/REMAKE-DISPOSITION.md` first. The user approved parking the
 13-pixel replay residual and ending the precision-diagnostic loop. Strict M2
 source equality remains failed/parked; decoded/native-buffer replay is exact

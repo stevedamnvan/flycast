@@ -2,6 +2,11 @@
 
 ## Current execution priority -- FC-067
 
+Latest: `REMAKE-PREVIEW-AUDIT.md`. The bounded moving approximation is complete
+as a visualization, not a renderer or quality winner. Deliver it and stop the
+approximation branch; original reconstruction/GPU gates remain open. The
+execution text below records the completed preview assignment.
+
 Current authority: `REMAKE-DISPOSITION.md`. Park the small M2 source-equality
 residual without passing its gate. Next produce one labeled moving view-space
 relighting approximation or an input-specific no-go. M1 CPU/public-header and
