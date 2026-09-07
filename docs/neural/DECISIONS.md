@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-093: verified local projection arithmetic is not a recovered camera
+
+The observed reciprocal, depth scale and fused x/y offsets are accepted only
+for the captured operation/store chain. Use exact recorded rounding and fused
+semantics; a nearest-rounding assumption fails the reciprocal. Diagnostic shadow
+mutations must not alter guest execution. The new derived generation starts
+only after its ordered writes verify. Next require bounded actual submission
+lineage with a falsifying control; do not infer TA/frame ownership from similar
+values or native image equality. Source matrix role, world scale, missing
+geometry and physical depth remain unresolved even after local math verifies.
+
 ## D-092: an overwritten coordinate span needs a new proven generation
 
 The observed read/copy chain ends at the first overlapping write. Do not keep

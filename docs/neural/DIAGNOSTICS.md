@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 derived-coordinate evidence
+
+`python neuraltest/transform_derived_inspect.py --positive B --negative C
+--baseline RESTORED` checks TRANSFORM-DERIVED-AUDIT.md's actual four-operation,
+three-store pair, wrong-offset/rounding controls and 54 native-image planes.
+Run `test_binary32_oracle.py` and `test_transform_derived_inspect.py` for bounded
+arithmetic/parser controls. Neither proves TA lineage or camera reconstruction.
+
 ## FC-067 bounded buffer-consumer evidence
 
 `python neuraltest/transform_span_inspect.py --positive C --negative D

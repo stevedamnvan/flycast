@@ -2,6 +2,12 @@
 
 ## Current assignment -- 2026-09-07
 
+Current: `docs/neural/TRANSFORM-DERIVED-AUDIT.md` (LOG #151, D-093). The
+arithmetic/store pair and falsifying controls verify. Next implement bounded
+lineage from the completed derived RAM generation to a specific SQ/DMA/TA
+submission, or report uncorrelated. Do not repeat arithmetic/census or claim
+camera recovery. Older assignments below are historical.
+
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
 copies and an overwrite boundary are verified. Next capture the identified
 coordinate arithmetic and stores as a new generation before bounded TA lineage.

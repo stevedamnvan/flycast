@@ -2,6 +2,12 @@
 
 ## Current assignment
 
+Current: `docs/neural/TRANSFORM-DERIVED-AUDIT.md` (LOG #151, D-093). Four
+executed arithmetic results and three derived-coordinate writes verify with
+wrong-offset/wrong-rounding controls and unchanged native images. Next follow
+this completed generation to one bounded SQ/DMA/TA submission or return an
+explicit uncorrelated result. No camera/Remix claim; older text is historical.
+
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
 values and three RAM copies are verified; the old span terminates at an actual
 write. Next capture the explicitly identified derived-coordinate arithmetic and

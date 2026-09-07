@@ -2,6 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Current: TRANSFORM-DERIVED-AUDIT.md (LOG #151, D-093). Local reciprocal,
+scale and fused x/y operations plus stores verify; next is bounded submission
+lineage. Camera/world reconstruction and Remix GPU remain unproven. The
+following checkpoints are historical, not repeat assignments.
+
 Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
 chain is verified and stops at overwrite. Next prove the identified derived
 coordinates and bounded TA lineage; camera/Remix GPU remain unproven.
