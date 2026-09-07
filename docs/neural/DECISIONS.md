@@ -1,5 +1,27 @@
 # Neural rendering decisions
 
+## D-086: park precision diagnosis and require a visible feasibility decision
+
+The user's 2026-09-07 "Are we spinning wheels?" / "Proceed" correction ends
+the trace-53 investigation as the immediate priority. `REMAKE-DISPOSITION.md`
+is authoritative over older M1/M2 next-task text. Keep the 13-pixel source
+equality failure explicit, preserve failed attempts and remove temporary probes;
+do not lower the gate, invent a root cause, or declare M2 fully accepted.
+
+Current projected PVR packets do not satisfy the current world-only Remix
+adapter. Known projection, actual scene material/surface data and an isolated
+runtime/completion/readback path are missing. This limited no-go is not a
+negative GPU test and does not disprove future Remix use. Another renderer
+library cannot itself recover missing game camera data.
+
+Next permit one offline, explicitly camera-relative relighting approximation
+from the existing moving interval, with assumptions, conservative coverage,
+light-off identity and falsifying controls. It must deliver a moving comparison
+or an input-specific no-go, not another generic harness. No production renderer
+replacement, live external configuration, proprietary dependency acquisition,
+or combined neural presentation is authorized by this experiment. Preserve
+Faithful public Auto and user-selected Uncanny separately.
+
 ## D-001: required surface and scope
 
 Use the existing DX11 and DX11/OIT PVR renderers. Public NGX D3D11 is the first

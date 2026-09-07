@@ -2,13 +2,14 @@
 
 ## Current execution priority -- FC-067
 
-M1 contract/adapter checkpoint is in `REMAKE-M1-AUDIT.md` (LOG #133).
-Review its bounded CPU/public-header evidence before M2. No new GPU or
-game-quality gate is closed by these tests.
+Current authority: `REMAKE-DISPOSITION.md`. Park the small M2 source-equality
+residual without passing its gate. Next produce one labeled moving view-space
+relighting approximation or an input-specific no-go. M1 CPU/public-header and
+M2 decoded replay work exist; neither proves a complete scene or Remix GPU use.
 
-As authorized on 2026-09-07, execute M1 of
-`REMAKE-FEASIBILITY-PLAN.md` before unavailable-title expansion, hardware-only
-tests, or bespoke remake asset/rendering work. This public Remix SDK reuse
+As authorized on 2026-09-07, execute this visible decision before
+unavailable-title expansion, hardware-only tests, or production remake work.
+The public Remix SDK reuse
 experiment has independent scene/adapter acceptance, not an implied closure
 of Gates 11-18. Existing quality execution order below is retained as the
 original roadmap. Faithful stays public Auto; transformative appearance is

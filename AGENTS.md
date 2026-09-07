@@ -2,17 +2,14 @@
 
 ## Current assignment
 
-Current continuation: read `docs/neural/REMAKE-REPLAY-AUDIT.md` and
-`docs/neural/REMAKE-M2-AUDIT.md`. M2 decoded GPU replay and wrong controls are
-implemented, but repeated native drawing/on-off captures have an unresolved
-one-channel-step discrepancy. LOG #140 reproduces native-only variation and
-excludes late framebuffer mutation in a failing 30-frame run. LOG #141 localizes
-the selected color divergence to sorted draw 53 with matching captured state,
-and separately finds one-step D24 variation. LOG #142's repeat-raster fixture
-is exact on native/On12 (512 repeats each) and does not reproduce the game issue.
-Next isolate actual trace-53 geometry, shader variant and pre-draw color/depth
-surfaces in a same-command fixture, then rerun exact-SHA moving pairs. The
-temporary per-draw probe is removed. M2 is open.
+Current continuation: read `docs/neural/REMAKE-DISPOSITION.md` first. The user
+approved parking the small replay mismatch and prioritizing a visible result.
+The current PVR packet cannot directly feed the current world-only Remix
+adapter; this is a limited source-contract no-go, not proof Remix is impossible.
+Next implement its bounded, explicitly labeled camera-relative relighting
+comparison from the existing moving capture, or provide a precise input no-go.
+Do not resume trace-53/parity diagnosis or add another generic harness. The
+strict M2 source-equality gate remains failed/parked; no threshold changed.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
@@ -23,7 +20,7 @@ not existing safety contracts or evidence.
 
 M1 CPU/public-header contract corrections are self-reviewed, not GPU-proven;
 historical evidence is in `docs/neural/REMAKE-M1-AUDIT.md`. The active task is
-M2 native alignment, not renderer replacement or repeated M1 implementation.
+the visible approximation decision, not renderer replacement or repeated M1.
 Use the current `feat/neural-rendering` checkout; inspect HEAD and preserve
 newer and dirty work. Implementation routing requested by the user is
 `gpt-6-astra`, reasoning `low` (user: Astra light). This document records routing intent, not proof

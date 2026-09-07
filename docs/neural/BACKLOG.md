@@ -61,30 +61,28 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-064 | 6 | Performance | Invariants and measured targets | doing | LOG #75,#77-#89,#96-#98,#102,#110,#114,#116; asynchronous no-flush production telemetry reports per-pass GPU P50/P95/P99, exact source/accepted/displayed frame identity, present-call intervals, repeat/drop/gap/alternation/latency counters, live mode, accepted-reset state, stage/fallback counts, query-ring pressure, post-warmup VRAM, and scoped Flycast-owned neural GPU-object counts; transition and four 10000-sample normal/OIT soaks cover both surfaces; continuous 600-sample off/on and foreground-focus intervals on all four paths and fresh post-device-removal normal/OIT intervals have zero missing/drop/identity/repeat/latency faults and zero owned-object growth; external ON/OFF spans remain separate rather than an isolated external-cost claim, and broader-title/spontaneous-device evidence remains |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | doing | LOG #73,#90,#94-#95,#100-#103,#106-#107,#118-#121,#124,#126,#130; Soulcalibur has a pixel-repeatable Hoko Temple combat sequence across native, target-native DLAA Auto/J/K, accepted Quality SR, 8x native, conservative external tuples, and explicitly non-faithful Photoreal/Cinematic captures. The exact capture-reset OIT rerun again finds no Faithful external winner. Cinematic/Structure-200/Tone-75/max coverage and automatic-HUD lanes complete 30/30 exact contracts on both normal DX11 and OIT; the current OIT HUD-safe lane protects an average 15,803 pixels with zero mismatch/repeat/drop while remaining visibly and numerically non-faithful. Uncanny Cinematic is therefore a valid user-selected candidate default, not the factory default; other legal titles remain unavailable. |
 | FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | done | LOG #53-#59; all 120 full input contracts matched across ON/policy-OFF, 118 returned outputs differed, frame 9 distinguished native/public-DLAA/external hashes and carried 1024/1024 sentinel pixels through successful same-frame Present, and negative controls retained native fallback |
-| FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085, LOG #132/#133, REMAKE-M1-AUDIT.md; M1 CPU contract and real-header/mock adapter implemented: four builds, 217/217 enabled selftests, 55/55 SDK checks. GPU runtime/rendering, real-game reconstruction, and combined DLSS 5 remain unproven. Review M1 before M2. Does not replace FC-048 or FC-056/066. |
+| FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085/086, LOG #143, REMAKE-DISPOSITION.md; M1 mock and M2 export/decoder/GPU replay implemented, 243/243 enabled selftests and 56/56 SDK mock checks. Decoded/control moving alignment exact 30/30; strict source equality 29/30 remains failed/parked. Direct current-packet Remix handoff is a limited no-go. Next: one labeled moving approximation or input-specific no-go. No world reconstruction, real Remix GPU rendering or combined presentation proven. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded assignment -- FC-067 M2 decoded native replay
+## Next bounded assignment -- FC-067 visible approximation decision
 
-Current replay disposition: `REMAKE-REPLAY-AUDIT.md`. The opt-in GPU replay
-harness runs and decoded-versus-native-buffer alignment is exact in the tested
-moving interval, but repeat-render/on-off one-step pixel differences remain.
-LOG #140 reproduces native-only run-to-run variation and excludes late
-framebuffer mutation in a failing replay run (early/late native exact 30/30).
-LOG #141 localizes the selected color divergence to sorted draw 53 with matching
-captured constants/resources/state, and separately finds 1178 one-step D24
-differences. LOG #142 adds repeat-raster: native/On12 synthetic textured and
-untextured D24/D32 opaque/blended repeats are exact (512 each), so the generic
-fixture does not reproduce the game failure. Next isolate actual trace-53
-geometry, shader variant and pre-draw surfaces, then rerun exact-SHA pairs;
-do not reimplement packet export/decoding or claim M2 is closed.
+`REMAKE-DISPOSITION.md` governs the user-approved pivot. Stop trace-53/parity
+diagnosis. Current real-packet/current-Remix-adapter handoff is a limited no-go
+because scene and GPU execution requirements are missing, not because Remix
+is disproven. M1 mock and M2 export/decoder/replay are implemented.
 
-Snapshot export and bounded disk decoding are implemented and self-reviewed:
-243/243 enabled selftests and three actual Hoko Temple packets decoded.
-Next: resolve retained resources, capture remaining native state, replay decoded
-geometry into an isolated target, and run wrong-viewport/depth controls. Read
-`REMAKE-M2-AUDIT.md`. M2 and the active goal are not complete; no world camera
-or Remix GPU success is claimed. Do not reimplement M1 or the decoder.
+M2 strict source equality is **CORRECTIONS_REQUIRED / parked**, not done:
+29/30 exact source frames, 13 one-step pixels in the remaining frame;
+decoded/original-buffer replay is exact 30/30. Keep wrong controls and failures.
+The temporary single-draw probe is removed and retained locally.
+
+Next: one explicitly labeled moving camera-relative relighting approximation
+from the existing Hoko Temple interval, with light-off source identity,
+wrong-depth/normal controls and protected HUD or a declared world crop.
+Deliver a moving comparison or an exact input no-go. See the bounded task in
+`REMAKE-DISPOSITION.md`; no more generic diagnostics or second renderer
+integration. M1 GPU execution, world reconstruction and combined presentation
+remain unproven. FC-067 remains doing; no broad acceptance is implied.
 
 ### Historical M1/export assignments (superseded)
 

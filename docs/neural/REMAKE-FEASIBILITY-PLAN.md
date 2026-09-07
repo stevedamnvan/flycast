@@ -2,13 +2,16 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
-Latest evidence and next task: `REMAKE-REPLAY-AUDIT.md`. The isolated decoded
-GPU replay diagnostic is implemented; native-repeat/on-off one-step differences
-remain under investigation and prevent complete M2 acceptance.
+Current disposition and next task: `REMAKE-DISPOSITION.md`. The user approved
+parking the small replay residual. Direct current-packet/current-Remix-adapter
+handoff is a source-contract no-go. Next produce one explicitly labeled moving
+camera-relative relighting approximation or a precise input no-go; do not resume
+precision diagnosis. M2 strict native-source equality remains failed/parked.
 
 Continuation: bounded M1 preflight correction is self-reviewed and pushed;
-M2 snapshot/decoder implementation is in `REMAKE-M2-AUDIT.md`. M2 acceptance
-still requires disk-decoded native replay and falsifying camera/depth controls.
+M2 snapshot/decoder implementation is in `REMAKE-M2-AUDIT.md`; implemented
+GPU replay and failing mapping controls are in `REMAKE-REPLAY-AUDIT.md`.
+Neither raster alignment nor wrong-viewport controls recover a world camera.
 
 See `REMAKE-M1-AUDIT.md`: the bounded CPU scene contract and real-header/mock
 Remix adapter are implemented (current enabled selftests 243/243, SDK mock 56/56).

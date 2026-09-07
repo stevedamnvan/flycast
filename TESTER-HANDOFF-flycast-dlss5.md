@@ -1,32 +1,25 @@
 # Flycast DLSS 5 tester handoff
 
-## Current assignment — 2026-09-07
+## Current assignment -- 2026-09-07
 
-Latest: `docs/neural/REMAKE-REPLAY-AUDIT.md` governs the next action. Diagnose
-the residual one-channel-step native-repeat/on-off discrepancy, then rerun
-exact-SHA moving pairs with strict source equality and wrong controls. The GPU
-diagnostic is implemented; M2 is not closed. Keep failed runs and do not lower
-the gate or claim recovered world/camera/Remix presentation.
+Read `docs/neural/REMAKE-DISPOSITION.md` first. The user approved parking the
+13-pixel replay residual and ending the precision-diagnostic loop. Strict M2
+source equality remains failed/parked; decoded/native-buffer replay is exact
+for the retained 30-frame interval. Do not resume trace-53 probes.
 
-LOG #140 update: native-only repetition also differs at three one-step pixels
-in frame 1805; replay is not necessary for that cross-run variation. Early and
-late native captures match 30/30 even when same-frame replay fails at 13 pixels.
-LOG #141 completes that localization for pixel (322,265): sorted draw 53,
-first index 17497/count 18. Thirty state dumps match in a failing run; 1178 D24
-samples separately differ by one step, but depth at that pixel matches.
-LOG #142's new repeat-raster command passes 512 synthetic repeats on each of
-native D3D11 and On12, with failing viewport/depth controls. It does not reproduce
-the game's residual. Next implementor: retain actual trace-53 indexed geometry,
-shader variant, uniforms/resources and pre-draw color/depth surfaces for an
-isolated same-command fixture. Do not treat the generic pass as M2 closure. The temporary
-per-draw probe is removed; its reproducible patch and raw evidence remain local.
-Do not repeat the already-falsified late-framebuffer-mutation hypothesis.
+Next implementor (Astra/low): complete the bounded moving camera-relative
+relighting approximation specified there, using existing captured geometry
+and matched source frames. Label assumed projection, derived normals, baked
+lighting, image-projected materials, and missing geometry. Preserve HUD or
+limit to a clearly labeled world crop. Deliver a native/relit animation with
+light-off identity and falsifying depth/normal controls, or an exact input no-go.
 
-M2 now has actual PVR snapshots and a bounded disk decoder (243/243 enabled
-selftests); read `docs/neural/REMAKE-M2-AUDIT.md`. Next implementor: retained
-resource resolution, remaining native state capture, isolated decoded replay
-alignment and falsifying camera/depth mutations. Decoder success does not close
-M2. Keep all omitted state and unknown projection visible. Use Astra/low.
+The current real packet cannot directly feed the current world-only Remix
+adapter. This is not proof all Remix integration is impossible. No recovered
+world camera, real Remix GPU rendering, combined DLSS 5 presentation, or new
+quality winner is claimed. Temporary renderer probes are removed; failed and
+invalid attempts remain in the disposition and local evidence. No live config
+changes, proprietary downloads, production rewrite, or default promotion.
 
 ### Historical M1/export launch notes (superseded by assignment above)
 

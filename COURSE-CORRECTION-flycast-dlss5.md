@@ -2,9 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-`docs/neural/REMAKE-REPLAY-AUDIT.md` is the latest diagnostic checkpoint:
-decoded GPU replay runs, but a one-step repeated-native/on-off pixel discrepancy
-is unresolved. M2 remains open; do not restart the already-built decoder.
+`docs/neural/REMAKE-DISPOSITION.md` governs the user-approved pivot: park the
+small replay residual without passing or relaxing its gate. The current packet
+cannot directly feed the current Remix adapter. Next deliver one explicitly
+labeled camera-relative moving relighting comparison or a precise input no-go.
+No more trace-53 probes; do not restart the already-built decoder.
 
 `docs/neural/REMAKE-M2-AUDIT.md` records the snapshot/decoder prerequisite.
 Actual projected packets reach isolated raster replay; recovered camera and
@@ -14,11 +16,10 @@ M1 now has a tested CPU scene contract and real-header/mock adapter; see
 `docs/neural/REMAKE-M1-AUDIT.md` and LOG #133/#135. Its bounded corrections are
 self-reviewed. No synthetic GPU or real-game reconstruction is proven.
 
-The next implementation is FC-067 / M2 decoded native replay in
-`docs/neural/REMAKE-FEASIBILITY-PLAN.md`, routed to GPT-6 Astra at low reasoning
+The next implementation is the bounded FC-067 approximation decision in
+`docs/neural/REMAKE-DISPOSITION.md`, routed to GPT-6 Astra at low reasoning
 (the user's requested Astra light, not Sol/high).
-Evaluate a narrow public Remix SDK scene adapter and synthetic harness before
-custom lighting/rendering or replacement-asset investment. RTX Remix is a
+The public-header/mock adapter is implemented; its GPU path is not. RTX Remix is a
 candidate, not a proven Flycast integration; scene reconstruction and later
 DLSS 5 chaining are explicitly unproven. `AGENTS.md` is the agent entry point.
 This priority supersedes older next-task scheduling, not the evidence below.

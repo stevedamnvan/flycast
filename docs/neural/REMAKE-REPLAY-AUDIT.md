@@ -1,5 +1,12 @@
 # FC-067 M2 GPU replay diagnostic checkpoint
 
+## Scheduling override -- user approved 2026-09-07
+
+Read `REMAKE-DISPOSITION.md` for the current assignment and retained single-draw
+follow-up. Precision diagnosis below is historical and parked, not the next
+task. The strict M2 source-equality failure remains unchanged. Next is a bounded
+visible approximation decision; no current-packet Remix GPU success is claimed.
+
 Base: `857d63963`, clean worktree before implementation. **M2 remains open.**
 This is an accepted developer diagnostic harness, not accepted production
 presentation or complete standalone scene replay.
@@ -192,6 +199,7 @@ precision behavior. It omits the game's particular geometry, fog, modifier
 history, prior scene color/depth, and draw batching. Do not promote its success
 to the M2 original-source equality gate.
 
+Historical next-task text (superseded by the scheduling override above):
 Resolve the repeat-render differences without assuming the decoder or a
 particular shader constant is responsible. Native-only cross-run variation is
 now reproduced, and late framebuffer mutation is excluded in a failing run.
