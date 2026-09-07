@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 bounded buffer-consumer evidence
+
+`python neuraltest/transform_span_inspect.py --positive C --negative D
+--baseline B` verifies the specific read/copy/overwrite pair in
+TRANSFORM-CONSUMER-AUDIT.md. Run `python neuraltest/test_transform_span_inspect.py`
+for parser controls. Passing this command does not establish camera or TA
+provenance, and it must not silently continue the original span after overwrite.
+
 ## FC-067 single transform-to-RAM evidence
 
 `python neuraltest/transform_store_inspect.py --positive F --negative G

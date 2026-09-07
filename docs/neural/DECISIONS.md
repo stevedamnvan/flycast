@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-092: an overwritten coordinate span needs a new proven generation
+
+The observed read/copy chain ends at the first overlapping write. Do not keep
+the original transform's identity on modified bytes. Derived coordinates need
+actual operand/result/store evidence and a falsifying control before becoming a
+new tracked generation. CPU memory observations do not establish DMA/SQ/TA
+coverage, camera semantics, physical depth or frame ownership. Native images
+remaining identical prove diagnostic preservation only.
+
 ## D-091: RAM-store provenance is not TA or camera provenance
 
 The single executed FTRV-to-RAM witness is scoped to its recorded instruction,

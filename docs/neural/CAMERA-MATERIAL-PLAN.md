@@ -1,5 +1,9 @@
 # FC-067 camera/material extraction: approved investigation
 
+Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. The first RAM consumer is
+verified; next prove the identified derived-coordinate generation and its TA
+link. Earlier source/store/copy tasks below are completed scoped checkpoints.
+
 Current checkpoint: TRANSFORM-STORE-AUDIT.md, LOG #149, D-091. Material export
 is implemented. One executed transform-to-RAM link is verified; next follow
 bounded reads/overwrites of its actual output span toward TA. Do not repeat

@@ -2,6 +2,11 @@
 
 ## Current assignment -- 2026-09-07
 
+Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
+copies and an overwrite boundary are verified. Next capture the identified
+coordinate arithmetic and stores as a new generation before bounded TA lineage.
+No camera recovery or runtime integration claim; older tasks below are context.
+
 Current: `docs/neural/TRANSFORM-STORE-AUDIT.md`, LOG #149, D-091. A single
 executed transform reaches four verified guest-RAM stores; wrong expectation
 fails with native images unchanged. Next follow that dynamically witnessed

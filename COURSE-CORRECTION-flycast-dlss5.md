@@ -2,6 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Current: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). An executed
+RAM consumer/copy chain is verified, ending at overwrite. Next prove the derived
+coordinate generation and its TA link; stronger neural intensity cannot replace
+that scene contract. Camera/world-space/Remix GPU execution remain unproven.
+
 Latest: `docs/neural/TRANSFORM-STORE-AUDIT.md` (LOG #149, D-091). One actual
 transform-to-intermediate-RAM link is verified with a falsifying control.
 The remaining bridge is its executed consumption into TA, then camera semantics;

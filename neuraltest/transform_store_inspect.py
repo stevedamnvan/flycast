@@ -17,12 +17,16 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def inspect_capture(path, negative):
+def load_session(path):
     log = path / 'execution.log'
     require(log.stat().st_size <= 16 * 1024 * 1024, 'log exceeds 16 MiB bound')
     text = log.read_text(encoding='utf-8')
     require('DX11 Context initializing' in text, 'missing launch boundary')
-    session = text.rsplit('DX11 Context initializing', 1)[1]
+    return text.rsplit('DX11 Context initializing', 1)[1]
+
+
+def inspect_capture(path, negative):
+    session = load_session(path)
     require('overflow=true' not in session, 'incomplete site observation')
     sites = [line for line in session.splitlines()
              if f'FC067_FTRV_SITE pc={SITE:08x} ' in line]
@@ -65,10 +69,7 @@ def inspect_capture(path, negative):
     return base, output, cycles, site_fields['input'], [c['bits'] for c in columns]
 
 
-def verify(positive, negative, baseline):
-    good = inspect_capture(positive, False)
-    bad = inspect_capture(negative, True)
-    require(good == bad, 'positive and negative executed store differ')
+def compare_native(positive, negative, baseline):
     frames = sorted(p.name for p in baseline.glob('frame-*') if p.is_dir())
     require(len(frames) == 3, 'expected bounded three-frame baseline')
     comparisons = 0
@@ -82,6 +83,14 @@ def verify(positive, negative, baseline):
                         require(np.array_equal(np.asarray(reference), np.asarray(actual)),
                                 f'image mismatch: {capture.name}/{frame}/{plane}')
                 comparisons += 1
+    return comparisons
+
+
+def verify(positive, negative, baseline):
+    good = inspect_capture(positive, False)
+    bad = inspect_capture(negative, True)
+    require(good == bad, 'positive and negative executed store differ')
+    comparisons = compare_native(positive, negative, baseline)
     return {'scope': 'one-executed-transform-to-guest-ram', 'stores_exact': 4,
             'wrong_expected_word_rejected': True, 'native_plane_comparisons': comparisons,
             'ta_lineage': 'unknown', 'camera_recovered': False}

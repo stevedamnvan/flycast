@@ -64,7 +64,13 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085/086, LOG #143, REMAKE-DISPOSITION.md; M1 mock and M2 export/decoder/GPU replay implemented, 243/243 enabled selftests and 56/56 SDK mock checks. Decoded/control moving alignment exact 30/30; strict source equality 29/30 remains failed/parked. Direct current-packet Remix handoff is a limited no-go. Next: one labeled moving approximation or input-specific no-go. No world reconstruction, real Remix GPU rendering or combined presentation proven. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded assignment -- FC-067 witnessed-buffer consumption
+## Next bounded assignment -- FC-067 derived-coordinate generation
+
+TRANSFORM-CONSUMER-AUDIT.md (LOG #150, D-092): four actual loaded values, three
+exact RAM copies and an overwrite boundary are verified with a wrong-read
+expectation control and 54 native-plane comparisons. Next prove the identified
+coordinate arithmetic/stores as a new generation, then follow bounded SQ/DMA
+TA lineage. Camera remains unknown; preceding tasks below are historical.
 
 TRANSFORM-STORE-AUDIT.md (LOG #149, D-091): one executed FTRV result reaches four
 exact intermediate guest-RAM stores; wrong expectation fails and native planes

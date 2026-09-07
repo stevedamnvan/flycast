@@ -2,6 +2,10 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
+chain is verified and stops at overwrite. Next prove the identified derived
+coordinates and bounded TA lineage; camera/Remix GPU remain unproven.
+
 Current: TRANSFORM-STORE-AUDIT.md (LOG #149, D-091). One actual FTRV result is
 linked to four verified guest-RAM stores with a falsifying control. Next follow
 that bounded span's executed consumers toward TA. Camera/world-space and Remix

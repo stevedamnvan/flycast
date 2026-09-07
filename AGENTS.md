@@ -2,6 +2,12 @@
 
 ## Current assignment
 
+Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
+values and three RAM copies are verified; the old span terminates at an actual
+write. Next capture the explicitly identified derived-coordinate arithmetic and
+stores as a new generation, then its bounded TA submission lineage. Do not
+repeat source/copy census or label this camera recovery. Older text is context.
+
 Current checkpoint: `docs/neural/TRANSFORM-STORE-AUDIT.md` (LOG #149, D-091).
 One executed transform is linked to four exact guest-RAM stores with a failing
 wrong-expected-word control and native-image preservation. Next follow actual
