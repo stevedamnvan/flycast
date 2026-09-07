@@ -35,6 +35,7 @@ void Usage()
 		"neuraltest determinism --fixture NAME --renderer dx11|dx11-oit [--runs 5] [--warp]\n"
 		"neuraltest scaling --fixture NAME --renderer dx11|dx11-oit [--out DIR] [--warp]\n"
 		"neuraltest depth-contract --api d3d11|d3d11on12 --out DIR\n"
+		"neuraltest repeat-raster --api d3d11|d3d11on12 --out NEW_DIR\n"
 		"neuraltest motion-contract --out DIR\n"
 		"neuraltest color-contract --out DIR\n"
 		"neuraltest disocclusion-contract --api d3d11|d3d11on12 --out DIR\n"
@@ -3633,6 +3634,16 @@ int main(int argc, char **argv)
 	if (command == "determinism") return DeterminismCommand(args);
 	if (command == "scaling") return ScalingCommand(args);
 	if (command == "depth-contract") return DepthContractCommand(args);
+	if (command == "repeat-raster")
+	{
+		const auto api = Value(args, "--api", "d3d11"), output = Value(args, "--out");
+		if (output.empty() || (api != "d3d11" && api != "d3d11on12")) return 2;
+		std::string error;
+		if (!neuraltest::RunRepeatRasterFixture(api == "d3d11on12", output, error))
+		{ std::cerr << error << '\n'; return 1; }
+		std::cout << "repeat-raster exact: 512 repeats, viewport/depth negatives failed\n";
+		return 0;
+	}
 	if (command == "motion-contract") return MotionContractCommand(args);
 	if (command == "color-contract") return ColorContractCommand(args);
 	if (command == "disocclusion-contract") return DisocclusionContractCommand(args);

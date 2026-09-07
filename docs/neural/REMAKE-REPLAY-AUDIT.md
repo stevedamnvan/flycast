@@ -164,14 +164,44 @@ absent from the restored renderer; these timings are ineligible for performance.
 **ACCEPTED:** opt-in diagnostic mechanism and bounded decoded-geometry versus
 native-buffer replay evidence. **CORRECTIONS_REQUIRED:** full M2 completion.
 
+### Repeated production-shader fixture
+
+`neuraltest repeat-raster` now provides a durable bounded GPU fixture; see
+DIAGNOSTICS.md for lane/iteration mapping. The production VS and PS render
+sloped raw-depth and Gouraud-color geometry into BGRA8 with D24 or D32 depth,
+with/without alpha blending and with/without a procedural eight-mip B5G5R5A1
+texture. Each lane compares 64 repeats, alternating newly allocated and reused
+targets, and retains wrong-viewport/raw-depth controls plus all image/raw data.
+No production renderer changes or game data enter this implementation.
+
+Working-tree native and On12 runs each pass 512/512 strict color/depth repeats.
+Viewport mutation changes at least 6493 color pixels and 8272 depth samples;
+wrong raw-depth changes 8190 depth samples while preserving color in this
+specific uniform-scale control. Existing-output rejection exits 1; invalid API
+exits 2. Existing depth-contract and motion-contract commands exit 0. All four
+working builds pass. Initial untextured-only 256-repeat and textured 512-repeat
+attempts used the older harness's shader model 5/optimized settings; retained
+but superseded by the final runtime-equivalent shader model 4/flags-zero runs.
+Evidence directories are `fc067-repeat-*`; final working outputs are
+`fc067-repeat-final-native/on12`. A textured blended PNG was visually inspected
+and contains the intended gradient/checker geometry rather than a blank pass.
+
+This fixture **does not reproduce** the Soulcalibur failure. It excludes a
+simple repeat/new-target failure for these synthetic inputs, not all driver
+precision behavior. It omits the game's particular geometry, fog, modifier
+history, prior scene color/depth, and draw batching. Do not promote its success
+to the M2 original-source equality gate.
+
 Resolve the repeat-render differences without assuming the decoder or a
 particular shader constant is responsible. Native-only cross-run variation is
 now reproduced, and late framebuffer mutation is excluded in a failing run.
 The selected color divergence is now localized to a sorted-translucency command
 with matching captured inputs/state, alongside separate one-step D24 variation.
-Next isolate the production shader's repeated depth and blended-color output
-in a bounded same-input GPU fixture (including target reuse versus new targets),
-and trace the first depth divergence if needed. Do not attribute the result to
+The generic repeated-shader fixture above is exact. Next retain the actual
+trace-53 command's pre-draw color/depth surfaces, indexed geometry, shader
+variant and uniforms/resources, then run an isolated same-command replay with
+the matching inputs and failing mutation controls. Trace the first depth
+divergence separately if needed. Do not attribute the result to
 driver precision, relax the gate, or change production arithmetic without a
 falsifiable control. Then rerun exact-SHA moving pairs. Keep the current
 zero-tolerance gate and failed attempts. Extend the packet's retained-state

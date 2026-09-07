@@ -8,9 +8,11 @@ implemented, but repeated native drawing/on-off captures have an unresolved
 one-channel-step discrepancy. LOG #140 reproduces native-only variation and
 excludes late framebuffer mutation in a failing 30-frame run. LOG #141 localizes
 the selected color divergence to sorted draw 53 with matching captured state,
-and separately finds one-step D24 variation. Next isolate repeated production-
-shader depth/blend output and target reuse/allocation in a bounded GPU fixture,
-then rerun exact-SHA moving pairs. The temporary probe is removed. M2 is open.
+and separately finds one-step D24 variation. LOG #142's repeat-raster fixture
+is exact on native/On12 (512 repeats each) and does not reproduce the game issue.
+Next isolate actual trace-53 geometry, shader variant and pre-draw color/depth
+surfaces in a same-command fixture, then rerun exact-SHA moving pairs. The
+temporary per-draw probe is removed. M2 is open.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and

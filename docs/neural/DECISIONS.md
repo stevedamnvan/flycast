@@ -1385,6 +1385,11 @@ objects and resource bytes do not by themselves prove driver arithmetic truth.
 LOG #141 separates the observed D24 variation from the selected color error;
 require a controlled repeated-shader fixture before choosing a precision fix.
 
+The generic repeat-raster fixture uses runtime compiler settings and retains
+every color/depth output plus shader source. A synthetic same-input pass is a
+narrow exclusion only; actual failing draw inputs and pre-target surfaces must
+be isolated before selecting any arithmetic/precision change (LOG #142).
+
 M2 GPU diagnostic: retain pre-draw framebuffer content and the original shader
 contract; use new decoded buffers without repeating the flat-shading color
 adjustment. Resolve texture state only against the retained same frame, never

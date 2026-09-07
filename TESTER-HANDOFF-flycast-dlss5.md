@@ -14,8 +14,11 @@ late native captures match 30/30 even when same-frame replay fails at 13 pixels.
 LOG #141 completes that localization for pixel (322,265): sorted draw 53,
 first index 17497/count 18. Thirty state dumps match in a failing run; 1178 D24
 samples separately differ by one step, but depth at that pixel matches.
-Next implementor: isolate repeated production-shader depth/blend output and
-target reuse/allocation with a bounded same-input GPU fixture. The temporary
+LOG #142's new repeat-raster command passes 512 synthetic repeats on each of
+native D3D11 and On12, with failing viewport/depth controls. It does not reproduce
+the game's residual. Next implementor: retain actual trace-53 indexed geometry,
+shader variant, uniforms/resources and pre-draw color/depth surfaces for an
+isolated same-command fixture. Do not treat the generic pass as M2 closure. The temporary
 per-draw probe is removed; its reproducible patch and raw evidence remain local.
 Do not repeat the already-falsified late-framebuffer-mutation hypothesis.
 

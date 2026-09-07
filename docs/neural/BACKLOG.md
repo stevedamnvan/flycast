@@ -73,8 +73,10 @@ LOG #140 reproduces native-only run-to-run variation and excludes late
 framebuffer mutation in a failing replay run (early/late native exact 30/30).
 LOG #141 localizes the selected color divergence to sorted draw 53 with matching
 captured constants/resources/state, and separately finds 1178 one-step D24
-differences. Next isolate repeated production-shader depth/blend output and
-target reuse/allocation in a bounded GPU fixture, then rerun exact-SHA pairs;
+differences. LOG #142 adds repeat-raster: native/On12 synthetic textured and
+untextured D24/D32 opaque/blended repeats are exact (512 each), so the generic
+fixture does not reproduce the game failure. Next isolate actual trace-53
+geometry, shader variant and pre-draw surfaces, then rerun exact-SHA pairs;
 do not reimplement packet export/decoding or claim M2 is closed.
 
 Snapshot export and bounded disk decoding are implemented and self-reviewed:

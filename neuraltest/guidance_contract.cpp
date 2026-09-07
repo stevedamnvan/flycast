@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "version.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -125,11 +126,12 @@ private:
 };
 
 bool CompilePixel(const std::string& source, PixelInclude& includes, bool neuralExport,
-	bool alphaTest, ComPtr<ID3DBlob>& code, std::string& error)
+	bool alphaTest, ComPtr<ID3DBlob>& code, std::string& error, bool gouraud = false, bool textured = false,
+	bool nativeCompiler = false)
 {
 	D3D_SHADER_MACRO macros[] = {
-		{"pp_Gouraud", "0"}, {"DIV_POS_Z", "0"}, {"pp_Texture", "0"},
-		{"pp_UseAlpha", "1"}, {"pp_IgnoreTexA", "0"}, {"pp_ShadInstr", "0"},
+		{"pp_Gouraud", gouraud ? "1" : "0"}, {"DIV_POS_Z", "0"}, {"pp_Texture", textured ? "1" : "0"},
+		{"pp_UseAlpha", "1"}, {"pp_IgnoreTexA", "0"}, {"pp_ShadInstr", textured ? "3" : "0"},
 		{"pp_Offset", "0"}, {"pp_FogCtrl", "2"}, {"pp_BumpMap", "0"},
 		{"FogClamping", "0"}, {"pp_TriLinear", "0"}, {"pp_Palette", "0"},
 		{"cp_AlphaTest", alphaTest ? "1" : "0"}, {"pp_ClipInside", "0"},
@@ -138,8 +140,8 @@ bool CompilePixel(const std::string& source, PixelInclude& includes, bool neural
 	};
 	ComPtr<ID3DBlob> diagnostics;
 	const HRESULT hr = D3DCompile(source.data(), source.size(), "production-dx11-pixel",
-		macros, &includes, "main", "ps_5_0", D3DCOMPILE_ENABLE_STRICTNESS |
-		D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, code.GetAddressOf(), diagnostics.GetAddressOf());
+		macros, &includes, "main", nativeCompiler ? "ps_4_0" : "ps_5_0", nativeCompiler ? 0 :
+		D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, code.GetAddressOf(), diagnostics.GetAddressOf());
 	if (SUCCEEDED(hr))
 		return true;
 	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
@@ -166,18 +168,18 @@ VSOut main(VSIn i) { VSOut o; o.pos=float4(i.pos, 0, 1); o.uv=float4(0,0,0,i.sou
 }
 
 bool CompileProductionVertex(const std::string& source, bool naomi2,
-	ComPtr<ID3DBlob>& code, std::string& error)
+	ComPtr<ID3DBlob>& code, std::string& error, bool neuralExport = true, bool nativeCompiler = false)
 {
 	D3D_SHADER_MACRO macros[] = {
 		{"pp_Gouraud", "1"}, {"DIV_POS_Z", "0"}, {"POSITION_ONLY", "0"},
 		{"pp_Texture", "0"}, {"pp_TwoVolumes", "0"},
 		{"LIGHT_ON", naomi2 ? "0" : "1"}, {"MODIFIER_VOLUME", "0"},
-		{"NEURAL_EXPORT", "1"}, {nullptr, nullptr}
+		{"NEURAL_EXPORT", neuralExport ? "1" : "0"}, {nullptr, nullptr}
 	};
 	ComPtr<ID3DBlob> diagnostics;
 	const HRESULT hr = D3DCompile(source.data(), source.size(), "production-motion-vertex",
-		macros, nullptr, "main", "vs_5_0", D3DCOMPILE_ENABLE_STRICTNESS |
-		D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, code.GetAddressOf(), diagnostics.GetAddressOf());
+		macros, nullptr, "main", nativeCompiler ? "vs_4_0" : "vs_5_0", nativeCompiler ? 0 :
+		D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, code.GetAddressOf(), diagnostics.GetAddressOf());
 	if (SUCCEEDED(hr)) return true;
 	error = diagnostics ? std::string(static_cast<const char *>(diagnostics->GetBufferPointer()),
 		diagnostics->GetBufferSize()) : HrText("compile production motion vertex shader", hr);
@@ -520,6 +522,166 @@ bool RenderPass(Surface& surface, Targets& targets, ID3D11VertexShader *vertexSh
 }
 
 } // namespace
+
+bool RunRepeatRasterFixture(bool on12, const std::filesystem::path& output, std::string& error)
+{
+	// Standalone synthetic native shader experiment, not a game replay gate.
+	std::error_code ec;
+	if (!std::filesystem::create_directories(output, ec))
+	{ error = "repeat-raster requires a new output directory"; return false; }
+	Surface surface;
+	if (!CreateSurface(on12, surface, error)) return false;
+	auto *device = surface.device.Get(); auto *context = surface.context.Get();
+	std::ifstream input(std::string(NEURAL_SOURCE_DIR) + "/core/rend/dx11/dx11_shaders.cpp", std::ios::binary);
+	std::ostringstream source; source << input.rdbuf();
+	std::string vertex, pixel, common;
+	if (!input || !ExtractRawString(source.str(), "VertexShader", vertex)
+		|| !ExtractRawString(source.str(), "PixelShader", pixel)
+		|| !ExtractRawString(source.str(), "PixelShaderCommon", common))
+	{ error = "repeat-raster production shader extraction failed"; return false; }
+	std::ofstream retainedSource(output / "production-shader-source.cpp", std::ios::binary);
+	retainedSource << source.str(); retainedSource.close();
+	if (!retainedSource) { error = "repeat-raster shader source write failed"; return false; }
+	PixelInclude includes(common);
+	ComPtr<ID3DBlob> vsCode, psCode, texturedCode;
+	if (!CompileProductionVertex(vertex, false, vsCode, error, false, true)
+		|| !CompilePixel(pixel, includes, false, false, psCode, error, true, false, true)
+		|| !CompilePixel(pixel, includes, false, false, texturedCode, error, true, true, true)) return false;
+	ComPtr<ID3D11VertexShader> vs; ComPtr<ID3D11PixelShader> ps, texturedPs;
+	HRESULT hr = device->CreateVertexShader(vsCode->GetBufferPointer(), vsCode->GetBufferSize(), nullptr, vs.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = device->CreatePixelShader(psCode->GetBufferPointer(), psCode->GetBufferSize(), nullptr, ps.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = device->CreatePixelShader(texturedCode->GetBufferPointer(), texturedCode->GetBufferSize(), nullptr, texturedPs.GetAddressOf());
+	const D3D11_INPUT_ELEMENT_DESC elements[] = {
+		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+		{"COLOR",0,DXGI_FORMAT_B8G8R8A8_UNORM,0,12,D3D11_INPUT_PER_VERTEX_DATA,0},
+		{"COLOR",1,DXGI_FORMAT_B8G8R8A8_UNORM,0,16,D3D11_INPUT_PER_VERTEX_DATA,0},
+		{"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,20,D3D11_INPUT_PER_VERTEX_DATA,0}};
+	ComPtr<ID3D11InputLayout> layout;
+	if (SUCCEEDED(hr)) hr = device->CreateInputLayout(elements, 4, vsCode->GetBufferPointer(), vsCode->GetBufferSize(), layout.GetAddressOf());
+	const ProductionVertex vertices[] = {
+		{-.913f,.837f,.00051f,0x7138c09du,0,0,0}, { .823f,.719f,.00531f,0xa9ba368du,0,1,0},
+		{-.719f,-.873f,.00113f,0x937c59bdu,0,0,1}, { .917f,-.731f,.00917f,0xc12a7bcdu,0,1,1}};
+	const std::uint16_t indices[] = {0,1,2,2,1,3};
+	float constants[36]{};
+	constants[0] = constants[5] = constants[10] = constants[15] = 1.f;
+	constants[16] = constants[19] = constants[21] = constants[23] = constants[27] = constants[31] = 1.f;
+	constants[24] = constants[29] = -1.f;
+	constants[32] = float(Width); constants[33] = float(Height);
+	const float pixelConstants[24]{};
+	auto buffer = [&](const void *data, UINT size, UINT bind, ComPtr<ID3D11Buffer>& result) {
+		D3D11_BUFFER_DESC desc{}; desc.ByteWidth = size; desc.BindFlags = bind; desc.Usage = D3D11_USAGE_IMMUTABLE;
+		D3D11_SUBRESOURCE_DATA initial{}; initial.pSysMem = data;
+		return device->CreateBuffer(&desc, &initial, result.GetAddressOf());
+	};
+	ComPtr<ID3D11Buffer> vb, wrongVb, ib, cb, pcb;
+	auto wrongVertices = std::array<ProductionVertex,4>{vertices[0],vertices[1],vertices[2],vertices[3]};
+	for (auto& v : wrongVertices) v.z *= 2.f;
+	if (SUCCEEDED(hr)) hr = buffer(vertices, sizeof(vertices), D3D11_BIND_VERTEX_BUFFER, vb);
+	if (SUCCEEDED(hr)) hr = buffer(wrongVertices.data(), sizeof(vertices), D3D11_BIND_VERTEX_BUFFER, wrongVb);
+	if (SUCCEEDED(hr)) hr = buffer(indices, sizeof(indices), D3D11_BIND_INDEX_BUFFER, ib);
+	if (SUCCEEDED(hr)) hr = buffer(constants, sizeof(constants), D3D11_BIND_CONSTANT_BUFFER, cb);
+	if (SUCCEEDED(hr)) hr = buffer(pixelConstants, sizeof(pixelConstants), D3D11_BIND_CONSTANT_BUFFER, pcb);
+	D3D11_RASTERIZER_DESC rd{}; rd.FillMode = D3D11_FILL_SOLID; rd.CullMode = D3D11_CULL_NONE; rd.DepthClipEnable = TRUE;
+	ComPtr<ID3D11RasterizerState> raster;
+	if (SUCCEEDED(hr)) hr = device->CreateRasterizerState(&rd, raster.GetAddressOf());
+	D3D11_DEPTH_STENCIL_DESC dd{}; dd.DepthEnable = TRUE; dd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; dd.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	ComPtr<ID3D11DepthStencilState> depthState;
+	if (SUCCEEDED(hr)) hr = device->CreateDepthStencilState(&dd, depthState.GetAddressOf());
+	D3D11_BLEND_DESC bd{}; auto& blend = bd.RenderTarget[0]; blend.BlendEnable = TRUE;
+	blend.SrcBlend = blend.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	blend.DestBlend = blend.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	blend.BlendOp = blend.BlendOpAlpha = D3D11_BLEND_OP_ADD; blend.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	ComPtr<ID3D11BlendState> blendState;
+	if (SUCCEEDED(hr)) hr = device->CreateBlendState(&bd, blendState.GetAddressOf());
+	// Authored procedural B5G5R5A1 mip chain: no game texture or runtime needed.
+	std::array<std::vector<std::uint16_t>,8> mipPixels;
+	D3D11_SUBRESOURCE_DATA mipData[8]{};
+	for (unsigned mip = 0; mip < 8; ++mip) {
+		const unsigned size = 128u >> mip; mipPixels[mip].resize(size * size);
+		for (unsigned y = 0; y < size; ++y) for (unsigned x = 0; x < size; ++x)
+			mipPixels[mip][y*size+x] = static_cast<std::uint16_t>(0x8000u | (((x*3+y+mip)&31)<<10) | (((y*5+x)&31)<<5) | ((x^y^mip)&31));
+		mipData[mip].pSysMem = mipPixels[mip].data(); mipData[mip].SysMemPitch = size * 2;
+	}
+	D3D11_TEXTURE2D_DESC textureDesc{}; textureDesc.Width = textureDesc.Height = 128;
+	textureDesc.MipLevels = 8; textureDesc.ArraySize = textureDesc.SampleDesc.Count = 1;
+	textureDesc.Format = DXGI_FORMAT_B5G5R5A1_UNORM; textureDesc.Usage = D3D11_USAGE_IMMUTABLE; textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11ShaderResourceView> textureView;
+	if (SUCCEEDED(hr)) hr = device->CreateTexture2D(&textureDesc, mipData, texture.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = device->CreateShaderResourceView(texture.Get(), nullptr, textureView.GetAddressOf());
+	D3D11_SAMPLER_DESC sd{}; sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.MipLODBias = -1.5f; sd.MaxLOD = D3D11_FLOAT32_MAX; sd.MaxAnisotropy = 1; sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	ComPtr<ID3D11SamplerState> sampler;
+	if (SUCCEEDED(hr)) hr = device->CreateSamplerState(&sd, sampler.GetAddressOf());
+	if (FAILED(hr)) { error = HrText("repeat-raster pipeline", hr); return false; }
+	std::ofstream csv(output / "repeats.csv"); csv.imbue(std::locale::classic());
+	csv << "lane,iteration,new_target,color_pixels,depth_pixels\n";
+	bool exact = true, controls = true;
+	for (unsigned lane = 0; lane < 8; ++lane) {
+		Targets targets;
+		Image baselineColor, baselineDepth;
+		for (unsigned iteration = 0; iteration < 67; ++iteration) {
+			const bool fresh = iteration == 0 || iteration % 2 != 0;
+			if (fresh) {
+				context->OMSetRenderTargets(0, nullptr, nullptr); targets = {};
+				D3D11_TEXTURE2D_DESC td{}; td.Width = Width; td.Height = Height; td.MipLevels = td.ArraySize = td.SampleDesc.Count = 1;
+				td.Format = DXGI_FORMAT_B8G8R8A8_UNORM; td.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+				hr = device->CreateTexture2D(&td, nullptr, targets.color.GetAddressOf());
+				if (SUCCEEDED(hr)) hr = device->CreateRenderTargetView(targets.color.Get(), nullptr, targets.colorTarget.GetAddressOf());
+				td.Format = lane % 4 < 2 ? DXGI_FORMAT_D24_UNORM_S8_UINT : DXGI_FORMAT_D32_FLOAT;
+				td.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+				if (SUCCEEDED(hr)) hr = device->CreateTexture2D(&td, nullptr, targets.depth.GetAddressOf());
+				if (SUCCEEDED(hr)) hr = device->CreateDepthStencilView(targets.depth.Get(), nullptr, targets.depthTarget.GetAddressOf());
+				if (FAILED(hr)) { error = HrText("repeat-raster targets", hr); return false; }
+			}
+			const float clear[] = {.173f,.287f,.419f,1.f};
+			context->ClearRenderTargetView(targets.colorTarget.Get(), clear);
+			context->ClearDepthStencilView(targets.depthTarget.Get(), D3D11_CLEAR_DEPTH | (lane % 4 < 2 ? D3D11_CLEAR_STENCIL : 0), 0.f, 0);
+			ID3D11RenderTargetView *rt = targets.colorTarget.Get(); context->OMSetRenderTargets(1, &rt, targets.depthTarget.Get());
+			D3D11_VIEWPORT viewport{iteration == 65 ? 1.f : 0.f, 0, float(Width), float(Height), 0, 1};
+			context->RSSetViewports(1, &viewport); context->RSSetState(raster.Get());
+			context->OMSetDepthStencilState(depthState.Get(), 0);
+			context->OMSetBlendState(lane % 2 ? blendState.Get() : nullptr, nullptr, 0xffffffff);
+			context->VSSetShader(vs.Get(), nullptr, 0); context->PSSetShader(lane >= 4 ? texturedPs.Get() : ps.Get(), nullptr, 0);
+			ID3D11ShaderResourceView *srv = textureView.Get(); ID3D11SamplerState *ss = sampler.Get();
+			context->PSSetShaderResources(0, 1, &srv); context->PSSetSamplers(0, 1, &ss);
+			ID3D11Buffer *vertexBuffer = iteration == 66 ? wrongVb.Get() : vb.Get();
+			UINT stride = sizeof(ProductionVertex), offset = 0;
+			context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+			context->IASetIndexBuffer(ib.Get(), DXGI_FORMAT_R16_UINT, 0);
+			context->IASetInputLayout(layout.Get()); context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			ID3D11Buffer *vertexCb = cb.Get(), *pixelCb = pcb.Get();
+			context->VSSetConstantBuffers(0, 1, &vertexCb); context->PSSetConstantBuffers(0, 1, &pixelCb);
+			context->DrawIndexed(6, 0, 0);
+			Image color, depth;
+			if (!ReadColor(device, context, targets.color.Get(), color, error)
+				|| !ReadColor(device, context, targets.depth.Get(), depth, error)) return false;
+			if (iteration == 0) { baselineColor = color; baselineDepth = depth; }
+			unsigned colorDiff = 0, depthDiff = 0;
+			for (size_t i = 0; i < color.rgba.size(); i += 4) {
+				colorDiff += std::memcmp(color.rgba.data()+i, baselineColor.rgba.data()+i, 4) != 0;
+				depthDiff += std::memcmp(depth.rgba.data()+i, baselineDepth.rgba.data()+i, 4) != 0;
+			}
+			csv << lane << ',' << iteration << ',' << fresh << ',' << colorDiff << ',' << depthDiff << '\n';
+			if (iteration > 0 && iteration < 65) exact &= colorDiff == 0 && depthDiff == 0;
+			if (iteration == 65) controls &= colorDiff > 100 && depthDiff > 100;
+			if (iteration == 66) controls &= depthDiff > 100;
+			const auto stem = std::to_string(lane) + "-" + std::to_string(iteration);
+			std::ofstream raw(output / (stem + "-depth.bin"), std::ios::binary);
+			raw.write(reinterpret_cast<const char *>(depth.rgba.data()), depth.rgba.size());
+			for (size_t i = 0; i < color.rgba.size(); i += 4) std::swap(color.rgba[i], color.rgba[i+2]);
+			if (!raw || !WritePng(output / (stem + "-color.png"), color, error)) return false;
+		}
+	}
+	std::ofstream report(output / "repeat-raster.json"); report.imbue(std::locale::classic());
+	report << "{\"schema\":1,\"git_sha\":\"" << GIT_HASH << "\",\"surface\":\"" << surface.name << "\",\"adapter\":\"" << surface.adapter
+		<< "\",\"repeats\":512,\"production_vertex_pixel\":true,\"textured_and_untextured\":true,\"game_replay\":false,\"exact\":"
+		<< (exact ? "true" : "false") << ",\"wrong_controls_failed\":" << (controls ? "true" : "false")
+		<< ",\"shader_profiles\":[\"vs_4_0\",\"ps_4_0\"],\"compiler_flags\":0,\"synchronous_developer_capture\":true,\"performance_eligible\":false}\n";
+	if (!csv || !report) { error = "repeat-raster report write failed"; return false; }
+	if (!exact || !controls) { error = "repeat-raster exactness or falsifying controls failed; artifacts retained"; return false; }
+	return true;
+}
 
 bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::string& error)
 {

@@ -251,6 +251,7 @@ bool WriteRenderPackage(const std::filesystem::path& root, const Fixture& fixtur
 	const RenderOptions& options, const RenderResult& result, std::string& error);
 bool ValidateProductionExportShader(std::string& error);
 bool RunDepthContractFixture(bool d3d11On12, DepthContractResult& result, std::string& error);
+bool RunRepeatRasterFixture(bool d3d11On12, const std::filesystem::path& output, std::string& error);
 bool RunMotionContractFixture(MotionContractResult& result, std::string& error);
 bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	std::string& error);

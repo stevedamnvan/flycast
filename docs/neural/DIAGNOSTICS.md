@@ -1,5 +1,23 @@
 # Neural diagnostics
 
+## FC-067 repeated raster fixture
+
+`neuraltest repeat-raster --api d3d11|d3d11on12 --out <NEW_DIR>` runs 512
+same-input repeats of production native VS/PS source compiled as vs_4_0/ps_4_0
+with runtime flags zero. Eight lanes combine D24/D32, opaque/alpha blending,
+and untextured/procedural B5G5R5A1 eight-mip sampling. Lane index bit 0 enables
+blending, bit 1 selects D32, and bit 2 enables texture sampling. Each lane has
+baseline iteration 0, repeats 1-64 alternating new/reused targets, wrong viewport
+65, and wrong raw-depth 66. Wrong depth must change depth, not necessarily color.
+
+Every iteration saves color PNG and exact four-byte depth storage. CSV preserves
+all changed-pixel components. JSON records Git SHA, adapter, runtime compiler
+settings, scope, strict equality and control results. Actual shader source is
+retained alongside it. Existing output directories and invalid APIs are rejected.
+The fixture is bounded and synchronous, not performance or game replay evidence.
+It has no game-specific fog, modifier geometry, prior scene, or draw sequence.
+Passing this fixture cannot waive the failing M2 game gate.
+
 ## FC-067 M2 PVR snapshot
 
 For native D3D11/normal DX11 only, add `--remake-replay yes` with packet capture
