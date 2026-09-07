@@ -1,6 +1,7 @@
 add_library(flycast-neural STATIC
 	pvr_scene_capture.cpp
 	pvr_scene_decode.cpp
+	pvr_material_capture.cpp
 	external_control.cpp
 	external_control.h
 	dlss5_hook.cpp

@@ -55,6 +55,13 @@ frame or establish their semantic role; pixel extraction has not been run.
 
 ## First bounded implementation: source material sidecar
 
+Implemented checkpoint: `MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
+The source-texture/palette sidecar and 30-frame native-preservation evidence are
+accepted for that slice only. Review the material artifacts, then pursue the
+approved camera source-witness track; do not reimplement extraction or tune
+the rejected framebuffer-light preview. Camera/Remix/full M2 remain unproven.
+Older launch instructions below are historical scope, not repeat assignments.
+
 Implement this slice first in the existing native-D3D11/normal-DX11 developer
 capture lane. No new renderer, Remix runtime, asset replacement or consumer
 configuration. Use Astra/low and the current checkout; no default subagents.

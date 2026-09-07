@@ -2,6 +2,13 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Implemented checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
+The source-texture/palette sidecar and 30-frame native-preservation evidence are
+accepted for that slice only. Review the material artifacts, then pursue the
+approved camera source-witness track; do not reimplement extraction or tune
+the rejected framebuffer-light preview. Camera/Remix/full M2 remain unproven.
+Older launch instructions below are historical scope, not repeat assignments.
+
 New user-approved scope: `docs/neural/CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
 Implement bounded source-texture/palette export first; actual resources and
 vertex color are separable before final shading. Camera remains unknown. Stop

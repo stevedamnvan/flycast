@@ -1,5 +1,6 @@
 add_executable(neuraltest
     remake_preview.cpp
+    material_contract.cpp
     remake_scene.cpp
     remake_scene_tests.cpp
     artifacts.cpp

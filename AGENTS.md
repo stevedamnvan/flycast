@@ -2,29 +2,18 @@
 
 ## Current assignment
 
-User approved the camera/material investigation. Current authority is
-`docs/neural/CAMERA-MATERIAL-PLAN.md`: implement the bounded source-texture and
-palette sidecar first, using existing capture/resource-generation seams. The
-source audit found separable texture and vertex-color inputs; do not reuse final
-framebuffer color as material again. Keep camera unknown, do not resume precision
-probes, and stop at the sidecar review. Older stopping/preview text below is
-historical and superseded only for this newly approved scope.
+Current checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md`. The bounded
+source-texture/palette sidecar is implemented and self-reviewed with three-
+and thirty-frame native on/off evidence. Read that audit and
+`docs/neural/CAMERA-MATERIAL-PLAN.md` before continuing. Do not reimplement the
+sidecar or use final framebuffer color as material.
 
-Latest result: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The requested moving
-approximation is implemented and captured; it is not suitable for promotion.
-Stop this approximation branch after delivering its comparison. Do not resume
-pixel probes or light tuning. A further genuine remake step needs a separately
-scoped camera/material strategy and runtime harness; no such integration is
-accepted by the preview. The task text below records the completed assignment.
-
-Current continuation: read `docs/neural/REMAKE-DISPOSITION.md` first. The user
-approved parking the small replay mismatch and prioritizing a visible result.
-The current PVR packet cannot directly feed the current world-only Remix
-adapter; this is a limited source-contract no-go, not proof Remix is impossible.
-Next implement its bounded, explicitly labeled camera-relative relighting
-comparison from the existing moving capture, or provide a precise input no-go.
-Do not resume trace-53/parity diagnosis or add another generic harness. The
-strict M2 source-equality gate remains failed/parked; no threshold changed.
+Next bounded task: review the source-material artifacts and pursue the already
+approved camera-provenance investigation. Locate an actual pre-projection
+source witness, or document its precise absence, before adding matrix extraction.
+Do not guess FOV/world normals, scan arbitrary memory for plausible matrices,
+resume precision probes/light tuning, or start runtime/renderer integration.
+The old M2 strict source-equality failure remains parked, not passed.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
@@ -35,7 +24,7 @@ not existing safety contracts or evidence.
 
 M1 CPU/public-header contract corrections are self-reviewed, not GPU-proven;
 historical evidence is in `docs/neural/REMAKE-M1-AUDIT.md`. The active task is
-the visible approximation decision, not renderer replacement or repeated M1.
+the camera/material investigation, not renderer replacement or repeated M1.
 Use the current `feat/neural-rendering` checkout; inspect HEAD and preserve
 newer and dirty work. Implementation routing requested by the user is
 `gpt-6-astra`, reasoning `low` (user: Astra light). This document records routing intent, not proof

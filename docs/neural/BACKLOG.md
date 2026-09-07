@@ -66,6 +66,13 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 visible approximation decision
 
+Implemented checkpoint: `MATERIAL-CAPTURE-AUDIT.md` (LOG #146, D-089).
+The source-texture/palette sidecar and 30-frame native-preservation evidence are
+accepted for that slice only. Review the material artifacts, then pursue the
+approved camera source-witness track; do not reimplement extraction or tune
+the rejected framebuffer-light preview. Camera/Remix/full M2 remain unproven.
+Older launch instructions below are historical scope, not repeat assignments.
+
 New user-approved scope: `CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
 Implement bounded source-texture/palette export first; actual resources and
 vertex color are separable before final shading. Camera remains unknown. Stop

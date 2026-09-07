@@ -563,6 +563,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	if (textures.pvrContext && !WritePvrScenePacket(frameRoot / "pvr-scene.json",
 		*textures.pvrContext, textures.pvrViewport, metadata.frameId, metadata.gameId, error))
 		return false;
+	if (textures.pvrMaterials && !textures.pvrMaterials(frameRoot / "pvr-scene.json", error))
+		return false;
 
 	auto read = [&](ID3D11Texture2D *texture, RawTexture& raw,
 		QualityCaptureWriter::RgbaImage& rgba) {

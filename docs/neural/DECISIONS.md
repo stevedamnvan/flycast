@@ -1,5 +1,23 @@
 # Neural rendering decisions
 
+## D-089: material sidecars preserve native source data, not inferred PBR
+
+The optional material capture is separate from the PVR scene packet. Preserve
+native formats, every actual mip, palette indices and the captured palette,
+per-draw slot bindings/generations and replacement/sampling metadata. Serialize
+no resource pointers. Deduplicate descriptor plus full bytes, not VRAM address
+or a hash alone. Hash tight rows in a fixed locale. Reject unsupported resource
+layouts, unresolved textured draws and budget violations without substituting
+the final scene. Run the inspector before accepting an exported package.
+
+Keep allocation/readback inside explicit bounded developer capture. The tested
+native on/off preservation is not performance evidence and does not close the
+parked replay residual. Capture-seam generation matching does not establish
+historical per-draw resources for titles that mutate them within a frame.
+Source texture artwork may contain painted lighting; no physical albedo,
+roughness, metalness, normal or recovered camera is inferred. See
+MATERIAL-CAPTURE-AUDIT.md; the approved camera provenance track is next.
+
 ## D-088: export source textures before further relighting
 
 The user approved camera/material scoping after the rejected preview. The source

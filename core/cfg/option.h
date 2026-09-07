@@ -494,6 +494,7 @@ extern Option<int> NeuralCaptureFrames;
 extern Option<int> NeuralCaptureSkip;
 extern Option<bool> NeuralCapturePvrPacket;
 extern Option<bool> NeuralCapturePvrReplay;
+extern Option<bool> NeuralCapturePvrMaterials;
 extern Option<bool> NeuralLateOverlayProof;
 extern Option<int> NeuralQualityProfile;
 extern Option<int> NeuralStyleFamily;

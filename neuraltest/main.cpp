@@ -50,8 +50,10 @@ void Usage()
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
 		"neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id ID --first N --frames 1..30 --fov-deg 30..100 (offline approximation, NOT Remix/DLSS5)\n"
+		"neuraltest material-contract --out NEW_DIR (native texture/mip/palette GPU readback fixture)\n"
 		"  capture --remake-packet yes|no: bounded developer PVR snapshot; default no; not world reconstruction\n"
 		"  capture --remake-replay yes|no: isolated same-frame decoded geometry replay plus wrong viewport/depth controls\n"
+		"  capture --remake-materials yes|no: bounded source texture/palette sidecar, native D3D11 only, max 30 frames\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
@@ -809,6 +811,12 @@ int CaptureCommand(const Args& args)
 {
 	const auto remakePacket = Value(args, "--remake-packet", "no");
 	const auto remakeReplay = Value(args, "--remake-replay", "no");
+	const auto remakeMaterials = Value(args, "--remake-materials", "no");
+	if (remakeMaterials != "yes" && remakeMaterials != "no")
+	{ std::cerr << "--remake-materials must be yes or no\n"; return 2; }
+	if (remakeMaterials == "yes" && (remakePacket != "yes" || Value(args,"--lane","dlaa") != "native"
+		|| Value(args,"--api","d3d11") != "d3d11" || Value(args,"--renderer","dx11") != "dx11"))
+	{ std::cerr << "PVR materials require packet=yes, native lane, native D3D11 and normal DX11\n"; return 2; }
 	if (remakeReplay != "yes" && remakeReplay != "no")
 	{ std::cerr << "--remake-replay must be yes or no\n"; return 2; }
 	if (remakeReplay == "yes" && (remakePacket != "yes" || Value(args,"--lane","dlaa") != "native"
@@ -841,6 +849,7 @@ int CaptureCommand(const Args& args)
 		return 2;
 	}
 	const auto lane = Value(args, "--lane", "dlaa");
+	if (remakeMaterials == "yes" && frames > 30) { std::cerr << "PVR materials require at most 30 frames\n"; return 2; }
 	const auto api = Value(args, "--api", "d3d11");
 	const auto renderer = Value(args, "--renderer", "dx11");
 	const auto preset = Value(args, "--preset", "auto");
@@ -1052,6 +1061,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
 		+ L",config:rend.NeuralCapturePvrPacket=" + (remakePacket == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralCapturePvrReplay=" + (remakeReplay == "yes" ? L"yes" : L"no")
+		+ L",config:rend.NeuralCapturePvrMaterials=" + (remakeMaterials == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralLateOverlayProof=" + (lateOverlayProof ? L"yes" : L"no")
 		+ L",config:rend.ShowFPS="
 		+ (lateOverlayProof && proofOverlay == "fps" ? L"yes" : L"no")
@@ -1180,6 +1190,8 @@ int CaptureCommand(const Args& args)
 					return 1;
 				}
 				++pvrPacketFiles;
+				if (remakeMaterials == "yes" && !std::filesystem::is_regular_file(entry.path() / "materials" / "manifest.json"))
+				{ std::cerr << "requested PVR material sidecar missing\n"; return 1; }
 				if (remakeReplay == "yes")
 				{
 					std::ifstream proof(entry.path() / "pvr-replay-proof.json");
@@ -1208,6 +1220,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"input_replay_bytes\": " << inputReplayBytes
 		<< ",\n  \"pvr_packet_requested\": " << (remakePacket == "yes" ? "true" : "false")
 		<< ",\n  \"pvr_packet_frames\": " << pvrPacketFiles
+		<< ",\n  \"pvr_materials_requested\": " << (remakeMaterials == "yes" ? "true" : "false")
 		<< ",\n  \"pvr_decoded_replay_requested\": " << (remakeReplay == "yes" ? "true" : "false")
 		<< ",\n  \"late_overlay_proof_requested\": " << (lateOverlayProof ? "true" : "false")
 		<< ",\n  \"late_overlay_source\": \"" << (lateOverlayProof ? proofOverlay : "none") << "\""
@@ -3668,6 +3681,11 @@ int main(int argc, char **argv)
 			<<" indices="<<packet.indices.size()<<" draws="<<packet.draws.size()<<" omissions="<<packet.omissions.size()
 			<<" camera=unknown native_replay=false gpu_rendered=false\n";
 		return 0;
+	}
+	if(command=="material-contract") {
+		if(Value(args,"--out").empty())return 2;
+		if(!neuraltest::RunMaterialContract(Value(args,"--out"),error)){std::cerr<<error<<'\n';return 1;}
+		std::cout<<"material contract passed: native mips, RGBA/palette goldens and failing negatives\n";return 0;
 	}
 	if (command == "remake-preview") {
 		std::uint32_t first=0,frames=0,fov=0;

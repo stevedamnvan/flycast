@@ -24,6 +24,7 @@
 #include "rend/sorter.h"
 #include "version.h"
 #ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
 #include "rend/neural/pvr_scene_capture.h"
@@ -1980,6 +1981,17 @@ void DX11Renderer::captureNeuralQualityFrame()
 		finalResource->Release();
 	}
 	flycast::rend::neural::QualityCaptureTextures textures;
+	if (config::NeuralCapturePvrMaterials.get() && neuralQualityCapture.CapturesCurrentFrame())
+		textures.pvrMaterials = [this](const std::filesystem::path& path, std::string& error) {
+			if (!config::NeuralCapturePvrPacket.get() || config::NeuralCaptureFrames.get() > 30
+				|| !rendContext || rendContext->isRTT || IsOitRenderer() || activeNeuralSurface
+				|| activeNeuralMode != 1 || config::EmulateFramebuffer.get())
+			{ error = "material-capture-requires-bounded-native-d3d11-normal-packet"; return false; }
+			return flycast::rend::neural::WritePvrMaterials(path, device, deviceContext,
+				*rendContext, paletteTexture, PAL_RAM_CTRL, config::TextureFiltering.get(),
+				config::AnisotropicFiltering.get(), neuralQualityCaptureMetadata.frameId,
+				settings.content.gameId, error);
+		};
 	if (config::NeuralCapturePvrPacket.get() && neuralQualityCapture.CapturesCurrentFrame())
 	{
 		textures.pvrContext = rendContext;

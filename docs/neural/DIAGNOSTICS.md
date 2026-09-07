@@ -1,5 +1,17 @@
 # Neural diagnostics
 
+## FC-067 source materials
+
+`neuraltest material-contract --out NEW_DIR` checks native format/mip readback,
+RGBA/alpha/palette charts, locale and negative controls on D3D11 WARP.
+For legal native capture add `--remake-packet yes --remake-materials yes
+--remake-replay no` (native D3D11, normal DX11, at most 30 frames).
+`python neuraltest/material_inspect.py CAPTURE --out NEW_DIR` verifies tight raw
+mips, hashes, draw/generation bindings and frame identity, then creates a source
+texture contact sheet. NumPy/Pillow required. Run it before accepting material
+evidence: a launcher success alone does not verify raw-data integrity. See
+MATERIAL-CAPTURE-AUDIT.md for scope, failures and no-performance claim.
+
 ## Offline FC-067 camera-relative preview (not Remix/DLSS 5)
 
 `neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id T1401N
