@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "remake_scene.h"
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/dlss5_hook.h"
@@ -1421,6 +1422,9 @@ int RunSelfTests()
 
 	for (const auto& test : CaptureComparisonSelfTests())
 		suite.Expect(test.second, test.first);
+	const auto remakeCounts = remake::TestSceneContract();
+	suite.passed += remakeCounts.passed;
+	suite.failed += remakeCounts.failed;
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;
 }

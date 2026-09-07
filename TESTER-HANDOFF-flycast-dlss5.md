@@ -2,13 +2,22 @@
 
 ## Current assignment — 2026-09-07
 
+M1 implementation checkpoint: review `docs/neural/REMAKE-M1-AUDIT.md` and the
+new `neuraltest/remake_*` sources. All four builds pass; enabled selftests are
+217/217 and the opt-in public-header/mock adapter test is 55/55. No runtime was
+loaded, no GPU rendering occurred, and no game geometry was captured in M1.
+On review acceptance, M2 is bounded Soulcalibur packet export/native alignment;
+the synthetic GPU/runtime gap remains a separate explicitly unproven slice.
+The original launch instructions below are retained as scope, not current
+claims that no implementation exists.
+
 **FC-067 M1 takes priority.** Read `AGENTS.md` and
 `docs/neural/REMAKE-FEASIBILITY-PLAN.md`. Implement the bounded reuse-first
 scene contract/synthetic harness and public Remix API adapter disposition,
 using GPT-6 Astra/low (Astra light). The audited implementation baseline before this plan
 is `49c96a09841bf8c0d5df6f3bc8b04d0398d5566d`; record actual HEAD.
-No SDK adapter or game reconstruction has been built/tested by this planning
-change. Independent review must distinguish analytic packet tests, adapter
+The original planning change built no adapter; M1 now has the header/mock
+adapter evidence above, but no game reconstruction. Independent review must distinguish analytic packet tests, adapter
 build, synthetic GPU output, and real-game reconstruction. The last two are
 not implied by the first two. Use the M1 acceptance/return contract in the plan.
 

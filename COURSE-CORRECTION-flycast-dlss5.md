@@ -2,6 +2,10 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+M1 now has a tested CPU scene contract and real-header/mock adapter; see
+`docs/neural/REMAKE-M1-AUDIT.md` and LOG #133. Review this checkpoint before
+M2 scene capture. No synthetic GPU or real-game reconstruction is proven.
+
 The next implementation is FC-067 / M1 in
 `docs/neural/REMAKE-FEASIBILITY-PLAN.md`, routed to GPT-6 Astra at low reasoning
 (the user's requested Astra light, not Sol/high).

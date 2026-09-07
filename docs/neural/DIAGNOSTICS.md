@@ -1,5 +1,23 @@
 # Neural diagnostics
 
+## FC-067 developer scene/Remix contract
+
+The ordinary `neuraltest selftest` includes 45 CPU scene-contract checks.
+For the optional real-header/mock-call target, supply the reviewed API header
+identified in `REMAKE-M1-AUDIT.md`, then configure the existing automation build:
+
+```text
+cmake -S . -B build-neural-automation -DNEURALTEST_REMAKE_SDK=ON -DNEURALTEST_REMIX_INCLUDE_DIR=<directory-containing-reviewed-remix_c.h>
+cmake --build build-neural-automation --target remake-sdk-contract
+build-neural-automation/neuraltest/remake-sdk-contract.exe
+```
+
+Use the established MSVC environment. The option defaults OFF; it fetches no
+dependencies and the header hash must match. The target has no runtime loading
+or presentation: 55/55 is API/CPU evidence, never GPU or game-scene proof.
+Do not install a consumer, change external settings, or enable production neural
+rendering to run it. See `REMAKE-M1-AUDIT.md` for unsupported data and GPU blocks.
+
 ## External intensity panel
 
 In Video > Neural Rendering (Experimental), select DLSS 5 Experimental and

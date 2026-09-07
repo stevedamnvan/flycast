@@ -1,5 +1,13 @@
 # Reuse-first remake feasibility
 
+## M1 checkpoint -- 2026-09-07
+
+See `REMAKE-M1-AUDIT.md`: the bounded CPU scene contract and real-header/mock
+Remix adapter are implemented (217/217 enabled selftests, 55/55 SDK contract).
+Synthetic GPU rendering, game reconstruction, and combined presentation are
+not proven. Review this slice before M2; the missing runtime/GPU harness must
+remain explicitly open. The task body below records the authorized M1 scope.
+
 ## Authority, baseline, and priority
 
 User course correction, 2026-09-07: investigate and implement a bounded

@@ -2,6 +2,10 @@
 
 ## Current execution priority -- FC-067
 
+M1 contract/adapter checkpoint is in `REMAKE-M1-AUDIT.md` (LOG #133).
+Review its bounded CPU/public-header evidence before M2. No new GPU or
+game-quality gate is closed by these tests.
+
 As authorized on 2026-09-07, execute M1 of
 `REMAKE-FEASIBILITY-PLAN.md` before unavailable-title expansion, hardware-only
 tests, or bespoke remake asset/rendering work. This public Remix SDK reuse

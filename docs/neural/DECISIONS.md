@@ -1371,6 +1371,20 @@ stable motion, readable protected HUD, correct timing, or honest provenance.
 Implementation routing is GPT-6 Astra/low (Astra light), as explicitly
 corrected by the user; do not substitute Sol/high.
 
+## D-085: M1 scene data and public API evidence are separate from rendering
+
+The M1 packet lives entirely in neuraltest, with hard aggregate bounds and
+explicit unknown projection, normal, transform, texture, and omission metadata.
+The first adapter rejects all but a deliberately synthetic untextured subset;
+it never substitutes guessed normals/camera parameters for captured game truth.
+Its reviewed Remix 0.6.4 header is external, hash-pinned, and opt-in. Tests inject
+the public function table and prove argument mapping/failure cleanup only.
+There is no runtime loader, renderer integration, or Present call in M1.
+No API-call test, CPU reprojection, or default gray material is GPU relighting
+or game reconstruction evidence. The caller must own completion and lifetime
+before the adapter can ever be used with a real GPU runtime. M2 starts only
+after review of this bounded contract; the separate GPU block stays visible.
+
 ## D-082: bounded comparisons reset accepted history at capture start
 
 The synchronous developer-only quality capture resets neural instrumentation

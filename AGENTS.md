@@ -9,8 +9,10 @@ sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
 code paths touched. D-084 and the new plan supersede historical next-task text,
 not existing safety contracts or evidence.
 
-The active bounded implementation is **FC-067 / M1: reuse-first scene adapter
-and synthetic feasibility harness**, not a production renderer replacement.
+The active checkpoint is **FC-067 / M1 contract/adapter review**; read
+`docs/neural/REMAKE-M1-AUDIT.md`. CPU/public-header tests are implemented; GPU
+and game reconstruction remain unproven. After scoped review acceptance the
+next task is M2 bounded scene export/native alignment, not renderer replacement.
 Use the current `feat/neural-rendering` checkout; inspect HEAD and preserve
 newer and dirty work. Implementation routing requested by the user is
 `gpt-6-astra`, reasoning `low` (user: Astra light). This document records routing intent, not proof
