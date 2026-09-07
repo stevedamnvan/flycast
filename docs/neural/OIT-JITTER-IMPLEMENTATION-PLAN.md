@@ -17,9 +17,14 @@ cleared the native pointer texture; switching the clear to the dedicated replay
 pointer texture made direct-D3D11 parity exact. The earlier 1-LSB variable runs
 remain retained outside Git as falsifying evidence.
 
-The next implementation slice is step 9, the lightweight neural status OSD,
-followed by the affected exact-SHA Gate 16/17 recapture. Steps below remain the
-historical acceptance plan and evidence checklist.
+Step 9 is also implemented and proven at the late-OSD boundary. Its Video
+setting is off by default; normal and OIT on/off captures keep native PVR,
+source, depth, motion, mask, confidence, draw ID, public output, and pre-OSD
+final composite byte-identical. Only the captured presentation after
+`gui_display_osd` changes. Direct D3D11 and injected failure smokes close
+cleanly. A manual settings-click/resize smoke remains useful UI coverage. The
+next critical slice is the affected exact-SHA Gate 16/17 recapture. Steps below
+remain the historical acceptance plan and evidence checklist.
 
 Assessed 2026-09-07. Implementor: GPT-5.6 Sol, high reasoning, in the existing
 task and checkout. This is the current bounded assignment for FC-035/FC-036,

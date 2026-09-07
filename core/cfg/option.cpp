@@ -119,6 +119,7 @@ Option<bool> NeuralDlss5EvidencePreserveMask("rend.NeuralDlss5EvidencePreserveMa
 Option<bool> NeuralDlss5EvidencePresentMarker("rend.NeuralDlss5EvidencePresentMarker", true);
 Option<bool> NeuralDlss5EvidenceMarkerBottomRight("rend.NeuralDlss5EvidenceMarkerBottomRight", false);
 Option<int> NeuralDebugView("rend.NeuralDebugView", 0);
+Option<bool> NeuralStatusOverlay("rend.NeuralStatusOverlay", false);
 Option<int> NeuralOverlayPolicy("rend.NeuralOverlayPolicy", 0);
 Option<bool> NeuralMatchOutputResolution("rend.NeuralMatchOutputResolution", true);
 Option<int> NeuralDlssPreset("rend.NeuralDlssPreset", 0);

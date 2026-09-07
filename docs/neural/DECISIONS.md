@@ -1311,3 +1311,24 @@ render-pixel jitter on native D3D11 and D3D11On12. The gameplay control must
 leave `native-pvr-color.png` byte-identical to an unjittered run while changing
 only the neural scene input. A failed intermediate implementation cleared the
 native rather than replay pointer texture and was rejected before commit.
+
+## D-081: the optional neural status panel is a late Flycast OSD
+
+The compact neural status panel is a persistent `rend.NeuralStatusOverlay`
+option exposed in Video settings and disabled by default. It consumes only the
+mutex-protected `LiveStatus` copy plus Flycast's existing FPS clock. It never
+queries or edits an external consumer and never reads renderer-owned state from
+the UI thread.
+
+The panel is drawn in the lower-right foreground during `gui_display_osd`,
+after native/neural scene selection and protected game-overlay composition. It
+shows mode, abbreviated profile, public preset, D3D11/D3D11On12 route,
+submit/bypass/HUD state, render/output dimensions, active raster jitter,
+FPS/frame interval, and accepted/busy/fallback counters. Drop count remains
+`n/a` until a production live cadence counter is published. In DLSS 5 mode,
+public-contract status is explicitly separated from `External unverified` so
+the UI cannot be mistaken for Gate 10 output provenance.
+
+Acceptance compares deterministic overlay-on/off captures. All source,
+guidance, public output, protected-game composite, and native PVR artifacts must
+remain byte-identical; only the post-OSD presentation artifact may differ.

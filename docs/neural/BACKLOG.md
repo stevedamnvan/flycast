@@ -46,11 +46,11 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-047 | 4 | Hook-compatible DLAA | Zero jitter standard D3D12 NGX shape | done | LOG #44-#45,#53,#59; three 240-frame zero-jitter standard D3D12 evaluations and the production Soulcalibur interception route are green |
 | FC-048 | 4 | D3D11 bridge transport | Genuine D3D11 contract mirrored through a private D3D12 consumer and returned with frame identity | blocked(no compatible contract-preserving bridge runtime supplied -> obtain a compatible package or authorize a bounded local bridge build) | LOG #51; Feeder v0.10.0-beta.2 constructs its own ReShade image-derived contract and is transport reference only, while standalone NIGos is absent |
 | FC-049 | 4 | No-RTX behavior | WARP/no-NGX green on both APIs | done | LOG #46; SDK and no-SDK WARP GPU texture allocation plus D3D11On12 surface creation return clean explicit unsupported status on both APIs |
-| FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | done | LOG #21,#108,#121; thread-safe live mode/API/reason/counter/timing/route snapshot and seven-view production guidance selector are implemented; all view shaders compile and the motion view activates on deterministic Soulcalibur PVR output without advancing or relabeling presentation history. Uncanny Cinematic is a persistent fourth user-selectable profile with explicit Cinematic/Structure-200/Tone-75/max-coverage recommendation; the factory default remains Faithful. |
+| FC-050 | 5 | Settings/UI | Modes, reason, metrics, debug view | done | LOG #21,#108,#121,#128; the thread-safe live snapshot now feeds both the settings diagnostics and an off-by-default, lower-right in-game status OSD. It reports mode/profile/preset, D3D11 or D3D11On12, submit/bypass/HUD state, raster/output size, jitter, FPS/frame interval, and accepted/busy/fallback counters while labeling unavailable drop data honestly. DLSS 5 mode identifies public-contract status and keeps external output explicitly unverified. The seven-view guidance selector and Uncanny profile remain separately available. |
 | FC-051 | 5 | Presentation | Evaluate before OSD/ImGui, once/frame | done | LOG #49,#77,#109; accepted output is selected once per emulated frame with native fallback, while exact pre/post production captures on normal/OIT D3D11 and D3D11On12 prove Flycast's ImGui-rendered OSD appears only after the saved neural/game-overlay composite |
 | FC-052 | 5 | Reset/cadence wiring | Actual emulator call sites connected | doing | LOG #49,#80-#82,#85-#87; production render/reset/save-state and source-transition call sites are connected; context recreation, renderer/surface switches, same-media unload/reload, real in-memory save/load, and pause/resume are identity-safe across normal/OIT D3D11 and D3D11On12; cross-title load remains pending |
 | FC-053 | 5 | Internal resolution | Set/restore and resize rules | done | LOG #63,#72; production Match Neural Output uses exact post-aspect content dimensions for target-native DX11 lanes, excludes bars, follows fullscreen size, leaves RTT/direct-framebuffer paths untouched, and preserves manual/SR sizing |
-| FC-054 | 5 | Capture CLI | Rate-limited artifact package | doing | LOG #73-#74,#90-#95,#99-#103,#106-#107,#118,#124-#126; bounded production D3D11/D3D11On12 normal/OIT capture writes source/guidance/public/final/difference/flicker artifacts, locale-stable manifests, correspondence diagnostics, component metrics, capture-only per-pass GPU timings, and a provenance/status-aware comparison index. The settings sweeps include exact-input candidate/marker/policy-off proofs and synchronized moving comparisons; the post-jitter conservative, Uncanny maximum-coverage, and normal/OIT Uncanny HUD-safe lanes each pair 30/30 exact contracts. A strict output-relative bottom-right sentinel resolves known top-left OIT HUD overlap without drawing proof after composition or weakening the 1024/1024 requirement. The full title matrix remains. |
+| FC-054 | 5 | Capture CLI | Rate-limited artifact package | doing | LOG #73-#74,#90-#95,#99-#103,#106-#107,#118,#124-#126,#128; bounded production D3D11/D3D11On12 normal/OIT capture writes the full guidance/output package and can now select the neural-status late-OSD proof independently from the legacy FPS proof. Exact on/off Soulcalibur pairs keep nine pre-OSD artifacts byte-identical on normal and OIT while the late presented artifact alone changes. Settings sweeps, strict output-relative sentinel proof, synchronized comparisons, and fail-closed provenance remain; the full title matrix remains. |
 | FC-055 | 5 | Optional layer classes | Only after FC-044 green | doing | LOG #70-#71,#104-#105,#125-#127; actual sorted submissions retain reactive-only motion; topology-proven strip/triangle-list batches, PVR-native coordinate classification, and exact `T1401N` profile continuity protect Soulcalibur text, bars, timer, counters, and names across moving normal/OIT frames with zero protected-pixel mismatches. OIT neural replay now owns a separate A-buffer, opaque/multipass history, and aligned resolve-time reactive target, leaving native PVR output byte-exact on both D3D11 surfaces. Broader-title/uncertain-overlay Gate 15A/15B coverage remains open. |
 | FC-056 | 5 | Experimental DLSS 5 consumer mode | Route-neutral public contract, readiness ladder, native fallback, no private implementation | done | LOG #50-#59; the selected D3D11On12 route passes Gate 10 with full-contract ON/OFF hashes, per-frame sentinel presentation, zero display-frame latency, and native fallback; direct D3D11 and bridge remain unselected candidate routes |
 | FC-059 | 5 | Phase gate | Runtime toggles and Gate 8 | done | LOG #49,#109-#110; production pixel Gate 8 is green with a failing no-OSD control, and a continuous exact-frame neural-off/on round trip proves native fallback, zero off-mode evaluation, fresh reset re-entry, and clean identity on normal/OIT D3D11 and D3D11On12 |
@@ -63,22 +63,14 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | done | LOG #53-#59; all 120 full input contracts matched across ON/policy-OFF, 118 returned outputs differed, frame 9 distinguished native/public-DLAA/external hashes and carried 1024/1024 sentinel pixels through successful same-frame Present, and negative controls retained native fallback |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded implementor assignment — lightweight neural status overlay
+## Next bounded implementor assignment — Gate 16/17 OIT visual recapture
 
-LOG #127 closes the focused OIT replay/jitter implementation: replay owns its
-own opaque/multipass history, A-buffer, and aligned reactive output; the
-production OIT shader fixture and content-bearing Soulcalibur controls pass on
-both D3D11 surfaces without changing native PVR pixels.
+LOG #127 closes the focused OIT replay/jitter implementation and LOG #128 adds
+the late neural-status OSD with exact normal/OIT layer isolation. A manual
+settings-click and resize smoke remains useful UI coverage but does not block
+the image-contract work.
 
-Add the planned lightweight toggleable in-game neural status
-overlay through Flycast's late OSD path. It must show mode/profile/preset,
-route/state, resolution/jitter, FPS/frame time, and compact cadence/fallback
-counters while staying out of every neural input and protected game overlay.
-Off must be byte-identical; on/off, normal/OIT, resize, and failure transitions
-need focused proof. Track this under the existing FC-050 diagnostics/UI work and
-FC-054 capture metadata rather than inventing a replacement work item.
-
-After the overlay slice, rerun the affected Gate 16/17 public Auto,
+Rerun the affected Gate 16/17 public Auto,
 conservative external, and Uncanny moving comparisons with exact provenance.
 
 ## Subsequent assignment — Gate 17 style-family expansion

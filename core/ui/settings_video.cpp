@@ -387,6 +387,8 @@ void gui_settings_video()
 			ImGui::Text("%s", T("Developer debug view"));
 			ImGui::TextWrapped("%s", T("Replaces only the PVR presentation for inspection. Neural evaluation and history continue, but a debug frame is accounted as native presentation. Flycast OSD and ImGui remain visible."));
 		}
+		OptionCheckbox(T("Show Neural Status Overlay"), config::NeuralStatusOverlay,
+			T("Show a compact late-OSD panel with neural mode, route, FPS, resolution, jitter, and cadence counters. It is never part of neural inputs or protected game overlays."));
 		if (!rendererSupported)
 			ImGui::TextWrapped("%s", T("The selected graphics API is unsupported; Flycast will continue with native presentation."));
 #ifdef FLYCAST_ENABLE_NGX

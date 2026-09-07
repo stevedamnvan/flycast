@@ -44,7 +44,7 @@ void Usage()
 		"neuraltest compare --a DIR|PNG --b DIR|PNG [--maxabs N] [--psnr N] [--edge-only]\n"
 		"neuraltest native-parity --game PATH --enabled-flycast EXE --feature-off-flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 5] [--skip N] [--render-height N] [--timeout-ms N]\n"
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
-		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
+		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
@@ -876,9 +876,10 @@ int CaptureCommand(const Args& args)
 		std::cerr << "--input-replay must be yes or no\n";
 		return 2;
 	}
-	if (proofOverlay != "fps" && proofOverlay != "none")
+	if (proofOverlay != "fps" && proofOverlay != "neural-status"
+		&& proofOverlay != "none")
 	{
-		std::cerr << "--proof-overlay must be fps or none\n";
+		std::cerr << "--proof-overlay must be fps, neural-status, or none\n";
 		return 2;
 	}
 	if (overlayPolicy != "auto" && overlayPolicy != "full"
@@ -1034,6 +1035,8 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralLateOverlayProof=" + (lateOverlayProof ? L"yes" : L"no")
 		+ L",config:rend.ShowFPS="
 		+ (lateOverlayProof && proofOverlay == "fps" ? L"yes" : L"no")
+		+ L",config:rend.NeuralStatusOverlay="
+		+ (lateOverlayProof && proofOverlay == "neural-status" ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (evidenceFrames != 0 ? L"yes" : L"no")
 		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames="
 		+ std::to_wstring(evidenceFrames == 0 ? 1 : evidenceFrames)

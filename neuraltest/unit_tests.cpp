@@ -116,6 +116,17 @@ int RunSelfTests()
 		published.lastSubmit = SubmitStatus::Busy;
 		published.reason = "ring busy";
 		published.stage.submissions = 17;
+		published.stage.busySkips = 2;
+		published.stage.fallbacks = 1;
+		published.qualityProfile = 3;
+		published.dlssPreset = 11;
+		published.rasterJitterX = -.375f;
+		published.rasterJitterY = -.0555556f;
+		published.rasterJitterApplied = true;
+		published.renderWidth = 640;
+		published.renderHeight = 480;
+		published.outputWidth = 640;
+		published.outputHeight = 480;
 		published.sourceFrameId = 42;
 		PublishLiveStatus(published);
 		const auto copied = GetLiveStatus();
@@ -127,8 +138,19 @@ int RunSelfTests()
 			"live neural status publishes a self-contained UI snapshot");
 		suite.Expect(std::string(NeuralModeName(copied.mode)) == "DLSS 5 Experimental"
 			&& std::string(SubmitStatusName(copied.lastSubmit)) == "Busy"
-			&& std::string(ApiName(copied.api)) == "D3D11On12 / D3D12",
+			&& std::string(ApiName(copied.api)) == "D3D11On12 / D3D12"
+			&& std::string(DlssPresetName(copied.dlssPreset)) == "K",
 			"live neural status exposes stable developer labels");
+		const auto overlay = FormatLiveStatusOverlay(copied, 60.f);
+		suite.Expect(overlay.find("DLSS 5 Experimental | Uncanny | Preset K | D3D11On12")
+			!= std::string::npos
+			&& overlay.find("Public contract: Busy | External unverified | 640x480 -> 640x480")
+			!= std::string::npos
+			&& overlay.find("J -0.375,-0.056") != std::string::npos
+			&& overlay.find("FPS 60.0 | Frame 16.7 ms") != std::string::npos
+			&& overlay.find("Accepted 17 | Busy 2 | Fallback 1 | Drops n/a")
+			!= std::string::npos,
+			"live neural status formats the compact late-OSD contract");
 		const auto publishedGeneration = copied.generation;
 		ResetLiveStatus();
 		const auto reset = GetLiveStatus();

@@ -2,6 +2,8 @@
 #include "live_status.h"
 
 #include <mutex>
+#include <iomanip>
+#include <sstream>
 #include <utility>
 
 namespace flycast::rend::neural {
@@ -66,6 +68,55 @@ const char *SubmitStatusName(SubmitStatus status) noexcept
 const char *ApiName(Api api) noexcept
 {
 	return api == Api::D3D12 ? "D3D11On12 / D3D12" : "D3D11";
+}
+
+const char *DlssPresetName(int preset) noexcept
+{
+	return preset == 10 ? "J" : preset == 11 ? "K" : "Auto";
+}
+
+std::string FormatLiveStatusOverlay(const LiveStatus& status, float fps)
+{
+	std::ostringstream text;
+	text.imbue(std::locale::classic());
+	const char *profileName = status.qualityProfile == 1 ? "Enhanced"
+		: status.qualityProfile == 2 ? "Photoreal"
+		: status.qualityProfile == 3 ? "Uncanny" : "Faithful";
+	const char *apiName = status.api == Api::D3D12 ? "D3D11On12" : "D3D11";
+	text << "Neural: " << NeuralModeName(status.mode) << " | " << profileName
+		<< " | Preset " << DlssPresetName(status.dlssPreset);
+	if (status.rendererAvailable)
+		text << " | " << apiName;
+	text << '\n';
+	if (!status.rendererAvailable)
+		text << "Renderer unavailable";
+	else
+	{
+		if (status.mode == NeuralMode::Dlss5Experimental)
+			text << "Public contract: " << SubmitStatusName(status.lastSubmit)
+				<< " | External unverified";
+		else
+			text << SubmitStatusName(status.lastSubmit);
+		if (status.conservativeBypass)
+			text << " | 2D bypass";
+		else if (status.overlayProtection)
+			text << " | HUD protected";
+		text << " | " << status.renderWidth << 'x' << status.renderHeight << " -> "
+			<< status.outputWidth << 'x' << status.outputHeight;
+		if (status.rasterJitterApplied)
+			text << " | J " << std::fixed << std::setprecision(3)
+				<< status.rasterJitterX << ',' << status.rasterJitterY;
+	}
+	text << '\n';
+	if (fps >= 0.f && fps < 9999.f)
+		text << std::fixed << std::setprecision(1) << "FPS " << fps << " | Frame "
+			<< (fps > 0.f ? 1000.f / fps : 0.f) << " ms";
+	else
+		text << "FPS unavailable";
+	text << '\n' << "Accepted " << status.stage.submissions << " | Busy "
+		<< status.stage.busySkips << " | Fallback " << status.stage.fallbacks
+		<< " | Drops n/a";
+	return text.str();
 }
 
 } // namespace flycast::rend::neural

@@ -10,14 +10,16 @@ all three enabled configurations, and a linked feature-off build. An earlier
 wrong-pointer clear and its bounded 1-LSB direct-D3D11 controls are retained as
 failed evidence rather than hidden.
 
-The next assignment is the lightweight neural status OSD.
-It is off by default, toggled in Video settings, and rendered after the neural
-scene through Flycast's late OSD path. Review its mode/profile/route, FPS,
-resolution/jitter, and cadence/fallback fields; require byte-identical output
-when off and prove it never appears in neural input/output capture artifacts.
-After that independently proven slice, rerun the affected public Auto,
-conservative external, and Uncanny Gate 16/17 moving comparisons. Faithful
-remains public DLAA Auto unless exact matched evidence establishes otherwise.
+LOG #128 adds the requested lightweight neural status OSD. It is off by
+default, toggled in Video settings, and rendered only through Flycast's late
+OSD path. Normal/OIT on/off captures prove nine pre-OSD artifacts remain exact;
+direct D3D11 and failure-state smokes also pass. It deliberately says external
+DLSS 5 output is unverified even when the public contract submits. Manual
+settings-click and resize coverage remain a small follow-up.
+
+The next assignment is the affected public Auto, conservative external, and
+Uncanny Gate 16/17 OIT moving recapture. Faithful remains public DLAA Auto
+unless exact matched evidence establishes otherwise.
 
 ## Historical handoff retained for provenance
 

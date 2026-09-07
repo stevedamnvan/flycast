@@ -1963,6 +1963,11 @@ void DX11Renderer::publishNeuralStatus(
 	live.overlayDraws = static_cast<std::uint32_t>(neuralInstrumentation.OverlayDrawCount());
 	live.debugView = static_cast<std::uint32_t>(
 		std::clamp(config::NeuralDebugView.get(), 0, 7));
+	live.qualityProfile = std::clamp(config::NeuralQualityProfile.get(), 0, 3);
+	live.dlssPreset = activeNeuralPreset;
+	live.rasterJitterX = neuralQualityCaptureMetadata.jitterX;
+	live.rasterJitterY = neuralQualityCaptureMetadata.jitterY;
+	live.rasterJitterApplied = neuralQualityCaptureMetadata.rasterJitterApplied;
 	live.sourceFrameId = currentNeuralSourceFrameId;
 	live.presentedOutputFrameId = lastPresentedNeuralFrameId;
 	PublishLiveStatus(std::move(live));

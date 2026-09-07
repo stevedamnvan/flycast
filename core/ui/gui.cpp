@@ -53,6 +53,9 @@
 #include "settings.h"
 #include "oslib/i18n.h"
 #include "gui_font.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/live_status.h"
+#endif
 using namespace i18n;
 
 #ifdef _WIN32
@@ -1412,16 +1415,27 @@ static u64 LastFPSTime;
 static int lastFrameCount = 0;
 static float fps = -1;
 
+static void updateFpsCounter()
+{
+	if (!config::ShowFPS
+#ifdef FLYCAST_ENABLE_NEURAL
+		&& !config::NeuralStatusOverlay
+#endif
+	)
+		return;
+	u64 now = getTimeMs();
+	if (now - LastFPSTime >= 1000) {
+		fps = ((float)MainFrameCount - lastFrameCount) * 1000.f / (now - LastFPSTime);
+		LastFPSTime = now;
+		lastFrameCount = MainFrameCount;
+	}
+}
+
 static std::string getFPSNotification()
 {
+	updateFpsCounter();
 	if (config::ShowFPS)
 	{
-		u64 now = getTimeMs();
-		if (now - LastFPSTime >= 1000) {
-			fps = ((float)MainFrameCount - lastFrameCount) * 1000.f / (now - LastFPSTime);
-			LastFPSTime = now;
-			lastFrameCount = MainFrameCount;
-		}
 		if (fps >= 0.f && fps < 9999.f) {
 			char text[32];
 			snprintf(text, sizeof(text), "F:%4.1f%s", fps, settings.input.fastForwardMode ? " >>" : "");
@@ -1431,6 +1445,38 @@ static std::string getFPSNotification()
 	}
 	return std::string(settings.input.fastForwardMode ? ">>" : "");
 }
+
+#ifdef FLYCAST_ENABLE_NEURAL
+static void drawNeuralStatusOverlay()
+{
+	if (!config::NeuralStatusOverlay)
+		return;
+	updateFpsCounter();
+	const auto status = flycast::rend::neural::GetLiveStatus();
+	const std::string message = flycast::rend::neural::FormatLiveStatusOverlay(status, fps);
+	const float fontSize = ImGui::GetFontSize();
+	const float maxWidth = std::max(220.f, ImGui::GetIO().DisplaySize.x - insetLeft
+		- insetRight - 16.f);
+	const ScaledVec2 padding(5.f, 4.f);
+	const ImVec2 textSize = ImGui::GetFont()->CalcTextSizeA(fontSize, maxWidth,
+		maxWidth, message.data(), message.data() + message.size());
+	const ImVec2 panelSize = textSize + padding * 2.f;
+	ImVec2 pos(ImGui::GetIO().DisplaySize.x - static_cast<float>(insetRight)
+		- panelSize.x - uiScaled(8.f),
+		ImGui::GetIO().DisplaySize.y - static_cast<float>(insetBottom)
+		- panelSize.y - uiScaled(8.f));
+	pos.x = std::max(pos.x, static_cast<float>(insetLeft));
+	pos.y = std::max(pos.y, static_cast<float>(insetTop));
+	ImDrawList *draw = ImGui::GetForegroundDrawList();
+	draw->AddRectFilled(pos, pos + panelSize,
+		IM_COL32(12, 18, 24, 168), uiScaled(3.f));
+	draw->AddRect(pos, pos + panelSize,
+		IM_COL32(110, 180, 220, 150), uiScaled(3.f));
+	pos += padding;
+	draw->AddText(nullptr, fontSize, pos, IM_COL32(225, 240, 250, 235),
+		message.data(), message.data() + message.size(), maxWidth);
+}
+#endif
 
 void gui_draw_osd()
 {
@@ -1460,6 +1506,9 @@ void gui_draw_osd()
 			}
 		}
 
+#ifdef FLYCAST_ENABLE_NEURAL
+	drawNeuralStatusOverlay();
+#endif
 	if (ggpo::active())
 	{
 		if (config::NetworkStats)
