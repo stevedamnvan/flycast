@@ -1379,6 +1379,12 @@ exclude late framebuffer mutation, but do not promote synchronization to a
 production fix. Exact early/late pixels and exact decoded/retained-buffer pixels
 do not waive a failing original-source gate. See LOG #140 for both falsifiers.
 
+Temporary per-draw probes must be removed after diagnosis; retain their patch
+and evidence locally, not their overhead in normal rendering. Matching bound
+objects and resource bytes do not by themselves prove driver arithmetic truth.
+LOG #141 separates the observed D24 variation from the selected color error;
+require a controlled repeated-shader fixture before choosing a precision fix.
+
 M2 GPU diagnostic: retain pre-draw framebuffer content and the original shader
 contract; use new decoded buffers without repeating the flat-shading color
 adjustment. Resolve texture state only against the retained same frame, never

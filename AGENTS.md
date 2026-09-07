@@ -6,9 +6,11 @@ Current continuation: read `docs/neural/REMAKE-REPLAY-AUDIT.md` and
 `docs/neural/REMAKE-M2-AUDIT.md`. M2 decoded GPU replay and wrong controls are
 implemented, but repeated native drawing/on-off captures have an unresolved
 one-channel-step discrepancy. LOG #140 reproduces native-only variation and
-excludes late framebuffer mutation in a failing 30-frame run. Next compare
-remaining per-draw constants, resource contents and pipeline state to localize
-the first divergent draw, then rerun exact-SHA moving pairs. M2 is open.
+excludes late framebuffer mutation in a failing 30-frame run. LOG #141 localizes
+the selected color divergence to sorted draw 53 with matching captured state,
+and separately finds one-step D24 variation. Next isolate repeated production-
+shader depth/blend output and target reuse/allocation in a bounded GPU fixture,
+then rerun exact-SHA moving pairs. The temporary probe is removed. M2 is open.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and

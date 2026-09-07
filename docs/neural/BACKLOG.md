@@ -71,8 +71,10 @@ harness runs and decoded-versus-native-buffer alignment is exact in the tested
 moving interval, but repeat-render/on-off one-step pixel differences remain.
 LOG #140 reproduces native-only run-to-run variation and excludes late
 framebuffer mutation in a failing replay run (early/late native exact 30/30).
-Next compare remaining per-draw constants, resource contents and pipeline state,
-localize the first divergent draw, then rerun exact-SHA moving pairs;
+LOG #141 localizes the selected color divergence to sorted draw 53 with matching
+captured constants/resources/state, and separately finds 1178 one-step D24
+differences. Next isolate repeated production-shader depth/blend output and
+target reuse/allocation in a bounded GPU fixture, then rerun exact-SHA pairs;
 do not reimplement packet export/decoding or claim M2 is closed.
 
 Snapshot export and bounded disk decoding are implemented and self-reviewed:

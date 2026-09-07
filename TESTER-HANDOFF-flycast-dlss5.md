@@ -11,8 +11,12 @@ the gate or claim recovered world/camera/Remix presentation.
 LOG #140 update: native-only repetition also differs at three one-step pixels
 in frame 1805; replay is not necessary for that cross-run variation. Early and
 late native captures match 30/30 even when same-frame replay fails at 13 pixels.
-Next implementor: instrument remaining per-draw constants, bound resource
-contents and pipeline descriptors, and localize the first differing draw.
+LOG #141 completes that localization for pixel (322,265): sorted draw 53,
+first index 17497/count 18. Thirty state dumps match in a failing run; 1178 D24
+samples separately differ by one step, but depth at that pixel matches.
+Next implementor: isolate repeated production-shader depth/blend output and
+target reuse/allocation with a bounded same-input GPU fixture. The temporary
+per-draw probe is removed; its reproducible patch and raw evidence remain local.
 Do not repeat the already-falsified late-framebuffer-mutation hypothesis.
 
 M2 now has actual PVR snapshots and a bounded disk decoder (243/243 enabled

@@ -118,16 +118,62 @@ removed. Source emu.cfg SHA-256 remains
 No external consumer configuration, production setting, or gate threshold
 changed. These synchronous runs provide no performance evidence.
 
+### Per-draw causal probe (a62fb12c2 plus temporary diagnostic)
+
+The temporary probe samples native pixel (322,265) after each normal-list,
+sorted-translucency, and final modifier-composite draw into a bounded GPU atlas.
+It runs only for the first explicit replay capture and its original-buffer
+control. It is **not production code** and was removed after testing; the
+reproducible patch is retained locally as
+`build-neural-automation/fc067-pixel-trace.patch`. Raw data stays outside Git in
+`flycast-evidence/fc067-pixel-trace-a` through `-f`. Each probe built successfully
+in the automation configuration. These are working-tree diagnostics: the
+incremental executable retains the earlier `688d63e05` generated stamp, which
+does not identify the added probe. Do not label them exact-SHA acceptance runs.
+
+- A reproduces the 13-pixel failure and records 145 draw samples. The selected
+  pixel first differs at zero-based trace command 53 and stays different through
+  the remaining 92 samples. Its incoming color at command 52 is identical.
+- B adds command identity and passes 3/3; command 53 is a sorted-translucency
+  DrawIndexed with first index 17497 and count 18. This is the sorted index
+  buffer, not an exported original-list ordinal.
+- C passes 3/3 while dumping constants and state. Its first texture dumper did
+  not support native B5G5R5A1/A8 formats, so absent texture dumps are **not**
+  evidence of texture equality. D adds those formats and reproduces failure.
+- E adds viewport/scissor, shader/layout/geometry-buffer object identities,
+  and depth-surface descriptors; it also fails. The first depth dumper handles
+  typeless formats only; the actual surface is typed D24_UNORM_S8_UINT, so no
+  depth-byte comparison is claimed for E.
+- F adds typed D24 readback and reproduces the same 13-pixel failure. Thirty
+  captured state files are byte-identical: VS b0, PS b0/b1, all eight mip levels
+  of texture 0, palette/fog texels, texture descriptors, all three samplers,
+  blend/factor/sample mask, depth/stencil descriptor/reference, raster state,
+  viewport/scissor, IA stride/offset/format, and bound shader/layout/VB/IB object
+  identities. Object equality is not a claim about internal driver compilation.
+  The only differing dump is depth storage: **1178 D24 samples differ by one
+  integer step**, with zero stencil differences. Depth at (322,265) is identical
+  (5373102) in both dumps, so depth variation is not yet the cause of that color
+  mismatch. Color changes from BGRA word 3275052116 to 3275052373 at command 53;
+  both enter that command with word 4282600521.
+
+A/D/E/F capture commands exit 1; B/C exit 0. All close cleanly. No failed run
+is accepted as alignment success. No proprietary binary/configuration was
+inspected or changed. The probe, environment opt-in, and per-draw copies are
+absent from the restored renderer; these timings are ineligible for performance.
+
 **ACCEPTED:** opt-in diagnostic mechanism and bounded decoded-geometry versus
 native-buffer replay evidence. **CORRECTIONS_REQUIRED:** full M2 completion.
 
 Resolve the repeat-render differences without assuming the decoder or a
 particular shader constant is responsible. Native-only cross-run variation is
 now reproduced, and late framebuffer mutation is excluded in a failing run.
-Next capture/compare the remaining per-draw shader constants, bound resource
-contents and pipeline descriptors between the native and original-buffer
-replays; localize the first differing draw/pixel before changing production
-rendering. Then rerun exact-SHA 30-frame replay/on-off/repeat pairs. Keep the current
+The selected color divergence is now localized to a sorted-translucency command
+with matching captured inputs/state, alongside separate one-step D24 variation.
+Next isolate the production shader's repeated depth and blended-color output
+in a bounded same-input GPU fixture (including target reuse versus new targets),
+and trace the first depth divergence if needed. Do not attribute the result to
+driver precision, relax the gate, or change production arithmetic without a
+falsifiable control. Then rerun exact-SHA moving pairs. Keep the current
 zero-tolerance gate and failed attempts. Extend the packet's retained-state
 disposition honestly; do not claim an offline complete scene, recovered camera,
 path tracing, or Remix/DLSS 5 combined output. Only close M2 after its full
