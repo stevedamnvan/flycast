@@ -110,6 +110,26 @@ public:
 		deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, std::size(uavs), uavs, initialCounts);
 	}
 
+	void clearPointers()
+	{
+		if (!abufferPointersView)
+			return;
+		const UINT clear[] { (UINT)-1, (UINT)-1, (UINT)-1, (UINT)-1 };
+		deviceContext->ClearUnorderedAccessViewUint(abufferPointersView, clear);
+	}
+
+	bool valid() const noexcept
+	{
+		return pixelsBuffer && pixelsBufferView && abufferPointersTex
+			&& abufferPointersView;
+	}
+
+	std::uint32_t objectCount() const noexcept
+	{
+		return (pixelsBuffer ? 1u : 0u) + (pixelsBufferView ? 1u : 0u)
+			+ (abufferPointersTex ? 1u : 0u) + (abufferPointersView ? 1u : 0u);
+	}
+
 	void term()
 	{
 		width = 0;

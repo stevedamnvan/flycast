@@ -422,12 +422,10 @@ void DX11Renderer::configVertexShader(float rasterJitterX, float rasterJitterY)
 	constant.topPlane[3] = 1;
 	constant.bottomPlane[1] = -1;
 	constant.bottomPlane[3] = 1;
-#ifdef FLYCAST_ENABLE_NEURAL
 	constant.neuralRenderSize[0] = static_cast<float>(width);
 	constant.neuralRenderSize[1] = static_cast<float>(height);
 	constant.neuralRasterJitter[0] = rasterJitterX;
 	constant.neuralRasterJitter[1] = rasterJitterY;
-#endif
 	D3D11_MAPPED_SUBRESOURCE mappedSubres;
 	deviceContext->Map(vtxConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
 	memcpy(mappedSubres.pData, &constant, sizeof(constant));
@@ -1019,10 +1017,9 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	neuralPreviousPositionBufferSize = 0;
 }
 
-bool DX11Renderer::renderNeuralSceneColor(float rasterJitterX, float rasterJitterY)
+bool DX11Renderer::prepareNeuralSceneColorTarget(ID3D11RenderTargetView *target)
 {
-	ID3D11RenderTargetView *target = neuralColor.targets[neuralExportSlot].get();
-	deviceContext->OMSetRenderTargets(1, &target, neuralSceneDepthTarget);
+	deviceContext->OMSetRenderTargets(1, &target, nullptr);
 	if (rendContext->clearFramebuffer)
 	{
 		float clearColor[4];
@@ -1039,6 +1036,15 @@ bool DX11Renderer::renderNeuralSceneColor(float rasterJitterX, float rasterJitte
 		ID3D11ShaderResourceView *nullView = nullptr;
 		deviceContext->PSSetShaderResources(0, 1, &nullView);
 	}
+	return true;
+}
+
+bool DX11Renderer::renderNeuralSceneColor(float rasterJitterX, float rasterJitterY)
+{
+	ID3D11RenderTargetView *target = neuralColor.targets[neuralExportSlot].get();
+	if (!prepareNeuralSceneColorTarget(target))
+		return false;
+	deviceContext->OMSetRenderTargets(1, &target, neuralSceneDepthTarget);
 	deviceContext->ClearDepthStencilView(neuralSceneDepthTarget,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
 	configVertexShader(rasterJitterX, rasterJitterY);
@@ -1080,7 +1086,7 @@ bool DX11Renderer::renderNeuralExports(float rasterJitterX, float rasterJitterY)
 	ID3D11UnorderedAccessView *nullUavs[2]{};
 	deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
 		D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr,
-		1, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
+		2, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
 	ID3D11ShaderResourceView *nullView = nullptr;
 	deviceContext->PSSetShaderResources(0, 1, &nullView);
 	const float black[4]{};
@@ -1522,7 +1528,7 @@ void DX11Renderer::submitNeuralFrame()
 		&& neuralInstrumentation.OverlayDrawCount() != 0;
 	const bool retainedSceneReady = neuralRetainedSceneValid
 		&& neuralDepthWidth == width && neuralDepthHeight == height;
-	const bool rasterJitterEligible = publicTemporalMode && !IsOitRenderer()
+	const bool rasterJitterEligible = publicTemporalMode
 		&& (rendContext->clearFramebuffer || retainedSceneReady)
 		&& !capturedFrame.predominantly2D && !overlayProtectionNeeded;
 	Point2 rasterJitter{};
@@ -1679,7 +1685,6 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCaptureMetadata.rasterJitterReason = rasterJitterEligible
 		? "separate-neural-scene-replay"
 		: !publicTemporalMode ? "mode-requires-zero-jitter"
-		: IsOitRenderer() ? "oit-scene-replay-pending"
 		: !rendContext->clearFramebuffer && !retainedSceneReady ? "retained-base-unavailable"
 		: capturedFrame.predominantly2D ? "predominantly-2d"
 		: overlayProtectionNeeded ? "protected-overlay-present"

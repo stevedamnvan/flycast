@@ -1290,6 +1290,9 @@ int RunSelfTests()
 			&& on12.rasterJitterShiftedCoverage && native.jitterExcludedFromMotion
 			&& on12.jitterExcludedFromMotion,
 			"production raster jitter shifts coverage but remains absent from motion");
+		suite.Expect(nativeOk && on12Ok && native.oitRasterJitterShiftedCoverage
+			&& on12.oitRasterJitterShiftedCoverage,
+			"production OIT raster jitter shifts coverage exactly on both D3D11 surfaces");
 		suite.Expect(nativeOk && on12Ok && native.naomi2RasterJitterShiftedCoverage
 			&& on12.naomi2RasterJitterShiftedCoverage,
 			"Naomi 2 production raster jitter shifts coverage without contaminating motion");

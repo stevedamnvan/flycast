@@ -163,6 +163,7 @@ bool ValidateProductionExportShader(std::string& error)
 	std::string neuralDebug;
 	std::string oitHeader;
 	std::string oitFinal;
+	std::string oitVertex;
 	if (!ExtractRawString(source, "PixelShaderCommon", common)
 		|| !ExtractRawString(source, "PixelShader", pixel)
 		|| !ExtractRawString(source, "VertexShader", vertex)
@@ -171,6 +172,7 @@ bool ValidateProductionExportShader(std::string& error)
 		|| !ExtractRawString(source, "NeuralDebugPixelShader", neuralDebug)
 		|| !ExtractRawString(naomiSource, "DX11N2VertexShader", naomiVertex)
 		|| !ExtractRawString(naomiSource, "DX11N2ColorShader", naomiColor)
+		|| !ExtractRawString(oitSource, "const char * const VertexShader", oitVertex)
 		|| !ExtractRawString(oitSource, "static const char OITShaderHeader[]", oitHeader)
 		|| !ExtractRawString(oitSource, "static const char OITFinalShaderSource[]", oitFinal))
 	{
@@ -201,6 +203,9 @@ bool ValidateProductionExportShader(std::string& error)
 		&& CompileVertex(vertex, true, true, false, error)
 		&& CompileVertex(naomi, false, false, true, error)
 		&& CompileVertex(naomi, false, true, true, error)
+		&& oitVertex.find("neuralRasterJitter") != std::string::npos
+		&& CompileVertex(oitVertex, false, false, false, error)
+		&& CompileVertex(oitVertex, true, false, false, error)
 		&& CompileStandalonePixel(reactiveCoverage, "neural-reactive-coverage",
 			nullptr, nullptr, error)
 		&& CompileStandalonePixel(overlayComposite, "neural-overlay-composite",

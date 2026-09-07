@@ -1288,3 +1288,26 @@ same output-relative contract, logs identify the corner, and acceptance still
 requires 1024/1024 pixels plus same-frame Present. Drawing a replacement marker
 after overlay composition is forbidden because that would no longer prove the
 returned neural resource reached presentation.
+
+## D-080: OIT neural replay owns isolated persistent state
+
+Production OIT raster jitter is permitted only through a separate neural scene
+replay. That replay owns dedicated opaque and multipass color textures, its own
+pixel-list buffer and pointer texture, and an R8 reactive target written by the
+same jittered final resolve. It is initialized from the pre-native opaque base
+for retained frames or the real clear color for cleared frames. It never uses
+the fully resolved native framebuffer as a substitute for persistent OIT state.
+
+The replay swaps these resources into the existing OIT submission machinery
+under scoped restoration, clears the replay pointer texture before each replay,
+and unbinds the u2/u3 OIT UAV slots before guidance output. Native persistent
+color, pointer, and pixel-list state therefore remain untouched. RTT and direct
+framebuffer paths retain native bypass, while protected overlays and
+predominantly-2D frames still suppress jitter conservatively.
+
+Acceptance requires both a production OIT shader coverage fixture and
+content-bearing multi-frame parity. The fixture must move coverage by the exact
+render-pixel jitter on native D3D11 and D3D11On12. The gameplay control must
+leave `native-pvr-color.png` byte-identical to an unjittered run while changing
+only the neural scene input. A failed intermediate implementation cleared the
+native rather than replay pointer texture and was rejected before commit.

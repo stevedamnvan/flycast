@@ -747,14 +747,31 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	ComPtr<ID3DBlob> naomi2VsCode;
 	if (!CompileProductionVertex(naomi2Vertex + "\n" + naomi2Color, true,
 		naomi2VsCode, error)) return false;
+	std::ifstream oitInput(std::string(NEURAL_SOURCE_DIR)
+		+ "/core/rend/dx11/oit/dx11_oitshaders.cpp", std::ios::binary);
+	if (!oitInput) { error = "cannot open production dx11_oitshaders.cpp"; return false; }
+	std::ostringstream oitStream;
+	oitStream << oitInput.rdbuf();
+	std::string oitVertex;
+	if (!ExtractRawString(oitStream.str(), "const char * const VertexShader", oitVertex))
+	{
+		error = "cannot extract production OIT vertex shader";
+		return false;
+	}
+	ComPtr<ID3DBlob> oitVsCode;
+	if (!CompileProductionVertex(oitVertex, false, oitVsCode, error)) return false;
 	ComPtr<ID3D11VertexShader> vs;
 	ComPtr<ID3D11VertexShader> naomi2Vs;
+	ComPtr<ID3D11VertexShader> oitVs;
 	ComPtr<ID3D11PixelShader> ps;
 	HRESULT hr = surface.device->CreateVertexShader(vsCode->GetBufferPointer(),
 		vsCode->GetBufferSize(), nullptr, vs.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreateVertexShader(
 		naomi2VsCode->GetBufferPointer(), naomi2VsCode->GetBufferSize(), nullptr,
 		naomi2Vs.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = surface.device->CreateVertexShader(
+		oitVsCode->GetBufferPointer(), oitVsCode->GetBufferSize(), nullptr,
+		oitVs.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(psCode->GetBufferPointer(),
 		psCode->GetBufferSize(), nullptr, ps.GetAddressOf());
 	const D3D11_INPUT_ELEMENT_DESC elements[] = {
@@ -767,6 +784,7 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	};
 	ComPtr<ID3D11InputLayout> layout;
 	ComPtr<ID3D11InputLayout> naomi2Layout;
+	ComPtr<ID3D11InputLayout> oitLayout;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(elements,
 		static_cast<UINT>(std::size(elements)), vsCode->GetBufferPointer(), vsCode->GetBufferSize(),
 		layout.GetAddressOf());
@@ -782,6 +800,19 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(naomi2Elements,
 		static_cast<UINT>(std::size(naomi2Elements)), naomi2VsCode->GetBufferPointer(),
 		naomi2VsCode->GetBufferSize(), naomi2Layout.GetAddressOf());
+	const D3D11_INPUT_ELEMENT_DESC oitElements[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 1, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 2, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 3, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 44, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(oitElements,
+		static_cast<UINT>(std::size(oitElements)), oitVsCode->GetBufferPointer(),
+		oitVsCode->GetBufferSize(), oitLayout.GetAddressOf());
 	if (FAILED(hr)) { error = HrText("create production motion shaders/layout", hr); return false; }
 
 	const ProductionVertex vertices[] = {
@@ -883,6 +914,8 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	ComPtr<ID3D11Buffer> pixelConstantBuffer;
 	ComPtr<ID3D11Buffer> polyConstantBuffer;
 	ComPtr<ID3D11Buffer> naomi2ConstantBuffer;
+	ComPtr<ID3D11Buffer> oitPolyConstantBuffer;
+	const std::array<std::int32_t, 4> oitPolyConstants{};
 	if (SUCCEEDED(hr)) hr = createBuffer(&vertexConstants, sizeof(vertexConstants),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT,
 		vertexConstantBuffer.GetAddressOf());
@@ -893,6 +926,20 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 	if (SUCCEEDED(hr)) hr = createBuffer(&naomi2Constants, sizeof(naomi2Constants),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT,
 		naomi2ConstantBuffer.GetAddressOf());
+	if (SUCCEEDED(hr)) hr = constantBuffer(oitPolyConstants.data(),
+		static_cast<UINT>(sizeof(oitPolyConstants)), oitPolyConstantBuffer.GetAddressOf());
+	static const char coveragePixel[] =
+		"float4 main(float4 position : SV_POSITION) : SV_Target { return 1.f; }";
+	ComPtr<ID3DBlob> coveragePsCode;
+	ComPtr<ID3DBlob> coverageDiagnostics;
+	if (SUCCEEDED(hr)) hr = D3DCompile(coveragePixel, std::strlen(coveragePixel),
+		"oit-jitter-coverage", nullptr, nullptr, "main", "ps_5_0",
+		D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_OPTIMIZATION_LEVEL3, 0,
+		coveragePsCode.GetAddressOf(), coverageDiagnostics.GetAddressOf());
+	ComPtr<ID3D11PixelShader> coveragePs;
+	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(
+		coveragePsCode->GetBufferPointer(), coveragePsCode->GetBufferSize(), nullptr,
+		coveragePs.GetAddressOf());
 	D3D11_RASTERIZER_DESC rasterDesc{};
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_NONE;
@@ -977,6 +1024,45 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 		&& jitteredCoverage.maxX == staticCoverage.maxX + 1
 		&& jitteredCoverage.minY == staticCoverage.minY + 1
 		&& jitteredCoverage.maxY == staticCoverage.maxY + 1;
+	auto renderOitCoverage = [&](float jitterX, float jitterY,
+		CoverageBounds& coverage) {
+		vertexConstants.rasterJitter[0] = jitterX;
+		vertexConstants.rasterJitter[1] = jitterY;
+		surface.context->UpdateSubresource(vertexConstantBuffer.Get(), 0, nullptr,
+			&vertexConstants, 0, 0);
+		const float zero[4]{};
+		surface.context->ClearRenderTargetView(targets.guidanceTargets[2].Get(), zero);
+		ID3D11RenderTargetView *target = targets.guidanceTargets[2].Get();
+		surface.context->OMSetRenderTargets(1, &target, nullptr);
+		D3D11_VIEWPORT viewport{0,0,static_cast<float>(Width),static_cast<float>(Height),0,1};
+		surface.context->RSSetViewports(1, &viewport);
+		surface.context->RSSetState(raster.Get());
+		surface.context->OMSetDepthStencilState(nullptr, 0);
+		ID3D11Buffer *buffer = naomi2VertexBuffer.Get();
+		const UINT stride = sizeof(Naomi2ProductionVertex);
+		const UINT offset = 0;
+		surface.context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+		surface.context->IASetInputLayout(oitLayout.Get());
+		surface.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		surface.context->VSSetShader(oitVs.Get(), nullptr, 0);
+		ID3D11Buffer *vsConstants[] = {vertexConstantBuffer.Get(), oitPolyConstantBuffer.Get()};
+		surface.context->VSSetConstantBuffers(0, 2, vsConstants);
+		surface.context->PSSetShader(coveragePs.Get(), nullptr, 0);
+		surface.context->Draw(4, 0);
+		surface.context->Flush();
+		return ReadCoverageBounds(surface.device.Get(), surface.context.Get(),
+			targets.guidance[2].Get(), coverage, error);
+	};
+	CoverageBounds oitStaticCoverage;
+	CoverageBounds oitJitteredCoverage;
+	if (!renderOitCoverage(0.f, 0.f, oitStaticCoverage)
+		|| !renderOitCoverage(1.f, 1.f, oitJitteredCoverage)) return false;
+	result.oitRasterJitterShiftedCoverage =
+		oitJitteredCoverage.pixels == oitStaticCoverage.pixels
+		&& oitJitteredCoverage.minX == oitStaticCoverage.minX + 1
+		&& oitJitteredCoverage.maxX == oitStaticCoverage.maxX + 1
+		&& oitJitteredCoverage.minY == oitStaticCoverage.minY + 1
+		&& oitJitteredCoverage.maxY == oitStaticCoverage.maxY + 1;
 	auto renderNaomi2 = [&](float valid, ProductionMotionResult& readback,
 		bool trusted, float jitterX = 0.f, float jitterY = 0.f,
 		CoverageBounds *coverage = nullptr) {
@@ -1097,7 +1183,8 @@ bool RunProductionMotionFixture(bool d3d11On12, ProductionMotionResult& result,
 			<< " confidence=" << static_cast<unsigned>(result.naomi2InvalidConfidence)
 			<< " jitter_motion=[" << result.jitterOnlyMotionX << ','
 			<< result.jitterOnlyMotionY << "] jitter_shift="
-			<< result.rasterJitterShiftedCoverage << " naomi2_jitter_shift="
+			<< result.rasterJitterShiftedCoverage << " oit_jitter_shift="
+			<< result.oitRasterJitterShiftedCoverage << " naomi2_jitter_shift="
 			<< result.naomi2RasterJitterShiftedCoverage;
 		error = detail.str();
 	}

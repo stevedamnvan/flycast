@@ -169,6 +169,7 @@ struct ProductionMotionResult {
 	bool rasterJitterShiftedCoverage = false;
 	bool jitterExcludedFromMotion = false;
 	bool naomi2RasterJitterShiftedCoverage = false;
+	bool oitRasterJitterShiftedCoverage = false;
 };
 
 struct ColorContractResult {

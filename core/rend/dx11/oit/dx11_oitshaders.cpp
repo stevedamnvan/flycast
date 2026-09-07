@@ -61,6 +61,8 @@ cbuffer shaderConstants : register(b0)
 	float4 topPlane;
 	float4 rightPlane;
 	float4 bottomPlane;
+	float2 neuralRenderSize;
+	float2 neuralRasterJitter;
 };
 
 cbuffer polyConstants : register(b1)
@@ -100,6 +102,8 @@ VertexOut main(in VertexIn vin)
 	vo.pos.w = 1.f;
 	vo.pos.z = 0.f;
 #endif
+	vo.pos.xy += float2(2.f * neuralRasterJitter.x / neuralRenderSize.x,
+		-2.f * neuralRasterJitter.y / neuralRenderSize.y) * vo.pos.w;
 
 	return vo;
 }

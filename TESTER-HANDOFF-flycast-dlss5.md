@@ -1,5 +1,26 @@
 # Flycast DLSS 5 tester handoff
 
+## Current assignment — 2026-09-07
+
+Read `docs/neural/OIT-JITTER-IMPLEMENTATION-PLAN.md` first. LOG #127 closes
+the focused OIT replay/jitter slice in the current source: isolated color and
+A-buffer ownership, aligned reactive coverage, exact production-shader jitter,
+byte-identical native PVR controls on D3D11 and D3D11On12, 163/163 selftests in
+all three enabled configurations, and a linked feature-off build. An earlier
+wrong-pointer clear and its bounded 1-LSB direct-D3D11 controls are retained as
+failed evidence rather than hidden.
+
+The next assignment is the lightweight neural status OSD.
+It is off by default, toggled in Video settings, and rendered after the neural
+scene through Flycast's late OSD path. Review its mode/profile/route, FPS,
+resolution/jitter, and cadence/fallback fields; require byte-identical output
+when off and prove it never appears in neural input/output capture artifacts.
+After that independently proven slice, rerun the affected public Auto,
+conservative external, and Uncanny Gate 16/17 moving comparisons. Faithful
+remains public DLAA Auto unless exact matched evidence establishes otherwise.
+
+## Historical handoff retained for provenance
+
 You are the independent tester/reviewer for Flycast's post-jitter Gate 16/17 visual-quality work.
 
 Repository:

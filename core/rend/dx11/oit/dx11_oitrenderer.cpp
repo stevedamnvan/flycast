@@ -97,6 +97,112 @@ struct DX11OITRenderer : public DX11Renderer
 
 	bool IsOitRenderer() const noexcept override { return true; }
 
+#ifdef FLYCAST_ENABLE_NEURAL
+	bool createNeuralOitColorSet(ComPtr<ID3D11Texture2D>& texture,
+		ComPtr<ID3D11RenderTargetView>& target,
+		ComPtr<ID3D11ShaderResourceView>& view)
+	{
+		createTexAndRenderTarget(texture, target, maxWidth, maxHeight);
+		if (!texture || !target)
+			return false;
+		D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc{};
+		viewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		viewDesc.Texture2D.MipLevels = 1;
+		return SUCCEEDED(device->CreateShaderResourceView(texture, &viewDesc,
+			&view.get()));
+	}
+
+	void releaseNeuralOitReplayResources()
+	{
+		neuralOitReplayBuffers.term();
+		neuralOitReplayPixelBufferSize = 0;
+		neuralOitPreFrameOpaque.reset();
+		neuralOitReplayOpaqueView.reset();
+		neuralOitReplayOpaqueTarget.reset();
+		neuralOitReplayOpaque.reset();
+		neuralOitReplayMultipassView.reset();
+		neuralOitReplayMultipassTarget.reset();
+		neuralOitReplayMultipass.reset();
+		neuralOitReplayReactiveView.reset();
+		neuralOitReplayReactiveTarget.reset();
+		neuralOitReplayReactive.reset();
+		neuralSceneReplayTarget.reset();
+		neuralOitPreFrameOpaqueValid = false;
+		neuralOitReplayCoverageValid = false;
+	}
+
+	bool ensureNeuralOitReplayResources()
+	{
+		if (neuralOitPreFrameOpaque && neuralOitReplayOpaque
+			&& neuralOitReplayMultipass && neuralOitReplayReactive
+			&& neuralOitReplayBuffers.valid()
+			&& neuralOitReplayPixelBufferSize == config::PixelBufferSize)
+			return true;
+		releaseNeuralOitReplayResources();
+		neuralOitReplayBuffers.init(device, deviceContext);
+		neuralOitReplayBuffers.resize(maxWidth, maxHeight);
+		neuralOitReplayPixelBufferSize = config::PixelBufferSize;
+		if (!neuralOitReplayBuffers.valid())
+		{
+			releaseNeuralOitReplayResources();
+			return false;
+		}
+		ComPtr<ID3D11RenderTargetView> unusedTarget;
+		ComPtr<ID3D11ShaderResourceView> unusedView;
+		if (!createNeuralOitColorSet(neuralOitPreFrameOpaque, unusedTarget,
+			unusedView)
+			|| !createNeuralOitColorSet(neuralOitReplayOpaque,
+				neuralOitReplayOpaqueTarget, neuralOitReplayOpaqueView)
+			|| !createNeuralOitColorSet(neuralOitReplayMultipass,
+				neuralOitReplayMultipassTarget, neuralOitReplayMultipassView))
+		{
+			releaseNeuralOitReplayResources();
+			return false;
+		}
+
+		D3D11_TEXTURE2D_DESC reactiveDesc{};
+		reactiveDesc.Width = maxWidth;
+		reactiveDesc.Height = maxHeight;
+		reactiveDesc.MipLevels = 1;
+		reactiveDesc.ArraySize = 1;
+		reactiveDesc.Format = DXGI_FORMAT_R8_UNORM;
+		reactiveDesc.SampleDesc.Count = 1;
+		reactiveDesc.Usage = D3D11_USAGE_DEFAULT;
+		reactiveDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		HRESULT result = device->CreateTexture2D(&reactiveDesc, nullptr,
+			&neuralOitReplayReactive.get());
+		if (SUCCEEDED(result))
+			result = device->CreateRenderTargetView(neuralOitReplayReactive, nullptr,
+				&neuralOitReplayReactiveTarget.get());
+		if (SUCCEEDED(result))
+			result = device->CreateShaderResourceView(neuralOitReplayReactive, nullptr,
+				&neuralOitReplayReactiveView.get());
+		if (FAILED(result))
+		{
+			releaseNeuralOitReplayResources();
+			return false;
+		}
+		return true;
+	}
+
+	void captureNeuralOitPreFrameBase()
+	{
+		neuralOitPreFrameOpaqueValid = false;
+		neuralOitReplayCoverageValid = false;
+		if (rendContext->isRTT || config::EmulateFramebuffer
+			|| config::NeuralMode.get() == 0 || !ensureNeuralOitReplayResources())
+			return;
+		if (rendContext->clearFramebuffer)
+		{
+			neuralOitPreFrameOpaqueValid = true;
+			return;
+		}
+		deviceContext->CopyResource(neuralOitPreFrameOpaque, opaqueTex);
+		neuralOitPreFrameOpaqueValid = true;
+	}
+#endif
+
 	void resizeInternal(u32 width, u32 height)
 	{
 		if (width > maxWidth || height > maxHeight || opaqueTex == nullptr)
@@ -127,6 +233,7 @@ struct DX11OITRenderer : public DX11Renderer
 			device->CreateShaderResourceView(depthStencilTex2, &viewDesc, &depthView.get());
 
 #ifdef FLYCAST_ENABLE_NEURAL
+			releaseNeuralOitReplayResources();
 			D3D11_TEXTURE2D_DESC reactiveDesc{};
 			reactiveDesc.Width = maxWidth;
 			reactiveDesc.Height = maxHeight;
@@ -183,6 +290,7 @@ struct DX11OITRenderer : public DX11Renderer
 		oitReactiveView.reset();
 		oitReactiveTarget.reset();
 		oitReactiveTexture.reset();
+		releaseNeuralOitReplayResources();
 #endif
 		shaders.term();
 		buffers.term();
@@ -477,6 +585,19 @@ struct DX11OITRenderer : public DX11Renderer
 	{
 		if (!lastPass)
 			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &multipassRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
+#ifdef FLYCAST_ENABLE_NEURAL
+		else if (neuralSceneReplayTarget)
+		{
+			ID3D11RenderTargetView *targets[] = {
+				neuralSceneReplayTarget.get(), neuralOitReplayReactiveTarget.get()
+			};
+			const float clear[4]{};
+			deviceContext->ClearRenderTargetView(neuralOitReplayReactiveTarget, clear);
+			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+				static_cast<UINT>(std::size(targets)), targets, nullptr, 0,
+				D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
+		}
+#endif
 		else if (rendContext->isRTT)
 			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &rttRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
 		else
@@ -516,13 +637,102 @@ struct DX11OITRenderer : public DX11Renderer
 	}
 
 #ifdef FLYCAST_ENABLE_NEURAL
+	bool renderNeuralSceneColor(float rasterJitterX, float rasterJitterY) override
+	{
+		neuralOitReplayCoverageValid = false;
+		if (rendContext->isRTT || !opaqueRenderTarget
+			|| !ensureNeuralOitReplayResources())
+			return false;
+		if (!rendContext->clearFramebuffer && !neuralOitPreFrameOpaqueValid)
+			return false;
+
+		const auto nativeOpaque = opaqueTex;
+		const auto nativeOpaqueTarget = opaqueRenderTarget;
+		const auto nativeOpaqueView = opaqueTextureView;
+		const auto nativeMultipass = multipassTex;
+		const auto nativeMultipassTarget = multipassRenderTarget;
+		const auto nativeMultipassView = multipassTextureView;
+
+		opaqueTex = neuralOitReplayOpaque;
+		opaqueRenderTarget = neuralOitReplayOpaqueTarget;
+		opaqueTextureView = neuralOitReplayOpaqueView;
+		multipassTex = neuralOitReplayMultipass;
+		multipassRenderTarget = neuralOitReplayMultipassTarget;
+		multipassTextureView = neuralOitReplayMultipassView;
+		neuralSceneReplayTarget = neuralColor.targets[neuralExportSlot];
+
+		auto restore = [&, this](void *) {
+			neuralOitReplayOpaque = opaqueTex;
+			neuralOitReplayOpaqueTarget = opaqueRenderTarget;
+			neuralOitReplayOpaqueView = opaqueTextureView;
+			neuralOitReplayMultipass = multipassTex;
+			neuralOitReplayMultipassTarget = multipassRenderTarget;
+			neuralOitReplayMultipassView = multipassTextureView;
+			opaqueTex = nativeOpaque;
+			opaqueRenderTarget = nativeOpaqueTarget;
+			opaqueTextureView = nativeOpaqueView;
+			multipassTex = nativeMultipass;
+			multipassRenderTarget = nativeMultipassTarget;
+			multipassTextureView = nativeMultipassView;
+			neuralSceneReplayTarget.reset();
+			ID3D11UnorderedAccessView *nullUavs[2]{};
+			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr,
+				nullptr, 2, static_cast<UINT>(std::size(nullUavs)), nullUavs, nullptr);
+		};
+		std::unique_ptr<void, decltype(restore)> restoreGuard(this, restore);
+
+		if (rendContext->clearFramebuffer)
+		{
+			float clearColor[4];
+			VO_BORDER_COL.getRGBColor(clearColor);
+			clearColor[3] = 1.f;
+			deviceContext->ClearRenderTargetView(opaqueRenderTarget, clearColor);
+		}
+		else
+			deviceContext->CopyResource(opaqueTex, neuralOitPreFrameOpaque);
+
+		configVertexShader(rasterJitterX, rasterJitterY);
+		setupPixelShaderConstants();
+		deviceContext->IASetInputLayout(mainInputLayout);
+		ID3D11Buffer *buffer = vertexBuffer.get();
+		const unsigned int stride = sizeof(Vertex);
+		const unsigned int offset = 0;
+		deviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+		deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		n2Helper.resetCache();
+
+		neuralOitReplayBuffers.clearPointers();
+		drawStrips();
+		neuralOitReplayCoverageValid = true;
+		return true;
+	}
+
 	bool renderNeuralReactiveCoverage() override
 	{
 		if (!DX11Renderer::renderNeuralReactiveCoverage())
 			return false;
-		if (!oitReactiveView)
+		ID3D11ShaderResourceView *coverage = neuralOitReplayCoverageValid
+			? neuralOitReplayReactiveView.get() : oitReactiveView.get();
+		if (coverage == nullptr)
 			return true;
-		return mergeNeuralReactiveCoverage(oitReactiveView);
+		return mergeNeuralReactiveCoverage(coverage);
+	}
+
+	std::uint32_t neuralResourceObjectCount() const noexcept override
+	{
+		std::uint32_t count = DX11Renderer::neuralResourceObjectCount();
+		count += neuralOitPreFrameOpaque ? 1u : 0u;
+		count += neuralOitReplayOpaque ? 1u : 0u;
+		count += neuralOitReplayOpaqueTarget ? 1u : 0u;
+		count += neuralOitReplayOpaqueView ? 1u : 0u;
+		count += neuralOitReplayMultipass ? 1u : 0u;
+		count += neuralOitReplayMultipassTarget ? 1u : 0u;
+		count += neuralOitReplayMultipassView ? 1u : 0u;
+		count += neuralOitReplayReactive ? 1u : 0u;
+		count += neuralOitReplayReactiveTarget ? 1u : 0u;
+		count += neuralOitReplayReactiveView ? 1u : 0u;
+		count += neuralOitReplayBuffers.objectCount();
+		return count;
 	}
 #endif
 
@@ -577,7 +787,12 @@ struct DX11OITRenderer : public DX11Renderer
 			}
 		}
 
-		buffers.bind();
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (neuralSceneReplayTarget)
+			neuralOitReplayBuffers.bind();
+		else
+#endif
+			buffers.bind();
 		deviceContext->ClearDepthStencilView(depthTexView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
 		deviceContext->ClearDepthStencilView(depthStencilView2, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.f, 0);
 		if (rendContext->clearFramebuffer && !rendContext->isRTT)
@@ -720,6 +935,9 @@ struct DX11OITRenderer : public DX11Renderer
 	    deviceContext->PSSetShaderResources(0, 1, &p);
 	    // To avoid DEVICE_DRAW_RENDERTARGETVIEW_NOT_SET warnings
 		deviceContext->OMSetRenderTargets(1, &fbRenderTarget.get(), nullptr);
+#ifdef FLYCAST_ENABLE_NEURAL
+		captureNeuralOitPreFrameBase();
+#endif
 		configVertexShader();
 
 		deviceContext->IASetInputLayout(mainInputLayout);
@@ -794,6 +1012,21 @@ private:
 	ComPtr<ID3D11Texture2D> oitReactiveTexture;
 	ComPtr<ID3D11RenderTargetView> oitReactiveTarget;
 	ComPtr<ID3D11ShaderResourceView> oitReactiveView;
+	ComPtr<ID3D11Texture2D> neuralOitPreFrameOpaque;
+	ComPtr<ID3D11Texture2D> neuralOitReplayOpaque;
+	ComPtr<ID3D11RenderTargetView> neuralOitReplayOpaqueTarget;
+	ComPtr<ID3D11ShaderResourceView> neuralOitReplayOpaqueView;
+	ComPtr<ID3D11Texture2D> neuralOitReplayMultipass;
+	ComPtr<ID3D11RenderTargetView> neuralOitReplayMultipassTarget;
+	ComPtr<ID3D11ShaderResourceView> neuralOitReplayMultipassView;
+	ComPtr<ID3D11Texture2D> neuralOitReplayReactive;
+	ComPtr<ID3D11RenderTargetView> neuralOitReplayReactiveTarget;
+	ComPtr<ID3D11ShaderResourceView> neuralOitReplayReactiveView;
+	ComPtr<ID3D11RenderTargetView> neuralSceneReplayTarget;
+	Buffers neuralOitReplayBuffers;
+	int64_t neuralOitReplayPixelBufferSize = 0;
+	bool neuralOitPreFrameOpaqueValid = false;
+	bool neuralOitReplayCoverageValid = false;
 #endif
 	ComPtr<ID3D11Texture2D> depthStencilTex2;
 	ComPtr<ID3D11DepthStencilView> depthStencilView2;

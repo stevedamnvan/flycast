@@ -145,7 +145,8 @@ protected:
 	bool syncNeuralMode();
 	bool ensureNeuralResources();
 	bool renderNeuralExports(float rasterJitterX, float rasterJitterY);
-	bool renderNeuralSceneColor(float rasterJitterX, float rasterJitterY);
+	virtual bool renderNeuralSceneColor(float rasterJitterX, float rasterJitterY);
+	bool prepareNeuralSceneColorTarget(ID3D11RenderTargetView *target);
 	bool updateNeuralRetainedScene();
 	bool renderNeuralDisocclusion();
 	virtual bool renderNeuralReactiveCoverage();
@@ -171,7 +172,7 @@ protected:
 	void beginNeuralPerformanceFrame();
 	void markNeuralPvrEnd();
 	void endNeuralPerformanceFrame();
-	std::uint32_t neuralResourceObjectCount() const noexcept;
+	virtual std::uint32_t neuralResourceObjectCount() const noexcept;
 	void publishNeuralStatus(flycast::rend::neural::SubmitStatus status,
 		const char *reason = nullptr);
 #endif
