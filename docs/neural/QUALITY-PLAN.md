@@ -2,6 +2,12 @@
 
 ## Current execution priority -- FC-067
 
+New user-approved scope: `CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
+Implement bounded source-texture/palette export first; actual resources and
+vertex color are separable before final shading. Camera remains unknown. Stop
+at the material-sidecar review; no pixel probes or framebuffer-light tuning.
+This supersedes older stopping/launch text below, not rendering safety gates.
+
 Latest: `REMAKE-PREVIEW-AUDIT.md`. The bounded moving approximation is complete
 as a visualization, not a renderer or quality winner. Deliver it and stop the
 approximation branch; original reconstruction/GPU gates remain open. The

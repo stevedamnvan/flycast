@@ -66,6 +66,12 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
 ## Next bounded assignment -- FC-067 visible approximation decision
 
+New user-approved scope: `CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
+Implement bounded source-texture/palette export first; actual resources and
+vertex color are separable before final shading. Camera remains unknown. Stop
+at the material-sidecar review; no pixel probes or framebuffer-light tuning.
+This supersedes older stopping/launch text below, not rendering safety gates.
+
 Current result: `REMAKE-PREVIEW-AUDIT.md`, LOG #144. The 30-frame offline
 approximation exists and passes source identity/light-off/protection controls,
 but sampled images expose faceting and over-brightening. No promotion.

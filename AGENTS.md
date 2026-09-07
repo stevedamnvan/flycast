@@ -2,6 +2,14 @@
 
 ## Current assignment
 
+User approved the camera/material investigation. Current authority is
+`docs/neural/CAMERA-MATERIAL-PLAN.md`: implement the bounded source-texture and
+palette sidecar first, using existing capture/resource-generation seams. The
+source audit found separable texture and vertex-color inputs; do not reuse final
+framebuffer color as material again. Keep camera unknown, do not resume precision
+probes, and stop at the sidecar review. Older stopping/preview text below is
+historical and superseded only for this newly approved scope.
+
 Latest result: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The requested moving
 approximation is implemented and captured; it is not suitable for promotion.
 Stop this approximation branch after delivering its comparison. Do not resume

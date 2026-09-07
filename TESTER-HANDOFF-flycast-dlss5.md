@@ -2,6 +2,12 @@
 
 ## Current assignment -- 2026-09-07
 
+New user-approved scope: `docs/neural/CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
+Implement bounded source-texture/palette export first; actual resources and
+vertex color are separable before final shading. Camera remains unknown. Stop
+at the material-sidecar review; no pixel probes or framebuffer-light tuning.
+This supersedes older stopping/launch text below, not rendering safety gates.
+
 Latest: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The 30-frame labeled moving
 comparison is implemented. Review it as an approximation only; it exposes
 faceting and baked-lighting conflicts and is not promoted. Deliver it, then

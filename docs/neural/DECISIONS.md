@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-088: export source textures before further relighting
+
+The user approved camera/material scoping after the rejected preview. The source
+audit in CAMERA-MATERIAL-PLAN.md establishes separable DX11 texture resources,
+vertex/offset color, UV and ShadInstr. Preserve them separately; do not use final
+scene pixels as replacement material again. Source textures may contain painted
+lighting and are not automatically physical albedo. Palettes, mipmaps, format,
+content generation and custom replacement status belong to the capture contract.
+
+Implement a bounded developer-only material sidecar first, then review it. Keep
+the Dreamcast camera unknown until an actual pre-projection source witness and
+moving controls prove otherwise. This newly approved scope supersedes the prior
+request for scope approval, not the ban on precision loops, private binaries,
+automatic external configuration or unsupported rendering claims.
+
 ## D-087: hypothetical relighting remains offline and is not promoted
 
 The FC-067 preview reuses captured indexed geometry and source-color identity

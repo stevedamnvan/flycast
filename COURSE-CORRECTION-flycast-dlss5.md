@@ -2,6 +2,12 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+New user-approved scope: `docs/neural/CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
+Implement bounded source-texture/palette export first; actual resources and
+vertex color are separable before final shading. Camera remains unknown. Stop
+at the material-sidecar review; no pixel probes or framebuffer-light tuning.
+This supersedes older stopping/launch text below, not rendering safety gates.
+
 Latest result: `docs/neural/REMAKE-PREVIEW-AUDIT.md`. The bounded moving
 approximation has been produced and is not promoted. Deliver the labeled
 comparison, then stop this branch. Camera/material reconstruction and an actual

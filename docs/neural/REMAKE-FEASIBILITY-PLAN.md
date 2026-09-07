@@ -2,6 +2,12 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+New user-approved scope: `CAMERA-MATERIAL-PLAN.md` (LOG #145, D-088).
+Implement bounded source-texture/palette export first; actual resources and
+vertex color are separable before final shading. Camera remains unknown. Stop
+at the material-sidecar review; no pixel probes or framebuffer-light tuning.
+This supersedes older stopping/launch text below, not rendering safety gates.
+
 Latest visible decision: `REMAKE-PREVIEW-AUDIT.md`. A 30-frame camera-relative
 approximation exists, but faceting and baked-lighting conflicts reject its
 promotion. Deliver the comparison and stop that branch. The prior assignment
