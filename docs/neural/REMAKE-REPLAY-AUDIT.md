@@ -82,13 +82,52 @@ The wrong-depth image is an intentional failure, not relighting evidence.
 
 ## Disposition and next task
 
+### Exact-SHA causal follow-up (688d63e05)
+
+No renderer source changed for these checks. Two fresh native-only 30-frame
+runs, `fc067-replay-688d63e05-native-repeat-a/b`, both exit 0 and close cleanly.
+Run A matches the prior replay-off run 30/30. A versus B matches 29/30:
+frame 1805 differs at three pixels, maximum channel delta one. Thus replay is
+not necessary for this particular cross-run variation. This does not explain
+the separate 13-pixel same-frame mismatch or establish that all GPU inputs
+were identical across runs.
+
+The existing NativeParityCapture hook was then armed in the disposable native
+stage, alongside quality capture, to read the framebuffer immediately after
+native drawStrips and again at the late quality-capture boundary. No new
+production hook or synchronization was added. A three-frame paired run exits 0
+with exact early/late and source/replay pixels. Its 30-frame repeat exits 1:
+early/late native pixels are exact **30/30**, decoded/original-buffer replay
+pixels exact **30/30**, but source/replay exact only **29/30**. Frame 1804 again
+has the same 13 one-step differences in both replay lanes. Both wrong controls
+still fail materially. This falsifies an early-readback-as-fix hypothesis and
+rules out late framebuffer mutation for the observed failing run.
+
+Evidence prefixes are `fc067-replay-688d63e05-early-{native,paired}` and
+`fc067-replay-688d63e05-early-moving-{native,paired}`. The native capture index
+1802 maps to quality frame 1804; all 30 metadata pairs verify their expected
+indices and identical build SHA. BGRA readback bytes were compared to decoded
+PNG BGRA pixels with explicit 640x480/2560-byte row checks. An initial diagnostic
+passed PowerShell PathInfo instead of a string to Bitmap, causing constructor
+errors and invalid all-pixel counts; those counts are rejected. The corrected
+Stop-on-error comparison exits 0 and reports the exact counts above.
+
+Only the disposable stage's capture settings were temporarily changed and then
+removed. Source emu.cfg SHA-256 remains
+`1EF718689784DCE64CAD1CE8BEC776E710B4A3705ECFF2E5A276A1A3B2F92992`.
+No external consumer configuration, production setting, or gate threshold
+changed. These synchronous runs provide no performance evidence.
+
 **ACCEPTED:** opt-in diagnostic mechanism and bounded decoded-geometry versus
 native-buffer replay evidence. **CORRECTIONS_REQUIRED:** full M2 completion.
 
-Resolve the repeat-render/on-off one-step differences without assuming the
-decoder or a particular shader constant is responsible. Record the remaining
-native GPU inputs and compare repeated original-buffer draws with the original
-frame, then rerun exact-SHA 30-frame replay/on-off/repeat pairs. Keep the current
+Resolve the repeat-render differences without assuming the decoder or a
+particular shader constant is responsible. Native-only cross-run variation is
+now reproduced, and late framebuffer mutation is excluded in a failing run.
+Next capture/compare the remaining per-draw shader constants, bound resource
+contents and pipeline descriptors between the native and original-buffer
+replays; localize the first differing draw/pixel before changing production
+rendering. Then rerun exact-SHA 30-frame replay/on-off/repeat pairs. Keep the current
 zero-tolerance gate and failed attempts. Extend the packet's retained-state
 disposition honestly; do not claim an offline complete scene, recovered camera,
 path tracing, or Remix/DLSS 5 combined output. Only close M2 after its full

@@ -8,6 +8,13 @@ exact-SHA moving pairs with strict source equality and wrong controls. The GPU
 diagnostic is implemented; M2 is not closed. Keep failed runs and do not lower
 the gate or claim recovered world/camera/Remix presentation.
 
+LOG #140 update: native-only repetition also differs at three one-step pixels
+in frame 1805; replay is not necessary for that cross-run variation. Early and
+late native captures match 30/30 even when same-frame replay fails at 13 pixels.
+Next implementor: instrument remaining per-draw constants, bound resource
+contents and pipeline descriptors, and localize the first differing draw.
+Do not repeat the already-falsified late-framebuffer-mutation hypothesis.
+
 M2 now has actual PVR snapshots and a bounded disk decoder (243/243 enabled
 selftests); read `docs/neural/REMAKE-M2-AUDIT.md`. Next implementor: retained
 resource resolution, remaining native state capture, isolated decoded replay

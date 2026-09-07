@@ -1373,6 +1373,12 @@ corrected by the user; do not substitute Sol/high.
 
 ## D-085: M1 scene data and public API evidence are separate from rendering
 
+M2 causal follow-up: compare native-only repeated runs before attributing
+cross-run differences to replay. Use the existing early native readback to
+exclude late framebuffer mutation, but do not promote synchronization to a
+production fix. Exact early/late pixels and exact decoded/retained-buffer pixels
+do not waive a failing original-source gate. See LOG #140 for both falsifiers.
+
 M2 GPU diagnostic: retain pre-draw framebuffer content and the original shader
 contract; use new decoded buffers without repeating the flat-shading color
 adjustment. Resolve texture state only against the retained same frame, never

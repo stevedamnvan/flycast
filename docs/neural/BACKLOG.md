@@ -69,7 +69,10 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 Current replay disposition: `REMAKE-REPLAY-AUDIT.md`. The opt-in GPU replay
 harness runs and decoded-versus-native-buffer alignment is exact in the tested
 moving interval, but repeat-render/on-off one-step pixel differences remain.
-Resolve that native-state/repeat-render issue and rerun exact-SHA moving pairs;
+LOG #140 reproduces native-only run-to-run variation and excludes late
+framebuffer mutation in a failing replay run (early/late native exact 30/30).
+Next compare remaining per-draw constants, resource contents and pipeline state,
+localize the first divergent draw, then rerun exact-SHA moving pairs;
 do not reimplement packet export/decoding or claim M2 is closed.
 
 Snapshot export and bounded disk decoding are implemented and self-reviewed:
