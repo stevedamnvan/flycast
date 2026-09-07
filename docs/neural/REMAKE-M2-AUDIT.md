@@ -1,7 +1,8 @@
 # FC-067 M2: PVR snapshot checkpoint
 
 Implementation base: `3a5051ec9` (2026-09-07), clean worktree before changes.
-This checkpoint is **export only**. Native disk-decoded replay alignment and
+The initial checkpoint was export only; the bounded decoder follow-up below
+advances it to decoded projected data. Native disk-decoded replay alignment and
 wrong-camera/wrong-depth controls remain required before M2 acceptance.
 
 ## Capture contract
@@ -69,9 +70,40 @@ Thus this file is not yet a self-contained native scene replay.
 
 ## Next concrete implementation
 
-1. Add bounded disk decoding and bit-exact round-trip tests using the existing
-   MIT `core/deps/json/json.hpp`, with malformed/count/frame controls. The
-   PowerShell inspector is diagnostic, not a production-safe packet loader.
+### Bounded decoder follow-up (base `b20803d46`)
+
+`ReadPvrScenePacket` and `neuraltest pvr-packet --in <packet> --frame <id>
+--game-id <id>` now decode the actual file. The decoder preserves exact float
+bits, indexed geometry, captured draw/pass state and unresolved texture IDs;
+Naomi 2 is rejected because its transforms were omitted. Output is unchanged
+on failure. Game camera/world provenance remains unknown; omitted state cannot
+be erased to promote the packet into a complete scene. No renderer calls this
+decoder yet and no resource pointers are deserialized.
+
+Limits apply before file allocation (32 MiB), during JSON construction (depth
+12, 2 million callback events, 256-byte strings, unique object keys), and before
+decoded vectors (65,536 vertices, 262,144 indices, 8,192 draws, 10 passes).
+The parser is the repository's existing MIT nlohmann/json dependency, with no
+new download. Strict integer/byte ranges prevent narrowing; indexed nonfinite
+positions fail while observed unused nonfinite storage is retained.
+
+All four working-tree builds pass. Three enabled selftests pass **243/243**,
+including 18 decoder checks added to the 225-check snapshot baseline. Actual
+committed-SHA Soulcalibur packets at frames 1804-1806 decode successfully.
+The actual wrong-frame CLI control exits 1 at frame/game mismatch. An earlier
+working-03 packet exits 1 at missing required omissions, not at the later
+palette check; it is not accepted as current-schema evidence. Synthetic tests
+separately reject RGB palette metadata, overflowing indices/colors/draws,
+omitted Naomi 2 transforms, hidden omissions, upgraded camera claims, nonfinite
+viewport/referenced positions, duplicate keys, deep JSON, and oversized files.
+The initial decoder suite ran 239/239 before four additional controls raised
+it to 243/243. Logs are `fc067-decode-*` under the build directories.
+
+Self-review disposition: **ACCEPTED for bounded decoding only**. Native replay
+alignment, camera/depth mutation controls, and complete M2 acceptance remain open.
+
+1. The decoder/round-trip prerequisite above is complete. Use it rather than
+   the diagnostic PowerShell inspector to load data for the replay experiment.
 2. Resolve captured texture references against the same frame's retained live
    resources, capture the remaining native state needed for replay, and replay
    decoded geometry to an isolated target. Restore original buffers/state;

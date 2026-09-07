@@ -2,9 +2,10 @@
 
 ## Current assignment
 
-Current continuation: M2 PVR snapshot is implemented; read
-`docs/neural/REMAKE-M2-AUDIT.md`. Next is bounded disk decoding and native replay
-alignment with falsifying viewport/depth controls. M2 is not accepted yet.
+Current continuation: M2 PVR snapshot and bounded disk decoder are implemented;
+read `docs/neural/REMAKE-M2-AUDIT.md`. Next is retained-resource resolution and
+isolated native replay of decoded data with falsifying viewport/depth controls.
+M2 is not accepted yet.
 
 Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
 sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
@@ -13,10 +14,9 @@ sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
 code paths touched. D-084 and the new plan supersede historical next-task text,
 not existing safety contracts or evidence.
 
-The active checkpoint is **FC-067 / M1 contract/adapter review**; read
-`docs/neural/REMAKE-M1-AUDIT.md`. CPU/public-header tests are implemented; GPU
-and game reconstruction remain unproven. After scoped review acceptance the
-next task is M2 bounded scene export/native alignment, not renderer replacement.
+M1 CPU/public-header contract corrections are self-reviewed, not GPU-proven;
+historical evidence is in `docs/neural/REMAKE-M1-AUDIT.md`. The active task is
+M2 native alignment, not renderer replacement or repeated M1 implementation.
 Use the current `feat/neural-rendering` checkout; inspect HEAD and preserve
 newer and dirty work. Implementation routing requested by the user is
 `gpt-6-astra`, reasoning `low` (user: Astra light). This document records routing intent, not proof

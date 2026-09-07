@@ -64,7 +64,16 @@ Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 | FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-084/085, LOG #132/#133, REMAKE-M1-AUDIT.md; M1 CPU contract and real-header/mock adapter implemented: four builds, 217/217 enabled selftests, 55/55 SDK checks. GPU runtime/rendering, real-game reconstruction, and combined DLSS 5 remain unproven. Review M1 before M2. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
-## Next bounded assignment -- FC-067 M1 review, then M2
+## Next bounded assignment -- FC-067 M2 decoded native replay
+
+Snapshot export and bounded disk decoding are implemented and self-reviewed:
+243/243 enabled selftests and three actual Hoko Temple packets decoded.
+Next: resolve retained resources, capture remaining native state, replay decoded
+geometry into an isolated target, and run wrong-viewport/depth controls. Read
+`REMAKE-M2-AUDIT.md`. M2 and the active goal are not complete; no world camera
+or Remix GPU success is claimed. Do not reimplement M1 or the decoder.
+
+### Historical M1/export assignments (superseded)
 
 M2 export checkpoint: `REMAKE-M2-AUDIT.md` records real Hoko Temple packets and
 225/225 enabled selftests. Export is not replay: implement bounded decoding,

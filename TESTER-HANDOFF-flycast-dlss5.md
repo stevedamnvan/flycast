@@ -2,10 +2,13 @@
 
 ## Current assignment — 2026-09-07
 
-M2 now has an opt-in actual PVR snapshot; read `docs/neural/REMAKE-M2-AUDIT.md`.
-Next implementor: bounded disk decoder/round-trip controls, then isolated native
-replay alignment and falsifying camera/depth mutations. Snapshot export alone
-does not close M2. Keep all omitted state and unknown projection visible.
+M2 now has actual PVR snapshots and a bounded disk decoder (243/243 enabled
+selftests); read `docs/neural/REMAKE-M2-AUDIT.md`. Next implementor: retained
+resource resolution, remaining native state capture, isolated decoded replay
+alignment and falsifying camera/depth mutations. Decoder success does not close
+M2. Keep all omitted state and unknown projection visible. Use Astra/low.
+
+### Historical M1/export launch notes (superseded by assignment above)
 
 Follow-up correction: topology preflight rejects a later all-degenerate strip
 before external resource calls. Four builds and three 217/217 selftests pass;

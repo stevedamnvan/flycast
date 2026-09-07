@@ -4,6 +4,7 @@
 #include "rend/neural/pvr_scene_capture.h"
 #include <chrono>
 #include <fstream>
+#include "json/json.hpp"
 #include "hw/pvr/ta_ctx.h"
 #include "rend/neural/instrumentation.h"
 #include "rend/neural/dlss5_hook.h"
@@ -1430,6 +1431,8 @@ int RunSelfTests()
 		rend_context ctx{};
 		ctx.verts.resize(3); ctx.idx = {0,1,2};
 		PolyParam poly{}; poly.init(); poly.count=3; ctx.global_param_op.push_back(poly);
+		RenderPass pass{};pass.op_count=1;ctx.render_passes.push_back(pass);
+		ctx.verts[1].x=1.25f;ctx.verts[1].u=-0.5f;ctx.verts[2].col[2]=197;
 		std::array<float,16> viewport{}; viewport[0]=viewport[5]=viewport[10]=viewport[15]=1;
 		const auto path=std::filesystem::temp_directory_path() / ("flycast-pvr-packet-"
 			+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".json");
@@ -1439,6 +1442,49 @@ int RunSelfTests()
 		const std::string contents((std::istreambuf_iterator<char>(file)),{}); file.close();
 		suite.Expect(contents.find("\"camera_provenance\":\"unknown\"")!=std::string::npos
 			&&contents.find("1065353216")!=std::string::npos,"PVR packet retains unknown camera and exact float bits");
+		PvrDecodedPacket decoded;
+		const bool loaded=ReadPvrScenePacket(path,7,"fixture",decoded,error);
+		suite.Expect(loaded&&decoded.vertices.size()==3&&decoded.indices==ctx.idx
+			&&std::memcmp(decoded.vertices.data(),ctx.verts.data(),3*sizeof(::Vertex))==0
+			&&decoded.viewport==viewport&&decoded.draws.size()==1&&!decoded.draws[0].state.texture
+			&&decoded.passes.size()==1&&decoded.omissions.size()==8,"PVR disk decoder preserves exact vertex bytes and unresolved state");
+		suite.Expect(!ReadPvrScenePacket(path,8,"fixture",decoded,error)
+			&&error=="pvr-decode-frame-game-mismatch"&&decoded.frame==7,"PVR wrong-frame decode preserves prior output");
+		const auto golden=nlohmann::json::parse(contents);
+		auto reject=[&](nlohmann::json bad,const char* reason,const char* name) {
+			{std::ofstream f(path,std::ios::binary);f<<bad.dump();}
+			suite.Expect(!ReadPvrScenePacket(path,7,"fixture",decoded,error)&&error==reason&&decoded.frame==7,name);
+		};
+		auto bad=golden;bad["indices"][0]=-1;
+		reject(bad,"pvr-decode-unsigned-integer","PVR decoder rejects signed index");
+		bad=golden;bad["indices"][0]=4294967296ull;
+		reject(bad,"pvr-decode-u32-range","PVR decoder rejects integer narrowing");
+		bad=golden;bad["indices"][0]=3;
+		reject(bad,"pvr-decode-index-range","PVR decoder rejects out-of-range index");
+		bad=golden;bad["vertices"][0][5][0]=256;
+		reject(bad,"pvr-decode-color-range","PVR decoder rejects color narrowing");
+		bad=golden;bad["camera_provenance"]="supplied";
+		reject(bad,"pvr-decode-provenance","PVR decoder rejects silently upgraded camera");
+		bad=golden;bad["omissions"]=nlohmann::json::array();
+		reject(bad,"pvr-decode-omissions","PVR decoder rejects hidden omissions");
+		bad=golden;bad["viewport_bits"][0]=2139095040u;
+		reject(bad,"pvr-decode-viewport","PVR decoder rejects nonfinite viewport");
+		bad=golden;bad["vertices"][0][2]=2139095040u;bad["nonfinite_position_count"]=1;
+		reject(bad,"pvr-decode-referenced-nonfinite","PVR decoder rejects referenced nonfinite geometry");
+		bad=golden;bad["passes"][0]["op"]=2;
+		reject(bad,"pvr-decode-pass-range","PVR decoder rejects pass overrun");
+		bad=golden;bad["draws"][0]["texture"]={{"upload_generation",1u},{"palette_hash",123u},{"rtt_generation",0u}};
+		reject(bad,"pvr-decode-palette-applicability","PVR decoder rejects palette metadata on RGB texture");
+		bad=golden;bad["draws"][0]["count"]=4u;
+		reject(bad,"pvr-decode-draw-range","PVR decoder rejects overflowing draw range");
+		bad=golden;bad["naomi2_matrix_count"]=1u;
+		reject(bad,"pvr-decode-naomi2-unsupported","PVR decoder rejects omitted Naomi2 transforms");
+		{std::ofstream f(path,std::ios::binary);f<<"{\"a\":1,\"a\":2}";}
+		suite.Expect(!ReadPvrScenePacket(path,7,"fixture",decoded,error)&&error=="pvr-decode-duplicate-key","PVR decoder rejects duplicate keys");
+		{std::ofstream f(path,std::ios::binary);f<<std::string(32,'[')<<"0"<<std::string(32,']');}
+		suite.Expect(!ReadPvrScenePacket(path,7,"fixture",decoded,error)&&error=="pvr-decode-parser-budget","PVR decoder limits nesting before DOM growth");
+		{std::ofstream f(path,std::ios::binary);f.seekp(32*1024*1024);f.put('x');}
+		suite.Expect(!ReadPvrScenePacket(path,7,"fixture",decoded,error)&&error=="pvr-decode-byte-bound","PVR decoder limits bytes before allocation");
 		std::filesystem::remove(path);
 		ctx.verts.push_back(::Vertex{});ctx.verts.back().z=std::numeric_limits<float>::infinity();
 		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR unused nonfinite buffer data remains observable");
@@ -1447,6 +1493,8 @@ int RunSelfTests()
 		suite.Expect(nonfiniteText.find("\"nonfinite_position_count\":1")!=std::string::npos
 			&&nonfiniteText.find("\"nonfinite_index_reference_count\":0")!=std::string::npos,
 			"PVR referenced geometry distinguished from unused nonfinite data");
+		suite.Expect(ReadPvrScenePacket(path,7,"fixture",decoded,error)&&decoded.unusedNonfinite==1
+			&&std::isinf(decoded.vertices.back().z),"PVR decoder retains unused nonfinite data without promoting it to referenced geometry");
 		std::filesystem::remove(path);ctx.verts.resize(3);
 		ctx.idx[2]=99;
 		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)

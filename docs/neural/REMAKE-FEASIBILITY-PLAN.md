@@ -1,16 +1,16 @@
 # Reuse-first remake feasibility
 
-## M1 checkpoint -- 2026-09-07
+## Current M2 checkpoint -- 2026-09-07
 
 Continuation: bounded M1 preflight correction is self-reviewed and pushed;
-M2 snapshot implementation/evidence is in `REMAKE-M2-AUDIT.md`. M2 acceptance
+M2 snapshot/decoder implementation is in `REMAKE-M2-AUDIT.md`. M2 acceptance
 still requires disk-decoded native replay and falsifying camera/depth controls.
 
 See `REMAKE-M1-AUDIT.md`: the bounded CPU scene contract and real-header/mock
-Remix adapter are implemented (217/217 enabled selftests, 55/55 SDK contract).
+Remix adapter are implemented (current enabled selftests 243/243, SDK mock 56/56).
 Synthetic GPU rendering, game reconstruction, and combined presentation are
-not proven. Review this slice before M2; the missing runtime/GPU harness must
-remain explicitly open. The task body below records the authorized M1 scope.
+not proven. The missing runtime/GPU harness remains explicitly open. The M1
+task body below is historical scope, not the current next implementation.
 
 ## Authority, baseline, and priority
 
@@ -61,7 +61,7 @@ view-space approximation. Do not assign arbitrary near/far/FOV values and call
 them recovered camera truth; do not change the proven neural logarithmic depth
 contract to accommodate another renderer.
 
-## M1 -- active bounded implementor task
+## M1 -- historical bounded implementor task
 
 Model routing: GPT-6 Astra, low reasoning (user: Astra light, explicitly not
 Sol/high). No further model comparison phase.

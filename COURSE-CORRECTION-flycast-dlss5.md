@@ -3,14 +3,14 @@
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
 Current continuation is M2 snapshot-to-native-replay proof, detailed in
-`docs/neural/REMAKE-M2-AUDIT.md`. Actual projected PVR packets are exported;
-disk-decoded replay, recovered camera, and Remix rendering remain unproven.
+`docs/neural/REMAKE-M2-AUDIT.md`. Actual projected PVR packets are exported and
+decoded; raster replay, recovered camera, and Remix rendering remain unproven.
 
 M1 now has a tested CPU scene contract and real-header/mock adapter; see
-`docs/neural/REMAKE-M1-AUDIT.md` and LOG #133. Review this checkpoint before
-M2 scene capture. No synthetic GPU or real-game reconstruction is proven.
+`docs/neural/REMAKE-M1-AUDIT.md` and LOG #133/#135. Its bounded corrections are
+self-reviewed. No synthetic GPU or real-game reconstruction is proven.
 
-The next implementation is FC-067 / M1 in
+The next implementation is FC-067 / M2 decoded native replay in
 `docs/neural/REMAKE-FEASIBILITY-PLAN.md`, routed to GPT-6 Astra at low reasoning
 (the user's requested Astra light, not Sol/high).
 Evaluate a narrow public Remix SDK scene adapter and synthetic harness before
@@ -18,7 +18,7 @@ custom lighting/rendering or replacement-asset investment. RTX Remix is a
 candidate, not a proven Flycast integration; scene reconstruction and later
 DLSS 5 chaining are explicitly unproven. `AGENTS.md` is the agent entry point.
 This priority supersedes older next-task scheduling, not the evidence below.
-Keep unavailable-title/hardware tests recorded but do not let them block M1.
+Keep unavailable-title/hardware tests recorded but do not let them block M2.
 The new remake lane is explicitly transformative; Faithful stays public Auto
 and all existing rendering/fallback/provenance protections remain intact.
 

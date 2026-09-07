@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
 #include "rend/neural/neural_stage.h"
+#include "rend/neural/pvr_scene_capture.h"
 
 #include <algorithm>
 #include <chrono>
@@ -46,6 +47,7 @@ void Usage()
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
+		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
 		"  capture --remake-packet yes|no: bounded developer PVR snapshot; default no; not world reconstruction\n"
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
@@ -3626,6 +3628,19 @@ int main(int argc, char **argv)
 	if (command == "native-parity") return NativeParityCommand(args);
 	if (command == "production-scaling") return ProductionScalingCommand(args);
 	if (command == "capture") return CaptureCommand(args);
+	if (command == "pvr-packet")
+	{
+		std::uint32_t frame=0;
+		if(!Number(args,"--frame",0,frame,error)||frame==0||Value(args,"--in").empty()||Value(args,"--game-id").empty())
+		{std::cerr<<"pvr-packet requires --in, --frame and --game-id\n";return 2;}
+		flycast::rend::neural::PvrDecodedPacket packet;
+		if(!flycast::rend::neural::ReadPvrScenePacket(Value(args,"--in"),frame,Value(args,"--game-id"),packet,error))
+		{std::cerr<<error<<'\n';return 1;}
+		std::cout<<"pvr-packet decoded frame="<<packet.frame<<" vertices="<<packet.vertices.size()
+			<<" indices="<<packet.indices.size()<<" draws="<<packet.draws.size()<<" omissions="<<packet.omissions.size()
+			<<" camera=unknown native_replay=false gpu_rendered=false\n";
+		return 0;
+	}
 	if (command == "capture-index") return CaptureIndexCommand(args);
 	if (command == "compare-captures")
 		return neuraltest::CompareCaptureSequences(Value(args, "--a"), Value(args, "--b"),

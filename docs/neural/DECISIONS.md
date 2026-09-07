@@ -1373,6 +1373,13 @@ corrected by the user; do not substitute Sol/high.
 
 ## D-085: M1 scene data and public API evidence are separate from rendering
 
+M2 decode policy: parsing a saved packet never activates a renderer. Bound file
+allocation and JSON construction as well as decoded arrays, reject duplicate
+keys and narrowing conversions, and preserve the caller's previous output on
+failure. Keep texture handles unresolved and omissions mandatory. Unknown
+camera/world provenance cannot be upgraded by the loader; Naomi 2 remains
+rejected until its omitted transform domain is explicitly supported.
+
 M2 snapshot policy: preserve exact PVR buffer bits, including nonfinite unused
 vertices, while separately counting invalid references. Snapshotting observed
 data is not validation for 3D reconstruction. Keep the actual raster transform

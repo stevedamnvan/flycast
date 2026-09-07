@@ -7,6 +7,10 @@ is no. Inspect with `neuraltest/validate_pvr_packet.ps1 -CaptureDirectory <run>`
 This checks manifest identity, limits, index ranges, and nonfinite accounting,
 not GPU replay. See `REMAKE-M2-AUDIT.md` for omissions and next required proofs.
 
+Decode with `neuraltest pvr-packet --in <pvr-scene.json> --frame <id> --game-id <id>`.
+This uses the bounded C++ loader and returns nonzero for invalid identity,
+provenance, geometry, or parser bounds. A successful decode is not GPU replay.
+
 ## FC-067 developer scene/Remix contract
 
 The ordinary `neuraltest selftest` includes 45 CPU scene-contract checks.
