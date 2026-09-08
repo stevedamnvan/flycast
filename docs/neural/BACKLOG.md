@@ -2,6 +2,13 @@
 
 Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
+FC-067 current: SCENE-ASSOCIATION-AUDIT.md, LOG #157. Nine association tests and
+12 actual-input offline controls pass; matching frame/materials identify the
+two samples as petal-like translucent effects, not opaque-world coverage.
+Frame1302 replay fails at 1-LSB differences and remains failed/parked. Next
+bounded opaque combat source-transform/TA association or precise unsupported
+disposition; no Remix GPU or whole-scene camera promotion.
+
 FC-067 current working slice: SORTED-SCENE-AUDIT.md. Sorted source vertex ranges
 and actual GPU commands are distinct in v2; two identical witnessed snapshots
 now export. Their samples are translucent, not established opaque-world coverage.

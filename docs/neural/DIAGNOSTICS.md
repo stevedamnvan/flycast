@@ -1,5 +1,16 @@
 # Neural diagnostics
 
+## FC-067 scene association
+
+`python neuraltest/scene_association_inspect.py --original ORIGINAL
+--different DIFFERENT --decoder NEURALTEST_EXE --matched-frame FRAME_DIRECTORY`
+checks full prior lineage, compiled packet validation, sampled source/sorted
+topology and matched-frame material bindings. Run `test_scene_association_inspect.py`
+for synthetic controls. Run `material_inspect.py CAPTURE --out NEW_REPORT`
+separately to verify raw texture data. SCENE-ASSOCIATION-AUDIT.md records the
+actual petal-like sample family and failed frame1302 strict replay; no whole-
+scene calibration or visible-opaque-coverage claim follows from this checker.
+
 ## FC-067 shared calibration pair
 
 `python neuraltest/shared_calibration_inspect.py --original ORIGINAL

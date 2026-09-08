@@ -2,6 +2,13 @@
 
 ## Current assignment
 
+Current: `docs/neural/SCENE-ASSOCIATION-AUDIT.md` (LOG #157, D-099). The
+linked samples bind to a petal-like translucent source texture at frame1302,
+whose on-screen title is Emperor's Garden. They do not establish opaque fighter/
+world calibration. Next bounded opaque combat transform/TA association or precise
+unsupported disposition. The frame1302 strict replay failed; do not reopen its
+precision loop or promote the effect calibration to the entire scene.
+
 Current working slice: `docs/neural/SORTED-SCENE-AUDIT.md`. Scene v2 preserves
 sorted source vertex ranges and separate GPU commands. Both linked snapshots
 are identical; samples belong to translucent draws sharing texture state, not

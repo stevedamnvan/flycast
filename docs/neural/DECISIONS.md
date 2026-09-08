@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-099: sampled effect calibration is not whole-scene camera evidence
+
+The linked transforms belong to translucent three-vertex primitives using a
+verified petal-like source sprite. A matched frame packet and material binding
+prove that association, not visible opaque fighter/arena coverage. Preserve
+the source-draw versus merged material-state distinction. The screen labels
+frame1302 Emperor's Garden; historical Hoko Temple naming locates the replay,
+not title evidence. Next seek bounded opaque combat provenance or explicit
+unsupported results. Do not restart 1-LSB replay diagnosis or construct a world
+camera from these effect samples. See SCENE-ASSOCIATION-AUDIT.md.
+
 ## D-098: preserve sorted source geometry separately from GPU commands
 
 Scene v2 records each draw's vertex/index range domain and actual sorted commands.
