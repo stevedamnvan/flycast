@@ -1,5 +1,28 @@
 # Neural rendering decisions
 
+## D-113: a linked opaque FTRV is not yet a decomposed camera
+
+The approved single predecessor now proves actual source-vector loads, live
+XF matrix words, four transformed outputs and the executed edge into the
+selected opaque record stores. This advances beyond an uncorrelated transform.
+Preserve the observed nonunit W exactly; never replace it with1 or infer
+coordinate-space semantics from a near-one value. Verify the mathematical dot
+result independently, distinguish that check from a full binary64 emulator,
+and keep actual dynamic results/record generation in the causal chain.
+World camera, model/view/projection decomposition and broader draw coverage
+remain unproven. Stop this completed trace; any further source/coverage
+investigation needs a finite new scope, not another automatic predecessor.
+
+## D-112: execute the user-approved single predecessor without reopening prior gates
+
+On2026-09-08 the user approved one preceding block supplying FR0-FR2 to the
+selected8c03c94c invocation. D-111's automatic-expansion stop remains valid,
+but no longer blocks that specific experiment. Reuse the existing bounded
+observer chain, falsify the actual edge/operand binding and checkpoint once.
+Do not repeat the completed requirements audit, expand recursively, or reduce
+M2's requirements to one vertex. Requested routing is gpt-6-astra at low; a
+documented preference is not proof that the running model changed.
+
 ## D-111: stop at the bounded block when coordinates remain live-ins
 
 An initial RAM store block may simply copy precomputed floating-point registers.

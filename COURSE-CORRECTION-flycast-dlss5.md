@@ -1,5 +1,14 @@
 # Flycast DLSS 5 course correction
 
+Current result (2026-09-08, LOG #175): actual FTRV at8c03c944 in predecessor
+8c03c93a supplies the selected opaque vertex's initial XYZ record. Four source
+loads,16 XF matrix words, all four outputs and the actual successor edge are
+verified; same-build wrong-word control rejects with native preservation.
+See OPAQUE-INITIAL-STORES-AUDIT.md for limits and checkpoint status. Matrix/source
+coordinate semantics and full M2 remain unknown. Do not repeat this trace or
+recursively expand upstream; next disposition is a finite camera-contract task,
+not a repeated requirements audit. Requested routing remains Astra low.
+
 Current boundary: OPAQUE-INITIAL-STORES-AUDIT.md, LOG #174. Initial record
 stores are proven, but their coordinates are precomputed live-ins. Stop this
 bounded trace; audit remaining M2 requirements rather than automatically

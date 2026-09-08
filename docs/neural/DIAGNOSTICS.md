@@ -1,5 +1,15 @@
 # Neural diagnostics
 
+## FC-067 selected opaque transform edge
+
+`python neuraltest/initial_edge_inspect.py --capture CAPTURE` checks the
+one-block initial-store predecessor in OPAQUE-INITIAL-STORES-AUDIT.md,
+including the prior RAM/SQ/TA chain and six falsifying controls. It retains
+the actual fourth component and observed XF matrix words. A successful
+mathematical dot/edge check is not world-camera or all-draw reconstruction.
+Run `test_initial_edge_inspect.py` for seven independent synthetic methods.
+Temporary CPU probes are excluded from production and performance evidence.
+
 ## FC-067 producer identity and capture reset
 
 Capture manifests add optional `producer_identity` with availability, the
