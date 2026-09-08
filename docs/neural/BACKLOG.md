@@ -1,5 +1,12 @@
 # Neural rendering backlog
 
+FC-067 selected XYZ indexed gather accepted (LOG #170): one actual block,
+27 scalar ops and returned loads bind RAM8ce74250/54/58 to the opaque vertex.
+Wrong-base live query and five offline operand controls reject; native images,
+raw guidance and producer identities preserved. Next bounded12-byte RAM writer
+generation per OPAQUE-XYZ-OPERANDS-AUDIT.md, not recursive caller tracing. The
+position calculation, world camera, real Remix GPU and full M2 remain unproven.
+
 FC-067 R2 filling stores accepted in bounded self-review (LOG #169): all32
 bytes bind through eight executed stores and a target SQ flush to opaquevertex4.
 Live wrong-word control rejects; A missing start/B cap attempts retained. Next

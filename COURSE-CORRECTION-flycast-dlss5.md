@@ -1,7 +1,7 @@
 # Flycast DLSS 5 course correction
 
-Current route: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. The selected opaque vertex
-now has actual SQ filling-store/copy provenance. Its XYZ calculation is next.
+Current route: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. Indexed RAM loads now
+bind to the selected opaque XYZ stores. The record's producer generation is next.
 No further locator/caller census or world-camera claim. This is a bounded
 reverse trace, not a finished RTX Remix/path-tracing or combined DLSS5 route.
 

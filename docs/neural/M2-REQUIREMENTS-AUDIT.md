@@ -1,5 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #170 update: actual indexed addressing and returned RAM loads now explain
+the inputs to XYZ stores. They are precomputed at8ce74250/54/58; their producer
+calculation and world camera remain unknown. Next bounded record generation in
+OPAQUE-XYZ-OPERANDS-AUDIT.md; no whole-scene/M2 requirement promoted.
+
 LOG #169 update: actual SQ filling stores now bind all32 packet bytes to the
 selected opaque vertex. XYZ stores8c03cc82/84/86 are observed, but their operand
 calculation and world camera are not recovered. Next bounded operand-source

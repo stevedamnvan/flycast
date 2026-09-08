@@ -1,5 +1,11 @@
 # Flycast DLSS 5 tester handoff
 
+Current authority: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. Actual indexed RAM
+loads supply XYZ; coordinate calculation remains outside this block. Next
+bounded writes producing8ce74250..5b with aliases/lifecycle and falsifying
+controls. Stop recursive callers and do not repeat completed operand/SQ tracing.
+This newest checkpoint supersedes lower historical task instructions.
+
 Current task: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. All32 bytes of the selected
 packet have observed SQ filling stores. XYZ PCs8c03cc82/84/86 do not yet reveal
 their calculation. Follow the bounded operand-source task in that audit; record

@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-107: an indexed projected-position gather is not a projection
+
+The observed opaque consumer loads XYZ from an indexed16-byte-stride RAM array
+and copies them to SQ. Prove its integer addressing, actual returned loads and
+SSA store dependencies without attributing a camera or transform to that block.
+Equal scheduler timestamps do not select a loop iteration; use actual target
+context, packet offset and destination. Shared array bases do not confer an
+effect record's calibration on an opaque record. Next only the bounded writer
+generation of the observed12-byte record; see OPAQUE-XYZ-OPERANDS-AUDIT.md.
+
 ## D-106: physical SQ last writers survive a flush, not a reset
 
 SQ physical storage is aliased across E0-E3 addresses and serves both RAM and

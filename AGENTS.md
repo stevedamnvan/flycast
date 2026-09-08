@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current authority: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. The block gathers XYZ
+from RAM8ce74250/54/58 using index05df/stride16; it does not calculate projected
+positions. Next only the bounded12-byte record-producer witness in that audit.
+No recursive callers, shared effect-camera promotion or repeated SQ/operand
+census. Newest checkpoint here supersedes lower historical Current headings.
+
 Current: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. R2 identifies all32 bytes' last
 writers into the selected SQ packet. XYZ store PCs8c03cc82/84/86 are observed;
 their value calculation is unknown. Next bounded executed-block operand-source

@@ -1,5 +1,9 @@
 # FC-067 opaque-draw reverse provenance scope
 
+Current operand result: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. Indexed loads
+from RAM8ce74250/54/58 are proven; this gather does not calculate coordinates.
+Next exact12-byte producer generation under that audit, not caller recursion.
+
 Current R2 result/next task: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. All32 bytes
 have actual filling-store witnesses; XYZ source calculation remains unknown.
 The next bounded operand-source task supersedes the completed R2 writer task
