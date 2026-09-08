@@ -2,6 +2,13 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
+Current working slice: `docs/neural/SORTED-SCENE-AUDIT.md`. Scene v2 preserves
+sorted source vertex ranges and separate GPU commands. Both linked snapshots
+are identical; samples belong to translucent draws sharing texture state, not
+proven opaque-world geometry. Restored builds/tests pass; after exact-SHA confirmation validate
+snapshot association and actual material/visibility coverage. Earlier checkpoints
+below are historical; do not repeat them or promote a Remix runtime.
+
 Current: SHARED-CALIBRATION-AUDIT.md (LOG #155, D-097). Two distinct linked
 instances share normalized calibration in one replay epoch/context. Next bind
 that epoch to its actual scene snapshot and sampled primitive/draw/material/

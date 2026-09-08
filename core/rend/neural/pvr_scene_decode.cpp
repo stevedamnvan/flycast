@@ -56,7 +56,8 @@ bool ReadPvrScenePacket(const std::filesystem::path& path,std::uint64_t expected
    return true;
   });
   Require(root.is_object(),"pvr-decode-root");
-  Require(root.at("schema")=="flycast-pvr-scene-v1"
+  const bool v2=root.at("schema")=="flycast-pvr-scene-v2";
+  Require((v2||root.at("schema")=="flycast-pvr-scene-v1")
    &&root.at("coordinate_space")=="pvr-projected"
    &&root.at("camera_provenance")=="unknown"
    &&root.at("world_transform_provenance")=="unknown"
@@ -64,7 +65,8 @@ bool ReadPvrScenePacket(const std::filesystem::path& path,std::uint64_t expected
    &&root.at("depth_semantics")=="raw-PVR-z-before-production-log-depth-shader"
    &&root.at("float_encoding")=="IEEE754-binary32-unsigned-bits"
    &&root.at("viewport_layout")=="column-major","pvr-decode-provenance");
-  PvrDecodedPacket packet;packet.frame=U64(root.at("frame_id"));packet.game=Text(root.at("game_id"));
+  PvrDecodedPacket packet;packet.sortedOrderCaptured=v2;
+  packet.frame=U64(root.at("frame_id"));packet.game=Text(root.at("game_id"));
   Require(packet.frame==expectedFrame&&packet.game==expectedGame,"pvr-decode-frame-game-mismatch");
   packet.gitSha=Text(root.at("git_sha"));Require(!packet.gitSha.empty(),"pvr-decode-git-sha");
   Require(U32(root.at("naomi2_matrix_count"))==0,"pvr-decode-naomi2-unsupported");
@@ -74,9 +76,10 @@ bool ReadPvrScenePacket(const std::filesystem::path& path,std::uint64_t expected
   Require(root.at("vertex_layout")==layout,"pvr-decode-vertex-layout");
   const auto& omissions=root.at("omissions");Array(omissions,32);
   for(const auto& omission:omissions)packet.omissions.push_back(Text(omission));
-  const std::set<std::string> required={"texture-pixels","fog-and-global-register-state",
+  std::set<std::string> required={"texture-pixels","fog-and-global-register-state",
    "retained-framebuffer-pixels","offscreen-culled-geometry","game-camera-and-lights",
    "modifier-volume-geometry","sorted-translucency-resolve-order","Naomi2-matrices-and-lights"};
+  if(v2)required.erase("sorted-translucency-resolve-order");
   Require(std::set<std::string>(packet.omissions.begin(),packet.omissions.end())==required
    &&packet.omissions.size()==required.size(),"pvr-decode-omissions");
   ExactArray(root.at("viewport_bits"),16);
@@ -113,13 +116,33 @@ bool ReadPvrScenePacket(const std::filesystem::path& path,std::uint64_t expected
    Require(draw.list<3&&draw.ordinal==ordinals[draw.list]++,"pvr-decode-draw-ordinal");
    Require(!Bool(j.at("naomi2")),"pvr-decode-naomi2-unsupported");auto& p=draw.state;
    p.first=U32(j.at("first"));p.count=U32(j.at("count"));
-   Require(p.first<=packet.indices.size()&&p.count<=packet.indices.size()-p.first,"pvr-decode-draw-range");
+   if(v2) {
+    const auto space=Text(j.at("range_space"));
+    Require(space=="indices"||space=="vertices","pvr-decode-range-space");
+    draw.vertexRange=space=="vertices";
+   }
+   const size_t limit=draw.vertexRange?packet.vertices.size():packet.indices.size();
+   Require(p.count==0||(p.first<=limit&&p.count<=limit-p.first),"pvr-decode-draw-range");
    p.tsp.full=U32(j.at("tsp"));p.tcw.full=U32(j.at("tcw"));p.pcw.full=U32(j.at("pcw"));
    p.isp.full=U32(j.at("isp"));p.tileclip=U32(j.at("tileclip"));
    p.tsp1.full=U32(j.at("tsp1"));p.tcw1.full=U32(j.at("tcw1"));
    draw.texture=Texture(j.at("texture"),p.tcw);draw.texture1=Texture(j.at("texture1"),p.tcw1);
    packet.draws.push_back(std::move(draw));
   }
+  if(v2) {
+   const auto& sorted=root.at("sorted_triangles");Array(sorted,262144);
+   size_t sortedEnd=0;
+   for(const auto& j:sorted) {
+    SortedTriangle s{U32(j.at("poly_index")),U32(j.at("first")),U32(j.at("count"))};
+    Require(s.polyIndex<ordinals[2]&&s.count%3==0&&(s.count==0||s.first>=sortedEnd)&&s.first<=packet.indices.size()
+     &&s.count<=packet.indices.size()-s.first,"pvr-decode-sorted-range");
+    for(size_t i=s.first;i<size_t(s.first)+s.count;++i)
+     Require(packet.indices[i]!=UINT32_MAX,"pvr-decode-sorted-restart");
+    packet.sortedTriangles.push_back(s);
+    if(s.count!=0)sortedEnd=size_t(s.first)+s.count;
+   }
+  }
+  std::vector<bool> vertexRanges(ordinals[2]);
   const auto& passes=root.at("passes");Array(passes,MAX_PASSES);PvrCapturedPass previous;
   for(const auto& j:passes) {
    PvrCapturedPass p;p.op=U32(j.at("op"));p.pt=U32(j.at("pt"));p.tr=U32(j.at("tr"));
@@ -127,9 +150,24 @@ bool ReadPvrScenePacket(const std::filesystem::path& path,std::uint64_t expected
    p.autosort=Bool(j.at("autosort"));p.zClear=Bool(j.at("z_clear"));
    Require(p.op>=previous.op&&p.pt>=previous.pt&&p.tr>=previous.tr&&p.mvo>=previous.mvo
     &&p.sortedTr>=previous.sortedTr&&p.op<=ordinals[0]&&p.pt<=ordinals[1]&&p.tr<=ordinals[2],"pvr-decode-pass-range");
+   if(v2) {
+    Require(p.sortedTr<=packet.sortedTriangles.size(),"pvr-decode-sorted-range");
+    if(p.sortedTr>previous.sortedTr) {
+     Require(p.autosort,"pvr-decode-sorted-pass");
+     for(size_t i=previous.tr;i<p.tr;++i)vertexRanges[i]=true;
+     for(size_t i=previous.sortedTr;i<p.sortedTr;++i)
+      Require(packet.sortedTriangles[i].polyIndex>=previous.tr
+       &&packet.sortedTriangles[i].polyIndex<p.tr,"pvr-decode-sorted-pass");
+    }
+   }
    packet.passes.push_back(p);previous=p;
   }
   Require(previous.op==ordinals[0]&&previous.pt==ordinals[1]&&previous.tr==ordinals[2],"pvr-decode-pass-coverage");
+  if(v2) {
+   Require(previous.sortedTr==packet.sortedTriangles.size(),"pvr-decode-pass-coverage");
+   for(const auto& draw:packet.draws)
+    Require(draw.vertexRange==(draw.list==2&&vertexRanges[draw.ordinal]),"pvr-decode-range-space");
+  }
   output=std::move(packet);error.clear();return true;
  } catch(const std::exception& e) {error=e.what();return false;}
 }

@@ -12,7 +12,9 @@ struct PvrCapturedTexture {
  std::optional<std::uint32_t> palette;
 };
 struct PvrCapturedDraw {
+ // A zero-count draw has no index references; its unused first value is retained.
  std::uint32_t list=0, ordinal=0;
+ bool vertexRange=false; // Sorted source strips, not GPU index ranges.
  PolyParam state{}; // Texture pointers stay null; resolve only against retained resources.
  std::optional<PvrCapturedTexture> texture, texture1;
 };
@@ -30,6 +32,8 @@ struct PvrDecodedPacket {
  std::vector<std::uint32_t> indices;
  std::vector<PvrCapturedDraw> draws;
  std::vector<PvrCapturedPass> passes;
+ bool sortedOrderCaptured=false; // v1 omitted this data; v2 retains it.
+ std::vector<SortedTriangle> sortedTriangles;
  std::vector<std::string> omissions;
  std::uint32_t modifierTriangles=0, unusedNonfinite=0;
  // This remains a projected packet, never a recovered world/camera scene.

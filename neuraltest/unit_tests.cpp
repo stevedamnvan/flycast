@@ -1447,7 +1447,7 @@ int RunSelfTests()
 		suite.Expect(loaded&&decoded.vertices.size()==3&&decoded.indices==ctx.idx
 			&&std::memcmp(decoded.vertices.data(),ctx.verts.data(),3*sizeof(::Vertex))==0
 			&&decoded.viewport==viewport&&decoded.draws.size()==1&&!decoded.draws[0].state.texture
-			&&decoded.passes.size()==1&&decoded.omissions.size()==8,"PVR disk decoder preserves exact vertex bytes and unresolved state");
+			&&decoded.passes.size()==1&&decoded.omissions.size()==7&&decoded.sortedOrderCaptured,"PVR disk decoder preserves exact vertex bytes and unresolved state");
 		suite.Expect(!ReadPvrScenePacket(path,8,"fixture",decoded,error)
 			&&error=="pvr-decode-frame-game-mismatch"&&decoded.frame==7,"PVR wrong-frame decode preserves prior output");
 		const auto golden=nlohmann::json::parse(contents);
@@ -1477,6 +1477,13 @@ int RunSelfTests()
 		reject(bad,"pvr-decode-palette-applicability","PVR decoder rejects palette metadata on RGB texture");
 		bad=golden;bad["draws"][0]["count"]=4u;
 		reject(bad,"pvr-decode-draw-range","PVR decoder rejects overflowing draw range");
+		bad=golden;bad["draws"][0]["first"]=0xffffffffu;bad["draws"][0]["count"]=0u;
+		{std::ofstream f(path,std::ios::binary);f<<bad.dump();}
+		suite.Expect(ReadPvrScenePacket(path,7,"fixture",decoded,error)
+			&&decoded.draws[0].state.first==0xffffffffu&&decoded.draws[0].state.count==0,
+			"PVR decoder preserves dormant empty draw offset without indexing it");
+		bad["draws"][0]["count"]=1u;
+		reject(bad,"pvr-decode-draw-range","PVR dormant offset cannot become a nonempty invalid draw");
 		bad=golden;bad["naomi2_matrix_count"]=1u;
 		reject(bad,"pvr-decode-naomi2-unsupported","PVR decoder rejects omitted Naomi2 transforms");
 		{std::ofstream f(path,std::ios::binary);f<<"{\"a\":1,\"a\":2}";}
@@ -1486,6 +1493,70 @@ int RunSelfTests()
 		{std::ofstream f(path,std::ios::binary);f.seekp(32*1024*1024);f.put('x');}
 		suite.Expect(!ReadPvrScenePacket(path,7,"fixture",decoded,error)&&error=="pvr-decode-byte-bound","PVR decoder limits bytes before allocation");
 		std::filesystem::remove(path);
+		ctx.global_param_op[0].first=0xffffffffu;ctx.global_param_op[0].count=0;
+		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR writer retains zero-count dormant draw");
+		suite.Expect(ReadPvrScenePacket(path,7,"fixture",decoded,error)
+			&&decoded.draws[0].state.first==0xffffffffu&&decoded.draws[0].state.count==0,
+			"PVR dormant empty draw roundtrip is exact");
+		std::filesystem::remove(path);ctx.global_param_op[0].count=1;
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&error=="pvr-packet-draw-range"&&!std::filesystem::exists(path),
+			"PVR nonempty dormant offset rejected before output");
+		ctx.global_param_op[0].first=0;ctx.global_param_op[0].count=3;
+		// Triangle sorting preserves source vertex ranges in translucent PolyParam;
+		// the actual GPU index ranges live in separate sorted commands.
+		ctx.verts.resize(7);ctx.idx={0,1,2,4,5,6};
+		PolyParam translucent{};translucent.init();translucent.first=4;translucent.count=3;
+		ctx.global_param_tr.push_back(translucent);ctx.sortedTriangles.push_back({0,3,3});
+		ctx.render_passes[0].tr_count=1;ctx.render_passes[0].sorted_tr_count=1;
+		ctx.render_passes[0].autosort=true;
+		const bool sortedWritten=WritePvrScenePacket(path,ctx,viewport,7,"fixture",error);
+		suite.Expect(sortedWritten,"PVR sorted source vertex range is not an index range");
+		suite.Expect(sortedWritten&&ReadPvrScenePacket(path,7,"fixture",decoded,error)
+			&&decoded.draws[1].vertexRange&&decoded.draws[1].state.first==4
+			&&decoded.sortedTriangles.size()==1&&decoded.sortedTriangles[0].first==3
+			&&decoded.sortedTriangles[0].count==3&&decoded.sortedTriangles[0].polyIndex==0,
+			"PVR sorted source topology roundtrip");
+		if(sortedWritten) {
+			std::ifstream sortedFile(path,std::ios::binary);
+			const auto sortedGolden=nlohmann::json::parse(sortedFile);sortedFile.close();
+			bad=sortedGolden;bad["draws"][1]["range_space"]="indices";
+			reject(bad,"pvr-decode-draw-range","PVR sorted source cannot masquerade as indexed range");
+			bad=sortedGolden;bad["draws"][0]["range_space"]="vertices";
+			reject(bad,"pvr-decode-range-space","PVR opaque indexed range cannot masquerade as source vertices");
+			bad=sortedGolden;bad["sorted_triangles"][0]["poly_index"]=1u;
+			reject(bad,"pvr-decode-sorted-range","PVR sorted material reference is bounded");
+			bad=sortedGolden;bad["sorted_triangles"][0]["count"]=2u;
+			reject(bad,"pvr-decode-sorted-range","PVR sorted commands require whole triangles");
+			bad=sortedGolden;bad["sorted_triangles"][0]["first"]=4u;
+			reject(bad,"pvr-decode-sorted-range","PVR sorted index range is bounded separately");
+			bad=sortedGolden;bad["passes"][0]["autosort"]=false;
+			reject(bad,"pvr-decode-sorted-pass","PVR sorted commands require sorted pass");
+			bad=sortedGolden;bad["passes"][0]["sorted_tr"]=0u;
+			reject(bad,"pvr-decode-pass-coverage","PVR sorted commands cannot escape pass coverage");
+			bad=sortedGolden;bad["indices"][3]=0xffffffffu;
+			reject(bad,"pvr-decode-sorted-restart","PVR triangle lists cannot contain strip restart");
+			bad=sortedGolden;bad["sorted_triangles"].push_back(bad["sorted_triangles"][0]);
+			reject(bad,"pvr-decode-sorted-range","PVR sorted commands cannot overlap or amplify validation work");
+		}
+		std::filesystem::remove(path);
+		ctx.sortedTriangles[0].polyIndex=1;
+		suite.Expect(!WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&error=="pvr-packet-sorted-range"&&!std::filesystem::exists(path),"PVR writer rejects invalid sorted material before output");
+		ctx.sortedTriangles[0]={0,0,0};
+		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error)
+			&&ReadPvrScenePacket(path,7,"fixture",decoded,error)&&decoded.sortedTriangles[0].count==0,
+			"PVR empty sorted command preserves explicit source-range mode");
+		std::filesystem::remove(path);
+		bad=golden;bad["schema"]="flycast-pvr-scene-v1";bad.erase("sorted_triangles");
+		bad["draws"][0].erase("range_space");bad["omissions"].push_back("sorted-translucency-resolve-order");
+		{std::ofstream f(path,std::ios::binary);f<<bad.dump();}
+		suite.Expect(ReadPvrScenePacket(path,7,"fixture",decoded,error)&&!decoded.sortedOrderCaptured,
+			"PVR historical v1 remains readable without claiming captured sorted order");
+		std::filesystem::remove(path);
+		ctx.global_param_tr.clear();ctx.sortedTriangles.clear();ctx.verts.resize(3);ctx.idx={0,1,2};
+		ctx.render_passes[0].tr_count=0;ctx.render_passes[0].sorted_tr_count=0;
+		ctx.render_passes[0].autosort=false;
 		ctx.verts.push_back(::Vertex{});ctx.verts.back().z=std::numeric_limits<float>::infinity();
 		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR unused nonfinite buffer data remains observable");
 		std::ifstream nonfiniteFile(path,std::ios::binary);

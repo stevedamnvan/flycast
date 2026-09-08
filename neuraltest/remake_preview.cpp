@@ -58,6 +58,9 @@ Surface raster(const flycast::rend::neural::PvrDecodedPacket& packet,int w,int h
  Surface s{std::vector<double>(w*h),std::vector<V3>(w*h),std::vector<unsigned char>(w*h)};
  std::vector<double> uncertain(w*h);
  const auto& m=packet.viewport;
+ // This rejected approximation only implements indexed strips. Never reinterpret
+ // captured source-vertex ranges or a sorted triangle list as indexed strips.
+ require(packet.sortedTriangles.empty(),"preview-sorted-topology-unsupported");
  // Current scope is one affine screen-domain pass. No guessed matrix support.
  require(packet.passes.size()==1 && packet.passes[0].zClear,"preview-single-clear-pass-required");
  require(m[1]==0 && m[2]==0 && m[3]==0 && m[4]==0 && m[6]==0 && m[7]==0 && m[8]==0 && m[9]==0 && m[10]==1 && m[11]==0 && m[14]==0 && m[15]==1,"preview-affine-viewport-required");

@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-098: preserve sorted source geometry separately from GPU commands
+
+Scene v2 records each draw's vertex/index range domain and actual sorted commands.
+Do not relax bounds to accept source vertex ranges as index ranges. Empty draws
+retain unused offsets; sorted triangle lists cannot contain restart tokens or
+overlapping nonempty command ranges. Preserve v1 omitted-order semantics and
+compare v2 order with retained state before developer replay. The linked samples
+are translucent primitives sharing texture state; their calibration is not
+evidence for opaque world coverage. See SORTED-SCENE-AUDIT.md.
+
 ## D-097: shared sample calibration needs real scene-generation coverage
 
 Two distinct executed transforms reach different decoded vertices in the same

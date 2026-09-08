@@ -2,6 +2,13 @@
 
 Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
+FC-067 current working slice: SORTED-SCENE-AUDIT.md. Sorted source vertex ranges
+and actual GPU commands are distinct in v2; two identical witnessed snapshots
+now export. Their samples are translucent, not established opaque-world coverage.
+Restored four builds, three 262/262 selftests, SDK 56/56, three-frame native/replay
+and material regression pass. Exact-SHA confirmation and repeatable snapshot
+association/visibility remain next; full M2 and Remix GPU remain open.
+
 | ID | Phase | Item | Acceptance | Status | Evidence |
 |---|---:|---|---|---|---|
 | FC-000 | 0 | Pinned branch and baseline | Build, tests, hashes, timing, present notes | doing | LOG #1-#4; hashes/timing pending harness |

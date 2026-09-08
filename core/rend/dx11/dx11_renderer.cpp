@@ -1084,6 +1084,18 @@ bool DX11Renderer::replayPvrPacket(const std::filesystem::path& path,
 	// sorted order are retained explicitly; this is not standalone scene replay.
 	rend_context replay = *rendContext;
 	replay.verts = packet.vertices; replay.idx = packet.indices;
+	if (packet.sortedOrderCaptured)
+	{
+		if (packet.sortedTriangles.size() != rendContext->sortedTriangles.size())
+		{ error = "pvr-replay-sorted-state-mismatch"; return false; }
+		for (size_t i = 0; i < packet.sortedTriangles.size(); ++i)
+		{
+			const auto& saved = packet.sortedTriangles[i]; const auto& live = rendContext->sortedTriangles[i];
+			if (saved.polyIndex != live.polyIndex || saved.first != live.first || saved.count != live.count)
+			{ error = "pvr-replay-sorted-state-mismatch"; return false; }
+		}
+		replay.sortedTriangles = packet.sortedTriangles;
+	}
 	for (size_t i = 0; i < packet.passes.size(); ++i)
 	{
 		const auto& saved = packet.passes[i]; auto& live = replay.render_passes[i];

@@ -57,7 +57,7 @@ def main():
         require((parent/"pvr-scene.json").stat().st_size<=32*1024*1024 and (parent/"manifest.json").stat().st_size<=1024*1024,"source-file-bounds")
         scene=json.loads((parent/"pvr-scene.json").read_text())
         capture=json.loads((parent/"manifest.json").read_text())
-        require(scene["schema"]=="flycast-pvr-scene-v1" and len(scene["draws"])<=8192,"scene-schema-draw-bound")
+        require(scene["schema"] in ("flycast-pvr-scene-v1", "flycast-pvr-scene-v2") and len(scene["draws"])<=8192,"scene-schema-draw-bound")
         require(m["schema"]=="flycast-source-materials-v1","schema")
         for field in ("frame_id","game_id","git_sha"):
             require(m[field]==scene[field]==capture[field],"identity-"+field)

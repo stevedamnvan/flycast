@@ -40,7 +40,7 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
  // Bounds checked before building any output. At most 32 MiB serialized text.
  const auto draws=ctx.global_param_op.size()+ctx.global_param_pt.size()+ctx.global_param_tr.size();
  if(ctx.isRTT||frame==0||game.empty()||game.size()>256||ctx.verts.size()>65536
-  ||ctx.idx.size()>262144||draws>8192||ctx.render_passes.size()>MAX_PASSES) {
+  ||ctx.idx.size()>262144||draws>8192||ctx.render_passes.size()>MAX_PASSES||ctx.sortedTriangles.size()>262144) {
   error="pvr-packet-identity-or-bound";return false;
  }
  for(float v:viewport) if(!std::isfinite(v)) {error="pvr-packet-viewport";return false;}
@@ -55,12 +55,52 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
   const auto& v=ctx.verts[index];
   if(!std::isfinite(v.x)||!std::isfinite(v.y)||!std::isfinite(v.z)) ++nonfiniteReferences;
  }
- for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr})
-  for(const auto& p:*list) if(p.first>ctx.idx.size()||p.count>ctx.idx.size()-p.first) {
-   error="pvr-packet-draw-range";return false;
+ std::vector<bool> vertexRanges(ctx.global_param_tr.size());
+ RenderPass previous{};
+ size_t sortedEnd=0;
+ for(const auto& pass:ctx.render_passes) {
+  if(pass.op_count<previous.op_count||pass.op_count>ctx.global_param_op.size()
+   ||pass.pt_count<previous.pt_count||pass.pt_count>ctx.global_param_pt.size()
+   ||pass.tr_count<previous.tr_count||pass.tr_count>ctx.global_param_tr.size()
+   ||pass.sorted_tr_count<previous.sorted_tr_count||pass.sorted_tr_count>ctx.sortedTriangles.size()
+   ||pass.mvo_count<previous.mvo_count) {error="pvr-packet-pass-range";return false;}
+  if(pass.sorted_tr_count>previous.sorted_tr_count) {
+   if(!pass.autosort) {error="pvr-packet-sorted-pass";return false;}
+   for(size_t i=previous.tr_count;i<pass.tr_count;++i)vertexRanges[i]=true;
+   for(size_t i=previous.sorted_tr_count;i<pass.sorted_tr_count;++i) {
+    const auto& s=ctx.sortedTriangles[i];
+    if(s.polyIndex<previous.tr_count||s.polyIndex>=pass.tr_count||s.count%3!=0
+     ||(s.count!=0&&s.first<sortedEnd)
+     ||s.first>ctx.idx.size()||s.count>ctx.idx.size()-s.first) {
+     error="pvr-packet-sorted-range";return false;
+    }
+    for(size_t j=s.first;j<size_t(s.first)+s.count;++j)if(ctx.idx[j]==UINT32_MAX) {
+     error="pvr-packet-sorted-restart";return false;
+    }
+    if(s.count!=0)sortedEnd=size_t(s.first)+s.count;
+   }
   }
+  previous=pass;
+ }
+ if(previous.op_count!=ctx.global_param_op.size()||previous.pt_count!=ctx.global_param_pt.size()
+  ||previous.tr_count!=ctx.global_param_tr.size()||previous.sorted_tr_count!=ctx.sortedTriangles.size()) {
+  error="pvr-packet-pass-coverage";return false;
+ }
+ unsigned validationList=0;
+ for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr}) {
+  // Empty culled draws can retain a pre-compaction offset. Preserve it exactly;
+  // it references no index. Every nonempty range must still be fully valid.
+  for(size_t i=0;i<list->size();++i) {
+   const auto& p=(*list)[i];
+   const size_t limit=validationList==2&&vertexRanges[i]?ctx.verts.size():ctx.idx.size();
+   if(p.count!=0&&(p.first>limit||p.count>limit-p.first)) {
+    error="pvr-packet-draw-range";return false;
+   }
+  }
+  ++validationList;
+ }
  std::ostringstream out;out.imbue(std::locale::classic());
- out << "{\"schema\":\"flycast-pvr-scene-v1\",\"git_sha\":\"" << GIT_HASH
+ out << "{\"schema\":\"flycast-pvr-scene-v2\",\"git_sha\":\"" << GIT_HASH
   << "\",\"frame_id\":" << frame << ",\"game_id\":";String(out,game);
  out << ",\"coordinate_space\":\"pvr-projected\",\"camera_provenance\":\"unknown\","
   "\"world_transform_provenance\":\"unknown\",\"normal_provenance\":\"unknown-for-dreamcast\","
@@ -74,7 +114,7 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
   << ",\"framebuffer_size\":[" << ctx.framebufferWidth << ',' << ctx.framebufferHeight << ']'
   << ",\"omissions\":[\"texture-pixels\",\"fog-and-global-register-state\","
   "\"retained-framebuffer-pixels\",\"offscreen-culled-geometry\",\"game-camera-and-lights\","
-  "\"modifier-volume-geometry\",\"sorted-translucency-resolve-order\",\"Naomi2-matrices-and-lights\"],"
+  "\"modifier-volume-geometry\",\"Naomi2-matrices-and-lights\"],"
   "\"modifier_triangle_count\":" << ctx.modtrig.size()
   << ",\"naomi2_matrix_count\":" << ctx.matrices.size()
   << ",\"vertex_layout\":[\"x_bits\",\"y_bits\",\"z_bits\",\"u_bits\",\"v_bits\","
@@ -93,14 +133,21 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
   unsigned ordinal=0;
   for(const auto& p:*list) {
    if(comma)out<<',';comma=true;
-   out << "{\"list\":"<<listId<<",\"ordinal\":"<<ordinal++<<",\"first\":"<<p.first
+   out << "{\"list\":"<<listId<<",\"ordinal\":"<<ordinal
+    <<",\"range_space\":\""<<(listId==2&&vertexRanges[ordinal]?"vertices":"indices")<<"\",\"first\":"<<p.first
     <<",\"count\":"<<p.count<<",\"tsp\":"<<p.tsp.full<<",\"tcw\":"<<p.tcw.full
     <<",\"pcw\":"<<p.pcw.full<<",\"isp\":"<<p.isp.full<<",\"tileclip\":"<<p.tileclip
     <<",\"tsp1\":"<<p.tsp1.full<<",\"tcw1\":"<<p.tcw1.full
     <<",\"naomi2\":"<<(p.isNaomi2()?"true":"false")<<",\"texture\":";Texture(out,p.texture);
    out<<",\"texture1\":";Texture(out,p.texture1);out<<'}';
+   ++ordinal;
   }
   ++listId;
+ }
+ out << "],\"sorted_triangles\":[";
+ for(size_t i=0;i<ctx.sortedTriangles.size();++i) {
+  const auto& s=ctx.sortedTriangles[i];if(i)out<<',';
+  out<<"{\"poly_index\":"<<s.polyIndex<<",\"first\":"<<s.first<<",\"count\":"<<s.count<<'}';
  }
  out << "],\"passes\":[";
  for(size_t i=0;i<ctx.render_passes.size();++i) {

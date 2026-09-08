@@ -2,6 +2,13 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
+Current working slice: `docs/neural/SORTED-SCENE-AUDIT.md`. Scene v2 preserves
+sorted source vertex ranges and separate GPU commands. Both linked snapshots
+are identical; samples belong to translucent draws sharing texture state, not
+proven opaque-world geometry. Restored builds/tests pass; after exact-SHA confirmation validate
+snapshot association and actual material/visibility coverage. Earlier checkpoints
+below are historical; do not repeat them or promote a Remix runtime.
+
 Current: `docs/neural/SHARED-CALIBRATION-AUDIT.md` (LOG #155, D-097). Two
 linked transform instances share calibration in one context epoch. Next bind
 that epoch to its real scene snapshot and establish primitive/material/visibility
