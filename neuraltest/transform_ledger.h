@@ -11,8 +11,8 @@ namespace fc067 {
 class TransformLedger {
 public:
     static constexpr std::size_t compressedLimit=8*1024*1024,expandedLimit=128*1024*1024;
-    TransformLedger() {
-        ready_=deflateInit(&stream_,3)==Z_OK;failed_=!ready_;
+    explicit TransformLedger(int compressionLevel=3) {
+        ready_=compressionLevel>=1 && compressionLevel<=9 && deflateInit(&stream_,compressionLevel)==Z_OK;failed_=!ready_;
         if(ready_)bytes_.reserve(compressedLimit);
     }
     ~TransformLedger() {if(ready_)deflateEnd(&stream_);}

@@ -8,11 +8,13 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera. LOG227/D-123 now independently verify
-draws1503/1887 through versioned RAM lifetimes and original arithmetic:2038
-triangles/frame, maximum0.000070083-pixel reprojection error. Live wrong-version
-E rejects and temporary hooks are removed (LOG228). Finish four serial checkpoint
-builds and relevant tests before commit. Full scene/world camera/Remix GPU remain pending.
+Current first card: FC-067 / M2-camera. LOG239/D-124 verifies the four-draw
+explicit-affine experiment:2093 triangles/frame with every contribution retained.
+Strict all-rigid calibration still fails; physical/world-camera semantics remain
+unknown. Together with separate prior captures,5722/8339 opaque triangles have
+bounded reconstruction, not one unified scene. Live wrong-prefetch D rejects,
+hooks removed, restored builds running (LOG240). Finish tests and checkpoint;
+last exact tested/pushed SHA remains36538ae12. Real Remix GPU remains pending.
 Historical scope: FULL-DRAW-TRANSFORM-AUDIT.md records
 426 verified vertex observations feeding one complete92-triangle opaque draw.
 Its calibrated reprojection is verified;8247 other opaque triangles/frame,

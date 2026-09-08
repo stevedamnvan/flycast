@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-124: calibration witnesses are distinct from general-affine contributions
+
+LOG238/239 demonstrates93 executed nonorthogonal matrix contributions in the
+four-draw capture. The all-rigid gate remains failed and unchanged. An explicit
+affine-contribution experiment uses all10035 matrices satisfying the existing
+rigid predicate as calibration witnesses, checks their unchanged shared-scale
+tolerance, and retains every one of the93 other affine contributions in exact
+arithmetic and vertex reconstruction. These contributions cannot calibrate a
+camera by row norms. They are not dropped, repaired or declared rigid; malformed
+and degenerate matrices still reject. Controlled shear fixtures distinguish this
+case and wrong calibration must still fail the rigid witnesses. This establishes
+only a bounded calibrated camera-relative representation; it does not identify
+object-deformation semantics, physical scale, a unique world camera or Remix GPU
+behavior. The explicit --affine-contributions flag keeps the changed assumption
+visible and preserves strict default failure as evidence.
+
 ## D-123: RAM addresses are not transform lifetimes
 
 LOG222..226 falsified single-record-per-address ownership over the later draw

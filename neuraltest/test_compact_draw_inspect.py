@@ -1,6 +1,6 @@
 import copy
 import unittest
-from compact_draw_inspect import inspect, selection, DEFAULT_DOMAIN, NEXT_DOMAIN
+from compact_draw_inspect import inspect, selection, DEFAULT_DOMAIN, NEXT_DOMAIN, FOUR_DOMAIN
 from compact_consumer_inspect import encode
 from test_compact_consumer_inspect import record
 
@@ -29,6 +29,16 @@ def fixture(domain=DEFAULT_DOMAIN):
 
 
 class CompactDrawTests(unittest.TestCase):
+    def test_four_noncontiguous_draws_and_gap_controls(self):
+        rows,frames=fixture(FOUR_DOMAIN)
+        result=inspect(encode(rows),frames,FOUR_DOMAIN)
+        self.assertEqual(len(rows),10593)
+        self.assertEqual([f['vertices'] for f in result['frames']],[3531]*3)
+        for index,gap in ((597,1420),(1628,5196),(2971,7272)):
+            bad=copy.deepcopy(rows);bad[index]['vertex']=gap
+            with self.subTest(index=index),self.assertRaisesRegex(ValueError,'consumer vertex/draw'):
+                inspect(encode(bad),frames,FOUR_DOMAIN)
+
     def test_two_draw_batch_binding(self):
         rows,frames=fixture(NEXT_DOMAIN)
         result=inspect(encode(rows),frames,NEXT_DOMAIN)

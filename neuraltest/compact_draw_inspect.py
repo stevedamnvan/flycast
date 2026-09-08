@@ -7,6 +7,7 @@ from transform_store_inspect import require,load_session
 
 DEFAULT_DOMAIN=((277,1420,4165),)
 NEXT_DOMAIN=((1503,7272,9118),(1887,9118,10664))
+FOUR_DOMAIN=((161,823,1420),(854,4165,5196),(1222,5929,7272),(2266,11172,11732))
 
 
 def selection(domain):
@@ -76,5 +77,9 @@ if __name__=='__main__':
     from pathlib import Path
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('capture',type=Path);parser.add_argument('tape',type=Path)
-    parser.add_argument('--next-batch',action='store_true')
-    args=parser.parse_args();print(json.dumps(inspect_capture(args.capture,args.tape,NEXT_DOMAIN if args.next_batch else DEFAULT_DOMAIN),sort_keys=True))
+    batch=parser.add_mutually_exclusive_group()
+    batch.add_argument('--next-batch',action='store_true')
+    batch.add_argument('--four-draw-batch',action='store_true')
+    args=parser.parse_args()
+    domain=FOUR_DOMAIN if args.four_draw_batch else NEXT_DOMAIN if args.next_batch else DEFAULT_DOMAIN
+    print(json.dumps(inspect_capture(args.capture,args.tape,domain),sort_keys=True))

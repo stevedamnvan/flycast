@@ -21,6 +21,20 @@ int main(int argc,char** argv) {
         return std::fwrite(bytes.data(),1,bytes.size(),stdout)==bytes.size()?0:2;
     }
     std::vector<std::uint8_t> output;
+    for(int level : {-1,0,10}) {
+        fc067::TransformLedger invalid(level);
+        if(invalid.append("x",1) || invalid.finish(output) || !output.empty())return 1;
+    }
+    const char* exact="FC067_CT_BLOCK generation=10 slot=920 kind=0\n";
+    std::vector<char> expected;
+    for(unsigned i=0;i<1000;i++)expected.insert(expected.end(),exact,exact+std::strlen(exact));
+    for(int level : {1,3,6,9}) {
+        fc067::TransformLedger candidate(level);
+        if(!candidate.append(expected.data(),expected.size()) || !candidate.finish(output))return 1;
+        std::vector<char> restored(expected.size());uLongf size=restored.size();
+        if(uncompress(reinterpret_cast<Bytef*>(restored.data()),&size,output.data(),output.size())!=Z_OK
+            || size!=expected.size() || restored!=expected)return 1;
+    }
     fc067::TransformLedger empty;
     if(empty.finish(output) || !output.empty())return 1;
     fc067::TransformLedger overflow;

@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `d558fb32ced514f5f08422aaefda6b9e57e5df0b`, pushed (LOG218). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `36538ae123c8e9dbdbe60be6741ccc0ab24d60cd`, pushed (LOG230). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,22 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: finish restored builds/tests and checkpoint the independently
-verified two-draw incarnation/reconstruction slice (LOG227/D-123). Live wrong-version
-E rejects; temporary hooks removed and retained ignored (LOG228).210 inspector
+Current next action: finish restored builds/tests and checkpoint the four-draw
+compression/prefetch/explicit-affine slice (LOG239/D-124). Focused live D rejects
+at the independent prefetch-edge predicate; hooks removed (LOG240).
+Strict all-rigid calibration remains failed; explicit affine mode retains93
+nonrigid contributions while10035 rigid witnesses constrain calibration, with
+all2093 selected triangles/frame reconstructed below0.000064542 pixels.214 tests
+pass. Combined separate draw scopes cover5722/8339 opaque triangles;2617 remain,
+and unified scene/world-camera/Remix GPU are unproven. Default compression3 and
+all evidence/rigid-check limits are unchanged. Temporary hooks are retained ignored.
+Wrong-pointer map control passed. Map A verifies3531 vertices/
+2093 triangles,1005 stable source addresses and exact final TA offset375744 in
+all three frames (LOG232).201 addresses have different selected values within a
+frame: bind actual incarnations, never address-only identity. Stay within4096
+selected vertices and existing copy/byte budgets; do not reuse prior target header.
+The prior two-draw incarnation/reconstruction slice is exact-build/native tested
+and pushed as36538ae12. Live wrong-version E rejects; hooks removed.210 inspector
 tests pass; all6732 lifetimes/26928 seams verify,
 10176 consumers bind3366 selected versions and2038 triangles/frame reconstruct
 with maximum0.000070083-pixel error. Wrong-scale and synthetic wrong-version

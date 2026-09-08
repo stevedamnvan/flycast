@@ -17,6 +17,15 @@ def fixture():
 
 
 class IncarnationTests(unittest.TestCase):
+    def test_completed_prefetch_is_not_projection(self):
+        text,rows=fixture()
+        load='FC067_X_PREFETCH_LOAD generation=1 slot=0 pc=8c03c9d6 address=1000 value=2 expected=2\n'
+        edge='FC067_X_PREFETCH_EDGE generation=1 slot=0 block=8c03c9d8 pointer=1004 value=2 expected=2 exact=1\n'
+        text=text.replace('FC067_CT_PREFIX',load+edge+'FC067_CT_PREFIX')
+        self.assertEqual(inspect(text,[0x1000],rows)['completed_prefetches'],1)
+        for old,new in [('block=8c03c9d8','block=8c03c9a4'),('pointer=1004','pointer=1008'),('value=2 expected=2','value=3 expected=3')]:
+            with self.subTest(old=old),self.assertRaises(ValueError):inspect(text.replace(old,new),[0x1000],rows)
+
     def test_old_copy_retains_its_version_after_rewrite(self):
         text,rows=fixture();result=inspect(text,[0x1000],rows,True)
         self.assertEqual(result['selected'],{1:(1,0,1),2:(1,0,2)})

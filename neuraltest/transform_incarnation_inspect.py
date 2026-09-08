@@ -3,13 +3,15 @@ from transform_store_inspect import require
 
 
 SLOT_TAGS={'FC067_CT_BLOCK','FC067_CT_WRITE','FC067_CT_GATHER',
-           'FC067_X_LOAD','FC067_X_EDGE','FC067_EXTRA_SELECTION'}
+           'FC067_X_LOAD','FC067_X_EDGE','FC067_EXTRA_SELECTION',
+           'FC067_X_PREFETCH_LOAD','FC067_X_PREFETCH_EDGE'}
 
 
 def inspect(text, bases, rows, include_text=False):
     require(1<=len(bases)<=1122 and len(set(bases))==len(bases),'address budget')
     require(0<len(rows)<=12288,'consumer budget')
     current={}; lifetimes={}; reads={}; bindings={}; prefixes={}; begins={}; output=[]
+    prefetch=None;prefetches=0
     def complete(state):
         require(state['seams']==15 and set(state['words'])=={0,1,2}
                 and state['reads']%3==0,'incomplete retired lifetime')
@@ -39,6 +41,16 @@ def inspect(text, bases, rows, include_text=False):
             gen,slot=(int(fields[k]) for k in ('generation','slot'));key=gen,slot
             require(key in current and gen not in prefixes,'event outside lifetime')
             state=current[key];identity=gen,slot,state['version']
+            if tag=='FC067_X_PREFETCH_LOAD':
+                require(prefetch is None and state['seams']==15 and state['words'].get(0)==int(fields['value'],16)
+                        and fields['value']==fields['expected'] and fields['pc']=='8c03c9d6'
+                        and int(fields['address'],16)==bases[slot],'prefetch source')
+                prefetch=identity,int(fields['value'],16)
+            elif tag=='FC067_X_PREFETCH_EDGE':
+                require(prefetch==(identity,int(fields['value'],16)) and fields['value']==fields['expected']
+                        and fields['block']=='8c03c9d8' and fields['exact']=='1'
+                        and int(fields['pointer'],16)==bases[slot]+4,'prefetch edge')
+                prefetch=None;prefetches+=1
             if 'cycle' in fields:
                 cycle=int(fields['cycle']);require(cycle>=state['cycle'],'event clock');state['cycle']=cycle
             if tag=='FC067_CT_BLOCK':
@@ -66,7 +78,7 @@ def inspect(text, bases, rows, include_text=False):
             sample=int(fields['sample']);require(sample not in bindings,'duplicate consumer binding')
             bindings[sample]=fields,position
         if include_text:output.append(line)
-    require(set(prefixes)==set(begins),'unclosed frames')
+    require(set(prefixes)==set(begins) and prefetch is None,'unclosed frames/prefetch')
     for state in current.values():complete(state)
     require(set(bindings)=={r['sample'] for r in rows},'consumer coverage')
     selected={};selected_copies=set()
@@ -82,7 +94,7 @@ def inspect(text, bases, rows, include_text=False):
                 and [r[1] for r in own]==row['after'][1:4],'selected incarnation bytes')
         require(begins[gen]<=row['cycle']<=prefixes[gen],'consumer frame clock')
         selected[row['sample']]=identity
-    result=dict(lifetimes=len(lifetimes),bound_consumers=len(selected),
+    result=dict(lifetimes=len(lifetimes),bound_consumers=len(selected),completed_prefetches=prefetches,
                 selected_lifetimes=len(set(selected.values())),
                 unused_lifetimes=sum(s['reads']==0 for s in lifetimes.values()),
                 lifecycle_verified=True,arithmetic_verified=False,world_camera_recovered=False)
