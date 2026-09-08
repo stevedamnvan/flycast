@@ -8,13 +8,15 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera. Reuse the actual opaque transform
-and LOG #177's accepted per-domain algebra. Its opaque projection differs
-from the earlier translucent depth scale; do not repeat the algebra or import
-that scale. Next extend producer-linked sample coverage under backlog bounds.
-Use the source anchor at `8c03c944` and retained initial-supply diagnostic
-rather than repeating the single-vertex discovery. Follow the six-vertex/three-frame bounds and falsifying
-controls in the backlog. If that card is genuinely blocked, take FC-067 /
+Current first card: FC-067 / M2-camera, collection pass B in the backlog.
+LOG #178 maps18 actual packets across two opaque draws in three frames; use
+their exact offsets for the actual indexed-gather/SQ/copy source observations.
+Do not repeat the map, single-vertex discovery or LOG #177's algebra. Preserve
+the opaque/translucent depth distinction. Negative B's GPU preservation failed
+despite unchanged scene packets; A and disabled C are exact. Follow the bounds
+and claims in CAMERA-PACKET-AUDIT.md and the backlog. Reuse the retained
+initial-supply diagnostic and actual transform at `8c03c944` for source links.
+If the card is genuinely blocked, take FC-067 /
 M1-GPU, whose standalone real-SDK GPU harness does not require a recovered
 game camera. Neither synthetic GPU output nor the existing mock is gameplay
 or combined DLSS 5 presentation evidence.

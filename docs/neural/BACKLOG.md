@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Exact source checkpoint: `0e095eb7578bc11dfd33a7593a0548b4fc488795`, pushed.
+- Last exact tested checkpoint: `c47f26b11996f223663dacf39e3629d75769d8db`, pushed.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -43,7 +43,7 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 | Card | Status | Dependencies | Deliverable / acceptance | Evidence |
 |---|---|---|---|---|
-| FC-067 / M2-camera | doing | LOG #175 | Bounded opaque sample coverage and explicit usable camera/coordinate contract, or precise unsupported domains. See next-card bounds below. | pending |
+| FC-067 / M2-camera | doing | LOG #175 | Bounded opaque sample coverage and explicit usable camera/coordinate contract, or precise unsupported domains. See next-card bounds below. | LOG #175/#177/#178 partial; camera pending |
 | FC-067 / M1-GPU | todo | public-header adapter already tested | Isolated public Remix runtime harness with real synthetic GPU output/readback, moving camera, overlap and wrong-camera/light controls. A mock remains a mock. This row can proceed if M2-camera is blocked. | pending |
 | FC-067 / M2-scene | todo | M2-camera usable contract | Export actual geometry/material generations for the supported scene domains; reconstruct/compare moving opaque coverage and depth with falsifying controls. Quantify omissions; do not silently promote the parked strict replay gate. | pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
@@ -60,6 +60,27 @@ reciprocal-depth scale through the full record/SQ/TA chain. Importing the
 earlier translucent 1.04 depth multiplier fails. Do not repeat this algebra
 step. Next is the six-vertex/three-frame producer-linked collection below;
 M2-camera remains doing and the usable camera contract remains pending.
+
+Packet-map substep accepted (LOG #178, CAMERA-PACKET-AUDIT.md): all18
+samples cover opaque draws1/26 across producer ordinals1781-1783. Actual TA
+offsets are32/64/96/4608/4640/4672. Positive A and hook-disabled C preserve
+native/guidance exactly. Negative B rejects its wrong epoch but has retained
+color/raw-depth differences: do not claim full A/B graphics preservation.
+Temporary hooks are removed. Do not repeat this map or the parked replay audit.
+
+Current collection pass B: extend the retained initial-supply diagnostic's
+known indexed-gather and SQ/TA-copy seams to those exact six offsets in the
+same three producer frames. Record actual source RAM addresses, dynamic
+loads/registers/SQ writes and copied packet ownership before attempting new
+FTRV calibration. Require context generation and actual source-to-copy-to-
+decoder identity, not timestamp or float coincidence. At most18 selected
+invocations, each128 operations/32 live words/512 events, aggregate18 times
+those bounds; reject resets, overwrites, duplicates and truncation. Missing
+coverage yields a finite changed hypothesis here, not a wider caller census.
+Run one positive and expected-identity-only negative; compare complete scene
+packets and native/guidance outputs separately and retain every difference.
+Reuse the proven FTRV/projection seams for the identified source records next;
+no production camera is enabled by the packet/gather map alone.
 
 Start with existing `initial_edge_inspect.py`, the retained initial-supply-a
 diagnostic patch/header, source/material packets and deterministic Hoko Temple

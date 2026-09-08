@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-116: bounded packet ownership and GPU-repeat preservation stay separate
+
+M2-camera collection uses six explicit decoded vertices in three actual
+producer frames, verified against root-owned TA offsets and final opaque
+index membership. Do not infer upstream geometry from float/cycle similarity.
+The resulting packet map bounds the next actual gather/record observations;
+it is not camera calibration or proof that these pixels are visible.
+Positive A and disabled C have exact native/guidance preservation. Negative B
+correctly rejects its expected epoch and preserves complete scene packets,
+but its small color/raw-depth differences prevent a paired GPU-preservation
+claim. Retain that failure without lowering equality, claiming a cause, or
+reopening the parked replay investigation. Temporary probe code is removed;
+production camera activation remains unavailable until broader proof exists.
+
 ## D-115: share algebra code, not unproven projection-domain assumptions
 
 The linked opaque sample and earlier translucent sample can use the same

@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+## FC-067 opaque packet collection
+
+`python neuraltest/camera_packet_inspect.py --capture CAPTURE` checks the
+six-vertex/three-frame decoded-packet map in CAMERA-PACKET-AUDIT.md and eight
+offline controls. `test_camera_packet_inspect.py` has six synthetic methods.
+It verifies buffer/draw/producer association, not upstream FTRV, visibility or
+camera truth. The audit retains the failed negative GPU-preservation attempt;
+do not report full paired native equality from a passing packet map.
+
 ## FC-067 selected opaque transform edge
 
 `python neuraltest/transform_semantics_inspect.py --opaque-capture CAPTURE`
