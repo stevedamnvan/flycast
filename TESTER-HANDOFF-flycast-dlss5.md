@@ -1,5 +1,11 @@
 # Flycast DLSS 5 tester handoff
 
+Current authority: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. q=1/Zrecord is proven
+through an actual predecessor edge. Next bounded initial-record producer block
+at stores8c03c94e/50/52, with exact destination selection and audit controls.
+No repeated reciprocal/final-block trace, recursive callers or camera claim.
+The source record's coordinate system remains unknown. Newest heading governs.
+
 Current authority: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Final coordinate
 block8c03c9c0 is proven with actual floating-point mode/intermediates. Next only
 one actual predecessor edge supplying FR3=q to the selected invocation, within

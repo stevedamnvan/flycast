@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current authority: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. Actual predecessor
+loads the earlier record Z and computes q=1/Z, then hands it to the final block.
+Record Z's coordinate system remains unknown. Next bounded initial-record
+producer block at stores8c03c94e/50/52, not repeated reciprocal/final-block
+tracing, recursive callers or camera promotion. Newest heading governs.
+
 Current authority: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Final block8c03c9c0
 proves X=a*q+320,Y=b*q+240,Z=q with actual toward-zero binary32 intermediates.
 The q live-in's origin/meaning remains unknown. Next one bounded actual

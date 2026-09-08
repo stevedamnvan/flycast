@@ -1,5 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #173 update: selected predecessor proves1/Zrecord, linking the earlier RAM
+generation to the actual final-coordinate input. Record Z's coordinate system
+and initial calculation remain unknown; no world camera/M2 promotion. Next
+bounded initial-record producer in OPAQUE-FACTOR-EDGE-AUDIT.md.
+
 LOG #172 update: actual final coordinate block8c03c9c0 proves its separate
 binary32 multiply/add steps and Z-factor copy under measured rounding. The
 factor's producer/depth semantics and world camera remain unknown. Next one

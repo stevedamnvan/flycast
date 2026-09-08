@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-110: reciprocal record depth is not yet camera-space depth
+
+Actual1/Zrecord arithmetic and a checked successor edge establish the selected
+factor's origin without establishing the earlier record's coordinate system.
+Bind denominator loads to the before-overwrite byte generation, and falsify
+that binding with a mutation that the final-record verifier alone still accepts.
+A matching successor factor is not enough if an intervening block/reset breaks
+the edge. Stop predecessor expansion once the factor is found; next only the
+already observed initial record-producing stores under OPAQUE-FACTOR-EDGE-AUDIT.md.
+
 ## D-109: prove final viewport arithmetic without inventing its factor
 
 Observed X=a*q+320,Y=b*q+240,Z=q is a final coordinate calculation, not proof of
