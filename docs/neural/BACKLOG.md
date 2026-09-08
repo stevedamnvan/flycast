@@ -77,48 +77,29 @@ scene/native/guidance equality. They match the older native reference but
 retain the small known graphics discrepancy against the latest checkpoint.
 Initial A/B shutdown rejections remain failed attempts. Do not repeat this map.
 
-Current collection pass C: reuse the retained initial-supply FTRV, initial-
-store, reciprocal and final-projection seams for those exact six RAM records
-across the same three producer frames. Hypothesis: the actual last-producing
-transform and projection can be linked for both draws without inventing a
-world origin or borrowing the translucent depth factor. Require actual RAM
-write generations through the accepted gather/SQ/copy chain, not address,
-timestamp or float coincidence. Bound each selected block to128 operations,
-32 live words and512 events, at most18 selected invocations per reused seam;
-retain explicit aggregate counts. Reject resets, overwritten/unobserved
-writers, duplicate records and truncation; no wider caller census. Missing
-coverage requires a finite changed hypothesis, not more unbounded logging.
-Preserve all four FTRV inputs and matrix words; verify analytic projection,
-depth and wrong-layout/scale/generation/association controls. Run one positive
-and expected-identity-only negative, compare complete scene/native/guidance,
-and retain all differences. Use independent M1-GPU if two tranches make no
-new causal or capability progress. A source map alone enables no camera.
+Transform collection accepted in its bounded scope (LOG180..184,
+TRANSFORM-COVERAGE-AUDIT.md):15 selected samples across three frames now have
+initial-transform, accumulation where present, X-load, reciprocal/projection,
+RAM writer and final gather lineage. Slot3/draw26 vertex146 remains unsupported.
+All temporary core hooks are removed. Retain earlier diagnostic failures and
+the known image/depth discrepancy; latest X-load positive/negative imagery,
+depth and motion agree. Do not repeat completed packet/gather/X-load traces.
 
-Start with existing `initial_edge_inspect.py`, the retained initial-supply-a
-diagnostic patch/header, source/material packets and deterministic Hoko Temple
-replay. Do not rebuild the already proven single-vertex lineage from scratch.
+Current next action: checkpoint the proven verifier/runtime bring-up slices
+after required restored/exact checks, then derive or reject a consistent
+camera-relative coordinate contract using the observed matrices and existing
+algebra. Do not invent FOV, scale, world origin, normals or bone semantics.
+Fifteen samples do not establish whole-draw/scene coverage. Keep the current
+six-record/three-frame collection limits for any focused regression; any new
+coverage hypothesis must be finite and recorded before running.
 
-1. Inspect the current captured transform algebra and source semantics first.
-   Preserve all four input components; distinguish a shared projection from
-   per-object/model-view transforms and mathematically equivalent decompositions.
-   Do not search for a unique arbitrary world origin as an acceptance condition.
-2. Implement a bounded extension for at most six distinct opaque vertices per
-   frame across the same three consecutive producer-identified frames (18
-   observations maximum), preferably spanning two draws. Select by actual
-   TA/source generation and decoded identity, not similar values/timestamps.
-   Report which draws/components are covered and which are missing.
-3. Retain 128 operations / 32 live words / 512 events per observed block,
-   explicit aggregate limits for 18 observations, reset/overwrite rejection,
-   and no unbounded caller/site census. A documented hypothesis may justify
-   a subsequent bounded producer/dependency tranche without asking the user.
-4. Use analytic projection/depth and wrong-layout/scale/generation/association
-   controls. Require native/source/guidance preservation for diagnostic changes.
-   Keep per-draw or camera-relative contracts explicitly labeled; a few samples
-   cannot establish whole-scene/world camera or temporal correspondence.
-5. Record supported/unsupported scope and update this card. If a concrete
-   missing input can be obtained safely, write that finite subtask here and
-   execute it. Otherwise take M1-GPU rather than repeat the completed audit.
-   No production camera payload is enabled until its source contract is proven.
+Independent M1-GPU: standalone runtime bring-up builds;63/63 public-header
+mock tests include120-frame immutable-resource reuse and failure invalidation.
+The configured cache contains only header/licenses. Real runtime startup,
+GPU output/readback/completion and combined presentation remain unproven.
+Use REMAKE-RUNTIME-BRINGUP.md when a legal compatible runtime is available.
+Do not expand mocks further merely to avoid that dependency; no proprietary
+binary fetch or configuration workaround is authorized.
 
 ### Autonomous progression and no-progress rule
 

@@ -11,12 +11,12 @@ from transform_store_inspect import load_session, require
 from xyz_operand_inspect import operand, reg_key
 
 
-def inspect_block(session):
+def inspect_block(session, base=0x8ce74250, cycle='7602512960'):
     require('FC067_INITIAL_REJECT' not in session,'live initial-store rejection')
     entries,exits=(records(session,'FC067_INITIAL_'+tag) for tag in ('ENTRY','EXIT'))
     require(len(entries)==len(exits)==1,'not one initial-store invocation')
     entry,finish=entries[0],exits[0]
-    require(entry['block']=='8c03c94c' and entry['cycle']=='7602512960'
+    require(entry['block']=='8c03c94c' and entry['cycle']==cycle
             and entry['ops']=='10' and entry['inputs']=='5','wrong initial-store block')
     require(entry['descriptor']==finish['descriptor'] and finish['events']=='10'
             and finish['selected']=='1','wrong terminal witness')
@@ -28,7 +28,7 @@ def inspect_block(session):
         require(reg not in live and 0<=value<=0xffffffff and row['value']==row['expected']
                 and row['exact']=='1','live operand mismatch')
         state[reg,0]=live[reg]=value
-    require(set(live)=={0,6,16,17,18} and live[0]==0x8ce7425c,'wrong source registers')
+    require(set(live)=={0,6,16,17,18} and live[0]==base+12,'wrong source registers')
     names=['sub','seteq','sub','writem','sub','writem','sub','writem','jcond','add']
     pcs=[0x8c03c94c,0x8c03c94c,0x8c03c94e,0x8c03c94e,0x8c03c950,
          0x8c03c950,0x8c03c952,0x8c03c952,0x8c03c954,0x8c03c956]
@@ -59,7 +59,7 @@ def inspect_block(session):
             value=int(row['value'],16)
             require(value==calculate(op['op'],a,b,0),'address/count arithmetic mismatch')
             state[key]=value
-    require([int(row['address'],16) for row in stores]==[0x8ce74258,0x8ce74254,0x8ce74250],
+    require([int(row['address'],16) for row in stores]==[base+8,base+4,base],
             'wrong record destination')
     require(session.index('FC067_INITIAL_ENTRY ')<session.index('FC067_INITIAL_EXIT '),'buffer chronology')
     return {'initial_xyz_words':[live[16],live[17],live[18]],'initial_store_block_proven':True,

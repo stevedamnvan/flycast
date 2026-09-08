@@ -27,12 +27,12 @@ def calculate(name, a, b, mode):
     raise ValueError('unsupported calculation: '+name)
 
 
-def inspect_block(session):
+def inspect_block(session, base=0x8ce74250, cycle='7602640640'):
     require('FC067_CALC_REJECT' not in session, 'live calculation rejected')
     entries, exits = records(session, 'FC067_CALC_ENTRY'), records(session, 'FC067_CALC_EXIT')
     require(len(entries) == len(exits) == 1, 'not one selected block')
     entry, finish = entries[0], exits[0]
-    require(entry.get('block') == '8c03c9c0' and entry.get('cycle') == '7602640640'
+    require(entry.get('block') == '8c03c9c0' and entry.get('cycle') == cycle
             and entry.get('ops') == '17' and entry.get('inputs') == '7', 'wrong selected block')
     require('mxcsr' in entry and 'fpscr' in entry and 'mxcsr' in finish, 'missing floating-point mode')
     mxcsr = int(entry['mxcsr'], 16)
@@ -49,7 +49,7 @@ def inspect_block(session):
         require(0 <= value <= 0xffffffff, 'input word range')
         state[reg, 0] = live[reg] = value
     require(set(live) == {4,5,16,17,19,20,21}, 'unexpected live-in set')
-    require(live[4] == 0x8ce7425c, 'wrong record pointer')
+    require(live[4] == base+12, 'wrong record pointer')
     dynamic = []
     for line in session.splitlines():
         match = re.search(r'FC067_CALC_(VALUE|READ|STORE) ', line)
@@ -98,7 +98,7 @@ def inspect_block(session):
         state[key] = value
     require(cursor == len(dynamic) and len(stores) == 3 and read_count == 1 and float_count == 4, 'wrong calculation shape')
     require([int(row['pc'],16) for row in stores] == [0x8c03c9ca,0x8c03c9cc,0x8c03c9ce]
-            and [int(row['address'],16) for row in stores] == [0x8ce74258,0x8ce74254,0x8ce74250], 'wrong final stores')
+            and [int(row['address'],16) for row in stores] == [base+8,base+4,base], 'wrong final stores')
     return {'final_words_xyz': [int(row['value'],16) for row in reversed(stores)],
             'block_ops': 17, 'block_events': 18, 'float_ops_verified': 4,
             'mxcsr_rounding_mode': mode, 'live_input_words': live,

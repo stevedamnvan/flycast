@@ -8,26 +8,24 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera, collection pass C in the backlog.
-LOG #179 links18 gathered XYZ triples through physical SQ/copy/decoder ownership
-for two opaque draws in three frames. CAMERA-GATHER-AUDIT.md records the six
-actual RAM bases. Reuse the retained initial-supply diagnostic and actual
-transform at `8c03c944` to link the original producing transforms/projections
-through actual RAM write generations. Do not repeat packet/gather discovery or
-LOG #177's algebra. Preserve nonunit W and opaque/translucent depth distinctions.
-C/D/E have exact paired scene/graphics/guidance equality; the latest checkpoint
-GPU-repeat discrepancy remains explicit. Follow the active backlog bounds.
+Current first card: FC-067 / M2-camera. LOG180..184 and
+TRANSFORM-COVERAGE-AUDIT.md record15 supported original-transform/accumulation/
+projection/X-load/RAM/gather samples across three frames. Slot3 remains
+unsupported. All temporary core hooks are removed. Do not repeat these traces.
+Next determine a usable camera-relative coordinate contract from the observed
+matrices and existing algebra, without inventing FOV, scale or world semantics.
+Preserve nonunit W and opaque/translucent depth distinctions. Latest X-load
+positive/negative images/depth/motion agree; older retained repeatability
+discrepancies are not erased. Follow the active backlog bounds.
 If the card is genuinely blocked, take FC-067 /
-M1-GPU, whose standalone real-SDK GPU harness does not require a recovered
-game camera. Neither synthetic GPU output nor the existing mock is gameplay
+M1-GPU. The standalone public-SDK bring-up now builds but needs a legal compatible
+runtime; read REMAKE-RUNTIME-BRINGUP.md. Its63-check mock and API success are not GPU
+proof. It does not require a recovered game camera. Neither synthetic GPU output nor the existing mock is gameplay
 or combined DLSS 5 presentation evidence.
 
-Last tested implementation anchor:0e095eb7578bc11dfd33a7593a0548b4fc488795,
-pushed to the existing fork; all four exact builds, three298-check selftests,
-SDK56 mock checks and Python128+5 pass. These are historical verified counts,
-not substitutes for running the new slice's required tests. Its hook-free
-three-frame capture preserves27 image planes,3 producer IDs,9 guidance hashes.
-LOG #175 and OPAQUE-INITIAL-STORES-AUDIT.md detail the actual transform result.
+Latest build/test outcomes and exact checkpoint identities are in LOG, not
+duplicated here. Before advancing, inspect actual HEAD/status and preserve any
+newer work. Historical exact-SHA results are not substitutes for new checks.
 
 For each slice report ACCEPTED, CORRECTIONS_REQUIRED or NOT_REVIEWABLE, update
 the current backlog card and LOG/DECISIONS, preserve failed artifacts, and

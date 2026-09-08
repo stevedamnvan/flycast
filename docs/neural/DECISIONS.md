@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-118: preserve accumulated transforms and distinguish supported domains
+
+LOG180..184 falsify a single-FTRV replacement model for selected draw26 records.
+Use observed FTRV contributions plus existing XYZ additions, preserving all
+four input words and actual byte-writer generations. Fifteen samples now have
+bounded arithmetic/load/store/gather lineage; slot3 and coordinate semantics
+remain unsupported. TRANSFORM-COVERAGE-AUDIT.md defines this exact scope.
+Do not invent bone, camera or whole-scene meaning from this pattern.
+
+Standalone Remix bring-up reuses immutable resources across camera-only redraws.
+Public API success and CPU lifetime tests do not prove GPU output or completion.
+The supplied-runtime dependency remains explicit; no fetch/config workaround.
+
 ## D-117: bind gathered positions before attributing their original transform
 
 Collection pass B reuses scalar SSA validation for18 actual gathered XYZ

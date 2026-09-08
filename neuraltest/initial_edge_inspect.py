@@ -24,7 +24,7 @@ def vector_keys(token, count):
     return [(int(match[1])+i, version) for i, version in enumerate(versions)]
 
 
-def inspect_edge(session):
+def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1'):
     require('FC067_SUPPLY_REJECT' not in session, 'live predecessor rejection')
     rows = [records(session, 'FC067_SUPPLY_'+tag) for tag in ('ENTRY', 'EXIT', 'EDGE')]
     require(all(len(row) == 1 for row in rows), 'missing/duplicate predecessor edge')
@@ -32,10 +32,10 @@ def inspect_edge(session):
     require(entry['block'] == '8c03c93a' and entry['ops'] == '11'
             and entry['inputs'] == '19' and finish['events'] == '18'
             and entry['descriptor'] == finish['descriptor'], 'wrong bounded descriptor')
-    require(entry['cycle'] == finish['cycle'] == edge['cycle'] == '7602512960', 'edge cycle')
+    require(entry['cycle'] == finish['cycle'] == edge['cycle'] == cycle, 'edge cycle')
     require(finish['next'] == edge['block'] == '8c03c94c'
-            and finish['pointer'] == edge['pointer'] == '8ce7425c'
-            and finish['generation'] == edge['generation'] == edge['exact'] == '1', 'edge identity')
+            and int(finish['pointer'],16) == int(edge['pointer'],16) == base+12
+            and finish['generation'] == edge['generation'] == generation and edge['exact'] == '1', 'edge identity')
     require([finish[k] for k in ('x', 'y', 'z')] == [edge[k] for k in ('x', 'y', 'z')]
             and edge['z'] == edge['expected_z'], 'edge operand mismatch')
     require(int(entry['fpscr'], 16) == 0x40001, 'unsupported FPSCR')
@@ -49,7 +49,7 @@ def inspect_edge(session):
         require(reg not in live and 0 <= value <= 0xffffffff
                 and row['value'] == row['expected'] and row['exact'] == '1', 'live input mismatch')
         state[reg, 0] = live[reg] = value
-    require(set(live) == {0, 5, 8, *range(32, 48)} and live[0] == 0x8ce74250,
+    require(set(live) == {0, 5, 8, *range(32, 48)} and live[0] == base,
             'live register set or record pointer')
     ops = records(session, 'FC067_SUPPLY_OP')
     names = ['readm', 'add']*4 + ['add', 'ftrv', 'test']
