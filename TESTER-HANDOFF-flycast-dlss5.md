@@ -1,6 +1,12 @@
 # Flycast DLSS 5 tester handoff
 
-Current R1 decoder checkpoint: see OPAQUE-REVERSE-PLAN.md and LOG #167.
+Current implementor task: R2 in OPAQUE-REVERSE-PLAN.md, LOG #168. R1 now binds
+an actual TAWriteSQ slot1 copy to opaque vertex4; wrong-generation live query
+rejects with native preservation. Trace the physical SQ filling stores/last
+writers consumed by this one flush; retain aliases, widths, reset/flush bounds
+and wrong-word controls. Do not repeat R1 or infer a camera from this copy.
+
+Historical R1 decoder checkpoint: see OPAQUE-REVERSE-PLAN.md and LOG #167.
 The selected opaque vertex4 links to a type3 packet at TA offset32, with vertex
 member offset36. The initial offset36-as-packet attempt is rejected/retained.
 Next implement one bounded actual TA copy witness with per-context generation,

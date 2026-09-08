@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-105: a copied SQ packet is not its filling-store producer
+
+Accept R1 only for the actual observed type3 packet: source bytes at TAWriteSQ,
+post-copy destination, same-context decoder pointer and final vertex agree.
+A one-shot packet lease cleared on lifecycle invalidation prevents recycling
+from rearming this diagnostic; it is not a general renderer-generation feature.
+The live wrong-generation query must reject even when bytes match. R2 observes
+actual last writers to the physical aliased SQ slot, not current RAM guessed
+after submission, static instruction membership or a presumed camera routine.
+See OPAQUE-REVERSE-PLAN.md. No expansion to all variants or whole-scene semantics.
+
 ## D-104: separate TA packet header, vertex member and original transfer
 
 The selected normal type3 parser consumes a32-byte packet whose TA_Vertex3

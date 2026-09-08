@@ -1,6 +1,12 @@
 # Flycast agent entry point
 
-Current R1 checkpoint: OPAQUE-REVERSE-PLAN.md, LOG #167. Decoder-buffer packet
+Current R1 acceptance: OPAQUE-REVERSE-PLAN.md, LOG #168. Actual SQ slot1 copy
+at cycle7602643776 links to the selected opaque vertex4. Wrong-generation live
+query rejects with native preservation; hooks removed. Next R2 bounded physical
+SQ slot1 filling-store/last-writer witness, including E0-E3 aliases and32/64-bit
+writes. No repeated locator/copy capture, caller census or world-camera claim.
+
+Historical R1 checkpoint: OPAQUE-REVERSE-PLAN.md, LOG #167. Decoder-buffer packet
 offset32 (vertex member offset36) links to opaque vertex4. Transfer provenance
 is still missing. Next bounded actual TA copy witness for that packet with
 per-context generation and source/destination bytes; R2 remains unauthorized

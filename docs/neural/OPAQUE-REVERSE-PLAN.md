@@ -2,6 +2,58 @@
 
 ## R1 working checkpoint
 
+Restored R1-copy checkpoint: four serial configure/builds pass, three enabled
+selftests298/298 each, SDK56 with runtime/GPU/Present false, Python76 inspector
+plus5 binary32 methods pass. Core diff is empty. Exact-commit validation follows.
+
+2026-09-08 R1 bounded acceptance (LOG #168): the actual32-byte source copy is
+TAWriteSQ, address0xe0000020/slot1, cycle7602643776. Its before/after eight words
+agree with the decoder's packet at offset32. The destination pointer is carried
+on the same context to decode and final opaque vertex4, not matched by position.
+The fresh accepted producer is epoch3/ordinal1781/cycle7605222912.
+
+One observation generation1 is selected for the entire process in the preceding
+one-frame cycle window; it cannot rearm. Context reset/recycle/deserialization
+clears its metadata, target overwrite invalidates it. This is a bounded packet
+lease, not a new general-purpose renderer context-generation implementation.
+Only one packet record/eight word records and one vertex association are retained.
+
+Capture fc067-reverse-copy-a passes reverse_copy_inspect.py and five actual-input
+offline controls (generation, offset, destination, byte, path). Six synthetic
+methods pass. In fc067-reverse-copy-b-negative the live decoder requests generation2
+while actual metadata remains1: link exact=0 and verifier rejects, with identical
+original/copied words. Both captures exit0/clean close and each preserves27 unique
+native planes plus three producer stamps against the hook-free fd79db700 capture.
+The first focused Python invocation also discovered five imported decoder tests;
+import changed to a module to avoid counting those duplicates as new coverage.
+
+R1 self-review ACCEPTED ONLY for the selected normal type3 opaque vertex. No
+sprite/split/64-byte/general compaction claim. Material generation, final index,
+packet/vertex values and actual copy membership are checked; original CPU filling
+stores and camera remain unknown. Temporary core hooks removed; exact patches
+fc067-reverse-copy-a.patch and fc067-reverse-copy-b.patch retained ignored.
+
+## R2 next bounded implementation
+
+R1 evidence review above permits the previously conditional R2 scope. Trace only
+the stores filling physical SQ slot1 that are consumed by this same target flush.
+The x64 StoreQueue handler masks the address with0x3f after checking the E0-E3
+region; include these physical aliases, not only guest address0xe0000020.
+Both32- and64-bit stores must be covered. Carry actual executed SH4 store PCs
+and per-byte last-writer coverage, not a stale generic SH4 context PC or static
+instruction membership. Preserve normal register allocation and memory effects.
+
+Start a bounded interval before the known flush, retain actual preceding slot1
+flush/reset boundaries, and stop at cycle7602643776 only when its32-byte payload,
+TA destination, decode and producer identity match R1. Reject missing earlier
+writers, unsupported write paths, incomplete coverage, reset, ordering ambiguity
+or cap exhaustion. Bound to at most256 SQ writes/flush records and two emulated
+seconds; do not expand into a CPU site census or caller trace. Prove last writers
+for all32 bytes and falsify a wrong-word/generation control. Only then scope the
+observed operand producer; R2 does not itself establish a world camera.
+
+Historical decoder-only checkpoint:
+
 Restored working-tree validation: all four configure/builds pass; three enabled
 selftests298/298 each; SDK mock56 (runtime/GPU/Present false); Python70 inspector
 and5 binary32 tests pass. Exact-commit verification/delivery follows checkpoint.

@@ -1,9 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
-2026-09-08 scope update: user approved OPAQUE-REVERSE-PLAN.md. LOG #167 proves
-only the selected type3 TA-buffer-to-final-opaque-vertex association. Actual
-original transfer and CPU/world provenance remain missing; the requirements
-below are not promoted. R1 copy witness is next; R2 awaits full R1 review.
+2026-09-08 scope update: user approved OPAQUE-REVERSE-PLAN.md. LOG #168 proves
+the selected type3 SQ-to-TA copy-to-final-opaque-vertex association, including a
+failing live generation query. Original SQ filling stores and CPU/world
+provenance remain missing; requirements below are not promoted. R1 selected-path
+review accepts; next bounded R2 physical SQ last-writer witness is scoped.
 
 Audit source84231a2af. Overall objective remains INCOMPLETE. A bounded no-go
 disposition is not a whole-scene reconstruction pass or completion of strict M2.

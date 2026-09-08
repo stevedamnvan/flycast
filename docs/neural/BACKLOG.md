@@ -1,5 +1,12 @@
 # Neural rendering backlog
 
+FC-067 R1 selected-type3 acceptance (LOG #168): actual TAWriteSQ slot1 copy,
+cycle7602643776, reaches opaque vertex4 via same-context destination provenance.
+Live wrong-generation query rejects; both captures preserve native27 planes and
+three producer stamps. Next conditional R2 is now scoped in OPAQUE-REVERSE-PLAN.md:
+physical SQ filling-store last writers, not arbitrary caller/camera tracing.
+Overall M2, world camera, strict parked replay and real Remix GPU remain open.
+
 FC-067 R1 PARTIAL (LOG #167): actual type3 TA packet offset32/member offset36
 links to final opaque draw1/vertex4. A misaligned first probe is rejected;
 corrected B preserves27 native planes and three producer stamps. Five new

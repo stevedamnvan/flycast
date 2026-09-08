@@ -1,8 +1,8 @@
 # Flycast DLSS 5 course correction
 
-Current user-approved route: OPAQUE-REVERSE-PLAN.md, LOG #167. R1 now links one
-opaque vertex to its actual TA-buffer packet; original copy provenance is next.
-No further locator/caller census, R2 or world-camera claim. This is a bounded
+Current user-approved route: OPAQUE-REVERSE-PLAN.md, LOG #168. R1 now links one
+opaque vertex to its actual SQ-to-TA copy. R2 physical SQ filling stores are next.
+No further locator/caller census or world-camera claim. This is a bounded
 reverse trace, not a finished RTX Remix/path-tracing or combined DLSS5 route.
 
 Historical decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
