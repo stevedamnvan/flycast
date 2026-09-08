@@ -14,20 +14,23 @@ ADDED=[0x40a00000,0x40e00000,0x41100000]
 FINAL=[0x43938000,0x436b0000,0x3e800000]
 
 
-def fixture():
+def fixture(full_draw=False):
     lines=[]; samples=[]; count=0
     for frame in range(3):
         gen=1790+frame;ordinal=1781+frame;cycle=1000+frame*1000
         lines.append(f'FC067_CT_BEGIN generation={gen} ordinal_hint={ordinal} cycle={cycle}')
-        for slot,base in enumerate(BASES):
+        bases=[0x1000+16*i for i in range(48)] if full_draw else BASES
+        for slot,base in enumerate(bases):
             sample=frame*6+slot+1
-            samples.append(dict(generation=gen,slot=slot,producer=dict(ordinal=ordinal,cycle=cycle+900),
+            if not full_draw: samples.append(dict(generation=gen,slot=slot,producer=dict(ordinal=ordinal,cycle=cycle+900),
                                 position_ram_addresses=[f'{base:x}'],position_words=FINAL[:],sample=sample,draw=slot,vertex=slot))
-            if slot==3: continue
-            extra=slot in (4,5);pre=ADDED if extra else INITIAL;n=9 if extra else 6
+            if not full_draw and slot==3: continue
+            extra=not full_draw and slot in (4,5);pre=ADDED if extra else INITIAL;n=9 if extra else 6
             def header(kind):
                 lines.append(f'FC067_CT_BLOCK generation={gen} ordinal_hint={ordinal} slot={slot} kind={kind} base={base:x} cycle={cycle+1}')
-                lines.append(f'FC067_{checker.TAGS[kind]}_ENTRY cycle={cycle+1}')
+                lines.append(f'FC067_{checker.TAGS[kind]}_ENTRY cycle={cycle+1} descriptor={kind}')
+                if full_draw and frame==0 and slot==0:
+                    lines.append(f'FC067_{checker.TAGS[kind]}_OP index=0 synthetic=1')
             def writes(kind,values,start,pc,tag=None):
                 for j,value in enumerate(reversed(values)):
                     lines.append(f'FC067_CT_WRITE generation={gen} slot={slot} event={start+j} kind={kind} address={base+8-4*j:x} pc={pc+2*j:x} source={value:x} actual={value:x} cycle={cycle+1}')
@@ -42,13 +45,20 @@ def fixture():
             lines.append(f'FC067_X_EDGE slot={slot} generation={gen} block=8c03c9a4 pointer={base+4:x} value={pre[0]:x} expected={pre[0]:x} exact=1')
             header(2);lines.append(f'FC067_PRED_EDGE x={pre[0]:x}')
             header(3);writes(3,FINAL,n-2,0x8c03c9ca,'CALC')
-            for j,value in enumerate(FINAL):
+            for j,value in enumerate([] if full_draw else FINAL):
                 lines.append(f'FC067_CT_GATHER sample={sample} generation={gen} slot={slot} component={j} address={base+4*j:x} value={value:x} expected={value:x} events={n} writers='+','.join([str(n-j)]*4))
-        lines.append(f'FC067_CT_FRAME generation={gen} ordinal={ordinal} complete=55 counts='+','.join([str((frame+1)*5)]*4))
+        if full_draw:
+            for vertex_slot in range(142):
+                slot=vertex_slot%48;base=bases[slot];sample=frame*142+vertex_slot+1
+                samples.append(dict(generation=gen,slot=vertex_slot,producer=dict(ordinal=ordinal,cycle=cycle+900),
+                    position_ram_addresses=[f'{base+4*j:08x}' for j in range(3)],position_words=FINAL[:],sample=sample,draw=1,vertex=vertex_slot+4))
+                for j,value in enumerate(FINAL):
+                    lines.append(f'FC067_CT_GATHER sample={sample} generation={gen} slot={slot} component={j} address={base+4*j:x} value={value:x} expected={value:x} events=6 writers='+','.join([str(6-j)]*4))
+        lines.append(f'FC067_CT_FRAME generation={gen} ordinal={ordinal} complete={48 if full_draw else 55} counts='+','.join([str((frame+1)*(48 if full_draw else 5))]*4))
     return '\n'.join(lines)+'\n',dict(samples=samples)
 
 
-def run(text,source):
+def run(text,source,full_draw=False):
     def pred(section,base,*args):
         pre=ADDED if base in BASES[4:] else INITIAL
         return dict(factor_word=FINAL[2],source_loads=[(base+4,pre[1]),(base+8,pre[2])],written_registers=[4,17,18,19,68])
@@ -62,10 +72,27 @@ def run(text,source):
          patch.object(checker,'inspect_initial',return_value=dict(initial_xyz_words=INITIAL[:])), \
          patch.object(checker,'inspect_pred',side_effect=pred),patch.object(checker,'inspect_calc',side_effect=calc), \
          patch.object(checker,'inspect_extra',side_effect=extra):
-        return checker.inspect(text,source)
+        return checker.inspect(text,source,full_draw)
 
 
 class AggregateTests(unittest.TestCase):
+    def test_full_draw_protocol_and_shared_records(self):
+        result=run(*fixture(True),True)
+        self.assertEqual(result['observations'],426)
+        self.assertEqual(result['executed_seams'],576)
+        self.assertEqual(result['unsupported_slots'],[])
+        self.assertFalse(result['world_camera_recovered'])
+        self.assertFalse(result['production_enabled'])
+
+    def test_full_draw_missing_descriptor_and_late_consumer_controls(self):
+        text,source=fixture(True)
+        for old,new in [('FC067_SUPPLY_OP index=0 synthetic=1','NOT_A_DESCRIPTOR'),
+                        ('FC067_CT_GATHER sample=426','FC067_CT_GATHER sample=425'),
+                        ('complete=48','complete=47'),
+                        ('FC067_X_EDGE slot=47 generation=1792','FC067_X_EDGE slot=46 generation=1792'),
+                        ('kind=3 base=12f0','kind=3 base=12e0')]:
+            self.assertIn(old,text)
+            with self.subTest(old=old),self.assertRaises(ValueError): run(text.replace(old,new,1),source,True)
     def test_protocol_golden(self):
         result=run(*fixture())
         self.assertEqual(result['observations'],15)

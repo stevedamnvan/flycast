@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `c6450eafd2c443a3b4a148a4dc4b26073ff913d7`, pushed.
+- Last exact tested checkpoint: `88b82d7f4e03d177bc1f5f26f2d085edd9dd4733`, pushed (LOG186). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -85,13 +85,75 @@ All temporary core hooks are removed. Retain earlier diagnostic failures and
 the known image/depth discrepancy; latest X-load positive/negative imagery,
 depth and motion agree. Do not repeat completed packet/gather/X-load traces.
 
-Current next action: checkpoint the proven verifier/runtime bring-up slices
-after required restored/exact checks, then derive or reject a consistent
-camera-relative coordinate contract using the observed matrices and existing
-algebra. Do not invent FOV, scale, world origin, normals or bone semantics.
+Current next action: prioritize unsupported geometry groups by triangle
+contribution and shared producer programs. LOG192 now supports one complete
+92-triangle draw out of8339 opaque index triangles per frame; it is not
+renderable by Remix. Do not repeat its source/transform traces. Survey retained
+scene domains first and choose a bounded high-coverage family, not simply the
+next draw ordinal. Runtime/GPU remains an independent external dependency.
+The21 linked matrices support common normalized scales
+within0.001; this is a calibrated representation, not unique physical camera
+intrinsics. Do not invent FOV, scale, world origin, normals or bone semantics.
 Fifteen samples do not establish whole-draw/scene coverage. Keep the current
 six-record/three-frame collection limits for any focused regression; any new
 coverage hypothesis must be finite and recorded before running.
+
+Next coverage hypothesis: the complete existing opaque draw1 can be linked
+using the now-known producer programs and common calibration. First inspect
+its exact strip/vertex/packet domain, then implement bounded compact collection
+for at most256 distinct vertices per frame over the same three frames. Emit
+reused instruction descriptors once, not per vertex; retain actual per-vertex
+source/matrix/record generation and all unknown-writer rejection. Do not expand
+to every draw or claim8339-triangle coverage from a successful draw1 result.
+Record concrete byte/event budgets before new probe execution. If a required
+domain cannot be linked, quantify it and do not manufacture geometry.
+
+Complete-draw domain verified from retained scenes (LOG188): draw1 has142
+unique vertices4..145,166 indices,24 restart markers and92 index triangles;
+the complete stream and draw/texture metadata agree across all three frames.
+Use this exact domain, not166 assumed vertices or inferred packet addresses.
+The next compact probe is bounded to426 actual vertex observations total,
+256 vertices/frame capacity,32 reused descriptors at128 operations each,
+32 live input words per selected transform and8MiB total emitted data. Capture
+actual source/generation associations; emit descriptors once. Reject overflow
+and unsupported producer paths rather than silently truncating or upgrading
+topology agreement into original-transform proof.
+
+Full-draw source capture A (LOG189) verifies426 actual RAM/SQ/copy/decoder
+associations and reveals only48 distinct source XYZ records per frame, not142.
+Use those actual addresses for the next transform collection:144 unique record
+instances over three frames,426 downstream vertices. The142-vertex domain and
+all byte/descriptor caps remain unchanged. Original producer transforms are
+still unproven. First complete-draw verifier rejected valid strip-end header
+stores; corrected only after checking them against actual restart topology.
+Live B wrong-ID rejects, but paired graphics preservation fails because actual
+producer cycles differ by6672512 at the same ordinal. Retain both runs and do
+not claim exact-input comparison. Widened synthetic tests now pass (LOG190),
+including a corrected fail-closed budget-marker bug. Explicit record grouping
+verifies unchanged XYZ across all consumers of each of48 records per frame.
+Next integrate the known transform/accumulation/X-load seams for48 records;
+retain writer protection through every mapped consumer, not just the first
+XYZ triple as the old six-record collector did. All176 inspector tests pass;
+no original-transform/full-draw camera acceptance follows from grouping alone.
+Full-draw transform probe bounds: use the verified48-base/142-consumer map
+(identical across retained frames),144 record instances,576 primary seams,
+at most6 accumulation blocks per record/864 total,64 writes per record and
+512 operand events per block. Combined descriptor count stays32 across all
+three programs,128 operations/32 input words each,8MiB total emitted data.
+Keep leases armed until every expected consumer completes; unknown writes,
+missing consumers, unsupported transforms or budget overflow reject the run.
+Collector implemented and capture B complete (LOG191/192):144 records,576 seams,
+1278 XYZ gathers,864 writes,144 X-load links; no accumulation in this domain.
+Arithmetic verifier checks426 vertices. Independent full-domain aggregate
+tests now pass;181 inspector tests pass. Clock
+edges crossing a scheduler quantum bind to the exact successor entry stamp,
+not a widened time tolerance. Wrong-X live C rejects but producer cycles and
+images differ, so preservation pairing fails. All92 triangles reconstruct in
+each frame with maximum reprojection error below0.000025 pixels;8247 omitted.
+Temporary hooks are removed and four restored builds/three298-test selftests
+pass. Preserve A's budget failure and B/C mismatch. Broader camera/scene and
+Remix acceptance remain pending; see FULL-DRAW-TRANSFORM-AUDIT.md.
+do not return to one-vertex tracing or infer a camera from address equality.
 
 Independent M1-GPU: standalone runtime bring-up builds;63/63 public-header
 mock tests include120-frame immutable-resource reuse and failure invalidation.

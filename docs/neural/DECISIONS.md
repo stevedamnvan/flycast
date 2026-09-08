@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-119: shared-record leases and bounded calibrated geometry
+
+One transformed RAM record can supply several indexed PVR vertices. Retain
+writer ownership through every actually mapped consumer, not merely the first
+XYZ triple. Use actual address/generation/consumer associations, compact reused
+descriptors and exact successor-entry clocks. An address range is not identity.
+
+FULL-DRAW-TRANSFORM-AUDIT.md supports one complete92-triangle opaque draw;
+8247 opaque triangles/frame remain omitted. Calibrated camera-relative geometry
+is a derived representation with verified reprojection, not recovered physical
+scale/world camera or a working Remix scene. Next prioritize remaining-domain
+coverage by triangle contribution rather than repeated single-point proofs.
+Preserve failed budget and timing-mismatched controls as explicit limitations.
+
 ## D-118: preserve accumulated transforms and distinguish supported domains
 
 LOG180..184 falsify a single-FTRV replacement model for selected draw26 records.

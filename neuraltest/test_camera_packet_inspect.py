@@ -4,28 +4,30 @@ import unittest
 from camera_packet_inspect import inspect, check_controls, ORDINALS, VERTICES
 
 
-def fixture():
+def fixture(full_draw=False):
+    vertices = tuple(range(4, 146)) if full_draw else VERTICES
+    n = len(vertices)
     lines, frames = [], []
     for sequence, ordinal in enumerate(ORDINALS, 1):
         cycle, root = 1000*sequence, ('00100000' if sequence == 2 else '00500000')
         stamp = dict(available=True, clock='sh4-scheduler-cycles', epoch=3, ordinal=ordinal, cycle=cycle)
         manifest = dict(frame_id=ordinal+1, git_sha='synthetic', game_id='T1401N', producer_identity=stamp)
         scene = dict(frame_id=ordinal+1, git_sha='synthetic', game_id='T1401N',
-                     vertices=[[0, 0, 0] for _ in range(149)], indices=list(VERTICES), draws=[])
-        for draw, first in ((1, 0), (26, 3)):
+                     vertices=[[0, 0, 0] for _ in range(149)], indices=list(vertices), draws=[])
+        for draw, first in (((1, 0),) if full_draw else ((1, 0), (26, 3))):
             scene['draws'].append(dict(list=0, ordinal=draw, range_space='indices', first=first,
-                                       count=3, tcw=123+draw, tsp=456))
+                                       count=n if full_draw else 3, tcw=123+draw, tsp=456))
         lines.append(f'FC067_CAMERA_PACKET_BEGIN epoch=3 ordinal={ordinal} cycle={cycle} root={root} sequence={sequence}')
-        for slot, vertex in enumerate(VERTICES):
+        for slot, vertex in enumerate(vertices):
             xyz = [0x43000000+slot+sequence, 0x43800000+slot, 0x3e800000+sequence]
             scene['vertices'][vertex] = xyz
             packet = ','.join(f'{v:08x}' for v in [0xe0000000, *xyz, 0, 0, 0, 0])
             lines.append(f'FC067_CAMERA_PACKET_DECODE epoch=3 expected_epoch=3 ordinal={ordinal} cycle={cycle} slot={slot} vertex={vertex} child={root} offset={32*(slot+1)} type=3 part=0 bytes=32 words={packet}')
-        for slot, vertex in enumerate(VERTICES):
-            draw, first = (1, 0) if slot < 3 else (26, 3)
+        for slot, vertex in enumerate(vertices):
+            draw, first = (1, 0) if full_draw or slot < 3 else (26, 3)
             xyz = ','.join(f'{v:08x}' for v in scene['vertices'][vertex])
-            lines.append(f'FC067_CAMERA_PACKET_FINAL ordinal={ordinal} slot={slot} vertex={vertex} child={root} offset={32*(slot+1)} list=0 draw={draw} first={first} count=3 index={slot} tcw={123+draw} tsp=456 xyz={xyz}')
-        lines.append(f'FC067_CAMERA_PACKET_END ordinal={ordinal} frames={sequence} packets={sequence*6}')
+            lines.append(f'FC067_CAMERA_PACKET_FINAL ordinal={ordinal} slot={slot} vertex={vertex} child={root} offset={32*(slot+1)} list=0 draw={draw} first={first} count={n if full_draw else 3} index={slot} tcw={123+draw} tsp=456 xyz={xyz}')
+        lines.append(f'FC067_CAMERA_PACKET_END ordinal={ordinal} frames={sequence} packets={sequence*n}')
         frames.append((scene, manifest))
     return '\n'.join(lines)+'\n', frames
 

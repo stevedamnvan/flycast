@@ -18,7 +18,9 @@ def words(text, count):
     return [int(value, 16) for value in text.split(',')]
 
 
-def inspect(session, frames):
+def inspect(session, frames, full_draw=False):
+    vertices=tuple(range(4,146)) if full_draw else VERTICES
+    n=len(vertices);stride=2*n+2
     require('FC067_CAMERA_PACKET_REJECT' not in session, 'live packet rejection')
     require(len(frames) == 3, 'frame bound')
     events = []
@@ -26,12 +28,12 @@ def inspect(session, frames):
         match = re.search(r'FC067_CAMERA_PACKET_(BEGIN|DECODE|FINAL|END) ', line)
         if match:
             events.append((match[1], records(line, 'FC067_CAMERA_PACKET_'+match[1])[0]))
-    require(len(events) == 42, 'event coverage')
-    pattern = ['BEGIN'] + ['DECODE']*6 + ['FINAL']*6 + ['END']
+    require(len(events) == stride*3, 'event coverage')
+    pattern = ['BEGIN'] + ['DECODE']*n + ['FINAL']*n + ['END']
     require([kind for kind, _ in events] == pattern*3, 'event order')
     output, epoch, last_cycle = [], None, 0
     for position, ((scene, manifest), ordinal) in enumerate(zip(frames, ORDINALS)):
-        rows = [row for _, row in events[position*14:(position+1)*14]]
+        rows = [row for _, row in events[position*stride:(position+1)*stride]]
         begin, end = rows[0], rows[-1]
         stamp = manifest['producer_identity']
         require(stamp['available'] is True and stamp['clock'] == 'sh4-scheduler-cycles'
@@ -42,13 +44,13 @@ def inspect(session, frames):
         require(all(int(begin[key]) == stamp[key] for key in ('epoch', 'ordinal', 'cycle'))
                 and int(begin['sequence']) == position+1, 'begin identity')
         require(int(end['ordinal']) == ordinal and int(end['frames']) == position+1
-                and int(end['packets']) == (position+1)*6, 'terminal counters')
+                and int(end['packets']) == (position+1)*n, 'terminal counters')
         require((epoch is None or stamp['epoch'] == epoch) and stamp['cycle'] > last_cycle,
                 'epoch reset or cycle reversal')
         epoch, last_cycle = stamp['epoch'], stamp['cycle']
         offsets, draw_counts = set(), Counter()
-        for slot, vertex in enumerate(VERTICES):
-            decoded, final = rows[slot+1], rows[slot+7]
+        for slot, vertex in enumerate(vertices):
+            decoded, final = rows[slot+1], rows[slot+n+1]
             require(all(int(decoded[key]) == stamp[key] for key in ('epoch', 'ordinal', 'cycle'))
                     and int(decoded['expected_epoch']) == stamp['epoch'], 'sample producer mismatch')
             require(int(final['ordinal']) == ordinal and int(final['list']) == 0, 'final frame/list')
@@ -85,8 +87,8 @@ def inspect(session, frames):
                                vertex=vertex, root=begin['root'], child=decoded['child'],
                                ta_offset=offset, draw=draw_id, index=index, type=3,
                                packet_words=packet))
-        require(sorted(draw_counts.values()) == [3, 3], 'not three samples from each of two opaque draws')
-    return dict(scope='decoded-TA-packet-map-only', frames=3, observed_vertices=18,
+        require(dict(draw_counts)=={1:142} if full_draw else sorted(draw_counts.values())==[3,3], 'draw domain coverage')
+    return dict(scope='decoded-TA-packet-map-only', frames=3, observed_vertices=3*n,
                 packets=output, source_value_matching_used=False,
                 upstream_transform_linked=False, usable_camera_contract=False,
                 shared_camera_proven=False, raster_visibility_proven=False,

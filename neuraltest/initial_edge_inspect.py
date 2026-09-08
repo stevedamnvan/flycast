@@ -24,7 +24,7 @@ def vector_keys(token, count):
     return [(int(match[1])+i, version) for i, version in enumerate(versions)]
 
 
-def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1'):
+def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', next_cycle=None):
     require('FC067_SUPPLY_REJECT' not in session, 'live predecessor rejection')
     rows = [records(session, 'FC067_SUPPLY_'+tag) for tag in ('ENTRY', 'EXIT', 'EDGE')]
     require(all(len(row) == 1 for row in rows), 'missing/duplicate predecessor edge')
@@ -32,7 +32,9 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1'):
     require(entry['block'] == '8c03c93a' and entry['ops'] == '11'
             and entry['inputs'] == '19' and finish['events'] == '18'
             and entry['descriptor'] == finish['descriptor'], 'wrong bounded descriptor')
-    require(entry['cycle'] == finish['cycle'] == edge['cycle'] == cycle, 'edge cycle')
+    require(entry['cycle'] == finish['cycle'] == cycle
+            and edge['cycle'] == (cycle if next_cycle is None else next_cycle)
+            and int(edge['cycle'])>=int(cycle), 'edge cycle')
     require(finish['next'] == edge['block'] == '8c03c94c'
             and int(finish['pointer'],16) == int(edge['pointer'],16) == base+12
             and finish['generation'] == edge['generation'] == generation and edge['exact'] == '1', 'edge identity')

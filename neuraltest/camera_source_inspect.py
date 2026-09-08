@@ -17,38 +17,52 @@ PCS = [0x8c03cc68,0x8c03cc68,0x8c03cc6a,0x8c03cc6a,0x8c03cc6c,0x8c03cc6c]
 PCS += list(range(0x8c03cc6e,0x8c03cc98,2))
 
 
-def inspect(session, frames):
-    mapped = inspect_packets(session, frames)
-    require('FC067_CS_REJECT' not in session and 'FC067_XYZ_REJECT' not in session,
+def inspect(session, frames, full_draw=False):
+    offsets=tuple(range(32,4545,32)) if full_draw else OFFSETS
+    per_frame=len(offsets);total=3*per_frame
+    mapped = inspect_packets(session, frames, full_draw)
+    require('FC067_CS_REJECT' not in session and 'FC067_XYZ_REJECT' not in session
+            and 'FC067_DRAW_REJECT' not in session,
             'live source observer rejected')
     def rows(kind, count):
         result = records(session,'FC067_CS_'+kind)
         require(len(result)==count, kind+' coverage')
         return result
-    begins, copies, links = rows('BEGIN',18), rows('COPY',18), rows('LINK',18)
-    flushes, word_rows, frame_rows = rows('FLUSH',18), rows('WORD',144), rows('FRAME',3)
-    stores = rows('STORE',126)
+    begins, copies, links = rows('BEGIN',total), rows('COPY',total), rows('LINK',total)
+    flushes, word_rows, frame_rows = rows('FLUSH',total), rows('WORD',total*8), rows('FRAME',3)
+    stores = records(session,'FC067_CS_STORE')
+    require(total*7<=len(stores)<=total*(8 if full_draw else 7),'STORE coverage')
     ends = rows('END',1)
-    require(ends[0] == dict(reason='reset-after-complete',samples='18'), 'completion boundary')
+    require(ends[0] == dict(reason='reset-after-complete',samples=str(total)), 'completion boundary')
     for kind, items in [('BEGIN',begins),('COPY',copies),('LINK',links),('FLUSH',flushes)]:
-        require([int(r['sample']) for r in items]==list(range(1,19)), kind+' sample order')
-    require(len(records(session,'FC067_XYZ_ENTRY'))==18
-            and len(records(session,'FC067_XYZ_EXIT'))==18, 'operand invocation count')
+        require([int(r['sample']) for r in items]==list(range(1,total+1)), kind+' sample order')
+    require(len(records(session,'FC067_XYZ_ENTRY'))==total
+            and len(records(session,'FC067_XYZ_EXIT'))==total, 'operand invocation count')
     result = []
     generations = []
     sq_buffer = None
     for frame_index, row in enumerate(frame_rows):
-        packet = mapped['packets'][frame_index*6]
+        packet = mapped['packets'][frame_index*per_frame]
         producer = packet['producer']
         require(all(int(row[k])==producer[k] for k in ('epoch','ordinal','cycle'))
-                and row['selected']=='63' and int(row['total'])==(frame_index+1)*6,
+                and row['selected']==('142' if full_draw else '63') and int(row['total'])==(frame_index+1)*per_frame,
                 'actual producer coverage')
     begin_positions = [m.start() for m in re.finditer('FC067_CS_BEGIN ',session)]
+    copy_positions={};link_positions={};definitions_by_id={}
+    for line_match in re.finditer(r'[^\n]*',session):
+        line=line_match[0]
+        for tag,destination in (('FC067_CS_COPY',copy_positions),('FC067_CS_LINK',link_positions)):
+            if tag+' ' in line:
+                row=records(line,tag)[0];require(row['sample'] not in destination,'duplicate association event')
+                destination[row['sample']]=line_match.start()+line.index(tag+' ')
+        if full_draw and 'FC067_XYZ_OP ' in line:
+            row=records(line,'FC067_XYZ_OP')[0]
+            definitions_by_id.setdefault(row['descriptor'],[]).append(line)
     for i,(begin,copy,link,flush,packet) in enumerate(zip(begins,copies,links,flushes,mapped['packets'])):
         sample = str(i+1)
         producer = packet['producer']
-        slot = i%6
-        require(int(begin['slot'])==slot and int(begin['offset'])==OFFSETS[slot]
+        slot = i%per_frame
+        require(int(begin['slot'])==slot and int(begin['offset'])==offsets[slot]
                 and begin['context']==packet['child'] and int(begin['offset'])==packet['ta_offset'],
                 'selected packet identity')
         for key in ('epoch','ordinal'):
@@ -80,7 +94,17 @@ def inspect(session, frames):
         require(all(r['before']==r['after'] for r in own_words)
                 and actual==packet['packet_words'], 'copied bytes differ from decoded packet')
         own_stores=[r for r in stores if r['sample']==sample]
-        require([int(r['event']) for r in own_stores]==list(range(1,8)), 'store event sequence')
+        store_count=len(own_stores)
+        if full_draw:
+            scene=frames[i//per_frame][0];index=packet['index']
+            draw=next(d for d in scene['draws'] if d['list']==0 and d['ordinal']==1)
+            strip_end=index+1==draw['first']+draw['count'] or scene['indices'][index+1]==0xffffffff
+            require(store_count==(8 if strip_end else 7),'strip-end store coverage')
+            if strip_end:
+                header=own_stores[-1]
+                require(header['pc']=='8c03ccee' and header['offset']=='0' and header['size']=='4'
+                        and int(header['actual'],16)==actual[0]==0xf0000000,'strip-end header store')
+        require([int(r['event']) for r in own_stores]==list(range(1,store_count+1)), 'store event sequence')
         shadow=[None]*12
         writers=[None]*12
         last=cycle
@@ -100,33 +124,40 @@ def inspect(session, frames):
         expected_writers=[pc for pc in (0x8c03cc82,0x8c03cc84,0x8c03cc86) for _ in range(4)]
         require(writers==expected_writers and bytes(shadow)==b''.join(w.to_bytes(4,'little') for w in actual[1:4]),
                 'XYZ byte last-writer coverage')
-        require(flush['coverage']=='fff' and flush['events']=='7'
+        require(flush['coverage']=='fff' and int(flush['events'])==store_count
                 and flush['writers']=='8c03cc82,8c03cc84,8c03cc86', 'flush coverage')
-        section=session[begin_positions[i]:begin_positions[i+1] if i<17 else len(session)]
+        section=session[begin_positions[i]:begin_positions[i+1] if i<total-1 else len(session)]
         ops=records(section,'FC067_XYZ_OP')
+        if full_draw and not ops:
+            descriptor=records(section,'FC067_XYZ_ENTRY')[0]['descriptor']
+            definitions=definitions_by_id.get(descriptor,[])
+            require(len(definitions)==27,'compact descriptor coverage')
+            section+='\n'+'\n'.join(definitions)
+            ops=records(section,'FC067_XYZ_OP')
         require([r['op'] for r in ops]==NAMES and [int(r['pc'],16) for r in ops]==PCS,
                 'known gather operation shape')
         target=dict(step=sample,block='8c03cc68',cycle=begin['cycle'],context=begin['context'],
                     ta_offset=begin['offset'],sq=begin['sq'])
-        operands=inspect_operands(section,target,'FC067_CS_STORE','FC067_CS_FLUSH')
+        operand_section=section
+        if full_draw and store_count==8:
+            operand_section='\n'.join(line for line in section.splitlines()
+                                      if not ('FC067_CS_STORE ' in line and records(line,'FC067_CS_STORE')[0]['event']=='8'))
+        operands=inspect_operands(operand_section,target,'FC067_CS_STORE','FC067_CS_FLUSH')
         require(operands['position_words']==actual[1:4], 'returned XYZ differs from copied packet')
         for first,second in [('FC067_CS_FLUSH','FC067_CS_COPY'),('FC067_CS_COPY','FC067_CS_WORD')]:
             require(section.index(first+' ')<section.index(second+' '), 'copy event ordering')
         # LINK may occur after another source observation but must follow its own actual copy.
-        def position(tag):
-            return next(m.start() for m in re.finditer(tag+' ',session)
-                        if records(session[m.start():].splitlines()[0],tag)[0]['sample']==sample)
-        require(position('FC067_CS_COPY')<position('FC067_CS_LINK'), 'decode precedes actual copy')
+        require(copy_positions[sample]<link_positions[sample], 'decode precedes actual copy')
         result.append(dict(sample=i+1,producer=producer,draw=packet['draw'],vertex=packet['vertex'],
-                           slot=slot,ta_offset=OFFSETS[slot],generation=int(begin['generation']),
+                           slot=slot,ta_offset=offsets[slot],generation=int(begin['generation']),
                            position_ram_addresses=operands['position_ram_addresses'],position_words=actual[1:4]))
     require(generations==sorted(set(generations)), 'reused context generation')
     require(session.rfind('FC067_CS_LINK ')<session.index('FC067_CS_END '), 'end before decoder coverage')
-    return dict(samples=result,observations=18,returned_xyz_loads=54,source_to_packet_proven=True,
+    return dict(samples=result,observations=total,returned_xyz_loads=total*3,source_to_packet_proven=True,
                 original_ram_producer_proven=False,usable_camera_contract=False,production_enabled=False)
 
 
-def inspect_capture(path):
+def inspect_capture(path, full_draw=False):
     frames=[]
     for ordinal in ORDINALS:
         frame=path/f'frame-{ordinal+1:06d}'
@@ -135,14 +166,15 @@ def inspect_capture(path):
             require(p.stat().st_size<=8*1024*1024,'JSON bound')
             return json.loads(p.read_text(encoding='utf-8'))
         frames.append((read('pvr-scene.json'),read('manifest.json')))
-    return inspect(load_session(path),frames)
+    return inspect(load_session(path),frames,full_draw)
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture',type=Path,required=True)
+    parser.add_argument('--full-draw',action='store_true')
     args=parser.parse_args()
     try:
-        print(json.dumps(inspect_capture(args.capture),sort_keys=True))
+        print(json.dumps(inspect_capture(args.capture,args.full_draw),sort_keys=True))
     except (ValueError,OSError,KeyError,IndexError,TypeError,StopIteration) as error:
         parser.exit(1,f'Camera source rejected: {error}\n')

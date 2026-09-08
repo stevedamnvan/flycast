@@ -16,13 +16,13 @@ from transform_store_inspect import load_session, require
 TAGS=('SUPPLY','INITIAL','PRED','CALC')
 
 
-def inspect(session, sources):
+def inspect(session, sources, full_draw=False):
     require('FC067_CT_REJECT' not in session,'live transform observer rejected')
     begins=records(session,'FC067_CT_BEGIN'); ends=records(session,'FC067_CT_FRAME')
     require(len(begins)==len(ends)==3,'transform frame coverage')
     headers=records(session,'FC067_CT_BLOCK')
     starts=[m.start() for m in re.finditer('FC067_CT_BLOCK ',session)]
-    require(len(headers)==len(starts)==60,'five-record four-seam coverage')
+    require(len(headers)==len(starts)==(576 if full_draw else 60),'four-seam coverage')
     extras={}
     for match in re.finditer(r'FC067_EXTRA_FILTER ',session):
         section=session[match.start():]
@@ -32,38 +32,61 @@ def inspect(session, sources):
         key=int(selected['generation']),int(selected['slot'])
         require(key not in extras,'duplicate accumulation')
         extras[key]=inspect_extra(section,int(selected['target'],16),key[0],False)
-    require(len(extras)==6,'accumulation coverage')
+    require(len(extras)==(0 if full_draw else 6),'accumulation coverage')
     groups={}
+    descriptors={}
     for i,header in enumerate(headers):
         key=tuple(int(header[k]) for k in ('generation','slot','kind'))
-        require(key not in groups and 0<=key[1]<6 and 0<=key[2]<4,'duplicate or invalid seam')
+        require(key not in groups and 0<=key[1]<(48 if full_draw else 6) and 0<=key[2]<4,'duplicate or invalid seam')
         section=session[starts[i]:starts[i+1] if i+1<len(starts) else len(session)]
         entry=records(section,'FC067_'+TAGS[key[2]]+'_ENTRY')
         require(len(entry)==1 and entry[0]['cycle']==header['cycle'],'seam entry identity')
+        if full_draw:
+            tag='FC067_'+TAGS[key[2]]+'_OP '
+            definition=[line for line in section.splitlines() if tag in line]
+            identity=(key[2],entry[0]['descriptor'])
+            if definition:
+                require(identity not in descriptors,'duplicate compact descriptor')
+                descriptors[identity]=definition
+            else:
+                require(identity in descriptors,'missing compact descriptor')
+                section+='\n'+'\n'.join(descriptors[identity])+'\n'
         groups[key]=(header,section)
     output=[]
     xloads=records(session,'FC067_X_LOAD'); xedges=records(session,'FC067_X_EDGE')
-    require(len(xloads)==len(xedges)==15,'initial X load coverage')
-    require([int(r['count']) for r in xloads]==list(range(1,16)),'X load event count')
-    require(len({(r['generation'],r['slot']) for r in xloads})==15,'duplicate X load')
+    count=144 if full_draw else 15
+    require(len(xloads)==len(xedges)==count,'initial X load coverage')
+    require([int(r['count']) for r in xloads]==list(range(1,count+1)),'X load event count')
+    require(len({(r['generation'],r['slot']) for r in xloads})==count,'duplicate X load')
+    writes_all=records(session,'FC067_CT_WRITE');gathers_all=records(session,'FC067_CT_GATHER')
+    writes_by_record={};gathers_by_sample={}
+    for row in writes_all: writes_by_record.setdefault((int(row['generation']),int(row['slot'])),[]).append(row)
+    for row in gathers_all: gathers_by_sample.setdefault(int(row['sample']),[]).append(row)
+    if full_draw:
+        from draw_record_inspect import group_records
+        domain=group_records(sources['samples'])
+        slots={(f['generation'],r['base']):slot for f in domain['frames'] for slot,r in enumerate(f['records'])}
     for i,sample in enumerate(sources['samples']):
         generation=sample['generation']; slot=sample['slot']; producer=sample['producer']
-        if slot==3:
+        if full_draw: slot=slots[generation,int(sample['position_ram_addresses'][0],16)]
+        if not full_draw and slot==3:
             require(not any((generation,slot,k) in groups for k in range(4)), 'unsupported record unexpectedly traced')
             continue
-        begin=begins[i//6]; end=ends[i//6]
+        frame=i//(142 if full_draw else 6)
+        begin=begins[frame]; end=ends[frame]
         require(int(begin['generation'])==int(end['generation'])==generation
                 and int(begin['ordinal_hint'])==int(end['ordinal'])==producer['ordinal']
-                and end['complete']=='55' and end['counts']==','.join([str((i//6+1)*5)]*4),
+                and end['complete']==('48' if full_draw else '55')
+                and end['counts']==','.join([str((frame+1)*(48 if full_draw else 5))]*4),
                 'transform actual frame coverage')
         parts=[groups[generation,slot,kind] for kind in range(4)]
         base=int(sample['position_ram_addresses'][0],16)
         for header,section in parts:
             require(int(header['base'],16)==base and int(header['ordinal_hint'])==producer['ordinal']
                     and int(begin['cycle'])<=int(header['cycle'])<=producer['cycle'],'record target identity')
-        supply=inspect_supply(parts[0][1],base,parts[0][0]['cycle'],str(generation))
+        supply=inspect_supply(parts[0][1],base,parts[0][0]['cycle'],str(generation),parts[1][0]['cycle']) if full_draw else inspect_supply(parts[0][1],base,parts[0][0]['cycle'],str(generation))
         initial=inspect_initial(parts[1][1],base,parts[1][0]['cycle'])
-        pred=inspect_pred(parts[2][1],base,parts[2][0]['cycle'])
+        pred=inspect_pred(parts[2][1],base,parts[2][0]['cycle'],parts[3][0]['cycle']) if full_draw else inspect_pred(parts[2][1],base,parts[2][0]['cycle'])
         calc=inspect_calc(parts[3][1],base,parts[3][0]['cycle'])
         require(supply['transformed_words'][:3]==initial['initial_xyz_words'],'FTRV initial store binding')
         projected_input=initial['initial_xyz_words']
@@ -94,8 +117,7 @@ def inspect(session, sources):
                 and calc['live_input_words'][17]==projected_input[1]
                 and pred['factor_word']==calc['live_input_words'][19], 'projection input binding')
         require([v for _,v in pred['source_loads']]==projected_input[1:3], 'reciprocal record binding')
-        writes=[row for row in records(session,'FC067_CT_WRITE')
-                if int(row['generation'])==generation and int(row['slot'])==slot]
+        writes=writes_by_record.get((generation,slot),[])
         n=9 if extra else 6
         require(len(writes)==n and [int(r['event']) for r in writes]==list(range(1,n+1)), 'record write coverage')
         if extra:
@@ -114,7 +136,7 @@ def inspect(session, sources):
                         and row['address']==store['address'] and row['pc']==store['pc']
                         and int(row['actual'],16)==int(store['value'],16),'actual RAM store differs from operand')
                 require(int(parts[kind][0]['cycle'])<=int(row['cycle'])<=producer['cycle'],'RAM store clock')
-        gather=[row for row in records(session,'FC067_CT_GATHER') if int(row['sample'])==sample['sample']]
+        gather=gathers_by_sample.get(sample['sample'],[])
         require(len(gather)==3 and [int(r['component']) for r in gather]==[0,1,2],'RAM consumption coverage')
         for j,row in enumerate(gather):
             require(int(row['generation'])==generation and int(row['slot'])==slot
@@ -122,24 +144,28 @@ def inspect(session, sources):
                     and int(row['value'],16)==sample['position_words'][j] and int(row['events'])==n
                     and row['writers']==','.join([str(n-j)]*4),'RAM last-writer association')
         output.append(dict(sample=sample['sample'],producer=producer,draw=sample['draw'],vertex=sample['vertex'],
+                           record_base=base,record_generation=generation,
+                           preprojection_record_words=projected_input,
                            source_point_words=supply['source_point_words'],xf_matrix_words=supply['xf_matrix_words'],
                            source_loads=supply['source_loads'],transformed_words=supply['transformed_words'],
                            final_words=calc['final_words_xyz']))
-    require(len(records(session,'FC067_CT_WRITE'))==108 and len(records(session,'FC067_CT_GATHER'))==45,
+    require(len(writes_all)==(864 if full_draw else 108) and len(gathers_all)==(1278 if full_draw else 45),
             'aggregate record bounds')
-    return dict(samples=output,observations=15,unsupported_slots=[3],executed_seams=60,accumulations=6,mathematical_projection_verified=True,
+    return dict(samples=output,observations=len(output),unsupported_slots=[] if full_draw else [3],
+                executed_seams=len(headers),accumulations=len(extras),mathematical_projection_verified=True,
                 initial_x_reload_proven=True,source_coordinate_space='unknown',world_camera_recovered=False,
                 production_enabled=False)
 
 
-def inspect_capture(path):
-    return inspect(load_session(path),inspect_sources(path))
+def inspect_capture(path, full_draw=False):
+    return inspect(load_session(path),inspect_sources(path,full_draw),full_draw)
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--capture',required=True,type=Path)
+    parser.add_argument('--full-draw',action='store_true')
     args=parser.parse_args()
-    try: print(json.dumps(inspect_capture(args.capture),sort_keys=True))
+    try: print(json.dumps(inspect_capture(args.capture,args.full_draw),sort_keys=True))
     except (ValueError,OSError,KeyError,IndexError,TypeError) as error:
         parser.exit(1,f'Camera transform rejected: {error}\n')

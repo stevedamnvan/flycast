@@ -8,15 +8,15 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera. LOG180..184 and
-TRANSFORM-COVERAGE-AUDIT.md record15 supported original-transform/accumulation/
-projection/X-load/RAM/gather samples across three frames. Slot3 remains
-unsupported. All temporary core hooks are removed. Do not repeat these traces.
-Next determine a usable camera-relative coordinate contract from the observed
-matrices and existing algebra, without inventing FOV, scale or world semantics.
-Preserve nonunit W and opaque/translucent depth distinctions. Latest X-load
-positive/negative images/depth/motion agree; older retained repeatability
-discrepancies are not erased. Follow the active backlog bounds.
+Current first card: FC-067 / M2-camera. FULL-DRAW-TRANSFORM-AUDIT.md records
+426 verified vertex observations feeding one complete92-triangle opaque draw.
+Its calibrated reprojection is verified;8247 other opaque triangles/frame,
+world-camera semantics and runtime rendering remain unproven. Temporary hooks
+are removed. Next follow the backlog's remaining-domain coverage priority,
+not another single-point/source-gather trace. Preserve nonunit W, the older
+draw26 accumulation requirement and opaque/translucent depth distinctions.
+Latest live wrong-X control rejects but timing/images differ: no exact-input
+preservation claim. Earlier successful and failed controls retain their scopes.
 If the card is genuinely blocked, take FC-067 /
 M1-GPU. The standalone public-SDK bring-up now builds but needs a legal compatible
 runtime; read REMAKE-RUNTIME-BRINGUP.md. Its63-check mock and API success are not GPU

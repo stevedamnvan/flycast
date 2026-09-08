@@ -11,7 +11,7 @@ from transform_store_inspect import load_session, require
 from xyz_operand_inspect import operand, reg_key
 
 
-def inspect_edge(session, base=0x8ce74250, cycle='7602640640'):
+def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None):
     require('FC067_PRED_REJECT' not in session, 'live predecessor rejected')
     entries, exits, edges = (records(session, 'FC067_PRED_'+tag) for tag in ('ENTRY','EXIT','EDGE'))
     require(len(entries) == len(exits) == len(edges) == 1, 'not one predecessor edge')
@@ -20,7 +20,9 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602640640'):
             and entry['ops'] == '7' and entry['inputs'] == '2', 'wrong predecessor')
     require(finish['next'] == edge['block'] == '8c03c9c0'
             and int(finish['pointer'],16) == int(edge['pointer'],16) == base+12
-            and finish['cycle'] == edge['cycle'] == entry['cycle']
+            and finish['cycle'] == entry['cycle']
+            and edge['cycle'] == (cycle if next_cycle is None else next_cycle)
+            and int(edge['cycle'])>=int(cycle)
             and finish['descriptor'] == entry['descriptor'], 'wrong executed edge identity')
     require(finish['factor'] == edge['factor'] == edge['expected'] and edge['exact'] == '1', 'factor changed across edge')
     require('fpscr' in entry and 'mxcsr' in entry and 'mxcsr' in finish, 'missing mode')

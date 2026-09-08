@@ -8,9 +8,11 @@ from test_xyz_operand_inspect import fixture as operand_fixture
 from transform_span_inspect import records
 
 
-def fixture():
+def fixture(full_draw=False):
     """Independent synthetic operands and geometry only, no captured game bytes."""
-    packet_log,frames=packet_fixture()
+    packet_log,frames=packet_fixture(full_draw)
+    offsets=tuple(range(32,4545,32)) if full_draw else OFFSETS
+    n=len(offsets)
     operand_log,_,_=operand_fixture()
     operand_log='FC067_XYZ_ENTRY '+operand_log.split('FC067_XYZ_ENTRY ',1)[1].split('FC067_SQ_FLUSH ',1)[0]
     words=[0xe0000000,0x3f800000,0x40000000,0x3f000000,0x3f803f80,0x3f800000,0xff0000ff,0]
@@ -20,8 +22,8 @@ def fixture():
         root='00100000' if frame_index==1 else '00500000'
         packet_lines=[line for line in packet_log.splitlines()
                       if f'ordinal={ordinal} ' in line]
-        for slot,offset in enumerate(OFFSETS):
-            sample=frame_index*6+slot+1; cycle=1000*frame_index+100+slot
+        for slot,offset in enumerate(offsets):
+            sample=frame_index*n+slot+1; cycle=1000*frame_index+100+slot
             sq=0xe0000000+offset; destination=0x100000+generation*0x10000+offset
             begin=(f'FC067_CS_BEGIN sample={sample} epoch_hint=3 ordinal_hint={ordinal} generation={generation} '
                    f'slot={slot} context={root} offset={offset} sq={sq:08x} cycle={cycle}')
@@ -33,6 +35,7 @@ def fixture():
             out=[]
             for line in part.splitlines():
                 if 'FC067_XYZ_OP ' in line:
+                    if full_draw and sample != 1: continue
                     index=int(records(line,'FC067_XYZ_OP')[0]['index'])
                     line=re.sub(r'pc=[0-9a-f]+',f'pc={PCS[index]:08x}',line)
                 if 'FC067_SQ_STORE ' in line:
@@ -42,25 +45,30 @@ def fixture():
                     line=re.sub(r'address=[0-9a-f]+',f'address={sq+int(row["offset"]):08x}',line)
                 out.append(line)
             lines.extend(out)
-            lines.append(f'FC067_CS_FLUSH sample={sample} cycle={cycle} coverage=fff writers=8c03cc82,8c03cc84,8c03cc86 events=7')
+            end=full_draw and slot==n-1
+            if end:
+                lines.append(f'FC067_CS_STORE sample={sample} event=8 cycle={cycle} pc=8c03ccee address={sq:08x} offset=0 size=4 expected=f0000000 actual=f0000000 exact=1')
+            lines.append(f'FC067_CS_FLUSH sample={sample} cycle={cycle} coverage=fff writers=8c03cc82,8c03cc84,8c03cc86 events={8 if end else 7}')
             lines.append(f'FC067_CS_COPY sample={sample} expected={sample} epoch_hint=3 ordinal_hint={ordinal} generation={generation} context={root} offset={offset} sq={sq:08x} cycle={cycle} source={0x10000+(sq&32):x} destination={destination:x} exact=1')
             for index,word in enumerate(words):
+                if index==0 and end: word=0xf0000000
                 lines.append(f'FC067_CS_WORD sample={sample} index={index} before={word:08x} after={word:08x}')
         cycle=manifest['producer_identity']['cycle']
-        lines.append(f'FC067_CS_FRAME epoch=3 ordinal={ordinal} cycle={cycle} selected=63 total={(frame_index+1)*6}')
+        lines.append(f'FC067_CS_FRAME epoch=3 ordinal={ordinal} cycle={cycle} selected={142 if full_draw else 63} total={(frame_index+1)*n}')
         for line in packet_lines:
             if 'slot=' in line:
-                slot=int(re.search(r'slot=(\d+)',line)[1]); offset=OFFSETS[slot]
+                slot=int(re.search(r'slot=(\d+)',line)[1]); offset=offsets[slot]
                 line=re.sub(r'offset=\d+',f'offset={offset}',line)
                 vertex=int(re.search(r'vertex=(\d+)',line)[1]); scene['vertices'][vertex]=words[1:4]
                 if 'DECODE ' in line:
-                    sample=frame_index*6+slot+1; destination=0x100000+generation*0x10000+offset
+                    sample=frame_index*n+slot+1; destination=0x100000+generation*0x10000+offset
                     lines.append(f'FC067_CS_LINK sample={sample} slot={slot} epoch=3 ordinal={ordinal} generation={generation} current_generation={generation} child={root} offset={offset} destination={destination:x} packet={destination:x} exact=1')
                     line=re.sub(r'words=\S+', 'words='+','.join(f'{w:08x}' for w in words),line)
+                    if full_draw and slot==n-1: line=line.replace('words=e0000000','words=f0000000')
                 else:
                     line=re.sub(r'xyz=\S+', 'xyz='+','.join(f'{w:08x}' for w in words[1:4]),line)
             lines.append(line)
-    lines.append('FC067_CS_END reason=reset-after-complete samples=18')
+    lines.append(f'FC067_CS_END reason=reset-after-complete samples={3*n}')
     return '\n'.join(lines)+'\n',frames
 
 
@@ -109,6 +117,60 @@ class CameraSourceTests(unittest.TestCase):
         frames=copy.deepcopy(self.frames); frames[1][0]['vertices'][4][0]^=1
         with self.assertRaises(ValueError): inspect(self.session,frames)
         self.reject('cycle=100 coverage=fff','cycle=99 coverage=fff','clock bounds')
+
+
+class FullDrawSourceTests(unittest.TestCase):
+    def setUp(self):
+        self.session,self.frames=fixture(True)
+
+    def test_compact_complete_domain(self):
+        before=copy.deepcopy(self.frames)
+        result=inspect(self.session,self.frames,True)
+        self.assertEqual(result['observations'],426)
+        self.assertEqual(result['returned_xyz_loads'],1278)
+        self.assertEqual(len(records(self.session,'FC067_XYZ_OP')),27)
+        self.assertEqual({r['vertex'] for r in result['samples']},set(range(4,146)))
+        self.assertFalse(result['original_ram_producer_proven'])
+        self.assertFalse(result['usable_camera_contract'])
+        self.assertEqual(self.frames,before)
+
+    def test_strip_header_controls(self):
+        for old,new,reason in (
+                ('pc=8c03ccee','pc=8c03ccec','strip-end header store'),
+                ('offset=0 size=4 expected=f0000000','offset=4 size=4 expected=f0000000','strip-end header store'),
+                ('actual=f0000000','actual=e0000000','strip-end header store'),
+                ('event=8 cycle=241','event=9 cycle=241','store event sequence')):
+            self.assertIn(old,self.session)
+            with self.subTest(old=old),self.assertRaisesRegex(ValueError,reason):
+                inspect(self.session.replace(old,new,1),self.frames,True)
+
+    def test_restart_requires_header_on_actual_boundary(self):
+        frames=copy.deepcopy(self.frames)
+        # Inserting a restart after the first vertex creates a newly required
+        # header store; update indices honestly so packet association still holds.
+        frames[0][0]['indices'].insert(1,0xffffffff)
+        frames[0][0]['draws'][0]['count']+=1
+        lines=[]
+        for line in self.session.splitlines():
+            if 'FC067_CAMERA_PACKET_FINAL ordinal=1781 ' in line:
+                row=records(line,'FC067_CAMERA_PACKET_FINAL')[0]
+                line=line.replace('count=142 ','count=143 ')
+                index=int(row['index'])
+                if index: line=line.replace(f'index={index} ',f'index={index+1} ')
+            lines.append(line)
+        with self.assertRaisesRegex(ValueError,'strip-end store coverage'):
+            inspect('\n'.join(lines)+'\n',frames,True)
+
+    def test_missing_descriptor_and_copy_identity(self):
+        line=next(x for x in self.session.splitlines() if 'FC067_XYZ_OP ' in x)
+        for bad in (self.session.replace(line+'\n','',1),
+                    self.session.replace('sample=426 expected=426','sample=426 expected=425',1),
+                    self.session.replace('samples=426','samples=425',1)):
+            with self.subTest(),self.assertRaises(ValueError): inspect(bad,self.frames,True)
+
+    def test_budget_rejection_is_fail_closed(self):
+        with self.assertRaisesRegex(ValueError,'live source observer rejected'):
+            inspect(self.session+'FC067_DRAW_REJECT reason=8MiB-log-budget\n',self.frames,True)
 
 
 if __name__=='__main__': unittest.main()
