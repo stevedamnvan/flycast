@@ -1,5 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #169 update: actual SQ filling stores now bind all32 packet bytes to the
+selected opaque vertex. XYZ stores8c03cc82/84/86 are observed, but their operand
+calculation and world camera are not recovered. Next bounded operand-source
+task is OPAQUE-SQ-WRITERS-AUDIT.md; no whole-scene/M2 requirement is promoted.
+
 2026-09-08 scope update: user approved OPAQUE-REVERSE-PLAN.md. LOG #168 proves
 the selected type3 SQ-to-TA copy-to-final-opaque-vertex association, including a
 failing live generation query. Original SQ filling stores and CPU/world

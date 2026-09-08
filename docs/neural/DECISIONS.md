@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-106: physical SQ last writers survive a flush, not a reset
+
+SQ physical storage is aliased across E0-E3 addresses and serves both RAM and
+TA transfers. A PREF copies its contents without clearing them. Track observed
+byte writers across flushes and invalidate on reset; never treat a narrow TA
+address filter or a prior packet snapshot as complete provenance. An empty
+start and a cap hit remain failed evidence. Equal scheduler cycles cannot order
+stores; the executed callback sequence and exact post-store bytes do so here.
+The accepted XYZ store instructions still do not identify their calculation or
+world camera. Next operand-source work is bounded in OPAQUE-SQ-WRITERS-AUDIT.md.
+
 ## D-105: a copied SQ packet is not its filling-store producer
 
 Accept R1 only for the actual observed type3 packet: source bytes at TAWriteSQ,

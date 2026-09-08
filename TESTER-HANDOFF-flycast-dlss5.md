@@ -1,5 +1,11 @@
 # Flycast DLSS 5 tester handoff
 
+Current task: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. All32 bytes of the selected
+packet have observed SQ filling stores. XYZ PCs8c03cc82/84/86 do not yet reveal
+their calculation. Follow the bounded operand-source task in that audit; record
+actual execution and returned values, not a static-descriptor camera claim.
+Do not repeat copy/writer census or recursively trace callers without review.
+
 Current implementor task: R2 in OPAQUE-REVERSE-PLAN.md, LOG #168. R1 now binds
 an actual TAWriteSQ slot1 copy to opaque vertex4; wrong-generation live query
 rejects with native preservation. Trace the physical SQ filling stores/last

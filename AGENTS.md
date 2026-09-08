@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. R2 identifies all32 bytes' last
+writers into the selected SQ packet. XYZ store PCs8c03cc82/84/86 are observed;
+their value calculation is unknown. Next bounded executed-block operand-source
+witness in that audit; no repeat copy/writer census or arbitrary caller tracing.
+Temporary core probes removed. Full M2/camera/Remix GPU remain incomplete.
+
 Current R1 acceptance: OPAQUE-REVERSE-PLAN.md, LOG #168. Actual SQ slot1 copy
 at cycle7602643776 links to the selected opaque vertex4. Wrong-generation live
 query rejects with native preservation; hooks removed. Next R2 bounded physical

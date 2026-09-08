@@ -1,5 +1,10 @@
 # FC-067 opaque-draw reverse provenance scope
 
+Current R2 result/next task: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. All32 bytes
+have actual filling-store witnesses; XYZ source calculation remains unknown.
+The next bounded operand-source task supersedes the completed R2 writer task
+below, not the full objective or original scope restrictions.
+
 ## R1 working checkpoint
 
 Restored R1-copy checkpoint: four serial configure/builds pass, three enabled

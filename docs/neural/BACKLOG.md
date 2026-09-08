@@ -1,5 +1,11 @@
 # Neural rendering backlog
 
+FC-067 R2 filling stores accepted in bounded self-review (LOG #169): all32
+bytes bind through eight executed stores and a target SQ flush to opaquevertex4.
+Live wrong-word control rejects; A missing start/B cap attempts retained. Next
+observed XYZ operand-source calculation under OPAQUE-SQ-WRITERS-AUDIT.md bounds.
+Camera/world/real Remix GPU and full M2 remain open; no repeated writer census.
+
 FC-067 R1 selected-type3 acceptance (LOG #168): actual TAWriteSQ slot1 copy,
 cycle7602643776, reaches opaque vertex4 via same-context destination provenance.
 Live wrong-generation query rejects; both captures preserve native27 planes and
