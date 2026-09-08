@@ -1,6 +1,12 @@
 # Flycast DLSS 5 tester handoff
 
-Current: d2954272e native-preservation/producer metadata accepted (LOG #164).
+Current: OPAQUE-SOURCE-AUDIT.md (LOG #165, D-103). The bounded third candidate
+reaches a scalar routine return but remains uncorrelated to PVR. Temporary CPU
+hooks removed. Finish restored validation/checkpoint, then audit remaining M2
+requirements; no automatic arbitrary caller tracing, census or replay precision
+loop. Whole-scene camera and real Remix GPU remain unproven.
+
+Historical: d2954272e native-preservation/producer metadata accepted (LOG #164).
 Three exact-SHA no-reset frames match producer timing and27 unique image planes.
 Reset comparison remains failed: host main-loop triggers are not deterministic
 guest-state boundaries. Next review existing opaque scene/source coverage for

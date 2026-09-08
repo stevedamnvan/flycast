@@ -1,5 +1,17 @@
 # Neural rendering backlog
 
+FC-067 current: OPAQUE-SOURCE-AUDIT.md. The known-site store/copy/consumer
+experiment reaches a four-block scalar routine return, still uncorrelated to
+PVR. Temporary hooks removed; retained evidence verifier rejects four controls,
+65 inspector tests pass. Close checkpoint then audit remaining M2 requirements;
+do not expand arbitrary caller tracing or repeat site census/replay precision.
+
+Historical next implementation: OPAQUE-SOURCE-AUDIT.md. Existing combat packet
+confirms fish vertex14770 is outside opaque coverage. Retained D site8c048dcc
+has explicit SSA-linked reverse stores at8c048dce-dd4 but no actual store/TA
+witness. Adapt one bounded post-store observer for this known site, with
+absence/overwrite/wrong-output rejection; do not repeat a broad site census.
+
 FC-067 d2954272e separate no-reset qualification PASSES three matching producer
 ordinals/cycles and27 unique image planes. Reset trigger is host main-loop based,
 not an emulation-owned deterministic boundary; retain its failed image comparison

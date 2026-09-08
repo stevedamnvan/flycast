@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-103: stop the uncorrelated scalar candidate at its observed return
+
+The third known transform candidate has verified RAM stores, returned reads,
+component-reversed copies and one bounded four-block consumer invocation. It
+still has no causally observed PVR output. Preserve this negative feasibility
+result without claiming recovery impossible or promoting arithmetic to camera
+semantics. Remove temporary hooks, retain failed builds and runtime controls,
+and audit M2 gaps before any further scope expansion. See OPAQUE-SOURCE-AUDIT.md.
+
 ## D-102: capture identity belongs to the accepted producer context
 
 Carry capture-only scheduler cycle, submission ordinal and process-local reset
