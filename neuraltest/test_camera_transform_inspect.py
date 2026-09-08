@@ -28,7 +28,8 @@ def fixture(full_draw=False):
             extra=not full_draw and slot in (4,5);pre=ADDED if extra else INITIAL;n=9 if extra else 6
             def header(kind):
                 lines.append(f'FC067_CT_BLOCK generation={gen} ordinal_hint={ordinal} slot={slot} kind={kind} base={base:x} cycle={cycle+1}')
-                lines.append(f'FC067_{checker.TAGS[kind]}_ENTRY cycle={cycle+1} descriptor={kind}')
+                block=('8c03c93a','8c03c94c','8c03c9a4','8c03c9c0')[kind]
+                lines.append(f'FC067_{checker.TAGS[kind]}_ENTRY block={block} cycle={cycle+1} descriptor={kind}')
                 if full_draw and frame==0 and slot==0:
                     lines.append(f'FC067_{checker.TAGS[kind]}_OP index=0 synthetic=1')
             def writes(kind,values,start,pc,tag=None):

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#include <mutex>
 #include <zlib.h>
 
 namespace fc067 {
@@ -18,6 +19,7 @@ public:
     TransformLedger(const TransformLedger&)=delete;
     TransformLedger& operator=(const TransformLedger&)=delete;
     bool append(const char* data,std::size_t size) {
+        const std::lock_guard<std::mutex> lock(mutex_);
         if(failed_ || finished_ || size>expandedLimit-total_ || size>UINT32_MAX)return fail();
         total_+=size;stream_.next_in=reinterpret_cast<Bytef*>(const_cast<char*>(data));
         stream_.avail_in=static_cast<uInt>(size);
@@ -25,6 +27,7 @@ public:
         return true;
     }
     bool finish(std::vector<std::uint8_t>& output) {
+        const std::lock_guard<std::mutex> lock(mutex_);
         output.clear();if(failed_ || finished_ || !total_)return fail();
         while(!finished_)if(!pump(Z_FINISH))return false;
         output=std::move(bytes_);return true;
@@ -42,6 +45,7 @@ private:
         finished_=result==Z_STREAM_END;return true;
     }
     z_stream stream_{};
+    std::mutex mutex_;
     bool ready_=false,failed_=false,finished_=false;
     std::size_t total_=0;
     std::vector<std::uint8_t> bytes_;

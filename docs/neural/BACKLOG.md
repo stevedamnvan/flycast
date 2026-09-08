@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `d7eb260adff8ea469057d6d1df160549ce686ab7`, pushed (LOG199). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `60dedc1e120f8c355a3ba2e211c06e91765b9987`, pushed (LOG204). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,15 +54,18 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: finish the LOG202 checkpoint checks, then capture the
-first producer family for all15 currently unsupported addresses in one bounded
-batch. B's2718 original records,1287 accumulations and8097 consumer bindings
-now pass arithmetic; calibrated reconstruction supports1529 triangles/frame,
-omitting62 draw277 triangles and6810 whole-scene opaque triangles. Preserve
-the same calibration and fail-closed arithmetic; do not repeat verified906
-records, draw1 or emitter-format work. Temporary core hooks are retained as
-ignored evidence and removed (LOG203); restored checks pass. Exact-commit
-rebuild/native capture remain required before the next probe.
+Current next action: checkpoint the serialized ledger and exact c932/c998
+variant validators (LOG215), removing retained temporary core hooks first.
+Full921 A now proves all2763 address instances/8235 consumers and reconstructs
+all1591 draw277 triangles/frame.6748 whole-scene opaque triangles remain omitted;
+world camera and Remix GPU are unproven.204 inspector tests pass; live wrong-edge
+rejects, but one raw-depth artifact differs, so exact-input preservation is not
+claimed. Next batch draws1503 and1887 together:2038 triangles/3392 vertices,
+indices7272..10663 in the actual vertex array. Derive their actual copy/source
+maps before extending geometry capture; the old5069-copy prefix does not prove
+these later draws. Preserve4096 selected vertices/frame, explicit bounded copy
+ownership and the same arithmetic/calibration tolerances. Do not repeat draw277,
+walk small ordinals or expand transport-only work without new source coverage.
 
 Accepted bounded evidence:
 - LOG180..184 / TRANSFORM-COVERAGE-AUDIT.md:15 selected samples including actual

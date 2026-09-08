@@ -1,5 +1,26 @@
 # Neural rendering decisions
 
+## D-122: indexed first records and serialized evidence transport
+
+The first-record path is not the loop-body path. LOG211..215 proves the c932
+indexed SUPPLY variant and c998 direct-X PRED variant with separate exact
+instruction programs. Preserve the signed16-bit address index and separately
+loaded fourth float even though they share source bytes. Bind both to actual
+stores and consumers; do not assume r4 is the destination or manufacture an
+external X-load event for the direct-X path. Synthetic and live negative
+controls must preserve the distinctions.
+
+Capture callbacks can arrive from emulator and renderer threads. Serialize
+append/finish on the diagnostic compression stream and verify bounded
+concurrent roundtrips independently. A semantic-success log does not excuse a
+bad checksum; discovery D stays rejected. Destruction requires joined callers.
+Diagnostic synchronization is not production performance evidence.
+
+The integrated full921 capture accepts all1591 triangles of draw277 only.
+It does not close world-camera, whole-scene, real Remix GPU or combined-output
+acceptance. The raw-depth discrepancy in its live wrong-edge control remains
+visible; do not turn matching scene JSON/PNGs into an all-input equality claim.
+
 ## D-121: bounded transform ledger and supported-triangle acceptance
 
 Reuse the existing executed-instruction event vocabulary in a lossless bounded

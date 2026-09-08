@@ -24,13 +24,14 @@ def vector_keys(token, count):
     return [(int(match[1])+i, version) for i, version in enumerate(versions)]
 
 
-def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', next_cycle=None):
+def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', next_cycle=None, first_record=False):
+    prefix=4 if first_record else 0;op_count=11+prefix;event_count=23 if first_record else 18
     require('FC067_SUPPLY_REJECT' not in session, 'live predecessor rejection')
     rows = [records(session, 'FC067_SUPPLY_'+tag) for tag in ('ENTRY', 'EXIT', 'EDGE')]
     require(all(len(row) == 1 for row in rows), 'missing/duplicate predecessor edge')
     entry, finish, edge = [row[0] for row in rows]
-    require(entry['block'] == '8c03c93a' and entry['ops'] == '11'
-            and entry['inputs'] == '19' and finish['events'] == '18'
+    require(entry['block'] == ('8c03c932' if first_record else '8c03c93a') and int(entry['ops']) == op_count
+            and int(entry['inputs']) == (21 if first_record else 19) and int(finish['events']) == event_count
             and entry['descriptor'] == finish['descriptor'], 'wrong bounded descriptor')
     require(entry['cycle'] == finish['cycle'] == cycle
             and edge['cycle'] == (cycle if next_cycle is None else next_cycle)
@@ -51,19 +52,21 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', n
         require(reg not in live and 0 <= value <= 0xffffffff
                 and row['value'] == row['expected'] and row['exact'] == '1', 'live input mismatch')
         state[reg, 0] = live[reg] = value
-    require(set(live) == {0, 5, 8, *range(32, 48)} and live[0] == base,
+    require(set(live) == ({1,2,4,5,8,*range(32,48)} if first_record else {0,5,8,*range(32,48)})
+            and (live[1]==0xfff0 and live[2]==4 if first_record else live[0]==base),
             'live register set or record pointer')
     ops = records(session, 'FC067_SUPPLY_OP')
     names = ['readm', 'add']*4 + ['add', 'ftrv', 'test']
     pcs = [0x8c03c93a + offset for offset in (0, 0, 2, 2, 4, 4, 6, 6, 8, 10, 12)]
-    require(len(ops) == 11 and [row['op'] for row in ops] == names
+    if first_record:names=['readm','shld','and','add']+names;pcs=[0x8c03c932,0x8c03c934,0x8c03c936,0x8c03c938]+pcs
+    require(len(ops) == op_count and [row['op'] for row in ops] == names
             and [int(row['pc'], 16) for row in ops] == pcs, 'not observed predecessor program')
     dynamic = []
     for line in session.splitlines():
         match = re.search(r'FC067_SUPPLY_(READ|VALUE|STORE) ', line)
         if match:
             dynamic.append((match[1], records(line, 'FC067_SUPPLY_'+match[1])[0]))
-    require(len(dynamic) == 18, 'dynamic coverage')
+    require(len(dynamic) == event_count, 'dynamic coverage')
     cursor, loads, point, matrix, output = 0, [], [], [], []
 
     def take(kind, index):
@@ -86,10 +89,23 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', n
         return [state[key] for key in keys]
 
     for index, op in enumerate(ops):
-        require(int(op['index']) == index and op['rd2'] == op['rs3'] == '-', 'operation layout')
-        if index < 8:
-            component = index//2
-            if index % 2 == 0:
+        require(int(op['index']) == index and op['rd2']=='-' and op['rs3']==('ic' if first_record and index==0 else '-'), 'operation layout')
+        local=index-prefix
+        if local<0:
+            require(op['rd']==f'r0:1:{index+1}','index destination')
+            if index==0:
+                require(op['size']=='2' and op['rs1']=='r5:1:0' and op['rs2']=='-','index load shape')
+                read=take('READ',index);require(read['size']=='2' and int(read['address'],16)==live[5]+12,'index load address')
+                index_word=result(index,op['rd'],[None])[0]
+                require(index_word==((index_word&0xffff) if index_word&0x8000==0 else (index_word&0xffff)|0xffff0000),'signed index load')
+            else:
+                require(op['size']=='0' and op['rs1']==f'r0:1:{index}' and op['rs2']=={1:'r2:1:0',2:'r1:1:0',3:'r4:1:0'}[index],'index address program')
+                a=state[0,index];expected=((a<<4)&0xffffffff) if index==1 else (a&live[1]) if index==2 else (a+live[4])&0xffffffff
+                result(index,op['rd'],[expected])
+                if index==3:require(expected==base,'computed record target')
+        elif local < 8:
+            component = local//2
+            if local % 2 == 0:
                 require(op['size'] == '4' and op['rs2'] == '-'
                         and op['rs1'] == f'r5:1:{component}'
                         and op['rd'] == f'r{16+component}:1:1', 'source load shape')
@@ -104,11 +120,11 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', n
                         and op['rs1'] == f'r5:1:{component}'
                         and op['rd'] == f'r5:1:{component+1}', 'source increment shape')
                 result(index, op['rd'], [(operand(op['rs1'], state)+4) & 0xffffffff])
-        elif index == 8:
-            require(op['size'] == '0' and op['rd'] == 'r0:1:1'
-                    and op['rs1'] == 'r0:1:0' and op['rs2'] == 'ic', 'record increment shape')
-            result(index, op['rd'], [(live[0]+12) & 0xffffffff])
-        elif index == 9:
+        elif local == 8:
+            require(op['size'] == '0' and op['rd'] == f'r0:1:{prefix+1}'
+                    and op['rs1'] == f'r0:1:{prefix}' and op['rs2'] == 'ic', 'record increment shape')
+            result(index, op['rd'], [(base+12) & 0xffffffff])
+        elif local == 9:
             require(op['size'] == '0' and vector_keys(op['rd'], 4) == [(r, 2) for r in range(16, 20)]
                     and vector_keys(op['rs1'], 4) == [(r, 1) for r in range(16, 20)]
                     and vector_keys(op['rs2'], 16) == [(r, 0) for r in range(32, 48)], 'FTRV dependency shape')
@@ -119,14 +135,15 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602512960', generation='1', n
             output = result(index, op['rd'], expected)
         else:
             require(op['size'] == '0' and op['rd'] == 'r68:1:1'
-                    and op['rs1'] == 'r8:1:0' and op['rs2'] == 'r0:1:1', 'branch test shape')
-            result(index, op['rd'], [int((live[8] & state[0, 1]) == 0)])
-    require(cursor == 18 and output[:3] == [int(finish[k], 16) for k in ('x', 'y', 'z')],
+                    and op['rs1'] == 'r8:1:0' and op['rs2'] == f'r0:1:{prefix+1}', 'branch test shape')
+            result(index, op['rd'], [int((live[8] & state[0, prefix+1]) == 0)])
+    if first_record:require(index_word&0xffff==point[3]&0xffff,'index and fourth float bytes differ')
+    require(cursor == event_count and output[:3] == [int(finish[k], 16) for k in ('x', 'y', 'z')],
             'transform result does not reach edge')
     positions = [session.index('FC067_SUPPLY_'+tag+' ') for tag in ('ENTRY', 'EXIT', 'EDGE')]
     require(positions == sorted(positions), 'edge chronology')
-    return dict(predecessor_block='8c03c93a', transform_pc='8c03c944', predecessor_ops=11,
-                predecessor_events=18, source_loads=loads, source_point_words=point,
+    return dict(predecessor_block=entry['block'], transform_pc='8c03c944', predecessor_ops=op_count,
+                predecessor_events=event_count, source_loads=loads, source_point_words=point,
                 xf_matrix_words=matrix, transformed_words=output, mxcsr_rounding_mode=mode,
                 predecessor_edge_proven=True, mathematical_transform_verified=True,
                 initial_coordinate_calculation_proven=True, world_camera_recovered=False,

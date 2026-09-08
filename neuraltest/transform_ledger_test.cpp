@@ -1,12 +1,25 @@
 #include "transform_ledger.h"
 #include <cstdio>
 #include <cstring>
+#include <thread>
+#include <atomic>
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
 #endif
 
 int main(int argc,char** argv) {
+    if(argc==2 && std::strcmp(argv[1],"--concurrent")==0){
+        fc067::TransformLedger ledger;std::atomic<bool> ok{true},go{false};std::vector<std::thread> writers;
+        for(unsigned id=0;id<8;id++)writers.emplace_back([&,id]{while(!go.load())std::this_thread::yield();
+            for(unsigned event=0;event<2000;event++){char line[64];int n=std::snprintf(line,sizeof(line),"writer=%u event=%u\n",id,event);if(!ledger.append(line,n)){ok=false;break;}}});
+        go=true;for(auto& thread:writers)thread.join();std::vector<std::uint8_t> bytes;
+        if(!ok || !ledger.finish(bytes)){std::fprintf(stderr,"concurrent append failed\n");return 1;}
+#ifdef _WIN32
+        if(_setmode(_fileno(stdout),_O_BINARY)==-1)return 2;
+#endif
+        return std::fwrite(bytes.data(),1,bytes.size(),stdout)==bytes.size()?0:2;
+    }
     std::vector<std::uint8_t> output;
     fc067::TransformLedger empty;
     if(empty.finish(output) || !output.empty())return 1;

@@ -59,7 +59,7 @@ def inspect(text,include_records=False):
     begins={int(r['generation']):r for r in indexed['FC067_CT_BEGIN']}
     prefixes={int(r['generation']):r for r in indexed['FC067_CT_PREFIX']}
     require(len(begins)==len(indexed['FC067_CT_BEGIN']) and len(prefixes)==len(indexed['FC067_CT_PREFIX']),'duplicate frame boundary')
-    output={}
+    output={};direct_x=set()
     for generation,slot in sorted({key[:2] for key in groups}):
         key=generation,slot
         require(all((*key,k) in groups for k in range(4)),'incomplete transform')
@@ -68,9 +68,11 @@ def inspect(text,include_records=False):
         require(generation in begins and generation in prefixes,'missing frame boundary')
         require(all(int(begins[generation]['cycle'])<=int(p[0]['cycle'])<=int(prefixes[generation]['cycle'])
                     and p[0]['ordinal_hint']==prefixes[generation]['ordinal'] for p in parts),'seam frame chronology')
-        supply=inspect_supply(parts[0][1],base,parts[0][0]['cycle'],str(generation),parts[1][0]['cycle'])
+        first_supply=records(parts[0][1],'FC067_SUPPLY_ENTRY')[0]['block']=='8c03c932'
+        first_pred=records(parts[2][1],'FC067_PRED_ENTRY')[0]['block']=='8c03c998'
+        supply=inspect_supply(parts[0][1],base,parts[0][0]['cycle'],str(generation),parts[1][0]['cycle'],first_supply)
         initial=inspect_initial(parts[1][1],base,parts[1][0]['cycle'])
-        pred=inspect_pred(parts[2][1],base,parts[2][0]['cycle'],parts[3][0]['cycle'])
+        pred=inspect_pred(parts[2][1],base,parts[2][0]['cycle'],parts[3][0]['cycle'],first_pred)
         calc=inspect_calc(parts[3][1],base,parts[3][0]['cycle'])
         require(supply['transformed_words'][:3]==initial['initial_xyz_words'],'initial arithmetic binding')
         projected=initial['initial_xyz_words'];expected_writes=[]
@@ -79,15 +81,20 @@ def inspect(text,include_records=False):
             require([v for a,v in contribution['loads'][5:]]==projected,'accumulation prior binding')
             expected_writes.extend((4,a,v) for a,v in contribution['stores'])
             projected=[v for a,v in contribution['stores']][::-1]
-        require(key in loads and key in edges,'missing X continuity')
-        load,edge=loads[key],edges[key];writer=len(expected_writes)
-        require(load['pc']=='8c03c9d6' and int(load['address'],16)==base and int(load['writer'])==writer
-                and int(load['value'],16)==int(load['expected'],16)==projected[0],'X load binding')
-        require(edge['block']=='8c03c9a4' and int(edge['pointer'],16)==base+4 and edge['exact']=='1'
-                and int(edge['value'],16)==int(edge['expected'],16)==projected[0]
-                and 16 not in pred['written_registers'],'X register continuity')
+        writer=len(expected_writes)
+        if first_pred:
+            require(key not in loads and key not in edges and [v for _,v in pred['source_loads']]==projected,'direct XYZ record binding')
+            direct_x.add(key)
+        else:
+            require(key in loads and key in edges,'missing X continuity')
+            load,edge=loads[key],edges[key]
+            require(load['pc']=='8c03c9d6' and int(load['address'],16)==base and int(load['writer'])==writer
+                    and int(load['value'],16)==int(load['expected'],16)==projected[0],'X load binding')
+            require(edge['block']=='8c03c9a4' and int(edge['pointer'],16)==base+4 and edge['exact']=='1'
+                    and int(edge['value'],16)==int(edge['expected'],16)==projected[0]
+                    and 16 not in pred['written_registers'],'X register continuity')
         require(calc['live_input_words'][16]==projected[0] and calc['live_input_words'][17]==projected[1]
-                and [v for _,v in pred['source_loads']]==projected[1:3]
+                and [v for _,v in pred['source_loads'][-2:]]==projected[1:3]
                 and pred['factor_word']==calc['live_input_words'][19],'projection input binding')
         require(int(records(parts[2][1],'FC067_PRED_EDGE')[0]['x'],16)==projected[0],'X predecessor exit')
         for j,value in enumerate(reversed(calc['final_words_xyz'])):expected_writes.append((3,base+8-4*j,value))
@@ -99,13 +106,14 @@ def inspect(text,include_records=False):
             pc=([0x8c03c97c,0x8c03c97e,0x8c03c982][component] if kind==4
                 else (0x8c03c94e if kind==1 else 0x8c03c9ca)+component*2)
             require(int(row['pc'],16)==pc and int(begins[generation]['cycle'])<=int(row['cycle'])<=int(prefixes[generation]['cycle']),'writer PC/clock')
-        require(own[writer-1]['_position']<load['_position']<edge['_position']
-                <parts[2][0]['_position']<parts[3][0]['_position'],'X chronology')
+        if first_pred:require(own[writer-1]['_position']<parts[2][0]['_position']<parts[3][0]['_position'],'direct X chronology')
+        else:require(own[writer-1]['_position']<load['_position']<edge['_position']
+                     <parts[2][0]['_position']<parts[3][0]['_position'],'X chronology')
         output[key]=dict(base=base,final_words=calc['final_words_xyz'],writes=len(own),
                          generation=generation,slot=slot,preprojection_record_words=projected,
                          source_point_words=supply['source_point_words'],xf_matrix_words=supply['xf_matrix_words'],
                          screen_center_words=[calc['live_input_words'].get(r) for r in (20,21)])
-    require(set(extras)<=set(output) and set(loads)==set(edges)==set(output),'orphan arithmetic')
+    require(set(extras)<=set(output) and set(loads)==set(edges)==set(output)-direct_x,'orphan arithmetic')
     for row in indexed['FC067_CT_GATHER']:
         key=int(row['generation']),int(row['slot']);record=output[key];component=int(row['component'])
         require(0<=component<3 and int(row['address'],16)==record['base']+4*component

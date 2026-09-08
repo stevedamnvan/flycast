@@ -11,13 +11,14 @@ from transform_store_inspect import load_session, require
 from xyz_operand_inspect import operand, reg_key
 
 
-def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None):
+def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None, first_record=False):
+    op_count,event_count,input_count=(14,17,1) if first_record else (7,9,2)
     require('FC067_PRED_REJECT' not in session, 'live predecessor rejected')
     entries, exits, edges = (records(session, 'FC067_PRED_'+tag) for tag in ('ENTRY','EXIT','EDGE'))
     require(len(entries) == len(exits) == len(edges) == 1, 'not one predecessor edge')
     entry, finish, edge = entries[0], exits[0], edges[0]
-    require(entry['block'] == '8c03c9a4' and entry['cycle'] == cycle
-            and entry['ops'] == '7' and entry['inputs'] == '2', 'wrong predecessor')
+    require(entry['block'] == ('8c03c998' if first_record else '8c03c9a4') and entry['cycle'] == cycle
+            and int(entry['ops']) == op_count and int(entry['inputs']) == input_count, 'wrong predecessor')
     require(finish['next'] == edge['block'] == '8c03c9c0'
             and int(finish['pointer'],16) == int(edge['pointer'],16) == base+12
             and finish['cycle'] == entry['cycle']
@@ -30,22 +31,23 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None):
     require(mxcsr & 0xe040 == int(finish['mxcsr'],16) & 0xe040, 'mode changed')
     mode = (mxcsr >> 13) & 3
     inputs, ops = records(session,'FC067_PRED_INPUT'), records(session,'FC067_PRED_OP')
-    require(len(inputs) == 2 and len(ops) == 7, 'descriptor coverage')
+    require(len(inputs) == input_count and len(ops) == op_count, 'descriptor coverage')
     state = {}
     for row in inputs:
         key = (int(row['reg']),0)
         require(key not in state and row['value'] == row['expected'] and row['exact'] == '1', 'input mismatch')
         state[key] = int(row['value'],16)
-    require(set(state) == {(4,0),(23,0)} and state[4,0] == base+4, 'wrong input identity')
+    require(set(state) == ({(4,0)} if first_record else {(4,0),(23,0)}) and state[4,0] == base+(0 if first_record else 4), 'wrong input identity')
     names = ['readm','add','readm','add','mov32','fsetgt','fdiv']
     pcs = [0x8c03c9a4,0x8c03c9a4,0x8c03c9a6,0x8c03c9a6,0x8c03c9a8,0x8c03c9aa,0x8c03c9ac]
+    if first_record:names=['mov32']*5+['readm','add']+names;pcs=[0x8c03c99a,0x8c03c99c,0x8c03c99e,0x8c03c99e,0x8c03c9a0,0x8c03c9a2,0x8c03c9a2]+pcs
     require([op['op'] for op in ops] == names and [int(op['pc'],16) for op in ops] == pcs, 'wrong predecessor program')
     dynamic=[]
     for line in session.splitlines():
         match=re.search(r'FC067_PRED_(READ|VALUE|STORE) ',line)
         if match:
             dynamic.append((match[1],records(line,'FC067_PRED_'+match[1])[0]))
-    require(len(dynamic) == int(finish['events']) == 9, 'wrong event count')
+    require(len(dynamic) == int(finish['events']) == event_count, 'wrong event count')
     cursor, loads = 0, []
     def take(kind,index):
         nonlocal cursor
@@ -63,10 +65,12 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None):
                     and int(read['address'],16) == a, 'wrong actual load address')
             address=a
         else:
-            require(op['size'] == '0', 'arithmetic size')
+            require(op['size'] == ('4' if first_record and index<3 else '0'), 'arithmetic size')
             if op['op']=='add': expected=(a+b)&0xffffffff
             elif op['op']=='mov32':
-                require(a==0x3f800000 and op['rs2']=='-', 'not observed unit numerator')
+                expected_constant=[0x43a00000,0x43700000,0x7f800000,0x8c03c9ec,0][index] if first_record and index<5 else 0x3f800000
+                require(a==expected_constant and op['rs2']=='-', 'not observed constant')
+                if first_record and index<5:require(reg_key(op['rd'])==([20,21,22,0,23][index],1),'constant register')
                 expected=a
             elif op['op']=='fsetgt': expected=int(fraction(a)>fraction(b))
             elif op['op']=='fdiv': expected=evaluate('div',a,b,0,mode)
@@ -77,14 +81,15 @@ def inspect_edge(session, base=0x8ce74250, cycle='7602640640', next_cycle=None):
         require(0<=value<=0xffffffff and (expected is None or value==expected), 'arithmetic mismatch')
         state[key]=value
         if address is not None: loads.append((address,value))
-    require(cursor==len(dynamic) and [address for address,_ in loads]==[base+4,base+8], 'load coverage')
+    require(cursor==len(dynamic) and [address for address,_ in loads]==([base,base+4,base+8] if first_record else [base+4,base+8]), 'load coverage')
     factor=state[reg_key(ops[-1]['rd'])]
-    require(factor==int(edge['factor'],16) and state[4,2]==int(edge['pointer'],16), 'exit differs from executed results')
+    require(factor==int(edge['factor'],16) and state[4,3 if first_record else 2]==int(edge['pointer'],16), 'exit differs from executed results')
+    if first_record:require(state[16,1]==int(finish['x'],16)==int(edge['x'],16),'direct X edge')
     # Emitted immediately at the predecessor exit, then at the very next JIT
     # block entry. No silent intervening block is allowed by the live pending guard.
     require(session.index('FC067_PRED_ENTRY ') < session.index('FC067_PRED_EXIT ')
             < session.index('FC067_PRED_EDGE '), 'buffer/edge chronology')
-    return {'factor_word':factor,'source_loads':loads,'predecessor_ops':7,'predecessor_events':9,
+    return {'factor_word':factor,'source_loads':loads,'predecessor_ops':op_count,'predecessor_events':event_count,
             'written_registers':sorted({reg_key(op['rd'])[0] for op in ops}),
             'reciprocal_record_depth_proven':True,'world_camera_recovered':False,
             'record_z_coordinate_system':'unknown','mxcsr_rounding_mode':mode}

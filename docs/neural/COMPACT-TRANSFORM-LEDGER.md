@@ -57,3 +57,12 @@ normalized-scale and1e-9 reconstruction tolerances stay unchanged. Its explicit
 opt-in matrix bound is19341 (2763 targets times at most seven contributions);
 legacy21/144-matrix defaults remain unchanged. Wrong shared scale must reject.
 Physical world scale and a unique world camera are not implied by factorization.
+
+LOG208/209 correction: callbacks can originate on emulator and decoder threads.
+Append/finish must serialize the zlib stream and output vector; compression
+integrity cannot rely on favorable timing. Unguarded8-thread testing failed,
+and discovery D's checksum failed despite semantic_failed=0. Both stay rejected.
+The guarded test independently recovers16000 events with exact per-writer order
+over five runs; E's live checksum passes. Global inter-thread event order is
+observed serialization order, not an invented emulated clock. Destruction still
+requires callers to have joined. Diagnostic locking is not performance evidence.
