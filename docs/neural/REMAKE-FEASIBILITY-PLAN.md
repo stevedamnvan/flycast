@@ -1,5 +1,10 @@
 # Reuse-first remake feasibility
 
+Current boundary: OPAQUE-INITIAL-STORES-AUDIT.md, LOG #174. Initial record
+stores are proven, but their coordinates are precomputed live-ins. Stop this
+bounded trace; audit remaining M2 requirements rather than automatically
+following more predecessors. World camera and full M2 remain incomplete.
+
 Current route: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. The selected factor is now
 proven as1/Zrecord via actual loads/division/edge. Next bounded initial-record
 producer, not repeated reciprocal tracing. Record coordinate space, world

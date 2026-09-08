@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current authority: OPAQUE-INITIAL-STORES-AUDIT.md, LOG #174. Initial block8c03c94c
+only stores precomputed FR0/1/2; their calculation/coordinate system is outside
+the bounded assignment. Scope stop: no further predecessor/caller/site tracing
+automatically. After checkpoint, audit remaining M2 requirements and request
+a new bounded route if needed. Full goal remains incomplete. Newest governs.
+
 Current authority: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. Actual predecessor
 loads the earlier record Z and computes q=1/Z, then hands it to the final block.
 Record Z's coordinate system remains unknown. Next bounded initial-record

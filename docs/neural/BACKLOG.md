@@ -1,5 +1,12 @@
 # Neural rendering backlog
 
+FC-067 scope stop (LOG #174): block8c03c94c proves only initial FR0/1/2 store
+operands, not their calculation. Live/four offline controls reject; native
+81-plane/9-producer/27-raw comparisons match. Initial coordinate calculation
+is NOT_REVIEWABLE within this block. No automatic further predecessor/caller
+tracing. Next remaining-M2 requirements audit per OPAQUE-INITIAL-STORES-AUDIT.md;
+new bounded reconstruction authority is needed before extending the trace.
+
 FC-067 reciprocal record-depth edge accepted in bounded self-review (LOG #173):
 seven ops/two live-ins/nine events prove loaded earlier Z ->1/Z -> final FR3.
 Live wrong-factor, five edge controls and a source-generation control reject;
@@ -186,7 +193,7 @@ association/visibility remain next; full M2 and Remix GPU remain open.
 | FC-064 | 6 | Performance | Invariants and measured targets | doing | LOG #75,#77-#89,#96-#98,#102,#110,#114,#116; asynchronous no-flush production telemetry reports per-pass GPU P50/P95/P99, exact source/accepted/displayed frame identity, present-call intervals, repeat/drop/gap/alternation/latency counters, live mode, accepted-reset state, stage/fallback counts, query-ring pressure, post-warmup VRAM, and scoped Flycast-owned neural GPU-object counts; transition and four 10000-sample normal/OIT soaks cover both surfaces; continuous 600-sample off/on and foreground-focus intervals on all four paths and fresh post-device-removal normal/OIT intervals have zero missing/drop/identity/repeat/latency faults and zero owned-object growth; external ON/OFF spans remain separate rather than an isolated external-cost claim, and broader-title/spontaneous-device evidence remains |
 | FC-065 | 6 | Manual game matrix | Legal available images; gaps stated | doing | LOG #73,#90,#94-#95,#100-#103,#106-#107,#118-#121,#124,#126,#130; Soulcalibur has a pixel-repeatable Hoko Temple combat sequence across native, target-native DLAA Auto/J/K, accepted Quality SR, 8x native, conservative external tuples, and explicitly non-faithful Photoreal/Cinematic captures. The exact capture-reset OIT rerun again finds no Faithful external winner. Cinematic/Structure-200/Tone-75/max coverage and automatic-HUD lanes complete 30/30 exact contracts on both normal DX11 and OIT; the current OIT HUD-safe lane protects an average 15,803 pixels with zero mismatch/repeat/drop while remaining visibly and numerically non-faithful. Uncanny Cinematic is therefore a valid user-selected candidate default, not the factory default; other legal titles remain unavailable. |
 | FC-066 | 6 | Mandatory DLSS 5 provenance test | User-supplied real-emulator route passes all Gate 10 items | done | LOG #53-#59; all 120 full input contracts matched across ON/policy-OFF, 118 returned outputs differed, frame 9 distinguished native/public-DLAA/external hashes and carried 1024/1024 sentinel pixels through successful same-frame Present, and negative controls retained native fallback |
-| FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-110, LOG #173, OPAQUE-FACTOR-EDGE-AUDIT.md. Actual predecessor proves q=1/Zrecord and hands it to final coordinates. Next bounded initial-record producer at observed stores8c03c94e/50/52; record-space semantics/world camera remain unknown. Strict replay remains failed/parked. No whole-scene calibration, real Remix GPU or combined presentation proven. Does not replace FC-048 or FC-056/066. |
+| FC-067 | R | Reuse-first remake feasibility | Bounded scene packet, analytic controls, public Remix SDK adapter disposition, then separately gated moving-game reconstruction | doing | D-111, LOG #174, OPAQUE-INITIAL-STORES-AUDIT.md. Initial block only stores precomputed coordinate registers. Bounded trace stops; next remaining-M2 audit, not another automatic predecessor. Record-space semantics/world camera unknown; strict replay failed/parked. No whole-scene calibration, real Remix GPU or combined presentation proven. Does not replace FC-048 or FC-056/066. |
 | FC-069 | 6 | Definition of done | All non-contingent requirements green | todo | |
 
 ## Historical assignment -- FC-067 calibrated scene identity and coverage

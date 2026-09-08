@@ -1,5 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #174 scope stop: initial block8c03c94c only stores precomputed coordinates.
+Their calculation is outside the approved block. No automatic predecessor/
+caller/site expansion. Audit unmet M2 scope after checkpoint and request a
+new bounded route if necessary; OPAQUE-INITIAL-STORES-AUDIT.md governs.
+
 LOG #173 update: selected predecessor proves1/Zrecord, linking the earlier RAM
 generation to the actual final-coordinate input. Record Z's coordinate system
 and initial calculation remain unknown; no world camera/M2 promotion. Next
@@ -43,10 +48,10 @@ disposition is not a whole-scene reconstruction pass or completion of strict M2.
 | Native moving replay alignment | Retained frame1804 replay proof says decoded-versus-retained0 pixels, source13 pixels/max1LSB; source_frame_exact=false, passed=false | Strict equality failed/parked by user; do not relabel or restart precision loop |
 | Falsifying raster controls | Same proof reports wrong viewport264181 pixels and wrong depth307159 pixels | Raster controls fail as intended; not recovered camera controls |
 | Deterministic input identity | New producer metadata exposes one-step differences despite equal host frame/reset counters; separate no-reset runs have exact matching timing/images | Bounded exact runs accepted; blanket cross-run determinism unproven |
-| Explicit real camera/depth provenance | Current packet says camera/world unknown, raw PVR depth before log shader; verified petals/fish are limited effect domains; third scalar candidate remains uncorrelated | Whole-scene/opaque camera not proved |
+| Explicit real camera/depth provenance | LOG171-174 link initial register stores, RAM generations,1/Zrecord, final viewport arithmetic and TA output for one opaque vertex. Initial coordinate calculation/space and packet camera/world remain unknown; prior effect domains do not generalize | Selected reciprocal-record-depth proven; whole-scene/opaque camera not proved |
 | Native/configuration preservation | Temporary CPU hooks removed; restored builds/selftests and hook-free J images/stamps match; no external configuration edits in this investigation | Scoped preservation accepted; not a new full transition/performance matrix |
 | Real Remix GPU/render/presentation | Adapter returns api-submitted-not-rendered-or-presented, no loader/readback path; mock explicitly runtime/GPU/present=false | Not implemented or proved; no proprietary runtime acquisition authorized |
-| Commit/push and governing disposition |84231a2af exact-SHA four builds,3x284 selftests,SDK56,Python65+5 pass; hook-free capture matches27 unique planes and producer timing; fork ref verified | Evidence checkpoint delivered; overall M2 incomplete |
+| Commit/push and governing disposition |d38c25f76 exact-SHA four builds,3x298 selftests,SDK56,Python116+5 pass; hook-free capture matches27 unique planes/three producer stamps/nine raw guidance files; fork ref verified. LOG174 checkpoint verification follows | Evidence checkpoints delivered; overall M2 incomplete |
 
 Read-only checks in this audit inspected current source predicates and actual
 frame1804 proof JSON, not just prior summaries. New probes are not authorized by
@@ -55,10 +60,12 @@ inventory; it provided no source evidence.
 
 ## Next decision boundary
 
-The approved bounded source investigation has produced two effect domains and
-one uncorrelated scalar routine. Its plan explicitly forbids indefinite guest
-decompilation/caller tracing. Continue checkpoint validation and delivery, but
-do not automatically expand that investigation to satisfy a completion label.
+The approved bounded source investigations have produced two effect domains,
+one uncorrelated scalar routine and a selected opaque register-to-RAM-to-TA
+chain including reciprocal record depth. The initial XYZ calculation is still
+outside the final approved block. The plan forbids indefinite guest/caller
+tracing. Continue checkpoint validation and requirement audit, but do not
+automatically expand that investigation to satisfy a completion label.
 
 The unresolved reconstruction requirement needs a new bounded route: either
 title-specific authoritative camera/mesh information (with legal provenance),

@@ -1,5 +1,11 @@
 # Flycast DLSS 5 tester handoff
 
+Current authority: OPAQUE-INITIAL-STORES-AUDIT.md, LOG #174. Initial block only
+stores precomputed FR0/1/2; coordinate calculation is outside the assignment.
+Stop further predecessor/caller/site tracing. After checkpoint, audit remaining
+M2 requirements and return unmet scope; request new bounded authority if needed.
+Do not mark full goal complete or revive parked strict replay. Newest governs.
+
 Current authority: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. q=1/Zrecord is proven
 through an actual predecessor edge. Next bounded initial-record producer block
 at stores8c03c94e/50/52, with exact destination selection and audit controls.

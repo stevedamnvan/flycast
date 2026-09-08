@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-111: stop at the bounded block when coordinates remain live-ins
+
+An initial RAM store block may simply copy precomputed floating-point registers.
+Exact store operands and subsequent reciprocal/viewport arithmetic do not prove
+the calculation or coordinate system that preceded those registers. Report
+that limitation, retain false coordinate-calculation/camera flags, and stop
+automatic predecessor expansion. Return to the actual M2 requirements instead
+of authorizing another trace through a new self-written task card. Further
+investigation requires a concrete newly approved route and stopping condition.
+
 ## D-110: reciprocal record depth is not yet camera-space depth
 
 Actual1/Zrecord arithmetic and a checked successor edge establish the selected
