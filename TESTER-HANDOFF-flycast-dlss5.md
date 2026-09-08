@@ -8,13 +8,51 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera. LOG239/D-124 verifies the four-draw
+Current card remains FC-067 / M2-camera; follow BACKLOG for the next run, not
+the historical sequence below. LOG315-322 closes exact-expression lineage for
+all3682/2152 vertices/triangles in first remaining batch at frame1782, and920/463
+in second packet batch at frames1782 and1783. Calibrated expression meshes retain
+strict rounding failures; affected triangles tested so far are outside640x480.
+No complete/world-camera or Remix GPU claim. Background construction/queue binding
+passes3frames, but world/material semantics are unknown. Temporary core hooks
+remain present and uncommitted; last exact-tested/pushed SHA is still755b90f8e.
+Use single-producer-frame capture with unchanged caps for remaining combinations,
+then consolidate/clean up/checkpoint according to the backlog. No producer search
+or reproof of standalone neural transport is needed.
+
+Historical derivation: LOG239/D-124 verifies the four-draw
 explicit-affine experiment:2093 triangles/frame with every contribution retained.
 Strict all-rigid calibration still fails; physical/world-camera semantics remain
 unknown. Together with separate prior captures,5722/8339 opaque triangles have
 bounded reconstruction, not one unified scene. Live wrong-prefetch D rejects,
-hooks removed, restored builds running (LOG240). Finish tests and checkpoint;
-last exact tested/pushed SHA remains36538ae12. Real Remix GPU remains pending.
+hooks removed. Exact tested/pushed SHA755b90f8e (LOG242). Next use explicit sparse
+vertex lists for the two remaining17-draw batches (3682 and924 vertices).
+LOG247 completes missing-source inventories:1990/920 missing associations per
+frame plus four absent packet samples. Temporary diagnostic hooks are currently
+present, not committed. LOG256 locates XYZ writers for all8730 missing-offset
+matches:ab5c/ab5e/ab60 and ccc8/ccca/cccc. All10212 alternate SQ packet words
+match prior D. LOG257 identifies source reads ab56/ab58/ab5a and ccc2/ccc4/ccc6
+across all executed writer variants. LOG259 runtime read A binds10212 alternate
+SQ copies to contiguous nonzero XYZ triplets with exact writer-B packet parity.
+LOG261 verifier/live corruption controls reject. LOG263 first17-draw source map
+now verifies3682 vertices/2152 triangles/frame with656 source addresses and363
+changing values. LOG265 wrong-pointer control rejects/no tape; second packet
+batch verifies920 vertices/463 triangles/frame. LOG268 independently verifies
+FillBGP decoded-input-to-four-corner geometry with actual queue identity; absolute
+VRAM/material provenance remains unknown. LOG270 live background falsification
+rejects with exact native/scene parity;225 tests pass. LOG271 sparse incarnation
+adapter retains prior2093-triangle/frame reconstruction. LOG273 merged first
+transform capture fails inherited four-version capacity; accepted source tape
+proves five selected poses at18 addresses/frame. LOG275 six-version B also
+fails on unused intermediate transforms, with1941 lifetime starts before failure.
+LOG277 dense C passes the old capacity point and reaches2274 lifetimes, then
+rejects unknown overlapping writer8c03a9f2 at8ce6e460. LOG279 identifies two
+FTRV paths a9b0/a9ea and metadata write a9f2; next dynamic operand/read/write
+collection must distinguish record layout/aliasing and prove both paths before
+allowing writes.228 tests and legacy integrated
+regression pass; preserve4096/frame and ledger/arithmetic limits, then capture original
+original transforms for the remaining packet domains. Retain budget failures, do not accept writer discovery
+as original-transform lineage. Real Remix GPU remains pending.
 Historical scope: FULL-DRAW-TRANSFORM-AUDIT.md records
 426 verified vertex observations feeding one complete92-triangle opaque draw.
 Its calibrated reprojection is verified;8247 other opaque triangles/frame,

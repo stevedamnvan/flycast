@@ -10,13 +10,31 @@ NEXT_DOMAIN=((1503,7272,9118),(1887,9118,10664))
 FOUR_DOMAIN=((161,823,1420),(854,4165,5196),(1222,5929,7272),(2266,11172,11732))
 
 
+def domains(domain):
+    require(isinstance(domain,tuple) and 1<=len(domain)<=34,'draw batch bound')
+    result=[];draws=set();total=0
+    for item in domain:
+        require(isinstance(item,tuple) and len(item) in (2,3),'draw batch shape')
+        draw=item[0]
+        require(type(draw) is int and draw>=0 and draw not in draws,'draw identity')
+        draws.add(draw)
+        if len(item)==3:
+            first,end=item[1:]
+            require(type(first) is int and type(end) is int and 0<=first<end<=65536 and end-first<=4096,'draw batch shape')
+            vertices=tuple(range(first,end))
+        else:vertices=item[1]
+        require(isinstance(vertices,tuple) and 1<=len(vertices)<=4096,'per-draw vertex bound')
+        require(all(type(v) is int and 0<=v<65536 for v in vertices)
+                and all(a<b for a,b in zip(vertices,vertices[1:])),'sparse vertex order/shape')
+        total+=len(vertices);require(total<=4096,'selected vertex budget')
+        result.append((draw,vertices))
+    return result
+
+
 def selection(domain):
-    require(isinstance(domain,tuple) and 1<=len(domain)<=8,'draw batch bound')
     mapping={}
-    for draw,first,end in domain:
-        require(all(type(v) is int for v in (draw,first,end)) and draw>=0 and 0<=first<end<=65536,'draw batch shape')
-        require(end-first<=4096,'per-draw vertex bound')
-        for vertex in range(first,end):
+    for draw,vertices in domains(domain):
+        for vertex in vertices:
             require(vertex not in mapping,'overlapping selected domains');mapping[vertex]=draw
     require(1<=len(mapping)<=4096,'selected vertex budget')
     return mapping
@@ -28,8 +46,9 @@ def inspect(tape,frames,domain=DEFAULT_DOMAIN):
     require(len(rows)==count*3 and len(frames)==3,'large draw coverage')
     results=[];epochs=set();generations=set()
     for frame,(scene,manifest) in enumerate(frames):
-        domains=[inspect_scene(scene,draw,4096,8192) for draw,_,_ in domain]
-        require(all(d['vertices']==list(range(first,end)) for d,(_,first,end) in zip(domains,domain)),'selected vertex domain')
+        expected=domains(domain)
+        observed=[inspect_scene(scene,draw,4096,8192) for draw,_ in expected]
+        require(all(d['vertices']==list(vertices) for d,(_,vertices) in zip(observed,expected)),'selected vertex domain')
         producer=manifest['producer_identity']
         require(producer['available'] is True and producer['clock']=='sh4-scheduler-cycles'
                 and producer['ordinal']==1781+frame,'producer identity')
@@ -48,7 +67,7 @@ def inspect(tape,frames,domain=DEFAULT_DOMAIN):
             require(row['decoder_pointer'] not in pointers and row['ta_offset'] not in offsets,'duplicate packet association')
             pointers.add(row['decoder_pointer']);offsets.add(row['ta_offset'])
             values[row['ram_x']].add(tuple(row['after'][1:4]))
-        results.append(dict(frame_id=scene['frame_id'],vertices=count,triangles=sum(d['triangle_count'] for d in domains),
+        results.append(dict(frame_id=scene['frame_id'],vertices=count,triangles=sum(d['triangle_count'] for d in observed),
                             source_addresses=len(values),addresses_with_multiple_values=sum(len(v)>1 for v in values.values())))
     require(len(epochs)==1 and len(generations)==3,'generation/epoch reuse')
     return dict(frames=results,consumer_scene_binding=True,original_transform_proven=False,

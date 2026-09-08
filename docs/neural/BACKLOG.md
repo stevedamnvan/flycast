@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `36538ae123c8e9dbdbe60be6741ccc0ab24d60cd`, pushed (LOG230). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `755b90f8e61c46e47cf0c856c1afd49420b0884d`, pushed (LOG242). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,196 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: finish restored builds/tests and checkpoint the four-draw
-compression/prefetch/explicit-affine slice (LOG239/D-124). Focused live D rejects
-at the independent prefetch-edge predicate; hooks removed (LOG240).
+Current next action: review/stage owned harness/docs, run remaining focused SDK/
+compact/ledger checks and commit the hook-free checkpoint (LOG328). Temporary
+core hooks removed with retained inverse patch; all4 serial builds,3x298 selftests
+and260 inspectors passed. Exact-commit validation and fork verification follow.
+No more
+producer captures needed for this sampled matrix. First batch H/L/M proves3682/2152
+per sampled frame; all incident strict-outlier triangles reject common clip plane.
+World-camera/cross-frame object identity and real Remix GPU remain unproven.
+Second batch now has
+accepted separate captures for all3 producer frames; not cross-frame identity proof.
+K interrupted with no frames; K2 timed out at180000ms despite complete3frame
+artifacts and valid920/463 frame1784 lineage. Retain K2 as diagnostic evidence,
+not clean capture pass. Longer diagnostic timeout is not a performance concession.
+Second-J proves920/463 expression coverage at producer1782/frame1783 plus3frame
+BGP construction/binding. Reuse known producer paths, not new discovery.
+Enable existing BGP construction/queue witness in same bounded runs. Do not
+reinterpret BGP screen-plane depth as world geometry. Both batch mesh builders
+ran with strict residual failures retained; later-frame ancestry still missing.
+Second packet batch920 vertices/463 triangles has exact first-frame expressions,
+429 rigid calibration witnesses; no selected gaps. Background4 vertices remains
+separate. Native parity frame1783 differs8 pixels by1 channel; other2 exact, all3
+scene JSON exact. Preserve strict reprojection failures despite outlier triangles
+outside rectangle. Do not extrapolate first-frame ancestry to later frames.
+Selected matrix calibration has1708 agreeing rigid witnesses and115 explicitly
+general-affine contributions; doubled calibration rejects. No world-camera claim.
+Selected maximum0.0013122621 exceeds
+0.001 at one of3682 vertices; no shape rejections. Compare ordered binary32 versus
+mathematical projection without changing coordinates or tolerance to force a pass.
+All-record maximum0.0016823 exceeds0.001;
+retain failure,do not widen tolerance. Predivision Z distinct from0.95 output-depth
+scale;18 direct records excluded from projection shape,255 tests pass.
+Historical derivation of calibrated camera-relative geometry from accepted H
+expressions, then extend second remaining batch. H covers all3682 vertices/2152
+triangles in17 draws of firstframe with exact expressions and same-capture lineage;
+all3 color/scene pairs exact versus G,253 tests pass(LOG315). No later-frame ancestry
+or whole-scene/world-camera extrapolation.
+Historical inclusion of standard gather/copy ownership stream for remaining
+1692 selected vertices using existing cc7c/cc7e/cc80 hooks (LOG313). Integrated G
+exact-expression join covers1990 vertices/1096 triangles in firstframe; partial
+draw70/1114 coverage explicit. Camera-relative3D still pending.
+Historical join of exact expression IDs to selected scene and derivation of bounded
+calibrated camera-relative geometry.4327 records reconstruct bit-exactly with ordered
+binary32 expression evaluation;1951 incomplete remain explicit,253 tests pass(LOG312).
+No absolute world-camera decomposition claimed.
+Historical reconstruction of ordered accumulated transform expressions for
+selected outputs; contribution sets alone do not prove expression equality (LOG311).
+All1990 selected alternate consumers have supported sets including368 CALC; gap,
+overwrite and2-contribution propagation tests pass. Other1692 consumers separate.
+Historical falsification of composed ancestry sets and validation of selected CALC
+consumer coverage (LOG310). Diagnostic4327 complete sets include2274 CALC with1..5
+matrix contributions;1951 histories incomplete. Not accepted until negative controls
+and selected-chain checks pass. Preserve all contributions and UNKNOWN across gaps.
+Historical composition of dispatch/register matrix origins with10059 verified
+executed memory edges in ancestry-G; preserve multiple accumulation contributions
+(LOG309). Zero tracked loads lack store identity;42340 out-of-domain loads explicit.
+G scene acceptance passes, native image parity remains nonexact for first2frames.
+Historical propagation of initial/accumulation provenance through actual RAM
+loads/stores to CALC in ancestry-G and validate full scene/tape/native comparisons.
+G completes25280 blocks,zero full-session rejections,tape present;4225 initial and
+1718 accumulation FTRVs pass arithmetic (LOG308). Memory ancestry still pending.
+Historical capture of known SUPPLY/INITIAL/accumulation execution operands
+for same-frame ancestry. CALC-F6828 input words match observed preceding writes;
+5855 untracked inputs remain explicit,6 prefetches read prior CALC (LOG306).
+No new producer search needed; preserve source-domain bounds.
+Historical linkage of CALC input reads to known INITIAL/SUPPLY/accumulation
+executions in same capture (LOG305). All1990 selected alternate consumers now bind
+to completed records:1622 divided plus368 CALC. CALC original-transform ancestry
+remains open; do not equate completed-record ownership with recovered camera.
+Historical binding of4225 verified CALC records to combined-F consumers and
+verify input-read predecessor lineage (LOG304). Arithmetic/event checks pass;
+all3 scene JSONs exact versus E, but first2 native images differ at9/8 pixels(max1).
+No exact-image claim. CALC input ancestry remains pending.
+Historical verification of combined CALC-F arithmetic/event coverage with explicit
+combined bounds. F completes15112 blocks,zero full-session rejection,tape present
+(LOG303); counts are transport evidence only. Reuse known CALC checker and verify
+native/tape parity before binding remaining368 consumers.
+Historical reuse of known CALC lifecycle/arithmetic for remaining368
+consumers; accepted-E inventory proves all have c9ce/c9cc/c9ca XYZ writers (LOG301).
+No new producer discovery needed. Bind same-frame executions and preserve marker
+invalidation; prior-frame arithmetic alone is insufficient.
+Historical inventory of actual latest writers for remaining368 consumers in
+draw70(123),1114(141),2246(104) using retained ownership-E evidence. Integrated
+projection/scene acceptance supports886 triangles across9 complete draws in first
+frame only (LOG300). No whole-scene/world-camera or later-frame extrapolation.
+Historical integration of exact Z-projection into selected scene acceptance:
+quantify supported triangles and investigate remaining368 consumers. All2035 divided
+records reconstruct bit-exactly;2035 wrong-W and2035 wrong-offset controls fail
+(LOG299). Coordinate/world-camera meaning remains separate.
+Historical proof of explicit Z-divided3x4 projection with captured screen
+offset/depth scaling and selected-output reprojection (LOG298). Raw matrix variants
+have identical first3rows but different fourth rows; keep exact words. Mathematical
+3x4 calibration matches614.714431/565.537219; not yet scene reconstruction.
+Historical extraction of source points/matrices for645 accepted selected
+executions in preserved-counter E, test projection/rigidity, and investigate368
+remaining alternate selected consumers (LOG297). E passes full-session/tape checks;
+all3 native color and scene JSON pairs byte-identical to counter-off D.1622 selected
+consumers across9 draws have matrix/store/copy lineage; coordinate meaning pending.
+Rejected C is retained. Historical investigation:
+fresh continuity capture with counter preserving RAX/RFLAGS. Counter-off D uses
+same binary and restores valid tape/expected topology,zero rejections (LOG296).
+Counter implicated, exact mechanism not yet established; patched counter pending test.
+one accepted continuity-plus-tape capture (LOG295). C has no tape and full-session
+observer rejection/semantic_failed=1 despite arithmetic-only ledger checks passing.
+Do not combine accepted B tape with C dispatch evidence. Prior C continuity counts
+remain diagnostics, not selected geometry acceptance.
+Historical steps toward binding assembled records to selected-source/lifetime connections:
+using proven matrix-record identities; determine relevance of1 unlinked record.
+Ownership-C continuity links2055/2056 records, verifies71274 register comparisons,
+and clears origins across172 dispatch segments (LOG294). Coordinate meaning pending.
+using ownership-C dispatch serials plus register continuity (LOG293). C completes
+cleanly but differs from B; do not claim exact-input parity.2038 divided records,
+2539 owned copies/998 executions; hidden-block gaps explicitly identified.
+by proving matrix-to-store-block execution continuity. Timeline join now binds2529
+copies to995 distinct completed XYZ executions with intervening-write invalidation
+(LOG291). This is record ownership, not yet original-transform lineage.
+from exact producer invocation through last-writer timeline. Ownership-B matches1990
+selected tape records by ordinal/generation/TA offset/source/XYZ; full3frame scene
+binding passes3682 vertices/2152 triangles per frame (LOG290). Tape lacks copy IDs;
+do not describe composite-key join as direct ID proof. Other paths remain explicit.
+through actual copy/tape acceptance. Guarded ownership-B passes3377 fresh source-read
+to-copy bindings with27 outside-domain copies explicit (LOG289); no observer rejection.
+using fresh ownership-B after closing interpreter/HLE guard gap and adding exact
+copy identity (LOG288). Ownership-A must not be promoted across this gap.
+at copy/TA identity and audit non-x64 write coverage. Ownership-A completes cleanly;
+all10470 source reads match preceding observed writes, zero missing writers,
+7818 components latest-written by new XYZ paths (LOG287). Byte ownership is not
+yet complete matrix-to-copy lineage; no legacy rejection relaxed.
+with explicit intervening-write invalidation. Values-B now assembles2035 divided
+and18 direct records over360 addresses, preserving execution identities;238 tests
+pass (LOG285). Assembly is not consumer ownership or cross-block lineage.
+including marker invalidation and non-storing transforms (LOG284). Complete event
+coverage,8872 read addresses and9489 store addresses/SSA values now verify.
+Divided path has2200 transforms but2035 XYZ store triplets;165 must remain
+explicitly non-storing, not inferred geometry. Markers can temporarily alias X.
+for FTRV paths a9b0/a9ea. Values-B confirms live FP mode and independent reference
+matches2218 FTRV,2200 divisions,6105 multiplies and4070 additions (LOG283).
+This still does not prove source loads, cross-block continuation or camera meaning.
+Independent rational dot reference matches all2218 captured FTRVs under assumed
+toward-zero mode;231 tests pass (LOG282). This is not full producer arithmetic
+or source lineage. Values-B subsequently verifies live FP mode (LOG283).
+Dynamic A captures6654 balanced blocks,9489 exact RAM stores and2200/18 FTRV
+executions respectively at a9ea/a9b0 without observer rejection (LOG281).
+This is trace-envelope evidence, not independent arithmetic acceptance.
+Previous discovery:
+(LOG279).14 descriptors/122 operations identify direct and divided/screen-offset
+paths; a9f2 is an integer metadata write, not automatically a position. Distinguish
+record layout and buffer aliasing before accepting overwrites. Mapping-only A
+keeps3682-vertex/2152-triangle source map valid; first-once snapshots are not a
+continuous execution trace. Dense C reaches2274 lifetimes within4096/frame, then rejects
+unobserved-record-writer at slot0/address8ce6e460; this is not capacity failure.
+Do not classify it as existing accumulation or relax ownership. Dense-ID tests
+accept4096/reject4097, legacy contracts remain unchanged;228 tests and legacy
+integrated regression pass. Retain A/B capacity failures and C producer failure.
+Background live wrong-depth rejects with all3 native color/scene
+pairs byte-identical;225 tests pass. Sparse incarnation reconstruction adapter
+passes prior four-draw reconstruction (2093 triangles/frame, LOG271). Next merge
+proven versioned lifetime instrumentation with alternate read/store copy support;
+remaining transform A has run and failed its lifetime capacity, not accepted.
+Background B independently reconstructs all four final XYZ vertices/frame from
+decoded inputs with actual queue context/generation binding. This is geometry
+construction, not absolute VRAM/UV/color/material provenance or world camera.
+224 tests pass. Extended-map wrong-pointer rejects/no
+tape. Second packet batch verifies920 vertices/463 triangles/frame,217 source
+addresses and135 changing values; four background vertices explicitly omitted
+and still required.221 tests pass. First17-draw map B verifies3682 vertices/2152
+triangles/frame,656 source addresses with363 changing values; original transforms
+remain pending. FillBGP reads VRAM/registers and constructs background corners,
+so never manufacture SQ provenance for it. Independent verifier and three
+live address/value/generation controls reject while all10212 packet words remain
+unchanged.220 tests pass. Absolute source-address proof beyond trusted executed
+callbacks and original-transform lineage remain unproven. Read A covers10212 alternate SQ
+copies with nonzero contiguous XYZ triplets,385 distinct bases, full writer-B
+packet equality and no overflow. The read sites are ab56/ab58/ab5a and
+ccc2/ccc4/ccc6. Writer B covers all8730
+missing-offset matches;9 executed descriptors/204 operations identify unique
+matching-version reads for all writer variants. Runtime RAM addresses and
+original transforms remain pending. Actual SQ-flush sites are
+ab78/ab8e/cce6/ccf2 in two alternate producer families (LOG251).
+B proves same-call SQ addresses for all8730 missing-offset matches and preserves
+all15396 alternate packet words against A. Earlier ab88/ccec context snapshots
+were not actual flush instructions. Source transforms remain unproven. Corrected inventories
+C complete:1990 missing associations/frame in batch1,920 in batch2, plus four
+absent packet samples/frame in batch2. Distributions repeat across all3frames;
+no partial tape is accepted. Types3/4 identify packed-color textured formats,
+not producer truth. Trace alternate producers without manufacturing provenance.
+Sparse selector/topology preflight pass;216 tests green.34 draws partitioned into17/17:
+3682 vertices/2152 triangles and924 vertices/465 triangles. Preserve4096 vertices,
+existing copy/byte limits, explicit ownership and all non-contiguous index gaps;
+bounded draw-selection capacity is34 with ownership/gap/order negative tests.
+Four-draw slice is exact tested/pushed755b90f8e; hooks removed, live negative rejects.
 Strict all-rigid calibration remains failed; explicit affine mode retains93
 nonrigid contributions while10035 rigid witnesses constrain calibration, with
 all2093 selected triangles/frame reconstructed below0.000064542 pixels.214 tests

@@ -7,11 +7,14 @@ SLOT_TAGS={'FC067_CT_BLOCK','FC067_CT_WRITE','FC067_CT_GATHER',
            'FC067_X_PREFETCH_LOAD','FC067_X_PREFETCH_EDGE'}
 
 
-def inspect(text, bases, rows, include_text=False):
+def inspect(text, bases, rows, include_text=False, max_versions=4, dense=False):
+    require(type(dense) is bool,'dense contract')
+    require(type(max_versions) is int and max_versions in (4,6),'version contract')
+    require(dense or max_versions==4 or len(bases)*max_versions<=4096,'expanded lifetime record budget')
     require(1<=len(bases)<=1122 and len(set(bases))==len(bases),'address budget')
     require(0<len(rows)<=12288,'consumer budget')
     current={}; lifetimes={}; reads={}; bindings={}; prefixes={}; begins={}; output=[]
-    prefetch=None;prefetches=0
+    prefetch=None;prefetches=0;frame_counts={}
     def complete(state):
         require(state['seams']==15 and set(state['words'])=={0,1,2}
                 and state['reads']%3==0,'incomplete retired lifetime')
@@ -30,12 +33,17 @@ def inspect(text, bases, rows, include_text=False):
             require(gen in begins and gen not in prefixes and 0<=slot<len(bases),'lifetime frame/slot')
             key=gen,slot;previous=current.get(key)
             expected=1 if previous is None else previous['version']+1
-            require(version==expected and version<=4,'lifetime sequence/budget')
+            require(version==expected and (dense or version<=max_versions),'lifetime sequence/budget')
+            virtual=frame_counts.get(gen,0)
+            require(not dense or virtual<4096,'dense lifetime record budget')
+            require(not dense or int(fields.get('dense_id','-1'))==virtual,'dense lifetime identity')
+            frame_counts[gen]=virtual+1
             require(int(fields['previous_seams'])==(previous['seams'] if previous else 0)
                     and int(fields['previous_reads'])==(previous['reads'] if previous else 0),'retirement evidence')
             if previous:complete(previous)
             cycle=int(fields['cycle']);require(cycle>=begins[gen] and (not previous or cycle>=previous['cycle']),'lifetime clock')
-            state=dict(version=version,seams=0,reads=0,words={},cycle=cycle,position=position,writes=0)
+            state=dict(version=version,virtual=virtual if dense else (version-1)*len(bases)+slot,
+                       seams=0,reads=0,words={},cycle=cycle,position=position,writes=0)
             current[key]=state;lifetimes[gen,slot,version]=state
         if tag in SLOT_TAGS:
             gen,slot=(int(fields[k]) for k in ('generation','slot'));key=gen,slot
@@ -72,7 +80,7 @@ def inspect(text, bases, rows, include_text=False):
                         and int(fields['value'],16)==int(fields['expected'],16)==state['words'][component],'read bytes')
                 require(not own or own[0][0]==identity,'copy crosses incarnations')
                 own.append((identity,int(fields['value'],16),position));state['reads']+=1
-            fields['slot']=str((state['version']-1)*len(bases)+slot)
+            fields['slot']=str(state['virtual'])
             line=tag+' '+' '.join(k+'='+v for k,v in fields.items())
         if tag=='FC067_LEDGER_BIND':
             sample=int(fields['sample']);require(sample not in bindings,'duplicate consumer binding')
@@ -98,5 +106,6 @@ def inspect(text, bases, rows, include_text=False):
                 selected_lifetimes=len(set(selected.values())),
                 unused_lifetimes=sum(s['reads']==0 for s in lifetimes.values()),
                 lifecycle_verified=True,arithmetic_verified=False,world_camera_recovered=False)
-    if include_text:result.update(text='\n'.join(output)+'\n',selected=selected)
+    if include_text:result.update(text='\n'.join(output)+'\n',selected=selected,
+                                 selected_slots={sample:(identity[0],lifetimes[identity]['virtual']) for sample,identity in selected.items()})
     return result

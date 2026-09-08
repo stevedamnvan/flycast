@@ -1,5 +1,27 @@
 # Neural rendering decisions
 
+## D-125: expression lineage and screen rejection do not relax camera acceptance
+
+LOG315-327 binds ordered binary32 expressions through observed writes, reads,
+copies, tape and selected scene geometry in separate sampled-frame captures.
+An unordered set of contributing matrices is insufficient: intermediate rounding
+and accumulation order must reproduce the actual stored words. Unknown writers,
+dispatch gaps and record reuse must invalidate unsupported ancestry.
+
+Predivision Z remains distinct from the divided path's scaled output depth.
+Calibration is checked against independent rigid matrix witnesses, not inferred
+from a reprojection whose normalization cancels algebraically. General-affine
+contributors remain explicit under D-124. A zero captured fourth row is preserved;
+only the mathematical top-three-row analysis uses a labeled homogeneous row.
+
+The evidence mesh preserves every supported vertex and all strict0.001-pixel
+failures. Common-plane rejection establishes only that the incident triangle
+does not intersect the specified content rectangle in that sample; it is not a
+waiver of the all-vertex gate, proof of GPU clipping, or a world-space camera.
+Separate successful frame captures do not prove cross-frame object identity.
+These harness artifacts are not production-enabled or Remix-renderable. Complete
+world/camera semantics and real runtime presentation remain separate requirements.
+
 ## D-124: calibration witnesses are distinct from general-affine contributions
 
 LOG238/239 demonstrates93 executed nonorthogonal matrix contributions in the
