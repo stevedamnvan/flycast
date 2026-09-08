@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-100: follow the new produced RAM generation, not numeric vertex similarity
+
+A known second transform site now has a bounded executed combat block path,
+exact projection arithmetic and matching pinned RAM output. Its depth multiplier
+differs from the petal sample; preserve actual semantics without asserting a
+common physical scale. Next track that specific generation's actual reads/copies
+until TA or overwrite/reset/cap. Block-end observation is not per-access tracing,
+an opaque draw association, or a camera. See COMBAT-PATH-AUDIT.md.
+
 ## D-099: sampled effect calibration is not whole-scene camera evidence
 
 The linked transforms belong to translucent three-vertex primitives using a

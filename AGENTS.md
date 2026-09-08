@@ -2,6 +2,13 @@
 
 ## Current assignment
 
+Current: `docs/neural/COMBAT-PATH-AUDIT.md` (LOG #158, D-100). A second
+executed combat transform projects into a pinned RAM span; its primitive family
+is still unknown. Next bounded reads/copies from that produced generation toward
+TA, with overwrite/reset termination and actual draw association. Do not repeat
+site census, reuse petal calibration, assume opaque coverage, or restart replay
+precision diagnosis. Earlier assignments below are historical checkpoints.
+
 Current: `docs/neural/SCENE-ASSOCIATION-AUDIT.md` (LOG #157, D-099). The
 linked samples bind to a petal-like translucent source texture at frame1302,
 whose on-screen title is Emperor's Garden. They do not establish opaque fighter/

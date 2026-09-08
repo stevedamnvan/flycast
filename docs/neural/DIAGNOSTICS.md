@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 combat candidate RAM path
+
+`python neuraltest/combat_path_inspect.py --capture D --baseline RESTORED`
+checks the executed block metadata, projection arithmetic and pinned RAM result
+in COMBAT-PATH-AUDIT.md, with five offline falsifications and native preservation.
+`test_combat_path_inspect.py` supplies six arithmetic/contract tests. The command
+does not establish TA lineage, opaque geometry or camera provenance.
+
 ## FC-067 scene association
 
 `python neuraltest/scene_association_inspect.py --original ORIGINAL

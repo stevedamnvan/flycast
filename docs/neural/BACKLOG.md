@@ -2,6 +2,11 @@
 
 Status values are `todo`, `doing`, `blocked(reason -> next action)`, and `done`.
 
+FC-067 current: COMBAT-PATH-AUDIT.md, LOG #158. Second known site's executed
+combat projection/RAM path and five offline controls verify; six arithmetic
+tests pass. Primitive family/TA/opaque coverage remain unknown. Next bounded
+produced-span reads/copies to actual TA or explicit termination, not site census.
+
 FC-067 current: SCENE-ASSOCIATION-AUDIT.md, LOG #157. Nine association tests and
 12 actual-input offline controls pass; matching frame/materials identify the
 two samples as petal-like translucent effects, not opaque-world coverage.
