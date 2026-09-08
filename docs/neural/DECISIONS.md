@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-104: separate TA packet header, vertex member and original transfer
+
+The selected normal type3 parser consumes a32-byte packet whose TA_Vertex3
+member starts four bytes after PCW. Record both actual pointers/offsets, not
+sizeof a generic vertex cast. Reject unsupported split/64-byte variants rather
+than silently spanning another packet. Accepted-context identity and a direct
+decoder-buffer association do not identify the earlier transfer or CPU producer.
+R1 must add that causal copy witness before R2. Harness reset tokens must be
+nonreused and monotonic; remaps require the expected generation explicitly.
+See OPAQUE-REVERSE-PLAN.md; native production hooks remain removed at checkpoint.
+
 ## D-103: stop the uncorrelated scalar candidate at its observed return
 
 The third known transform candidate has verified RAM stores, returned reads,

@@ -1,6 +1,11 @@
 # Reuse-first remake feasibility
 
-Current decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
+Current user-approved route: OPAQUE-REVERSE-PLAN.md, LOG #167. R1 now links one
+opaque vertex to its actual TA-buffer packet; original copy provenance is next.
+No further locator/caller census, R2 or world-camera claim. This is a bounded
+reverse trace, not a finished RTX Remix/path-tracing or combined DLSS5 route.
+
+Historical decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
 checkpoint84231a2af is verified and pushed. Overall M2 remains incomplete.
 The bounded source investigation has stopped without an opaque/world camera.
 Do not automatically expand caller tracing, repeat captures or resume parked

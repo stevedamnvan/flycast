@@ -1,6 +1,18 @@
 # Neural rendering backlog
 
-FC-067 current decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166.
+FC-067 R1 PARTIAL (LOG #167): actual type3 TA packet offset32/member offset36
+links to final opaque draw1/vertex4. A misaligned first probe is rejected;
+corrected B preserves27 native planes and three producer stamps. Five new
+verifier methods and generation/remap helper checks pass. Next actual original
+TA copy/source-to-destination/generation witness; no R2, world camera or GPU
+claim. See OPAQUE-REVERSE-PLAN.md. Do not rerun the completed packet locator.
+
+FC-067 user-approved new scope: OPAQUE-REVERSE-PLAN.md. Start R1 from actual
+opaque draw1/vertex4 in retained frame1782; prove original TA packet association
+through decode/remapping, with bounded generation/offset controls. Do not start
+R2 CPU producer tracing before R1 review. Camera and full M2 remain unproven.
+
+Historical decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166.
 84231a2af exact-SHA verification and fork delivery complete. M2 still incomplete:
 opaque/world camera unknown, strict native-source replay equality failed/parked,
 real Remix GPU absent. No further automatic caller tracing or repeated captures.

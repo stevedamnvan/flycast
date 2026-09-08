@@ -1,6 +1,18 @@
 # Flycast agent entry point
 
-Current decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
+Current R1 checkpoint: OPAQUE-REVERSE-PLAN.md, LOG #167. Decoder-buffer packet
+offset32 (vertex member offset36) links to opaque vertex4. Transfer provenance
+is still missing. Next bounded actual TA copy witness for that packet with
+per-context generation and source/destination bytes; R2 remains unauthorized
+until R1 review. Temporary decoder hooks removed. Do not repeat the locator.
+
+Current user-approved scope: OPAQUE-REVERSE-PLAN.md. R1 begins from a captured
+opaque draw and must prove original TA packet association through decode/remap.
+Scope R2 only after R1 evidence review; no arbitrary caller tracing or guessed
+camera. The prior overall goal remains incomplete. Start with R1 interval and
+generation design/tests, not another shader or runtime integration.
+
+Historical decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
 checkpoint84231a2af is verified and pushed. Overall M2 remains incomplete.
 The bounded source investigation has stopped without an opaque/world camera.
 Do not automatically expand caller tracing, repeat captures or resume parked

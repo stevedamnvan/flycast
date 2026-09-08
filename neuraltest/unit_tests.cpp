@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "ta_provenance.h"
 #include "capture_transition.h"
 #include "remake_scene.h"
 #include "rend/neural/pvr_scene_capture.h"
@@ -1627,6 +1628,33 @@ int RunSelfTests()
 		suite.Expect(!context.captureProducer.Available(), "producer lifecycle invalidation clears stamp");
 	}
 	suite.failed += remakeCounts.failed;
+	{
+		TaProvenance p(2); p.Begin(7);
+		suite.Expect(p.Add(7, 32, 32, 1, 128), "TA origin accepts bounded interval");
+		auto origin = p.Resolve(7, 36, 12);
+		suite.Expect(origin && origin->sourceOffset == 132 && origin->transfer == 1, "TA origin resolves interior offset");
+		suite.Expect(!p.Resolve(6, 36, 12) && !p.Resolve(7, 64, 1), "TA origin rejects stale epoch and exclusive end");
+		suite.Expect(p.Add(7, 64, 32, 2, 512) && !p.Resolve(7, 48, 32), "TA split packet not silently joined");
+		suite.Expect(!p.Add(7, 96, 32, 3, 0) && !p.Resolve(7, 32, 4), "TA overflow invalidates whole observation");
+		p.Begin(8); p.Add(8, 0, 32, 1, 0);
+		suite.Expect(!p.Add(8, 16, 32, 2, 0) && !p.Resolve(8, 0, 4), "TA overlap fails closed");
+		p.Begin(9);
+		suite.Expect(!p.Add(9, UINT64_MAX-15, 32, 1, 0), "TA interval addition overflow rejected");
+		std::vector<std::optional<TaOrigin>> decoded{TaOrigin{7,1,128},TaOrigin{7,2,256}};
+		auto mapped = RemappedOrigin(decoded, {1,0}, 0, 7);
+		suite.Expect(mapped && mapped->transfer == 2, "TA explicit compaction map preserves origin");
+		suite.Expect(!RemappedOrigin(decoded, {UINT32_MAX}, 0, 7) && !RemappedOrigin(decoded, {}, 0, 7), "TA missing remap rejects restart and absent vertex");
+		suite.Expect(!RemappedOrigin(decoded, {1,0}, 0, 8) && !RemappedOrigin(decoded, {1,0}, 0, 0), "TA remap rejects stale or missing generation");
+		p.Begin(10); p.Add(10, 0, 32, 1, 0);
+		p.Begin(10);
+		suite.Expect(!p.Add(10, 0, 32, 1, 0), "TA reused generation cannot revive stale identity");
+		p.Begin(9);
+		suite.Expect(!p.Add(9, 0, 32, 1, 0), "TA backwards generation cannot revive stale identity");
+		p.Begin(10);
+		suite.Expect(!p.Add(10, 0, 32, 1, 0), "TA failed reset preserves generation high water mark");
+		p.Begin(11);
+		suite.Expect(p.Add(11, 0, 32, 1, 0) && p.Resolve(11, 0, 32), "TA fresh generation recovers after invalidation");
+	}
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;
 }
