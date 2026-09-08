@@ -1,5 +1,10 @@
 # Flycast DLSS 5 course correction
 
+Current route: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Actual final X/Y
+multiply/add and Z-factor copy now replay exactly. Next one bounded predecessor
+edge supplying the factor, not repeated final-block tracing. Factor origin,
+world camera, real Remix GPU and full M2 remain unproven.
+
 Current route: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Actual final RAM writes
 now link through XYZ loads/SQ/TA to the selected opaque vertex. Next bounded
 calculation of those stores, not repeated memory tracing. Write-path coverage

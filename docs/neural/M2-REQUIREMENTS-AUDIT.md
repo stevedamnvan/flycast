@@ -1,5 +1,10 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #172 update: actual final coordinate block8c03c9c0 proves its separate
+binary32 multiply/add steps and Z-factor copy under measured rounding. The
+factor's producer/depth semantics and world camera remain unknown. Next one
+bounded predecessor edge in OPAQUE-COORDINATE-CALC-AUDIT.md; no broader M2 claim.
+
 LOG #171 update: bounded byte-writer replay now observes the final record stores
 8c03c9ca/cc/ce and their overwritten predecessors. Actual loads link the final
 values to opaquevertex4. This is not coordinate calculation, universal memory

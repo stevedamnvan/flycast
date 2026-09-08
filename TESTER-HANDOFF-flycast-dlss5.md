@@ -1,5 +1,11 @@
 # Flycast DLSS 5 tester handoff
 
+Current authority: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Final coordinate
+block8c03c9c0 is proven with actual floating-point mode/intermediates. Next only
+one actual predecessor edge supplying FR3=q to the selected invocation, within
+the audit's bounds and controls. q semantics and camera are unknown; no repeat
+final-block/RAM/SQ capture or arbitrary caller tracing. Newest heading governs.
+
 Current authority: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Observed final RAM
 stores8c03c9ca/cc/ce supply the selected opaque XYZ, replacing an earlier set.
 Next one bounded actual block-calculation witness at cycle7602640640, qualified

@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current authority: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Final block8c03c9c0
+proves X=a*q+320,Y=b*q+240,Z=q with actual toward-zero binary32 intermediates.
+The q live-in's origin/meaning remains unknown. Next one bounded actual
+predecessor edge supplying FR3 to this exact invocation, not recursive callers,
+repeated final-block/RAM/SQ tracing or camera promotion. Newest heading governs.
+
 Current authority: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Six observed CPU writes
 include an overwritten set and final XYZ stores8c03c9ca/cc/ce. The latter link
 through actual RAM loads to opaquevertex4. Next only their bounded executed-block

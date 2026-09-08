@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-109: prove final viewport arithmetic without inventing its factor
+
+Observed X=a*q+320,Y=b*q+240,Z=q is a final coordinate calculation, not proof of
+the factor's reciprocal-depth origin, a matrix or world camera. Retain actual
+host rounding mode and every separate binary32 result; default nearest rounding
+or fused arithmetic is not an acceptable substitute. Buffer only bounded data
+until actual store destinations select the invocation. Falsifying controls
+must mutate the intended observer, not a shadowing earlier log line. Next only
+one actual predecessor edge supplying q, with fixed bounds and no recursive
+caller expansion. See OPAQUE-COORDINATE-CALC-AUDIT.md.
+
 ## D-108: retain overwritten record writes and name observer coverage
 
 A memory record can contain intermediate and final coordinates in the same
