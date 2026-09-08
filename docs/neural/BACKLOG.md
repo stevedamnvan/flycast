@@ -1,5 +1,17 @@
 # Neural rendering backlog
 
+FC-067 d2954272e separate no-reset qualification PASSES three matching producer
+ordinals/cycles and27 unique image planes. Reset trigger is host main-loop based,
+not an emulation-owned deterministic boundary; retain its failed image comparison
+as inapplicable same-input evidence, not a rendering pass. Metadata/native
+preservation slice accepted. Next existing opaque source-coverage review.
+
+FC-067 exactcommit d2954272e qualification: builds/tests pass; reset capture
+closes cleanly but same-frame images FAIL against C. New producer cycles differ
+by one step despite equal epochs/ordinals/main-loop save/load frames. Push was
+stopped. Inspect scheduling semantics, not repeat captures or shift acceptance.
+See FRAME-IDENTITY-AUDIT.md; no same-input renderer regression proven.
+
 FC-067 working-tree follow-up: producer metadata and strict in-memory save/load
 capture validation now pass the bounded C run; four builds, three284-test
 selftests, SDK56 and Python61+5 pass. See FRAME-IDENTITY-AUDIT.md. Commit and

@@ -1,5 +1,52 @@
 # FC-067 capture identity qualification
 
+## Exact-commit qualification: d2954272e
+
+Separate no-reset `fc067-producer-d2954272e-native` completes three frames with
+clean close. All manifests identify d2954272e and match production metadata A's
+producer ordinals/cycles at the same frame IDs (epoch3 within each run; not a
+cross-process epoch authentication). All27 unique native image planes match A
+exactly. ACCEPTED native-preservation/metadata slice; reset-run image equality
+remains rejected, not waived or converted into a pass. Next return to opaque
+scene source coverage; no further identical reset-capture loop is scheduled.
+
+Source review of the transition resolves its claim boundary: mainui increments
+MainFrameCount after its render/UI iteration, then requests save/load against
+that host-side counter. The hook calls emu.stop() before serialization; it does
+not request a particular SH4 cycle or accepted PVR submission. Threaded
+Emulator::start launches the emulation worker asynchronously, and stop requests
+executor termination then waits for it. dc_savestateMemory serializes the state
+at that stopped point, not a preselected deterministic game boundary. Thus the
+marker proves a completed transition, not identical saved guest state across
+runs. Equal serialized byte counts are not equal state hashes. This source
+finding explains why the test contract permits differing cycles; it does not
+prove which scheduling event caused the observed one-step difference.
+
+Do not redesign production scheduling to make this lifecycle test an image
+oracle. Keep reset validation scoped to epoch invalidation/valid fresh stamps
+and completed round-trip; require independently equal producer timing and
+source inputs for image comparisons. Use the separate no-reset capture for
+this commit's native-preservation check. Full deterministic saved-state capture
+would require a separately bounded emulation-owned boundary, not host frame IDs.
+
+Four exact-SHA builds, three284/284 selftests, SDK56 and Python61+5 pass.
+Actual `fc067-producer-d2954272e-reset` capture exits0/clean close and validates
+the save/load marker, but same-frame native comparison against C FAILS. The
+fail-fast shell stops before push; this commit is local only at this checkpoint.
+
+The new metadata changes the diagnosis: both runs retain epoch4/ordinals756-758,
+but the exactcommit cycles are7508467904/7511804160/7515140864 versus C's
+7505131648/7508467904/7511804160. Identical main-loop save/load frames1000/1030
+therefore do not establish identical emulated producer time. First-frame native
+color differs in287269 channel elements, max255, MAE1.83273356; depth/draw-ID
+also differ. Do not interpret this as a same-input renderer failure or silently
+shift frames to pass. This is evidence that ordinal/epoch alone is insufficient.
+
+Next inspect the existing save/load main-loop versus emulation scheduling seam
+and report its determinism limitation; do not repeat identical captures. A
+no-reset exact-SHA preservation check remains distinct from this scheduled-reset
+comparison. No original failed-run producer identity can be inferred retroactively.
+
 ## Working-tree validation follow-up
 
 The additive producer stamp and capture save/load harness are implemented, not

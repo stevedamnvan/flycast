@@ -1,6 +1,13 @@
 # Flycast agent entry point
 
-Current identity follow-up: FRAME-IDENTITY-AUDIT.md (LOG #162, D-102).
+Current: d2954272e native-preservation/producer metadata accepted (LOG #164).
+Three exact-SHA no-reset frames match producer timing and27 unique image planes.
+Reset comparison remains failed: host main-loop triggers are not deterministic
+guest-state boundaries. Next review existing opaque scene/source coverage for
+one explicit producer or unsupported scope; no repeated reset capture loop.
+Whole-scene camera, parked strict replay and Remix GPU remain unproven.
+
+Historical identity follow-up: FRAME-IDENTITY-AUDIT.md (LOG #162, D-102).
 Bounded producer metadata and actual in-memory save/load C validation pass in
 the working tree; commit/exact-SHA confirmation remain next. Preserve the
 original failed offset capture, not a silently shifted comparison. After this

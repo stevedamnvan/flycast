@@ -14,6 +14,10 @@ cross-process epoch is explicitly not witnessed by the old trace.
 `--remake-packet yes`. It uses the existing in-memory developer save/load hook,
 not a disk save-state overwrite. A bounded valid completion marker is required
 or capture exits1, even if images were retained. Omit after to disable it.
+The trigger counts host main-loop frames, not SH4 cycles. A valid marker proves
+transition completion only; equal main-loop counters or state byte counts do
+not establish equal game state across runs. Match producer/source inputs before
+using these captures for image equality. Do not silently offset retained frames.
 See FRAME-IDENTITY-AUDIT.md for actual results and limitations.
 
 ## FC-067 combat packet
