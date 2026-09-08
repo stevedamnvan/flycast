@@ -1,5 +1,16 @@
 # Neural diagnostics
 
+## FC-067 opaque source collection
+
+`python neuraltest/camera_source_inspect.py --capture CAPTURE` checks18 actual
+indexed RAM/SQ/copy/decoded XYZ links. It reuses camera_packet_inspect and the
+new standalone inspect_operands entry in xyz_operand_inspect; legacy callers
+retain their fixed single-vertex target and checks. Six synthetic methods in
+test_camera_source_inspect.py exercise both SQ slots and causal tampering.
+CAMERA-GATHER-AUDIT.md records the accepted scope, rejected shutdown attempts,
+wrong-identity run and graphics-preservation limitations. Temporary core hooks
+are removed and retained privately; ordinary builds do not trace gameplay.
+
 ## FC-067 opaque packet collection
 
 `python neuraltest/camera_packet_inspect.py --capture CAPTURE` checks the

@@ -49,13 +49,19 @@ def calculate(name, a, b):
 
 def inspect(session, scene, manifest):
     result = inspect_writers(session, scene, manifest)
+    result.update(inspect_operands(session))
+    return result
+
+
+def inspect_operands(session, target=None, store_tag='FC067_SQ_STORE', flush_tag='FC067_SQ_FLUSH'):
+    """Verify one invocation; callers must independently bind a nonlegacy target to a real packet."""
+    target = target or dict(step='1', block='8c03cc68', cycle='7602643776',
+                            context='00509700', ta_offset='32', sq='e0000020')
     require('FC067_XYZ_REJECT' not in session, 'operand observer rejected')
     entries, exits = records(session,'FC067_XYZ_ENTRY'), records(session,'FC067_XYZ_EXIT')
     require(len(entries) == len(exits) == 1, 'not one target invocation')
     entry, finish = entries[0], exits[0]
-    require(entry['step'] == '1' and entry['block'] == '8c03cc68' and entry['cycle'] == '7602643776'
-            and entry['context'] == '00509700' and entry['ta_offset'] == '32' and entry['sq'] == 'e0000020',
-            'wrong dynamic target')
+    require(all(entry[k] == v for k,v in target.items()), 'wrong dynamic target')
     descriptor = entry['descriptor']
     inputs, ops = records(session,'FC067_XYZ_INPUT'), records(session,'FC067_XYZ_OP')
     reads, values = records(session,'FC067_XYZ_READ'), records(session,'FC067_XYZ_VALUE')
@@ -67,15 +73,19 @@ def inspect(session, scene, manifest):
         key = int(row['reg']), 0
         require(key not in state and row['value'] == row['expected'] and row['exact'] == '1', 'entry operand disagreement')
         state[key] = int(row['value'],16)
-    require(set(state) == {(r,0) for r in (4,5,6,9,10,14)} and state[(4,0)] == 0xe0000020,
+    require(set(state) == {(r,0) for r in (4,5,6,9,10,14)} and state[(4,0)] == int(target['sq'],16),
             'missing live-in dependency')
     read_by_index = {int(row['index']):row for row in reads}
     value_by_index = {int(row['index']):row for row in values}
     require(len(read_by_index) == len(reads) and len(value_by_index) == len(values), 'duplicate execution value')
-    sq_stores = {row['pc']:row for row in records(session,'FC067_SQ_STORE')}
+    section = session.split('FC067_XYZ_ENTRY ',1)[1].split('FC067_XYZ_EXIT ',1)[0]
+    store_rows = records(section,store_tag)
+    sq_stores = {row['pc']:row for row in store_rows}
+    require(len(sq_stores) == len(store_rows) == 7, 'duplicate or missing SQ store')
     expected_stream = []
     stores = 0
     addresses = []
+    position_words = []
     for index, op in enumerate(ops):
         require(int(op['index']) == index and op['rd2'] == '-', 'operation identity or unsupported second result')
         a, b, offset = [operand(op[k],state) for k in ('rs1','rs2','rs3')]
@@ -107,6 +117,7 @@ def inspect(session, scene, manifest):
             expected_stream.append(('READ',str(index)))
             if index in (13,14,15):
                 addresses.append(address)
+                position_words.append(actual)
         else:
             require(actual == calculate(name,a,b), 'observed arithmetic disagreement')
         state[key] = actual
@@ -116,13 +127,14 @@ def inspect(session, scene, manifest):
     section = session.split('FC067_XYZ_ENTRY ',1)[1].split('FC067_XYZ_EXIT ',1)[0]
     actual_stream = []
     for line in section.splitlines():
-        for tag, field in [('FC067_XYZ_READ','index'),('FC067_XYZ_VALUE','index'),('FC067_SQ_STORE','pc')]:
+        for tag, field in [('FC067_XYZ_READ','index'),('FC067_XYZ_VALUE','index'),(store_tag,'pc')]:
             if tag+' ' in line:
                 row = dict(re.findall(r'(\w+)=([^ ]+)',line))
                 actual_stream.append((tag.rsplit('_',1)[1],row[field]))
     require(actual_stream == expected_stream and finish['events'] == '28', 'dynamic operation ordering differs')
-    require(session.index('FC067_XYZ_EXIT ') < session.index('FC067_SQ_FLUSH '), 'XYZ invocation ends after copy')
-    result.update(position_ram_addresses=[f'{address:08x}' for address in addresses],
+    require(session.index('FC067_XYZ_EXIT ') < session.index(flush_tag+' '), 'XYZ invocation ends after copy')
+    result = dict(position_ram_addresses=[f'{address:08x}' for address in addresses],
+                  position_words=position_words,
                   indexed_address_arithmetic_proven=True, returned_xyz_loads=3,
                   position_value_calculation_proven=False, camera_recovered=False)
     return result

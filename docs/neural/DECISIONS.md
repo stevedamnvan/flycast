@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-117: bind gathered positions before attributing their original transform
+
+Collection pass B reuses scalar SSA validation for18 actual gathered XYZ
+triples, bound through physical SQ bytes, context generation, actual copy
+destination and producer-stamped decoding. Address equality across frames
+does not establish source identity or a camera. Next extend the known original
+transform/record seams for these six records; no broader caller census or
+production camera activation follows from this map. Completion belongs to the
+actual last queued producer, not a mutable next-frame hint. C/D/E exact graphics
+preservation is scoped to the recorded controls; latest-checkpoint GPU-repeat
+differences remain visible. See CAMERA-GATHER-AUDIT.md and LOG #179.
+
 ## D-116: bounded packet ownership and GPU-repeat preservation stay separate
 
 M2-camera collection uses six explicit decoded vertices in three actual

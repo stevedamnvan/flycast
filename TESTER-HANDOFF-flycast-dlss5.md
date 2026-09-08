@@ -8,14 +8,15 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera, collection pass B in the backlog.
-LOG #178 maps18 actual packets across two opaque draws in three frames; use
-their exact offsets for the actual indexed-gather/SQ/copy source observations.
-Do not repeat the map, single-vertex discovery or LOG #177's algebra. Preserve
-the opaque/translucent depth distinction. Negative B's GPU preservation failed
-despite unchanged scene packets; A and disabled C are exact. Follow the bounds
-and claims in CAMERA-PACKET-AUDIT.md and the backlog. Reuse the retained
-initial-supply diagnostic and actual transform at `8c03c944` for source links.
+Current first card: FC-067 / M2-camera, collection pass C in the backlog.
+LOG #179 links18 gathered XYZ triples through physical SQ/copy/decoder ownership
+for two opaque draws in three frames. CAMERA-GATHER-AUDIT.md records the six
+actual RAM bases. Reuse the retained initial-supply diagnostic and actual
+transform at `8c03c944` to link the original producing transforms/projections
+through actual RAM write generations. Do not repeat packet/gather discovery or
+LOG #177's algebra. Preserve nonunit W and opaque/translucent depth distinctions.
+C/D/E have exact paired scene/graphics/guidance equality; the latest checkpoint
+GPU-repeat discrepancy remains explicit. Follow the active backlog bounds.
 If the card is genuinely blocked, take FC-067 /
 M1-GPU, whose standalone real-SDK GPU harness does not require a recovered
 game camera. Neither synthetic GPU output nor the existing mock is gameplay
