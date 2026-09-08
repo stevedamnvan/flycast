@@ -12,8 +12,10 @@ Current first card: FC-067 / M2-camera. FULL-DRAW-TRANSFORM-AUDIT.md records
 426 verified vertex observations feeding one complete92-triangle opaque draw.
 Its calibrated reprojection is verified;8247 other opaque triangles/frame,
 world-camera semantics and runtime rendering remain unproven. Temporary hooks
-are removed. Next follow the backlog's remaining-domain coverage priority,
-not another single-point/source-gather trace. Preserve nonunit W, the older
+are removed. Draw277 now has a complete8235-observation compact copy/scene map
+covering1591 triangles/frame; its921 source addresses/frame still need original
+transform evidence. Next follow that backlog assignment, not another
+single-point/source-gather trace. Preserve nonunit W, the older
 draw26 accumulation requirement and opaque/translucent depth distinctions.
 Latest live wrong-X control rejects but timing/images differ: no exact-input
 preservation claim. Earlier successful and failed controls retain their scopes.

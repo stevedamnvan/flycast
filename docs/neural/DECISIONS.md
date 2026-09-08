@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-120: compact observed consumers and explicit selected-domain limits
+
+Use fixed-width little-endian records with actual64-bit copy/decoder pointers,
+before/after packet bytes and producer association. Require exact completion;
+partial, corrupt or wrong-pointer data is not a valid tape. CRC is corruption
+detection, not authenticity. Live same-capture verbose/binary equivalence and
+large-domain scene binding establish transport only, not original transforms.
+
+A gather with no completed TA copy creates no decoder provenance. Do not
+confuse a superseded pending gather with an overwritten copied record. The
+draw277 map deliberately uses an observed5069-copy prefix and independently
+requires all8235 selected associations. Later unsupported paths stay omitted;
+this bound does not excuse a missing selected vertex. Preserve failed A/B/C
+attempts. Move to original-transform records rather than repeat this map.
+
 ## D-119: shared-record leases and bounded calibrated geometry
 
 One transformed RAM record can supply several indexed PVR vertices. Retain

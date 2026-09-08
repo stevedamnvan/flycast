@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `88b82d7f4e03d177bc1f5f26f2d085edd9dd4733`, pushed (LOG186). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `f49cdd51cfac9ff9fda8a35cd1e92d67ca8cbf37`, pushed (LOG193). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,106 +54,53 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Algebra substep accepted (LOG #177): the existing factorizer verifies the
-linked opaque witness, actual split multiply/add projection and unit
-reciprocal-depth scale through the full record/SQ/TA chain. Importing the
-earlier translucent 1.04 depth multiplier fails. Do not repeat this algebra
-step. Next is the six-vertex/three-frame producer-linked collection below;
-M2-camera remains doing and the usable camera contract remains pending.
+Current next action: close the compact consumer-map checkpoint, then collect
+the original transforms for draw277's921 actually observed XYZ addresses per
+frame. Do not repeat draw1 arithmetic, source mapping or emitter-format work.
 
-Packet-map substep accepted (LOG #178, CAMERA-PACKET-AUDIT.md): all18
-samples cover opaque draws1/26 across producer ordinals1781-1783. Actual TA
-offsets are32/64/96/4608/4640/4672. Positive A and hook-disabled C preserve
-native/guidance exactly. Negative B rejects its wrong epoch but has retained
-color/raw-depth differences: do not claim full A/B graphics preservation.
-Temporary hooks are removed. Do not repeat this map or the parked replay audit.
+Accepted bounded evidence:
+- LOG180..184 / TRANSFORM-COVERAGE-AUDIT.md:15 selected samples including actual
+  accumulation where present; older draw26 slot3 remains unsupported.
+- LOG192 / FULL-DRAW-TRANSFORM-AUDIT.md: draw1's142 vertices and92 triangles
+  have original-transform/RAM/gather lineage and calibrated reprojection.
+  It omits8247 opaque triangles/frame; physical scale/world camera unknown.
+- LOG194..197 / COMPACT-CONSUMER-TAPE.md: draw277's2745 vertices,3321 indices,
+  576 restarts and1591 triangles have a complete compact copy/decoder/scene
+  map across3frames. Tape has8235 records/1317616 bytes and references921
+  XYZ addresses/frame. No differing values at reused addresses were observed.
+  Address reuse is not original-transform identity or authoritative generation.
+- C++ emitter13 checks, cross-language bytes, old-domain same-capture exact
+  verbose/tape equality, large-domain scene-binding tests and live wrong-pointer
+  controls pass. Both wrong-pointer captures created no tape.188 Python
+  inspector tests pass. Temporary core hooks are removed; retained patches
+  remain ignored evidence. Four restored builds, three298-test selftests,
+  SDK63-check mock and compact13-check cross-language test pass. Commit and
+  exact-SHA follow-up remain next; do not confuse restored with postcommit tests.
 
-Collection pass B accepted (LOG #179, CAMERA-GATHER-AUDIT.md):18 actual XYZ
-gathers are independently linked through both physical SQ slots and actual
-TA copy/decoder ownership. The six X RAM addresses are8ce74250/8ce74230/
-8ce74240 for draw1 and8ce6e460/8ce6e470/8ce6e480 for draw26; Y/Z are+4/+8.
-Positive C, expected-ID-only negative D and disabled E have exact complete
-scene/native/guidance equality. They match the older native reference but
-retain the small known graphics discrepancy against the latest checkpoint.
-Initial A/B shutdown rejections remain failed attempts. Do not repeat this map.
+Failures retained, not retried away: large A/B encountered a never-copied
+completed gather after5069 actual copies. C identified a later unsupported
+copy beyond the selected domain. D deliberately limits acquisition to the
+observed5069-copy prefix, and all8235 selected vertices independently find
+their actual copies. E wrong-pointer rejects. Later geometry is omitted,
+not accepted. No paired native/image-preservation or performance claim.
 
-Transform collection accepted in its bounded scope (LOG180..184,
-TRANSFORM-COVERAGE-AUDIT.md):15 selected samples across three frames now have
-initial-transform, accumulation where present, X-load, reciprocal/projection,
-RAM writer and final gather lineage. Slot3/draw26 vertex146 remains unsupported.
-All temporary core hooks are removed. Retain earlier diagnostic failures and
-the known image/depth discrepancy; latest X-load positive/negative imagery,
-depth and motion agree. Do not repeat completed packet/gather/X-load traces.
-
-Current next action: prioritize unsupported geometry groups by triangle
-contribution and shared producer programs. LOG192 now supports one complete
-92-triangle draw out of8339 opaque index triangles per frame; it is not
-renderable by Remix. Do not repeat its source/transform traces. Survey retained
-scene domains first and choose a bounded high-coverage family, not simply the
-next draw ordinal. Runtime/GPU remains an independent external dependency.
-The21 linked matrices support common normalized scales
-within0.001; this is a calibrated representation, not unique physical camera
-intrinsics. Do not invent FOV, scale, world origin, normals or bone semantics.
-Fifteen samples do not establish whole-draw/scene coverage. Keep the current
-six-record/three-frame collection limits for any focused regression; any new
-coverage hypothesis must be finite and recorded before running.
-
-Next coverage hypothesis: the complete existing opaque draw1 can be linked
-using the now-known producer programs and common calibration. First inspect
-its exact strip/vertex/packet domain, then implement bounded compact collection
-for at most256 distinct vertices per frame over the same three frames. Emit
-reused instruction descriptors once, not per vertex; retain actual per-vertex
-source/matrix/record generation and all unknown-writer rejection. Do not expand
-to every draw or claim8339-triangle coverage from a successful draw1 result.
-Record concrete byte/event budgets before new probe execution. If a required
-domain cannot be linked, quantify it and do not manufacture geometry.
-
-Complete-draw domain verified from retained scenes (LOG188): draw1 has142
-unique vertices4..145,166 indices,24 restart markers and92 index triangles;
-the complete stream and draw/texture metadata agree across all three frames.
-Use this exact domain, not166 assumed vertices or inferred packet addresses.
-The next compact probe is bounded to426 actual vertex observations total,
-256 vertices/frame capacity,32 reused descriptors at128 operations each,
-32 live input words per selected transform and8MiB total emitted data. Capture
-actual source/generation associations; emit descriptors once. Reject overflow
-and unsupported producer paths rather than silently truncating or upgrading
-topology agreement into original-transform proof.
-
-Full-draw source capture A (LOG189) verifies426 actual RAM/SQ/copy/decoder
-associations and reveals only48 distinct source XYZ records per frame, not142.
-Use those actual addresses for the next transform collection:144 unique record
-instances over three frames,426 downstream vertices. The142-vertex domain and
-all byte/descriptor caps remain unchanged. Original producer transforms are
-still unproven. First complete-draw verifier rejected valid strip-end header
-stores; corrected only after checking them against actual restart topology.
-Live B wrong-ID rejects, but paired graphics preservation fails because actual
-producer cycles differ by6672512 at the same ordinal. Retain both runs and do
-not claim exact-input comparison. Widened synthetic tests now pass (LOG190),
-including a corrected fail-closed budget-marker bug. Explicit record grouping
-verifies unchanged XYZ across all consumers of each of48 records per frame.
-Next integrate the known transform/accumulation/X-load seams for48 records;
-retain writer protection through every mapped consumer, not just the first
-XYZ triple as the old six-record collector did. All176 inspector tests pass;
-no original-transform/full-draw camera acceptance follows from grouping alone.
-Full-draw transform probe bounds: use the verified48-base/142-consumer map
-(identical across retained frames),144 record instances,576 primary seams,
-at most6 accumulation blocks per record/864 total,64 writes per record and
-512 operand events per block. Combined descriptor count stays32 across all
-three programs,128 operations/32 input words each,8MiB total emitted data.
-Keep leases armed until every expected consumer completes; unknown writes,
-missing consumers, unsupported transforms or budget overflow reject the run.
-Collector implemented and capture B complete (LOG191/192):144 records,576 seams,
-1278 XYZ gathers,864 writes,144 X-load links; no accumulation in this domain.
-Arithmetic verifier checks426 vertices. Independent full-domain aggregate
-tests now pass;181 inspector tests pass. Clock
-edges crossing a scheduler quantum bind to the exact successor entry stamp,
-not a widened time tolerance. Wrong-X live C rejects but producer cycles and
-images differ, so preservation pairing fails. All92 triangles reconstruct in
-each frame with maximum reprojection error below0.000025 pixels;8247 omitted.
-Temporary hooks are removed and four restored builds/three298-test selftests
-pass. Preserve A's budget failure and B/C mismatch. Broader camera/scene and
-Remix acceptance remain pending; see FULL-DRAW-TRANSFORM-AUDIT.md.
-do not return to one-vertex tracing or infer a camera from address equality.
+Next original-transform collection must:
+1. Derive the921-address/consumer map from the accepted tape, preserving
+   frame/producer/generation/packet identity. Never assume a contiguous range.
+2. Reuse known executed producer seams only where actual descriptors and
+   observed source pointers agree. Preserve nonunit W, all matrix/input bits,
+   accumulation, X-load continuity, actual writes and every consumer's final
+   bytes. Unknown producers/writers reject or remain explicitly unsupported.
+3. Replace repeated text with a bounded compact transform ledger. Keep3frames,
+   at most4096 records/frame,32 descriptors with128 operations/32 live words,
+   64 writes/record and8MiB emitted ledger. Record the exact layout and memory
+   bounds before running; source consumer tape is not arithmetic evidence.
+4. Independently verify arithmetic and original-transform-to-consumer binding,
+   then reconstruct the supported1591-triangle domain with shared-calibration
+   controls. Quantify omissions and never silently close parked strict replay.
+5. Preserve the prior no-progress/pivot rule and advance the highest-coverage
+   supported family. Top10 draws contain6570 of8339 triangles; do not spend
+   another phase walking small draw ordinals one by one.
 
 Independent M1-GPU: standalone runtime bring-up builds;63/63 public-header
 mock tests include120-frame immutable-resource reuse and failure invalidation.

@@ -25,6 +25,13 @@ target_compile_definitions(neuraltest PRIVATE NEURAL_SOURCE_DIR="${CMAKE_SOURCE_
 target_link_libraries(neuraltest PRIVATE flycast-neural d3dcompiler)
 set_target_properties(neuraltest PROPERTIES FOLDER "Tools")
 
+# Independent bounded developer transport test; no runtime or emulator hooks.
+option(NEURALTEST_COMPACT_TAPE "Build developer consumer-tape contract test" OFF)
+if(NEURALTEST_COMPACT_TAPE)
+    add_executable(compact-consumer-contract compact_consumer_tape_test.cpp)
+    target_compile_features(compact-consumer-contract PRIVATE cxx_std_17)
+endif()
+
 # Explicit developer tools. The mock never loads a runtime; the separate smoke
 # executable requires an absolute runtime argument. Neither fetches dependencies.
 option(NEURALTEST_REMAKE_SDK "Build developer-only Remix mock and runtime bring-up tools" OFF)
