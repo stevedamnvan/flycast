@@ -54,12 +54,27 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
  remixapi_LightInfo light{}; light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO; light.pNext=&distant;
  light.hash=0xFC067002; light.radiance={3,3,3};
  if (api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS || !light_) return {false,"create-light"};
+ packet_=p;
+ const auto drawn=DrawFrame(p.camera);
+ ready_=drawn.ok;
+ return drawn;
+}
+Result RemixScene::Redraw(const Camera& camera) {
+ if(!ready_) return {false,"no-complete-scene"};
+ auto check=packet_; check.camera=camera;
+ const auto valid=ReadyForAdapter(check,check.frame,check.game);
+ if(!valid.ok) return valid;
+ const auto drawn=DrawFrame(camera);
+ ready_=drawn.ok;
+ return drawn;
+}
+Result RemixScene::DrawFrame(const Camera& input) {
  remixapi_CameraInfoParameterizedEXT parameters{};
  parameters.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO_PARAMETERIZED_EXT;
- parameters.position={p.camera.position.x,p.camera.position.y,p.camera.position.z};
+ parameters.position={input.position.x,input.position.y,input.position.z};
  parameters.forward={0,0,1}; parameters.up={0,1,0}; parameters.right={1,0,0};
- parameters.fovYInDegrees=p.camera.fovY; parameters.aspect=p.camera.aspect;
- parameters.nearPlane=p.camera.nearPlane; parameters.farPlane=p.camera.farPlane;
+ parameters.fovYInDegrees=input.fovY; parameters.aspect=input.aspect;
+ parameters.nearPlane=input.nearPlane; parameters.farPlane=input.farPlane;
  remixapi_CameraInfo camera{}; camera.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO;
  camera.type=REMIXAPI_CAMERA_TYPE_WORLD; camera.pNext=&parameters;
  if (api_.SetupCamera(&camera)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"setup-camera-discard-frame"};
@@ -67,7 +82,7 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
   remixapi_InstanceInfo instance{}; instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;
   instance.mesh=meshes_[i]; instance.doubleSided=1;
   for(int row=0;row<3;++row) for(int col=0;col<4;++col)
-   instance.transform.matrix[row][col]=(*p.meshes[i].transform)[row*4+col];
+   instance.transform.matrix[row][col]=(*packet_.meshes[i].transform)[row*4+col];
   if(api_.DrawInstance(&instance)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"draw-instance-discard-frame"};
  }
  if(api_.DrawLightInstance(light_)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"draw-light-discard-frame"};

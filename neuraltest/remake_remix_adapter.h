@@ -15,7 +15,12 @@ public:
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
  Result Submit(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);
+ // Reuse the immutable submitted geometry; only the explicitly supplied camera changes.
+ Result Redraw(const Camera&);
 private:
+ Result DrawFrame(const Camera&);
+ Packet packet_;
+ bool ready_ = false;
  remixapi_Interface api_{};
  std::vector<remixapi_MeshHandle> meshes_;
  remixapi_MaterialHandle material_ = nullptr;

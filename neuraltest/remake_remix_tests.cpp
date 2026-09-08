@@ -40,7 +40,7 @@ remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
 }
 remixapi_ErrorCode REMIXAPI_CALL draw(const remixapi_InstanceInfo* p) {
  ++calls.draws;
- calls.valid &= calls.cameras==1 && p->mesh && p->transform.matrix[0][0]==1 && p->transform.matrix[0][3]==0;
+ calls.valid &= calls.cameras>=1 && p->mesh && p->transform.matrix[0][0]==1 && p->transform.matrix[0][3]==0;
  return calls.failDraw?failure():ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL drawLight(remixapi_LightHandle) {++calls.lightDraws; return ok;}
@@ -63,8 +63,26 @@ int main() {
    &&calls.lightDraws==1&&calls.cameraX==.5f,"actual public ABI receives synthetic scene");
   expect(calls.freedMeshes==0,"resources retained through caller consumption");
   expect(scene.Submit(p,8,p.game).reason=="single-use-adapter","duplicate submission blocked");
+  auto moved=p.camera; moved.position.x=.25f;
+  expect(scene.Redraw(moved).ok && calls.materials==1 && calls.meshes==2 && calls.lights==1
+   && calls.cameras==2 && calls.draws==4 && calls.cameraX==.25f,"moving camera reuses scene resources");
+  moved.provenance=Provenance::Unknown;
+  expect(!scene.Redraw(moved).ok && calls.cameras==2,"invalid redraw camera has no API calls");
+  moved=p.camera; calls.failDraw=true;
+  expect(!scene.Redraw(moved).ok,"failed redraw discards frame");
+  const int previousDraws=calls.draws;
+  expect(scene.Redraw(moved).reason=="no-complete-scene" && calls.draws==previousDraws,"failed redraw cannot silently resume");
  }
  expect(calls.freedMeshes==2&&calls.freedMaterials==1&&calls.freedLights==1,"scoped resource release");
+ calls={};
+ { RemixScene scene(interface()); auto p=Synthetic();
+  expect(scene.Redraw(p.camera).reason=="no-complete-scene" && calls.cameras==0,"redraw before submit makes no calls");
+  bool sequence=scene.Submit(p,p.frame,p.game).ok;
+  for(int i=1;i<120;i++) {p.camera.position.x=float(i)/238.f;sequence &= scene.Redraw(p.camera).ok;}
+  expect(sequence && calls.cameras==120 && calls.draws==240 && calls.materials==1
+   && calls.meshes==2 && calls.lights==1 && calls.freedMeshes==0,"120 frames retain fixed resource count");
+ }
+ expect(calls.freedMeshes==2&&calls.freedMaterials==1&&calls.freedLights==1,"120 frame scene released exactly once");
  calls={}; calls.failMesh=2;
  { RemixScene scene(interface()); auto p=Synthetic(); expect(scene.Submit(p,7,p.game).reason=="create-mesh","injected mesh create failure"); }
  expect(calls.freedMeshes==1&&calls.freedMaterials==1&&calls.draws==0,"partial creation cleans resources without drawing");

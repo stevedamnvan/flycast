@@ -25,8 +25,9 @@ target_compile_definitions(neuraltest PRIVATE NEURAL_SOURCE_DIR="${CMAKE_SOURCE_
 target_link_libraries(neuraltest PRIVATE flycast-neural d3dcompiler)
 set_target_properties(neuraltest PROPERTIES FOLDER "Tools")
 
-# Header-only ABI/call-contract check. No runtime loading or dependency fetching.
-option(NEURALTEST_REMAKE_SDK "Build developer-only Remix API mock contract test" OFF)
+# Explicit developer tools. The mock never loads a runtime; the separate smoke
+# executable requires an absolute runtime argument. Neither fetches dependencies.
+option(NEURALTEST_REMAKE_SDK "Build developer-only Remix mock and runtime bring-up tools" OFF)
 set(NEURALTEST_REMIX_INCLUDE_DIR "" CACHE PATH "Directory containing reviewed remix_c.h")
 if(NEURALTEST_REMAKE_SDK)
     if(NOT EXISTS "${NEURALTEST_REMIX_INCLUDE_DIR}/remix_c.h")
@@ -46,4 +47,10 @@ if(NEURALTEST_REMAKE_SDK)
     target_include_directories(remake-sdk-contract PRIVATE "${NEURALTEST_REMIX_INCLUDE_DIR}")
     target_compile_definitions(remake-sdk-contract PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
     set_target_properties(remake-sdk-contract PROPERTIES FOLDER "Tools")
+    add_executable(remake-runtime-smoke remake_scene.cpp remake_remix_adapter.cpp remake_runtime_smoke.cpp)
+    target_compile_features(remake-runtime-smoke PRIVATE cxx_std_17)
+    target_include_directories(remake-runtime-smoke PRIVATE "${NEURALTEST_REMIX_INCLUDE_DIR}")
+    target_compile_definitions(remake-runtime-smoke PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+    target_link_libraries(remake-runtime-smoke PRIVATE user32)
+    set_target_properties(remake-runtime-smoke PROPERTIES FOLDER "Tools")
 endif()
