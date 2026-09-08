@@ -1,5 +1,12 @@
 # Flycast DLSS 5 tester handoff
 
+Current authority: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Observed final RAM
+stores8c03c9ca/cc/ce supply the selected opaque XYZ, replacing an earlier set.
+Next one bounded actual block-calculation witness at cycle7602640640, qualified
+by this record's effective destination. Preserve the audit's caps, write-path
+limitations and negative/native controls. No repeated RAM/SQ locator or camera
+claim; this heading supersedes the historical next-task entries below.
+
 Current authority: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. Actual indexed RAM
 loads supply XYZ; coordinate calculation remains outside this block. Next
 bounded writes producing8ce74250..5b with aliases/lifecycle and falsifying

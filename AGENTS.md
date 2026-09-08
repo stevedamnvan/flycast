@@ -1,5 +1,11 @@
 # Flycast agent entry point
 
+Current authority: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Six observed CPU writes
+include an overwritten set and final XYZ stores8c03c9ca/cc/ce. The latter link
+through actual RAM loads to opaquevertex4. Next only their bounded executed-block
+calculation witness; no repeat RAM/SQ locator, arbitrary caller trace or camera
+promotion. Memory-observer limitations remain explicit. Newest heading governs.
+
 Current authority: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. The block gathers XYZ
 from RAM8ce74250/54/58 using index05df/stride16; it does not calculate projected
 positions. Next only the bounded12-byte record-producer witness in that audit.

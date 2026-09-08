@@ -1,5 +1,10 @@
 # Reuse-first remake feasibility
 
+Current route: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Actual final RAM writes
+now link through XYZ loads/SQ/TA to the selected opaque vertex. Next bounded
+calculation of those stores, not repeated memory tracing. Write-path coverage
+limits, world camera and real Remix GPU remain explicit; full M2 is not complete.
+
 Current route: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. Indexed RAM loads now
 bind to the selected opaque XYZ stores. The record's producer generation is next.
 No further locator/caller census or world-camera claim. This is a bounded

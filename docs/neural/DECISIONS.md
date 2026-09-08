@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-108: retain overwritten record writes and name observer coverage
+
+A memory record can contain intermediate and final coordinates in the same
+frame. Replay actual per-byte last writers through the actual consumer loads;
+do not attribute the earlier words or shared effect calibration to final opaque
+geometry. Unknown interpreter/HLE write paths must reject, not disappear from
+the claim. Inspected SQ/DMA paths are not actual positive execution coverage.
+Keep MMU/cache/debugger/direct-host limitations explicit rather than claiming a
+universal observer. Six writes establish this record's observed lineage, not
+their floating-point calculation or a world camera. Next only the selected
+final-store block witness under OPAQUE-RAM-WRITERS-AUDIT.md's fixed bounds.
+
 ## D-107: an indexed projected-position gather is not a projection
 
 The observed opaque consumer loads XYZ from an indexed16-byte-stride RAM array

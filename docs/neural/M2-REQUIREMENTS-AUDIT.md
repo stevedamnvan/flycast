@@ -1,5 +1,11 @@
 # FC-067 M1/M2 requirements audit
 
+LOG #171 update: bounded byte-writer replay now observes the final record stores
+8c03c9ca/cc/ce and their overwritten predecessors. Actual loads link the final
+values to opaquevertex4. This is not coordinate calculation, universal memory
+observation, camera or GPU reconstruction. Next selected block calculation in
+OPAQUE-RAM-WRITERS-AUDIT.md; no whole-scene/M2 requirement is promoted.
+
 LOG #170 update: actual indexed addressing and returned RAM loads now explain
 the inputs to XYZ stores. They are precomputed at8ce74250/54/58; their producer
 calculation and world camera remain unknown. Next bounded record generation in
