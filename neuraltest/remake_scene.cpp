@@ -8,8 +8,17 @@
 namespace neuraltest::remake {
 namespace {
 bool finite(Vec3 v) { return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z); }
+float dot(Vec3 a,Vec3 b) {return a.x*b.x+a.y*b.y+a.z*b.z;}
+bool validAxes(const Camera& c) {
+ const auto r=c.right,u=c.up,f=c.forward;
+ const Vec3 cross{r.y*u.z-r.z*u.y,r.z*u.x-r.x*u.z,r.x*u.y-r.y*u.x};
+ return finite(r)&&finite(u)&&finite(f) && std::abs(dot(r,r)-1)<1e-6f
+  && std::abs(dot(u,u)-1)<1e-6f && std::abs(dot(f,f)-1)<1e-6f
+  && std::abs(dot(r,u))<1e-6f && std::abs(dot(r,f))<1e-6f
+  && std::abs(dot(u,f))<1e-6f && dot(cross,f)>0;
+}
 bool validCamera(const Camera& c) {
- return finite(c.position) && std::isfinite(c.fovY) && c.fovY > 1 && c.fovY < 179
+ return finite(c.position) && validAxes(c) && std::isfinite(c.fovY) && c.fovY > 1 && c.fovY < 179
   && std::isfinite(c.aspect) && c.aspect > 0 && std::isfinite(c.nearPlane)
   && std::isfinite(c.farPlane) && c.nearPlane > 0 && c.farPlane > c.nearPlane;
 }
@@ -73,7 +82,8 @@ Result ReadyForAdapter(const Packet& p, std::uint64_t frame, const std::string& 
   for (const auto& v : m.vertices) {
    if (!v.normal) return {false, "normal-unknown"};
    auto world = WorldPosition(m, v);
-   if (!finite(world) || world.z - p.camera.position.z <= 0) return {false, "clip-unsupported"};
+   const Vec3 delta{world.x-p.camera.position.x,world.y-p.camera.position.y,world.z-p.camera.position.z};
+   if (!finite(world) || dot(delta,p.camera.forward) <= 0) return {false, "clip-unsupported"};
    auto s = Project(p.camera, world);
    if (!finite(s) || s.z < p.camera.nearPlane || s.z > p.camera.farPlane) return {false, "clip-unsupported"};
   }
@@ -100,14 +110,22 @@ Vec3 WorldPosition(const Mesh& m, const Vertex& v) {
 }
 Vec3 Project(const Camera& c, Vec3 p) {
  if (c.provenance == Provenance::Unknown || !validCamera(c) || !finite(p)) throw std::invalid_argument("projection");
- p={p.x-c.position.x,p.y-c.position.y,p.z-c.position.z};
- if (p.z <= 0) throw std::invalid_argument("behind camera");
- return {0.5f + p.x/(2*p.z*tangent(c)*c.aspect),0.5f - p.y/(2*p.z*tangent(c)),p.z};
+ // Keep the public float contract, but avoid accumulating cancellation and
+ // lens rounding in the CPU reference projection of distant/offscreen points.
+ const double dx=double(p.x)-c.position.x,dy=double(p.y)-c.position.y,dz=double(p.z)-c.position.z;
+ auto axis=[&](Vec3 a) {return dx*a.x+dy*a.y+dz*a.z;};
+ const double x=axis(c.right),y=axis(c.up),z=axis(c.forward);
+ if (z <= 0) throw std::invalid_argument("behind camera");
+ const double t=std::tan(double(c.fovY)*3.14159265358979323846/360.0);
+ return {float(0.5+x/(2*z*t*c.aspect)),float(0.5-y/(2*z*t)),float(z)};
 }
 Vec3 Unproject(const Camera& c, Vec3 p) {
  if (c.provenance == Provenance::Unknown || !validCamera(c) || !finite(p) || p.z <= 0) throw std::invalid_argument("unprojection");
- return {(p.x-.5f)*2*p.z*tangent(c)*c.aspect+c.position.x,
-  (.5f-p.y)*2*p.z*tangent(c)+c.position.y,p.z+c.position.z};
+ const double t=std::tan(double(c.fovY)*3.14159265358979323846/360.0);
+ const double x=(double(p.x)-.5)*2*p.z*t*c.aspect,y=(.5-double(p.y))*2*p.z*t,z=p.z;
+ return {float(c.position.x+x*c.right.x+y*c.up.x+z*c.forward.x),
+  float(c.position.y+x*c.right.y+y*c.up.y+z*c.forward.y),
+  float(c.position.z+x*c.right.z+y*c.up.z+z*c.forward.z)};
 }
 std::optional<float> DepthAt(const Packet& p, float x, float y) {
  if (!ReadyForAdapter(p,p.frame,p.game).ok) return {};

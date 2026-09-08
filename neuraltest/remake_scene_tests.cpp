@@ -11,6 +11,39 @@ TestCounts TestSceneContract() {
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ {
+  // Recovered H lens/basis; clip planes remain synthetic, not game evidence.
+  auto c=p.camera;
+  c.position={-4.402202805233795f,-1.1753900732667373f,4.5792354100240775f};
+  c.right={.9999993807275268f,0,.0011504740232752663f};
+  c.up={.000018860498003155206f,-.9998656571636007f,-.01639366691737305f};
+  c.forward={.0011503193527460098f,.01639367640018463f,-.9998649954795837f};
+  c.fovY=45.99033235267587f;c.aspect=1.2266665409901234f;
+  auto q=p;q.camera=c;
+  expect(Validate(q,7,q.game).ok,"recovered camera float axes validate with synthetic clips");
+  const auto s=Project(c,{0,0,0});
+  // Independent calibrated matrix projection, not an Unproject-generated point.
+  const float error=std::max(std::abs(s.x-1.417501739858114f)*640,
+                             std::abs(s.y-.7815836510728279f)*480);
+  std::cout<<"recovered camera golden pixel error "<<error<<'\n';
+  expect(error<.001f&&near(s.z,4.602950096130371f),"recovered camera float projection golden");
+  const auto w=Unproject(c,s);
+  const float inverseError=std::max({std::abs(w.x),std::abs(w.y),std::abs(w.z)});
+  std::cout<<"recovered camera inverse coordinate error "<<inverseError<<'\n';
+  expect(inverseError<1e-6f,"recovered camera float inverse residual");
+  c.aspect=4.f/3.f;
+  expect(std::abs(Project(c,{0,0,0}).x-s.x)*640>.001f,"framebuffer aspect substitution fails recovered golden");
+ }
+ {
+  auto rotated=p.camera; rotated.right={0,0,-1};rotated.forward={1,0,0};
+  auto s=Project(rotated,{2,1,-1});auto w=Unproject(rotated,{.75f,.25f,2});
+  expect(near(s.x,.75f)&&near(s.y,.25f)&&near(s.z,2),"rotated camera independent golden");
+  expect(near(w.x,2)&&near(w.y,1)&&near(w.z,-1),"rotated camera inverse golden");
+  auto invalid=p;invalid.camera.up={1,0,0};
+  expect(!Validate(invalid,7,p.game).ok,"nonorthogonal camera axes reject");
+  invalid=p;invalid.camera.right={-1,0,0};
+  expect(!Validate(invalid,7,p.game).ok,"reflected camera basis rejects");
+ }
  expect(Validate(p,7,"synthetic-overlap").ok,"bounded analytic packet");
  expect(ReadyForAdapter(p,7,p.game).ok,"synthetic adapter eligibility");
  const auto projected=Project(p.camera,{-1,-1,2});

@@ -13,9 +13,10 @@ enum class Provenance { Unknown, Supplied, Analytic };
 enum class Topology { Triangles, Strip };
 struct Camera {
  Provenance provenance = Provenance::Unknown;
- // M1 pinhole only: right +X, up +Y, forward +Z. No inferred game camera.
+ // Explicit orthonormal source-space camera basis; no inferred game camera.
  Vec3 position;
  float fovY = 90, aspect = 1, nearPlane = 0.1f, farPlane = 100;
+ Vec3 right{1,0,0}, up{0,1,0}, forward{0,0,1};
 };
 struct Vertex { Vec3 position; std::optional<Vec3> normal; float u = 0, v = 0; };
 struct TextureIdentity {

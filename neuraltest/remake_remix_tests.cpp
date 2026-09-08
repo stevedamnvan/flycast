@@ -10,6 +10,8 @@ struct Calls {
  int freedMaterials=0, freedMeshes=0, freedLights=0, failMesh=0;
  bool valid=true, failDraw=false;
  float cameraX=0;
+ float expectedFov=90,expectedAspect=1,expectedNear=.1f,expectedFar=100;
+ Vec3 expectedRight{1,0,0},expectedUp{0,1,0},expectedForward{0,0,1};
 } calls;
 constexpr auto ok=REMIXAPI_ERROR_CODE_SUCCESS;
 auto failure() { return static_cast<remixapi_ErrorCode>(1); }
@@ -34,8 +36,11 @@ remixapi_ErrorCode REMIXAPI_CALL light(const remixapi_LightInfo* p,remixapi_Ligh
 }
 remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
  ++calls.cameras; const auto* c=static_cast<const remixapi_CameraInfoParameterizedEXT*>(p->pNext);
- calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_CAMERA_INFO && c && c->fovYInDegrees==90
-  && c->forward.z==1 && c->up.y==1 && c->right.x==1;
+ calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_CAMERA_INFO && c && c->fovYInDegrees==calls.expectedFov
+  && c->aspect==calls.expectedAspect && c->nearPlane==calls.expectedNear && c->farPlane==calls.expectedFar
+  && c->forward.x==calls.expectedForward.x && c->forward.y==calls.expectedForward.y && c->forward.z==calls.expectedForward.z
+  && c->up.x==calls.expectedUp.x && c->up.y==calls.expectedUp.y && c->up.z==calls.expectedUp.z
+  && c->right.x==calls.expectedRight.x && c->right.y==calls.expectedRight.y && c->right.z==calls.expectedRight.z;
  calls.cameraX=c->position.x; return ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL draw(const remixapi_InstanceInfo* p) {
@@ -56,6 +61,28 @@ remixapi_Interface interface() {
 int main() {
  auto counts=TestSceneContract();
  auto expect=[&](bool v,const char* name) {++(v?counts.passed:counts.failed); std::cout<<(v?"PASS ":"FAIL ")<<name<<'\n';};
+ {
+  calls={};calls.expectedRight={0,1,0};calls.expectedUp={-1,0,0};
+  RemixScene scene(interface());auto p=Synthetic();p.camera.right=calls.expectedRight;p.camera.up=calls.expectedUp;
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid&&calls.cameras==1,"explicit rotated axes reach public camera ABI");
+  p.camera.forward={0,1,0};
+  expect(!scene.Redraw(p.camera).ok&&calls.cameras==1,"invalid rotated axes make no API call");
+ }
+ calls={};
+ {
+  RemixScene scene(interface());auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"recovered camera fixture starts with synthetic scene");
+  auto c=p.camera;
+  c.position={-4.402202805233795f,-1.1753900732667373f,4.5792354100240775f};
+  c.right=calls.expectedRight={.9999993807275268f,0,.0011504740232752663f};
+  c.up=calls.expectedUp={.000018860498003155206f,-.9998656571636007f,-.01639366691737305f};
+  c.forward=calls.expectedForward={.0011503193527460098f,.01639367640018463f,-.9998649954795837f};
+  c.fovY=calls.expectedFov=45.99033235267587f;c.aspect=calls.expectedAspect=1.2266665409901234f;
+  // Only tests ABI transport. Scene and clip range are synthetic, not gameplay.
+  expect(scene.Redraw(c).ok&&calls.valid&&calls.cameras==2&&calls.cameraX==c.position.x,
+   "recovered lens and proper basis reach public ABI without aspect substitution");
+ }
+ calls={};
  {
   RemixScene scene(interface()); auto p=Synthetic(8,.5f);
   auto r=scene.Submit(p,8,p.game);

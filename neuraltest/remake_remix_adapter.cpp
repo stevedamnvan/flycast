@@ -72,7 +72,9 @@ Result RemixScene::DrawFrame(const Camera& input) {
  remixapi_CameraInfoParameterizedEXT parameters{};
  parameters.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO_PARAMETERIZED_EXT;
  parameters.position={input.position.x,input.position.y,input.position.z};
- parameters.forward={0,0,1}; parameters.up={0,1,0}; parameters.right={1,0,0};
+ parameters.forward={input.forward.x,input.forward.y,input.forward.z};
+ parameters.up={input.up.x,input.up.y,input.up.z};
+ parameters.right={input.right.x,input.right.y,input.right.z};
  parameters.fovYInDegrees=input.fovY; parameters.aspect=input.aspect;
  parameters.nearPlane=input.nearPlane; parameters.farPlane=input.farPlane;
  remixapi_CameraInfo camera{}; camera.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO;

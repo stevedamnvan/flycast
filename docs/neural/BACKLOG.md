@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `755b90f8e61c46e47cf0c856c1afd49420b0884d`, pushed (LOG242). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `dff5569177b5d6df9196db80dde5686245638419`, pushed (LOG330). Later evidence-document updates are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,10 +54,47 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: review/stage owned harness/docs, run remaining focused SDK/
-compact/ledger checks and commit the hook-free checkpoint (LOG328). Temporary
-core hooks removed with retained inverse patch; all4 serial builds,3x298 selftests
-and260 inspectors passed. Exact-commit validation and fork verification follow.
+Current next action: bind existing selected-draw scene/material records to the
+accepted evidence vertices and identify missing normals, texture assets and clip
+semantics before implementing a game packet adapter. Scope and exclusions are in
+CAMERA-COORDINATE-CONTRACT.md (D-126). Do not repeat numerical micro-tests.
+LOG343 fixed common origin
+plus actual C++ double intermediates passes H/L/M at unchanged0.001 pixels.
+Float API inputs/output retained. This CPU reference result is not GPU proof;
+strict captured-rounding failures and unknown physical-world semantics remain.
+Do not independently recenter each frame or change source identity.
+LOG341 isolates camera-origin quantization as the
+largest individual error. Preserve original failed evidence. Actual full-mesh float diagnostic fails the
+unchanged0.001-pixel bound at16/3682 vertices, maximum0.0020168246 (LOG340).
+Do not waive or widen it. The recovered camera golden and public-ABI fixture pass (LOG339);
+this does not establish a complete game scene or GPU rendering. Keep measured
+effective lens aspect and explicitly unknown game near/far. Paired source/view
+reflection and winding reversal implemented; H3682/2152
+mathematical projection delta6.36646e-12, strict captured reprojection still fails.
+Orientation support now
+implemented and tested; do not flip only camera Y and create a reflected basis.
+Preserve default synthetic axes and actual source geometry; no runtime proof yet.
+Anchored first-batch mesh roundtrip passes, strict reprojection still fails.
+Three sample camera poses derived without changing matrix
+words; maximum normalized orthogonality error1.18046e-7. Do not promote runtime
+or static-arena semantics. All1622 selected divided vertices retain exact source words
+across H/L/M; stale first-frame matrix exceeds0.001 at all3244 later-frame samples.
+Do not infer physical units or unique absolute world coordinates. Distinguish a
+chosen coordinate basis from proven
+static world/arena semantics; inspect scene/material context before naming it.
+Normalized relative motion passes existing rigidity tolerance; firstframe1622
+vertices across9 accepted draws bind to these variants. Both
+source sets have homogeneous rank4 and identical relative XYZ transforms across
+H/L/M; shared top-three-row matrices mean this is not independent camera evidence.
+Retained H/L/M has288 common
+source multisets,8 ambiguous; largest1852 and255 distinct points have one matrix
+each per frame with changing words. Candidate continuity, not static arena/world
+identity. Check shared camera-style delta and geometric rank before promotion.
+Use existing H/L/M and
+I/J/K3 ledgers before any new capture. Record ambiguity if model/view split remains
+unidentifiable; no replacement of the world-camera requirement with view extrusion.
+Hook-free checkpoint dff556917 passed exact4 builds,3x298 selftests,260 inspectors,
+focused contracts and fresh native capture; pushed/remote SHA verified.
 No more
 producer captures needed for this sampled matrix. First batch H/L/M proves3682/2152
 per sampled frame; all incident strict-outlier triangles reject common clip plane.

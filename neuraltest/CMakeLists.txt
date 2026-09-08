@@ -28,6 +28,8 @@ set_target_properties(neuraltest PROPERTIES FOLDER "Tools")
 # Independent bounded developer transport test; no runtime or emulator hooks.
 option(NEURALTEST_COMPACT_TAPE "Build developer consumer-tape contract test" OFF)
 if(NEURALTEST_COMPACT_TAPE)
+    add_executable(remake-camera-project remake_scene.cpp remake_camera_project.cpp)
+    target_compile_features(remake-camera-project PRIVATE cxx_std_17)
     add_executable(compact-consumer-contract compact_consumer_tape_test.cpp)
     target_compile_features(compact-consumer-contract PRIVATE cxx_std_17)
     add_executable(transform-ledger-contract transform_ledger_test.cpp)

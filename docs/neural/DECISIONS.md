@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-126: preserve a fixed sequence basis and separate CPU camera proof
+
+CAMERA-COORDINATE-CONTRACT.md consolidates LOG331-343. Reflect source and view
+together; retain proper axes, effective lens aspect and winding. One shared
+origin may reduce float quantization without changing relative motion; a
+per-frame origin must not manufacture stationary-camera evidence. CPU double
+intermediates preserve the float ABI but are not proof of runtime GPU math.
+Unknown game clipping, normals/materials, scene completeness and physical-world
+semantics remain explicit. The strict captured-rounding failures remain failed.
+Do not repeat numerical micro-tests once their bounded contract is proven;
+advance to binding actual scene/material records and resolving missing domains.
+
 ## D-125: expression lineage and screen rejection do not relax camera acceptance
 
 LOG315-327 binds ordered binary32 expressions through observed writes, reads,
