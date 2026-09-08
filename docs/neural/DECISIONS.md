@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-123: RAM addresses are not transform lifetimes
+
+LOG222..226 falsified single-record-per-address ownership over the later draw
+interval. Use generation/address/incarnation identity; preserve all completed
+versions and bind consumers through their actual gather/copy IDs, not the latest
+contents at an address. Fully projected but unread versions are unused evidence,
+not geometry. Partial seams/XYZ reads, duplicate seams and out-of-budget reuse
+remain failures. The temporary observer bounds four incarnations/address and
+closes at the independently observed final selected TA packet, not an arbitrary
+starting frame offset. Independent lifecycle verification precedes arithmetic.
+Version-separated slots only index evidence; they do not invent game identities,
+world coordinates or persistent production objects. LOG227 verifies the current
+two-draw scope with unchanged arithmetic/calibration tolerances; Remix GPU and
+complete scene reconstruction remain pending.
+
 ## D-122: indexed first records and serialized evidence transport
 
 The first-record path is not the loop-body path. LOG211..215 proves the c932

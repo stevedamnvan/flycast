@@ -8,7 +8,12 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current first card: FC-067 / M2-camera. FULL-DRAW-TRANSFORM-AUDIT.md records
+Current first card: FC-067 / M2-camera. LOG227/D-123 now independently verify
+draws1503/1887 through versioned RAM lifetimes and original arithmetic:2038
+triangles/frame, maximum0.000070083-pixel reprojection error. Live wrong-version
+E rejects and temporary hooks are removed (LOG228). Finish four serial checkpoint
+builds and relevant tests before commit. Full scene/world camera/Remix GPU remain pending.
+Historical scope: FULL-DRAW-TRANSFORM-AUDIT.md records
 426 verified vertex observations feeding one complete92-triangle opaque draw.
 Its calibrated reprojection is verified;8247 other opaque triangles/frame,
 world-camera semantics and runtime rendering remain unproven. Temporary hooks
@@ -16,9 +21,8 @@ were removed at the last committed checkpoint. LOG201/202's temporary large
 ledger hooks are retained ignored. LOG215 now verifies all921 addresses/frame
 and calibrated reconstruction of all1591 draw277 triangles/frame.6748 whole-scene
 opaque triangles remain omitted; world camera and real Remix GPU are unproven.
-Full921 temporary hooks are removed for checkpoint checks. Next batch draws1503
-and1887 (2038 triangles/3392 vertices) under the backlog, not another
-single-point/source-gather trace. Preserve nonunit W, the older
+Full921 temporary hooks were removed at its checkpoint. The current two-draw
+result supersedes that historical next-batch assignment. Preserve nonunit W, the older
 draw26 accumulation requirement and opaque/translucent depth distinctions.
 Latest live wrong-X control rejects but timing/images differ: no exact-input
 preservation claim. Earlier successful and failed controls retain their scopes.

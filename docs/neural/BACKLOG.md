@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `60dedc1e120f8c355a3ba2e211c06e91765b9987`, pushed (LOG204). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `d558fb32ced514f5f08422aaefda6b9e57e5df0b`, pushed (LOG218). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,8 +54,15 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint the serialized ledger and exact c932/c998
-variant validators (LOG215), removing retained temporary core hooks first.
+Current next action: finish restored builds/tests and checkpoint the independently
+verified two-draw incarnation/reconstruction slice (LOG227/D-123). Live wrong-version
+E rejects; temporary hooks removed and retained ignored (LOG228).210 inspector
+tests pass; all6732 lifetimes/26928 seams verify,
+10176 consumers bind3366 selected versions and2038 triangles/frame reconstruct
+with maximum0.000070083-pixel error. Wrong-scale and synthetic wrong-version
+controls reject. Together with separate draw277 evidence,3629 distinct opaque
+triangles are covered;4710 remain outside those scopes. This is not a unified
+scene or recovered world camera. Real Remix GPU remains pending.
 Full921 A now proves all2763 address instances/8235 consumers and reconstructs
 all1591 draw277 triangles/frame.6748 whole-scene opaque triangles remain omitted;
 world camera and Remix GPU are unproven.204 inspector tests pass; live wrong-edge

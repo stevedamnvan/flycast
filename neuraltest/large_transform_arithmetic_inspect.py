@@ -11,7 +11,8 @@ from transform_span_inspect import records
 from transform_store_inspect import require
 
 
-def inspect(text,include_records=False):
+def inspect(text,include_records=False,slot_limit=921):
+    require(type(slot_limit) is int and 1<=slot_limit<=4488,'arithmetic slot budget')
     require('REJECT' not in text,'observer rejection')
     sections=[]; extra_sections=[]; current=None; extra=None
     indexed=defaultdict(list); descriptors={}
@@ -28,7 +29,7 @@ def inspect(text,include_records=False):
             if tag=='FC067_EXTRA_EXIT':extra_sections.append(extra);extra=None
         if tag in ('FC067_X_LOAD','FC067_X_EDGE','FC067_CT_WRITE','FC067_CT_GATHER','FC067_CT_BEGIN','FC067_CT_PREFIX'):
             indexed[tag].append(row)
-    require(extra is None and 0<len(sections)<=3*921*4,'section bounds')
+    require(extra is None and 0<len(sections)<=3*slot_limit*4,'section bounds')
     def restore(lines,tag):
         source='\n'.join(lines)+'\n';entry=records(source,'FC067_'+tag+'_ENTRY')
         require(len(entry)==1,'unique descriptor entry')
@@ -43,7 +44,7 @@ def inspect(text,include_records=False):
     groups={}
     for header,lines in sections:
         key=tuple(int(header[k]) for k in ('generation','slot','kind'))
-        require(key not in groups and 0<=key[1]<921 and 0<=key[2]<4,'seam identity')
+        require(key not in groups and 0<=key[1]<slot_limit and 0<=key[2]<4,'seam identity')
         groups[key]=header,restore(lines,TAGS[key[2]])
     extras=defaultdict(list)
     for lines in extra_sections:
