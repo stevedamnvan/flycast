@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-115: share algebra code, not unproven projection-domain assumptions
+
+The linked opaque sample and earlier translucent sample can use the same
+scaled-axis factorizer, but their observed projection programs differ. The
+opaque path uses a rounded reciprocal followed by separate multiply/add and
+unit reciprocal-depth scaling. The earlier translucent fixture uses fused
+screen arithmetic and an additional 1.04 depth multiplier. Bind each to its
+actual producer/record/TA witness; do not silently transfer depth calibration.
+Preserve actual nonunit W. An equivalent model/view basis is not an error,
+and an approximately orthogonal matrix alone does not prove camera intrinsics.
+The next M2-camera step remains bounded actual sample coverage, not another
+single-point factorization or production camera activation.
+
 ## D-114: backlog-driven autonomous delivery, not per-trace human approvals
 
 The user's 2026-09-08 request changes execution authority: use a short standing

@@ -54,6 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
+Algebra substep accepted (LOG #177): the existing factorizer verifies the
+linked opaque witness, actual split multiply/add projection and unit
+reciprocal-depth scale through the full record/SQ/TA chain. Importing the
+earlier translucent 1.04 depth multiplier fails. Do not repeat this algebra
+step. Next is the six-vertex/three-frame producer-linked collection below;
+M2-camera remains doing and the usable camera contract remains pending.
+
 Start with existing `initial_edge_inspect.py`, the retained initial-supply-a
 diagnostic patch/header, source/material packets and deterministic Hoko Temple
 replay. Do not rebuild the already proven single-vertex lineage from scratch.

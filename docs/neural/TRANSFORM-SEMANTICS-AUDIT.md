@@ -1,5 +1,41 @@
 # FC-067 linked composite-transform semantics
 
+## Opaque extension - LOG #177
+
+Starting checkpoint `60196ee3a`. The existing factorizer now accepts the
+separately linked opaque initial-supply capture via `--opaque-capture`, after
+the entire actual source/record/gather/SQ/TA chain passes. No new GPU capture
+or production hook was needed for this retained-evidence algebra step.
+
+The opaque axes have norms 614.7143127511063, 565.5371443085618 and
+0.9999998092535347; normalized X/Y scales are 614.7144300057109 and
+565.5372521827936. Orthogonality residual is 6.716574753448559e-08.
+These are a compatible scaled-axis factorization, not proven game intrinsics.
+The algebraic screen point is 167.66892408168997, 230.84360127436491.
+Actual rounded reciprocal then separate multiply/add reproduces all three
+decoded words exactly. Importing the earlier translucent 1.04 depth multiplier
+fails. The actual nonunit W is retained; replacing it with one fails the
+observed transform. Doubled X scale and uncompensated decomposition errors
+are 152.33107591831003 and 663.7678249808051 pixels. A compensated alternate
+model/view basis still agrees within 2.842170943040401e-14 pixels.
+
+The retained positive passes; the same-build live-negative capture rejects
+at its predecessor witness as intended. Four new synthetic methods pass,
+including independent opaque projection goldens, nonunit W, corrupt pixels/
+viewport, and an explicit case where fused versus split arithmetic differs.
+The four historical methods and accepted historical translucent capture B
+also pass. Historical capture A was tried first and rejected its incomplete
+copy/decode witness; that failed attempt remains retained, not relabeled.
+
+ACCEPTED: the opaque algebra substep and per-domain depth distinction.
+Still pending: six actual opaque vertices across three producer-identified
+frames, multiple draw coverage, a usable shared camera contract, and Remix GPU
+output. The three neighboring algebra probes are synthetic, not game samples.
+Do not copy the translucent scale to opaque geometry or treat similar axis
+norms across old captures as proof of common frame/scene ownership.
+
+## Historical translucent result
+
 Baseline: `55976c40da7433a60c85e4e8a542c7752553542f`.
 **ACCEPTED one linked composite-transform algebra check (self-review).**
 This is not a unique world camera, all-draw calibration, moving reconstructed

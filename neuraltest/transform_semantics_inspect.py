@@ -87,7 +87,79 @@ def inspect(path):
     return result
 
 
+def analyze_opaque(columns, vector, output, center, decoded):
+    """The linked opaque path uses separate MUL/ADD and unscaled reciprocal Z.
+
+    Reuse the factorizer, but never import the translucent fixture's fused
+    projection or depth multiplier. This remains one observed sample.
+    """
+    require(center == [0x43a00000, 0x43700000], 'unsupported observed viewport center')
+    result = analyze(columns, vector, output)
+    require(fraction(output[2]) > 0, 'opaque sample is not positive-depth geometry')
+    reciprocal = evaluate('div', 0x3f800000, output[2], 0, 3)
+    xyz = [evaluate('madd', center[i], output[i], reciprocal, 3, False) for i in range(2)]
+    xyz.append(reciprocal)
+    require(xyz == decoded, 'opaque split projection differs from decoded vertex')
+    borrowed_depth = evaluate('mul', 0x3f851eb8, reciprocal, 0, 3)
+    require(borrowed_depth != decoded[2], 'wrong borrowed depth-scale control did not fail')
+    forced_unit = list(vector)
+    forced_unit[3] = 0x3f800000
+    unit_control = None
+    if vector[3] != forced_unit[3]:
+        unit_control = dot_words(columns, forced_unit) != output
+        require(unit_control, 'nonunit-W control is not discriminating for this sample')
+    scales = result['axis_scales']
+    normalized = [scales[0]/scales[2], scales[1]/scales[2]]
+    result.update(
+        normalized_projection_scales=normalized,
+        decoded_xyz_words=[f'{v:08x}' for v in xyz],
+        actual_w_word=f'{vector[3]:08x}', nonunit_w_control_rejected=unit_control,
+        reciprocal_depth_scale_word='3f800000', screen_offset=[320, 240],
+        screen_arithmetic='rounded-reciprocal-then-separate-multiply-add',
+        wrong_translucent_depth_scale_rejected=True,
+        camera_relative_point=[float(fraction(output[0]))/normalized[0],
+                               float(fraction(output[1]))/normalized[1],
+                               float(fraction(output[2]))],
+        scope='one-linked-opaque-transform-algebra', observed_points=1,
+        synthetic_probe_points=3, shared_game_camera=False,
+        usable_camera_contract=False, production_enabled=False,
+        exact_dot_matches=True, binary64_instruction_emulation=False)
+    return result
+
+
+def inspect_opaque(path):
+    # Import lazily: the historical translucent CLI keeps its original contract.
+    from initial_edge_inspect import inspect as inspect_initial_edge
+    from record_calc_inspect import inspect_block
+    from transform_store_inspect import load_session
+
+    frame = path/'frame-001782'
+    def read(name):
+        file = frame/name
+        require(file.stat().st_size <= 8*1024*1024, 'opaque JSON bound')
+        return json.loads(file.read_text(encoding='utf-8'))
+    scene, manifest = read('pvr-scene.json'), read('manifest.json')
+    session = load_session(path)
+    edge = inspect_initial_edge(session, scene, manifest)
+    final = inspect_block(session)
+    columns = [edge['xf_matrix_words'][i:i+4] for i in range(0, 16, 4)]
+    result = analyze_opaque(columns, edge['source_point_words'], edge['transformed_words'],
+                            [final['live_input_words'][i] for i in (20, 21)],
+                            scene['vertices'][4][:3])
+    result.update(frame_id=manifest['frame_id'], game_id=manifest['game_id'],
+                  producer_identity=manifest['producer_identity'], vertex=4,
+                  prior_source_to_decoded_chain_verified=True)
+    return result
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--capture', type=Path, required=True)
-    print(json.dumps(inspect(parser.parse_args().capture), indent=2))
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--capture', type=Path, help='Historical linked translucent fixture')
+    group.add_argument('--opaque-capture', type=Path, help='Linked initial-supply opaque fixture')
+    args = parser.parse_args()
+    try:
+        result = inspect(args.capture) if args.capture else inspect_opaque(args.opaque_capture)
+        print(json.dumps(result, indent=2))
+    except (ValueError, OSError, KeyError, IndexError, TypeError) as error:
+        parser.exit(1, f'Transform semantics rejected: {error}\n')

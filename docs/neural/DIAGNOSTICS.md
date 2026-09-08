@@ -2,6 +2,13 @@
 
 ## FC-067 selected opaque transform edge
 
+`python neuraltest/transform_semantics_inspect.py --opaque-capture CAPTURE`
+reuses the existing factorizer after checking the full initial-supply/record/
+SQ/TA witness. Opaque projection uses separate rounded multiply/add and unit
+reciprocal-depth scale; the historical `--capture` translucent path remains
+separate. Neither CLI proves a shared camera. Eight synthetic methods cover
+both domains, including a discriminating split-versus-fused boundary.
+
 `python neuraltest/initial_edge_inspect.py --capture CAPTURE` checks the
 one-block initial-store predecessor in OPAQUE-INITIAL-STORES-AUDIT.md,
 including the prior RAM/SQ/TA chain and six falsifying controls. It retains
