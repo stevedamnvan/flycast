@@ -2,11 +2,11 @@
 
 ## Current assignment
 
-Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). One
-linked composite passes algebra/projection controls; unique model/view split is
-ambiguous. Next test shared per-context projection/depth calibration across the
-minimum additional distinct causally linked geometry, with wrong/stale-context
-controls. No unique-world-origin detour, lineage census or Remix assumption.
+Current: `docs/neural/SHARED-CALIBRATION-AUDIT.md` (LOG #155, D-097). Two
+linked instances share calibration in epoch 1310/context 00509700 with offline
+wrong-scale/stale-epoch controls. Next bind that epoch to its actual bounded
+scene snapshot and sampled draw/list/material/visibility coverage. Do not use
+later frames, assume whole-scene calibration, repeat census or promote Remix.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
 values and three RAM copies are verified; the old span terminates at an actual

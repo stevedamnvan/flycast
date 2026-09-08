@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-097: shared sample calibration needs real scene-generation coverage
+
+Two distinct executed transforms reach different decoded vertices in the same
+replay epoch/context and bulk transfer with compatible normalized projection
+scales. Accept that pair only. Original fixture controls stay strict; additional
+samples may use explicit ordered event profiles and need not each discriminate
+nearest versus toward-zero when their actual results agree. All exact arithmetic
+and lineage checks remain. Next bind the witnessed epoch to its actual scene
+snapshot and establish sampled primitive/material/visibility coverage; don't
+attach it to later frames or upgrade two instances to whole-scene calibration.
+
 ## D-096: distinguish camera calibration from model/view gauge
 
 The linked composite's exact-dot/projection checks pass and wrong layout,

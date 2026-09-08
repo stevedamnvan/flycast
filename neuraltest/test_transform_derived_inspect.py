@@ -27,11 +27,16 @@ def fixture(negative=False):
 
 
 class DerivedParserTests(unittest.TestCase):
-    def inspect(self, text, negative=False):
+    def inspect(self, text, negative=False, **kwargs):
         source = (0x8c00f2fc, [0x457dcb43, 0xc50958f1, 0x4163a016, 0x3f800000])
         with patch('transform_derived_inspect.inspect_span', return_value=(source, 0x8c8b6d00, '3d95b6cd')), \
                 patch('transform_derived_inspect.load_session', return_value=text):
-            return inspect_derived(Path('synthetic'), negative)
+            return inspect_derived(Path('synthetic'), negative, **kwargs)
+
+    def test_additional_sample_still_checks_actual_arithmetic(self):
+        self.inspect(fixture(), require_rounding_control=False)
+        with self.assertRaisesRegex(ValueError, 'actual arithmetic mismatch'):
+            self.inspect(fixture().replace('value=42ab1024', 'value=42ab1025'), require_rounding_control=False)
 
     def test_positive_negative(self):
         self.assertEqual(self.inspect(fixture())['rejected'], [False]*4)

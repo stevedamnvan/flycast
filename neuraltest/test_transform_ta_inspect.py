@@ -40,10 +40,19 @@ def fixture(negative=False):
 
 
 class TaParserTests(unittest.TestCase):
-    def inspect(self, text, negative=False):
+    def inspect(self, text, negative=False, **kwargs):
         with patch('transform_ta_inspect.inspect_derived', return_value=DERIVED), \
                 patch('transform_ta_inspect.load_session', return_value=text):
-            return inspect_ta(Path('synthetic'), negative)
+            return inspect_ta(Path('synthetic'), negative, **kwargs)
+
+    def test_explicit_additional_event_profile(self):
+        text = fixture()
+        for before, after in ((58, 48), (60, 50), (62, 52), (381, 377)):
+            text = text.replace(f'event={before} ', f'event={after} ')
+            text = text.replace(f'events={before} ', f'events={after} ')
+        self.inspect(text, access_events=(33, 48, 50, 52, 377))
+        with self.assertRaisesRegex(ValueError, 'consumer address/event'):
+            self.inspect(text)
 
     def test_positive_negative(self):
         self.assertEqual(self.inspect(fixture()), self.inspect(fixture(True), True))

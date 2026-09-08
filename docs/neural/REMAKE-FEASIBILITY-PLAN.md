@@ -2,11 +2,11 @@
 
 ## Current M2 checkpoint -- 2026-09-07
 
-Current: TRANSFORM-SEMANTICS-AUDIT.md (LOG #154, D-096). One linked composite
-passes algebra/projection controls; model/view split is not unique. Next test
-shared per-context projection/depth calibration across distinct linked geometry.
-A labeled camera-relative frame need not recover a unique world origin; it must
-have proven calibration. World reconstruction/Remix GPU remain unproven.
+Current: SHARED-CALIBRATION-AUDIT.md (LOG #155, D-097). Two distinct linked
+instances share normalized calibration in one replay epoch/context. Next bind
+that epoch to its actual scene snapshot and sampled primitive/draw/material/
+visibility coverage; later retained frames are not that identity. Whole-scene
+calibration, world reconstruction and Remix GPU remain unproven.
 
 Latest: TRANSFORM-CONSUMER-AUDIT.md, LOG #150, D-092. One executed buffer-consumer
 chain is verified and stops at overwrite. Next prove the identified derived

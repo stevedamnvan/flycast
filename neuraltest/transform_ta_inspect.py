@@ -9,8 +9,9 @@ from transform_span_inspect import records
 from transform_store_inspect import compare_native, load_session, require
 
 
-def inspect_ta(path, negative=False):
-    derived = inspect_derived(path, False)
+def inspect_ta(path, negative=False, *, require_rounding_control=True,
+               access_events=(33, 58, 60, 62, 381)):
+    derived = inspect_derived(path, False, require_rounding_control=require_rounding_control)
     session = load_session(path)
     base = derived['source'][0]
     xyz = [derived['actual'][2], derived['actual'][3], derived['actual'][1]]
@@ -25,7 +26,7 @@ def inspect_ta(path, negative=False):
     require(len(access) == 5 and len(reads) == 4, 'wrong bounded access count')
     for a, r, pc, index, event in zip(access, reads,
                                      (0x8c070cb4, 0x8c070ea0, 0x8c070ea4, 0x8c070ea8),
-                                     (2, 0, 1, 2), (33, 58, 60, 62)):
+                                     (2, 0, 1, 2), access_events[:4]):
         require(int(a['pc'], 16) == int(r['pc'], 16) == pc, 'wrong consumer instruction')
         require(int(a['address'], 16) == base + index*4 and int(a['event']) == event,
                 'wrong consumer address/event')
@@ -33,7 +34,9 @@ def inspect_ta(path, negative=False):
         require(int(a['bytes'], 16) == int(r['value'], 16) == int(r['expected'], 16) == xyz[index]
                 and r['exact'] == '1', 'wrong actual loaded value')
     last = access[-1]
-    require(last['event'] == '381' and last['pc'] == '8c070c40'
+    require(len(access_events) == 5 and tuple(sorted(set(access_events))) == tuple(access_events)
+            and 0 < access_events[0] < access_events[-1] <= 50000, 'invalid expected event profile')
+    require(last['event'] == str(access_events[-1]) and last['pc'] == '8c070c40'
             and int(last['address'], 16) == base + 8 and last['size'] == '4' and last['write'] == '1'
             and int(last['bytes'], 16) == xyz[2], 'wrong terminating write')
     stores = records(session, 'FC067_G2_STORE')
@@ -79,7 +82,7 @@ def inspect_ta(path, negative=False):
             and 0 <= int(bulk['cycles']) - int(bulk['start']) <= 200000000, 'outside observation bounds')
     order = re.findall(r'FC067_(G2_BEGIN|G2_FLUSH|G3_BEGIN|G3_TA_BULK) ', session)
     require(order == ['G2_BEGIN', 'G2_FLUSH', 'G3_BEGIN', 'G2_FLUSH', 'G3_TA_BULK'], 'wrong lineage order')
-    require(records(session, 'FC067_G2_STOP') == [dict(reason='overwrite', events='381',
+    require(records(session, 'FC067_G2_STOP') == [dict(reason='overwrite', events=str(access_events[-1]),
                                                      pc='8c070c40', ta_lineage='unknown')],
             'old derived generation did not terminate at overwrite')
     return dict(derived=derived, queue=queue, packet=packet, destination=destination,

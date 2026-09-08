@@ -9,8 +9,9 @@ from transform_span_inspect import records
 from transform_store_inspect import compare_native, load_session, require
 
 
-def inspect_context(path, negative=False):
-    ta = inspect_ta(path, False)
+def inspect_context(path, negative=False, *, require_rounding_control=True,
+                    access_events=(33, 58, 60, 62, 381)):
+    ta = inspect_ta(path, False, require_rounding_control=require_rounding_control, access_events=access_events)
     session = load_session(path)
     require(re.findall(r'FC067_PACKET_(COPY|DECODE|STOP) ', session) == ['COPY', 'DECODE'],
             'copy/decode missing, reordered or invalidated')

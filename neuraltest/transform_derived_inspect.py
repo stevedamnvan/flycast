@@ -9,7 +9,7 @@ from transform_span_inspect import inspect_span, records
 from transform_store_inspect import compare_native, load_session, require
 
 
-def inspect_derived(path, negative=False):
+def inspect_derived(path, negative=False, *, require_rounding_control=True):
     source, destination, terminal = inspect_span(path, False)
     base, original = source[:2]
     session = load_session(path)
@@ -45,7 +45,8 @@ def inspect_derived(path, negative=False):
                          (0x3f851eb8, actual[0], 0),
                          (0x43a00000, original[0], actual[0]),
                          (0x43700000, original[1], actual[0])], 'wrong observed arithmetic dependencies')
-    require(evaluate('div', *operands[0], 0) != actual[0], 'wrong-rounding control did not fail')
+    if require_rounding_control:
+        require(evaluate('div', *operands[0], 0) != actual[0], 'wrong-rounding control did not fail')
     for store, pc, offset, value in zip(stores, (0x8c070c92, 0x8c070c9c, 0x8c070ca4),
                                        (8, 0, 4), actual[1:]):
         require(int(store['pc'], 16) == pc and int(store['address'], 16) == base + offset,

@@ -2,11 +2,11 @@
 
 ## Current priority -- reuse-first remake feasibility (2026-09-07)
 
-Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). One
-linked composite has verified projection algebra, not a unique model/view split.
-Next test shared per-context calibration across distinct linked geometry.
-A calibrated view-space scene is a possible bounded route, not yet a proven
-world camera, path-traced scene or combined Remix/Neural Rendering result.
+Current: `docs/neural/SHARED-CALIBRATION-AUDIT.md` (LOG #155, D-097). Two
+linked transform instances share calibration in one context epoch. Next bind
+that epoch to its real scene snapshot and establish primitive/material/visibility
+coverage. A calibrated camera-relative scene remains a bounded candidate, not
+whole-scene calibration, a world camera or combined Remix/Neural Rendering.
 
 Current: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). An executed
 RAM consumer/copy chain is verified, ending at overwrite. Next prove the derived

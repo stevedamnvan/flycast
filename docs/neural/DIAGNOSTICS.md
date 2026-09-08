@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+## FC-067 shared calibration pair
+
+`python neuraltest/shared_calibration_inspect.py --original ORIGINAL
+--different DIFFERENT --baseline RESTORED` checks the two complete linked
+instances, actual epoch/context/bulk identity, shared calibration and offline
+wrong-scale/stale-epoch controls in SHARED-CALIBRATION-AUDIT.md. Run
+`test_shared_calibration_inspect.py` for independent synthetic tests. This is
+not a full-scene calibration or runtime stale-context fault-injection test.
+
 ## FC-067 linked composite semantics
 
 `python neuraltest/transform_semantics_inspect.py --capture POSITIVE_CONTEXT`

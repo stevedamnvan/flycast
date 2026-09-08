@@ -2,11 +2,11 @@
 
 ## Current assignment -- 2026-09-07
 
-Current: `docs/neural/TRANSFORM-SEMANTICS-AUDIT.md` (LOG #154, D-096). Linked
-composite algebra verifies, but unique model/view split is ambiguous. Next obtain
-minimum distinct linked samples to test shared per-context projection/depth
-calibration with wrong-calibration/stale-context controls. Do not infer camera
-intrinsics from one matrix or require a unique world origin for view-space work.
+Current: `docs/neural/SHARED-CALIBRATION-AUDIT.md` (LOG #155, D-097). Two
+linked instances share calibration with offline wrong-scale/stale-epoch controls.
+Next capture the actual witnessed context generation's scene and associate the
+samples with draw/list/material/visibility. Do not use later retained images as
+frame identity or assume all-world-geometry coverage from two decoded vertices.
 
 Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Loaded values,
 copies and an overwrite boundary are verified. Next capture the identified
