@@ -97,7 +97,8 @@ def verify(capture, baseline):
                  ('fdiv f3.1 <- f3.0, f2.0', 'fdiv f3.1 <- f2.0, f3.0'),
                  ('writem  <- r5.3, f0.2', 'writem  <- r5.3, f1.2'),
                  ('reason=eight-block-bound', 'reason=cycle-bound'),
-                 ('words='+','.join(result['projected_words']), 'words=00000000,'+','.join(result['projected_words'][1:]))]
+                 ('FC067_COMBAT_BUFFER step=3 address='+result['output_base']+' words='+','.join(result['projected_words']),
+                  'FC067_COMBAT_BUFFER step=3 address='+result['output_base']+' words=00000000,'+','.join(result['projected_words'][1:]))]
     for original, wrong in mutations:
         require(original in session, 'control did not target observed text')
         try:

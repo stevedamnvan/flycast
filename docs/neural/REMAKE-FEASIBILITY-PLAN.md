@@ -1,5 +1,12 @@
 # Reuse-first remake feasibility
 
+Current: COMBAT-PACKET-AUDIT.md (LOG #159, D-101). The second combat
+projection links to a fish-textured translucent quad, not opaque fighter/arena
+coverage. Restored native/material evidence passes. Next review existing opaque
+draw/material coverage and source seams for one explicit producer or unsupported
+scope; no blind census, effect-to-world camera promotion or replay precision loop.
+Earlier assignments below are historical. Main-scene camera/Remix GPU remain open.
+
 ## Current M2 checkpoint -- 2026-09-07
 
 Current: `docs/neural/COMBAT-PATH-AUDIT.md` (LOG #158, D-100). A second

@@ -1,5 +1,13 @@
 # Neural rendering decisions
 
+## D-101: explain the fish sprite without promoting effect calibration
+
+The second executed combat transform reaches an actual decoded translucent quad
+with verified source fish texture. Keep source draw0 and merged material draw4
+distinct. Its separate depth scale is evidence about this producer, not the main
+scene camera. Next inspect existing opaque coverage/source seams before choosing
+another bounded producer. See COMBAT-PACKET-AUDIT.md; no census or guessed camera.
+
 ## D-100: follow the new produced RAM generation, not numeric vertex similarity
 
 A known second transform site now has a bounded executed combat block path,

@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+## FC-067 combat packet
+
+`python neuraltest/combat_packet_inspect.py --capture F --scene SCENE_JSON`
+checks the pinned first-copy/flush/TA/context/quad observation and ten offline
+falsifications. Run material_inspect separately on matching frame1782 and compare
+its scene to the witnessed snapshot. This is a fish-sprite scope, not main-scene
+camera or runtime Remix evidence. See COMBAT-PACKET-AUDIT.md.
+
 ## FC-067 combat candidate RAM path
 
 `python neuraltest/combat_path_inspect.py --capture D --baseline RESTORED`
