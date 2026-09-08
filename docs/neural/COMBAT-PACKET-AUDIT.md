@@ -66,6 +66,35 @@ performance evidence. Exact-commit validation follows in an ignored note.
 
 ## Next disposition
 
+### Postcommit qualification: exact-frame check failed
+
+Commit29e4a66de exact builds/selftests pass, but its three-frame native capture
+does NOT match restored H at equal frame IDs. Frame1782 differs at241148 color
+pixels,1783 at238775,1784 at236615. Subsequent read-only comparison finds new
+1782 exactly equals old1783 in native color, and new1783 equals old1784. This is
+an observed one-frame offset, not a passed equal-frame gate or1-LSB residual.
+Launch records/replay hash match. Root cause of the offset remains unproven.
+The shell sequence continued after Python validation failed and pushed the
+commit; this procedural failure is retained, not retroactively called success.
+Investigate frame identity/capture alignment before promoting exact-SHA evidence.
+Do not silently shift acceptance frames or overwrite failed captures.
+
+Repeat I uses the same29e4a66de executable, same capture settings/replay and
+restored save inputs. It exits0/clean close and matches restored H at equal
+frame IDs on all27 unique image planes. It differs from the first29e4a66de run.
+Thus the offset is not a consistent commit-dependent scene change. Failed run
+remains failed; repeat success does not establish run-to-run determinism.
+Source inspection shows instrumentation frameId increments per CaptureGeometry
+or CaptureSource invocation; it is not an emulated-vblank identifier. Which
+invocation differed remains unknown; next inspect startup/source/render skipping.
+
+Source review narrows diagnostic seams: QueueRender can reject disabled/skipped
+or occupied-queue work; rend_vblank can enqueue direct-framebuffer work.
+CaptureGeometry and CaptureSource share frameId_, while QualityCaptureWriter
+separately increments seen_ per Write attempt. No evidence yet identifies which
+path differed in the failed run. Next bounded source/capture-attempt counters
+and submitted emulated identity, not a global frame-ID offset correction.
+
 The second source witness is now explained; neither it nor the old petal sample
 establishes opaque main-scene calibration. Before further source tracing, review
 the existing captured opaque draw/material coverage and source seams to select

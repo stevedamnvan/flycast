@@ -3,6 +3,7 @@
 #include "ta_structs.h"
 #include "pvr_regs.h"
 #include "oslib/oslib.h"
+#include "rend/neural/producer_identity.h"
 #include <glm/glm.hpp>
 
 #include <algorithm>
@@ -244,6 +245,8 @@ struct Rect
 
 struct rend_context
 {
+	flycast::rend::neural::ProducerIdentity captureProducer;
+	void InvalidateCaptureProducer() noexcept { captureProducer = {}; }
 	f32 fZ_max;
 
 	bool isRTT;
@@ -364,6 +367,7 @@ struct TA_context
 	void Reset()
 	{
 		verify(tad.End() - tad.thd_root <= (ptrdiff_t)TA_DATA_SIZE);
+		rend.InvalidateCaptureProducer();
 		tad.Clear();
 		nextContext = nullptr;
 		rend.Clear();
@@ -381,6 +385,7 @@ extern tad_context ta_tad;
 
 TA_context* tactx_Pop(u32 addr);
 void tactx_Term();
+void ResetCaptureProducerIdentity();
 TA_context *tactx_Alloc();
 
 /*

@@ -2,6 +2,8 @@
 #include "harness.h"
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/pvr_scene_capture.h"
+#include "json/json.hpp"
+#include "capture_transition.h"
 
 #include <algorithm>
 #include <chrono>
@@ -57,6 +59,7 @@ void Usage()
 		"neuraltest compare-captures --a DIR --b DIR --out JSON [--a-output external|public] [--b-output external|public]\n"
 		"neuraltest confirm-external-capture --capture DIR --on-log FILE --on-host-log FILE --off-log FILE --off-host-log FILE --git-sha SHA\n"
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
+	std::cout << "capture save/load options: --savestate-roundtrip-after 1..10000 --savestate-load-delay 1..10000 (default 30); native D3D11 + --remake-packet yes; in-memory only, completion marker required\n";
 	std::cout << "neuraltest selftest\n";
 }
 
@@ -837,8 +840,11 @@ int CaptureCommand(const Args& args)
 	std::string error;
 	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
 		evidenceFrames = 0, evidenceStartFrame = 0;
+	std::uint32_t captureSaveAfter = 0, captureLoadDelay = 30;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
 		|| !Number(args, "--skip", 0, skip, error)
+		|| !Number(args, "--savestate-roundtrip-after", 0, captureSaveAfter, error) || captureSaveAfter > 10000
+		|| !Number(args, "--savestate-load-delay", 30, captureLoadDelay, error) || captureLoadDelay == 0 || captureLoadDelay > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
 		|| renderHeight < 120 || renderHeight > 8640
 		|| !Number(args, "--evidence-frames", 0, evidenceFrames, error) || evidenceFrames > 480
@@ -851,6 +857,8 @@ int CaptureCommand(const Args& args)
 	const auto lane = Value(args, "--lane", "dlaa");
 	if (remakeMaterials == "yes" && frames > 30) { std::cerr << "PVR materials require at most 30 frames\n"; return 2; }
 	const auto api = Value(args, "--api", "d3d11");
+	if (captureSaveAfter && (lane != "native" || api != "d3d11" || remakePacket != "yes"))
+	{ std::cerr << "capture save/load requires native D3D11 and PVR packet=yes\n"; return 2; }
 	const auto renderer = Value(args, "--renderer", "dx11");
 	const auto preset = Value(args, "--preset", "auto");
 	const auto injection = Value(args, "--inject", "none");
@@ -1059,6 +1067,9 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
+		+ L",config:rend.NeuralSaveStateAfter=" + std::to_wstring(captureSaveAfter)
+		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(captureLoadDelay)
+		+ (captureSaveAfter ? L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'" : L"")
 		+ L",config:rend.NeuralCapturePvrPacket=" + (remakePacket == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralCapturePvrReplay=" + (remakeReplay == "yes" ? L"yes" : L"no")
 		+ L",config:rend.NeuralCapturePvrMaterials=" + (remakeMaterials == "yes" ? L"yes" : L"no")
@@ -1202,6 +1213,21 @@ int CaptureCommand(const Args& args)
 			}
 		if (pvrPacketFiles != frames) { std::cerr << "PVR packet frame count mismatch\n"; return 1; }
 	}
+	bool captureSaveComplete = captureSaveAfter == 0;
+	if (captureSaveAfter)
+	{
+		const auto markerPath = output / "savestate-roundtrip-complete.json";
+		std::error_code markerError;
+		const auto markerSize = std::filesystem::file_size(markerPath, markerError);
+		if (!markerError && markerSize <= 65536)
+		{
+			try {
+				std::ifstream file(markerPath);
+				const auto marker = nlohmann::json::parse(file);
+				captureSaveComplete = neuraltest::ValidCaptureSaveMarker(marker, captureSaveAfter, captureLoadDelay);
+			} catch (const nlohmann::json::exception&) { captureSaveComplete = false; }
+		}
+	}
 	std::ofstream launchReport(output / "capture-launch.json");
 	launchReport << "{\n  \"schema\": 1,\n  \"lane\": \"" << lane
 		<< "\",\n  \"api\": \"" << api << "\",\n  \"renderer\": \"" << renderer
@@ -1230,13 +1256,17 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"failure_injection_after_accepted\": " << injectionAfter
 		<< ",\n  \"requested_frames\": " << frames
 		<< ",\n  \"skip\": " << skip
+		<< ",\n  \"savestate_roundtrip_after_main_frames\": " << captureSaveAfter
+		<< ",\n  \"savestate_load_delay_main_frames\": " << captureLoadDelay
+		<< ",\n  \"savestate_roundtrip_completed\": " << (captureSaveComplete ? "true" : "false")
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
 	std::cout << "capture complete frames=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
 		<< " injection=" << injection << ':' << injectionCount
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
-	return launchReport ? 0 : 1;
+	if (!captureSaveComplete) std::cerr << "capture in-memory save/load completion unverified\n";
+	return launchReport && captureSaveComplete ? 0 : 1;
 #endif
 }
 

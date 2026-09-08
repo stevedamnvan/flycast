@@ -484,6 +484,7 @@ void rend_term_renderer()
 
 void rend_reset()
 {
+	ResetCaptureProducerIdentity();
 	FinishRender(DequeueRender());
 	render_called = false;
 	pend_rend = false;

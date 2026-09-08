@@ -1,5 +1,21 @@
 # Neural diagnostics
 
+## FC-067 producer identity and capture reset
+
+Capture manifests add optional `producer_identity` with availability, the
+`sh4-scheduler-cycles` clock, process-local epoch, accepted ordinal and cycle.
+No older artifact gains this provenance retrospectively. Validate the retained
+three-frame diagnostic trace with `frame_identity_inspect.py --capture TRACE`
+and optionally `--manifests CAPTURE`. This checks matching cycles/ordinals;
+cross-process epoch is explicitly not witnessed by the old trace.
+
+`neuraltest capture` accepts `--savestate-roundtrip-after 1..10000` and
+`--savestate-load-delay 1..10000` (default30), restricted to native D3D11 with
+`--remake-packet yes`. It uses the existing in-memory developer save/load hook,
+not a disk save-state overwrite. A bounded valid completion marker is required
+or capture exits1, even if images were retained. Omit after to disable it.
+See FRAME-IDENTITY-AUDIT.md for actual results and limitations.
+
 ## FC-067 combat packet
 
 `python neuraltest/combat_packet_inspect.py --capture F --scene SCENE_JSON`

@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-102: capture identity belongs to the accepted producer context
+
+Carry capture-only scheduler cycle, submission ordinal and process-local reset
+epoch on the accepted PVR context, not a global last-frame value. Keep neural
+history/frame IDs and serialized game state unchanged. Decode Clear preserves
+the stamp; context recycling, reset/load and synthetic replay invalidate it.
+Unavailable sources remain unavailable. Epoch equality in one capture does not
+authenticate an older trace or establish cross-process identity. The clock's
+Owns helper checks epoch/range only, not arbitrary stamp authenticity.
+
+Require a parsed, bounded completion marker for requested capture save/load;
+locale-dependent numeric output is invalid evidence, not a recoverable pass.
+FRAME-IDENTITY-AUDIT.md records actual C-run validation and retained failures.
+This slice does not explain the first shifted capture or recover world camera.
+
 ## D-101: explain the fish sprite without promoting effect calibration
 
 The second executed combat transform reaches an actual decoded translucent quad

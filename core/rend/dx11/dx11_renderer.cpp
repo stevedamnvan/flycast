@@ -1083,6 +1083,7 @@ bool DX11Renderer::replayPvrPacket(const std::filesystem::path& path,
 	// Same-frame resource-backed experiment. Global pixel state, modifiers and
 	// sorted order are retained explicitly; this is not standalone scene replay.
 	rend_context replay = *rendContext;
+	replay.captureProducer = {}; // Reconstructed replay is not a new live submission.
 	replay.verts = packet.vertices; replay.idx = packet.indices;
 	if (packet.sortedOrderCaptured)
 	{
@@ -1864,6 +1865,7 @@ void DX11Renderer::submitNeuralFrame()
 	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
 	neuralQualityCaptureMetadata = {};
 	neuralQualityCaptureMetadata.frameId = frame.frameId;
+	neuralQualityCaptureMetadata.producerIdentity = rendContext->captureProducer;
 	neuralQualityCaptureMetadata.historyGeneration = frame.historyGeneration;
 	neuralQualityCaptureMetadata.historyAge = frame.historyAge;
 	neuralQualityCaptureMetadata.skippedFrameCount = frame.skippedFrameCount;

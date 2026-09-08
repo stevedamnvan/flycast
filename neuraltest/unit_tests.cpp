@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "capture_transition.h"
 #include "remake_scene.h"
 #include "rend/neural/pvr_scene_capture.h"
 #include <chrono>
@@ -16,6 +17,7 @@
 #include "rend/neural/quality_capture.h"
 #include "rend/neural/quality_profile.h"
 #include "rend/neural/external_control.h"
+#include "rend/neural/producer_identity.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1580,6 +1582,50 @@ int RunSelfTests()
 			&&error=="pvr-packet-identity-or-bound","PVR vertex budget checked before output");
 	}
 	suite.passed += remakeCounts.passed;
+	{
+		const auto marker=nlohmann::json::parse(R"({"schema":1,"completed":true,"in_memory":true,"save_allowed":true,"saved":true,"loaded":true,"save_main_frame":1000,"load_main_frame":1030,"state_bytes":1024})");
+		suite.Expect(ValidCaptureSaveMarker(marker,1000,30),"capture save marker valid typed completion");
+		for(const char* key : {"completed","in_memory","saved","loaded","save_allowed"}) {
+			auto wrong=marker;wrong[key]=false;
+			suite.Expect(!ValidCaptureSaveMarker(wrong,1000,30),std::string("capture rejects false marker ")+key);
+		}
+		for(const auto& value : {nlohmann::json(-1),nlohmann::json(1030.5),nlohmann::json("1030"),nlohmann::json(true)}) {
+			auto wrong=marker;wrong["load_main_frame"]=value;
+			suite.Expect(!ValidCaptureSaveMarker(wrong,1000,30),"capture rejects non-unsigned load frame");
+		}
+		auto wrong=marker;wrong["load_main_frame"]=std::uint64_t(999);
+		suite.Expect(!ValidCaptureSaveMarker(wrong,1000,30),"capture rejects reversed load frame");
+		wrong=marker;wrong.erase("saved");
+		suite.Expect(!ValidCaptureSaveMarker(wrong,1000,30),"capture rejects missing completion field");
+	}
+	{
+		ProducerIdentityClock clock;
+		ProducerIdentity missing;
+		suite.Expect(!missing.Available() && !clock.Owns(missing), "producer missing identity unavailable");
+		const auto zero = clock.Stamp(0);
+		suite.Expect(zero.Available() && zero.cycle == 0 && zero.ordinal == 1,
+			"producer cycle zero distinct from unavailable");
+		const auto next = clock.Stamp(100);
+		suite.Expect(next.epoch == zero.epoch && next.ordinal == 2 && clock.Owns(next),
+			"producer ordinal increments independently of clock value");
+		const auto same = clock.Stamp(100);
+		suite.Expect(same.ordinal == 3 && same.epoch == next.epoch, "producer same cycle remains distinct submission");
+		clock.Reset();
+		suite.Expect(!clock.Owns(next), "producer reset rejects stale epoch");
+		const auto reset = clock.Stamp(100);
+		suite.Expect(reset.epoch == next.epoch+1 && reset.ordinal == 1, "producer explicit reset starts new epoch");
+		const auto rollback = clock.Stamp(99);
+		suite.Expect(rollback.epoch == reset.epoch+1 && rollback.ordinal == 1 && !clock.Owns(reset),
+			"producer backwards clock invalidates prior epoch");
+		const auto copied = rollback;
+		suite.Expect(clock.Owns(copied) && copied.cycle == 99, "producer stamp copied without clock reinterpretation");
+		rend_context context;
+		context.captureProducer = copied;
+		context.Clear();
+		suite.Expect(context.captureProducer.Available(), "producer survives render-data clear for decode");
+		context.InvalidateCaptureProducer();
+		suite.Expect(!context.captureProducer.Available(), "producer lifecycle invalidation clears stamp");
+	}
 	suite.failed += remakeCounts.failed;
 	std::cout << "selftest passed=" << suite.passed << " failed=" << suite.failed << '\n';
 	return suite.failed == 0 ? 0 : 1;

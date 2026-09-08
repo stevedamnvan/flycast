@@ -1,5 +1,20 @@
 # Neural rendering backlog
 
+FC-067 working-tree follow-up: producer metadata and strict in-memory save/load
+capture validation now pass the bounded C run; four builds, three284-test
+selftests, SDK56 and Python61+5 pass. See FRAME-IDENTITY-AUDIT.md. Commit and
+exact-SHA validation remain pending; camera/world/Remix GPU are still open.
+
+FC-067 alignment follow-up: unchanged29e4a66de repeat I matches H on27/27 planes
+at equal IDs; first exactcommit run remains shifted/failed. Investigate renderer
+capture-count versus emulated-frame identity; do not attribute shift to commit
+or declare determinism from one successful repeat.
+
+Immediate FC-067 qualification:29e4a66de postcommit equal-frame native validation
+fails. Two overlapping frames match the prior capture at a+1 old-frame offset;
+launch/replay identity matches, offset cause unproven. Diagnose capture/frame
+identity before accepting exact-SHA preservation. No silent frame realignment.
+
 Current: COMBAT-PACKET-AUDIT.md (LOG #159, D-101). The second combat
 projection links to a fish-textured translucent quad, not opaque fighter/arena
 coverage. Restored native/material evidence passes. Next review existing opaque

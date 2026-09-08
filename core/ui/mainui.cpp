@@ -150,6 +150,7 @@ static void writeNeuralDeveloperSaveStateMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "savestate-roundtrip-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": "
 		<< (neuralDeveloperSaveStateSaved && neuralDeveloperSaveStateLoaded
 			? "true" : "false")

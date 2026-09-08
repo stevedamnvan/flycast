@@ -2,6 +2,7 @@
 #pragma once
 
 #include "neural_frame.h"
+#include "producer_identity.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 
@@ -42,6 +43,7 @@ struct QualityGpuTimings {
 };
 
 struct QualityCaptureMetadata {
+	ProducerIdentity producerIdentity;
 	std::uint64_t frameId = 0;
 	std::uint32_t historyGeneration = 0;
 	std::uint32_t historyAge = 0;

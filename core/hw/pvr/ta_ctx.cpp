@@ -4,6 +4,7 @@
 #include "Renderer_if.h"
 #include "serialize.h"
 #include "stdclass.h"
+#include "hw/sh4/sh4_sched.h"
 
 #include <mutex>
 #include <vector>
@@ -45,6 +46,11 @@ void SetCurrentTARC(u32 addr)
 
 static TA_context* rqueue;
 static cResetEvent frame_finished;
+static flycast::rend::neural::ProducerIdentityClock captureProducerClock;
+void ResetCaptureProducerIdentity()
+{
+	captureProducerClock.Reset();
+}
 
 bool QueueRender(TA_context* ctx)
 {
@@ -75,6 +81,11 @@ bool QueueRender(TA_context* ctx)
 	rend_disable_rollback();
 	frame_finished.Reset();
 	verify(rqueue == nullptr);
+	ctx->rend.captureProducer = {};
+#ifdef FLYCAST_ENABLE_NEURAL
+	if (config::NeuralCaptureFrames.get() > 0 && !ctx->rend.isRTT && !settings.platform.isNaomi2())
+		ctx->rend.captureProducer = captureProducerClock.Stamp(sh4_sched_now64());
+#endif
 	rqueue = ctx;
 
 
@@ -193,6 +204,7 @@ TA_context *tactx_Pop(u32 addr)
 
 void tactx_Term()
 {
+	ResetCaptureProducerIdentity();
 	if (ta_ctx != nullptr)
 		SetCurrentTARC(TACTX_NONE);
 
@@ -238,6 +250,7 @@ static void deserializeContext(Deserializer& deser, TA_context **pctx)
 		return;
 	}
 	*pctx = tactx_Find(address, true);
+	(*pctx)->rend.captureProducer = {};
 	u32 size;
 	deser >> size;
 	tad_context& tad = (*pctx)->tad;
@@ -266,6 +279,7 @@ void SerializeTAContext(Serializer& ser)
 
 void DeserializeTAContext(Deserializer& deser)
 {
+	ResetCaptureProducerIdentity();
 	if (::ta_ctx != nullptr)
 		SetCurrentTARC(TACTX_NONE);
 	if (deser.version() >= Deserializer::V25)

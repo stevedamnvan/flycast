@@ -1,5 +1,14 @@
 # Flycast agent entry point
 
+Current identity follow-up: FRAME-IDENTITY-AUDIT.md (LOG #162, D-102).
+Bounded producer metadata and actual in-memory save/load C validation pass in
+the working tree; commit/exact-SHA confirmation remain next. Preserve the
+original failed offset capture, not a silently shifted comparison. After this
+checkpoint return to existing opaque draw/material/source-seam review for an
+explicit producer or unsupported scope. Do not repeat identical captures,
+blind census, effect-to-world camera promotion or parked replay precision work.
+Main-scene camera and Remix GPU remain open. Older checkpoints below are context.
+
 Current: COMBAT-PACKET-AUDIT.md (LOG #159, D-101). The second combat
 projection links to a fish-textured translucent quad, not opaque fighter/arena
 coverage. Restored native/material evidence passes. Next review existing opaque

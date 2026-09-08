@@ -820,6 +820,10 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	manifest << "{\n  \"schema\": 3,\n  \"git_sha\": \"" << GIT_HASH
 		<< "\",\n  \"game_id\": \"" << Json(metadata.gameId)
 		<< "\",\n  \"frame_id\": " << metadata.frameId
+		<< ",\n  \"producer_identity\": {\"available\":" << (metadata.producerIdentity.Available() ? "true" : "false")
+		<< ",\"clock\":\"sh4-scheduler-cycles\",\"epoch\":" << metadata.producerIdentity.epoch
+		<< ",\"ordinal\":" << metadata.producerIdentity.ordinal
+		<< ",\"cycle\":" << metadata.producerIdentity.cycle << "}"
 		<< ",\n  \"history_generation\": " << metadata.historyGeneration
 		<< ",\n  \"history_age\": " << metadata.historyAge
 		<< ",\n  \"skipped_frame_count\": " << metadata.skippedFrameCount
