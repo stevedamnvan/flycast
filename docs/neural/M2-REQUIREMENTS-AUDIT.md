@@ -1,5 +1,12 @@
 # FC-067 M1/M2 requirements audit
 
+## Current routing note
+
+D-114 and BACKLOG.md now authorize autonomous bounded progression. The older
+scope-stop paragraphs below are historical, not fresh requests for approval.
+Their failed/unknown requirements remain visible: full M2 is not silently
+closed. Consult the live queue, not another repeat of this requirements audit.
+
 Current result (2026-09-08, LOG #175): actual FTRV at8c03c944 in predecessor
 8c03c93a supplies the selected opaque vertex's initial XYZ record. Four source
 loads,16 XF matrix words, all four outputs and the actual successor edge are

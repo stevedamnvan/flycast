@@ -1,5 +1,13 @@
 # FC-067 initial record store boundary
 
+## Current routing note
+
+D-114 and the active BACKLOG supersede this audit's historical permission
+stops. Its accepted one-vertex evidence and unknown matrix/camera semantics
+remain unchanged. Continue bounded dependency/hypothesis work under the live
+queue without another per-block approval; do not repeat this completed trace.
+Exact-checkpoint verification at0e095eb75 completed; see LOG #175 addendum.
+
 ## LOG #175 result - the opaque transform is now linked
 
 ACCEPTED in bounded self-review, restored verification passed; exact checkpoint

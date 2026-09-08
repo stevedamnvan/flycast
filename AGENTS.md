@@ -1,207 +1,79 @@
 # Flycast agent entry point
 
-Current result (2026-09-08, LOG #175): actual FTRV at8c03c944 in predecessor
-8c03c93a supplies the selected opaque vertex's initial XYZ record. Four source
-loads,16 XF matrix words, all four outputs and the actual successor edge are
-verified; same-build wrong-word control rejects with native preservation.
-See OPAQUE-INITIAL-STORES-AUDIT.md for limits and checkpoint status. Matrix/source
-coordinate semantics and full M2 remain unknown. Do not repeat this trace or
-recursively expand upstream; next disposition is a finite camera-contract task,
-not a repeated requirements audit. Requested routing remains Astra low.
+## One execution authority
 
-Current authority: OPAQUE-INITIAL-STORES-AUDIT.md, LOG #174. Initial block8c03c94c
-only stores precomputed FR0/1/2; their calculation/coordinate system is outside
-the bounded assignment. Scope stop: no further predecessor/caller/site tracing
-automatically. After checkpoint, audit remaining M2 requirements and request
-a new bounded route if needed. Full goal remains incomplete. Newest governs.
+Read the active execution section of [the backlog](docs/neural/BACKLOG.md)
+first, then its current card and [the remake plan](docs/neural/REMAKE-FEASIBILITY-PLAN.md).
+The backlog owns current priority, dependencies, bounded tasks and acceptance.
+Do not create a competing roadmap, scheduler or orchestration state file.
+Historical audit/LOG instructions describe their old scope; they are evidence,
+not active requests to pause or repeat a completed experiment.
 
-Current authority: OPAQUE-FACTOR-EDGE-AUDIT.md, LOG #173. Actual predecessor
-loads the earlier record Z and computes q=1/Z, then hands it to the final block.
-Record Z's coordinate system remains unknown. Next bounded initial-record
-producer block at stores8c03c94e/50/52, not repeated reciprocal/final-block
-tracing, recursive callers or camera promotion. Newest heading governs.
+The user's 2026-09-08 request authorizes autonomous progression toward a working
+RTX Remix plus externally supplied DLSS 5 pipeline. It supersedes routine
+per-block/per-milestone approval stops in old task cards, D-111 through D-113,
+and earlier handoffs. It does not supersede safety, evidence requirements,
+explicitly parked work, or the need for real missing third-party components.
 
-Current authority: OPAQUE-COORDINATE-CALC-AUDIT.md, LOG #172. Final block8c03c9c0
-proves X=a*q+320,Y=b*q+240,Z=q with actual toward-zero binary32 intermediates.
-The q live-in's origin/meaning remains unknown. Next one bounded actual
-predecessor edge supplying FR3 to this exact invocation, not recursive callers,
-repeated final-block/RAM/SQ tracing or camera promotion. Newest heading governs.
+## Execution loop
 
-Current authority: OPAQUE-RAM-WRITERS-AUDIT.md, LOG #171. Six observed CPU writes
-include an overwritten set and final XYZ stores8c03c9ca/cc/ce. The latter link
-through actual RAM loads to opaquevertex4. Next only their bounded executed-block
-calculation witness; no repeat RAM/SQ locator, arbitrary caller trace or camera
-promotion. Memory-observer limitations remain explicit. Newest heading governs.
+1. Read HEAD/status and preserve newer work. Select the backlog's active ready
+   card, or the first unblocked dependency. Use existing FC identifiers.
+2. State a concrete hypothesis/deliverable, bounded work and falsifying check.
+   Routine implementation, focused tracing and scope refinement within this
+   objective need no new human approval. Record changed bounds before running.
+3. Implement and test. Retain failures. Review the actual output, not just logs.
+   Apply the backlog's no-progress/pivot rule; no endless one-instruction traces.
+4. Update the live card in place plus LOG/DECISIONS and the handoff when needed.
+   Never prepend another collection of conflicting "current task" paragraphs.
+5. Commit independently proven slices with explicit staging; verify the fork
+   SHA and a clean worktree after required checks. Then take the next ready
+   card automatically. An accepted checkpoint is not an instruction to stop.
+6. When a card lacks media/hardware/runtime, name the exact block and continue
+   independent safe work. Escalate only when all useful in-scope routes require
+   an external dependency, prohibited action or genuinely new authority.
 
-Current authority: OPAQUE-XYZ-OPERANDS-AUDIT.md, LOG #170. The block gathers XYZ
-from RAM8ce74250/54/58 using index05df/stride16; it does not calculate projected
-positions. Next only the bounded12-byte record-producer witness in that audit.
-No recursive callers, shared effect-camera promotion or repeated SQ/operand
-census. Newest checkpoint here supersedes lower historical Current headings.
-
-Current: OPAQUE-SQ-WRITERS-AUDIT.md, LOG #169. R2 identifies all32 bytes' last
-writers into the selected SQ packet. XYZ store PCs8c03cc82/84/86 are observed;
-their value calculation is unknown. Next bounded executed-block operand-source
-witness in that audit; no repeat copy/writer census or arbitrary caller tracing.
-Temporary core probes removed. Full M2/camera/Remix GPU remain incomplete.
-
-Current R1 acceptance: OPAQUE-REVERSE-PLAN.md, LOG #168. Actual SQ slot1 copy
-at cycle7602643776 links to the selected opaque vertex4. Wrong-generation live
-query rejects with native preservation; hooks removed. Next R2 bounded physical
-SQ slot1 filling-store/last-writer witness, including E0-E3 aliases and32/64-bit
-writes. No repeated locator/copy capture, caller census or world-camera claim.
-
-Historical R1 checkpoint: OPAQUE-REVERSE-PLAN.md, LOG #167. Decoder-buffer packet
-offset32 (vertex member offset36) links to opaque vertex4. Transfer provenance
-is still missing. Next bounded actual TA copy witness for that packet with
-per-context generation and source/destination bytes; R2 remains unauthorized
-until R1 review. Temporary decoder hooks removed. Do not repeat the locator.
-
-Current user-approved scope: OPAQUE-REVERSE-PLAN.md. R1 begins from a captured
-opaque draw and must prove original TA packet association through decode/remap.
-Scope R2 only after R1 evidence review; no arbitrary caller tracing or guessed
-camera. The prior overall goal remains incomplete. Start with R1 interval and
-generation design/tests, not another shader or runtime integration.
-
-Historical decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
-checkpoint84231a2af is verified and pushed. Overall M2 remains incomplete.
-The bounded source investigation has stopped without an opaque/world camera.
-Do not automatically expand caller tracing, repeat captures or resume parked
-precision work. Request a concrete new bounded reconstruction route from the
-user before more camera investigation; preserve the full unmet goal.
-
-Historical: OPAQUE-SOURCE-AUDIT.md (LOG #165, D-103). The bounded third candidate
-reaches a scalar routine return but remains uncorrelated to PVR. Temporary CPU
-hooks removed. Finish restored validation/checkpoint, then audit remaining M2
-requirements; no automatic arbitrary caller tracing, census or replay precision
-loop. Whole-scene camera and real Remix GPU remain unproven.
-
-Historical: d2954272e native-preservation/producer metadata accepted (LOG #164).
-Three exact-SHA no-reset frames match producer timing and27 unique image planes.
-Reset comparison remains failed: host main-loop triggers are not deterministic
-guest-state boundaries. Next review existing opaque scene/source coverage for
-one explicit producer or unsupported scope; no repeated reset capture loop.
-Whole-scene camera, parked strict replay and Remix GPU remain unproven.
-
-Historical identity follow-up: FRAME-IDENTITY-AUDIT.md (LOG #162, D-102).
-Bounded producer metadata and actual in-memory save/load C validation pass in
-the working tree; commit/exact-SHA confirmation remain next. Preserve the
-original failed offset capture, not a silently shifted comparison. After this
-checkpoint return to existing opaque draw/material/source-seam review for an
-explicit producer or unsupported scope. Do not repeat identical captures,
-blind census, effect-to-world camera promotion or parked replay precision work.
-Main-scene camera and Remix GPU remain open. Older checkpoints below are context.
-
-Current: COMBAT-PACKET-AUDIT.md (LOG #159, D-101). The second combat
-projection links to a fish-textured translucent quad, not opaque fighter/arena
-coverage. Restored native/material evidence passes. Next review existing opaque
-draw/material coverage and source seams for one explicit producer or unsupported
-scope; no blind census, effect-to-world camera promotion or replay precision loop.
-Earlier assignments below are historical. Main-scene camera/Remix GPU remain open.
-
-## Current assignment
-
-Current: `docs/neural/COMBAT-PATH-AUDIT.md` (LOG #158, D-100). A second
-executed combat transform projects into a pinned RAM span; its primitive family
-is still unknown. Next bounded reads/copies from that produced generation toward
-TA, with overwrite/reset termination and actual draw association. Do not repeat
-site census, reuse petal calibration, assume opaque coverage, or restart replay
-precision diagnosis. Earlier assignments below are historical checkpoints.
-
-Current: `docs/neural/SCENE-ASSOCIATION-AUDIT.md` (LOG #157, D-099). The
-linked samples bind to a petal-like translucent source texture at frame1302,
-whose on-screen title is Emperor's Garden. They do not establish opaque fighter/
-world calibration. Next bounded opaque combat transform/TA association or precise
-unsupported disposition. The frame1302 strict replay failed; do not reopen its
-precision loop or promote the effect calibration to the entire scene.
-
-Current working slice: `docs/neural/SORTED-SCENE-AUDIT.md`. Scene v2 preserves
-sorted source vertex ranges and separate GPU commands. Both linked snapshots
-are identical; samples belong to translucent draws sharing texture state, not
-proven opaque-world geometry. Restored builds/tests pass; after exact-SHA confirmation validate
-snapshot association and actual material/visibility coverage. Earlier checkpoints
-below are historical; do not repeat them or promote a Remix runtime.
-
-Current: `docs/neural/SHARED-CALIBRATION-AUDIT.md` (LOG #155, D-097). Two
-linked instances share calibration in epoch 1310/context 00509700 with offline
-wrong-scale/stale-epoch controls. Next bind that epoch to its actual bounded
-scene snapshot and sampled draw/list/material/visibility coverage. Do not use
-later frames, assume whole-scene calibration, repeat census or promote Remix.
-
-Latest: `docs/neural/TRANSFORM-CONSUMER-AUDIT.md` (LOG #150, D-092). Four loaded
-values and three RAM copies are verified; the old span terminates at an actual
-write. Next capture the explicitly identified derived-coordinate arithmetic and
-stores as a new generation, then its bounded TA submission lineage. Do not
-repeat source/copy census or label this camera recovery. Older text is context.
-
-Current checkpoint: `docs/neural/TRANSFORM-STORE-AUDIT.md` (LOG #149, D-091).
-One executed transform is linked to four exact guest-RAM stores with a failing
-wrong-expected-word control and native-image preservation. Next follow actual
-reads/overwrites of that dynamically witnessed 16-byte span toward TA, bounded
-by event count and reset/overwrite. No matrix/site census repeat, general memory
-scan or camera claim. Older checkpoint text below is historical context.
-
-Latest: `docs/neural/CAMERA-SOURCE-AUDIT.md` (LOG #147-148, D-090). Actual x64
-FTRV execution in the game run is now observed; do not repeat the usage census.
-Next is bounded instruction-site/value lineage to submitted vertices. Source inspection
-finds an executed FTRV seam but no retained transform-to-TA lineage. Next perform
-its bounded executed-transform witness experiment, not a camera extractor or
-global-last-matrix hook. Return uncorrelated/unsupported if causal association
-cannot be established. Earlier checkpoint text below is historical context.
-
-Current checkpoint: `docs/neural/MATERIAL-CAPTURE-AUDIT.md`. The bounded
-source-texture/palette sidecar is implemented and self-reviewed with three-
-and thirty-frame native on/off evidence. Read that audit and
-`docs/neural/CAMERA-MATERIAL-PLAN.md` before continuing. Do not reimplement the
-sidecar or use final framebuffer color as material.
-
-Next bounded task: review the source-material artifacts and pursue the already
-approved camera-provenance investigation. Locate an actual pre-projection
-source witness, or document its precise absence, before adding matrix extraction.
-Do not guess FOV/world normals, scan arbitrary memory for plausible matrices,
-resume precision probes/light tuning, or start runtime/renderer integration.
-The old M2 strict source-equality failure remains parked, not passed.
-
-Read `docs/neural/REMAKE-FEASIBILITY-PLAN.md` first, then the current-priority
-sections of `COURSE-CORRECTION-flycast-dlss5.md`, `docs/neural/BACKLOG.md`, and
-`TESTER-HANDOFF-flycast-dlss5.md`. Read `docs/neural/DECISIONS.md`, `LOG.md`,
-`DIAGNOSTICS.md`, `00-render-path.md`, and `QUALITY-PLAN.md` as required for the
-code paths touched. D-084 and the new plan supersede historical next-task text,
-not existing safety contracts or evidence.
-
-M1 CPU/public-header contract corrections are self-reviewed, not GPU-proven;
-historical evidence is in `docs/neural/REMAKE-M1-AUDIT.md`. The active task is
-the camera/material investigation, not renderer replacement or repeated M1.
-Use the current `feat/neural-rendering` checkout; inspect HEAD and preserve
-newer and dirty work. Implementation routing requested by the user is
-`gpt-6-astra`, reasoning `low` (user: Astra light). This document records routing intent, not proof
-that the live model was switched. Do not spawn additional agents by default.
+Requested execution is gpt-6-astra at low reasoning (Astra light), not Sol/high.
+This records routing intent, not proof of live model settings. No subagents
+by default. The short goal text and last verified tracker state are in BACKLOG.
 
 ## Invariants
 
-- Preserve native fallback, feature-off behavior, public DLAA/SR, existing
-  D3D11On12 plus supplied-consumer provenance, accepted-history ownership,
-  RTT/direct-framebuffer bypass, and late protected overlays/OSD/ImGui.
-- No private Feature 18 code or undocumented neural parameters. Do not inspect,
-  patch, download, bundle, or redistribute proprietary neural binaries.
-- Public open-source renderer source/header inspection and isolated builds are
-  allowed for FC-067, subject to dependency/license review. Never auto-fetch
-  proprietary dependencies or stage external source trees/binaries/media.
-- Do not change live external configuration. FC-050 explicit user Apply and
-  previously authorized restored test sweeps are narrow exceptions, not M1
-  authorization to edit active consumer or Remix settings.
-- No resets, cleans, stashes, rebases, broad staging, or discarding user work.
-  Stage only owned source/docs; exclude captures, dependencies, local paths,
-  proprietary assets, and third-party configurations.
-- Record actual commands, exit codes, exact SHAs, failures, and claim limits.
-  Build configurations serially: they share a generated version header.
-  Run every test claimed. Never infer scene correctness from module detection,
-  a README, a synthetic image, or one still screenshot.
+- Preserve native fallback, neural-off default, separately supported public
+  DLAA/SR, D3D11On12/supplied-consumer provenance, accepted-history ownership,
+  RTT/direct-framebuffer bypass, protected game overlays and late OSD/ImGui.
+- No private Feature 18 implementation or undocumented neural parameters.
+  Never inspect, patch, download, bundle or redistribute proprietary neural
+  binaries. Public source/header inspection and isolated builds require
+  dependency/license review; do not auto-fetch proprietary dependencies.
+- Do not write live external configurations automatically. Existing explicit
+  user Apply and previously authorized byte-restored test sweeps stay narrow
+  exceptions, not blanket authorization. User-owned test workspaces are not
+  permission to overwrite their runtime/media/configuration.
+- Do not acquire proprietary game media. Preserve untracked/private evidence,
+  legal media, user paths and worktrees. No resets, cleans, stashes, rebases,
+  broad staging or discarding user changes. Commit only owned source/docs.
+- Do not invent camera/world-space/material truth or relabel image-space
+  approximation as reconstruction. The parked strict replay residual remains
+  failed/parked. Never lower acceptance merely to close a goal.
+- Reuse completed gates. Rerun only risk-relevant regression coverage; a changed
+  combined presentation route requires its own focused provenance proof.
+- Build the four configurations serially; they share a generated version file.
+  Run every claimed test. Synchronous diagnostic capture is never performance
+  evidence. Do not let a slow rendering lane change emulation/audio timing.
+- No "production-ready", "optimal" or "highest fidelity" claim before the full
+  applicable gates and representative legal-title matrix have actually passed.
 
-## Return contract
+## Evidence and return contract
 
-Complete one independently testable slice; update the backlog, decisions, log,
-and handoff with `ACCEPTED`, `CORRECTIONS_REQUIRED`, or `NOT_REVIEWABLE` evidence
-and the next concrete task. Acceptance is scoped to that slice, never implicit
-approval of the entire remake or original Gates 11-18. Do not resume blocked
-hardware/title work ahead of FC-067 unless a new regression requires it.
+Run `python neuraltest/backlog_contract_inspect.py` after changing the active
+queue or routing. It checks document/dependency consistency only; it neither
+schedules work nor proves that the recorded rendering evidence is true.
+
+Read LOG, DECISIONS, DIAGNOSTICS, 00-render-path and QUALITY-PLAN as needed for
+the touched path. Preserve exact SHAs, commands, exits, negative controls,
+images, omissions and observed resource/frame identity. Use ACCEPTED,
+CORRECTIONS_REQUIRED or NOT_REVIEWABLE for the scoped slice, separately from
+the backlog state. After recording a result, continue to the next ready card.
+Only the working-pipeline checklist in BACKLOG closes the standing objective;
+a document, mock adapter, one vertex or standalone GPU image does not.

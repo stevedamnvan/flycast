@@ -1,5 +1,34 @@
 # Neural rendering decisions
 
+## D-114: backlog-driven autonomous delivery, not per-trace human approvals
+
+The user's 2026-09-08 request changes execution authority: use a short standing
+goal and follow the live backlog until a working experimental RTX Remix plus
+externally supplied DLSS 5 gameplay pipeline is verified. Routine engineering
+implementation, bounded hypothesis refinement, self-review, checkpointing and
+progression are authorized without another human approval per block/card.
+This supersedes procedural permission stops in D-111 through D-113 and earlier
+task cards. Their observations, negative evidence and technical limits remain.
+
+BACKLOG.md owns one current card, dependency-aware queue, no-progress rule and
+working-pipeline acceptance. AGENTS.md is the concise operating contract;
+the remake plan owns architecture, and LOG/audits own evidence. Remove stale
+current-task launch stacks instead of prepending another competing authority.
+Old versions remain recoverable in Git; do not remove failed evidence.
+
+Two no-progress tranches trigger a changed hypothesis or another ready
+dependency, not infinite capture/caller expansion. Independent synthetic real
+Remix GPU work need not wait for a complete game camera. A dependency gap must
+not be hidden by relabeling mocks/approximations as the requested runtime.
+Actual combined game output, overlay safety, provenance and asynchronous
+cadence define success; full production/title gates remain separate claims.
+
+No blanket external configuration writes, proprietary binary inspection or
+downloads, media acquisition, spending, unsafe system changes or false gate
+promotion is authorized. Escalate only genuine external blockers after safe
+independent work is exhausted. Do not use a blocked goal tracker as a reason
+to refuse authorized repository work or falsify completion to replace it.
+
 ## D-113: a linked opaque FTRV is not yet a decomposed camera
 
 The approved single predecessor now proves actual source-vector loads, live
