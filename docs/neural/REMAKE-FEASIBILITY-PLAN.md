@@ -1,6 +1,13 @@
 # Reuse-first remake feasibility
 
-Current: OPAQUE-SOURCE-AUDIT.md (LOG #165, D-103). The bounded third candidate
+Current decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166. Exact-SHA
+checkpoint84231a2af is verified and pushed. Overall M2 remains incomplete.
+The bounded source investigation has stopped without an opaque/world camera.
+Do not automatically expand caller tracing, repeat captures or resume parked
+precision work. Request a concrete new bounded reconstruction route from the
+user before more camera investigation; preserve the full unmet goal.
+
+Historical: OPAQUE-SOURCE-AUDIT.md (LOG #165, D-103). The bounded third candidate
 reaches a scalar routine return but remains uncorrelated to PVR. Temporary CPU
 hooks removed. Finish restored validation/checkpoint, then audit remaining M2
 requirements; no automatic arbitrary caller tracing, census or replay precision

@@ -1,6 +1,12 @@
 # Neural rendering backlog
 
-FC-067 current: OPAQUE-SOURCE-AUDIT.md. The known-site store/copy/consumer
+FC-067 current decision boundary: M2-REQUIREMENTS-AUDIT.md, LOG #166.
+84231a2af exact-SHA verification and fork delivery complete. M2 still incomplete:
+opaque/world camera unknown, strict native-source replay equality failed/parked,
+real Remix GPU absent. No further automatic caller tracing or repeated captures.
+Ask for a new bounded reconstruction route before expanding the investigation.
+
+Historical: OPAQUE-SOURCE-AUDIT.md. The known-site store/copy/consumer
 experiment reaches a four-block scalar routine return, still uncorrelated to
 PVR. Temporary hooks removed; retained evidence verifier rejects four controls,
 65 inspector tests pass. Close checkpoint then audit remaining M2 requirements;
