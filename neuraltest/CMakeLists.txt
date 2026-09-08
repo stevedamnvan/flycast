@@ -30,6 +30,14 @@ option(NEURALTEST_COMPACT_TAPE "Build developer consumer-tape contract test" OFF
 if(NEURALTEST_COMPACT_TAPE)
     add_executable(compact-consumer-contract compact_consumer_tape_test.cpp)
     target_compile_features(compact-consumer-contract PRIVATE cxx_std_17)
+    add_executable(transform-ledger-contract transform_ledger_test.cpp)
+    target_compile_features(transform-ledger-contract PRIVATE cxx_std_17)
+    if(TARGET zlibstatic)
+        target_link_libraries(transform-ledger-contract PRIVATE zlibstatic)
+        target_include_directories(transform-ledger-contract PRIVATE ${ZLIB_INCLUDE_DIR})
+    else()
+        target_link_libraries(transform-ledger-contract PRIVATE ZLIB::ZLIB)
+    endif()
 endif()
 
 # Explicit developer tools. The mock never loads a runtime; the separate smoke

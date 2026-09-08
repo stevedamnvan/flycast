@@ -9,9 +9,13 @@ from camera_calibration_inspect import inspect_capture as calibration
 from transform_store_inspect import require
 
 
-def build_frame(scene,samples,contract,full_draw=False):
+def build_frame(scene,samples,contract,full_draw=False,domain=None):
     require(scene['schema']=='flycast-pvr-scene-v2','scene schema')
-    count=142 if full_draw else 5
+    count=len(domain['vertices']) if domain is not None else (142 if full_draw else 5)
+    if domain is not None:
+        require(1<=count<=4096 and len(set(domain['vertices']))==count,'explicit domain bounds')
+        require({s['vertex'] for s in samples}==set(domain['vertices'])
+                and all(s['draw']==domain['draw'] for s in samples),'explicit source domain')
     require(len(samples)==count and len({s['vertex'] for s in samples})==count,'supported sample count')
     if full_draw:
         require({s['vertex'] for s in samples}==set(range(4,146))

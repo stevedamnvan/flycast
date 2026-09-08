@@ -11,7 +11,9 @@ from transform_store_inspect import load_session, require
 from xyz_operand_inspect import operand, calculate
 
 
-def inspect(session, target=0x8ce6e478, generation=1790, require_chain_rejection=True):
+def inspect(session, target=0x8ce6e478, generation=1790, require_chain_rejection=True, candidate_limit=None):
+    if candidate_limit is None: candidate_limit=6 if require_chain_rejection else 108
+    require(type(candidate_limit) is int and 1<=candidate_limit<=16578,'candidate budget')
     def rows(tag):
         return records(session, 'FC067_EXTRA_'+tag)
     def one(tag):
@@ -25,7 +27,7 @@ def inspect(session, target=0x8ce6e478, generation=1790, require_chain_rejection
             and end['selected'] == '1' and entry['descriptor'] == end['descriptor'], 'descriptor')
     require(int(selected['generation']) == generation and selected['pc'] == '8c03c97c'
             and int(selected['target'],16) == int(selected['expected_target'],16) == target
-            and 1 <= int(selected['candidate']) <= (6 if require_chain_rejection else 108)
+            and 1 <= int(selected['candidate']) <= candidate_limit
             and 1 <= int(filtered['checks']) <= 4096, 'selection')
     require(entry['fpscr'] == '40001' and int(entry['mxcsr'],16) & 0xe040 == 0xe040
             and int(entry['mxcsr'],16) & 0xe040 == int(end['mxcsr'],16) & 0xe040, 'FP mode')

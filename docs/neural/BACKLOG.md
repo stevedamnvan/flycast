@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `f49cdd51cfac9ff9fda8a35cd1e92d67ca8cbf37`, pushed (LOG193). Later owned work remains uncommitted.
+- Last exact tested checkpoint: `d7eb260adff8ea469057d6d1df160549ce686ab7`, pushed (LOG199). Later owned work remains uncommitted.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,15 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: close the compact consumer-map checkpoint, then collect
-the original transforms for draw277's921 actually observed XYZ addresses per
-frame. Do not repeat draw1 arithmetic, source mapping or emitter-format work.
+Current next action: finish the LOG202 checkpoint checks, then capture the
+first producer family for all15 currently unsupported addresses in one bounded
+batch. B's2718 original records,1287 accumulations and8097 consumer bindings
+now pass arithmetic; calibrated reconstruction supports1529 triangles/frame,
+omitting62 draw277 triangles and6810 whole-scene opaque triangles. Preserve
+the same calibration and fail-closed arithmetic; do not repeat verified906
+records, draw1 or emitter-format work. Temporary core hooks are retained as
+ignored evidence and removed (LOG203); restored checks pass. Exact-commit
+rebuild/native capture remain required before the next probe.
 
 Accepted bounded evidence:
 - LOG180..184 / TRANSFORM-COVERAGE-AUDIT.md:15 selected samples including actual
@@ -74,8 +80,8 @@ Accepted bounded evidence:
   controls pass. Both wrong-pointer captures created no tape.188 Python
   inspector tests pass. Temporary core hooks are removed; retained patches
   remain ignored evidence. Four restored builds, three298-test selftests,
-  SDK63-check mock and compact13-check cross-language test pass. Commit and
-  exact-SHA follow-up remain next; do not confuse restored with postcommit tests.
+  SDK63-check mock and compact13-check cross-language test pass. The committed
+  exact-SHA build/test/native capture checkpoint is verified in LOG199.
 
 Failures retained, not retried away: large A/B encountered a never-copied
 completed gather after5069 actual copies. C identified a later unsupported
@@ -95,6 +101,11 @@ Next original-transform collection must:
    at most4096 records/frame,32 descriptors with128 operations/32 live words,
    64 writes/record and8MiB emitted ledger. Record the exact layout and memory
    bounds before running; source consumer tape is not arithmetic evidence.
+   LOG200 provides a tested lossless zlib envelope using the existing dependency:
+   8MiB compressed/128MiB formatted-input cap and bounded streaming buffers.
+   The actual921-address target table is derived and retained ignored. Next
+   producer callbacks are now integrated in temporary hooks (LOG201); no further format-only phase. Read
+   COMPACT-TRANSFORM-LEDGER.md before running the new ledger.
 4. Independently verify arithmetic and original-transform-to-consumer binding,
    then reconstruct the supported1591-triangle domain with shared-calibration
    controls. Quantify omissions and never silently close parked strict replay.

@@ -13,6 +13,12 @@ def fixture():
 
 
 class SceneTests(unittest.TestCase):
+    def test_explicit_partial_domain(self):
+        scene,samples,contract=fixture();samples=samples[:3]
+        domain=dict(vertices=[0,1,2],draw=7)
+        self.assertEqual(build_frame(scene,samples,contract,domain=domain)['supported_triangles'],1)
+        for bad in (dict(vertices=[0,1,1],draw=7),dict(vertices=[0,1,3],draw=7),dict(vertices=[0,1,2],draw=8)):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):build_frame(scene,samples,contract,domain=bad)
     def test_full_draw_and_late_vertex_controls(self):
         scene,samples,contract=fixture()
         scene['vertices']=[scene['vertices'][0][:] for _ in range(146)]

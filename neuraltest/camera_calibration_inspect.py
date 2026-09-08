@@ -10,8 +10,10 @@ from transform_store_inspect import load_session,require
 from transform_span_inspect import records
 
 
-def analyze(matrices, calibration=None, full_draw=False):
-    require(1<=len(matrices)<=(144 if full_draw else 21),'matrix bounds')
+def analyze(matrices, calibration=None, full_draw=False, matrix_limit=None):
+    if matrix_limit is None:matrix_limit=144 if full_draw else 21
+    require(type(matrix_limit) is int and 1<=matrix_limit<=19341,'matrix budget')
+    require(1<=len(matrices)<=matrix_limit,'matrix bounds')
     normalized=[]; residuals=[]
     for matrix in matrices:
         k,_,residual=factor(np.asarray(matrix,dtype=float))

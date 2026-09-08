@@ -4,6 +4,11 @@ from camera_calibration_inspect import analyze
 
 
 class CalibrationTests(unittest.TestCase):
+    def test_explicit_large_budget(self):
+        matrices=[np.diag([600.,500.,1.,1.])]*145
+        self.assertEqual(analyze(matrices,matrix_limit=145)['matrix_count'],145)
+        for limit in (144,0,19342,True):
+            with self.subTest(limit=limit),self.assertRaises(ValueError):analyze(matrices,matrix_limit=limit)
     def test_full_domain_bound_and_last_matrix_control(self):
         matrices=[np.diag([600.,500.,1.,1.]) for _ in range(144)]
         self.assertEqual(analyze(matrices,full_draw=True)['matrix_count'],144)

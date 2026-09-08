@@ -1,5 +1,23 @@
 # Neural rendering decisions
 
+## D-121: bounded transform ledger and supported-triangle acceptance
+
+Reuse the existing executed-instruction event vocabulary in a lossless bounded
+zlib stream. Decode independently and reject semantic errors separately from
+compression integrity. Tie each selected consumer to its actual copy ID, not
+its compact sequence number. Observation ends after the last retained actual
+copy; a later write cannot alter those copied bytes. Frame/generation and all
+selected decoder associations remain mandatory. Retain the failed overlong
+lease as evidence, not a reason to accept untracked writes within the prefix.
+
+LOG201/202 establishes906 supported and15 unsupported addresses/frame in the
+draw277 domain. Indexed arithmetic and shared-calibration validation supports
+1529 triangles/frame, not all1591 or all8339 opaque triangles. Never synthesize
+the missing initial producers or infer a physical world camera from a scaled
+orthogonal matrix. Next batch the unsupported producer family; do not repeat
+the already accepted records. The real Remix runtime/GPU dependency remains
+separate from this offline calibrated reconstruction.
+
 ## D-120: compact observed consumers and explicit selected-domain limits
 
 Use fixed-width little-endian records with actual64-bit copy/decoder pointers,
