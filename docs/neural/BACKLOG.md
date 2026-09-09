@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `906688af100536cc6af2154a492cd5d196fde014`, pushed and remote verified (LOG394). Later changes are separate from tested source.
+- Last exact tested checkpoint: `c28fc95c2d33fa5a98a8496b234f18310acc0f38`, pushed and remote verified (LOG397). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -34,7 +34,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Ordered queue
 
-Current card: **FC-067 / M2-camera**.
+Current card: **none**.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,
@@ -43,8 +43,8 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 | Card | Status | Dependencies | Deliverable / acceptance | Evidence |
 |---|---|---|---|---|
-| FC-067 / M2-camera | doing | LOG #175 | Bounded opaque sample coverage and explicit usable camera/coordinate contract, or precise unsupported domains. See next-card bounds below. | LOG #175/#177/#178/#179 partial; camera pending |
-| FC-067 / M1-GPU | todo | public-header adapter already tested | Isolated public Remix runtime harness with real synthetic GPU output/readback, moving camera, overlap and wrong-camera/light controls. A mock remains a mock. This row can proceed if M2-camera is blocked. | pending |
+| FC-067 / M2-camera | blocked(sampled diagnostic preparation complete but runtime validation unavailable -> supply compatible Remix runtime for next rendering experiment) | LOG #175 | Bounded opaque sample coverage and explicit usable camera/coordinate contract, or precise unsupported domains. See next-card bounds below. | LOG397; camera pending, no gameplay acceptance |
+| FC-067 / M1-GPU | blocked(compatible supplied runtime unavailable -> supply runtime and dependencies for bounded bring-up) | public-header adapter already tested | Isolated public Remix runtime harness with real synthetic GPU output/readback, moving camera, overlap and wrong-camera/light controls. A mock remains a mock. This row can proceed if M2-camera is blocked. | LOG395-397; CPU harness ready, GPU unproven |
 | FC-067 / M2-scene | todo | M2-camera usable contract | Export actual geometry/material generations for the supported scene domains; reconstruct/compare moving opaque coverage and depth with falsifying controls. Quantify omissions; do not silently promote the parked strict replay gate. | pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | pending |
@@ -54,10 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint/exact-verify the connected snapshot CLI. LOG396
-closes regression/documentation. Afterward actual runtime bring-up requires a
-compatible supplied runtime/dependencies; do not expand mock-only infrastructure
-to substitute for that missing dependency. LOG395 wires explicit artifact/assets/clips into diagnostic
+Current next action: obtain the explicit path to a compatible user-supplied x64
+Remix runtime exposing the reviewed public API and its installed dependencies,
+then run bounded bring-up under REMAKE-RUNTIME-BRINGUP.md. LOG397 closes exact
+snapshot checkpoint. No ready independent card remains; keep the full objective
+unfinished and do not expand mock-only infrastructure to substitute for runtime
+evidence. No proprietary runtime download or external configuration change is
+authorized. LOG395 wires explicit artifact/assets/clips into diagnostic
 runtime submission without synthetic camera motion/aspect substitution. Real
 DLL startup/Present remains unavailable pending compatible supplied runtime.
 LOG393 passes actual positive plus13 malformed controls.
