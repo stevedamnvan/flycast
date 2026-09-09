@@ -57,33 +57,24 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG642):** prioritize visible gameplay integration:
-capture a longer bounded moving combined sequence with native source, original
-effects and protected HUD retained; inspect missing geometry, camera alignment,
-material readability and added persistence, then fix the first demonstrated
-integration defect. Do not count intentional source weapon trails as defects.
-The camera/cadence checkpoint is committed at c7c860888; all three postcommit
-selftests pass677/0 and the feature-off incremental build completes. Defer GPU
-query availability and normal/native timing controls until a demonstrated
-performance problem requires them or final acceptance reaches that gate.
-Existing GPU timings remain explicitly incomplete; never invent estimates.
-Bound the next diagnostic capture to300 unique displayed sources, with600
-helper source frames and1200 host samples; no external configuration changes,
-sentinel rerun or performance claim. Preserve actual gaps and failed captures.
+**Operational next action (LOG647):** extend moving gameplay coverage after the
+verified low-depth HUD repair. Source2224 formerly had visible HUD but zero
+protected pixels; the fix restores20024 pixels. Twelve sources2221..2232 now
+have nonempty exact native HUD composition and completed-Present joins.
+All four builds and three699/0 suites pass. Save this independently proven
+slice, then capture120 unique sources with default authored light3,240 helper
+frames (60 warmup),600 host samples and240-second diagnostic host watchdog.
+Use existing extended helper watchdog, no new GPU waits. Keep capture gaps,
+missing protection, world omissions and failed attempts explicit. This does
+not replace the full300/600 acceptance requirements below.
 
-Current bounded implementation: expose the existing authored Remix headlight
-radiance in the standalone scene helper (default3 unchanged, decimal0..30).
-The inspected2372 return is already bright before neural evaluation; this is
-not proof that DLSS controls caused the lighting change. Test radiance1 in a
-61-source moving run after60 helper warmup frames,240 host samples,180-second
-diagnostic watchdog. Preserve native effects and external configuration; no
-quality promotion without exact matched moving comparison. Parser/unsupported
-route controls must reject before runtime loading. This is authored scene light,
-not recovered game lighting or an external Neural Rendering intensity control.
-LOG643 retains the120-frame helper watchdog failure:43 captures,40 exact
-overlapping scene packets, radiance1 positively logged. Use121 helper frames
-for the existing extended watchdog on the next confirmation; capture at most60.
-All four builds and three694/0 suites pass; no quality/default promotion.
+Lighting control is implemented at532da3645, but tuning is suspended until
+the repaired interval survives broader moving inspection. The earlier40-frame
+lighting comparison preserves its gap/unmatched records and declares no winner.
+No external configuration changes or generic provenance rerun. Intentional
+source effects remain protected; do not call them reconstruction defects.
+GPU query availability remains deferred until an actual performance issue or
+final acceptance requires it; incomplete timings must never become estimates.
 
 Latest sustained OIT evidence:597 accepted evaluations,617 completed combined
 Presents,595 distinct sources,149 longest consecutive source IDs. Camera rejects

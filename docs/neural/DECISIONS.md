@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-195: HUD safety needs nonempty classification plus pixel equality
+
+Zero mismatches with an empty HUD mask do not demonstrate preservation. LOG644
+finds visible native text passed through the scene after the title classifier
+rejects captured low-depth HUD layers. LOG646 adds failing real draw fixtures;
+the correction extends only the known Soulcalibur atlas floors to observed
+combat depths, retaining world/texture/region/list/RTT negatives. LOG647 verifies
+12 nonempty exact native-overlay compositions and completed Presents. This is
+bounded title evidence, not a universal depth envelope. Future moving checks
+must surface zero protection when source HUD remains visible, not average it away.
+
 ## D-194: authored scene lighting is separate from neural intensity
 
 The existing legacy scene uploader's fixed neutral headlight at radiance3 is

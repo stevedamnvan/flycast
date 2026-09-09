@@ -268,7 +268,11 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 		// LOG541: the captured name atlas animates below the other HUD depths.
 		// Keep the wider envelope atlas-specific; region/list/shape checks follow.
 		// LOG547: all five known HUD atlases reach .230914 in moving combat.
-		&& draw.zMin >= (draw.texId == 686272176u ? .138f : .15f) && draw.zMax <= .24f) {
+		// LOG645: combat2227..2238 reaches .128044 on name/plate layers and
+		// .142271 on foreground atlases. Keep this title/atlas/region scoped;
+		// these are observed PVR depths, not physical world-depth semantics.
+		&& draw.zMin >= ((draw.texId == 686272176u || draw.texId == 801607344u) ? .128f : .142f)
+		&& draw.zMax <= .24f) {
 		const auto inside = [&](int left,int top,int right,int bottom) {
 			return draw.bboxMin[0]>=left && draw.bboxMin[1]>=top && draw.bboxMax[0]<=right
 				&& draw.bboxMax[1]<=bottom && draw.bboxMax[0]>draw.bboxMin[0] && draw.bboxMax[1]>draw.bboxMin[1];

@@ -1408,6 +1408,17 @@ int RunSelfTests()
 		suite.Expect(capturedHud(cameraName),"moving combat captured name depth remains protected");
 		auto cameraFill=fill;cameraFill.zMin=cameraFill.zMax=.230914f;
 		suite.Expect(capturedHud(cameraFill),"moving combat captured health bar depth remains protected");
+		// LOG645: actual HUD atlases at2227..2238, not inferred world surfaces.
+		auto lowHeader=header;lowHeader.zMin=lowHeader.zMax=.142271f;
+		suite.Expect(capturedHud(lowHeader),"combat low-depth header remains protected");
+		auto lowFill=fill;lowFill.zMin=lowFill.zMax=.142271f;
+		suite.Expect(capturedHud(lowFill),"combat low-depth health fill remains protected");
+		auto lowPlate=plate;lowPlate.zMin=lowPlate.zMax=.128044f;
+		suite.Expect(capturedHud(lowPlate),"combat low-depth health plate remains protected");
+		auto lowName=name;lowName.zMin=.128044f;lowName.zMax=.142271f;
+		suite.Expect(capturedHud(lowName),"combat low-depth name remains protected");
+		auto lowWrong=lowPlate;lowWrong.texId++;
+		suite.Expect(!capturedHud(lowWrong),"low-depth unknown atlas remains rejected");
 		auto cameraWrong=cameraFill;cameraWrong.texId++;
 		suite.Expect(!capturedHud(cameraWrong),"moving HUD depth does not admit unknown atlas");
 		cameraWrong=cameraFill;cameraWrong.bboxMin[1]=140;cameraWrong.bboxMax[1]=168;

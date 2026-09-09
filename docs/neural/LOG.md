@@ -1,5 +1,53 @@
 # Neural rendering evidence log
 
+LOG647 hud-fixed-a host/helper0,121 helper Presents;12 captures sources2221..2232
+join12 completed Presents. Source2224 now protects20024 pixels instead of0;
+all12 report zero HUD/backbuffer mismatches with19889..20059 protected pixels.
+Independent image-array checks verify nonempty mask and exact native/evaluated
+composition for all12; visual2224 inspection confirms crisp original HUD/text.
+All four incremental builds and three699/0 suites pass. Runtime executable SHA256
+82DB0834C99D72C4C5FCC7F7AE64CB13BD157AAA8D0F3F34851EDB52B8485F03.
+External config hash unchanged222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+ACCEPTED for this captured HUD rejection, not full title/camera/provenance gate.
+The light comparer passes40 exact-scene/native/mask matched frames from the
+earlier light-one-a interval, preserving gap2181->2185 and all unmatched frames;
+its long-interval empty-mask failure remains retained. Short GIF/report outside
+Git at fc067-light-one-short-review, no winner. New comparer checks composition
+and completed Presents, never declares external provenance or matched history.
+Next extend moving gameplay coverage across the repaired interval; no more
+lighting tuning until overlay dropouts are excluded in that bounded sequence.
+
+LOG646 hud-drop-b host/helper0; per-draw evidence at current2227..2238 shows
+known foreground HUD atlases at minimum.142271 and name/background-plate layers
+at.128044. Existing classifier required.15/.138 respectively, rejecting valid
+atlases despite matching screen shape, blend and region. Four captured fixtures
+fail before production change (695 passed/4 failed); unknown-atlas control passes.
+Correction extends only known title-specific floors to.142/.128, preserving
+the.24 upper bound, atlas/list/region/shape/RTT guards and generic classifier.
+Four-build matrix and live pixel regression pending. This does not establish
+arbitrary-camera HUD coverage; do not promote it solely from classifier tests.
+
+LOG645 focused classifier capture attempt hud-drop-a host/helper0 but no
+captures/evaluations: comparison-start requires moving capture, while per-draw
+diagnostics require nonmoving capture. This incompatible launcher combination
+is rejected by existing guards; not a classifier result. Corrected bounded
+hud-drop-b removes comparison-start, starts publication at producer2150,
+requests12 nonmoving captures,121 helper frames and360 host samples. Preserve
+the failed attempt and existing guards; no renderer change is inferred from it.
+
+LOG644 light-one-b host/helper0, helper121 Presents/outcome0; residual40-object
+cleanup warning remains. Existing extended watchdog suffices without code changes.
+The new light comparer rejects frame2224 for empty protection classification;
+its Python invocation fails (the surrounding shell's later command returned0,
+not a comparer pass). No comparison artifact/winner produced. Native2224 image
+has HUD/text/health bars, combined2224 visibly alters them; both baseline and
+candidate preview records report protected_pixels0. Prior zero HUD mismatch
+counts at this source are vacuous, not overlay acceptance. Source2220 reports6
+protected draws,2221 only1,2224 none. This is now the integration priority:
+collect existing bounded per-draw classifier evidence and correct the actual
+rejecting condition. No lighting promotion or guessed root cause. Captures and
+failed comparison retained; new comparer stays fail-closed.
+
 LOG643 authored Remix light control: optional final --scene-light-radiance
 decimal0..30 in the standalone legacy game-scene helper; default3 unchanged.
 Public CreateLight receives the value and helper reports it separately from
