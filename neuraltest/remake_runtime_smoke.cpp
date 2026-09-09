@@ -9,6 +9,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <d3d9.h>
+#include <vector>
 
 namespace {
 struct Watchdog {
@@ -32,8 +34,8 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
- if((argc!=5 && argc!=12) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
-  std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR]\n";return 2;
+ if((argc!=5 && argc!=7 && argc!=12 && argc!=14) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
+  std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR] [--capture|--capture-normals ABSOLUTE_NEW_BMP]\n";return 2;
  }
  wchar_t* end=nullptr;
  const long frames=wcstol(argv[4],&end,10);
@@ -42,7 +44,18 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
  std::optional<Packet> snapshot;
- if(argc==12) {
+ std::filesystem::path capture;
+ auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
+ if(argc==7 || argc==14) {
+  const int captureIndex=argc==7?5:12;
+  capture=argv[captureIndex+1];
+  const std::wstring captureOption=argv[captureIndex];
+  if(captureOption==L"--capture-normals")captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_NORMALS;
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals") || !capture.is_absolute() || std::filesystem::exists(capture)) {
+   std::cerr<<"capture requires new absolute BMP path\n";return 2;
+  }
+ }
+ if(argc==12 || argc==14) {
   try {
    if(std::wstring(argv[5])!=L"--artifact" || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
     throw std::invalid_argument("artifact options");
@@ -85,11 +98,30 @@ int wmain(int argc,wchar_t** argv) {
  if(!window) { api.Shutdown();FreeLibrary(module);return 8; }
  remixapi_StartupInfo startup{};startup.sType=REMIXAPI_STRUCT_TYPE_STARTUP_INFO;startup.hwnd=window;
  startup.combineGuiInFinalColor=0;
- status=api.Startup(&startup);
+ IDirect3D9Ex* ownedD3D=nullptr;
+ IDirect3DDevice9Ex* ownedDevice=nullptr;
+ std::cerr<<"phase=startup begin\n"<<std::flush;
+ if(capture.empty())status=api.Startup(&startup);
+ else {
+  status=api.dxvk_CreateD3D9?api.dxvk_CreateD3D9(0,&ownedD3D):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  if(status==REMIXAPI_ERROR_CODE_SUCCESS && ownedD3D) {
+   D3DPRESENT_PARAMETERS pp{};pp.BackBufferWidth=640;pp.BackBufferHeight=480;
+   // Capture reads the backbuffer after Present; DISCARD cannot preserve it.
+   pp.BackBufferFormat=D3DFMT_A8R8G8B8;pp.BackBufferCount=1;pp.SwapEffect=D3DSWAPEFFECT_COPY;
+   pp.hDeviceWindow=window;pp.Windowed=TRUE;
+   const HRESULT hr=ownedD3D->CreateDeviceEx(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,
+    D3DCREATE_HARDWARE_VERTEXPROCESSING,&pp,nullptr,&ownedDevice);
+   status=SUCCEEDED(hr)&&ownedDevice&&api.dxvk_RegisterD3D9Device?
+    api.dxvk_RegisterD3D9Device(ownedDevice):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  }
+ }
+ std::cerr<<"phase=startup end code="<<int(status)<<'\n'<<std::flush;
  int outcome=0,accepted=0;
  if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"startup failed code="<<int(status)<<"\n";outcome=9; }
  else {
+  std::cerr<<"phase=show-window begin\n"<<std::flush;
   ShowWindow(window,SW_SHOW);
+  std::cerr<<"phase=show-window end\n"<<std::flush;
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
   RemixScene retained(api);
@@ -104,20 +136,74 @@ int wmain(int argc,wchar_t** argv) {
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
+   std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    const auto submitted=frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
     :retained.Submit(packet,packet.frame,packet.game)):retained.Redraw(packet.camera);
+   std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
    remixapi_PresentInfo present{};present.sType=REMIXAPI_STRUCT_TYPE_PRESENT_INFO;
+   std::cerr<<"phase=present begin frame="<<frame<<'\n'<<std::flush;
    status=api.Present(&present);
+   std::cerr<<"phase=present end frame="<<frame<<" code="<<int(status)<<'\n'<<std::flush;
    if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;break; }
    accepted++;
   }
+  if(!capture.empty() && accepted==frames && ownedDevice) {
+   IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
+   const bool normals=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_NORMALS;
+   const auto format=normals?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
+   HRESULT hr=ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
+   if(SUCCEEDED(hr))hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&cpu,nullptr);
+   if(SUCCEEDED(hr)) {
+    auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(gpu,captureType):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+    hr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(gpu,cpu):E_FAIL;
+   }
+   D3DLOCKED_RECT locked{};
+   if(SUCCEEDED(hr))hr=cpu->LockRect(&locked,nullptr,D3DLOCK_READONLY);
+   if(SUCCEEDED(hr)) {
+    std::vector<unsigned char> pixels(640*480*4);
+    for(int y=0;y<480;y++) {
+     const auto row=static_cast<unsigned char*>(locked.pBits)+y*locked.Pitch;
+     if(!normals)memcpy(pixels.data()+y*640*4,row,640*4);
+     else for(int x=0;x<640;x++) {
+      float value[4];memcpy(value,row+x*16,16);
+      for(int c=0;c<3;c++) {
+       float mapped=value[2-c]*.5f+.5f;
+       pixels[(y*640+x)*4+c]=static_cast<unsigned char>(mapped>=1?255:mapped>0?mapped*255:0);
+      }
+      pixels[(y*640+x)*4+3]=255;
+     }
+    }
+    cpu->UnlockRect();
+    BITMAPFILEHEADER file{};file.bfType=0x4d42;file.bfOffBits=sizeof(file)+sizeof(BITMAPINFOHEADER);file.bfSize=file.bfOffBits+DWORD(pixels.size());
+    BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=640;info.biHeight=-480;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
+    HANDLE out=CreateFileW(capture.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    DWORD written=0;
+    bool ok=out!=INVALID_HANDLE_VALUE;
+    if(ok)ok=WriteFile(out,&file,sizeof(file),&written,nullptr)&&written==sizeof(file);
+    if(ok)ok=WriteFile(out,&info,sizeof(info),&written,nullptr)&&written==sizeof(info);
+    if(ok)ok=WriteFile(out,pixels.data(),DWORD(pixels.size()),&written,nullptr)&&written==pixels.size();
+    if(out!=INVALID_HANDLE_VALUE)CloseHandle(out);
+    hr=ok?S_OK:E_FAIL;
+   }
+   if(cpu)cpu->Release();if(gpu)gpu->Release();
+   std::cerr<<"capture_readback_hresult="<<hr<<" image_validation_pending=true\n"<<std::flush;
+   if(FAILED(hr))outcome=14;
+  }
  }
+ // Window destruction can dispatch callbacks installed by the runtime.
+ // Keep the runtime alive until those callbacks can no longer run.
+ std::cerr<<"phase=destroy-window begin\n"<<std::flush;
+ DestroyWindow(window);
+ std::cerr<<"phase=destroy-window end\n"<<std::flush;
+ std::cerr<<"phase=shutdown begin\n"<<std::flush;
  status=api.Shutdown();
+ std::cerr<<"phase=shutdown end code="<<int(status)<<'\n'<<std::flush;
  if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"shutdown failed code="<<int(status)<<"\n";outcome=13; }
  // Do not unload a module whose shutdown failed; exit the isolated process.
+ std::cerr<<"phase=unload begin\n"<<std::flush;
  if(status==REMIXAPI_ERROR_CODE_SUCCESS) FreeLibrary(module);
- DestroyWindow(window);
+ std::cerr<<"phase=unload end\n"<<std::flush;
  std::cout<<"remake-runtime-smoke runtime_loaded=true present_api_success="<<accepted
   <<" gpu_image_proven=false readback_proven=false completion_lifetime_proven=false outcome="<<outcome<<"\n";
  return outcome;

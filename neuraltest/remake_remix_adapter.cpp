@@ -40,6 +40,9 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
  opaque.albedoConstant={parameters.albedo.x,parameters.albedo.y,parameters.albedo.z};
  opaque.opacityConstant=1; opaque.roughnessConstant=parameters.roughness;
+ // Match the pinned public remix.h opaque constructor (always-pass alpha).
+ // Zero initialization is not the SDK's default alpha-test contract.
+ opaque.alphaTestType=7;
  remixapi_MaterialInfo material{}; material.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
  material.pNext=&opaque; material.hash=p.meshes[i].id;
  texturePaths_[i]=parameters.sourceDds.wstring();

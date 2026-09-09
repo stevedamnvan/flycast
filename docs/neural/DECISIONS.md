@@ -1,5 +1,27 @@
 # Neural rendering decisions
 
+## D-134: real runtime capture is diagnostic, not pipeline acceptance
+
+LOG398-402 use the explicitly authorized official Remix1.5.2 package outside
+Git. This narrow download authorization does not permit arbitrary proprietary
+binary acquisition, inspection, modification or redistribution. Public source
+and pinned remix.h defaults were inspected. Opaque alphaTestType must match the
+public constructor's7; zero hid actual geometry despite successful API calls.
+Preserve the failed images as negative evidence and assert the material state.
+
+The optional standalone capture route owns a D3D9 device and registers it with
+the public SDK; it does not mix that initialization with Startup. Final color
+and signed-normal visualization use public output copy and synchronous CPU
+readback, excluded from performance evidence. Prepared snapshots retain their
+camera/source identity and omissions; a static temple image cannot establish
+moving camera recovery or a combined Remix/DLSS5 gameplay pipeline.
+
+Destroy the window while the runtime remains alive, before Shutdown/unload:
+the opposite order failed in actual tests. Shutdown's public implementation
+drains registered COM references; do not dereference registered device pointers
+after it. Runtime-reported undisposed objects remain an unresolved acceptance
+failure even when the process exits0. No clean-lifetime claim is authorized.
+
 ## D-133: separate sampled diagnostic submission from accepted scene submission
 
 ReadyForAdapter currently requires world-space and no omissions. The prepared

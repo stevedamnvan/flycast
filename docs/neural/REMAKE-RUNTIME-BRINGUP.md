@@ -1,6 +1,18 @@
 # FC-067 standalone runtime bring-up
 
-Status: implementation/CLI checks only. M1-GPU remains unproven.
+Status: WIP real synthetic and sampled Soulcalibur snapshot readback (LOG401-402).
+M1-GPU acceptance remains unproven: analytic controls and cleanup are pending.
+
+Optional trailing `--capture ABSOLUTE_NEW_BMP` or
+`--capture-normals ABSOLUTE_NEW_BMP` uses a separate application-owned D3D9
+device registered through the public SDK. It does not call standalone Startup.
+The output is fixed640x480; normals use float readback mapped from signed values
+for diagnostic display. Captures are synchronous diagnostics, never performance
+evidence. New files only; this is not a production Flycast capture feature.
+The prepared snapshot retains its calibrated camera aspect even at this fixed
+diagnostic buffer size. Successful calls do not certify image correctness.
+Actual final color now shows synthetic triangles and sampled temple geometry;
+runtime teardown still reports undisposed objects. No clean-lifetime acceptance.
 
 ## Prepared diagnostic snapshot
 

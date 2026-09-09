@@ -29,6 +29,7 @@ remixapi_ErrorCode REMIXAPI_CALL material(const remixapi_MaterialInfo* p,remixap
   p->albedoTexture && std::wstring(p->albedoTexture)==calls.expectedPath;
  if(p->albedoTexture)calls.observedPath=p->albedoTexture;
  calls.valid &= o->roughnessConstant==(calls.distinctMaterials?(calls.materials==1?.3f:.6f):.8f);
+ calls.valid &= o->alphaTestType==7 && o->opacityConstant==1;
  if(calls.distinctMaterials) calls.valid &= o->albedoConstant.x==(calls.materials==1?.2f:.9f);
  *out=reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(calls.materials));
  if(calls.failMaterial==calls.materials) {

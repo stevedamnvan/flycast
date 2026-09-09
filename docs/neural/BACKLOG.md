@@ -54,9 +54,19 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: instrument flushed public-call boundaries in the standalone
-harness and identify the first failing operation on the authorized official
-Remix1.5.2 runtime. LOG398 supersedes the unavailable-runtime stop below.
+Current next action: validate the LOG401 opaque alpha-test correction with focused
+regressions and analytic overlap/camera/light controls. First actual final-color
+capture now shows synthetic triangles after matching public alphaTestType7;
+cleanup warnings and full scene acceptance remain open. Historical LOG400 task:
+diagnose black public final-color readback using controlled
+depth/normal output and scene lighting checks on Remix1.5.2. LOG400 adds WIP
+owned-device capture:60 Present/readback successes but visually near-black output;
+COPY swap effect alone does not fix it. Keep both failed images. Resolve
+standalone public ownership/cleanup as well. LOG399
+records3/120 Present successes after moving window destruction before Shutdown,
+but runtime teardown reports37/40 undisposed objects. Keep the correction WIP
+until relevant controls/regressions and image evidence; no cleanup acceptance.
+LOG398 supersedes the unavailable-runtime stop below.
 Retain the first failed run; do not infer Present success from swapchain logs.
 No runtime internals or live consumer configuration edits are authorized.
 
