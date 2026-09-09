@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `dff5569177b5d6df9196db80dde5686245638419`, pushed (LOG330). Later evidence-document updates are separate from tested source.
+- Last exact tested checkpoint: `acd9b9487bdbadcc0a1e08e8cdda0c8df15eb8bc`, pushed and remote verified (LOG367). Later evidence-document updates are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,8 +54,12 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint adapter slice and verify exact SHA, then inspect
-actual-runtime dependency/scene integration. LOG366 header/missing-file controls
+Current next action: resolve the supported scene's missing normal semantics and
+explicit source-texture experiment contract, without claiming physical albedo.
+LOG367 closes exact adapter checkpoint verification. Independent M1-GPU still
+requires a compatible supplied runtime; the reviewed cache has header/licenses
+only. Do not repeat that inventory absent a dependency change, and do not add
+mock checks as a substitute for actual rendering. LOG366 header/missing-file controls
 pass4builds/3x312/103 SDK/284 inspectors. LOG365 positive file/lifetime, malformed
 payload and aggregate path budget pass4builds/3x312 selftests/96 SDK checks.
 Captured game texture readiness stays blocked. LOG363/D-129 validates28 base
