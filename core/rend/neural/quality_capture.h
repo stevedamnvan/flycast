@@ -92,6 +92,7 @@ struct PvrReplayTextures {
 	std::array<ComPtr<ID3D11Texture2D>,4> color; // decoded, wrong viewport, wrong depth, retained native buffers
 };
 struct QualityCaptureTextures {
+	std::function<bool(const RemakeReturnedImage&, ComPtr<ID3D11Texture2D>&, std::string&)> remakeComposite;
 	RemakeTextureReader remakeTextureReader;
 	std::function<bool(const std::filesystem::path&, std::string&)> pvrMaterials;
 	std::function<bool(const std::filesystem::path&, PvrReplayTextures&, std::string&)> pvrReplay;

@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+For the bounded returned-color GPU composite, additionally set
+FLYCAST_REMAKE_COMPOSITE_TEST=1 only in the temporary publisher environment.
+Restore the previous value afterward. Run remake_composite_inspect.py on the
+capture root: require exact masked-native/unmasked-return pixels and same-frame
+native-target preservation. It also reports analytic wrong-no-overlay and
+wrong-native-only substitutions; these are not GPU shader mutation tests.
+The resulting remake-protected-composite.png is OFFSCREEN, not a Present claim.
+The current mask protects HUD outlines only; do not infer full HUD preservation.
+
 Live return proof may set FLYCAST_REMAKE_RETURN_TEST_WAIT=1 in the temporary
 publisher environment, restoring its previous value afterward. This enables
 at most10 seconds of diagnostic polling per frame, never performance evidence.

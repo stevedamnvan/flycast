@@ -31,6 +31,8 @@
 #endif
 
 #include <chrono>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -2062,6 +2064,43 @@ void DX11Renderer::captureNeuralQualityFrame()
 	textures.overlay = neuralOverlayMask.textures[neuralExportSlot];
 	textures.publicOutput = publicOutput;
 	textures.finalComposite = finalComposite;
+	const auto* compositeTest=std::getenv("FLYCAST_REMAKE_COMPOSITE_TEST");
+	if(compositeTest&&std::strcmp(compositeTest,"1")==0&&!IsOitRenderer()
+		&& !activeNeuralSurface && rendContext && !rendContext->isRTT && !config::EmulateFramebuffer.get()) {
+		textures.remakeComposite=[this](const flycast::rend::neural::RemakeReturnedImage& image,
+			ComPtr<ID3D11Texture2D>& output,std::string& error) {
+			if(image.frame!=currentNeuralSourceFrameId||image.frame!=currentNeuralGuidanceFrameId
+				||image.producer.epoch!=neuralQualityCaptureMetadata.producerIdentity.epoch
+				||image.producer.ordinal!=neuralQualityCaptureMetadata.producerIdentity.ordinal
+				||image.producer.cycle!=neuralQualityCaptureMetadata.producerIdentity.cycle
+				||image.width!=640||image.height!=480||image.bgra.size()!=640*480*4
+				||!fbTextureView||!neuralOverlayMask.views[neuralExportSlot]) {
+				error="return-composite-frame-or-input";return false;
+			}
+			D3D11_TEXTURE2D_DESC nativeDesc{};fbTex->GetDesc(&nativeDesc);
+			if(nativeDesc.Width!=640||nativeDesc.Height!=480) {error="return-composite-native-size";return false;}
+			const auto& shader=shaders->getNeuralOverlayCompositePixelShader();
+			if(!shader){error="return-composite-shader";return false;}
+			D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
+			desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
+			desc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+			D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=image.bgra.data();initial.SysMemPitch=640*4;
+			ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;ComPtr<ID3D11DeviceContext> deferred;
+			if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
+				||FAILED(device->CreateRenderTargetView(target,nullptr,&rtv.get()))
+				||FAILED(device->CreateDeferredContext(0,&deferred.get()))) {error="return-composite-resources";return false;}
+			// Isolated command list preserves the native target and all immediate state.
+			Quad diagnosticQuad;diagnosticQuad.init(device,deferred,shaders);
+			D3D11_VIEWPORT viewport{0,0,640,480,0,1};deferred->RSSetViewports(1,&viewport);
+			deferred->OMSetRenderTargets(1,&rtv.get(),nullptr);
+			deferred->OMSetBlendState(blendStates.getState(false),nullptr,0xffffffff);
+			ID3D11ShaderResourceView* views[]={fbTextureView.get(),neuralOverlayMask.views[neuralExportSlot].get()};
+			diagnosticQuad.drawCustom(shader,views,2,samplers->getSampler(false));
+			ComPtr<ID3D11CommandList> commands;
+			if(FAILED(deferred->FinishCommandList(FALSE,&commands.get()))){error="return-composite-command-list";return false;}
+			deviceContext->ExecuteCommandList(commands,TRUE);output=std::move(target);return true;
+		};
+	}
 	std::string error;
 	const auto beforeCount = neuralQualityCapture.CapturedCount();
 	const bool captured = neuralQualityCapture.Capture(device, deviceContext,

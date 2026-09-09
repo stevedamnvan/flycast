@@ -981,6 +981,26 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 					std::ofstream pixelsFile(frameRoot/"remake-return.bgra",std::ios::binary);
 					pixelsFile.write(reinterpret_cast<const char*>(returned.bgra.data()),returned.bgra.size());
 					if(!pixelsFile)remakePacketStatus_+="; return-pixels-write-failed";
+					if(textures.remakeComposite) {
+						ComPtr<ID3D11Texture2D> composite;RawTexture compositeRaw;
+						if(!textures.remakeComposite(returned,composite,conversionError)
+							||!ReadTexture(device,context,composite,compositeRaw,conversionError)
+							||!WritePng(frameRoot/"remake-protected-composite.png",ToRgba(compositeRaw),conversionError))
+							remakePacketStatus_+="; return-composite-failed="+conversionError;
+						else {
+							RawTexture nativeAfter,finalAfter;
+							const bool unchanged=ReadTexture(device,context,textures.nativeColor,nativeAfter,conversionError)
+								&&ReadTexture(device,context,textures.finalComposite,finalAfter,conversionError)
+								&&nativeAfter.format==nativeRaw.format&&nativeAfter.width==nativeRaw.width
+								&&nativeAfter.height==nativeRaw.height&&nativeAfter.bytes==nativeRaw.bytes
+								&&finalAfter.format==finalRaw.format&&finalAfter.width==finalRaw.width
+								&&finalAfter.height==finalRaw.height&&finalAfter.bytes==finalRaw.bytes;
+							std::ofstream proof(frameRoot/"remake-composite-native-proof.json");proof.imbue(std::locale::classic());
+							proof<<"{\"frame\":"<<returned.frame<<",\"native_targets_unchanged\":"
+								<<(unchanged?"true":"false")<<",\"presentation_proven\":false}\n";
+							if(!unchanged||!proof)remakePacketStatus_+="; return-composite-native-proof-failed";
+						}
+					}
 				}
 				// The consumer never reads this archive; failure cannot stall the channel.
 				if(!WriteRemakeViewPacket(frameRoot/"remake-view.bin",*remakePacket_,conversionError))

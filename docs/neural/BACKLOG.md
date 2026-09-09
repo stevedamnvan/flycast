@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current starting HEAD: `58fba7087eb1f5d6fd2fbdd83771626b7c8238df` (LOG513 live-derived packet checkpoint, pushed and remote verified). Four builds were incremental, not a fresh exact-SHA build. LOG514 live-channel work is separate working-tree evidence until its checkpoint commit.
+- Current starting HEAD: `b79bd87c25b8e1e18edf79293fc9f340d3174354` (LOG515 returned-pixel checkpoint, pushed and remote verified). Builds are incremental, not fresh exact-SHA evidence. LOG516 offscreen composite work is separately scoped.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -55,7 +55,7 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action: connect the owned live source to the existing Remix uploader.
+Current action: integrate returned scene composition and full protected content.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.
@@ -75,8 +75,15 @@ pixels at the developer capture boundary; no presentation or history acceptance.
 Three return-d frames have valid source receipts and byte-identical returned
 pixels against consumer output. Invalid source/size, full slot, duplicate and
 orderly-close controls pass. The source hook currently runs after composition;
-next move frame-qualified return handling before the existing DX11 protected
-overlay pass and prove GPU upload/composition without substituting the incomplete
+LOG516 verified bounded implementation: reuse the existing DX11 overlay shader in an
+isolated deferred command list on the returned640x480 texture. Explicit
+FLYCAST_REMAKE_COMPOSITE_TEST=1 enables diagnostic capture only. Require same
+source/guidance frame and producer. Three composite-b frames have zero protected
+and unprotected mismatches and same-frame native-target preservation. Actual
+mask coverage1004/1659/1004 pixels is HUD outlines, not full HUD acceptance.
+Next expand explicit title HUD protection to complete HUD content and
+move frame-qualified return handling before the existing DX11 protected
+overlay pass without substituting the incomplete
 temple for full gameplay. Retain native fallback and explicit diagnostic labels;
 move the supported feed off capture into an asynchronous/budgeted ordinary-frame
 path. Do not replace the native frame with the incomplete temple or make another

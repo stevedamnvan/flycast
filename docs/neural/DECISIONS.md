@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-152: reuse the production overlay shader before returned presentation
+
+The bounded return-composite experiment uploads the exact owned640x480 BGRA
+image into a separate D3D11 target and runs the existing neural overlay shader
+with current native color/mask. A deferred command list executed with state
+restoration isolates immediate pipeline state and never binds the presented
+target for writes. Source/guidance frame, producer, dimensions and native route
+must agree. Explicit FLYCAST_REMAKE_COMPOSITE_TEST=1 is developer-only, off by
+default; no output/history acceptance or performance claim follows.
+
+Protected-mask correctness is not complete HUD classification. Actual first
+frames protect only1004/1659/1004 pixels, visually mostly HUD outlines. Preserve
+that shortfall; do not call a pixel-exact masked composite full HUD protection.
+The next integration must retain full HUD and full scene coverage before native
+replacement, and relocate source/return handling before normal composition.
+
 ## D-151: returned diagnostic color does not authorize presentation
 
 Channel version2 adds one fixed640x480 BGRA reverse slot, matched to the exact
