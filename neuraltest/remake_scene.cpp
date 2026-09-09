@@ -58,6 +58,7 @@ float tangent(const Camera& c) { return std::tan(c.fovY * 0.008726646259971648f)
 Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, const Limits& limits) {
  if (p.version != 1) return {false, "schema"};
  if (p.frame != frame || p.game != game || p.game.empty() || p.game.size() > 64) return {false, "identity"};
+ if(p.sourceGitSha.size()>64)return {false,"source-sha-bound"};
  if (p.space != Space::World && p.space != Space::View && p.space != Space::PvrProjected
   && p.space != Space::SampledAnchor) return {false, "space"};
  if (p.camera.provenance != Provenance::Unknown && p.camera.provenance != Provenance::Supplied
@@ -72,6 +73,7 @@ Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, c
   bytes += n; return true;
  };
  if (!addBytes(p.game.size())) return {false, "byte-limit"};
+ if (!addBytes(p.sourceGitSha.size())) return {false,"byte-limit"};
  for (const auto& omission : p.omissions)
   if (omission.empty() || omission.size() > 256 || !addBytes(sizeof(std::string) + omission.size())) return {false, "omission-limit"};
  if (p.camera.provenance != Provenance::Unknown && !validCamera(p.camera)) return {false, "camera"};

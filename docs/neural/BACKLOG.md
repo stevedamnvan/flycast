@@ -54,8 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: connect bounded prepared artifact ingestion to the real-runtime
-harness diagnostic entry point. Reuse vendored MIT json.hpp; cap input32MiB,
+Current next action: checkpoint/exact-verify the C++ loader, then connect it to
+the runtime harness with explicit artifact/assets/clips arguments and preserved
+calibrated aspect. LOG393 passes actual positive plus13 malformed controls.
+LOG392 loads actual
+H17meshes/6456vertices with calibrated aspect and retained source SHA/omissions;
+far100 rejects. Loader remains WIP, no runtime activation.
+Reuse vendored MIT json.hpp; cap input32MiB,
 128meshes/65536vertices/262144indices and existing packet bytes before allocating
 converted arrays. Reject unknown schema, null diagnostic clips, malformed indices,
 paths and changed assets. Preserve calibrated aspect rather than window substitution.

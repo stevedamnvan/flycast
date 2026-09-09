@@ -53,6 +53,7 @@ struct Packet {
  std::uint32_t version = 1;
  std::uint64_t frame = 0;
  std::string game;
+ std::string sourceGitSha; // Optional for synthetic packets; retained on diagnostic import.
  Space space = Space::PvrProjected;
  Camera camera;
  bool truncated = false;
