@@ -55,8 +55,15 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: test public retained-mesh skinning/bone-transform transport
-with analytic deformation and a falsifying transform control. LOG437 finds new
+Current next action: apply the bounded retained-mesh transport investigation to
+actual source topology, preserving position and normal correctness without
+claiming a recovered game skeleton. LOG440 confirms40 matching topology slots
+but15 draws change color/UV across L/M. Resolve supported dynamic-attribute
+transport before silently freezing source colors or texture coordinates.
+LOG438-439 prove synthetic deformation and
+wrong-sign separation with retained public bone transport; four incremental
+builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter
+history remains unproven. LOG437 finds new
 internal geometry hashes on every CreateMesh; stable external IDs alone are not
 history proof. Do not invent private update/previous-position parameters.
 LOG436 renders H/L/M in one

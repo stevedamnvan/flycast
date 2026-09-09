@@ -10,10 +10,10 @@ import struct
 from pathlib import Path
 
 
-def coverage(px, py, camera_x):
+def coverage(px, py, camera_x, apex_offset=0):
     for size in (1, 2):
         z = 2 * size
-        vertices = [(-size, -size), (size, -size), (0, size)]
+        vertices = [(-size, -size), (size, -size), (apex_offset, size)]
         points = [(320 + (x-camera_x)*240/z, 240-y*240/z)
                   for x, y in vertices]
         signs = []
@@ -25,9 +25,9 @@ def coverage(px, py, camera_x):
     return False
 
 
-def inspect(path, camera_x, normals):
-    if not math.isfinite(camera_x):
-        raise ValueError('finite camera required')
+def inspect(path, camera_x, normals, apex_offset=0):
+    if not math.isfinite(camera_x) or not math.isfinite(apex_offset):
+        raise ValueError('finite camera and apex offset required')
     path = Path(path)
     if path.stat().st_size != 54 + 640*480*4:
         raise ValueError('expected bounded harness BMP')
@@ -44,12 +44,12 @@ def inspect(path, camera_x, normals):
         for x in range(640):
             b, g, r = data[54+(y*640+x)*4:57+(y*640+x)*4]
             seen = max(b, g, r)-min(b, g, r) > 30 if normals else min(b, g, r) > 200
-            truth = coverage(x+.5, y+.5, camera_x)
+            truth = coverage(x+.5, y+.5, camera_x, apex_offset)
             expected += truth
             observed += seen
             intersection += truth and seen
     union = expected + observed - intersection
-    return dict(camera_x=camera_x, expected_pixels=expected,
+    return dict(camera_x=camera_x, apex_offset=apex_offset, expected_pixels=expected,
                 observed_pixels=observed, intersection_pixels=intersection,
                 iou=intersection/union if union else 0,
                 mode='normal-visualization' if normals else 'bright-final-color',
@@ -60,8 +60,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('bmp')
     parser.add_argument('--camera-x', type=float, default=.5)
+    parser.add_argument('--apex-offset', type=float, default=0)
     parser.add_argument('--normals', action='store_true')
     args = parser.parse_args()
-    if not math.isfinite(args.camera_x):
-        parser.error('finite camera required')
-    print(json.dumps(inspect(args.bmp, args.camera_x, args.normals), sort_keys=True))
+    if not math.isfinite(args.camera_x) or not math.isfinite(args.apex_offset):
+        parser.error('finite camera and apex offset required')
+    print(json.dumps(inspect(args.bmp, args.camera_x, args.normals,
+                             args.apex_offset), sort_keys=True))

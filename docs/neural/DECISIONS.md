@@ -1,5 +1,23 @@
 # Neural rendering decisions
 
+## D-137: retained public skinning is transport, not recovered animation
+
+LOG438-439 prove a bounded synthetic deformation through retained public
+MeshInfoSkinning and InstanceInfoBoneTransformsEXT, with a wrong-sign control.
+Keep this fixture synthetic-only and retain its arrays through consumption.
+It does not establish game skeletons, arbitrary normal correctness or temporal
+acceptance. The pinned interface limits each instance to256 bones.
+
+LOG440-441 show actual source slots persist but base colors and some UVs change.
+HardcodedVertex carries those immutable values; the inspected public instance
+extensions expose blend state/tFactor, not arbitrary per-vertex color or UV
+updates. Do not substitute a uniform tint for varying vertex updates, or freeze
+first-frame attributes without explicitly labeling a lighting ablation.
+Separate base color imported by the adapter from currently unimported PVR
+offset color in diagnostics. A future source-lighting removal experiment must
+be compared explicitly with source-color output, not called faithful transport.
+Production integration and any live update route remain open.
+
 ## D-136: preserve camera-embedded and mixed-source provenance
 
 LOG427-434 reuse witnessed preprojection geometry and explicitly embed its

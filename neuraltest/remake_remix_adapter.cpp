@@ -19,6 +19,11 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  if (attempted_) return {false,"single-use-adapter"};
  auto checked=diagnostic?ReadyForDiagnosticAdapter(p,frame,game,true):ReadyForAdapter(p,frame,game);
  if (!checked.ok) return checked;
+ if(syntheticSkinning_) {
+  if(diagnostic || p.meshes.size()!=2)return {false,"synthetic-skinning-only"};
+  for(const auto& m:p.meshes)if(m.vertices.size()!=3 || m.indices!=std::vector<std::uint32_t>{0,1,2})return {false,"synthetic-skinning-topology"};
+  for(auto& t:skinTransforms_)for(int i=0;i<3;i++)t.matrix[i][i]=1;
+ }
  diagnostic_=diagnostic;
  if (!api_.CreateMaterial || !api_.DestroyMaterial || !api_.CreateMesh || !api_.DestroyMesh
   || !api_.CreateLight || !api_.DestroyLight || !api_.DrawLightInstance || !api_.SetupCamera || !api_.DrawInstance)
@@ -62,6 +67,11 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
   remixapi_MeshInfoSurfaceTriangles surface{};
   surface.vertices_values=vertices.data(); surface.vertices_count=vertices.size();
   surface.indices_values=indices_[i].data(); surface.indices_count=indices_[i].size(); surface.material=materialHandle;
+  if(syntheticSkinning_) {
+   surface.skinning_hasvalue=1;surface.skinning_value.bonesPerVertex=1;
+   surface.skinning_value.blendWeights_values=skinWeights_.data();surface.skinning_value.blendWeights_count=3;
+   surface.skinning_value.blendIndices_values=skinIndices_.data();surface.skinning_value.blendIndices_count=3;
+  }
   remixapi_MeshInfo info{}; info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;
   info.hash=mesh.id; info.surfaces_values=&surface; info.surfaces_count=1;
   remixapi_MeshHandle handle=nullptr;
@@ -91,6 +101,11 @@ Result RemixScene::Redraw(const Camera& camera) {
  ready_=drawn.ok;
  return drawn;
 }
+Result RemixScene::RedrawSyntheticSkinning(const Camera& camera,float offset) {
+ if(!syntheticSkinning_ || !std::isfinite(offset) || std::abs(offset)>.5f)return {false,"invalid-synthetic-skinning"};
+ skinTransforms_[2].matrix[0][3]=offset;
+ return Redraw(camera);
+}
 Result RemixScene::DrawFrame(const Camera& input) {
  remixapi_CameraInfoParameterizedEXT parameters{};
  parameters.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO_PARAMETERIZED_EXT;
@@ -106,6 +121,12 @@ Result RemixScene::DrawFrame(const Camera& input) {
  for(std::size_t i=0;i<meshes_.size();++i) {
   remixapi_InstanceInfo instance{}; instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;
   instance.mesh=meshes_[i]; instance.doubleSided=1;
+  remixapi_InstanceInfoBoneTransformsEXT bones{};
+  if(syntheticSkinning_) {
+   bones.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT;
+   bones.boneTransforms_values=skinTransforms_.data();bones.boneTransforms_count=3;
+   instance.pNext=&bones;
+  }
   for(int row=0;row<3;++row) for(int col=0;col<4;++col)
    instance.transform.matrix[row][col]=(*packet_.meshes[i].transform)[row*4+col];
   if(api_.DrawInstance(&instance)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"draw-instance-discard-frame"};

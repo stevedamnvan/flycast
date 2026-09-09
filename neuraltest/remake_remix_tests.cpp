@@ -17,6 +17,8 @@ struct Calls {
  bool valid=true, failDraw=false, distinctMaterials=false;
  float cameraX=0;
  float expectedLightZ=1;
+ bool skinning=false;
+ float expectedApex=0;
  std::uint32_t expectedColor=0xffffffffu;
  float expectedFov=90,expectedAspect=1,expectedNear=.1f,expectedFar=100;
  Vec3 expectedRight{1,0,0},expectedUp{0,1,0},expectedForward{0,0,1};
@@ -42,6 +44,10 @@ remixapi_ErrorCode REMIXAPI_CALL material(const remixapi_MaterialInfo* p,remixap
 remixapi_ErrorCode REMIXAPI_CALL mesh(const remixapi_MeshInfo* p,remixapi_MeshHandle* out) {
  ++calls.meshes; if(calls.failMesh==calls.meshes) return failure();
  const auto& s=p->surfaces_values[0];
+ calls.valid &= bool(s.skinning_hasvalue)==calls.skinning;
+ if(calls.skinning)calls.valid &= s.skinning_value.bonesPerVertex==1
+  && s.skinning_value.blendWeights_count==3&&s.skinning_value.blendIndices_count==3
+  && s.skinning_value.blendWeights_values[2]==1&&s.skinning_value.blendIndices_values[2]==2;
  calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_MESH_INFO && p->surfaces_count==1
   && s.vertices_count==3 && s.indices_count==3 && s.indices_values[2]==2
   && s.material==reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(p->hash))
@@ -65,6 +71,11 @@ remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
 }
 remixapi_ErrorCode REMIXAPI_CALL draw(const remixapi_InstanceInfo* p) {
  ++calls.draws;
+ if(calls.skinning) {
+  const auto* b=static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(p->pNext);
+  calls.valid &= b&&b->sType==REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT
+   && b->boneTransforms_count==3&&b->boneTransforms_values[2].matrix[0][3]==calls.expectedApex;
+ }
  calls.valid &= calls.cameras>=1 && p->mesh && p->transform.matrix[0][0]==1 && p->transform.matrix[0][3]==0;
  return calls.failDraw?failure():ok;
 }
@@ -258,6 +269,15 @@ int main() {
  { RemixScene scene(interface(),false,true); auto p=Synthetic();
   expect(scene.Submit(p,p.frame,p.game).ok && calls.valid && calls.lights==1,
    "explicit reversed diagnostic light preserves scene and radiance"); }
+ calls={};calls.skinning=true;
+ { RemixScene scene(interface(),false,false,true);auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"public synthetic skinning creation");
+  calls.expectedApex=.5f;
+  expect(scene.RedrawSyntheticSkinning(p.camera,.5f).ok&&calls.valid&&calls.meshes==2&&calls.materials==2,
+   "bone deformation retains meshes and materials");
+  const auto before=calls.draws;
+  expect(!scene.RedrawSyntheticSkinning(p.camera,1.f).ok&&calls.draws==before,"out-of-bound deformation rejects before API");
+ }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";
  return counts.failed?1:0;

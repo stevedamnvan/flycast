@@ -50,6 +50,7 @@ int wmain(int argc,wchar_t** argv) {
  bool reverseCamera=false;
  bool zeroLight=false;
  bool reverseLight=false;
+ bool skinning=false,wrongSkinning=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -65,10 +66,13 @@ int wmain(int argc,wchar_t** argv) {
   reverseCamera=captureOption==L"--capture-reverse-camera";
   zeroLight=captureOption==L"--capture-zero-light";
   reverseLight=captureOption==L"--capture-reverse-light";
+  wrongSkinning=captureOption==L"--capture-skinning-reversed";
+  skinning=wrongSkinning || captureOption==L"--capture-skinning";
+  if(skinning && argc!=7){std::cerr<<"skinning control is synthetic only\n";return 2;}
   reverseOrder=captureOption==L"--capture-depth-reverse-order";
   emptyScene=captureOption==L"--capture-empty";
   if(captureOption==L"--capture-depth" || reverseOrder)captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene && !skinning) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -160,7 +164,7 @@ int wmain(int argc,wchar_t** argv) {
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
   std::cerr<<"diagnostic_light_direction=0,0,"<<(reverseLight?-1:1)<<" recovered_game_lighting=false\n";
-  RemixScene retained(api,zeroLight,reverseLight);
+  RemixScene retained(api,zeroLight,reverseLight,skinning);
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
@@ -172,6 +176,7 @@ int wmain(int argc,wchar_t** argv) {
    const auto sequenceIndex=frame<60?0:frame-60;
    auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
+   if(skinning)packet.camera.position.x=0;
    if(reverseOrder)std::reverse(packet.meshes.begin(),packet.meshes.end());
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
@@ -185,7 +190,8 @@ int wmain(int argc,wchar_t** argv) {
     }else submitted=sequenceResources.back()->Redraw(packet.camera);
     std::cerr<<"sequence_source_frame="<<packet.frame<<" warmup="<<(frame<60)<<" source_sha="<<packet.sourceGitSha<<" temporal_identity_proven=false\n"<<std::flush;
    }else submitted=emptyScene?Result{true,"empty-scene-control"}:frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
-    :retained.Submit(packet,packet.frame,packet.game)):retained.Redraw(packet.camera);
+    :retained.Submit(packet,packet.frame,packet.game)):skinning?
+     retained.RedrawSyntheticSkinning(packet.camera,(wrongSkinning?-1.f:1.f)*float(frame)/float(frames-1)*.5f):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
    remixapi_PresentInfo present{};present.sType=REMIXAPI_STRUCT_TYPE_PRESENT_INFO;

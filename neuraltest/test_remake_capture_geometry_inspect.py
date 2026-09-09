@@ -12,7 +12,7 @@ class CaptureGeometryTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / 'test.bmp'
 
-    def image(self, lit):
+    def image(self, lit, camera_x=.5, apex_offset=0):
         data = bytearray(54 + 640*480*4)
         data[:2] = b'BM'
         struct.pack_into('<I', data, 10, 54)
@@ -20,7 +20,7 @@ class CaptureGeometryTests(unittest.TestCase):
         if lit:
             for y in range(480):
                 for x in range(640):
-                    if coverage(x+.5, y+.5, .5):
+                    if coverage(x+.5, y+.5, camera_x, apex_offset):
                         data[54+(y*640+x)*4:58+(y*640+x)*4] = b'\xff'*4
         self.path.write_bytes(data)
 
@@ -34,6 +34,27 @@ class CaptureGeometryTests(unittest.TestCase):
     def test_black_is_not_geometry(self):
         self.image(False)
         self.assertEqual(inspect(self.path, .5, False)['iou'], 0)
+
+    def test_deformation_and_wrong_sign(self):
+        for offset in (-.5, .5):
+            with self.subTest(offset=offset):
+                self.image(True, camera_x=0, apex_offset=offset)
+                exact = inspect(self.path, 0, False, offset)
+                self.assertEqual(exact['iou'], 1)
+                self.assertEqual(exact['apex_offset'], offset)
+                self.assertLess(inspect(self.path, 0, False, -offset)['iou'], .57)
+
+    def test_nonfinite_deformation_rejected(self):
+        for offset in (float('nan'), float('inf'), -float('inf')):
+            with self.assertRaises(ValueError):
+                inspect(self.path, 0, False, offset)
+
+    def test_deformed_apex_landmarks(self):
+        # Independent projected points: near apex moves 60 px, far apex 30 px.
+        self.assertTrue(coverage(380, 121, 0, .5))
+        self.assertTrue(coverage(350, 121, 0, .5))
+        self.assertFalse(coverage(260, 121, 0, .5))
+        self.assertTrue(coverage(201, 359, 0, .5))
 
     def test_reject_header_and_size(self):
         self.path.write_bytes(b'BM')
