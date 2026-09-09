@@ -22,12 +22,14 @@
 
 namespace {
 struct Watchdog {
+ unsigned seconds;
+ explicit Watchdog(unsigned limit=30):seconds(limit){}
  std::mutex mutex;
  std::condition_variable cv;
  bool done=false;
  std::thread thread{[this] {
   std::unique_lock<std::mutex> lock(mutex);
-  if(!cv.wait_for(lock,std::chrono::seconds(30),[this]{return done;})) {
+  if(!cv.wait_for(lock,std::chrono::seconds(seconds),[this]{return done;})) {
    std::cerr<<"remake-runtime-smoke timeout gpu_image_proven=false\n"<<std::flush;
    TerminateProcess(GetCurrentProcess(),124);
   }
@@ -48,7 +50,9 @@ int wmain(int argc,wchar_t** argv) {
  wchar_t* end=nullptr;
  const long frames=wcstol(argv[4],&end,10);
  const std::filesystem::path runtime(argv[2]);
- if(!*argv[4] || *end || frames<1 || frames>120 || !runtime.is_absolute()) {
+ const bool extendedReturn=argc==14&&std::wstring(argv[5])==L"--live-channel-async"
+  &&std::wstring(argv[12])==L"--return-d3d9-scene-memory-depth";
+ if(!*argv[4] || *end || frames<1 || frames>(extendedReturn?660:120) || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
  std::optional<Packet> snapshot;
@@ -224,7 +228,7 @@ int wmain(int argc,wchar_t** argv) {
  if(!std::filesystem::is_regular_file(runtime,error)) {
   std::cerr<<"runtime unavailable runtime_loaded=false gpu_image_proven=false\n";return 3;
  }
- Watchdog watchdog;
+ Watchdog watchdog(extendedReturn&&frames>120?120:30);
  // Only the explicitly supplied directory and Windows system directory are searched.
  HMODULE module=LoadLibraryExW(runtime.c_str(),nullptr,LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR|LOAD_LIBRARY_SEARCH_SYSTEM32);
  if(!module) { std::cerr<<"runtime load failed win32="<<GetLastError()<<"\n";return 4; }

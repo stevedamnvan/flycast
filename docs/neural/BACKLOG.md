@@ -161,6 +161,17 @@ with zero clipping rejection and54 distinct displayed evaluated sources overall.
 All four builds/556 enabled tests pass. Commit the clipping/skip-diagnostic slice,
 then extend bounded no-file runtime coverage beyond60 sources to locate remaining
 sustained-delivery limits. Keep full300/600-frame acceptance and OIT work open.
+Next bounded test: permit at most660 helper Presents (60 warmup plus600 source
+frames) only for async return-only mode, with120-second total runtime watchdog
+after initial source arrival. Existing capture modes retain120/30-second bounds.
+Run without image capture or locked replay; inspect gaps/expiry rather than
+claiming this source-observation-heavy run satisfies final performance gates.
+Long-r completes600 paired sources,589 accepted evaluations and587 distinct
+displayed sources (605 Presents), max age5 and longest consecutive run222.
+Next inspect/fix return mailbox contention: two outstanding source credits share
+one image slot, and nine returns were busy-dropped. Preserve bounded ownership,
+receipt matching and monotonic delivery; then advance OIT rather than retuning
+visual settings. Full acceptance remains open.
 Do not divert into aesthetic trail tuning or general profiling before sustained
 delivery and OIT integration; preserve intentional source effects.
 

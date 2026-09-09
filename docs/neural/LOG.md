@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG535 long-r completes exit0 on both processes:600 live sender/receiver scene
+receipts match,600 paired returns contain307200 depth values,591 return publishes,
+589 unique accepted evaluations and605 completed evaluated Presents over587
+distinct sources1859..2463. Longest consecutive displayed source sequence222;
+maximum displayed age5, monotonic IDs, no image artifacts. Host completes1200
+samples and closes cleanly. Skip diagnostics count4 material-cache-pending and79
+no-return-credit (including startup/end); nine consumer return attempts are busy.
+External config hash remains222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+This is bounded live delivery, not exact-input pixel proof for600 frames or final
+performance: source tracing and synchronous helper GPU readbacks remain enabled.
+Helper still reports40 undisposed common objects. Next address the single-image
+return mailbox contending with two outstanding source credits, then OIT support;
+do not hide drops/repeats or relax age limits. Three other serial builds and
+enabled556/556 tests pass; SDK193/193 and Python340/340 rerun separately.
+
+LOG535 extended no-file run begins at8927f1752: only exact async return-only
+invocation permits up to660 Presents; longer runs use120-second total watchdog
+after initial source arrival. Existing capture modes keep120/30-second bounds.
+Automation helper build passes; ordinary121 and extended661 arguments both
+reject before runtime loading. Live long-r requests600 source frames paired
+with1200 host samples, no image capture/retained replay/sentinel. Both processes
+are live; no sustained-coverage or performance result yet. The owned host is
+the already tested clip-q executable, not a newly claimed exact-SHA build.
+
 LOG534 clip-q live result: helper and host exit0. All18 formerly rejected source
 frames1878..1895 are now published and have completed remake-evaluated Presents;
 zero clip-unsupported records remain. Overall61 publications,56 unique accepted

@@ -8,6 +8,11 @@ Paired color/depth GPU readback and receipt-qualified ReturnImage remain intact.
 Logs report artifact_files=disabled. This removes diagnostic disk writes, not
 the blocking readback or source-observation overhead; it is not zero-copy or
 final performance acceptance. Existing capture mode retains all evidence files.
+Return-only async mode permits up to660 Presents (60 warmup plus600 received
+sources), with a120-second total watchdog after initial source acquisition when
+the requested count exceeds120. All other modes keep their120-frame/30-second
+limits. Initial source wait remains90 seconds and subsequent receives5 seconds.
+This bounded extended lane does not itself satisfy steady-state performance.
 
 FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES optionally overrides the default three
 diagnostic attempts with1..30; invalid or oversized text disables capture.
