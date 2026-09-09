@@ -9,6 +9,8 @@
 #include <locale>
 #include <stdexcept>
 #include <limits>
+#include <chrono>
+#include <thread>
 namespace neuraltest {
 bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
  using namespace flycast::rend::neural;
@@ -25,7 +27,7 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
   MaterialMip palette{32,32,std::vector<std::uint8_t>(4096)};
   for(unsigned i=0;i<4;++i)for(unsigned c=0;c<4;++c)palette.bytes[i*4+c]=rgba[i][c==0?2:c==2?0:c];
   const DXGI_FORMAT formats[]={DXGI_FORMAT_B5G5R5A1_UNORM,DXGI_FORMAT_B4G4R4A4_UNORM,DXGI_FORMAT_B5G6R5_UNORM,DXGI_FORMAT_B8G8R8A8_UNORM,DXGI_FORMAT_R8G8B8A8_UNORM,DXGI_FORMAT_A8_UNORM};
-  unsigned comparisons=0,controls=0;
+  unsigned comparisons=0,controls=0,asyncComparisons=0,asyncControls=0;
   {
    rend_context emptyContext;
    MaterialShaderGlobals g;
@@ -66,6 +68,74 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
    size_t budget=1024;MaterialPixels decoded;
    if(!ReadMaterialPixels(device,context,texture,budget,decoded,error))throw std::runtime_error(error);
    check(budget==1024-21*bpp&&decoded.mips.size()==3,"material-fixture-budget-accounting");
+   {
+    MaterialReadback readback;PvrCapturedTexture generation;generation.upload=7;generation.rtt=2;generation.palette=9;
+    MaterialPixels pixels=decoded;std::size_t remaining=1;
+    check(!readback.Begin(device,context,texture,generation,remaining,error)&&remaining==1&&!readback.Pending(),"material-async-budget-atomic");++asyncControls;
+    remaining=1024;
+    check(readback.Begin(device,context,texture,generation,remaining,error)&&remaining==1024-21*bpp&&readback.Pending(),"material-async-begin-budget");++asyncControls;
+    const auto keptBudget=remaining;
+    check(!readback.Begin(device,context,texture,generation,remaining,error)&&error=="material-async-busy"&&remaining==keptBudget&&readback.Pending(),"material-async-busy-preserves-ticket");++asyncControls;
+    // Only the fixture submits work explicitly and waits for its deadline.
+    // Production Begin/Poll never flush, sleep or wait for GPU completion.
+    context->Flush();const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+    auto state=MaterialReadbackResult::Pending;
+    while(state==MaterialReadbackResult::Pending&&std::chrono::steady_clock::now()<deadline) {
+     state=readback.Poll(context,texture,generation,pixels,error);
+     if(state==MaterialReadbackResult::Pending)std::this_thread::yield();
+    }
+    check(state==MaterialReadbackResult::Ready&&!readback.Pending()&&pixels.format==decoded.format&&pixels.mips.size()==3,"material-async-completion");
+    for(unsigned mip=0;mip<3;++mip){check(pixels.mips[mip].bytes==decoded.mips[mip].bytes,"material-async-exact-mips");++asyncComparisons;}
+    check(readback.Poll(context,texture,generation,pixels,error)==MaterialReadbackResult::Invalid&&pixels.mips[0].bytes==decoded.mips[0].bytes,"material-async-double-retire-rejected");++asyncControls;
+    for(unsigned mutation=0;mutation<5;++mutation) {
+     remaining=1024;check(readback.Begin(device,context,texture,generation,remaining,error),"material-async-negative-begin");
+     auto changed=generation;
+     if(mutation==0)++changed.upload;
+     if(mutation==1)++changed.rtt;
+     if(mutation==2)++*changed.palette;
+     if(mutation==3)changed.palette.reset();
+     check(readback.Poll(context,mutation==4?nullptr:texture.get(),changed,pixels,error)==MaterialReadbackResult::Invalid
+      &&!readback.Pending()&&pixels.mips[0].bytes==decoded.mips[0].bytes,"material-async-generation-resource-rejection");++asyncControls;
+    }
+    remaining=1024;check(readback.Begin(device,context,texture,generation,remaining,error),"material-async-reset-begin");
+    readback.Reset();check(!readback.Pending()&&readback.Poll(context,texture,generation,pixels,error)==MaterialReadbackResult::Invalid,"material-async-reset-retires-ticket");++asyncControls;
+    if(format!=DXGI_FORMAT_A8_UNORM) {
+     RemakeTextureCache cache;cache.BeginFrame(1,1);std::vector<unsigned char> dds{42},expected;
+     check(EncodeRemakeMaterialDds(decoded,expected,error),"material-cache-reference");
+     check(!cache.Request(device,context,texture,generation,dds,error)&&error=="material-cache-pending"
+      &&dds==std::vector<unsigned char>{42}&&cache.Entries()==1,"material-cache-first-request-queues-only");++asyncControls;
+     context->Flush();const auto cacheDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);bool ready=false;
+     do {ready=cache.Request(device,context,texture,generation,dds,error);if(!ready)std::this_thread::yield();}
+     while(!ready&&error=="material-cache-pending"&&std::chrono::steady_clock::now()<cacheDeadline);
+     check(ready&&dds==expected,"material-cache-exact-dds");++asyncComparisons;
+     cache.BeginFrame(2,1);
+     check(cache.Request(device,context,texture,generation,dds,error)&&dds==expected&&cache.Entries()==1,"material-cache-unchanged-generation-reuses");++asyncControls;
+     auto changed=generation;++changed.upload;
+     auto updated=decoded;updated.mips[0].bytes[0]^=0xff;
+     context->UpdateSubresource(texture,0,nullptr,updated.mips[0].bytes.data(),4*bpp,0);
+     check(!cache.Request(device,context,texture,changed,dds,error)&&error=="material-cache-pending"
+      &&dds==expected&&cache.Entries()==1,"material-cache-generation-change-never-serves-old-bytes");++asyncControls;
+     std::vector<unsigned char> updatedDds;check(EncodeRemakeMaterialDds(updated,updatedDds,error)&&updatedDds!=expected,"material-cache-mutation-not-inert");
+     context->Flush();const auto updateDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);ready=false;
+     do {ready=cache.Request(device,context,texture,changed,dds,error);if(!ready)std::this_thread::yield();}
+     while(!ready&&error=="material-cache-pending"&&std::chrono::steady_clock::now()<updateDeadline);
+     check(ready&&dds==updatedDds,"material-cache-updated-content-exact");++asyncComparisons;
+     context->UpdateSubresource(texture,0,nullptr,bytes[0].data(),4*bpp,0);
+     cache.BeginFrame(122,1);check(cache.Entries()==1,"material-cache-age-boundary");++asyncControls;
+     cache.BeginFrame(123,1);check(cache.Entries()==0,"material-cache-expiry-releases-ticket");++asyncControls;
+     check(!cache.Request(device,context,texture,changed,dds,error)&&cache.Entries()==1,"material-cache-requeue");
+     cache.BeginFrame(1,2);check(cache.Entries()==0,"material-cache-epoch-clears");++asyncControls;
+     if(format==DXGI_FORMAT_B5G5R5A1_UNORM) {
+      for(unsigned i=0;i<129;++i) {
+       ComPtr<ID3D11Texture2D> another;check(SUCCEEDED(device->CreateTexture2D(&desc,initial.data(),&another.get())),"material-cache-bound-texture");
+       check(!cache.Request(device,context,another,generation,dds,error)
+        &&error==(i<128?"material-cache-pending":"material-cache-budget"),"material-cache-entry-bound");
+      }
+      check(cache.Entries()==128,"material-cache-maximum-owned-entries");++asyncControls;
+      cache.Reset();check(cache.Entries()==0,"material-cache-reset-releases-all");++asyncControls;
+     }
+    }
+   }
    for(unsigned mip=0;mip<3;++mip) {
     const auto& actual=decoded.mips[mip];check(actual.bytes==bytes[mip],"material-fixture-raw-mip");++comparisons;
     Image image{actual.width,actual.height,std::vector<std::uint8_t>(actual.width*actual.height*4)};
@@ -96,7 +166,7 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
    size_t budget=1024;MaterialPixels pixels;
    check(!ReadMaterialPixels(device,context,texture,budget,pixels,error)&&error=="material-resource-format-or-bounds"&&budget==1024&&pixels.mips.empty(),"material-fixture-array-format-rejection");++controls;
   }
-  std::ofstream report(out/"contract.txt");report<<"git_sha="<<GIT_HASH<<"\napi=native-D3D11-WARP\nraw_and_rgba_comparisons="<<comparisons<<"\nnegative_controls="<<controls<<"\nsource_material_only=true\n";check(bool(report),"material-fixture-report");error.clear();return true;
+  std::ofstream report(out/"contract.txt");report<<"git_sha="<<GIT_HASH<<"\napi=native-D3D11-WARP\nraw_and_rgba_comparisons="<<comparisons<<"\nnegative_controls="<<controls<<"\nasync_exact_mips="<<asyncComparisons<<"\nasync_controls="<<asyncControls<<"\nfixture_waits_excluded_from_performance=true\nsource_material_only=true\n";check(bool(report),"material-fixture-report");error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 }

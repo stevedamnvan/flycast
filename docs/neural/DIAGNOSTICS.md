@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+`neuraltest material-contract --out NEW_DIR` also exercises asynchronous staging
+and the generation-qualified texture cache on native D3D11 WARP. Report fields
+`async_exact_mips` include raw mip and DDS comparisons; `async_controls` counts
+ownership, invalidation and bounds checks. The fixture flushes/waits explicitly;
+the production helpers do neither. This is not On12 or game performance proof.
+The optional cache argument on ReadRemakeViewTexture is not enabled by default;
+ordinary scene feed must own BeginFrame/reset and complete-scene readiness.
+
 Return-aware live exchange uses `PublishForReturn`, which can report
 `channel-return-credit-busy` even when transport slots are free: the original
 two source receipts still own pending returned images. This is bounded native

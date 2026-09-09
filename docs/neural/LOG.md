@@ -1,5 +1,11 @@
 # Neural rendering evidence log
 
+LOG528 regression: all four serial incremental builds pass; automation/NGX/
+no-NGX selftests516/516 each, SDK193/193, restored GPU material fixture and
+backlog/diff checks pass. Production synchronous capture remains the default.
+
+#528 2026-09-09 1d05115c3 plus working tree | Implement owned nonblocking D3D11 material readback ticket and bounded generation-qualified DDS cache; optional ReadRemakeViewTexture cache path preserves default synchronous capture. WARP GPU fixture matches18 raw mips across six formats, five initial DDS encodings and five actual changed-upload DDS encodings (report async_exact_mips=28 counts all of these comparisons),92 async controls; original145 raw/RGBA comparisons and19 negative controls remain. Covers busy/budget/output atomicity, upload/RTT/palette/resource mismatch, reset/double retirement, exact generation reuse, changed content,128-entry cap,120-frame expiry and epoch reset. Controlled mutation disables cache generation invalidation: fixture exits1 at material-cache-generation-change-never-serves-old-bytes; restore rerun passes. Failed mutation output retained separately. Fixture-only Flush/deadline polling is excluded from performance. Generated fixture SHA remains stale3e78a6f4f despite actual source base1d05115c3; results are working-tree/incremental, not fresh exact-SHA. No actual game/On12/performance result claimed for this slice. Next wire ordinary-frame feed using complete current scene plus ready materials; explicitly handle skipped source frames in the helper with reset semantics, preserving strict consecutive diagnostic controls and matching returned-frame overlay ownership.
+
 LOG527 regression: all four serial incremental builds pass, automation/NGX/
 no-NGX selftests516/516 each and SDK193/193 pass. Backlog contract and diff
 whitespace checks pass. Real shared-memory delayed-return fixtures run locally;

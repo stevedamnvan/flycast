@@ -83,6 +83,72 @@ bool ReadMaterialPixels(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11
   remaining-=bytes;output=std::move(result);error.clear();return true;
  } catch(const std::exception& e){error=e.what();return false;}
 }
+struct MaterialReadback::Impl {
+ ComPtr<ID3D11DeviceContext> context;
+ ComPtr<ID3D11Texture2D> source,staging;
+ ComPtr<ID3D11Query> completion;
+ PvrCapturedTexture generation;
+ D3D11_TEXTURE2D_DESC desc{};
+ unsigned bpp=0;
+};
+MaterialReadback::MaterialReadback()=default;
+MaterialReadback::~MaterialReadback()=default;
+void MaterialReadback::Reset(){impl_.reset();}
+bool MaterialReadback::Pending()const noexcept{return bool(impl_);}
+bool MaterialReadback::Begin(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Texture2D* texture,
+ const PvrCapturedTexture& generation,std::size_t& remaining,std::string& error) {
+ try {
+  Require(!impl_,"material-async-busy");
+  Require(device&&context&&texture,"material-null-resource");
+  Require(context->GetType()==D3D11_DEVICE_CONTEXT_IMMEDIATE,"material-async-context-type");
+  ComPtr<ID3D11Device> contextDevice,textureDevice;context->GetDevice(&contextDevice.get());texture->GetDevice(&textureDevice.get());
+  Require(contextDevice.get()==device&&textureDevice.get()==device,"material-async-device");
+  auto pending=std::make_unique<Impl>();texture->GetDesc(&pending->desc);auto& desc=pending->desc;
+  pending->bpp=Bpp(desc.Format);
+  Require(pending->bpp&&desc.Width>0&&desc.Width<=4096&&desc.Height>0&&desc.Height<=4096
+   &&desc.MipLevels>0&&desc.MipLevels<=13&&desc.ArraySize==1&&desc.SampleDesc.Count==1,"material-resource-format-or-bounds");
+  std::size_t bytes=0;for(unsigned i=0;i<desc.MipLevels;++i)
+   bytes+=std::size_t(std::max(1u,desc.Width>>i))*std::max(1u,desc.Height>>i)*pending->bpp;
+  Require(bytes<=remaining&&bytes<=64*1024*1024,"material-byte-budget");
+  auto stagingDesc=desc;stagingDesc.Usage=D3D11_USAGE_STAGING;stagingDesc.BindFlags=0;
+  stagingDesc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;stagingDesc.MiscFlags=0;
+  Require(SUCCEEDED(device->CreateTexture2D(&stagingDesc,nullptr,&pending->staging.get())),"material-staging-create");
+  D3D11_QUERY_DESC query{D3D11_QUERY_EVENT,0};
+  Require(SUCCEEDED(device->CreateQuery(&query,&pending->completion.get())),"material-async-query-create");
+  pending->context.get()=context;context->AddRef();pending->source.get()=texture;texture->AddRef();pending->generation=generation;
+  context->CopyResource(pending->staging,texture);context->End(pending->completion);
+  impl_=std::move(pending);remaining-=bytes;error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+MaterialReadbackResult MaterialReadback::Poll(ID3D11DeviceContext* context,ID3D11Texture2D* texture,
+ const PvrCapturedTexture& generation,MaterialPixels& output,std::string& error) {
+ try {
+  Require(impl_!=nullptr,"material-async-empty");auto& job=*impl_;
+  Require(context==job.context.get()&&texture==job.source.get(),"material-async-resource-context-changed");
+  Require(generation.upload==job.generation.upload&&generation.rtt==job.generation.rtt
+   &&generation.palette==job.generation.palette,"material-async-generation-changed");
+  BOOL done=FALSE;
+  const auto hr=context->GetData(job.completion,&done,sizeof(done),D3D11_ASYNC_GETDATA_DONOTFLUSH);
+  Require(SUCCEEDED(hr),"material-async-query-failed");
+  if(hr==S_FALSE||!done){error.clear();return MaterialReadbackResult::Pending;}
+  MaterialPixels pixels;pixels.format=job.desc.Format;
+  for(unsigned i=0;i<job.desc.MipLevels;++i) {
+   MaterialMip mip;mip.width=std::max(1u,job.desc.Width>>i);mip.height=std::max(1u,job.desc.Height>>i);
+   const std::size_t row=std::size_t(mip.width)*job.bpp;mip.bytes.resize(row*mip.height);
+   D3D11_MAPPED_SUBRESOURCE map{};
+   const auto mapped=context->Map(job.staging,i,D3D11_MAP_READ,D3D11_MAP_FLAG_DO_NOT_WAIT,&map);
+   if(mapped==DXGI_ERROR_WAS_STILL_DRAWING){error.clear();return MaterialReadbackResult::Pending;}
+   Require(SUCCEEDED(mapped),"material-async-map-failed");
+   struct Unmap {ID3D11DeviceContext* context;ID3D11Texture2D* texture;unsigned mip;
+    ~Unmap(){context->Unmap(texture,mip);}} unmap{context,job.staging,i};
+   Require(map.pData&&map.RowPitch>=row,"material-row-pitch");
+   for(unsigned y=0;y<mip.height;++y)
+    std::memcpy(mip.bytes.data()+y*row,static_cast<const std::uint8_t*>(map.pData)+std::size_t(y)*map.RowPitch,row);
+   pixels.mips.push_back(std::move(mip));
+  }
+  output=std::move(pixels);Reset();error.clear();return MaterialReadbackResult::Ready;
+ }catch(const std::exception& e){error=e.what();Reset();return MaterialReadbackResult::Invalid;}
+}
 bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned char>& output,std::string& error) {
  try {
   Require(!pixels.mips.empty()&&pixels.mips.size()<=13&&pixels.format!=DXGI_FORMAT_A8_UNORM,"view-dds-mips-or-palette-unsupported");
@@ -110,8 +176,62 @@ bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned c
   output=std::move(data);error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
+struct RemakeTextureCache::Impl {
+ struct Entry {
+  ComPtr<ID3D11Texture2D> source;PvrCapturedTexture generation;
+  MaterialReadback readback;std::vector<unsigned char> dds;
+  std::uint64_t lastFrame=0;std::size_t bytes=0;
+ };
+ std::vector<std::unique_ptr<Entry>> entries;
+ ComPtr<ID3D11DeviceContext> context;
+ std::uint64_t frame=0,epoch=0;
+};
+RemakeTextureCache::RemakeTextureCache()=default;
+RemakeTextureCache::~RemakeTextureCache()=default;
+void RemakeTextureCache::Reset(){impl_.reset();}
+std::size_t RemakeTextureCache::Entries()const noexcept{return impl_?impl_->entries.size():0;}
+void RemakeTextureCache::BeginFrame(std::uint64_t frame,std::uint64_t epoch) {
+ if(!frame||!epoch){Reset();return;}
+ if(impl_&&(impl_->epoch!=epoch||frame<impl_->frame))Reset();
+ if(!impl_)impl_=std::make_unique<Impl>();
+ impl_->frame=frame;impl_->epoch=epoch;
+ auto& entries=impl_->entries;
+ entries.erase(std::remove_if(entries.begin(),entries.end(),[&](const auto& e){return frame-e->lastFrame>120;}),entries.end());
+}
+bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Texture2D* texture,
+ const PvrCapturedTexture& generation,std::vector<unsigned char>& output,std::string& error) {
+ try {
+  Require(impl_&&context&&texture,"material-cache-frame-or-resource");auto& cache=*impl_;
+  if(cache.context&&cache.context.get()!=context){Reset();throw std::runtime_error("material-cache-context-changed");}
+  if(!cache.context){cache.context.get()=context;context->AddRef();}
+  auto& entries=cache.entries;
+  auto it=std::find_if(entries.begin(),entries.end(),[&](const auto& e){return e->source.get()==texture;});
+  if(it!=entries.end()&&((*it)->generation.upload!=generation.upload||(*it)->generation.rtt!=generation.rtt
+   ||(*it)->generation.palette!=generation.palette)){entries.erase(it);it=entries.end();}
+  std::size_t used=0;for(const auto& e:entries)used+=e->bytes;
+  constexpr std::size_t limit=64*1024*1024;
+  if(it==entries.end()) {
+   Require(entries.size()<128&&used<limit,"material-cache-budget");
+   auto entry=std::make_unique<Impl::Entry>();std::size_t remaining=limit-used;
+   if(!entry->readback.Begin(device,context,texture,generation,remaining,error))return false;
+   entry->source.get()=texture;texture->AddRef();entry->generation=generation;entry->lastFrame=cache.frame;
+   entry->bytes=limit-used-remaining;entries.push_back(std::move(entry));error="material-cache-pending";return false;
+  }
+  auto& entry=**it;entry.lastFrame=cache.frame;
+  if(entry.dds.empty()) {
+   MaterialPixels pixels;const auto result=entry.readback.Poll(context,texture,generation,pixels,error);
+   if(result==MaterialReadbackResult::Pending){error="material-cache-pending";return false;}
+   if(result==MaterialReadbackResult::Invalid){entries.erase(it);return false;}
+   std::vector<unsigned char> dds;
+   if(!EncodeRemakeMaterialDds(pixels,dds,error)){entries.erase(it);return false;}
+   if(dds.size()>limit-(used-entry.bytes)){entries.erase(it);error="material-cache-budget";return false;}
+   entry.bytes=dds.size();entry.dds=std::move(dds);
+  }
+  output=entry.dds;error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
 bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,const rend_context& live,
- const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error) {
+ const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache) {
  try {
   Require(!live.isRTT&&draw.list==0&&draw.ordinal<live.global_param_op.size(),"view-texture-draw");
   const auto& source=live.global_param_op[draw.ordinal];
@@ -125,6 +245,12 @@ bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,con
   auto* texture=static_cast<DX11Texture*>(source.texture);const auto& generation=*draw.texture;
   const auto matches=[&]{return MaterialGenerationMatches(generation,texture->Updates,texture->rttGeneration,generation.palette?texture->palette_hash:0);};
   Require(matches()&&texture->texture&&texture->textureView,"view-texture-generation");
+  if(asyncCache) {
+   std::vector<unsigned char> bytes;
+   if(!asyncCache->Request(device,context,texture->texture,generation,bytes,error))return false;
+   Require(matches()&&bytes.size()<=remaining,"view-texture-generation-or-budget");
+   remaining-=bytes.size();output=std::move(bytes);return true;
+  }
   MaterialPixels pixels;if(!ReadMaterialPixels(device,context,texture->texture,remaining,pixels,error))return false;
   Require(matches(),"view-texture-generation-changed");
   return EncodeRemakeMaterialDds(pixels,output,error);

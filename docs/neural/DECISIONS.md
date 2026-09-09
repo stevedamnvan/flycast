@@ -1,5 +1,23 @@
 # Neural rendering decisions
 
+## D-164: own asynchronous texture copies by resource and generation
+
+MaterialReadback queues one staging copy/event on the owning immediate D3D11
+context. Poll uses event DONOTFLUSH and Map DO_NOT_WAIT; pending never publishes
+partial pixels. The source resource/context are AddRef-owned through retirement,
+with exact upload/RTT/palette identity. Mismatch/error/reset retires the ticket.
+RemakeTextureCache limits ownership to128 entries and64MiB of aggregate pending
+raw/ready DDS payload, expires unused entries after120 render frames and clears
+on epoch/backward-frame/context changes. This is a payload bound, not a measured
+VRAM or total allocator ceiling; source GPU references and transient conversion
+buffers also exist. Resource references prevent address reuse from fabricating
+a hit. Cache entries never substitute older generations while a copy is pending.
+The caller remains responsible for authoritative generation and frame stamps.
+These render-thread-only helpers do not flush, sleep or spin; bounded GPU waits
+exist only in the fixture. ReadRemakeViewTexture optionally uses this cache,
+retaining synchronous capture as its default. Ordinary-feed integration is next;
+the cache alone is not frame delivery, performance or neural-history acceptance.
+
 ## D-163: consumed transport slots do not retire returned-image ownership
 
 The source transport and returned-image ownership have different lifetimes.

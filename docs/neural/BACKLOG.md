@@ -79,6 +79,19 @@ It now does not overwrite the first source receipt. Legacy one-way transport is 
 This is an asynchronous ownership prerequisite, not ordinary-feed acceptance;
 next replace synchronous material Map with retained, generation-qualified
 staging copies and nonblocking completion before wiring the ordinary frame hook.
+LOG528 material slice implements an owned D3D11 readback ticket with exact
+texture resource/generation/context identity, fixed byte bounds, retained staging
+and event query. Begin queues only; Poll uses DONOTFLUSH/DO_NOT_WAIT and returns
+pending instead of waiting. Reject generation/resource/context changes without
+publishing partial pixels. Compare all supported formats/mips to the existing
+texture fixture, with busy/budget/reset/mismatch paths. Bounded cache now exists;
+WARP fixture reports28 exact mip/DDS comparisons and92 async controls. Deliberate
+generation-invalidation bypass fails; restored implementation passes. Current
+action is wire the opt-in ordinary-frame feed using this cache and return-credit
+channel, prewarm all required materials before publishing a complete current
+scene, and handle skipped frames explicitly in the helper (reset, not false
+consecutive history). Retain the strict existing consecutive diagnostic path.
+Do not add another isolated texture fixture phase instead of this hookup.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.
