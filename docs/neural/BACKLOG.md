@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `5d8636b2afd948f61e8946b51b9a82ab3af1ef4a`, pushed and remote verified (LOG377). Later changes are separate from tested source.
+- Last exact tested checkpoint: `12c1d20d01c6e7eeb8f2eccdcb19fbf173104517`, pushed and remote verified (LOG381). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: finish regression/checkpoint for the published-asset join,
-then prepare the bounded geometry/material artifact for the explicit experimental
-adapter path without inventing camera acceptance. LOG379 joins actual H geometry
+Current next action: prepare the bounded geometry/material artifact for the
+explicit experimental adapter path without inventing camera acceptance. Preserve
+unknown clips and coordinate/coverage exclusions through serialization; see
+CAMERA-COORDINATE-CONTRACT.md. LOG381 closes exact checkpoint. LOG379 joins actual H geometry
 and14 published textures; strict reprojection and renderable flags stay false.
 LOG375 publishes14 H assets outside Git; LOG377 closes publisher checkpoint.
 LOG374 closes exact checkpoint verification

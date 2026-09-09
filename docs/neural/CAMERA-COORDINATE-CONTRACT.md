@@ -28,7 +28,10 @@ in all three frames. This does not imply identical GPU arithmetic.
   object/model/view decomposition are not established.
 - Game near/far planes are unknown. Synthetic harness planes are not recovered
   game values and must not be silently copied into an accepted game packet.
-- Normals, textured material rendering and complete scene coverage remain open.
+- Authored normals remain unavailable. D-130/LOG370 provide explicitly
+  geometry-derived flat normals, not recovered game normals. D-131/LOG379
+  bind verified source textures to the sampled geometry; actual textured
+  rendering and complete scene coverage remain open.
 - BGP/screen-plane content is not world geometry. General-affine and unknown
   domains must retain their labels rather than being forced rigid.
 - Strict comparison against captured rounded PVR positions still fails as
@@ -38,10 +41,15 @@ in all three frames. This does not imply identical GPU arithmetic.
 
 ## Next integration dependency
 
-Inspect the existing exported mesh/material records for the selected draws and
-bind their identities/generations to the accepted evidence vertices. Record
-which normals, texture assets, transforms and clip semantics are available or
-missing before implementing a game packet adapter. Do not change
-ReadyForAdapter's incomplete/unknown/textured-material rejections to force
-acceptance. Keep M2-camera pending until its usable game contract is explicit;
-M1-GPU remains an independent route if an approved runtime is available.
+The selected H geometry/material publication join is now implemented (LOG379).
+Do not repeat asset-binding checks as a substitute for scene submission.
+Next assemble a bounded developer artifact carrying source identity, converted
+positions, explicit derived-normal provenance, UV/color attributes, published
+texture association and all coordinate/coverage exclusions. Unknown game
+near/far values must not acquire synthetic defaults through serialization.
+Do not clear omissions or relabel the source anchor as proven physical world
+space to pass ReadyForAdapter. Keep M2-camera pending until its usable game
+contract is explicit; M1-GPU remains an independent route when a compatible
+supplied runtime becomes available. The parked captured-rounding failure is
+distinct from the passing CPU mathematical projection test; neither alone
+proves or disproves a complete working runtime camera.
