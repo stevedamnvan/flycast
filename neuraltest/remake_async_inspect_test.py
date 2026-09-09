@@ -30,6 +30,14 @@ class AsyncInspectTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "receipt mismatch"):
             inspect(self.p, self.c.replace("digest=40", "digest=41"), Path("unused"))
 
+    def test_original_overlay_receipt_required(self):
+        with self.assertRaisesRegex(ValueError, "original overlays"):
+            inspect(self.p, self.c, Path("unused"), True)
+        overlay = "Remake async overlay retained: frame=10 sequence=1 original_native=true original_mask=true presentation=false\n"
+        self.assertTrue(inspect(self.p + overlay, self.c, Path("unused"), True)["original_overlay_receipts_required"])
+        with self.assertRaisesRegex(ValueError, "original overlays"):
+            inspect(self.p + overlay.replace("frame=10", "frame=12"), self.c, Path("unused"), True)
+
     def test_duplicate_publication_rejected(self):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             inspect(self.p + self.p, self.c, Path("unused"))

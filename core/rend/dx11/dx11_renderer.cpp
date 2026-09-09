@@ -1022,7 +1022,7 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
-	remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();
+	remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();
 	remakeAsyncStopped=true;
 	pvrReplayBase.reset();
 	pvrReplayPixelConstants.reset();
@@ -2516,7 +2516,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(!requested||!*requested)return;
 	const std::string token(requested);
 	if(token!=remakeAsyncToken) {
-		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();
+		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();
 		remakeAsyncToken=token;remakeAsyncEpoch=0;remakeAsyncStopped=false;
 	}
 	if(remakeAsyncStopped||IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get())return;
@@ -2528,7 +2528,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(*end||ordinal>10000000||producer.ordinal<ordinal)return;
 	}
 	if(remakeAsyncEpoch&&remakeAsyncEpoch!=producer.epoch) {
-		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();remakeAsyncStopped=true;
+		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async epoch changed: new consumer token required; native presentation retained");return;
 	}
 	remakeAsyncEpoch=producer.epoch;std::string error;
@@ -2537,19 +2537,30 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const auto received=remakeAsyncChannel.ReceiveImage(returned,error);
 	if(received==RemakeChannelResult::Received) {
 		RemakeNeuralInput validated;
+		auto& overlay=remakeAsyncOverlaySources[returned.source.sequence%2];
 		const bool accepted=returned.frame<=metadata.frameId&&metadata.frameId-returned.frame<=8
 			&&returned.producer.epoch==producer.epoch
+			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,metadata.frameId,producer)
 			&&BuildRemakeNeuralInput(returned,returned.frame,returned.producer,validated);
 		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
 			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
 			(unsigned long long)returned.source.sequence,(unsigned long long)metadata.frameId,accepted);
-		if(accepted)remakeAsyncReturned=std::move(returned);
+		if(accepted) {
+			remakeAsyncReturned=std::move(returned);remakeAsyncAcceptedOverlay=std::move(overlay);overlay={};
+			NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
+				(unsigned long long)remakeAsyncAcceptedOverlay.identity.frame,(unsigned long long)remakeAsyncAcceptedOverlay.identity.receipt.sequence);
+		}
 	}
 	if(received==RemakeChannelResult::Closed) {
-		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();remakeAsyncReturned.reset();remakeAsyncStopped=true;return;
+		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;return;
 	}
 	remakeAsyncChannel.ExpireReturns(metadata.frameId,producer,8);
-	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8))remakeAsyncReturned.reset();
+	for(auto& source:remakeAsyncOverlaySources)
+		if(source.identity.frame&&(source.identity.frame>metadata.frameId||metadata.frameId-source.identity.frame>8))source={};
+	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8)) {
+		remakeAsyncReturned.reset();remakeAsyncAcceptedOverlay={};
+	}
+	if(!remakeAsyncChannel.HasReturnCredit())return;
 	remakeAsyncTextures.BeginFrame(metadata.frameId,producer.epoch);
 	std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
 	for(int c=0;c<4;++c)for(int r=0;r<4;++r)viewport[c*4+r]=matrix[c][r];
@@ -2569,13 +2580,21 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures);
 	};
 	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error))return;
+	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame)return;
+	RemakeOverlaySnapshot overlay;
+	acquireNeuralInputs();
+	const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],packet.frame,producer,overlay);
+	releaseNeuralInputs();
+	if(!copied)return;
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
-	if(result==RemakeChannelResult::Published)
+	if(result==RemakeChannelResult::Published) {
+		overlay.identity.receipt=receipt;remakeAsyncOverlaySources[receipt.sequence%2]=std::move(overlay);
 		NOTICE_LOG(RENDERER,"Remake async publish: frame=%llu producer=%llu sequence=%llu bytes=%u digest=%llu capture=false wait=false presentation=false",
 			(unsigned long long)packet.frame,(unsigned long long)producer.ordinal,(unsigned long long)receipt.sequence,
 			receipt.bytes,(unsigned long long)receipt.digest);
+	}
 	} catch(const std::exception& error) {
-		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();remakeAsyncReturned.reset();remakeAsyncStopped=true;
+		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async feed stopped: %s; existing presentation retained",error.what());
 	}
 }

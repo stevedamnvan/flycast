@@ -97,6 +97,14 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
  impl_=std::move(p);error.clear();return true;
 }
+bool RemakeLiveChannel::HasReturnCredit()const noexcept {
+ if(!impl_||impl_->owner||!impl_->live()||impl_->sequence==UINT64_MAX)return false;
+ const auto& pending=impl_->sources[(impl_->sequence+1)%2];
+ if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence)return false;
+ for(auto& slot:impl_->shared->slots)
+  if(InterlockedCompareExchange(&slot.state,freeSlot,freeSlot)==freeSlot)return true;
+ return false;
+}
 RemakeChannelResult RemakeLiveChannel::PublishForReturn(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
  if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
  if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}

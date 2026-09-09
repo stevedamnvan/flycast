@@ -27,6 +27,7 @@ public:
  // Return-aware producer: consumed source slots do not release pending image
  // ownership. Busy skips without waiting; legacy one-way Publish is unchanged.
  RemakeChannelResult PublishForReturn(const remake::Packet&,RemakeChannelReceipt&,std::string&);
+ bool HasReturnCredit() const noexcept;
  // Retire expired source ownership, not neural history. Late replies reject.
  unsigned ExpireReturns(std::uint64_t currentFrame,const ProducerIdentity&,std::uint64_t maxAge);
  RemakeChannelResult Receive(remake::Packet&,RemakeChannelReceipt&,std::string&);

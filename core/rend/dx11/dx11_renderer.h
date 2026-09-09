@@ -35,6 +35,7 @@
 #include "rend/neural/performance_tracker.h"
 #include "rend/neural/quality_capture.h"
 #include "rend/neural/pvr_material_capture.h"
+#include "rend/neural/remake_overlay_snapshot.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -308,6 +309,11 @@ protected:
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
+	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
+	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
+	void resetRemakeAsyncFrames() {
+		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
+	}
 	std::string remakeAsyncToken;
 	std::uint64_t remakeAsyncEpoch=0;
 	bool remakeAsyncStopped=false;

@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-166: delayed images own their original native color and overlay mask
+
+Before publishing an ordinary scene, GPU-copy its native framebuffer and R8
+overlay mask to private shader-readable textures. Attach the issued receipt
+only after publication succeeds. Two pending snapshot slots mirror source
+receipt ownership; one separate accepted snapshot moves with the validated
+returned image. Exact receipt/frame/producer/epoch/age match is mandatory.
+Expired, reset or closed sessions release snapshots, never substitute the
+current frame's HUD. Return-credit preflight avoids copies when either pending
+return ownership or transport slots are full. A provisional candidate exists
+only within publication; bounded snapshot ownership is not yet full VRAM/leak
+measurement. Copy commands use normal wrapped-input acquire/release ordering
+and never CPU readback/wait. Native color SRV remains BGRA UNORM, not sRGB.
+No display override or neural-history advancement is introduced by retention.
+
 ## D-165: opt-in ordinary scene feed is separate from returned presentation
 
 FLYCAST_REMAKE_ASYNC_CHANNEL enables source stamping and DX11 scene publication

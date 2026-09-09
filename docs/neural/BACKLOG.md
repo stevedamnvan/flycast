@@ -55,8 +55,11 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action: retain receipt-keyed original HUD/overlay and native fallback
-surfaces for delayed returned-image presentation. LOG529 ordinary-frame feed
+Current action: compose and present delayed returned scenes using their owned
+original HUD/overlay/native surfaces and explicitly distinct source/current IDs.
+LOG530 retains receipt-keyed original surfaces; actual30-source On12 run accepts
+27 paired replies with matching original overlays at age2. No display override
+exists yet. LOG529 ordinary-frame feed
 matches60 sender/receiver scenes,60 image pairs,59 published replies and56
 retained pairs at2..3 frames old. One return is explicitly busy-dropped and three
 published replies are not retained. This is not returned presentation or combined
@@ -73,6 +76,14 @@ stamp delayed images with the current frame or pair them with current-frame HUD
 or native motion. Keep the reset-only/full-bias limitation explicit until real
 returned-scene temporal guidance is implemented. Measure delivery/skips/latency
 on moving gameplay; do not call synchronous capture performance evidence.
+LOG530 working slice: GPU-copy native color and R8 overlay mask before each
+publication; attach the issued receipt only on success. Keep two pending source
+snapshots and one accepted snapshot. A returned pair requires exact receipt,
+frame/producer and age match before its original overlays move into accepted
+ownership. No display override yet. Test source mutation after snapshot, wrong
+receipt/epoch/age and actual ordinary On12 handoff; do not use a current HUD as
+the fallback for a missing older snapshot. Return-credit preflight avoids new
+GPU copies while the bounded ledger/transport is busy.
 LOG527 implements explicit return-credit publication and source-age/epoch
 expiration in the existing channel, with516/516 automation tests after a
 512pass/4fail RED control. A consumed source slot is

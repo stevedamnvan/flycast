@@ -27,6 +27,7 @@
 #include "rend/neural/producer_identity.h"
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_input_replay.h"
+#include "rend/neural/remake_overlay_snapshot.h"
 
 #include <algorithm>
 #include <cmath>
@@ -247,6 +248,24 @@ int RunSelfTests()
 		}
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
+			RemakeOverlayIdentity owner;owner.frame=packet.frame;owner.producer=packet.producer;owner.receipt={1,22,33};
+			RemakeReturnedImage image;image.frame=owner.frame;image.producer=owner.producer;image.source=owner.receipt;
+			auto current=owner.producer;current.ordinal+=2;current.cycle+=2;
+			suite.Expect(owner.Matches(image,owner.frame+2,current),"delayed overlay matches original source receipt, not current frame");
+			for(unsigned mutation=0;mutation<6;++mutation) {
+				auto wrong=image;
+				if(mutation==0)++wrong.frame;
+				if(mutation==1)++wrong.producer.epoch;
+				if(mutation==2)++wrong.producer.ordinal;
+				if(mutation==3)++wrong.producer.cycle;
+				if(mutation==4)++wrong.source.digest;
+				if(mutation==5)++wrong.source.sequence;
+				suite.Expect(!owner.Matches(wrong,owner.frame+2,current),"delayed overlay rejects mismatched frame/producer/receipt");
+			}
+			suite.Expect(!owner.Matches(image,owner.frame+9,current),"delayed overlay rejects expired source");
+			++current.epoch;suite.Expect(!owner.Matches(image,owner.frame+2,current),"delayed overlay rejects current reset epoch");
+		}
+		{
 			auto skipped=next;skipped.frame+=3;skipped.producer.ordinal+=3;skipped.producer.cycle+=3;
 			suite.Expect(remake::AsyncSourceContinuation(packet,skipped)&&!remake::DiagnosticContinuation(packet,skipped),"async dropped source accepted only by explicit non-temporal policy");
 			auto wrong=skipped;++wrong.producer.epoch;
@@ -283,6 +302,7 @@ int RunSelfTests()
 					&&returnPublisher.PublishForReturn(b,receipt,error)==RemakeChannelResult::Published
 					&&returnConsumer.Receive(owned,secondReceipt,error)==RemakeChannelResult::Received;
 				suite.Expect(ready,"return-aware source slots consumed with two replies outstanding");
+				suite.Expect(!returnPublisher.HasReturnCredit(),"return credit preflight prevents speculative overlay copies while busy");
 				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Busy
 					&&error=="channel-return-credit-busy","delayed replies prevent source ledger overwrite despite free transport slots");
 				RemakeReturnedImage delayed;delayed.source=first;delayed.frame=packet.frame;delayed.producer=packet.producer;
@@ -291,6 +311,7 @@ int RunSelfTests()
 				suite.Expect(returnConsumer.ReturnImage(delayed,error)==RemakeChannelResult::Published
 					&&returnPublisher.ReceiveImage(accepted,error)==RemakeChannelResult::Received
 					&&accepted.frame==packet.frame,"delayed first reply retains original frame after credit rejection");
+				suite.Expect(returnPublisher.HasReturnCredit(),"return credit preflight resumes after retirement");
 				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Published
 					&&receipt.sequence==3,"returned image releases exactly one source credit without advancing on busy");
 				suite.Expect(returnPublisher.ExpireReturns(c.frame,c.producer,1)==0,"source age at limit remains owned");

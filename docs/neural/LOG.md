@@ -1,5 +1,12 @@
 # Neural rendering evidence log
 
+LOG530 regression: all four serial incremental builds pass; enabled534/534
+selftests, SDK193/193, Python340/340, R8 ownership/material fixture and backlog/
+diff checks pass. Existing external config remains byte-hash unchanged. These
+are incremental working-tree runs, not fresh exact-SHA automation evidence.
+
+#530 2026-09-09 3fa03b59e plus working tree | Add immutable original-native color/R8 HUD-mask snapshots before ordinary publication, issue receipt only on success, and retain two pending plus one accepted snapshot. Returned image acceptance now requires matching original overlay ownership. Return-credit preflight prevents speculative GPU copies while busy. All reset/expiry/close paths release snapshots; no display override. CPU selftests534/534 pass, including wrong frame/producer/receipt/epoch/age and preflight release controls. WARP fixture verifies original native and actual R8 mask bytes survive source mutation and failed capture preserves prior owner (three owned comparisons,20 negative controls total; previous material/cache goldens unchanged). Actual async-overlay-a capture-disabled On12 host completes180 samples/clean close; helper exits0/90 Presents. Inspector requires original overlay receipts:30 matched moving sources/image pairs,30 published replies,zero busy drops,27 retained with exact original color/mask ownership at age2,three not retained,seven source gaps. No composition/presentation, full-HUD classification, performance or combined-DLSS5 proof claimed. Existing40-object helper cleanup warning remains. Sender/consumer/inspector logs and raw images remain private outside tracked source.
+
 LOG529 final checks: guard-inclusive four serial incremental builds pass with
 523/523 enabled selftests, SDK193/193, Python339/339 and the60-source inspector.
 Async-c own executable SHA256 is

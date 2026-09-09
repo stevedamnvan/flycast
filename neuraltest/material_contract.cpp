@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
 #include "rend/neural/pvr_material_capture.h"
+#include "rend/neural/remake_overlay_snapshot.h"
 #include "windows/comptr.h"
 #include "version.h"
 #include <d3d11.h>
@@ -28,6 +29,38 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
   for(unsigned i=0;i<4;++i)for(unsigned c=0;c<4;++c)palette.bytes[i*4+c]=rgba[i][c==0?2:c==2?0:c];
   const DXGI_FORMAT formats[]={DXGI_FORMAT_B5G5R5A1_UNORM,DXGI_FORMAT_B4G4R4A4_UNORM,DXGI_FORMAT_B5G6R5_UNORM,DXGI_FORMAT_B8G8R8A8_UNORM,DXGI_FORMAT_R8G8B8A8_UNORM,DXGI_FORMAT_A8_UNORM};
   unsigned comparisons=0,controls=0,asyncComparisons=0,asyncControls=0;
+  unsigned overlayComparisons=0;
+  {
+   D3D11_TEXTURE2D_DESC desc{};desc.Width=desc.Height=4;desc.MipLevels=desc.ArraySize=1;
+   desc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;desc.SampleDesc.Count=1;desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+   std::vector<std::uint8_t> original(64),maskBytes(16),changed(64,0);
+   for(unsigned i=0;i<64;++i)original[i]=std::uint8_t(i*3);
+   for(unsigned i=0;i<16;++i)maskBytes[i]=i%2?255:0;
+   D3D11_SUBRESOURCE_DATA initial{original.data(),16,0},maskInitial{maskBytes.data(),4,0};
+   auto maskDesc=desc;maskDesc.Format=DXGI_FORMAT_R8_UNORM;
+   ComPtr<ID3D11Texture2D> color,mask;
+   check(SUCCEEDED(device->CreateTexture2D(&desc,&initial,&color.get()))
+    &&SUCCEEDED(device->CreateTexture2D(&maskDesc,&maskInitial,&mask.get())),"overlay-owned-fixture-resources");
+   ProducerIdentity producer{1,2,3};RemakeOverlaySnapshot owned;
+   check(CaptureRemakeOverlay(device,context,color,mask,10,producer,owned),"overlay-original-frame-copy");
+   context->UpdateSubresource(color,0,nullptr,changed.data(),16,0);
+   context->UpdateSubresource(mask,0,nullptr,changed.data(),4,0);
+   std::size_t budget=1024;MaterialPixels retainedColor,newColor;
+   check(ReadMaterialPixels(device,context,owned.color,budget,retainedColor,error)
+    &&ReadMaterialPixels(device,context,color,budget,newColor,error),"overlay-owned-readback");
+   maskDesc.Usage=D3D11_USAGE_STAGING;maskDesc.BindFlags=0;maskDesc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+   ComPtr<ID3D11Texture2D> staging;check(SUCCEEDED(device->CreateTexture2D(&maskDesc,nullptr,&staging.get())),"overlay-mask-staging");
+   context->CopyResource(staging,owned.mask);D3D11_MAPPED_SUBRESOURCE mapped{};
+   check(SUCCEEDED(context->Map(staging,0,D3D11_MAP_READ,0,&mapped)),"overlay-mask-readback");
+   std::vector<unsigned char> retainedMask(16);
+   for(unsigned y=0;y<4;++y)std::memcpy(retainedMask.data()+y*4,static_cast<const unsigned char*>(mapped.pData)+y*mapped.RowPitch,4);
+   context->Unmap(staging,0);
+   check(retainedColor.mips[0].bytes==original&&retainedMask==maskBytes
+    &&newColor.mips[0].bytes==changed&&original!=changed,"overlay-source-mutation-cannot-change-owned-frame");overlayComparisons+=3;
+   const auto kept=owned.color.get();
+   check(!CaptureRemakeOverlay(device,context,color,nullptr,11,producer,owned)&&owned.color.get()==kept
+    &&owned.identity.frame==10,"overlay-copy-failure-preserves-owner");++controls;
+  }
   {
    rend_context emptyContext;
    MaterialShaderGlobals g;
@@ -166,7 +199,7 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
    size_t budget=1024;MaterialPixels pixels;
    check(!ReadMaterialPixels(device,context,texture,budget,pixels,error)&&error=="material-resource-format-or-bounds"&&budget==1024&&pixels.mips.empty(),"material-fixture-array-format-rejection");++controls;
   }
-  std::ofstream report(out/"contract.txt");report<<"git_sha="<<GIT_HASH<<"\napi=native-D3D11-WARP\nraw_and_rgba_comparisons="<<comparisons<<"\nnegative_controls="<<controls<<"\nasync_exact_mips="<<asyncComparisons<<"\nasync_controls="<<asyncControls<<"\nfixture_waits_excluded_from_performance=true\nsource_material_only=true\n";check(bool(report),"material-fixture-report");error.clear();return true;
+  std::ofstream report(out/"contract.txt");report<<"git_sha="<<GIT_HASH<<"\napi=native-D3D11-WARP\nraw_and_rgba_comparisons="<<comparisons<<"\nnegative_controls="<<controls<<"\nasync_exact_mips="<<asyncComparisons<<"\nasync_controls="<<asyncControls<<"\noverlay_owned_comparisons="<<overlayComparisons<<"\nfixture_waits_excluded_from_performance=true\nsource_material_only=true\n";check(bool(report),"material-fixture-report");error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 }

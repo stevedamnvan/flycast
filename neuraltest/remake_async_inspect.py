@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 
 
-def inspect(publisher, consumer, prefix):
+def inspect(publisher, consumer, prefix, require_overlays=False):
     published = {}
     for match in re.finditer(r"Remake async publish: frame=(\d+) producer=(\d+) sequence=(\d+) bytes=(\d+) digest=(\d+) capture=false wait=false presentation=false", publisher):
         frame, producer, sequence, size, digest = map(int, match.groups())
@@ -48,12 +48,16 @@ def inspect(publisher, consumer, prefix):
             raise ValueError("invalid or empty depth")
     ages = []
     retained = set()
+    overlays = {(int(sequence), int(frame)) for frame, sequence in re.findall(
+        r"Remake async overlay retained: frame=(\d+) sequence=(\d+) original_native=true original_mask=true presentation=false", publisher)}
     for match in re.finditer(r"Remake async return: source=(\d+) producer=(\d+) sequence=(\d+) current=(\d+) retained=1 presentation=false", publisher):
         frame, producer, sequence, current = map(int, match.groups())
         if published.get(sequence, ())[:2] != (frame, producer) or not 0 <= current - frame <= 8:
             raise ValueError("retained identity/age mismatch")
         if (sequence, frame) not in returned:
             raise ValueError("retained without consumer return")
+        if require_overlays and (sequence, frame) not in overlays:
+            raise ValueError("retained without matching original overlays")
         if sequence in retained:
             raise ValueError("duplicate retained source")
         retained.add(sequence)
@@ -65,6 +69,7 @@ def inspect(publisher, consumer, prefix):
             "busy_return_drops": len(busy), "retained_pairs": len(ages),
             "published_returns_not_retained": len(returned) - len(ages),
             "retained_age_min": min(ages), "retained_age_max": max(ages),
+            "original_overlay_receipts_required": require_overlays,
             "source_gaps": sum(b[2] != a[2] + 1 for a, b in zip(received, received[1:])),
             "capture_gated": False, "producer_wait": False, "presentation_proven": False,
             "combined_dlss5_proven": False, "temporal_quality_proven": False}
@@ -75,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument("--publisher", type=Path, required=True)
     parser.add_argument("--consumer", type=Path, required=True)
     parser.add_argument("--prefix", type=Path, required=True)
+    parser.add_argument("--require-overlays", action="store_true")
     args = parser.parse_args()
     print(json.dumps(inspect(args.publisher.read_text(errors="replace"),
-                             args.consumer.read_text(errors="replace"), args.prefix), indent=2))
+                             args.consumer.read_text(errors="replace"), args.prefix, args.require_overlays), indent=2))

@@ -1,5 +1,12 @@
 # Neural diagnostics
 
+`remake_async_inspect.py --publisher LOG --consumer LOG --prefix BMP_PREFIX
+--require-overlays` also requires each retained reply's exact original-frame
+overlay receipt. The WARP material fixture tests immutable native color and R8
+mask copies after their source textures change. A matching receipt is not final
+composite pixel proof; delayed presentation must still use those retained SRVs,
+not the current framebuffer/mask. No async display override is enabled yet.
+
 ## Ordinary-frame scene feed (experimental, no returned presentation yet)
 
 Set child-only `FLYCAST_REMAKE_ASYNC_CHANNEL=UNIQUE_TOKEN`,
