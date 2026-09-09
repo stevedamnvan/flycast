@@ -600,6 +600,7 @@ struct DX11OITRenderer : public DX11Renderer
 				rendContext->captureProducer, buffers.effectPixels(), buffers.effectPointers(),
 				trPolyParamsBuffer, effectConstants, shaders.getFinalShader(false), shaders.getFinalVertexShader(),&captureError);
 			remakeCurrentEffectsReason+=remakeCurrentEffects?" captured":" resource-capture-failed";
+			if(remakeCurrentEffects)remakeCurrentEffectsReason+=" logical-copied-bytes="+std::to_string(remakeCurrentEffects->LogicalBytes());
 			remakeCurrentEffectsReason+=" "+captureError;
 			D3D11_TEXTURE2D_DESC backing{};buffers.effectPointers()->GetDesc(&backing);
 			remakeCurrentEffectsReason+=" backing="+std::to_string(backing.Width)+"x"+std::to_string(backing.Height);

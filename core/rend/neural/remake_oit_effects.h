@@ -22,6 +22,7 @@ class RemakeOitEffects {
    &&SUCCEEDED(b->QueryInterface(IID_PPV_ARGS(&bi.get())))&&ai==bi;
  }
  ProducerIdentity producer;
+ std::uint64_t logicalBytes=0;
  ComPtr<ID3D11Buffer> pixels,parameters,constants;
  ComPtr<ID3D11Texture2D> pointers;
  ComPtr<ID3D11UnorderedAccessView> pixelView;
@@ -29,6 +30,13 @@ class RemakeOitEffects {
  ComPtr<ID3D11PixelShader> resolve;
  ComPtr<ID3D11VertexShader> vertex;
 public:
+ // Six owned data objects: three buffers, pointer texture, UAV and SRV.
+ // Resolver shaders are borrowed from the native cache, not newly allocated.
+ std::uint32_t ObjectCount()const noexcept {
+  return (pixels?1u:0u)+(parameters?1u:0u)+(constants?1u:0u)
+   +(pointers?1u:0u)+(pixelView?1u:0u)+(parameterView?1u:0u);
+ }
+ std::uint64_t LogicalBytes()const noexcept {return logicalBytes;}
  bool Matches(const ProducerIdentity& source)const noexcept {
   return producer.Available()&&source.Available()&&source.epoch==producer.epoch
    &&source.ordinal==producer.ordinal&&source.cycle==producer.cycle;
@@ -80,6 +88,7 @@ public:
   // Native OIT allocation grows for RTTs and never shrinks. Retain only the
   // exact main content rectangle, not the larger backing allocation.
   pointerDesc.Width=640;pointerDesc.Height=480;
+  owned->logicalBytes=std::uint64_t(pd.ByteWidth)+td.ByteWidth+cd.ByteWidth+640u*480*4;
   HRESULT hr=device->CreateBuffer(&pd,nullptr,&owned->pixels.get());
   if(FAILED(hr))return fail("create-pixels hr="+std::to_string(hr));
   hr=device->CreateBuffer(&td,nullptr,&owned->parameters.get());
@@ -160,4 +169,19 @@ public:
   output=std::move(color);outputView=std::move(colorView);return true;
  }
 };
+struct RemakeEffectsResources {
+ std::uint32_t snapshots=0,objects=0;
+ std::uint64_t logicalBytes=0;
+};
+template<std::size_t N>
+RemakeEffectsResources CountRemakeEffects(const std::array<const RemakeOitEffects*,N>& owners)noexcept {
+ RemakeEffectsResources result;
+ for(std::size_t i=0;i<N;++i) {
+  if(!owners[i])continue;
+  bool duplicate=false;for(std::size_t j=0;j<i;++j)duplicate|=owners[j]==owners[i];
+  if(duplicate)continue;
+  ++result.snapshots;result.objects+=owners[i]->ObjectCount();result.logicalBytes+=owners[i]->LogicalBytes();
+ }
+ return result;
+}
 }

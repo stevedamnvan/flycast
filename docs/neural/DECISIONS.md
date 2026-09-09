@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-175: effect ownership accounting is allocation-based
+
+Count each retained effect snapshot once across renderer aliases, and distinguish
+logical copied bytes from physical GPU allocation size. Six owned data objects
+exclude borrowed resolver shaders. The startup appearance of one snapshot is
+expected bounded growth, not evidence for or against long-run leakage. LOG558
+adds the missing snapshot counts without claiming the rest of the experimental
+remake resource inventory is complete. Size alone does not establish GPU cost.
+
 ## D-174: preserve ordered native effects rather than flattening translucency
 
 The OIT resolver uses all64 blend pairs, destination alpha/color, a secondary

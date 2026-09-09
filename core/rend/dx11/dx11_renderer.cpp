@@ -2310,6 +2310,10 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 	countArray(neuralOutputD3D12Resources);
 	countArray(neuralOutputWrappedTextures);
 	countArray(neuralOutputWrappedViews);
+	const auto effects=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,5>{
+		remakeCurrentEffects.get(),remakeAsyncOverlaySources[0].effects.get(),remakeAsyncOverlaySources[1].effects.get(),
+		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
+	count+=effects.objects;
 	return count;
 }
 

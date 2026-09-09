@@ -329,6 +329,16 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	const auto effects=flycast::rend::neural::RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),
 		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get());
 	if(!effects){error="source effects capture failed";return false;}
+	const auto usage=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,3>{effects.get(),nullptr,effects.get()});
+	const auto emptyUsage=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,3>{});
+	const auto otherEffects=flycast::rend::neural::RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),
+		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get());
+	const auto distinctUsage=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,3>{effects.get(),otherEffects.get(),effects.get()});
+	if(usage.snapshots!=1||usage.objects!=6||usage.logicalBytes!=sizeof(pixels)+sizeof(poly)+sizeof(constants)+640u*480*4
+		||emptyUsage.snapshots||emptyUsage.objects||emptyUsage.logicalBytes
+		||!otherEffects||distinctUsage.snapshots!=2||distinctUsage.objects!=12||distinctUsage.logicalBytes!=usage.logicalBytes*2) {
+		error="source effects resource accounting or duplicate-owner control failed";return false;
+	}
 	Surface otherDevice;
 	if(!CreateSurface(false,otherDevice,error))return false;
 	if(flycast::rend::neural::RemakeOitEffects::Capture(otherDevice.device.Get(),surface.context.Get(),

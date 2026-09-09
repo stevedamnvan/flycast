@@ -104,6 +104,17 @@ the independently proven opt-in OIT preservation slice; next retain native
 effect contribution in focused changed-output provenance, then address remaining
 scene completeness and bounded resource/latency costs. Do not restart the
 300-frame PNG-throughput detour or claim all occlusion/multipass paths accepted.
+Resource prerequisite before the next replay/provenance extension: expose unique
+retained native-effect snapshot objects and logical copied bytes. Count shared
+aliases once across current/pending/accepted/evaluated owners; do not label
+logical bytes physical VRAM or omit the remaining uninstrumented temporary
+resources. GPU fixtures must falsify double-counting and verify empty ownership.
+This is a bounded accounting correction, not another general profiling phase.
+LOG558 completes that prerequisite: unique aliases and separate allocations
+pass GPU controls; live ax reports about513MiB logical copy per snapshot and
+the expected first-snapshot object increase125 ->131. Physical VRAM, transient
+resources and sustained timing remain unproven. Resume focused post-effect
+provenance next; do not equate this startup probe with a stability pass.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG558 c30f2b587 plus worktree corrects native-effect resource accounting. Count
+unique snapshot allocations across current/two pending/accepted/evaluated owners,
+not shared_ptr aliases. Expose logical copied bytes and six actual owned data
+objects per complete snapshot; borrowed resolver shaders are excluded. GPU
+fixtures on both D3D11 surfaces verify duplicate-owner, separate-allocation and
+empty-owner controls. All four builds and enabled574/574 selftests pass.
+Short ax probe uses120 startup samples, no helper, no image capture, same supplied
+ON stage and executable SHA2563C3FE896D0036678B6FC8BB7114EE7520FB7FE7ACD8FA5A865B3207C6C86E64A.
+It closes0 and reports538,100,352..538,100,392 logical copied bytes per snapshot
+(about513MiB). Resource report now correctly moves125 ->131 objects as the first
+snapshot appears, growth6. This zero-warmup startup allocation is neither a leak
+pass nor final performance evidence; do not repeat the launcher's generic
+resources=pass as a stability conclusion. Actual VRAM, temporary command-list/
+composite resources and other legacy remake resources remain outside this new
+snapshot-only accounting scope. No rendering/effect math or provenance changes.
+Next return to the focused post-effect provenance dependency; use these byte
+counts when designing subsequent copy/lifetime optimization, without claiming
+that memory size alone proves the GPU-time bottleneck.
+
+
 LOG557 bea3a75776be08c97817a5ee246542792c59a675 commits the independently proven
 opt-in native OIT effect snapshot/replay and contribution capture. Four serial
 post-commit incremental builds and574/574 enabled selftests pass in the preserved
