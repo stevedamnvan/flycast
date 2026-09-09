@@ -426,6 +426,34 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		error="source effects accepted a different device";return false;
 	}
 	std::fill(fullPointers.begin(),fullPointers.end(),Eol);
+	{
+		using namespace flycast::rend::neural;
+		const EffectIdentityPoly alphaPoly{(4u<<29)|(5u<<26),0xffffffffu};
+		D3D11_BUFFER_DESC alphaDesc{};polyBuffer->GetDesc(&alphaDesc);
+		D3D11_SUBRESOURCE_DATA initial{&alphaPoly,0,0};TestComPtr<ID3D11Buffer> alphaBuffer;
+		if(FAILED(surface.device->CreateBuffer(&alphaDesc,&initial,alphaBuffer.GetAddressOf()))) {error="alpha ownership fixture buffer";return false;}
+		auto owned=RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),effectIdentity,
+			pixelBuffer.Get(),fullPointerTexture.Get(),alphaBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get(),nullptr,8,0,{alphaPoly});
+		if(!owned){error="alpha ownership fixture capture";return false;}
+		const std::vector<AlphaEffectSelection> selection{{0,alphaPoly}};
+		for(bool exclude:{true,false,true}) {
+			::ComPtr<ID3D11Texture2D> result;::ComPtr<ID3D11ShaderResourceView> view;
+			if(!owned->Compose(surface.device.Get(),surface.context.Get(),effectIdentity,fullColorTexture.Get(),result,view,
+				exclude?selection:std::vector<AlphaEffectSelection>{})) {error="alpha ownership GPU compose";return false;}
+			D3D11_TEXTURE2D_DESC desc{};result->GetDesc(&desc);desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+			TestComPtr<ID3D11Texture2D> read;
+			if(FAILED(surface.device->CreateTexture2D(&desc,nullptr,read.GetAddressOf())))return false;
+			surface.context->CopyResource(read.Get(),result);D3D11_MAPPED_SUBRESOURCE mapped{};
+			if(FAILED(surface.context->Map(read.Get(),0,D3D11_MAP_READ,0,&mapped)))return false;
+			unsigned changes=0;
+			for(unsigned y=0;y<480;++y)for(unsigned x=0;x<640;++x) {
+				const auto* pixel=static_cast<const unsigned char*>(mapped.pData)+y*mapped.RowPitch+x*4;
+				changes+=pixel[0]!=32||pixel[1]!=32||pixel[2]!=32;
+			}
+			surface.context->Unmap(read.Get(),0);
+			if((exclude&&changes)||(!exclude&&!changes)){error="alpha exclusion changes wrong pixels or mutates original stack";return false;}
+		}
+	}
 	if(effects->RetainNativeBackgroundForEvidence(otherDevice.device.Get(),surface.context.Get(),fullColorTexture.Get())
 		||effects->NativeBackgroundForEvidence(effectIdentity)
 		||!effects->RetainNativeBackgroundForEvidence(surface.device.Get(),surface.context.Get(),fullColorTexture.Get())

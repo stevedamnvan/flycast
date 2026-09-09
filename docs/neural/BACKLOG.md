@@ -57,6 +57,18 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
+Current action after LOG582: alpha-material integration now passes28 exact-input
+marked/clean/OFF frames with source-qualified native exclusions and protected HUD.
+Finish its reviewed build/commit checkpoint, then implement the usable camera /
+scene contract using existing source observations and live uploader. Do not
+restart generic effects/provenance or diagnose intentional native weapon trails
+as ghosting. Preserve the explicit projected-depth approximation until evidence
+supports an actual coordinate/camera contract. Returned-scene temporal guidance
+remains a subsequent integration requirement, not satisfied by source guidance.
+
+The following LOG-linked bounds retain the history of this integration slice;
+completed experiments below are not instructions to rerun them.
+
 Current action (LOG564): post-effect external-output provenance is accepted for
 28 consecutive exact-input frames. Advance M2 scene/camera completeness toward
 moving relighting; retain the camera-relative approximation label and use the
@@ -262,6 +274,41 @@ LOG574 GPU ownership checks pass on both APIs. Finish the serial build checkpoin
 then inspect actual translucent-list world draw blend/depth/material identities
 for a bounded material-integration slice. List membership alone is insufficient;
 keep particles/trails native and prevent dual ownership of any promoted surface.
+LOG575 inspects28 existing identities: only source-alpha/additive and ordinary
+source-alpha blending occur; broad world candidate has partial alpha and cannot
+be made opaque. Draw ordinal changes over the interval. Next carry actual
+source-qualified translucent draw/texture plus explicit alpha blend contract
+into a bounded separate material experiment using public draw-alpha support;
+do not substitute refractive glass, infer identity from ordinal, or disable
+native fragments before the corresponding new material is verified. Retained
+census avoids another generic capture phase; source geometry linkage is next.
+LOG576 implements a separate raw alpha-material preview and source/texture/wire
+linkage; live bo delivers6 meshes and visibly relights the railings, both exits0.
+Combined neural/native-effects use is fail-closed to prevent duplicate surfaces.
+Next prove GPU source-alpha/texture-alpha/depth-write behavior and preserve source
+draw identity into an explicit native-effect exclusion mask for those meshes
+only. Then re-enable native particles/trails and combined evaluation with focused
+changed-path validation. Raw preview is not full pipeline acceptance.
+LOG577 executes GPU alpha/depth-write positives and negatives successfully and
+tests a source-qualified exact-parameter exclusion planner (605 selftests).
+Next wire source-owned packed native parameters and receipt-local replay
+overrides, leaving the original native stack untouched. Combined guard remains
+until actual GPU ownership/exclusion controls and integration pass.
+LOG578 wires receipt-local GPU overrides and explicit alpha-combined lane;
+both GPU APIs pass original/excluded/original-preservation controls. Live bp
+returns relit alpha surfaces with remaining native weapon effects and neural
+evaluation. Three independent HUD/backbuffer/completed-Present checks pass,
+both processes exit0. Next focused selection-aware external-output provenance,
+remaining build matrix and moving material review before commit/acceptance.
+Do not repeat generic transport or claim this3-frame result closes full pipeline.
+LOG579 adds selection sidecar fail-closed replay and608 passing selftests.
+Archive bq has30 verified sidecars with a3-frame gap; retain exact matched
+subsets, longest contiguous19. Next run marked/clean/OFF against bq, requiring
+matching scene/guidance/native stack AND alpha exclusions, then finish builds
+and commit. Do not redo archive for a prettier frame count or claim cadence.
+LOG580 marked br times out; retry bs with existing longer helper bound exits0/0
+and saves28 marked frames. Next clean restored bt, disabled bu, then exact-input
+selection-aware audit using bs/bt/bu against bq. Do not repeat successful bs.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

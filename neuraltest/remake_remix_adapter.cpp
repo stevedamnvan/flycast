@@ -22,6 +22,7 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  if (!checked.ok) return checked;
  for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)
   return {false,"cutout-material-not-implemented"};
+ for(const auto& mesh:p.meshes)if(mesh.sourceAlphaBlend)return {false,"alpha-blend-material-not-implemented"};
  // This public material API accepts paths, not caller-owned DDS payloads.
  // In-memory textures belong to the D3D9 compatibility uploader; never silently
  // submit them as untextured materials through this separate adapter.

@@ -597,10 +597,13 @@ struct DX11OITRenderer : public DX11Renderer
 			deviceContext->PSGetConstantBuffers(0, 1, &effectConstants.get());
 			std::string captureError;
 			const auto effectResolver = shaders.getFinalShader(false);
+			std::vector<flycast::rend::neural::EffectIdentityPoly> nativeParameters;
+			for(const auto& pp:rendContext->global_param_tr)
+				nativeParameters.push_back({(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full});
 			auto capturedEffects = flycast::rend::neural::RemakeOitEffects::Capture(device, deviceContext,
 				rendContext->captureProducer, buffers.effectPixels(), buffers.effectPointers(),
 				trPolyParamsBuffer, effectConstants, effectResolver, shaders.getFinalVertexShader(),&captureError,
-				shaders.getCompiledMaxLayers(),0);
+				shaders.getCompiledMaxLayers(),0,nativeParameters);
 			const auto* nativeReference=std::getenv("FLYCAST_REMAKE_EFFECT_NATIVE_REFERENCE");
 			if(capturedEffects&&nativeReference&&std::strcmp(nativeReference,"1")==0
 				&&!capturedEffects->RetainNativeBackgroundForEvidence(device,deviceContext,opaqueTex)) {

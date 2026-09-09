@@ -52,6 +52,7 @@ struct Mesh {
  std::optional<std::uint32_t> sourceTsp; // Diagnostic original sampling/state word.
  // Presence enables PVR punch-through; zero is a valid threshold, not opaque.
  std::optional<std::uint8_t> sourceAlphaReference;
+ bool sourceAlphaBlend=false; // Explicit ordinary source-alpha material experiment.
  // Row-major 3x4 object-to-world; absent means unknown, not identity.
  std::optional<std::array<float, 12>> transform;
  std::vector<Vertex> vertices;

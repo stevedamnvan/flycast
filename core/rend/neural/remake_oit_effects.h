@@ -2,6 +2,7 @@
 #pragma once
 #include "pvr_scene_capture.h"
 #include "remake_effect_identity.h"
+#include "remake_alpha_ownership.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 #include <cstdlib>
@@ -34,6 +35,7 @@ class RemakeOitEffects {
  ComPtr<ID3D11Texture2D> evidenceNativeBackground;
  ComPtr<ID3D11UnorderedAccessView> pixelView;
  ComPtr<ID3D11ShaderResourceView> parameterView;
+ std::vector<EffectIdentityPoly> nativeParameters;
  ComPtr<ID3D11PixelShader> resolve;
  ComPtr<ID3D11VertexShader> vertex;
 public:
@@ -74,7 +76,7 @@ public:
   ID3D11DeviceContext* context,const ProducerIdentity& producer,
   ID3D11Buffer* pixels,ID3D11Texture2D* pointers,ID3D11Buffer* parameters,
   ID3D11Buffer* constants,ID3D11PixelShader* resolve,ID3D11VertexShader* vertex,std::string* error=nullptr,
-  std::uint32_t layers=0,std::uint32_t variant=0) {
+  std::uint32_t layers=0,std::uint32_t variant=0,const std::vector<EffectIdentityPoly>& nativeParameters={}) {
   const auto fail=[&](const std::string& why)->std::shared_ptr<RemakeOitEffects>{if(error)*error=why;return {};};
   if(!device||!context||!producer.Available()||!pixels||!pointers||!parameters
    ||!constants||!resolve||!vertex||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)
@@ -111,6 +113,8 @@ public:
    return fail("resource-bound pixels="+std::to_string(pd.ByteWidth)+" stride="+std::to_string(pd.StructureByteStride)
     +" parameters="+std::to_string(td.ByteWidth)+" constants="+std::to_string(cd.ByteWidth));
   auto owned=std::make_shared<RemakeOitEffects>();
+  if(nativeParameters.size()>8192||nativeParameters.size()*sizeof(EffectIdentityPoly)>td.ByteWidth)return fail("native-parameter-bound");
+  owned->nativeParameters=nativeParameters;
   owned->resolverLayers=layers;owned->resolverVariant=variant;
   owned->producer=producer;resolve->AddRef();vertex->AddRef();
   owned->resolve.reset(resolve);owned->vertex.reset(vertex);
@@ -188,8 +192,11 @@ public:
  }
  bool Compose(ID3D11Device* device,ID3D11DeviceContext* immediate,
   const ProducerIdentity& source,ID3D11Texture2D* background,
-  ComPtr<ID3D11Texture2D>& output,ComPtr<ID3D11ShaderResourceView>& outputView)const {
+  ComPtr<ID3D11Texture2D>& output,ComPtr<ID3D11ShaderResourceView>& outputView,
+  const std::vector<AlphaEffectSelection>& alphaSelections={})const {
   if(!Matches(source)||!device||!immediate||!background||immediate->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return false;
+  std::vector<AlphaEffectSelection> overrides;
+  if(!alphaSelections.empty()&&!PlanAlphaEffectExclusion(producer,source,nativeParameters,alphaSelections,overrides))return false;
   ComPtr<ID3D11DeviceContext> factoryContext;
   ComPtr<ID3D11Device> contextOwner,factoryOwner;
   device->GetImmediateContext(&factoryContext.get());if(!factoryContext)return false;
@@ -228,10 +235,24 @@ public:
    ||FAILED(device->CreateSamplerState(&sd,&sampler.get()))
    ||FAILED(device->CreateRasterizerState(&rd,&raster.get())))return false;
   commands->CopyResource(workingPointers,pointers);
+  ComPtr<ID3D11Buffer> replayParameters;
+  ComPtr<ID3D11ShaderResourceView> replayParameterView;
+  if(!overrides.empty()) {
+   D3D11_BUFFER_DESC parameterDesc{};parameters->GetDesc(&parameterDesc);
+   if(FAILED(device->CreateBuffer(&parameterDesc,nullptr,&replayParameters.get()))
+    ||FAILED(device->CreateShaderResourceView(replayParameters,nullptr,&replayParameterView.get())))return false;
+   immediate->CopyResource(replayParameters,parameters);
+   for(const auto& replacement:overrides) {
+    const UINT offset=replacement.ordinal*sizeof(EffectIdentityPoly);
+    const D3D11_BOX box{offset,0,0,offset+sizeof(EffectIdentityPoly),1,1};
+    immediate->UpdateSubresource(replayParameters,0,&box,&replacement.expected,0,0);
+   }
+  }
   ID3D11UnorderedAccessView* uavs[]={pixelView,pointerView};
   commands->OMSetRenderTargetsAndUnorderedAccessViews(1,&target.get(),nullptr,2,2,uavs,nullptr);
   commands->PSSetShaderResources(0,1,&backgroundView.get());
   ID3D11ShaderResourceView* params=parameterView;
+  if(replayParameterView)params=replayParameterView;
   ID3D11Buffer* globals=constants;
   commands->PSSetShaderResources(5,1,&params);
   commands->PSSetConstantBuffers(0,1,&globals);

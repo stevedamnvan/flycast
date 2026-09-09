@@ -2672,8 +2672,24 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(protectedDraws)NOTICE_LOG(RENDERER,"Remake world overlay exclusion: source=%llu protected_draws=%u policy=native-post-composite",
 		(unsigned long long)metadata.frameId,protectedDraws);
 	const auto* cutout=std::getenv("FLYCAST_REMAKE_PUNCH_THROUGH");
+	const auto* alphaOption=std::getenv("FLYCAST_REMAKE_ALPHA_PREVIEW");
+	const bool alphaPreview=alphaOption&&std::strcmp(alphaOption,"1")==0;
+	const auto* alphaCombinedOption=std::getenv("FLYCAST_REMAKE_ALPHA_COMBINED");
+	const bool alphaCombined=alphaCombinedOption&&std::strcmp(alphaCombinedOption,"1")==0;
+	const auto* neuralOption=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
+	if(alphaCombined&&(alphaPreview||!RemakeNativeEffectsRequested()||!neuralOption||std::strcmp(neuralOption,"1")!=0)) {
+		skip("alpha-combined","requires-owned-effects-and-evaluation");return;
+	}
+	if(alphaPreview&&(RemakeNativeEffectsRequested()||(neuralOption&&std::strcmp(neuralOption,"1")==0))) {
+		skip("alpha-preview","combined-ownership-not-implemented");return;
+	}
 	if(!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0,
-		cutout&&std::strcmp(cutout,"1")==0)) {skip("scene",error);return;}
+		cutout&&std::strcmp(cutout,"1")==0,alphaPreview||alphaCombined)) {skip("scene",error);return;}
+	if(alphaPreview) {
+		unsigned count=0;for(const auto& mesh:scene.meshes)count+=mesh.sourceAlphaBlend;
+		NOTICE_LOG(RENDERER,"Remake alpha material preview: source=%llu meshes=%u combined=false native-effects=false",
+			(unsigned long long)metadata.frameId,count);
+	}
 	if(cutout&&std::strcmp(cutout,"1")==0) {
 		std::size_t count=0;for(const auto& mesh:scene.meshes)count+=mesh.sourceAlphaReference.has_value();
 		NOTICE_LOG(RENDERER,"Remake cutout scene: source=%llu cutout_meshes=%u alpha_reference=%d scope=experimental",
@@ -2705,6 +2721,17 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	releaseNeuralInputs();
 	if(!copied){skip("overlay","copy-failed");return;}
 	if(RemakeNativeEffectsRequested())overlay.effects=remakeCurrentEffects;
+	if(alphaCombined) {
+		if(!PvrSnapshotTextureBindingsMatch(*rendContext,snapshot)){skip("alpha-ownership","source-bindings-changed");return;}
+		for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaBlend) {
+			const auto ordinal=std::uint32_t(mesh.id)-1;
+			if((mesh.id>>32)!=2||ordinal>=rendContext->global_param_tr.size()){skip("alpha-ownership","source-list-range");return;}
+			const auto& pp=rendContext->global_param_tr[ordinal];
+			overlay.alphaEffectSelections.push_back({ordinal,{(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full}});
+		}
+		NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
+			(unsigned long long)packet.frame,unsigned(overlay.alphaEffectSelections.size()));
+	}
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
 	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
@@ -2794,6 +2821,12 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				}
 				NOTICE_LOG(RENDERER,"Remake effect replay matched: source=%llu original=%llu synchronous=true performance_eligible=false",
 					(unsigned long long)returned.frame,(unsigned long long)replayOriginalFrame);
+				if(!remakeAsyncAcceptedOverlay.alphaEffectSelections.empty()||std::filesystem::exists(matchedDirectory/"native-alpha-exclusions.bin")) {
+					std::ifstream selected(matchedDirectory/"native-alpha-exclusions.bin",std::ios::binary);
+					if(!MatchEffectIdentity(selected,AlphaEffectSelectionIdentity(remakeAsyncAcceptedOverlay.alphaEffectSelections),error)) {
+						NOTICE_LOG(RENDERER,"Remake alpha selection replay rejected: %s",error.c_str());return;
+					}
+				}
 			}
 			// Scene/producer/input hashes were checked above. Current receipt owns
 			// the matching original HUD; pixels are explicitly labeled retained replay.
@@ -2834,7 +2867,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(RemakeNativeEffectsRequested()) {
 			if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)preEffects=owned;
 			ComPtr<ID3D11Texture2D> composed;ComPtr<ID3D11ShaderResourceView> composedView;
-			if(!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,owned,composed,composedView))return;
+			if(!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,owned,composed,composedView,
+				remakeAsyncAcceptedOverlay.alphaEffectSelections))return;
 			owned=std::move(composed);view=std::move(composedView);
 			NOTICE_LOG(RENDERER,"Remake source effects composited: source=%llu sequence=%llu scope=native-oit-single-pass-copy-experiment provenance=pending",
 				(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
@@ -3073,7 +3107,7 @@ void DX11Renderer::displayFramebuffer()
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
-				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get());
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections);
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
 		}

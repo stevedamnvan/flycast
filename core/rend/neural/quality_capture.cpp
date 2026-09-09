@@ -398,7 +398,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -443,6 +443,11 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 			if(!WritePng(directory/"evaluated-remix.png",world,error))return false;
 		}
 		std::uint64_t effectPixels=0,effectWorldPixels=0;
+		if(!alphaSelections.empty()) {
+			std::ofstream selectionFile(directory/"native-alpha-exclusions.bin",std::ios::binary);
+			if(!WriteEffectIdentity(selectionFile,AlphaEffectSelectionIdentity(alphaSelections))) {error="alpha-selection-write";return false;}
+			selectionFile.close();if(!selectionFile){error="alpha-selection-close";return false;}
+		}
 		if(preEffects) {
 			RawTexture beforeRaw;
 			if(!ReadTexture(device,context,preEffects,beforeRaw,error))return false;

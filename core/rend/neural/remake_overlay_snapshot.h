@@ -27,6 +27,7 @@ struct RemakeOverlaySnapshot {
  std::shared_ptr<const remake::Packet> captureScene;
  std::uint64_t replayOriginalFrame=0;
  std::shared_ptr<const RemakeOitEffects> effects;
+ std::vector<AlphaEffectSelection> alphaEffectSelections;
  ComPtr<ID3D11Texture2D> color,mask;
  ComPtr<ID3D11ShaderResourceView> colorView,maskView;
 };

@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-183: promoted alpha materials have one source-qualified owner
+
+The explicit alpha-combined experiment exports supported primary source-alpha /
+inverse-source-alpha surfaces with original texture/vertex alpha and disabled
+depth writes. Wire version3 carries this state; older opaque/cutout versions
+remain readable. The public SDK adapter rejects this material until implemented.
+Only successfully exported source draws may be excluded from native effect replay.
+Their receipt owns exact producer, list ordinal and packed native parameters;
+validate all before cloning replay parameters and replacing blend with ZERO/ONE.
+Never mutate the native fragment stack or infer material identity from ordinal
+alone. Additive weapon effects remain native. LOG576-582 record GPU controls,
+live relit alpha geometry, exact HUD and changed-path external-output evidence.
+This is an opt-in integration slice, not recovered camera/world or performance
+acceptance. Reuse its proof unless a subsequent change affects the contract.
+
 ## D-182: protected HUD does not belong in the ray-traced scene
 
 LOG569's exact-source omission/raster controls identify the first two live

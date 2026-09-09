@@ -1,5 +1,183 @@
 # Neural rendering evidence log
 
+LOG583 alpha integration checkpoint: serial alpha-close automation, baseline,
+no-NGX and feature-off builds complete exit0. Three enabled selftests each608/0;
+public SDK mock contract200/0 (runtime_loaded=false, no GPU claim).
+test_effect_material_inspect.py runs2 tests OK; backlog_contract_inspect passes
+document consistency only; git diff --check passes. Reviewed clean bt first
+composited capture: relit world/railings, native impact and protected HUD visible;
+this still image is not moving quality acceptance. Earlier LOG576-582 retain
+moving source and GPU/negative controls, timeout and gaps. Premature read of
+off/SDK logs while serial build was live found missing files; re-polled original
+session63844 to terminal0 and read completed logs. Windows wildcard rg searches
+failed and were replaced by rg --files filtering; no rendering test inferred.
+D-183 records single-owner alpha material policy. Scope ACCEPTED for bounded
+opt-in alpha integration; full camera/temporal/performance acceptance remains open.
+
+LOG582 ee5984002 plus alpha WIP: resumed both bu handles; both were missing,
+and authoritative logs show helper outcome0/121 Presents and host clean_close=yes,
+with no remaining Flycast/helper process. Archived bu logs without overwriting.
+Executed remake_alpha_provenance_audit.py --archive bq --marked bs --clean bt
+--off bu against the retained evidence: PASS28 matched presented originals,
+2173..2181 and2185..2203; all28 external outputs differ from disabled control.
+Exact four guidance inputs, marked/clean pre-marker output, native effect and
+alpha-exclusion bytes, completed marker Presents, pre-effect PNG hash, native
+HUD composition and final backbuffer RGB checks pass. Active consumer tuple is
+upscaling OFF/intensity1/global tone1/diffuse white203/preset0/style0/enabled ON.
+This closes the changed alpha-path provenance check, not camera, quality,
+cadence or full-pipeline acceptance. Intentional native weapon trails remain
+content to preserve, not defects inferred from their mere presence. Prior br
+timeout and bq sequence gap remain retained. No external config modified;
+40 common-device cleanup warning remains. Next finish serial build/selftest
+matrix and commit this integration slice, then scene/camera implementation;
+do not repeat the just-completed provenance matrix without a changed dependency.
+
+LOG581 alpha matrix continuation: clean restored bt completes host0/helper0,
+28 captures on exactly the same archived originals as bs (2173..2181,
+2185..2203). Same executable4A830734BB65B8FDAAD7A12F03B4C2EF60D9DDCF16203E45EBA5B11B564C3FF2.
+bs/bt logs archived uniquely. Disabled bu uses existing EnableHooks0 workspace,
+config656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7,
+same executable/bq archive/2090 start/restored mode/longer helper bound. It is
+running at this checkpoint. No supplied configuration was edited. Full audit
+pending bu completion; matched counts alone are not external-output proof.
+
+LOG580 ee5984002 plus WIP alpha external-output matrix. Marked br replay against
+bq matches source scene/native stack and alpha exclusions but helper's30-second
+post-start watchdog expires after33 returned sources/19 saved captures; host0,
+helper wrapper1 with explicit timeout. Retain br artifacts and do not accept the
+failed run as a completed matrix. Retry bs uses existing helper121-frame mode
+(120-second post-start bound), unchanged host executable
+4A830734BB65B8FDAAD7A12F03B4C2EF60D9DDCF16203E45EBA5B11B564C3FF2/config hash,
+same bq archive and2090 start, marker mode; running at this checkpoint. br logs
+archived uniquely. Add parameterized remake_alpha_provenance_audit.py based on
+the actually used prior post-effects audit, with mandatory exact exclusion-byte
+matching against archive; final audit not yet run because clean/OFF lanes remain.
+bs completes host0/helper0,121 helper Presents and28 saved marked captures,
+originals2173..2181 and2185..2203. Sentinel log reports1024/1024 pixels; do not
+infer the full external-output result from that alone or capture booleans.
+Next clean restored bt and hook-disabled bu, same bq archive/host hash with
+the longer helper bound, then run the parameterized full audit.40 common-device
+cleanup warning persists. Both br timeout and successful bs remain retained.
+
+LOG579 ee5984002 plus WIP: preview captures serialize native-alpha-exclusions.bin
+with exact source ordinal and expected packed parameter words for each selected
+draw. Locked replay checks this alongside existing exact scene/input/native-stack
+identity; missing, changed, or unexpected selection evidence rejects before
+evaluation. Empty legacy captures remain compatible only without an exclusion
+artifact. Tests execute exact roundtrip plus missing/changed negatives;
+alpha-provenance-build2/selftest2 passes608/0. First build also passed before
+explicit complete-type include and extra tests; no failure hidden.
+Start bounded bq30-frame archive, full native-effect identity and alpha-combined
+enabled, executable SHA2564A830734BB65B8FDAAD7A12F03B4C2EF60D9DDCF16203E45EBA5B11B564C3FF2,
+unchanged config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+bp logs archived uniquely. This synchronous archive is not performance evidence;
+marked/clean/OFF comparisons and other configuration builds remain pending.
+bq completes host0/helper0 with30 valid capture directories. Executed sidecar
+audit verifies every full native-effect identity and exclusion header/count;
+selections contain6 or7 source draws. The attempted consecutive30 assertion
+FAILS: sources2171..2181 then2185..2203 (gap2182..2184). Preserve that failure;
+the archive is not30 consecutive frames. The longest retained run is19 frames
+2185..2203. This does not block exact matched provenance; replay only positively
+matching archived inputs, retain gaps, and do not claim300-frame quality cadence.
+Next marked/clean/OFF replay using bq and selection-aware matching; no need to
+repeat archive merely to improve the count.
+
+LOG578 ee5984002 plus WIP: source effect snapshots now retain the exact native
+packed polygon table generated from source PVR state. Compose validates selected
+alpha ordinals and expected words against that owned table, clones GPU parameters,
+and applies ZERO/ONE only to the clone. Original stack/parameters remain intact.
+Executed transparency-contract nativeD3D11 and D3D11On12 verifies excluded replay
+leaves background unchanged, original replay still changes it, and a second
+exclusion repeats correctly (alpha-override-* logs). No new readback/wait in
+ordinary Compose. Receipt-local alpha selections follow accepted overlay/source
+ownership. Explicit FLYCAST_REMAKE_ALPHA_COMBINED=1 requires native-effects and
+neural evaluation; incompatible raw-preview combination rejects. Selection uses
+only final exported alpha packet meshes and exact live snapshot binding checks,
+not a hardcoded material ordinal. Automation combined build/selftest605/0 pass.
+Live bp launched with3 diagnostic captures, executable SHA256
+FF6315CA0B6C7308CEEBC5250E2D0B02F5711BDB2CEF05F5FB4F129B325A3EEF,
+unchanged config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+bo stage logs archived uniquely. Live result, focused external-output evidence,
+other configuration builds and moving material-quality acceptance pending.
+bp completes host0/helper0. Source-owned exclusions vary with exported scene
+(observed8 at2216); evaluated returned scenes compose remaining native effects.
+Independent Pillow/numpy/log audit actually passes3 captures2174..2176: original
+HUD RGBA under mask, final/backbuffer RGB equality, evaluated+effects flags and
+completed-Present joins2176..2178. Viewed2176: relit railings plus native blue
+weapon arc/orange impact and protected HUD; former dark native railing layer no
+longer overlays the promoted material in this image. No perceptual winner or
+external mutation proof inferred. Runtime40-object cleanup warning persists.
+Next serialize/verify receipt selection provenance for focused marked/clean/OFF
+comparison on this changed combined path, run remaining build matrix and moving
+material checks, then commit independently proven slice. This is no longer only
+a raw alpha preview, but full working-pipeline acceptance remains open.
+
+LOG577 ee5984002 plus WIP: extend executed native D3D9 GPU fixture with8
+ordinary-alpha source-selection cases and8 disabled-blend controls, plus correct
+disabled-depth-write and deliberately enabled-depth-write cases. Black-background
+RGB agrees with independent alpha product within1UNORM step; wrong blend and
+depth-write controls measurably fail. alpha-gpu-build1/selftest1 passes598/0.
+Add source-qualified PlanAlphaEffectExclusion: validates full producer identity,
+exact owned packed polygon words, unique bounded ordinals, ordinary(4,5) direct
+accumulation and no secondary-volume state before producing ZERO/ONE replay
+words. Additive, wrong source/state, duplicates, out-of-range and secondary state
+reject without changing output. alpha-ownership-build1/selftest1 passes605/0.
+This planner is not yet wired to GPU parameters or combined rendering. Next
+retain native packed polygon words with the source effect snapshot and create
+a receipt-local parameter override for only exported alpha meshes; do not mutate
+the original native parameter buffer. Keep combined guard until GPU/source
+ownership controls pass. Other configurations and real combined run pending.
+
+LOG576 ee5984002 plus WIP alpha-material prototype. Optional sourceAlphaBlend
+distinguishes ordinary source-alpha materials from opaque/cutout; version3 wire
+carries it, old versions default false. Owned source export admits only list2
+ordinary(4,5) direct accumulation, supported modulation/filter/fog/non-bump paths,
+excluding classified HUD, additive particles, volumes/secondary textures and
+unsupported source ranges. Draw/texture identity remains source-qualified, not
+hardcoded census ordinal. D3D9 uses explicit source-alpha/inverse-source-alpha,
+selected vertex/texture alpha and disabled depth write; public SDK adapter still
+rejects this unimplemented material path. Exact FLYCAST_REMAKE_ALPHA_PREVIEW=1
+is separate raw-return preview only: fail closed if native effect replay or
+combined neural presentation is requested, preventing dual ownership. Full
+world material/ordering/alpha quality is not yet accepted.
+Automation alpha-preview-build1 and598/0 selftests pass, including explicit
+source material, version3 round trip and additive exclusion. Dedicated GPU alpha
+goldens remain pending; do not call existing cutout tests alpha-blend truth.
+Live bo launched for3 captures with host SHA256
+738B5B3936FA610F5143A8BDD94B717DDC9AE7E557E3700124078FA759EBC4F1,
+unchanged config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC,
+async neural0/native effects0/alpha preview1. Raw material experiment, not
+combined DLSS5 evidence. bn stage logs archived uniquely; live result pending.
+bo completes host0/helper0. Live logs report6 alpha material meshes, raw returned
+captures2177..2179. Viewed2178 composite: railings now participate in relit scene;
+weapon arcs/particles absent because native effects deliberately off. Capture
+metadata reports evaluated=false/effects=false and0 HUD/world/backbuffer
+mismatches; independent pixel/Present audit still pending for this prototype.
+No alpha fidelity/ordering or external-consumer acceptance inferred from the
+image. Next dedicated GPU blend/alpha-source/depth-write controls, then a
+source-qualified native-stack ownership split for exactly the exported meshes,
+preserving additive effects and HUD; no hardcoded ordinal exclusion. Other
+build configurations remain pending; this production/harness slice is WIP.
+
+LOG575 ee5984002 read-only retained effect census, without another game run.
+Add strict effect_material_inspect.py for existing canonical identities and
+test_effect_material_inspect.py; executed2 tests include independent pixel/
+blend/ordinal truth and5 malformed-input controls. Analyze all28 retained bf
+identities:1,850,413 source-alpha/additive fragments (4,1),1,486,838 ordinary
+source-alpha/inverse-source-alpha fragments (4,5); no ONE/ZERO shortcut in this
+retained visible population. Source2175 draw257 spansx0..592,y98..204 with18,190
+fragments:7,693 alpha0,8,849 alpha255,1,648 partial alpha. This is a broad world
+candidate, not safely opaque. Ordinal257 appears in only5/28 frames; never use
+that ordinal as durable material identity. Earlier3-frame range partial counts
+1648/1673/1716, full retained ordinal range1557..1716. The census reports raw
+primary/secondary state and surviving coverage, not complete draw/material truth
+or automatic promotion approval. Installed public remix_c.h exposes
+MaterialInfoOpaqueEXT.useDrawCallAlphaState and InstanceInfoBlendEXT explicit
+alpha blend fields; do not equate refractive MaterialInfoTranslucentEXT with
+PVR source-alpha blending. Next connect source-qualified translucent geometry/
+texture identity and explicit blend state in a bounded separate material lane,
+with native-stack ownership exclusion only after correspondence is proven.
+
 LOG574 finish native-reference ownership checks. Reject foreign device/context,
 missing owner, wrong source and repeated capture; copied pixels remain owned
 after mutating the source background. Optional copy adds exactly1 object and

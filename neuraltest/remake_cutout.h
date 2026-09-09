@@ -40,12 +40,16 @@ inline HRESULT ApplyLegacyAlpha(IDirect3DDevice9* device,const Mesh& mesh,IDirec
  const DWORD texture=(tsp&(1u<<19))?D3DTA_TFACTOR:D3DTA_TEXTURE;
  const DWORD vertex=(tsp&(1u<<20))?D3DTA_DIFFUSE:D3DTA_TFACTOR;
  if(FAILED(device->SetRenderState(D3DRS_TEXTUREFACTOR,0xffffffff))
-  ||FAILED(device->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE))
+  ||FAILED(device->SetRenderState(D3DRS_ALPHABLENDENABLE,mesh.sourceAlphaBlend))
+  ||FAILED(device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA))
+  ||FAILED(device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA))
+  ||FAILED(device->SetRenderState(D3DRS_BLENDOP,D3DBLENDOP_ADD))
+  ||FAILED(device->SetRenderState(D3DRS_ZWRITEENABLE,!mesh.sourceAlphaBlend))
   ||FAILED(device->SetRenderState(D3DRS_ALPHATESTENABLE,cutout))
   ||FAILED(device->SetRenderState(D3DRS_ALPHAREF,mesh.sourceAlphaReference.value_or(0)))
   ||FAILED(device->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL))
-  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAOP,cutout?D3DTOP_MODULATE:D3DTOP_SELECTARG1))
-  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG1,cutout?texture:D3DTA_TEXTURE))
+  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAOP,(cutout||mesh.sourceAlphaBlend)?D3DTOP_MODULATE:D3DTOP_SELECTARG1))
+  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG1,(cutout||mesh.sourceAlphaBlend)?texture:D3DTA_TEXTURE))
   ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG2,vertex)))return E_FAIL;
  if(FAILED(device->SetTextureStageState(1,D3DTSS_COLOROP,D3DTOP_DISABLE))
   ||FAILED(device->SetPixelShader(cutout?shader:nullptr)))return E_FAIL;

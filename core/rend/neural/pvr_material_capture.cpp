@@ -254,8 +254,8 @@ bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* conte
 bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,const rend_context& live,
  const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache,ID3D11Texture2D* palette) {
  try {
-  Require(!live.isRTT&&draw.list<=1,"view-texture-list");
-  const auto& list=draw.list==0?live.global_param_op:live.global_param_pt;
+  Require(!live.isRTT&&draw.list<=2,"view-texture-list");
+  const auto& list=draw.list==0?live.global_param_op:draw.list==1?live.global_param_pt:live.global_param_tr;
   Require(draw.ordinal<list.size(),"view-texture-draw");
   const auto& source=list[draw.ordinal];
   Require(source.first==draw.state.first&&source.count==draw.state.count&&source.tcw.full==draw.state.tcw.full

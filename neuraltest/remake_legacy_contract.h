@@ -5,7 +5,7 @@ namespace neuraltest::remake {
 // Resource compatibility only. Caller must validate packets and exact DDS bytes.
 inline bool LegacyResourceCompatible(const Mesh& a,const Mesh& b) {
  return a.id==b.id && a.topology==b.topology && a.indices==b.indices &&
-  a.vertices.size()==b.vertices.size() && a.transform==b.transform &&
+  a.vertices.size()==b.vertices.size() && a.transform==b.transform && a.sourceAlphaBlend==b.sourceAlphaBlend &&
   a.texture.known==b.texture.known && a.texture.id==b.texture.id &&
   a.texture.generation==b.texture.generation &&
   a.texture.paletteGeneration==b.texture.paletteGeneration &&
@@ -13,6 +13,8 @@ inline bool LegacyResourceCompatible(const Mesh& a,const Mesh& b) {
 }
 inline bool LegacySamplingSupported(const Mesh& m) {
  return m.sourceTsp && ((*m.sourceTsp>>13)&3)<=1 && ((*m.sourceTsp>>6)&3)==3
-  &&(!m.sourceAlphaReference||((*m.sourceTsp>>22)&3)!=3);
+  &&(!m.sourceAlphaReference||((*m.sourceTsp>>22)&3)!=3)
+  &&(!m.sourceAlphaBlend||(!m.sourceAlphaReference&&((*m.sourceTsp>>29)&7)==4&&((*m.sourceTsp>>26)&7)==5
+   &&((*m.sourceTsp>>24)&3)==0&&((*m.sourceTsp>>22)&3)!=3));
 }
 }

@@ -7,6 +7,7 @@
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/pvr_palette_binding.h"
+#include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -103,6 +104,30 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		ProducerIdentity owner{1,2,3};const EffectIdentityPoly alpha{(4u<<29)|(5u<<26),0xffffffffu};
+		std::vector<EffectIdentityPoly> params{alpha};std::vector<AlphaEffectSelection> selected{{0,alpha}},out;
+		suite.Expect(PlanAlphaEffectExclusion(owner,owner,params,selected,out)&&out.size()==1&&out[0].expected.primary==(1u<<26),
+			"alpha ownership exclusion preserves native destination");
+		std::ostringstream selectionWire(std::ios::binary);std::string selectionError;
+		const auto identity=AlphaEffectSelectionIdentity(selected);
+		suite.Expect(WriteEffectIdentity(selectionWire,identity),"alpha selection evidence writes");
+		std::istringstream selectionInput(selectionWire.str(),std::ios::binary);
+		suite.Expect(MatchEffectIdentity(selectionInput,identity,selectionError),"alpha selection evidence exact match");
+		auto changedIdentity=identity;changedIdentity.back()^=1;
+		std::istringstream changedInput(selectionWire.str(),std::ios::binary),missingInput;
+		suite.Expect(!MatchEffectIdentity(changedInput,changedIdentity,selectionError)
+			&&!MatchEffectIdentity(missingInput,identity,selectionError),"alpha selection evidence rejects changed or missing selection");
+		for(unsigned mutation=0;mutation<6;++mutation) {
+			auto source=owner;auto p=params;auto s=selected;auto previous=out;
+			if(mutation==0)++source.ordinal;if(mutation==1)++s[0].expected.primary;
+			if(mutation==2)s.push_back(s[0]);if(mutation==3)s[0].ordinal=1;
+			if(mutation==4){p[0].primary=(4u<<29)|(1u<<26);s[0].expected=p[0];}
+			if(mutation==5){p[0].secondary=0;s[0].expected=p[0];}
+			suite.Expect(!PlanAlphaEffectExclusion(owner,source,p,s,out)&&out.size()==previous.size()
+				&&out[0].expected.primary==previous[0].expected.primary,"alpha ownership rejects source/state/duplicate/range/additive/secondary mutation");
+		}
+	}
 	{
 		TCW resource{};resource.PixelFmt=PixelPal4;resource.TexAddr=42;resource.PalSelect=1;
 		auto draw=resource;draw.PalSelect=17;
@@ -227,6 +252,18 @@ int RunSelfTests()
 			source.draws.back().protectedOverlay=false;
 			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,true)&&cutoutView.meshes.size()==2,
 				"unprotected world cutout is not removed by overlay exclusion");
+			source.draws.back().list=2;source.draws.back().state.tsp.SrcInstr=4;source.draws.back().state.tsp.DstInstr=5;
+			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,false,true)
+				&&cutoutView.meshes.size()==2&&cutoutView.meshes.back().sourceAlphaBlend,
+				"ordinary source alpha geometry carries explicit material contract");
+			remake::Packet alphaPacket,roundtrip;std::ostringstream alphaWire(std::ios::binary);
+			bool alphaOk=BuildRemakeViewPacket(cutoutView,reader,alphaPacket,error)&&SerializeRemakeViewPacket(alphaWire,alphaPacket,error);
+			std::istringstream alphaInput(alphaWire.str(),std::ios::binary);
+			suite.Expect(alphaOk&&DeserializeRemakeViewPacket(alphaInput,roundtrip,error)&&roundtrip.meshes.back().sourceAlphaBlend,
+				"version3 alpha material survives owned transport");
+			source.draws.back().state.tsp.DstInstr=1;
+			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,false,true)&&cutoutView.meshes.size()==1,
+				"additive particles are not promoted by ordinary alpha preview");
 		}
 		{
 			std::ostringstream opaque(std::ios::binary);std::string why;

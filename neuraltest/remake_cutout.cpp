@@ -89,6 +89,51 @@ bool RunLegacyCutoutFixture(std::string& error) {
   ||FAILED(readback->LockRect(&map,nullptr,D3DLOCK_READONLY)))return fail("cutout negative readback");
  bool opaqueVisible=true;for(unsigned i=0;i<8;++i)opaqueVisible&=(static_cast<const DWORD*>(map.pBits)[i]&0xffffff)==0xffffff;
  readback->UnlockRect();if(!opaqueVisible||!wrongOpaquePixels||!wrongRoundingCases)return fail("cutout negative controls");
+ unsigned wrongBlendCases=0;
+ for(bool wrong:{false,true})for(unsigned flags=0;flags<4;++flags)for(unsigned vertexAlpha:{128u,255u}) {
+  remake::Mesh alpha;alpha.sourceAlphaBlend=true;
+  alpha.sourceTsp=(3u<<6)|(4u<<29)|(5u<<26)|((flags&1)?1u<<20:0)|((flags&2)?1u<<19:0);
+  auto vertices=std::array<Vertex,4>{quad[0],quad[1],quad[2],quad[3]};
+  for(auto& v:vertices)v.color=(vertexAlpha<<24)|0xffffff;
+  if(FAILED(remake::ApplyLegacyAlpha(device.Get(),alpha))
+   ||FAILED(device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE))
+   ||(wrong&&FAILED(device->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE)))
+   ||FAILED(device->Clear(0,nullptr,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0xff000000,1,0))
+   ||FAILED(device->BeginScene()))return fail("alpha blend fixture begin");
+  const auto drawn=device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,2,vertices.data(),sizeof(Vertex));
+  const auto ended=device->EndScene();
+  if(FAILED(drawn)||FAILED(ended)||FAILED(device->GetRenderTargetData(target.Get(),readback.Get()))
+   ||FAILED(readback->LockRect(&map,nullptr,D3DLOCK_READONLY)))return fail("alpha blend fixture readback");
+  bool correct=true;
+  for(unsigned i=0;i<8;++i) {
+   const unsigned a=(flags&1)?vertexAlpha:255,b=(flags&2)?255:alphas[i];
+   const int expected=int(std::floor(double(a)*b/255+.5));
+   const auto pixel=static_cast<const DWORD*>(map.pBits)[i];
+   for(unsigned c=0;c<3;++c)correct&=std::abs(int((pixel>>(c*8))&255)-expected)<=1;
+  }
+  readback->UnlockRect();
+  if(wrong)wrongBlendCases+=!correct;else if(!correct)return fail("alpha blend source selection truth");
+ }
+ if(!wrongBlendCases)return fail("alpha blend disabled negative inert");
+ for(bool wrong:{false,true}) {
+  remake::Mesh alpha;alpha.sourceAlphaBlend=true;alpha.sourceTsp=(3u<<6)|(4u<<29)|(5u<<26);
+  if(FAILED(remake::ApplyLegacyAlpha(device.Get(),alpha))
+   ||FAILED(device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE))
+   ||(wrong&&FAILED(device->SetRenderState(D3DRS_ZWRITEENABLE,TRUE)))
+   ||FAILED(device->Clear(0,nullptr,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0xff000000,1,0))
+   ||FAILED(device->BeginScene()))return fail("alpha depth fixture begin");
+  auto behind=std::array<Vertex,4>{quad[0],quad[1],quad[2],quad[3]};
+  for(auto& v:behind){v.z=.5f;v.color=0xff00ff00;}
+  const bool ok=SUCCEEDED(device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,2,quad,sizeof(Vertex)))
+   &&SUCCEEDED(remake::ApplyLegacyAlpha(device.Get(),opaque))
+   &&SUCCEEDED(device->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_DIFFUSE))
+   &&SUCCEEDED(device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,2,behind.data(),sizeof(Vertex)));
+  const auto ended=device->EndScene();
+  if(!ok||FAILED(ended)||FAILED(device->GetRenderTargetData(target.Get(),readback.Get()))
+   ||FAILED(readback->LockRect(&map,nullptr,D3DLOCK_READONLY)))return fail("alpha depth fixture readback");
+  bool green=true;for(unsigned i=0;i<8;++i)green&=(static_cast<const DWORD*>(map.pBits)[i]&0xffffff)==0x00ff00;
+  readback->UnlockRect();if(green==wrong)return fail("alpha depth-write negative control");
+ }
  error.clear();return true;
 }
 }

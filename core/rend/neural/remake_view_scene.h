@@ -18,6 +18,7 @@ struct RemakeViewVertex {
 struct RemakeViewMesh {
  PvrCapturedDraw sourceDraw;
  std::optional<std::uint8_t> sourceAlphaReference;
+ bool sourceAlphaBlend=false;
  std::vector<RemakeViewVertex> vertices; // Expanded triangle list; flat normals.
 };
 struct RemakeViewScene {
@@ -39,7 +40,7 @@ struct RemakeViewScene {
 // The empirical tolerance admits an experiment; it does NOT close strict parity.
 inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  const ProducerIdentity& expectedProducer,std::uint64_t expectedFrame,
- RemakeViewScene& output,std::string& error,bool estimateUntraced=false,bool includeCutouts=false) {
+ RemakeViewScene& output,std::string& error,bool estimateUntraced=false,bool includeCutouts=false,bool includeAlpha=false) {
  const auto fail=[&](const char* why){error=why;return false;};
  if(!expectedProducer.Available() || packet.frame!=expectedFrame || !expectedFrame
   || packet.sourceProducer.epoch!=expectedProducer.epoch
@@ -129,10 +130,13 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   if(draw.protectedOverlay){++result.omittedDraws;continue;}
   const auto& state=draw.state;
   const bool cutout=includeCutouts&&draw.list==1;
+  const bool alpha=includeAlpha&&draw.list==2&&state.tsp.SrcInstr==4&&state.tsp.DstInstr==5
+   &&!state.tsp.SrcSelect&&!state.tsp.DstSelect&&state.tsp.ShadInstr==3&&state.tsp.FilterMode<=1
+   &&state.tsp.FogCtrl!=3&&state.tcw.PixelFmt!=PixelBumpMap;
   if(cutout&&!packet.sourceAlphaReference)return fail("view-cutout-source-alpha-missing");
   if(cutout&&(state.tsp.ShadInstr!=3||state.tsp.FilterMode>1||state.tsp.FogCtrl==3||state.tcw.PixelFmt==PixelBumpMap)) {++result.omittedDraws;continue;}
-  if((draw.list!=0&&!cutout) || draw.vertexRange || state.isNaomi2() || state.pcw.Volume
-   || state.texture || state.texture1 || draw.texture1 || state.isp.ZWriteDis
+  if((draw.list!=0&&!cutout&&!alpha) || draw.vertexRange || state.isNaomi2() || state.pcw.Volume
+   || state.texture || state.texture1 || draw.texture1 || (state.isp.ZWriteDis&&!alpha)
    || (state.pcw.Texture && !draw.texture)) {++result.omittedDraws;continue;}
   if(state.first>packet.indices.size() || state.count>packet.indices.size()-state.first)
    return fail("view-draw-range");
@@ -146,6 +150,7 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   }
   if(!complete){++result.omittedDraws;continue;}
   RemakeViewMesh mesh;mesh.sourceDraw=draw;if(cutout)mesh.sourceAlphaReference=packet.sourceAlphaReference;
+  mesh.sourceAlphaBlend=alpha;
   std::uint32_t previous[2]{};std::size_t stripLength=0;
   for(std::size_t i=state.first;i<std::size_t(state.first)+state.count;++i) {
    const auto vertex=packet.indices[i];
