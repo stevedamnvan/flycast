@@ -5,6 +5,7 @@ from PIL import Image
 from source_dds import encode
 from source_dds import capture_bundle
 from source_dds import publish_capture
+from source_dds import verify_published
 from unittest.mock import patch
 import hashlib
 import tempfile
@@ -23,6 +24,13 @@ class DdsTests(unittest.TestCase):
                 result=publish_capture({}, {}, [], None, out)
                 self.assertEqual((out/'asset-0.dds').read_bytes(),data)
                 self.assertEqual(json.loads((out/'manifest.json').read_text()),result)
+                self.assertEqual(verify_published({}, {}, [], None, out),result)
+                wrong=dict(result,frame_id=2)
+                (out/'manifest.json').write_text(json.dumps(wrong))
+                with self.assertRaisesRegex(ValueError,'frame_id'):verify_published({}, {}, [], None, out)
+                (out/'manifest.json').write_text(json.dumps(result))
+                (out/'asset-0.dds').write_bytes(data[:-1]+bytes([data[-1]^1]))
+                with self.assertRaisesRegex(ValueError,'differs'):verify_published({}, {}, [], None, out)
                 with self.assertRaises(FileExistsError):publish_capture({}, {}, [], None, out)
                 self.assertFalse((out/'manifest.pending').exists())
                 bundle['assets'][0]['sha256']='wrong'

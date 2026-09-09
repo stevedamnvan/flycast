@@ -3,7 +3,7 @@ from expression_mesh_inspect import build
 
 
 def fixture():
-    scene=dict(schema='flycast-pvr-scene-v2',frame_id=1782,game_id='T1401N',
+    scene=dict(schema='flycast-pvr-scene-v2',frame_id=1782,game_id='T1401N',git_sha='fixture',
                vertices=[[0,0,0]]*3,indices=[0,1,2],
                draws=[dict(list=0,ordinal=1,first=0,count=3,range_space='indices')])
     rows=[dict(vertex=i,draw=1,record=[1,4*i],error=0.,

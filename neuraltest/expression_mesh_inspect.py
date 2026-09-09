@@ -25,7 +25,7 @@ def build(scene, rows, matrix_contract):
                 triangles.append(dict(source_draw=draw,vertices=tri))
     require(triangles,'no supported triangles')
     failures=[v for v in vertices if vertices[v]['reprojection_error_pixels']>=.001]
-    return dict(schema='flycast-expression-evidence-mesh-v1',frame_id=scene['frame_id'],game_id=scene['game_id'],
+    return dict(schema='flycast-expression-evidence-mesh-v1',frame_id=scene['frame_id'],game_id=scene['game_id'],git_sha=scene['git_sha'],
         coordinate_space='calibrated-camera-relative',vertices=list(vertices.values()),triangles=triangles,
         calibration=matrix_contract,strict_reprojection_failures=failures,strict_tolerance_pixels=.001,
         strict_reprojection_pass=not failures,world_camera_recovered=False,complete_scene=False,

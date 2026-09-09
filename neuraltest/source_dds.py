@@ -5,6 +5,31 @@ import json
 from pathlib import Path
 
 
+def verify_published(scene, materials, ordinals, directory, output):
+    """Recompute capture binding before trusting exported files; no scene promotion."""
+    from transform_store_inspect import require
+    expected=capture_bundle(scene,materials,ordinals,directory)
+    output=Path(output);path=output/'manifest.json'
+    require(path.stat().st_size<=1024*1024,'DDS manifest bound')
+    manifest=json.loads(path.read_text(encoding='utf-8'))
+    require(manifest.get('schema')=='flycast-source-dds-bundle-v1'
+            and manifest.get('complete') is True,'DDS manifest incomplete')
+    for key,value in expected.items():
+        if key!='assets':require(manifest.get(key)==value,'DDS manifest '+key)
+    require(isinstance(manifest.get('assets'),dict)
+            and set(manifest['assets'])=={str(a) for a in expected['assets']},'DDS asset coverage')
+    for aid,asset in expected['assets'].items():
+        name=f'asset-{aid}.dds'
+        metadata={k:v for k,v in asset.items() if k!='dds'}
+        metadata.update(file=name,bytes=len(asset['dds']))
+        require(manifest['assets'][str(aid)]==metadata,'DDS asset metadata')
+        # Never read a path supplied by the manifest.
+        file=output/name
+        require(file.stat().st_size==len(asset['dds']),'DDS file size')
+        require(file.read_bytes()==asset['dds'],'DDS file differs from capture')
+    return manifest
+
+
 def publish_capture(scene, materials, ordinals, directory, output):
     """Create-only asset export. A manifest is present only after readback checks."""
     bundle=capture_bundle(scene,materials,ordinals,directory)
