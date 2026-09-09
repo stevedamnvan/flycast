@@ -23,7 +23,8 @@ private:
  bool ready_ = false;
  remixapi_Interface api_{};
  std::vector<remixapi_MeshHandle> meshes_;
- remixapi_MaterialHandle material_ = nullptr;
+ std::vector<remixapi_MaterialHandle> materials_;
+ std::vector<std::wstring> texturePaths_;
  remixapi_LightHandle light_ = nullptr;
  bool attempted_ = false;
  // Own the memory referenced by the public API through consumption.

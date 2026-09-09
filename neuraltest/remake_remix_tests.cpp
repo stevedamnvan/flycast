@@ -2,14 +2,21 @@
 #include "remake_remix_adapter.h"
 #include <iostream>
 #include <cstdint>
+#include <fstream>
+#include <chrono>
 
 using namespace neuraltest::remake;
 namespace {
 struct Calls {
  int materials=0, meshes=0, lights=0, cameras=0, draws=0, lightDraws=0;
  int freedMaterials=0, freedMeshes=0, freedLights=0, failMesh=0;
- bool valid=true, failDraw=false;
+ int failMaterial=0;
+ bool materialFailureReturnsHandle=false;
+ std::wstring expectedPath;
+ const wchar_t* observedPath=nullptr;
+ bool valid=true, failDraw=false, distinctMaterials=false;
  float cameraX=0;
+ std::uint32_t expectedColor=0xffffffffu;
  float expectedFov=90,expectedAspect=1,expectedNear=.1f,expectedFar=100;
  Vec3 expectedRight{1,0,0},expectedUp{0,1,0},expectedForward{0,0,1};
 } calls;
@@ -17,16 +24,27 @@ constexpr auto ok=REMIXAPI_ERROR_CODE_SUCCESS;
 auto failure() { return static_cast<remixapi_ErrorCode>(1); }
 remixapi_ErrorCode REMIXAPI_CALL material(const remixapi_MaterialInfo* p,remixapi_MaterialHandle* out) {
  ++calls.materials; auto* o=static_cast<const remixapi_MaterialInfoOpaqueEXT*>(p->pNext);
- calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_MATERIAL_INFO && o && o->roughnessConstant==.8f && !p->albedoTexture;
- *out=reinterpret_cast<remixapi_MaterialHandle>(1); return ok;
+ calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_MATERIAL_INFO && o;
+ calls.valid &= calls.expectedPath.empty()?p->albedoTexture==nullptr:
+  p->albedoTexture && std::wstring(p->albedoTexture)==calls.expectedPath;
+ if(p->albedoTexture)calls.observedPath=p->albedoTexture;
+ calls.valid &= o->roughnessConstant==(calls.distinctMaterials?(calls.materials==1?.3f:.6f):.8f);
+ if(calls.distinctMaterials) calls.valid &= o->albedoConstant.x==(calls.materials==1?.2f:.9f);
+ *out=reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(calls.materials));
+ if(calls.failMaterial==calls.materials) {
+  if(!calls.materialFailureReturnsHandle)*out=nullptr;
+  return failure();
+ }
+ return ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL mesh(const remixapi_MeshInfo* p,remixapi_MeshHandle* out) {
  ++calls.meshes; if(calls.failMesh==calls.meshes) return failure();
  const auto& s=p->surfaces_values[0];
  calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_MESH_INFO && p->surfaces_count==1
-  && s.vertices_count==3 && s.indices_count==3 && s.indices_values[2]==2 && s.material
+  && s.vertices_count==3 && s.indices_count==3 && s.indices_values[2]==2
+  && s.material==reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(p->hash))
   && s.vertices_values[0].position[2]==float(p->hash*2) && s.vertices_values[0].normal[2]==-1
-  && s.vertices_values[0].color==0xffffffff && s.vertices_values[0]._pad6==0;
+  && s.vertices_values[0].color==calls.expectedColor && s.vertices_values[0]._pad6==0;
  *out=reinterpret_cast<remixapi_MeshHandle>(std::uintptr_t(calls.meshes)); return ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL light(const remixapi_LightInfo* p,remixapi_LightHandle* out) {
@@ -62,6 +80,63 @@ int main() {
  auto counts=TestSceneContract();
  auto expect=[&](bool v,const char* name) {++(v?counts.passed:counts.failed); std::cout<<(v?"PASS ":"FAIL ")<<name<<'\n';};
  {
+  const auto dir=std::filesystem::temp_directory_path()/
+   ("flycast-dds-test-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+  if(!std::filesystem::create_directory(dir))return 1;
+  const auto path=dir/"synthetic.dds";
+  std::array<std::uint32_t,39> words{};
+  words[0]=0x20534444;words[1]=124;words[2]=0x100f;words[3]=words[4]=1;
+  words[5]=4;words[7]=1;words[19]=32;words[20]=4;words[21]=0x30315844;
+  words[27]=0x1000;words[32]=28;words[33]=3;words[35]=1;words[37]=0xff0000ff;
+  auto write=[&](std::size_t bytes) {std::ofstream f(path,std::ios::binary);f.write(reinterpret_cast<const char*>(words.data()),bytes);};
+  write(152);
+  calls={};calls.expectedPath=path.wstring();
+  {
+   auto p=Synthetic();for(auto& m:p.meshes){m.material->sourceDds=path;m.material->sourceColorExperiment=true;}
+   RemixScene scene(interface());
+   expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"valid DDS path reaches material API");
+   for(auto& m:p.meshes)m.material->sourceDds.clear();
+   expect(calls.observedPath&&std::wstring(calls.observedPath)==calls.expectedPath,"adapter owns path after caller mutation");
+  }
+  auto p=Synthetic();p.meshes[0].material->sourceDds=path;p.meshes[0].material->sourceColorExperiment=true;
+  words[32]=29;write(152);
+  expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","unexpected sRGB DDS rejects");
+  words[32]=28;write(151);
+  expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","truncated DDS rejects");
+  write(156);
+  expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","trailing DDS payload rejects");
+  for(unsigned index:{2u,5u,20u,27u,28u,36u}) {
+   const auto saved=words[index];words[index]^=1;write(152);
+   expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","unsupported DDS flags pitch caps or alpha reject");
+   words[index]=saved;
+  }
+  std::filesystem::remove(path);std::filesystem::remove(dir);
+  expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","missing DDS rejects before API");
+ }
+ for(int failed=1;failed<=2;++failed)for(bool returned:{false,true}) {
+  calls={};calls.failMaterial=failed;calls.materialFailureReturnsHandle=returned;
+  {
+   RemixScene scene(interface());auto p=Synthetic();
+   expect(scene.Submit(p,p.frame,p.game).reason=="create-material"&&calls.cameras==0&&calls.draws==0,
+    "material creation failure cannot draw partial scene");
+  }
+  expect(calls.freedMaterials==failed-1+int(returned)&&calls.freedMeshes==failed-1,
+   "material failure releases every returned handle");
+ }
+ {
+  calls={};calls.distinctMaterials=true;auto p=Synthetic();
+  p.meshes[0].material->albedo.x=.2f;p.meshes[0].material->roughness=.3f;
+  p.meshes[1].material->albedo.x=.9f;p.meshes[1].material->roughness=.6f;
+  RemixScene scene(interface());
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid&&calls.materials==2,"distinct mesh material parameters reach public API");
+ }
+ {
+  calls={};calls.expectedColor=0x12345678u;
+  auto p=Synthetic();for(auto& m:p.meshes)for(auto& v:m.vertices)v.publicColor=calls.expectedColor;
+  RemixScene scene(interface());
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"nonwhite raw public color transported without substitution");
+ }
+ {
   calls={};calls.expectedRight={0,1,0};calls.expectedUp={-1,0,0};
   RemixScene scene(interface());auto p=Synthetic();p.camera.right=calls.expectedRight;p.camera.up=calls.expectedUp;
   expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid&&calls.cameras==1,"explicit rotated axes reach public camera ABI");
@@ -91,7 +166,7 @@ int main() {
   expect(calls.freedMeshes==0,"resources retained through caller consumption");
   expect(scene.Submit(p,8,p.game).reason=="single-use-adapter","duplicate submission blocked");
   auto moved=p.camera; moved.position.x=.25f;
-  expect(scene.Redraw(moved).ok && calls.materials==1 && calls.meshes==2 && calls.lights==1
+  expect(scene.Redraw(moved).ok && calls.materials==2 && calls.meshes==2 && calls.lights==1
    && calls.cameras==2 && calls.draws==4 && calls.cameraX==.25f,"moving camera reuses scene resources");
   moved.provenance=Provenance::Unknown;
   expect(!scene.Redraw(moved).ok && calls.cameras==2,"invalid redraw camera has no API calls");
@@ -100,19 +175,19 @@ int main() {
   const int previousDraws=calls.draws;
   expect(scene.Redraw(moved).reason=="no-complete-scene" && calls.draws==previousDraws,"failed redraw cannot silently resume");
  }
- expect(calls.freedMeshes==2&&calls.freedMaterials==1&&calls.freedLights==1,"scoped resource release");
+ expect(calls.freedMeshes==2&&calls.freedMaterials==2&&calls.freedLights==1,"scoped resource release");
  calls={};
  { RemixScene scene(interface()); auto p=Synthetic();
   expect(scene.Redraw(p.camera).reason=="no-complete-scene" && calls.cameras==0,"redraw before submit makes no calls");
   bool sequence=scene.Submit(p,p.frame,p.game).ok;
   for(int i=1;i<120;i++) {p.camera.position.x=float(i)/238.f;sequence &= scene.Redraw(p.camera).ok;}
-  expect(sequence && calls.cameras==120 && calls.draws==240 && calls.materials==1
+  expect(sequence && calls.cameras==120 && calls.draws==240 && calls.materials==2
    && calls.meshes==2 && calls.lights==1 && calls.freedMeshes==0,"120 frames retain fixed resource count");
  }
- expect(calls.freedMeshes==2&&calls.freedMaterials==1&&calls.freedLights==1,"120 frame scene released exactly once");
+ expect(calls.freedMeshes==2&&calls.freedMaterials==2&&calls.freedLights==1,"120 frame scene released exactly once");
  calls={}; calls.failMesh=2;
  { RemixScene scene(interface()); auto p=Synthetic(); expect(scene.Submit(p,7,p.game).reason=="create-mesh","injected mesh create failure"); }
- expect(calls.freedMeshes==1&&calls.freedMaterials==1&&calls.draws==0,"partial creation cleans resources without drawing");
+ expect(calls.freedMeshes==1&&calls.freedMaterials==2&&calls.draws==0,"partial creation cleans resources without drawing");
  calls={}; calls.failDraw=true;
  { RemixScene scene(interface()); auto p=Synthetic(); expect(scene.Submit(p,7,p.game).reason=="draw-instance-discard-frame","submission failure requires frame discard"); }
  expect(calls.freedMeshes==2&&calls.freedLights==1&&calls.lightDraws==0,"failed submission cleanup");

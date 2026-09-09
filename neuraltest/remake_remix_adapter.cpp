@@ -6,7 +6,7 @@ namespace neuraltest::remake {
 RemixScene::~RemixScene() {
  for (auto m:meshes_) if (m && api_.DestroyMesh) api_.DestroyMesh(m);
  if (light_ && api_.DestroyLight) api_.DestroyLight(light_);
- if (material_ && api_.DestroyMaterial) api_.DestroyMaterial(material_);
+ for (auto m:materials_) if (m && api_.DestroyMaterial) api_.DestroyMaterial(m);
 }
 Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::string& game) {
  if (attempted_) return {false,"single-use-adapter"};
@@ -22,26 +22,34 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
   indices_[i]=Triangles(p.meshes[i]);
   if (indices_[i].empty()) return {false,"empty-triangulation"};
  }
- // Explicit synthetic art direction, never inferred from game material/light.
+ vertices_.resize(p.meshes.size()); meshes_.reserve(p.meshes.size());
+ materials_.reserve(p.meshes.size());
+ texturePaths_.resize(p.meshes.size());
+ for (std::size_t i=0;i<p.meshes.size();++i) {
+ const auto& parameters=*p.meshes[i].material;
  remixapi_MaterialInfoOpaqueEXT opaque{};
  opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
- opaque.albedoConstant={.7f,.7f,.7f}; opaque.opacityConstant=1; opaque.roughnessConstant=.8f;
+ opaque.albedoConstant={parameters.albedo.x,parameters.albedo.y,parameters.albedo.z};
+ opaque.opacityConstant=1; opaque.roughnessConstant=parameters.roughness;
  remixapi_MaterialInfo material{}; material.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
- material.pNext=&opaque; material.hash=0xFC067001;
- if (api_.CreateMaterial(&material,&material_)!=REMIXAPI_ERROR_CODE_SUCCESS || !material_)
+ material.pNext=&opaque; material.hash=p.meshes[i].id;
+ texturePaths_[i]=parameters.sourceDds.wstring();
+ material.albedoTexture=texturePaths_[i].empty()?nullptr:texturePaths_[i].c_str();
+ remixapi_MaterialHandle materialHandle=nullptr;
+ const auto materialResult=api_.CreateMaterial(&material,&materialHandle);
+ if(materialHandle) materials_.push_back(materialHandle);
+ if (materialResult!=REMIXAPI_ERROR_CODE_SUCCESS || !materialHandle)
   return {false,"create-material"};
- vertices_.resize(p.meshes.size()); meshes_.reserve(p.meshes.size());
- for (std::size_t i=0;i<p.meshes.size();++i) {
   const auto& mesh=p.meshes[i]; auto& vertices=vertices_[i]; vertices.resize(mesh.vertices.size());
   for (std::size_t j=0;j<vertices.size();++j) {
    auto& out=vertices[j]; const auto& in=mesh.vertices[j];
    out.position[0]=in.position.x; out.position[1]=in.position.y; out.position[2]=in.position.z;
    out.normal[0]=in.normal->x; out.normal[1]=in.normal->y; out.normal[2]=in.normal->z;
-   out.texcoord[0]=in.u; out.texcoord[1]=in.v; out.color=0xffffffff;
+   out.texcoord[0]=in.u; out.texcoord[1]=in.v; out.color=in.publicColor;
   }
   remixapi_MeshInfoSurfaceTriangles surface{};
   surface.vertices_values=vertices.data(); surface.vertices_count=vertices.size();
-  surface.indices_values=indices_[i].data(); surface.indices_count=indices_[i].size(); surface.material=material_;
+  surface.indices_values=indices_[i].data(); surface.indices_count=indices_[i].size(); surface.material=materialHandle;
   remixapi_MeshInfo info{}; info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;
   info.hash=mesh.id; info.surfaces_values=&surface; info.surfaces_count=1;
   remixapi_MeshHandle handle=nullptr;

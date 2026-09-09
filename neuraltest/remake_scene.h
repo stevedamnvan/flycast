@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace neuraltest::remake {
 struct Vec3 { float x = 0, y = 0, z = 0; };
@@ -18,12 +19,26 @@ struct Camera {
  float fovY = 90, aspect = 1, nearPlane = 0.1f, farPlane = 100;
  Vec3 right{1,0,0}, up{0,1,0}, forward{0,0,1};
 };
-struct Vertex { Vec3 position; std::optional<Vec3> normal; float u = 0, v = 0; };
+struct Vertex {
+ Vec3 position; std::optional<Vec3> normal; float u = 0, v = 0;
+ // Public HardcodedVertex uses B8G8R8A8_UNORM at reviewed Remix revision.
+ std::uint32_t publicColor = 0xffffffffu;
+};
+constexpr std::uint32_t PublicColorFromBgra(std::array<std::uint8_t,4> bytes) {
+ return std::uint32_t(bytes[0]) | (std::uint32_t(bytes[1])<<8)
+  | (std::uint32_t(bytes[2])<<16) | (std::uint32_t(bytes[3])<<24);
+}
 struct TextureIdentity {
  std::uint64_t id = 0, generation = 0, paletteGeneration = 0, rttGeneration = 0;
  bool known = false;
 };
 struct Mesh {
+ struct Material {
+  Vec3 albedo{.7f,.7f,.7f}; float roughness=.8f;
+  std::filesystem::path sourceDds;
+  bool sourceColorExperiment=false; // Not physical albedo or full PVR shading.
+ };
+ std::optional<Material> material; // Explicit caller art direction, not inferred PBR.
  std::uint64_t id = 0, frame = 0;
  Topology topology = Topology::Triangles;
  TextureIdentity texture;

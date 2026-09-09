@@ -54,8 +54,18 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint and verify material/capture slice (LOG357 direct
-C++ guards pass;282 inspectors pass),
+Current next action: checkpoint adapter slice and verify exact SHA, then inspect
+actual-runtime dependency/scene integration. LOG366 header/missing-file controls
+pass4builds/3x312/103 SDK/284 inspectors. LOG365 positive file/lifetime, malformed
+payload and aggregate path budget pass4builds/3x312 selftests/96 SDK checks.
+Captured game texture readiness stays blocked. LOG363/D-129 validates28 base
+decodes and pinned AUTO format preservation; no GPU load claim. LOG362 adds bounded
+explicit-format DDS serialization; public loader accepts DDS and queues copied paths.
+LOG361 verifies
+failure handles and per-surface association (SDK88/88). LOG360 implements
+per-mesh untextured parameters with unknown-material rejection. LOG359/D-128
+prove pinned public BGRA layout; actual runtime/material behavior remains pending.
+c6d50ec73 checkpoint verified/pushed. Then
 then implement an explicitly supported adapter material representation and resolve
 missing normal semantics. LOG355 connects actual source attributes/textures/fog in
 explicit-mip CPU samples; do not expand this into a substitute renderer. All51 sampled

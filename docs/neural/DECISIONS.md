@@ -1,5 +1,28 @@
 # Neural rendering decisions
 
+## D-129: explicit DDS format and retained file lifetime
+
+At reviewed Remix revision e876135b37295dc203ccdb7b20a8089629588201,
+rtx_asset_data_manager.cpp accepts DDS, and rtx_remix_api.cpp copies source
+paths into queued PreloadSource values. Files must remain available through
+asynchronous use. In rtx_texture.cpp, ManagedTexture::imageCreateInfo preserves
+assetInfo.format unless FORCE_BC_SRGB is selected; API preload uses AUTO.
+Use explicit RGBA8 UNORM for the native-source sampling experiment, no silent
+sRGB decode or gamma rewrite. This is not a physical-albedo or final-output
+color-management claim. Independent Pillow decode validates base payloads,
+not Remix GPU loading or the full captured mip chain's runtime selection.
+
+## D-128: public vertex colors preserve native BGRA bytes
+
+Reviewed public source at existing pinned Remix revision
+e876135b37295dc203ccdb7b20a8089629588201:
+[rtx_remix_api.cpp](https://github.com/NVIDIAGameWorks/dxvk-remix/blob/e876135b37295dc203ccdb7b20a8089629588201/src/dxvk/rtx_render/rtx_remix_api.cpp)
+assigns HardcodedVertex.color to color0Buffer with VK_FORMAT_B8G8R8A8_UNORM.
+Thus Flycast raw native BGRA bytes pack little-endian without a channel swap.
+Keep independent red/blue/alpha goldens. This source contract does not prove
+that a supplied runtime matches the revision or that its final material uses
+vertex color as desired; that remains GPU/material validation. No binary read.
+
 ## D-127: source material evidence is not physical albedo or native parity
 
 LOG344-355 connects same-frame draw generations, verified raw textures, original

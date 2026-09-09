@@ -12,6 +12,21 @@ TestCounts TestSceneContract() {
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
  {
+  auto q=p;q.meshes[0].material.reset();
+  expect(ReadyForAdapter(q,7,q.game).reason=="material-unknown","unknown material not synthetic default");
+  q=p;q.meshes[0].material->roughness=-1;
+  expect(ReadyForAdapter(q,7,q.game).reason=="material-parameters","invalid material rejects");
+  q=p;q.meshes[0].material->sourceDds="relative.dds";
+  expect(ReadyForAdapter(q,7,q.game).reason=="source-texture-contract","texture path requires explicit source experiment");
+  q.meshes[0].material->sourceColorExperiment=true;
+  expect(ReadyForAdapter(q,7,q.game).reason=="source-texture-contract","relative texture path rejects");
+  q.meshes[0].material->sourceDds=std::string(4097,'x');
+  expect(Validate(q,7,q.game).reason=="byte-limit","oversized owned texture path rejects before copy");
+ }
+ expect(PublicColorFromBgra({0,0,255,255})==0xffff0000u
+  && PublicColorFromBgra({255,0,0,128})==0x800000ffu,
+  "public BGRA red blue alpha independent word goldens");
+ {
   // Recovered H lens/basis; clip planes remain synthetic, not game evidence.
   auto c=p.camera;
   c.position={-4.402202805233795f,-1.1753900732667373f,4.5792354100240775f};

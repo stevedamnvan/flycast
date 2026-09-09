@@ -4,10 +4,41 @@
 #include <cmath>
 #include <set>
 #include <stdexcept>
+#include <fstream>
 
 namespace neuraltest::remake {
 namespace {
 bool finite(Vec3 v) { return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z); }
+bool validSourceDds(const std::filesystem::path& path) {
+ std::error_code ec;
+ if(!path.is_absolute() || path.native().size()>4096 || path.extension()!=L".dds"
+  || !std::filesystem::is_regular_file(path,ec))return false;
+ const auto size=std::filesystem::file_size(path,ec);
+ if(ec || size<152 || size>64*1024*1024)return false;
+ std::array<unsigned char,148> header{};std::ifstream in(path,std::ios::binary);
+ if(!in.read(reinterpret_cast<char*>(header.data()),header.size()))return false;
+ auto word=[&](unsigned offset) {return std::uint32_t(header[offset])|(std::uint32_t(header[offset+1])<<8)
+  |(std::uint32_t(header[offset+2])<<16)|(std::uint32_t(header[offset+3])<<24);};
+ if(word(0)!=0x20534444 || word(4)!=124 || word(76)!=32 || word(84)!=0x30315844
+  || word(128)!=28 || word(132)!=3 || word(136)!=0 || word(140)!=1)return false;
+ unsigned w=word(16),h=word(12),levels=word(28);
+ if(!w||!h||w>4096||h>4096||!levels||levels>13)return false;
+ // Deliberately narrow contract: exactly the source_dds serializer's layout.
+ const unsigned flags=0x100f|(levels>1?0x20000:0);
+ const unsigned caps=0x1000|(levels>1?0x400008:0);
+ if(word(8)!=flags || word(20)!=w*4 || word(24)!=0 || word(80)!=4
+  || word(108)!=caps || word(112)!=0 || word(116)!=0 || word(120)!=0
+  || word(124)!=0 || word(144)!=0)return false;
+ for(unsigned offset=32;offset<76;offset+=4)if(word(offset)!=0)return false;
+ for(unsigned offset=88;offset<108;offset+=4)if(word(offset)!=0)return false;
+ std::uint64_t bytes=148;
+ for(unsigned i=0;i<levels;++i) {
+  bytes+=std::uint64_t(w)*h*4;
+  if(i+1<levels && w==1 && h==1)return false;
+  w=std::max(1u,w/2);h=std::max(1u,h/2);
+ }
+ return bytes==size;
+}
 float dot(Vec3 a,Vec3 b) {return a.x*b.x+a.y*b.y+a.z*b.z;}
 bool validAxes(const Camera& c) {
  const auto r=c.right,u=c.up,f=c.forward;
@@ -51,6 +82,11 @@ Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, c
   if (m.vertices.size() > limits.vertices - vertices || m.indices.size() > limits.indices - indices) return {false, "count-limit"};
   vertices += m.vertices.size(); indices += m.indices.size();
   if (!addBytes(sizeof(Mesh))) return {false, "byte-limit"};
+  if(m.material) {
+   const auto length=m.material->sourceDds.native().size();
+   if(length>4096 || length>(limits.bytes-bytes)/sizeof(std::filesystem::path::value_type)
+    || !addBytes(length*sizeof(std::filesystem::path::value_type)))return {false,"byte-limit"};
+  }
   // Division before multiplication prevents overflow with adversarial limits.
   if (m.vertices.size() > (limits.bytes - bytes) / sizeof(Vertex)
    || !addBytes(m.vertices.size() * sizeof(Vertex))) return {false, "byte-limit"};
@@ -79,6 +115,14 @@ Result ReadyForAdapter(const Packet& p, std::uint64_t frame, const std::string& 
   constexpr std::array<float,12> identity{1,0,0,0, 0,1,0,0, 0,0,1,0};
   if (*m.transform != identity) return {false, "transform-unsupported"};
   if (m.texture.known) return {false, "textured-material-unsupported"};
+  if (!m.material) return {false,"material-unknown"};
+  const auto& material=*m.material;
+  if(!material.sourceDds.empty() && (!material.sourceColorExperiment || !validSourceDds(material.sourceDds)))
+   return {false,"source-texture-contract"};
+  if (!finite(material.albedo) || material.albedo.x<0 || material.albedo.x>1
+   || material.albedo.y<0 || material.albedo.y>1 || material.albedo.z<0 || material.albedo.z>1
+   || !std::isfinite(material.roughness) || material.roughness<0 || material.roughness>1)
+   return {false,"material-parameters"};
   for (const auto& v : m.vertices) {
    if (!v.normal) return {false, "normal-unknown"};
    auto world = WorldPosition(m, v);
@@ -151,7 +195,7 @@ Packet Synthetic(std::uint64_t frame,float cameraX) {
  Packet p; p.frame=frame; p.game="synthetic-overlap"; p.space=Space::World;
  p.camera.provenance=Provenance::Analytic; p.camera.position.x=cameraX;
  for (int n=1;n<=2;++n) {
-  Mesh m; m.id=n; m.frame=frame;
+  Mesh m; m.id=n; m.frame=frame; m.material=Mesh::Material{};
   m.transform=std::array<float,12>{1,0,0,0,0,1,0,0,0,0,1,0};
   const float s=float(n);
   m.vertices={{{-s,-s,2*s},Vec3{0,0,-1},0,1},{{s,-s,2*s},Vec3{0,0,-1},1,1},{{0,s,2*s},Vec3{0,0,-1},.5f,0}};
