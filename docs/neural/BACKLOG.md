@@ -112,6 +112,15 @@ projection-depth interpretation is strongly supported but full guidance remains
 unproven. Next transport matched returned color/depth together, explicitly
 validate projection conversion/polarity and align motion/masks before neural
 submission. Preserve clear/omitted-surface uncertainty and native fallback;
+Current bounded implementation: channel version3 optional matched projection
+depth, same source receipt and clips, fixed size/range/digest checks, atomic
+publication only after both public color/depth readbacks succeed. Archive and
+compare received depth bytes; truncated/NaN/range/wrong-clip cases must reject
+without publishing color alone. Color-only diagnostics remain separately valid.
+LOG522 now verifies those rejection controls and exact received color/depth on
+three live combat frames. Offscreen composition remains exact and native targets
+unchanged. Finish affected regression, then implement projection conversion and
+the actual pre-evaluation returned-input selection; do not repeat paired transport.
 do not repeat old Gate10 transport or native polarity fixtures.
 Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed

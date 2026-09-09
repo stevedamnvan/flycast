@@ -232,6 +232,9 @@ int RunSelfTests()
 			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects wrong source digest");
 			wrong=image;wrong.bgra.pop_back();
 			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects truncated pixels");
+			wrong=image;wrong.projectionDepth.assign(10,.5f);wrong.nearPlane=packet.camera.nearPlane;wrong.farPlane=packet.camera.farPlane;
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects truncated depth before color publication");
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Empty,"failed depth cannot publish color alone");
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published
 				&&publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.bgra==image.bgra
 				&&returned.frame==image.frame&&returned.source.digest==image.source.digest,"return exact owned pixels and source receipt");
@@ -242,6 +245,14 @@ int RunSelfTests()
 				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==third.frame,
 				"live channel preserves FIFO after lower-slot reuse");
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
+			image.projectionDepth.assign(640*480,.75f);image.projectionDepth[0]=0;image.projectionDepth[1]=1;
+			image.nearPlane=receivedPacket.camera.nearPlane;image.farPlane=receivedPacket.camera.farPlane;
+			wrong=image;wrong.nearPlane+=.1f;
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects depth from wrong projection");
+			wrong=image;wrong.projectionDepth[0]=std::numeric_limits<float>::quiet_NaN();
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects nonfinite depth");
+			wrong=image;wrong.projectionDepth[0]=1.01f;
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects out-of-range projection depth");
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return publishes newer source image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
 			auto fourth=advance(third),bad=fourth;bad.meshes[0].vertices[0].normal.reset();
@@ -254,7 +265,8 @@ int RunSelfTests()
 			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==third.frame
 				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return busy retry preserves source ownership");
 			consumer.Close();
-			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame,
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame
+				&&returned.projectionDepth==image.projectionDepth&&returned.nearPlane==image.nearPlane&&returned.farPlane==image.farPlane,
 				"return completed image survives orderly consumer close");
 			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
 				"live channel consumer shutdown leaves producer in native fallback");

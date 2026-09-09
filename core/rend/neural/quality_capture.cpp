@@ -1011,11 +1011,17 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 					receiptFile<<"{\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
 						<<",\"source_digest\":"<<returned.source.digest<<",\"pixel_bytes\":"<<returned.bgra.size()
 						<<",\"prepared_before_composite\":"<<(remakePreparedBeforeComposite_?"true":"false")
+						<<",\"depth_values\":"<<returned.projectionDepth.size()
 						<<",\"presentation_proven\":false}\n";
 					if(!receiptFile)remakePacketStatus_+="; return-receipt-write-failed";
 					std::ofstream pixelsFile(frameRoot/"remake-return.bgra",std::ios::binary);
 					pixelsFile.write(reinterpret_cast<const char*>(returned.bgra.data()),returned.bgra.size());
 					if(!pixelsFile)remakePacketStatus_+="; return-pixels-write-failed";
+					if(!returned.projectionDepth.empty()) {
+						std::ofstream depthFile(frameRoot/"remake-return-depth.f32",std::ios::binary);
+						depthFile.write(reinterpret_cast<const char*>(returned.projectionDepth.data()),returned.projectionDepth.size()*sizeof(float));
+						if(!depthFile)remakePacketStatus_+="; return-depth-write-failed";
+					}
 					if(textures.remakeComposite) {
 						ComPtr<ID3D11Texture2D> composite;RawTexture compositeRaw;
 						if(!textures.remakeComposite(returned,composite,conversionError)

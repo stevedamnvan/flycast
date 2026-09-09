@@ -375,6 +375,7 @@ int wmain(int argc,wchar_t** argv) {
    };
    if(!legacyRaster&&!presentFrame())break;
   if(!capture.empty() && (frame+1==frames || ((!sequence.empty()||liveChannel) && frame>=60&&!settledFrozen)) && ownedDevice) {
+	flycast::rend::neural::RemakeReturnedImage returnedFrame;
    const std::filesystem::path capturePath=sequence.empty()&&!liveChannel?capture:
     std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
    if(std::filesystem::exists(capturePath)||std::filesystem::exists(capturePath.wstring()+L".rgba32f")) {
@@ -410,13 +411,15 @@ int wmain(int argc,wchar_t** argv) {
     }
     cpu->UnlockRect();
     if(liveChannel&&!floatOutput&&!legacyBackbuffer&&!legacyRaster) {
-     flycast::rend::neural::RemakeReturnedImage returned;
+     auto& returned=returnedFrame;
      returned.source=activeSourceReceipt;returned.frame=packet.frame;returned.producer=packet.producer;
      returned.width=640;returned.height=480;returned.bgra=pixels;
+     if(!captureReturnedDepth) {
      std::string returnError;const auto result=channel.ReturnImage(returned,returnError);
      std::cout<<"live_return sequence="<<returned.source.sequence<<" frame="<<returned.frame
       <<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
       <<" error="<<returnError<<" presentation_proven=false\n"<<std::flush;
+     }
     }
     bool rawOk=true;
     if(floatOutput) {
@@ -460,6 +463,10 @@ int wmain(int argc,wchar_t** argv) {
 		D3DLOCKED_RECT depthLocked{};
 		if(SUCCEEDED(depthHr))depthHr=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
 		if(SUCCEEDED(depthHr)) {
+			returnedFrame.projectionDepth.resize(640*480);
+			for(int y=0;y<480;++y)for(int x=0;x<640;++x)
+				std::memcpy(&returnedFrame.projectionDepth[y*640+x],static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch+x*16,sizeof(float));
+			returnedFrame.nearPlane=packet.camera.nearPlane;returnedFrame.farPlane=packet.camera.farPlane;
 			HANDLE file=CreateFileW(depthPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
 			bool ok=file!=INVALID_HANDLE_VALUE;
 			for(int y=0;y<480&&ok;++y){DWORD written=0;ok=WriteFile(file,
@@ -470,6 +477,13 @@ int wmain(int argc,wchar_t** argv) {
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
 			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr<<'\n'<<std::flush;
 		if(FAILED(depthHr)){outcome=14;break;}
+		if(liveChannel) {
+			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);
+			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
+				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
+				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error<<" presentation_proven=false\n"<<std::flush;
+			if(result==flycast::rend::neural::RemakeChannelResult::Invalid){outcome=14;break;}
+		}
 	 }
   }
    if(legacyRaster&&!presentFrame())break;

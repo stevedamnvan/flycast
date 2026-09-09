@@ -10,6 +10,7 @@
 #include <ostream>
 #include <cstring>
 #include <algorithm>
+#include <cmath>
 namespace flycast::rend::neural {
 namespace {
 constexpr std::size_t capacity=72*1024*1024;
@@ -25,6 +26,8 @@ struct Shared {
  RemakeChannelReceipt imageSource;
  std::uint64_t imageFrame,imageEpoch,imageOrdinal,imageCycle,imageDigest;
  unsigned char imagePixels[640*480*4];
+	std::uint32_t depthCount;float nearPlane,farPlane;
+	std::uint64_t depthDigest;float depthPixels[640*480];
 };
 bool name(const std::string& token,std::wstring& output) {
  if(token.empty()||token.size()>64)return false;
@@ -57,7 +60,7 @@ struct SlotGuard {Slot* slot;~SlotGuard(){if(slot)InterlockedExchange(&slot->sta
 struct RemakeLiveChannel::Impl {
  HANDLE mapping=nullptr,peer=nullptr;Shared* shared=nullptr;bool owner=false;
  std::uint64_t sequence=0,frame=0;ProducerIdentity producer;
- struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;};
+ struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;};
  Source sources[2];std::uint64_t returnedSequence=0;
  ~Impl(){
   if(shared){if(owner)InterlockedExchange(&shared->ready,0);UnmapViewOfFile(shared);}
@@ -78,7 +81,7 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  if(!p->mapping||GetLastError()==ERROR_ALREADY_EXISTS){error="channel-create-or-existing";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared){error="channel-map";return false;}
- p->owner=true;p->shared->magic=0x434d5246;p->shared->version=2;p->shared->ownerPid=GetCurrentProcessId();
+ p->owner=true;p->shared->magic=0x434d5246;p->shared->version=3;p->shared->ownerPid=GetCurrentProcessId();
  // A newly created pagefile-backed mapping is zero-initialized; publish header last.
  InterlockedExchange(&p->shared->ready,1);impl_=std::move(p);error.clear();return true;
 }
@@ -88,7 +91,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  auto p=std::make_unique<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
  if(!p->mapping){error="channel-consumer-unavailable";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
- if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=2){error="channel-header";return false;}
+ if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=3){error="channel-header";return false;}
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
@@ -109,7 +112,7 @@ RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,Rema
   if(!SerializeRemakeViewPacket(output,packet,error))return RemakeChannelResult::Invalid;
   slot->bytes=std::uint32_t(buffer.size());slot->sequence=p.sequence+1;slot->digest=digest(slot->payload,slot->bytes);
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;p.frame=packet.frame;p.producer=packet.producer;
-  p.sources[p.sequence%2]={receipt,packet.frame,packet.producer};
+  p.sources[p.sequence%2]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
   guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);error.clear();return RemakeChannelResult::Published;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
@@ -129,7 +132,7 @@ RemakeChannelResult RemakeLiveChannel::Receive(remake::Packet& output,RemakeChan
   InputBuffer buffer(slot->payload,slot->bytes);std::istream input(&buffer);remake::Packet packet;
   if(!DeserializeRemakeViewPacket(input,packet,error))return RemakeChannelResult::Invalid;
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;output=std::move(packet);
-  p.sources[p.sequence%2]={receipt,output.frame,output.producer};
+  p.sources[p.sequence%2]={receipt,output.frame,output.producer,output.camera.nearPlane,output.camera.farPlane};
   error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
@@ -149,11 +152,17 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
   ||image.width!=640||image.height!=480||image.bgra.size()!=sizeof(s.imagePixels)) {
   error="return-source-or-format";return RemakeChannelResult::Invalid;
  }
+	const bool hasDepth=!image.projectionDepth.empty();
+	if((hasDepth&&(image.projectionDepth.size()!=640*480||image.nearPlane!=source.nearPlane||image.farPlane!=source.farPlane
+		||!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return std::isfinite(v)&&v>=0&&v<=1;})))
+		||(!hasDepth&&(image.nearPlane!=0||image.farPlane!=0))) {error="return-depth-contract";return RemakeChannelResult::Invalid;}
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;
  std::memcpy(s.imagePixels,image.bgra.data(),sizeof(s.imagePixels));
  s.imageDigest=digest(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels));
+	s.depthCount=hasDepth?640*480:0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
+	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),sizeof(s.depthPixels));s.depthDigest=digest(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels));}
  p.returnedSequence=image.source.sequence;InterlockedExchange(&s.imageState,readySlot);
  error.clear();return RemakeChannelResult::Published;
 }
@@ -174,6 +183,14 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
  try {
   RemakeReturnedImage image;image.source=s.imageSource;image.frame=s.imageFrame;image.producer=source.producer;
   image.width=640;image.height=480;image.bgra.assign(s.imagePixels,s.imagePixels+sizeof(s.imagePixels));
+	if(s.depthCount) {
+		if(s.depthCount!=640*480||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
+			||s.depthDigest!=digest(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels))
+			||!std::all_of(s.depthPixels,s.depthPixels+640*480,[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
+			error="return-depth-integrity";return RemakeChannelResult::Invalid;
+		}
+		image.projectionDepth.assign(s.depthPixels,s.depthPixels+640*480);image.nearPlane=s.nearPlane;image.farPlane=s.farPlane;
+	}else if(s.nearPlane!=0||s.farPlane!=0||s.depthDigest!=0){error="return-depth-empty-header";return RemakeChannelResult::Invalid;}
   output=std::move(image);p.returnedSequence=s.imageSource.sequence;error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }

@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-158: paired returned guidance owns the same publication boundary as color
+
+The optional projection-depth return is published only after both public
+readbacks succeed. Source receipt, frame, producer and projection clips must
+agree; fixed extent, finite normalized range and separate corruption digests
+are checked before receiving ownership. Invalid depth must never silently
+degrade a requested pair into color-only output. Explicit color-only diagnostic
+callers remain supported and do not acquire neural-guidance authority.
+LOG522 verifies exact paired bytes on three live combat frames. This is a
+dependency for submission, not proof of compatible motion, depth conversion,
+asynchronous pacing or combined neural presentation.
+
 ## D-157: capture returned-scene depth before attaching native guidance to new color
 
 The public CopyRenderingOutput DEPTH enum alone does not specify numerical

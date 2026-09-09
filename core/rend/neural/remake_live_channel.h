@@ -8,6 +8,8 @@ struct RemakeChannelReceipt {std::uint64_t sequence=0,digest=0;std::uint32_t byt
 struct RemakeReturnedImage {
  RemakeChannelReceipt source;std::uint64_t frame=0;ProducerIdentity producer;
  std::uint32_t width=0,height=0;std::vector<unsigned char> bgra;
+	// Optional same-frame public depth; projection interpretation still experimental.
+	std::vector<float> projectionDepth;float nearPlane=0,farPlane=0;
 };
 // Windows, one producer/consumer, two bounded slots. No waits or file transport
 // on Publish; busy means skip/native fallback. Not a neural acceptance history.
