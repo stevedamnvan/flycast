@@ -45,6 +45,32 @@
 
 void os_VideoRoutingTermDX();
 
+#ifdef FLYCAST_ENABLE_NEURAL
+namespace {
+// Bounded, opt-in elapsed CPU diagnostics. Includes driver blocking; not GPU time.
+class RemakeCpuScope {
+	const char* label;
+	std::uint64_t frame;
+	bool enabled;
+	std::chrono::steady_clock::time_point start;
+public:
+	RemakeCpuScope(const char* label, std::uint64_t frame, unsigned& count)
+		: label(label), frame(frame), enabled(false) {
+		const char* value=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
+		enabled=value&&std::strcmp(value,"1")==0&&count<600;
+		if(enabled){++count;start=std::chrono::steady_clock::now();}
+	}
+	~RemakeCpuScope() {
+		if(enabled) {
+			const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+				(unsigned long long)frame,label,ms);
+		}
+	}
+};
+}
+#endif
+
 const D3D11_INPUT_ELEMENT_DESC MainLayout[]
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, (UINT)offsetof(Vertex, x), D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -2630,6 +2656,8 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		char* end=nullptr;const auto ordinal=std::strtoul(start,&end,10);
 		if(*end||ordinal>10000000||producer.ordinal<ordinal)return;
 	}
+	static thread_local unsigned feedTimingCount=0;
+	RemakeCpuScope feedTiming("scene-feed",metadata.frameId,feedTimingCount);
 	if(remakeAsyncEpoch&&remakeAsyncEpoch!=producer.epoch) {
 		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async epoch changed: new consumer token required; native presentation retained");return;
@@ -2669,7 +2697,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	for(int c=0;c<4;++c)for(int r=0;r<4;++r)viewport[c*4+r]=matrix[c][r];
 	PvrDecodedPacket snapshot;RemakeViewScene scene;
 	const auto* estimate=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
-	if(!SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error)) {skip("snapshot",error);return;}
+	bool snapshotReady;
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("source-snapshot",metadata.frameId,count);
+		snapshotReady=SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error);
+	}
+	if(!snapshotReady) {skip("snapshot",error);return;}
 	snapshot.sourceAlphaReference=remakeSourceAlphaReference;
 	// Match the concatenated OP/PT/TR ordinal used by native overlay-mask replay.
 	// Exclude only when that same policy will restore the owned native overlay.
@@ -2693,8 +2727,14 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(alphaPreview&&(RemakeNativeEffectsRequested()||(neuralOption&&std::strcmp(neuralOption,"1")==0))) {
 		skip("alpha-preview","combined-ownership-not-implemented");return;
 	}
-	if(!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0,
-		cutout&&std::strcmp(cutout,"1")==0,alphaPreview||alphaCombined)) {skip("scene",error);return;}
+	bool sceneReady;
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("view-scene",metadata.frameId,count);
+		sceneReady=BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0,
+			cutout&&std::strcmp(cutout,"1")==0,alphaPreview||alphaCombined);
+	}
+	if(!sceneReady) {skip("scene",error);return;}
 	if(alphaPreview) {
 		unsigned count=0;for(const auto& mesh:scene.meshes)count+=mesh.sourceAlphaBlend;
 		NOTICE_LOG(RENDERER,"Remake alpha material preview: source=%llu meshes=%u combined=false native-effects=false",
@@ -2718,11 +2758,22 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
 		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get());
 	};
-	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
+	remake::Packet packet;
+	bool packetReady;
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("packet-build",metadata.frameId,count);
+		packetReady=BuildRemakeViewPacket(scene,reader,packet,error);
+	}
+	if(!packetReady){skip("packet",error);return;}
 	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
 	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
 	auto proposedAnchor=remakeCameraAnchor;
-	if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)){skip("camera-anchor",error);return;}
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("camera-anchor",metadata.frameId,count);
+		if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)){skip("camera-anchor",error);return;}
+	}
 	std::shared_ptr<RemakeTemporalScene> temporalScene;
 	const auto* temporalOption=std::getenv("FLYCAST_REMAKE_TEMPORAL_PREPARE");
 	if(temporalOption&&std::strcmp(temporalOption,"1")==0) {
@@ -2762,7 +2813,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
 			(unsigned long long)packet.frame,unsigned(overlay.alphaEffectSelections.size()));
 	}
-	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
+	RemakeChannelReceipt receipt;
+	const auto result=[&] {
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("channel-publish",metadata.frameId,count);
+		return remakeAsyncChannel.PublishForReturn(packet,receipt,error);
+	}();
 	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
 		if(temporalScene){temporalScene->receipt=receipt;overlay.temporalScene=std::move(temporalScene);}
@@ -2826,6 +2882,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
 			&&activeNeuralMode!=static_cast<int>(NeuralMode::Dlss5Experimental)))return;
 	const auto& returned=*remakeAsyncReturned;
+	static thread_local unsigned evaluateTimingCount=0;
+	RemakeCpuScope evaluateTiming("returned-evaluate",frame.frameId,evaluateTimingCount);
 	const auto* comparisonCapture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
 	const bool boundedComparison=comparisonCapture&&*comparisonCapture
 		&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))

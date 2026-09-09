@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-200: const wire output and integration-first continuation
+
+Write validated packets without copying owned texture payloads. Preserve wire
+versions and retain the old writer solely as a harness oracle, including actual
+saved-packet comparison. Optional CPU elapsed scopes include driver waits and
+must not be labeled GPU timings. The measured improvement does not establish
+pipeline speed acceptance. Close this bounded optimization and prioritize the
+usable camera/scene contract; exact projected pixels alone do not prove stable
+world coordinates or separation of camera and object motion. Preserve diagnostic
+labels and the parked strict-source failure until independent evidence warrants
+a stronger contract.
+
 ## D-199: optimize observer invalidation without weakening source authority
 
 The observer-only native control reproduces the combined path's slowdown.

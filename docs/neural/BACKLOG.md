@@ -97,8 +97,23 @@ Finish the separately tested forced-close reporting correction, then measure
 noncapture combined cadence on the optimized executable using the existing
 bounded run and second-drive outputs. Compare only the active combined interval
 against LOG661, preserve startup/tail separately, and retain incomplete GPU
-coverage. Further optimization requires bounded profiling, not another guess.
-Normal renderer and camera truth remain open; no removal of required observation.
+coverage. LOG679 completes this measurement:595 combined Presents but active
+median71.7934ms versus60.6342ms before; no end-to-end speedup established.
+WPR sampling failed with0xc5585011; no privilege changes. Owned CPU scopes
+identify channel publication as the largest measured feed substep (LOG686).
+LOG693 closes the const serializer slice: all four configurations built, three
+726/0 suites, version1..4 oracle coverage and300 saved gameplay packets agree.
+The observed publication reduction is modest, not integration or speed acceptance.
+Next priority is FC-067 / M2-camera within the live scene card: establish whether
+the observed common source basis supplies a stable arena coordinate contract
+across moving gameplay, independent of exact screen reprojection. Inspect the
+existing source-qualified vertices and matrix lineage, distinguish stationary
+arena support from moving fighters, and reject a camera interpretation if static
+arena coordinates drift or object transforms contaminate the basis. Preserve the
+diagnostic label until evidence supports stronger semantics. Do not reopen the
+parked strict arithmetic replay or run another generic profiling phase. Advance
+the supported camera contract into live Remix scene delivery when proven; keep
+normal-renderer integration and the full working-pipeline checklist open.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
 readback only for exact supported complete uploads, within64MiB raw-plus-DDS

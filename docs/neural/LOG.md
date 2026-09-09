@@ -1,5 +1,119 @@
 # Neural rendering evidence log
 
+LOG693 resume verifies final baseline/no-NGX selftests726/0, feature-off final
+build complete, automation CLI suite726/0; no live gameplay/build process remains.
+Prior tool run verified all300 archived packets2197..2496 against the legacy
+writer; incomplete packet returned1 and missing CLI argument2 as required.
+Const writer accepted only for byte-preserving serialization and modest observed
+publication reduction. No end-to-end speed acceptance. User priority correction
+ends this profiling slice and returns active work to supported camera/scene
+integration. Anchor inspection confirms common observed basis, not recovered
+physical world/game camera. Static arena stability must be independently tested;
+screen reprojection alone cannot establish camera semantics. Intentional source
+trails remain protected. Two attempted wildcard/nonexistent source-file searches
+failed harmlessly; explicit source discovery located the header implementations.
+
+LOG692 serializer baseline/no-NGX builds and726/0 suites pass, feature-off
+links. Add read-only wire-parity --packet CLI using existing72MiB parser bound
+and old/new writer oracle; automation rebuild and726/0 suite pass. Run it over
+the300 saved real-game packets, plus incomplete archive and missing-argument
+negative controls. Full output retained by tool execution; final count below.
+
+LOG691 const-wire-a host/helper exit0 and clean host close.600 publication
+scopes median16.4851ms versus17.9098ms prior; parent scene-feed35.8003 versus
+37.5663ms. Modest observed improvement only, not solved throughput. Other
+medians packet-build4.386/anchor5.2602/snapshot1.4526/view1.2505ms;597
+returned-evaluate scopes10.9258ms. Finish configuration checks and actual captured
+packet oracle coverage before acceptance. No full pipeline/performance claim.
+
+LOG690 const-wire-parity-final automation build exits0 and726/0 suite passes:
+old mutable writer and new const writer are byte-identical for versions1/3/4
+and version2 thresholds0/128/255. const-wire-a repeats the same bounded CPU
+scope gameplay run, no image capture/config changes. Live timing pending;
+remaining builds and real captured packet compatibility still required.
+
+LOG689 corrected oracle build also exposes existing function-like expected
+macro collision. Rename local stream referenceWire; do not undefine shared
+macros or change production behavior. Second failed build retained.
+
+LOG688 const-wire-parity build fails C2079 because the new harness oracle uses
+ostringstream without including sstream. Add the direct include; preserve failed
+build log and rerun. Initial720/0 preceded the oracle and is not parity evidence.
+
+LOG687 implement read-only wire output without packet/DDS deep copy. Existing
+input parser remains; writer preserves versions1..4, byte/count bounds and
+prevalidation. Initial automation build and720/0 suites pass. Add old mutable
+writer as explicit harness-only parity oracle plus version1/2/3/4 exact-byte
+checks (including threshold0/128/255). Parity build pending; no runtime speedup
+or full wire acceptance claimed. Live publication never invokes the oracle.
+
+LOG686 cpu-scope-c host/helper exit0. Publication is the largest measured feed
+substep; interim38 samples median19.2303ms versus packet-build5.8829 and
+anchor6.5126. Source inspection finds SerializeRemakeViewPacket deep-copies the
+entire packet including DDS payload before its shared mutable reader/writer.
+Next const write path must preserve every schema/bound/validation and exact
+serialized bytes, versions1..4; no digest or source-identity weakening. This
+identifies a concrete avoidable copy, not its isolated measured contribution.
+
+LOG685 cpu-scope-b host/helper exit0. Interim126 snapshot/conversion samples
+median1.4747/1.4472ms, versus parent scene-feed37.9744ms; neither alone explains
+the parent. Add packet-build/camera-anchor/channel-publish subscopes, same exact
+opt-in and600-call cap each, preserving nested timing semantics. No behavior
+optimization stacked. Rebuild pending; final distribution retained in raw log.
+
+LOG684 cpu-scope-a host/helper exit0.600 scene-feed scopes median37.2976ms,
+P95 43.2204;597 returned-evaluate scopes median11.0625ms/P95 12.6994.
+These include driver waits and early returns; no timing sums or pure GPU claims.
+Narrow the measured larger feed stage with source-snapshot and view-scene
+subscopes, each capped600. Parent includes child times, so never add them.
+No behavior change. Rebuild and focused timing next before choosing optimization.
+
+LOG683 CPU-scope automation build exits0 and720/0 selftests pass. Start
+cpu-scope-a: existing1200-host/660-helper noncapture OIT route on second drive,
+only CPU_TIMING=1 added. At most600 logs per owned stage; classify this as
+diagnostic, not performance acceptance. Other configuration builds remain pending.
+
+LOG682 combined-profile-a host/helper exit0 and clean host close; WPR never
+recorded, so no sampled profile exists. Add off-by-default exact-value
+FLYCAST_REMAKE_CPU_TIMING=1 scopes around eligible scene feed and returned
+evaluation. Each scope logs at most600 invocations per render thread/process;
+disabled path reads no clock. Elapsed CPU wall time includes driver waits and
+early returns, not pure GPU execution or per-function observer cost. No GPU
+flush/readback/wait added, no history/presentation policy changed. Build pending.
+
+LOG681 WPR CPU start rejects with0xc5585011, failed to enable policy to profile
+system performance. No policy change/escalation or private binary inspection.
+combined-profile-a remains a bounded normal run, not an acquired CPU trace.
+Fallback next: opt-in coarse owned CPU timings at observer/scene preparation
+and submission boundaries, with uninstrumented baseline retained. Do not infer
+function costs from this failed sampling attempt or keep retrying the privilege.
+
+LOG680 installed WPR supports CPU sampling and reports no active recording;
+tracerpt is present, but this Release build has no local PDBs. Plan a bounded
+10-second CPU trace during active combined gameplay, stored on second drive;
+inspect only owned Flycast execution, do not resolve/inspect private neural
+binary internals. This first trace may establish process/module scheduling only,
+not function attribution. Use no trace timing as performance acceptance. If
+profiling privileges are unavailable, retain exact error and use owned timing
+instrumentation rather than escalating or installing a dependency automatically.
+
+LOG679 optimized observer-cadence-combined-a host/helper exit0 and clean host
+close.595 remake-evaluated Presents,597 accepts,zero identity mismatches,mean
+latency1.994975/max2. Active interval lower-rank Present P50/P95/P99
+71.7934/87.356/93.1035ms versus LOG66160.6342/69.873/75.2718ms: no combined
+speedup; regression retained, not explained away by isolated observer results.
+Only10 active GPU-valid samples; do not use aggregate pass timings to infer a
+bottleneck.40-object helper warning persists. Next bounded sampled profiling
+of owned observer/scene-feed work with no further speculative optimization.
+
+LOG678 1509ba9c8 pushed with matching fork SHA; tracked worktree clean before
+this evidence update. Postcommit serial four builds exit0 and enabled suites
+720/0. Launch observer-cadence-combined-a on second-drive outputs,1200 host
+samples/660 helper frames, no image capture, unchanged default watchdogs,
+consumer tuple and640x480 OIT D3D11On12. Compare active combined interval
+against palette-cadence-a; no claim of full600-frame/99-percent acceptance or
+cycle/audio equivalence merely from a clean process exit.
+
 LOG677 remaining baseline/no-NGX/feature-off builds exit0, baseline/no-NGX
 suites720/0. Together with automation this completes four builds and three
 enabled suites for the performance exit correction. Exhaustive helper tests

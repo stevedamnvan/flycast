@@ -448,6 +448,7 @@ int RunSelfTests()
 			}
 			std::ostringstream out(std::ios::binary);remake::Packet decoded;
 			bool ok=SerializeRemakeViewPacket(out,anchored,error);
+			suite.Expect(VerifyRemakeViewWireParity(anchored,error),"const writer exact version4 reference parity");
 			std::istringstream in(out.str(),std::ios::binary);
 			ok=ok&&DeserializeRemakeViewPacket(in,decoded,error);
 			suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==4
@@ -521,6 +522,7 @@ int RunSelfTests()
 				"ordinary source alpha geometry carries explicit material contract");
 			remake::Packet alphaPacket,roundtrip;std::ostringstream alphaWire(std::ios::binary);
 			bool alphaOk=BuildRemakeViewPacket(cutoutView,reader,alphaPacket,error)&&SerializeRemakeViewPacket(alphaWire,alphaPacket,error);
+			suite.Expect(VerifyRemakeViewWireParity(alphaPacket,error),"const writer exact version3 reference parity");
 			std::istringstream alphaInput(alphaWire.str(),std::ios::binary);
 			suite.Expect(alphaOk&&DeserializeRemakeViewPacket(alphaInput,roundtrip,error)&&roundtrip.meshes.back().sourceAlphaBlend,
 				"version3 alpha material survives owned transport");
@@ -531,11 +533,13 @@ int RunSelfTests()
 		{
 			std::ostringstream opaque(std::ios::binary);std::string why;
 			const bool oldOk=SerializeRemakeViewPacket(opaque,packet,why);
+			suite.Expect(VerifyRemakeViewWireParity(packet,why),"const writer exact version1 reference parity");
 			suite.Expect(oldOk&&static_cast<unsigned char>(opaque.str()[4])==1,"opaque view wire retains version1");
 			for(std::uint8_t threshold:{0,128,255}) {
 				auto cutout=packet;cutout.meshes[0].sourceAlphaReference=threshold;
 				std::ostringstream out(std::ios::binary);remake::Packet decoded;
 				bool ok=SerializeRemakeViewPacket(out,cutout,why);
+				suite.Expect(VerifyRemakeViewWireParity(cutout,why),"const writer exact version2 threshold reference parity");
 				std::istringstream in(out.str(),std::ios::binary);
 				ok=ok&&DeserializeRemakeViewPacket(in,decoded,why);
 				suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==2

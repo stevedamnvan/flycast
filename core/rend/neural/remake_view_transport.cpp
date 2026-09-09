@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_view_transport.h"
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 namespace flycast::rend::neural {
 namespace {
@@ -186,6 +187,50 @@ void packet(Wire& wire,remake::Packet& p) {
  auto checked=remake::ReadyForDiagnosticAdapter(p,p.frame,p.game,true);require(checked.ok,checked.reason.c_str());
 }
 }
+// Read-only writer: never duplicate the owned texture payload to serialize it.
+namespace {
+struct ConstWire {
+ Wire wire;
+ explicit ConstWire(std::ostream& out):wire{nullptr,&out}{}
+ void word(std::uint32_t v){wire.word(v);}
+ void wide(std::uint64_t v){wire.wide(v);}
+ void real(float v){wire.real(v);}
+ void vector(const remake::Vec3& v){real(v.x);real(v.y);real(v.z);}
+ void bytes(const void* p,std::size_t n){require(n<=wire.budget,"view-wire-byte-bound");wire.budget-=n;
+  require(bool(wire.output->write(static_cast<const char*>(p),n)),"view-wire-write");}
+ void count(std::size_t n,unsigned bound){wire.count(n,bound);}
+ void string(const std::string& s,unsigned bound){count(s.size(),bound);if(!s.empty())bytes(s.data(),s.size());}
+};
+void writePacket(ConstWire& w,const remake::Packet& p) {
+ unsigned version=1;
+ for(const auto& m:p.meshes)if(m.sourceAlphaReference)version=2;
+ for(const auto& m:p.meshes)if(m.sourceAlphaBlend)version=3;
+ if(p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
+ w.word(0x56524346);w.word(version);
+ w.wide(p.frame);w.wide(p.producer.epoch);w.wide(p.producer.ordinal);w.wide(p.producer.cycle);
+ w.string(p.game,64);w.string(p.sourceGitSha,64);w.string(p.diagnosticEmbeddingProvenance,128);
+ require(p.diagnosticEmbeddingProvenance==scope||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction"
+  ||(version==4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
+ w.real(p.camera.fovY);w.real(p.camera.aspect);w.real(p.camera.nearPlane);w.real(p.camera.farPlane);
+ if(version==4){w.vector(p.camera.position);w.vector(p.camera.right);w.vector(p.camera.up);w.vector(p.camera.forward);
+  require(p.diagnosticOrigin.has_value(),"view-wire-origin");w.vector(*p.diagnosticOrigin);}
+ w.count(p.omissions.size(),64);for(const auto& s:p.omissions)w.string(s,256);
+ w.count(p.meshes.size(),128);std::size_t vertexTotal=0,indexTotal=0,textureTotal=0;
+ for(const auto& m:p.meshes){
+  w.wide(m.id);w.word(m.sourceTsp.value_or(0));
+  if(version>=2)w.word(m.sourceAlphaReference?*m.sourceAlphaReference:256u);
+  if(version>=3)w.word(m.sourceAlphaBlend);
+  w.word(m.texture.known);w.wide(m.texture.id);w.wide(m.texture.generation);w.wide(m.texture.paletteGeneration);w.wide(m.texture.rttGeneration);
+  require(m.material&&m.material->sourceDds.empty(),"view-wire-owned-texture-required");
+  const auto& data=m.material->sourceDdsBytes;w.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=data.size();
+  if(!data.empty())w.bytes(data.data(),data.size());
+  w.count(m.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=m.vertices.size();
+  for(const auto& v:m.vertices){w.vector(v.position);require(v.normal.has_value(),"view-wire-normal-required");w.vector(*v.normal);w.real(v.u);w.real(v.v);w.word(v.publicColor);}
+  w.count(m.indices.size(),unsigned(262144-indexTotal));indexTotal+=m.indices.size();for(auto i:m.indices)w.word(i);
+ }
+ require(p.producer.Available()&&p.game=="T1401N"&&p.frame,"view-wire-identity");
+}
+}
 bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,std::string& error) {
  try {
   auto checked=remake::ReadyForDiagnosticAdapter(source,source.frame,source.game,true);require(checked.ok,checked.reason.c_str());
@@ -198,7 +243,15 @@ bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,st
    const auto& m=*mesh.material;
    require(m.albedo.x==1&&m.albedo.y==1&&m.albedo.z==1&&m.roughness==.8f,"view-wire-material");
   }
-  remake::Packet copy=source;Wire wire{nullptr,&out};packet(wire,copy);require(bool(out),"view-wire-write");error.clear();return true;
+  ConstWire wire(out);writePacket(wire,source);require(bool(out),"view-wire-write");error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+bool VerifyRemakeViewWireParity(const remake::Packet& source,std::string& error) {
+ try {
+  std::ostringstream actual(std::ios::binary),referenceWire(std::ios::binary);
+  if(!SerializeRemakeViewPacket(actual,source,error))return false;
+  auto copy=source;Wire wire{nullptr,&referenceWire};packet(wire,copy);
+  require(actual.str()==referenceWire.str(),"view-wire-reference-mismatch");return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool DeserializeRemakeViewPacket(std::istream& input,remake::Packet& output,std::string& error) {

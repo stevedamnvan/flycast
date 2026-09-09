@@ -68,6 +68,7 @@ void Usage()
 		"neuraltest performance --game PATH --frames N --warmup N --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable|seh-exception] [--inject-count N] [--inject-after N] [--transition none|resize-minimize-restore|fullscreen-roundtrip|focus-roundtrip] [--transition-delay-ms N] [--renderer-reinit-after N] [--renderer-switch-after N] [--surface-switch-after N] [--actual-device-removal-after N] [--game-reload-after N] [--savestate-roundtrip-after N] [--savestate-load-delay N] [--pause-roundtrip-after N] [--pause-duration N] [--mode-roundtrip-after N] [--mode-off-duration N] [--timeout-ms N]\n";
 	std::cout << "capture save/load options: --savestate-roundtrip-after 1..10000 --savestate-load-delay 1..10000 (default 30); native D3D11 + --remake-packet yes; in-memory only, completion marker required\n";
 	std::cout << "neuraltest selftest\n";
+	std::cout << "neuraltest wire-parity --packet PATH\n";
 }
 
 bool ParseArgs(int argc, char **argv, int first, Args& args, std::string& error)
@@ -3708,6 +3709,17 @@ int main(int argc, char **argv)
 	}
 	const std::string command = argv[1];
 	if (command == "selftest") return neuraltest::RunSelfTests();
+	if (command == "wire-parity") {
+		const auto path=Value(args,"--packet");
+		if(args.size()!=1||path.empty())return 2;
+		flycast::rend::neural::remake::Packet packet;
+		if(!flycast::rend::neural::ReadRemakeViewPacket(path,packet,error)
+			||!flycast::rend::neural::VerifyRemakeViewWireParity(packet,error)) {
+			std::cerr<<error<<'\n';return 1;
+		}
+		std::cout<<"wire-parity exact frame="<<packet.frame<<" meshes="<<packet.meshes.size()<<'\n';
+		return 0;
+	}
 	if (command == "render") return RenderCommand(args);
 	if (command == "determinism") return DeterminismCommand(args);
 	if (command == "scaling") return ScalingCommand(args);
