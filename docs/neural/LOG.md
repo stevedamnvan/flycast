@@ -30,6 +30,12 @@ this still or from provenance. ACCEPTED: bounded post-effect external-output
 regression. Camera/world/scene completeness, final performance, helper cleanup
 warning and full working-pipeline checklist remain open. An initial backlog
 patch missed its context and made no changes; corrected using current text.
+Checkpointc67e0763e post-commit four incremental builds and three574/0 suites
+pass. The queue inspector rejected marking the umbrella M4-DLSS5 row doing
+while its presentation dependency remains unfinished; the shell continued to
+commit despite that failed native-command status. Correct the umbrella to todo
+without withdrawing the scoped LOG564 evidence, then rerun the inspector before
+push. This is a queue-status correction, not a rendering/provenance failure.
 
 LOG563 ba executableF196D5DEAE5299C39F3F3E994F692FD400D523FFBDF70FC6F3720CEFB2194B52
 repeats the ay locked-input comparison with word diagnostics; both processes
