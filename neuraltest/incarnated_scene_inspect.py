@@ -16,7 +16,7 @@ from transform_span_inspect import records
 from transform_store_inspect import require
 
 
-def inspect_capture(capture,tape,ledger,domain=NEXT_DOMAIN,target_count=1122,affine_contributions=False,max_versions=4,dense=False):
+def inspect_capture(capture,tape,ledger,domain=NEXT_DOMAIN,target_count=1122,affine_contributions=False,max_versions=4,dense=False,source_details=False):
     binding=scene_binding(capture,tape,domain)
     rows=decode_tape(tape.read_bytes())['records'];targets=group(rows,domain,target_count)
     life=lifetimes(decode(ledger.read_bytes()),targets['bases'],rows,True,max_versions,dense)
@@ -54,7 +54,7 @@ def inspect_capture(capture,tape,ledger,domain=NEXT_DOMAIN,target_count=1122,aff
         for draw,vertices in domains(domain):
             own=[s for s in samples if s['draw']==draw]
             result=build_frame(scene,own,contract,domain=dict(vertices=list(vertices),draw=draw))
-            results.append({k:result[k] for k in ('supported_triangles','omitted_opaque_triangles','maximum_reprojection_error_pixels')})
+            results.append(result if source_details else {k:result[k] for k in ('supported_triangles','omitted_opaque_triangles','maximum_reprojection_error_pixels')})
         frames.append(dict(frame_id=ordinal+1,draws=results,supported_triangles=sum(r['supported_triangles'] for r in results)))
     return dict(lifetimes=life,arithmetic=verified,consumer_binding=binding,calibration=contract,
                 frames=frames,complete_scene=False,remix_gpu_verified=False)

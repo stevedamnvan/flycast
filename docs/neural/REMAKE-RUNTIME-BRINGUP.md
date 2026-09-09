@@ -1,5 +1,14 @@
 # FC-067 standalone runtime bring-up
 
+LOG433 adds a40-mesh static composed scene containing both fighters and temple.
+`prepare_embedded_draw_inspect.py` supports `--group large|two|four` for the
+retained H source groups; it runs source arithmetic and cross-capture checks,
+then embeds camera-relative positions with explicit provenance.
+`compose_remake_inspect.py BASE_ROOT NEW_OUTPUT ADDITION_ROOT...` accepts up to
+three embedded groups, preserves their revisions/coordinate labels, and verifies
+asset publication. These are diagnostic offline preparation tools, not a live
+Flycast-to-Remix scene exporter or recovered world-space camera.
+
 For an isolated snapshot, `--capture-reverse-light ABSOLUTE_NEW_BMP` uses
 diagnostic distant-light direction(0,0,-1), radiance unchanged, instead of the
 default(0,0,1). It is not recovered game lighting or an automatic title preset.

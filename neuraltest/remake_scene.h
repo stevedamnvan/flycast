@@ -55,6 +55,7 @@ struct Packet {
  std::uint64_t frame = 0;
  std::string game;
  std::string sourceGitSha; // Optional for synthetic packets; retained on diagnostic import.
+ std::string diagnosticEmbeddingProvenance; // Bounded source/reference metadata; never world-space acceptance.
  Space space = Space::PvrProjected;
  Camera camera;
  std::optional<Vec3> diagnosticOrigin; // Shared source anchor, not physical-world proof.

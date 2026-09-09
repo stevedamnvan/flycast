@@ -30,7 +30,10 @@ def diagnostic_clips(artifact, near, far):
 
 def prepare(joined, normal_executable):
     require(joined.get('source_publication_verified') is True,'verified publication required')
-    require(joined.get('coordinate_space')=='reflected-selected-source-anchor','converted anchor required')
+    require(joined.get('coordinate_space') in ('reflected-selected-source-anchor','diagnostic-camera-embedded-anchor'),'converted anchor required')
+    embedded=joined.get('coordinate_space')=='diagnostic-camera-embedded-anchor'
+    if embedded:
+        require(joined.get('embedding_provenance',{}).get('recovered_world_transform') is False,'diagnostic embedding provenance')
     require(joined.get('winding_reversed') is True,'converted winding required')
     require('harness_camera' in joined and 'fixed_origin' in joined,'fixed sequence camera required')
     packets=joined['draw_packets'];require(0<len(packets)<=128,'draw count')
@@ -58,9 +61,11 @@ def prepare(joined, normal_executable):
             split.append(dict(vertex,normal=normals[slot//3],normal_provenance='geometry-derived-flat'))
         meshes.append(dict(source_draw=packet['source_draw'],vertices=split,indices=list(range(len(split))),
                            source_bindings=packet['source_bindings']))
-    return dict(schema='flycast-prepared-remake-scene-v1',frame_id=joined['frame_id'],
+    result=dict(schema='flycast-prepared-remake-scene-v1',frame_id=joined['frame_id'],
         game_id=joined['game_id'],git_sha=joined['git_sha'],coordinate_space=joined['coordinate_space'],
         camera=dict(joined['harness_camera'],nearPlane=None,farPlane=None,accepted_game_camera=False),
         fixed_origin=joined['fixed_origin'],meshes=meshes,source_assets=joined['source_assets'],
         omissions=list(joined['omissions']),strict_reprojection_pass=joined['strict_reprojection_pass'],
         renderable_by_remix_adapter=False,material_semantic='source-color-not-physical-albedo')
+    if embedded:result['embedding_provenance']=dict(joined['embedding_provenance'])
+    return result

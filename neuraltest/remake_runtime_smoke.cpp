@@ -98,6 +98,7 @@ int wmain(int argc,wchar_t** argv) {
    }
    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
+   if(!snapshot->diagnosticEmbeddingProvenance.empty())std::cout<<"diagnostic_embedding="<<snapshot->diagnosticEmbeddingProvenance<<'\n';
   }catch(const std::exception& e){std::cerr<<"artifact rejected before runtime load: "<<e.what()<<'\n';return 2;}
  }
  std::error_code error;

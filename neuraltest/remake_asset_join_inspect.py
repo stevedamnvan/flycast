@@ -5,7 +5,7 @@ from draw_domain_inspect import inspect_scene
 
 
 def join(mesh, scene, materials, directory, output):
-    require(mesh.get('schema')=='flycast-expression-evidence-mesh-v1','mesh schema')
+    require(mesh.get('schema') in ('flycast-expression-evidence-mesh-v1','flycast-calibrated-evidence-scene-v1'),'mesh schema')
     for key in ('frame_id','game_id','git_sha'):
         require(mesh.get(key)==scene[key],'mesh source '+key)
     vertices=mesh['vertices'];triangles=mesh['triangles']

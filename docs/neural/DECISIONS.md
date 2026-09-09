@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-136: preserve camera-embedded and mixed-source provenance
+
+LOG427-434 reuse witnessed preprojection geometry and explicitly embed its
+camera-relative coordinates into the diagnostic reference camera. This is not
+recovered world/object transforms. Preserve source attributes, proper camera
+basis, projection checks and the winding change required by prior Y reflection.
+The distinct diagnostic-camera-embedded-anchor label survives preparation/loading.
+
+Cross-revision reuse requires full source-scene content equality excluding only
+revision, equal material metadata and independently verified selected texture
+bytes. Keep both revisions and the canonical content digest. Mixed compositions
+retain each group's coordinate label, original revision, owned draw list and
+equivalence/embedding record. The top-level revision identifies the reference,
+not a claim that all input captures came from that revision. Loader checks do
+not themselves rerun source arithmetic or prove image correctness.
+
+The40-mesh static capture is diagnostic scene coverage only. It does not close
+camera/world semantics, moving gameplay, physical materials, cleanup or the
+combined external DLSS5 presentation gate.
+
 ## D-135: bounded scene joins and explicit diagnostic lighting
 
 Same-frame batch joins require matching game/SHA/origin/coordinate semantics,

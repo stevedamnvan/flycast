@@ -55,8 +55,16 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: expand remaining traced fighter/scene coverage and moving
-joined endpoints. LOG426 joins first/second H batches (33meshes/22assets),
+Current next action: prepare moving composed endpoints. LOG434 completes focused
+composition tests/full incremental regression for checkpoint. LOG433 renders both fighters
+and temple together (40meshes), retaining four source groups, and passes20 actual
+loader rejection controls. Static diagnostic only; no combined-DLSS5 acceptance.
+LOG430 renders first embedded draw277 (partial fighter) with original revision
+and coordinate labels preserved. Full regression checkpoint remains required.
+Seven large draws were revalidated in LOG427 (5722triangles/frame). LOG428 embedding and LOG429 exact
+H scene/material content equivalence retain distinct source revisions.
+Do not relabel camera-relative coordinates as recovered world transforms.
+Continue moving joined endpoints afterward. LOG426 joins first/second H batches (33meshes/22assets),
 renders the retained geometry under explicit diagnostic lighting and passes
 four incremental builds plus all recorded focused regressions.
 LOG425 reverse-light control reveals full submitted second batch without

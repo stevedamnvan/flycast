@@ -53,10 +53,14 @@ def combine(a, b):
 
 def publish(a, aroot, b, broot, output):
     result = combine(a, b)
+    return publish_verified(result, ((a,aroot),(b,broot)), output)
+
+
+def publish_verified(result, inputs, output):
     # Verify every input publication before creating any output, including shared assets.
     verified = {}
     total = 0
-    for scene, root in ((a, aroot), (b, broot)):
+    for scene, root in inputs:
         for key, asset in scene['source_assets'].items():
             name = 'asset-' + key + '.dds'
             if not key.isdecimal() or asset['file'] != name:

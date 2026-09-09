@@ -14,7 +14,7 @@ from transform_span_inspect import records
 from transform_store_inspect import require
 
 
-def inspect_capture(capture,tape,ledger):
+def inspect_capture(capture,tape,ledger,source_details=False):
     binding=bindings(capture,tape,ledger);text=decode(ledger.read_bytes())
     verified=arithmetic(text,True);details=verified.pop('record_details')
     require(len(details)==binding['traced_address_instances'],'arithmetic/binding coverage')
@@ -47,7 +47,7 @@ def inspect_capture(capture,tape,ledger):
             samples.append(dict(record,producer=dict(ordinal=ordinal),draw=row['draw'],vertex=row['vertex']))
         domain=dict(vertices=[s['vertex'] for s in samples],draw=277)
         frame=build_frame(scene,samples,contract,domain=domain)
-        frames.append({k:frame[k] for k in ('frame_id','supported_triangles','omitted_opaque_triangles','maximum_reprojection_error_pixels')})
+        frames.append(frame if source_details else {k:frame[k] for k in ('frame_id','supported_triangles','omitted_opaque_triangles','maximum_reprojection_error_pixels')})
     return dict(arithmetic=verified,consumer_binding=binding,calibration=contract,frames=frames,
                 complete_scene=False,remix_gpu_verified=False)
 

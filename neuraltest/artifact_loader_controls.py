@@ -6,10 +6,10 @@ import subprocess
 import tempfile
 
 
-def run(executable, artifact, assets):
+def run(executable, artifact, assets, far='104'):
     source=json.loads(Path(artifact).read_text())
     def invoke(path):
-        return subprocess.run([str(executable),str(path),str(assets),'.1','104'],
+        return subprocess.run([str(executable),str(path),str(assets),'.1',far],
                               capture_output=True,text=True,timeout=30)
     positive=invoke(artifact)
     assert positive.returncode==0,positive.stderr
@@ -24,6 +24,24 @@ def run(executable, artifact, assets):
         ('filename',lambda a:next(iter(a['source_assets'].values())).update(file='../outside.dds')),
         ('hash',lambda a:next(iter(a['source_assets'].values())).update(sha256='0'*64)),
         ('omissions',lambda a:a.update(omissions=[]))]
+    if source.get('coordinate_space')=='diagnostic-camera-embedded-anchor':
+        mutations.extend([
+            ('embedding missing',lambda a:a.pop('embedding_provenance')),
+            ('embedding world claim',lambda a:a['embedding_provenance'].update(recovered_world_transform=True)),
+            ('embedding source',lambda a:a['embedding_provenance'].update(source_git_sha='wrong')),
+            ('embedding reference',lambda a:a['embedding_provenance'].update(reference_git_sha='')),
+            ('embedding space',lambda a:a['embedding_provenance'].update(source_coordinate_space='world'))])
+    if source.get('coordinate_space')=='mixed-diagnostic-anchor':
+        mutations.extend([
+            ('groups missing',lambda a:a.pop('source_groups')),
+            ('group source',lambda a:a['source_groups'][1].update(source_git_sha='wrong')),
+            ('group world',lambda a:a['source_groups'][1]['embedding_provenance'].update(recovered_world_transform=True)),
+            ('group reference',lambda a:a['source_groups'][1]['embedding_provenance'].update(reference_git_sha='wrong')),
+            ('group draw',lambda a:a['source_groups'][1]['draws'].__setitem__(0,999999)),
+            ('duplicate mesh',lambda a:a['meshes'].__setitem__(1,copy.deepcopy(a['meshes'][0]))),
+            ('group equivalence',lambda a:a['source_groups'][1]['capture_equivalence'].update(diagnostic_content_equivalence=False)),
+            ('group digest',lambda a:a['source_groups'][1]['capture_equivalence'].update(scene_content_sha256='wrong')),
+            ('group asset digest',lambda a:a['source_groups'][1]['capture_equivalence']['asset_sha256'].update({'5':'0'*64}))])
     with tempfile.TemporaryDirectory(prefix='flycast-loader-controls-') as directory:
         candidate=Path(directory)/'candidate.json'
         for name,mutate in mutations:
@@ -41,5 +59,6 @@ if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('executable','artifact','assets'):parser.add_argument(name,type=Path)
+    parser.add_argument('--far',default='104')
     args=parser.parse_args()
-    print(json.dumps(run(args.executable.resolve(),args.artifact.resolve(),args.assets.resolve())))
+    print(json.dumps(run(args.executable.resolve(),args.artifact.resolve(),args.assets.resolve(),args.far)))

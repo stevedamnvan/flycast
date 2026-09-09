@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
+#include <algorithm>
 namespace neuraltest::remake {
 namespace {
 using Json=nlohmann::json;
@@ -33,7 +34,7 @@ Packet LoadDiagnosticArtifact(const std::filesystem::path& path,const std::files
   need(depth<=32,"JSON depth");return true;
  });
  need(json.at("schema")=="flycast-prepared-remake-scene-v1"
-  && json.at("coordinate_space")=="reflected-selected-source-anchor"
+  && (json.at("coordinate_space")=="reflected-selected-source-anchor" || json.at("coordinate_space")=="diagnostic-camera-embedded-anchor" || json.at("coordinate_space")=="mixed-diagnostic-anchor")
   && json.at("renderable_by_remix_adapter")==false,"diagnostic artifact schema");
  need(json.at("material_semantic")=="source-color-not-physical-albedo","source color semantic");
  Packet p;p.space=Space::SampledAnchor;p.frame=number(json.at("frame_id"));p.game=json.at("game_id").get<std::string>();
@@ -41,6 +42,14 @@ Packet LoadDiagnosticArtifact(const std::filesystem::path& path,const std::files
  need(p.game.size()<=64,"game length");
  p.sourceGitSha=json.at("git_sha").get<std::string>();
  need(!p.sourceGitSha.empty()&&p.sourceGitSha.size()<=64,"source SHA length");
+ if(json.at("coordinate_space")=="diagnostic-camera-embedded-anchor") {
+  const auto& e=json.at("embedding_provenance");
+  need(e.at("recovered_world_transform")==false && e.at("source_coordinate_space")=="calibrated-camera-relative"
+   && e.at("source_git_sha")==p.sourceGitSha,"diagnostic embedding provenance");
+  const auto reference=e.at("reference_git_sha").get<std::string>();
+  need(!reference.empty()&&reference.size()<=64,"embedding reference SHA");
+  p.diagnosticEmbeddingProvenance=e.dump();need(p.diagnosticEmbeddingProvenance.size()<=4096,"embedding provenance bound");
+ }
  const auto& camera=json.at("camera");need(camera.at("nearPlane").is_null()&&camera.at("farPlane").is_null()
   &&camera.at("accepted_game_camera")==false,"source game camera not recovered");
  p.camera.provenance=Provenance::Supplied;p.camera.position=vector(camera.at("position"));
@@ -49,6 +58,38 @@ Packet LoadDiagnosticArtifact(const std::filesystem::path& path,const std::files
  const auto& omissions=json.at("omissions");need(omissions.is_array()&&omissions.size()<=64,"omission bound");
  for(const auto& omission:omissions){auto s=omission.get<std::string>();need(s.size()<=4096,"omission length");p.omissions.push_back(s);}
  const auto& meshes=json.at("meshes");need(meshes.is_array()&&!meshes.empty()&&meshes.size()<=128,"mesh bound");
+ if(json.at("coordinate_space")=="mixed-diagnostic-anchor") {
+  const auto& groups=json.at("source_groups");need(groups.is_array()&&groups.size()>=2&&groups.size()<=4,"source group bound");
+  std::vector<std::uint64_t> owned;
+  std::string contentDigest;
+  for(std::size_t i=0;i<groups.size();++i) {
+   const auto& g=groups[i];const auto source=g.at("source_git_sha").get<std::string>();
+   need(!source.empty()&&source.size()<=64,"group source SHA");
+   if(i==0)need(source==p.sourceGitSha&&g.at("coordinate_space")=="reflected-selected-source-anchor","base source group");
+   else {
+    const auto& e=g.at("embedding_provenance");const auto& q=g.at("capture_equivalence");
+    need(g.at("coordinate_space")=="diagnostic-camera-embedded-anchor"&&e.at("source_git_sha")==source
+     && e.at("reference_git_sha")==p.sourceGitSha&&e.at("recovered_world_transform")==false
+     && e.at("source_coordinate_space")=="calibrated-camera-relative","group embedding provenance");
+    need(q.at("source_git_sha")==source&&q.at("reference_git_sha")==p.sourceGitSha
+     && number(q.at("frame_id"))==p.frame&&q.at("game_id")==p.game
+     && q.at("diagnostic_content_equivalence")==true&&q.at("draws")==g.at("draws"),"group equivalence");
+    const auto digest=q.at("scene_content_sha256").get<std::string>();
+    need(digest.size()==64&&digest.find_first_not_of("0123456789abcdef")==std::string::npos
+     && (contentDigest.empty()||contentDigest==digest),"group content digest");contentDigest=digest;
+    for(auto it=q.at("asset_sha256").begin();it!=q.at("asset_sha256").end();++it)
+     need(json.at("source_assets").at(it.key()).at("sha256")==it.value(),"group asset digest");
+   }
+   need(g.at("draws").is_array()&&g.at("draws").size()<=128,"group draws bound");
+   for(const auto& draw:g.at("draws")) {
+    const auto id=number(draw);need(std::find(owned.begin(),owned.end(),id)==owned.end(),"duplicate group draw");owned.push_back(id);
+   }
+  }
+  need(owned.size()==meshes.size(),"group mesh coverage");
+  std::vector<std::uint64_t> actual;for(const auto& m:meshes)actual.push_back(number(m.at("source_draw")));
+  std::sort(actual.begin(),actual.end());std::sort(owned.begin(),owned.end());need(actual==owned,"unowned or duplicate mesh");
+  p.diagnosticEmbeddingProvenance=groups.dump();need(p.diagnosticEmbeddingProvenance.size()<=16384,"group provenance bound");
+ }
  std::size_t vertices=0,indices=0,assetBytes=0;
  for(const auto& mesh:meshes) {
   const auto& vs=mesh.at("vertices");const auto& is=mesh.at("indices");
