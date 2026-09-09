@@ -2530,7 +2530,8 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 		std::uint64_t candidate=0;
 		const auto& source=evaluatedRequested?remakeEvaluatedSource:remakeAsyncReturned;
 		const auto& overlay=evaluatedRequested?remakeEvaluatedOverlay:remakeAsyncAcceptedOverlay;
-		if(enabled&&source&&(!evaluatedRequested||remakeEvaluatedView)&&overlay.identity.Matches(*source,current,rendContext->captureProducer)) {
+		if(enabled&&source&&(!RemakeNativeEffectsRequested()||evaluatedRequested)
+			&&(!evaluatedRequested||remakeEvaluatedView)&&overlay.identity.Matches(*source,current,rendContext->captureProducer)) {
 			const auto& image=*source;candidate=image.frame;
 			if(remakeCompositeFrame!=candidate||remakeCompositeEvaluated!=evaluatedRequested) {
 				const auto& shader=shaders->getNeuralOverlayCompositePixelShader();
@@ -2665,10 +2666,16 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
 	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
+	if(RemakeNativeEffectsRequested()) {
+		if(!remakeCurrentEffects||!remakeCurrentEffects->Matches(producer)) {
+			skip("native-effects",remakeCurrentEffectsReason);return;
+		}
+	}
 	acquireNeuralInputs();
 	const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],packet.frame,producer,overlay);
 	releaseNeuralInputs();
 	if(!copied){skip("overlay","copy-failed");return;}
+	if(RemakeNativeEffectsRequested())overlay.effects=remakeCurrentEffects;
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
 	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
@@ -2726,6 +2733,16 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
 			&&activeNeuralMode!=static_cast<int>(NeuralMode::Dlss5Experimental)))return;
 	const auto& returned=*remakeAsyncReturned;
+	if(RemakeNativeEffectsRequested()) {
+		const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
+		const char* rejected=!remakeAsyncAcceptedOverlay.effects?"missing-effects"
+			:!remakeAsyncAcceptedOverlay.effects->Matches(returned.producer)?"effect-source-mismatch"
+			:lockedRoot&&*lockedRoot?"locked-effects-replay-unsupported":nullptr;
+		if(rejected) {
+			NOTICE_LOG(RENDERER,"Remake effects evaluation rejected: source=%llu reason=%s",(unsigned long long)returned.frame,rejected);
+			return;
+		}
+	}
 	if(returned.frame<=remakeLastEvaluationAttempt||!remakeAsyncAcceptedOverlay.identity.Matches(returned,frame.frameId,rendContext->captureProducer))return;
 	remakeLastEvaluationAttempt=returned.frame;
 	try {
@@ -2770,9 +2787,19 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(created)deviceContext->CopyResource(owned,neuralOutputWrappedTextures[neuralPresentationSlot]);
 		releaseNeuralPresentation();neuralPresentationView.reset();
 		if(!created)return;
+		ComPtr<ID3D11Texture2D> preEffects;
+		if(RemakeNativeEffectsRequested()) {
+			if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)preEffects=owned;
+			ComPtr<ID3D11Texture2D> composed;ComPtr<ID3D11ShaderResourceView> composedView;
+			if(!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,owned,composed,composedView))return;
+			owned=std::move(composed);view=std::move(composedView);
+			NOTICE_LOG(RENDERER,"Remake source effects composited: source=%llu sequence=%llu scope=native-oit-single-pass-copy-experiment provenance=pending",
+				(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
+		}
 		remakeEvaluatedSource=source;remakeEvaluatedOverlay=remakeAsyncAcceptedOverlay;
 		remakeEvaluatedOverlay.replayOriginalFrame=replayOriginalFrame;
 		remakeEvaluatedTexture=std::move(owned);remakeEvaluatedView=std::move(view);
+		remakePreEffectTexture=std::move(preEffects);
 		NOTICE_LOG(RENDERER,"Remake evaluated output owned: source=%llu sequence=%llu external_mutation=unconfirmed",
 			(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
 	}catch(const std::exception& e) {
@@ -2997,7 +3024,8 @@ void DX11Renderer::displayFramebuffer()
 			const bool captured=flycast::rend::neural::CaptureRemakePreview(directory,device,deviceContext,*previewSource,
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
-				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame);
+				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr);
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
 		}

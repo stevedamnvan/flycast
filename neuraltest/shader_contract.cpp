@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "rend/dx11/oit/native_effect_blend.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -58,6 +59,9 @@ public:
 	HRESULT STDMETHODCALLTYPE Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID,
 		LPCVOID *data, UINT *bytes) override
 	{
+		if (std::strcmp(fileName, "native_effect_blend.hlsl") == 0) {
+			*data = NativeEffectBlendHlsl; *bytes = sizeof(NativeEffectBlendHlsl) - 1; return S_OK;
+		}
 		if (std::strcmp(fileName, "oit_header.hlsl") != 0)
 			return E_FAIL;
 		*data = header_.data();

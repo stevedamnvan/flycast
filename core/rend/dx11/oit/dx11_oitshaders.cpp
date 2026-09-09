@@ -17,6 +17,7 @@
     along with Flycast.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "dx11_oitshaders.h"
+#include "native_effect_blend.h"
 #include "../dx11context.h"
 #include "../dx11_naomi2.h"
 
@@ -512,6 +513,7 @@ float modifierVolume(in MVPixel inpix) : SV_Depth
 
 static const char OITFinalShaderSource[] = R"(
 #include "oit_header.hlsl"
+#include "native_effect_blend.hlsl"
 
 Texture2D opaqueTex : register(t0);
 sampler opaqueSampler : register(s0);
@@ -584,66 +586,8 @@ float4 resolveAlphaBlend(in float2 pos, out float reactiveCoverage)
 				srcColor.rgb *= shadowScale;
 		}
 		float4 dstColor = getDstSelect(pp, area1) ? secondaryBuffer : finalColor;
-		float4 srcCoef;
-		float4 dstCoef;
-		
-		int srcBlend = getSrcBlendFunc(pp, area1);
-		switch (srcBlend)
-		{
-			case ZERO:
-				srcCoef = 0.f;
-				break;
-			case ONE:
-				srcCoef = 1.f;
-				break;
-			case OTHER_COLOR:
-				srcCoef = dstColor;
-				break;
-			case INVERSE_OTHER_COLOR:
-				srcCoef = 1.f - dstColor;
-				break;
-			case SRC_ALPHA:
-				srcCoef = srcColor.a;
-				break;
-			case INVERSE_SRC_ALPHA:
-				srcCoef = 1.f - srcColor.a;
-				break;
-			case DST_ALPHA:
-				srcCoef = dstColor.a;
-				break;
-			case INVERSE_DST_ALPHA:
-				srcCoef = 1.f - dstColor.a;
-				break;
-		}
-		int dstBlend = getDstBlendFunc(pp, area1);
-		switch (dstBlend)
-		{
-			case ZERO:
-				dstCoef = 0.f;
-				break;
-			case ONE:
-				dstCoef = 1.f;
-				break;
-			case OTHER_COLOR:
-				dstCoef = srcColor;
-				break;
-			case INVERSE_OTHER_COLOR:
-				dstCoef = 1.f - srcColor;
-				break;
-			case SRC_ALPHA:
-				dstCoef = srcColor.a;
-				break;
-			case INVERSE_SRC_ALPHA:
-				dstCoef = 1.f - srcColor.a;
-				break;
-			case DST_ALPHA:
-				dstCoef = dstColor.a;
-				break;
-			case INVERSE_DST_ALPHA:
-				dstCoef = 1.f - dstColor.a;
-				break;
-		}
-		const float4 result = clamp(dstColor * dstCoef + srcColor * srcCoef, 0.f, 1.f);
+		const float4 result = nativeEffectBlend(srcColor, dstColor,
+			getSrcBlendFunc(pp, area1), getDstBlendFunc(pp, area1));
 		if (getDstSelect(pp, area1))
 			secondaryBuffer = result;
 		else
@@ -764,6 +708,8 @@ struct OITIncludeManager : public ID3DInclude
 			src = OITShaderHeader;
 		else if (!strcmp(pFileName, "pixel_common.hlsl"))
 			src = PixelShaderCommon;
+		else if (!strcmp(pFileName, "native_effect_blend.hlsl"))
+			src = NativeEffectBlendHlsl;
 		if (src != nullptr)
 		{
 			*ppData = src;
@@ -1019,7 +965,8 @@ const ComPtr<ID3D11PixelShader>& DX11OITShaders::getTrModVolShader(int type)
 ComPtr<ID3DBlob> DX11OITShaders::compileShader(const char* source, const char* function, const char* profile, const D3D_SHADER_MACRO *pDefines)
 {
 	// add the include file even if not included
-	u64 hash = hashShader(source, function, profile, pDefines, OITShaderHeader);
+	static const std::string includes = std::string(OITShaderHeader) + NativeEffectBlendHlsl;
+	u64 hash = hashShader(source, function, profile, pDefines, includes.c_str());
 
 	ComPtr<ID3DBlob> shaderBlob;
 	if (!lookupShader(hash, shaderBlob))

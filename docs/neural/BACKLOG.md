@@ -21,15 +21,17 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current implementation base: `d38fa2c0377cae767ed12bf77291ef4fc738968b` (LOG528 async material cache). LOG529 ordinary-feed hookup is working-tree evidence. Builds are incremental, not fresh exact-SHA evidence.
+- Current implementation base: `3f3600b442b6041d9a85f8fac46e14b43b1895aa`. Bounded moving-capture/logging changes remain in the worktree. Builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
   Preserve nonunit W. Source coordinate space, matrix semantics and broader
   coverage are unproven. Use OPAQUE-INITIAL-STORES-AUDIT.md, LOG #175.
 - Bounded synthetic and textured scene GPU captures exist (LOG401-422).
-  Complete moving relighting and combined Remix/DLSS 5 presentation remain
-  unproven. M2 strict source equality remains failed/parked.
+  Combined returned-scene presentation is experimentally demonstrated, including
+  repaired OIT exact-input external-output proof (LOG544). Complete moving
+  relighting, camera and working-pipeline acceptance remain unproven. M2 strict
+  source equality remains failed/parked.
 - Existing standalone neural transport/provenance and runtime coverage remain
   valid evidence; do not redo them just because a new task starts.
 
@@ -48,14 +50,63 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 | FC-067 / M1-GPU | todo | public-header adapter already tested | Preserve verified synthetic and actual moving GPU output. Remaining runtime cleanup warning needs focused ownership work, not repeated factory/camera bring-up. | LOG404-412, LOG467-474; GPU output verified in bounded scope, cleanup warning remains open |
 | FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG529 ordinary-frame feed matches60 moving fighter/arena scenes and paired image files, with56 bounded retained replies. Camera-relative approximation remains explicit; delayed HUD/returned presentation and combined ordinary gameplay remain pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
-| FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | pending |
-| FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | pending |
+| FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | LOG542 sustained OIT delivery and LOG544 completed original-HUD Presents are experimental evidence; scene completeness and full acceptance remain open |
+| FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG544 confirms25 consecutive exact-input OIT external outputs; full moving matrix remains open, LOG555 effects change requires focused presentation regression |
 | FC-045, FC-054, FC-055, FC-063, FC-064 / combined hardening | todo | M4-DLSS5 | Capture/overlay/transition/failure/cadence checks on the changed route; asynchronous performance and repeatable launch. Satisfy the working-pipeline checklist below. | pending |
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action: compose and present delayed returned scenes using their owned
+Current action (LOG553, user integration-priority correction): preserve native
+translucent gameplay effects on the returned-scene route. Capture throughput is
+parked; LOG552's299 consecutive images do not satisfy300 and the acceptance
+threshold remains unchanged. Reuse LOG542/544 delivery and external-output proof.
+
+Implementation bounds: inspect the native sorted/OIT blend and depth paths and
+retain source-owned effect data with the same receipt as returned color/depth.
+Prefer native effect replay/composition with original blend/depth semantics;
+do not admit translucent meshes as opaque, copy rectangular native patches,
+or infer an effect layer by subtracting two gamma-encoded images. Preserve
+intentional trails, alpha, additive light and occlusion; classify only additional
+reconstruction persistence as ghosting. Keep HUD/OSD ordering and age8 fallback.
+First falsifying fixtures must cover additive and alpha blending, opaque
+occlusion, absent effects, wrong-source rejection and unsupported blend fallback.
+Then inspect the same moving combat interval with source effects visible.
+This is scene-completeness integration, not full camera acceptance. Do not add
+another configuration UI before checking the existing activation/status controls.
+LOG554 extracts the native OIT blend kernel for reuse and GPU-tests all64 mode
+pairs with independent truth on both D3D11 surfaces. All four builds and574
+enabled selftests pass; ordered delayed effect storage/composition, occlusion,
+wrong-source controls and gameplay proof are still pending. A single flattened
+alpha layer is rejected because it loses native secondary-buffer/clamp behavior.
+Next implementation bound: exact developer-only FLYCAST_REMAKE_NATIVE_EFFECTS=1 retains
+an immutable OIT fragment/pointer/parameter/constant snapshot for a single
+autosorted640x480 source pass, using the existing two receipt slots. Each pixel
+buffer is capped at512MiB; no readback/wait, unbounded queue or ownership by current
+frame. Replay the original resolver over evaluated returned color on an isolated
+deferred command list, then original HUD. Unsupported/missing snapshots reject
+publication/evaluation; raw preview and locked-input evidence are not supported
+by this first effect experiment. This costly copy-based path is functional work,
+not performance acceptance; multipass and normal sorted rendering remain open.
+LOG555 implements receipt-owned stack retention and post-evaluation resolve;
+GPU snapshot/repeat/wrong-source/wrong-device tests pass, and startup probe at
+now captures under the installed host. Earlier live capture failures are retained.
+Av now completes37 source-owned effect composites, three pixel/Present checks
+and exact native parity against floor-z, with clean exits. Current next check is
+a moving interval with a visible source trail/particle, retaining pre-effect
+neural color separately so effect contribution can be checked, then source-matched
+effect/occlusion inspection and focused changed-output provenance. Do not call
+the GPU fixture or successful resource capture restored gameplay effects.
+LOG556 aw now verifies30 consecutive2175..2204 captures with unchanged native
+pixels, exact final/HUD/Present joins and separated pre/post-effect images. The
+blue weapon arc, impact light and particles at2192 are visibly restored. Commit
+the independently proven opt-in OIT preservation slice; next retain native
+effect contribution in focused changed-output provenance, then address remaining
+scene completeness and bounded resource/latency costs. Do not restart the
+300-frame PNG-throughput detour or claim all occlusion/multipass paths accepted.
+
+The following sequence records historical bounds/results, not competing current
+assignments. Former action: compose and present delayed returned scenes using their owned
 original HUD/overlay/native surfaces and explicitly distinct source/current IDs.
 LOG531 working-tree live b now reaches22 successful raw-Remix Presents and five
 held-native Presents; eight-frame stale timeout latches fallback without later
@@ -259,6 +310,10 @@ protected pixels without losing coverage, with matched backbuffer/Present.
 All four builds and574 enabled tests pass. Commit the captured depth/plate
 repair independently, then resume long moving evidence with reduced diagnostic
 logging. Additive HUD effects and world translucency remain explicit omissions.
+LOG552 aj improves moving capture to349 images/299 consecutive sources; all
+pixel/Present checks pass and no HUD mask is empty, but helper total watchdog
+expires. This is not300. Capture throughput is parked under LOG553;
+do not round the threshold or stitch an extra frame from another run.
 Complete
 scene/camera, name coverage and sustained OIT acceptance remain open.
 Do not label this bounded repair full OIT acceptance.

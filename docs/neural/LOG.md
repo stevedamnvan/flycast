@@ -1,5 +1,143 @@
 # Neural rendering evidence log
 
+LOG556 effect contribution capture at3f3600b44 plus worktree. The previous turn
+made implementation/GPU/live-presentation progress (LOG555), not full acceptance.
+Retain the already-owned pre-effect neural texture only for explicit preview
+capture, alongside the post-effect image. Write neural-before-native-effects.png,
+absolute RGB difference, and total/unprotected changed-pixel counts. No extra
+GPU copy or retention in ordinary non-capture mode. Default capture remains3;
+aw requests30 around source2192, whose retained native image visibly contains
+blue weapon arc, orange impact light and particles. Current capture excludes
+external-provenance and performance claims. Automation build and574 selftests
+pass. Aw executable SHA256602DA5BF382FEC96C9D7F238EEC6ED4E39F43DAF83F9AF5AA1D9420AB9008588,
+existing ON config hash unchanged, paired100-Present helper/240-sample host,
+warmup2100/start-producer2100. Host/helper both close0;37 effect composites,
+30 consecutive captured sources2175..2204. Independent audit verifies every
+pre/post difference image and changed-pixel count, original-HUD composition,
+actual backbuffer and completed-Present join. All30 native images match retained
+aj native pixels exactly. Source2192 visibly restores the blue weapon arc,
+orange impact light and particles absent before effect replay;30,300 unprotected
+pixels change (46,065 including HUD),18,415 HUD pixels remain protected. Across
+the interval unprotected changed pixels range15,774..77,714. Translucent world
+fences/details also remain native-rendered: hybrid preservation, not fully relit
+materials or recovered camera. A local four-panel slow-loop viewer is created;
+its browser opening is queued, not claimed interaction-tested. All four builds
+and enabled574/574 selftests pass. Failed controls remain in LOG554/555. Scoped
+snapshot/replay/effect contribution is ACCEPTED; general occlusion, normal-sort/
+multipass, external post-effect provenance, resource/timing and full goal remain
+open. No proprietary configuration changed; supplied hash remains unchanged.
+
+
+LOG555 source-owned OIT effects implementation at3f3600b44 plus worktree.
+Exact FLYCAST_REMAKE_NATIVE_EFFECTS=1 snapshots native fragment/pointer/poly/
+constant resources before destructive final resolve, attaches the snapshot to
+the original receipt-owned overlay, and replays the same resolver over accepted
+neural output before original HUD composition. Single autosorted640x480 pass;
+512MiB pixel-buffer cap, bounded existing receipt slots, no CPU readback/wait.
+Raw preview and locked replay are rejected in this first experiment. A deferred
+command list restores caller state; private pointer copies permit repeat replay.
+Both D3D11 GPU fixtures prove exact additive/absent pixels, snapshot isolation
+after source-pointer mutation, repeat output and wrong-producer rejection. These
+are pre-depth-filtered fixture fragments, not geometry-occlusion proof. All four
+builds complete and all three enabled selftests pass574/574. Retained failures:
+ComPtr raw ownership/const get/private constant access; header include order;
+first fixture used wrong high-byte color expectation. Corrected final logs are
+effect-stack-build6/selftest6 and baseline/no-ngx/off. No test count inflation.
+Live ak launched with existing ON config hash unchanged,100 helper Presents,
+240 host samples after2100 warmup,3 synchronous captures, no locked replay or
+sentinel. Staged executable SHA256270AEB3E994E270E107F06AAB116F2B77AA90AFB80E8842598570B281EA71099.
+Actual gameplay outcome pending. Costly whole-buffer copies are not performance
+acceptance; changed final output needs focused provenance before external proof.
+Ak helper exits1 before source arrival; host exits0,240 samples, no presentation
+evidence. Al launches host/helper together and reaches source2101, but rejects
+publication because the native effect snapshot is unavailable; helper's90-second
+initial wait expires, host closes0. This falsifies gameplay integration acceptance.
+No effects are displayed in either run. Added pass-layout/extent/capture-stage
+skip detail for the next focused diagnosis; do not repeat timing-only retries.
+Am confirms one autosorted640x480 pass but resource capture fails; host0/helper1.
+An tests bounded backing-texture cropping (GPU fixture640x512 ->640x480 passes)
+but live backing is640x480 and capture still fails; host0/helper1. Cropping is
+valid allocation handling, not the cause of this live failure. Short120-frame
+startup probes replace further full-game retries: ao lacks a channel so its
+producer is correctly unavailable; ap/aq/ar reject device identity; as identifies
+resource4, the native resolve shader, despite a public-factory allocation-owner
+probe. The temporary allocation probe was removed. Copied resource ownership
+and factory/context identity remain checked; shaders are retained from the
+owning renderer's native resolver, not accepted from external input. At now
+captures successfully under the supplied host,120 samples and clean close.
+Automation selftest574/574 includes repeated cropped stack replay, wrong producer
+and genuinely separate-device rejection on both D3D11 surfaces. Final other
+three builds after these integration corrections remain pending. Au now runs
+the actual1780+ combat interval with the same bounded helper and three captures,
+executable SHA2569183509D46350FE57C001AD2AE6E9A25EE75F791CABCC4D5588A5AC86C85BB28.
+Resource counting and timing for the new snapshots are not yet complete; do not
+use the launcher's generic resource/pass labels as acceptance for this path.
+Au closes host/helper0 and retains returns but never evaluates: the new locked
+replay guard treated an empty environment value as an active path. The guard now
+requires a non-empty path, matching the existing reader, and logs rejection
+reasons. Av (SHA25680D317556F961C7BB066E0EB9C1D3B43749D32E9B02AEA05224114B3AC40C985)
+completes37 source-owned effect composites and clean host/helper exits. Three
+actual source/current pairs1856/1858,1857/1859,1858/1860 independently pass exact
+mask/native/evaluated composition, backbuffer RGB and completed-Present joins.
+All three original native images are pixel-identical to retained floor-z native
+references at the same source IDs. Visual review of1857 shows the HUD present
+and no new gross composition failure, but these three frames do not show an
+unambiguous sword trail. Effect-specific moving/occlusion proof, changed-output
+external provenance, performance/resource accounting and full acceptance stay
+open. The helper's pre-existing40-object cleanup warning remains. Final serial
+baseline/no-NGX/off rebuilds complete; all three enabled selftests pass574/574.
+The supplied ON config SHA256 remains unchanged. This slice remains uncommitted
+pending the visible-effect comparison; no claimed full external or effect gate.
+
+
+LOG554 native-effect integration prerequisite at3f3600b44 plus worktree.
+Extracted the existing OIT blend arithmetic into NativeEffectBlendHlsl and made
+native resolve use it, retaining destination-dependent coefficients, secondary
+buffer selection and per-layer clamp. Added all64 source/destination modes with
+two alpha/color sets to the actual GPU overlay fixture; both D3D11 surfaces pass
+independent table-based truth within one UNORM LSB and reject flattened alpha.
+This does not prove delayed effects, depth/occlusion or full gameplay replay.
+Initial build failed on Windows min macro; first CLI attempt omitted --out;
+the first selftest had5 failures from missing test include resolution, the next
+had1 because wiring landed in PixelInclude instead of OitInclude. All attempts
+remain in effect-blend logs. Corrected runs passed574/574 on automation, baseline
+and no-NGX and all four builds completed. Subsequent review added the shared
+blend source to shader-cache identity; all four final incremental rebuilds
+completed successfully (effect-cache logs). Gameplay parity remains pending;
+the production refactor is uncommitted until that focused check.
+Next integrate bounded receipt-owned ordered native effects, not a single
+flattened RGBA overlay: native shader inspection proves secondary-buffer and
+per-layer saturation prevent that shortcut. Capture throughput remains parked.
+
+
+LOG553 integration-priority correction at3f3600b44 plus preserved worktree.
+Previous conversational status turn made no implementation progress. Read-only
+source inspection now confirms BuildRemakeViewScene rejects draw.list!=0 and
+BuildRemakeViewPacket explicitly omits translucent layers. This changes the next
+action: park PNG-throughput work and implement source-owned native effect
+preservation, beginning with actual sorted/OIT blend/depth ownership. No runtime
+test or visual acceptance is claimed here. LOG552 remains299, not300. Existing
+presentation/provenance evidence is retained rather than repeated. Backlog bounds
+require additive/alpha/occlusion and wrong-source controls before gameplay proof.
+
+
+LOG552 moving-aj launched from3f3600b44 plus bounded moving-capture/logging
+changes. Requests360 fresh OIT captures, no replay/sentinel,660 helper Presents,
+existing120-second helper watchdog and240-second host watchdog. No concurrent
+builds. Staged executable SHA25696BDD4DD500E46DFC5AA35E6CAA4C899DB3C9B6E93AC1FEC981FEAA32571AFE8.
+Free disk about49GB before launch. Actual continuity/pixels/exit results pending;
+do not count images as consecutive frames. Previous af failure remains retained.
+Aj ends with349 captures and299 consecutive sources1907..2205, one gap1903 to
+1907. All349 pass independent mask composition/backbuffer/completed-Present
+checks; minimum17439 protected pixels, no empty masks. Helper hits120-second
+watchdog after354 returns and exits1; host1200 samples exits0 cleanly. Do not
+round299 to300 or splice an extra frame from another run. The long-capture
+diagnostic cap works, but full300-frame requirement remains unproven. A local
+comparison.html references original native/backbuffer PNGs with visible frame
+IDs and explicitly slowed playback; it is a review aid, not pixel authority.
+Next address bounded capture overhead rather than repeat provenance or change
+the source-continuity requirement. Resource cleanup warning remains open.
+
 LOG551 depleted health plate: retained ah current2194 diagnostics identify
 texture801607344, blend37, translucent list2, planar depth .207822 and exact
 left/right bar bounds20,37,272,65 /368,37,620,65. This is separate from the

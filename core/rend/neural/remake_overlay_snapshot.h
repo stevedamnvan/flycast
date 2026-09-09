@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "remake_live_channel.h"
+#include "remake_oit_effects.h"
 #include "windows/comptr.h"
 #include <d3d11.h>
 
@@ -25,6 +26,7 @@ struct RemakeOverlaySnapshot {
  // Only retained under explicit developer capture/replay, never ordinary play.
  std::shared_ptr<const remake::Packet> captureScene;
  std::uint64_t replayOriginalFrame=0;
+ std::shared_ptr<const RemakeOitEffects> effects;
  ComPtr<ID3D11Texture2D> color,mask;
  ComPtr<ID3D11ShaderResourceView> colorView,maskView;
 };

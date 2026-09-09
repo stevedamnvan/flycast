@@ -123,6 +123,8 @@ public:
 		return pixelsBuffer && pixelsBufferView && abufferPointersTex
 			&& abufferPointersView;
 	}
+	ID3D11Buffer* effectPixels() const noexcept { return pixelsBuffer; }
+	ID3D11Texture2D* effectPointers() const noexcept { return abufferPointersTex; }
 
 	std::uint32_t objectCount() const noexcept
 	{

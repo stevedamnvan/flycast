@@ -583,6 +583,32 @@ struct DX11OITRenderer : public DX11Renderer
 
 	void renderABuffer(bool lastPass)
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(lastPass && !neuralSceneReplayTarget && flycast::rend::neural::RemakeNativeEffectsRequested())
+			remakeCurrentEffectsReason="passes="+std::to_string(rendContext->render_passes.size())
+				+" autosort="+std::to_string(!rendContext->render_passes.empty()&&rendContext->render_passes[0].autosort)
+				+" extent="+std::to_string(width)+"x"+std::to_string(height);
+		if (lastPass && !neuralSceneReplayTarget && !rendContext->isRTT
+			&& !config::EmulateFramebuffer && flycast::rend::neural::RemakeNativeEffectsRequested()
+			&& width == 640 && height == 480 && rendContext->render_passes.size() == 1
+			&& rendContext->render_passes[0].autosort && !rendContext->global_param_tr.empty())
+		{
+			ComPtr<ID3D11Buffer> effectConstants;
+			deviceContext->PSGetConstantBuffers(0, 1, &effectConstants.get());
+			std::string captureError;
+			remakeCurrentEffects = flycast::rend::neural::RemakeOitEffects::Capture(device, deviceContext,
+				rendContext->captureProducer, buffers.effectPixels(), buffers.effectPointers(),
+				trPolyParamsBuffer, effectConstants, shaders.getFinalShader(false), shaders.getFinalVertexShader(),&captureError);
+			remakeCurrentEffectsReason+=remakeCurrentEffects?" captured":" resource-capture-failed";
+			remakeCurrentEffectsReason+=" "+captureError;
+			D3D11_TEXTURE2D_DESC backing{};buffers.effectPointers()->GetDesc(&backing);
+			remakeCurrentEffectsReason+=" backing="+std::to_string(backing.Width)+"x"+std::to_string(backing.Height);
+			if(remakeCurrentEffectsReason!=remakeEffectsLoggedReason) {
+				NOTICE_LOG(RENDERER,"Remake effects snapshot: producer=%llu %s",(unsigned long long)rendContext->captureProducer.ordinal,remakeCurrentEffectsReason.c_str());
+				remakeEffectsLoggedReason=remakeCurrentEffectsReason;
+			}
+		}
+#endif
 		if (!lastPass)
 			deviceContext->OMSetRenderTargetsAndUnorderedAccessViews(1, &multipassRenderTarget.get(), nullptr, 0, D3D11_KEEP_UNORDERED_ACCESS_VIEWS, nullptr, nullptr);
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -913,6 +939,9 @@ struct DX11OITRenderer : public DX11Renderer
 
 	bool Render() override
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		remakeCurrentEffects.reset();
+#endif
 		resetContextState();
 		bool is_rtt = rendContext->isRTT;
 
@@ -1037,6 +1066,9 @@ private:
 	ComPtr<ID3D11InputLayout> finalInputLayout;
 	ComPtr<ID3D11Buffer> vtxPolyConstants;
 	int64_t pixelBufferSize = 0;
+#ifdef FLYCAST_ENABLE_NEURAL
+	std::string remakeEffectsLoggedReason;
+#endif
 	u32 maxWidth = 0;
 	u32 maxHeight = 0;
 };

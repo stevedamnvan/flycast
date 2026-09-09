@@ -15,6 +15,8 @@
 #include <fstream>
 #include <sstream>
 #include "rend/dx11/neural_coverage_blend.h"
+#include "rend/dx11/oit/native_effect_blend.h"
+#include <cmath>
 
 using Microsoft::WRL::ComPtr;
 
@@ -326,6 +328,45 @@ bool RunOverlayContractFixture(bool d3d11On12,
 			}
 		}
 	}
+	// Execute the same blend function used by native OIT, all 64 packed mode
+	// pairs, with two distinct source/destination alpha values. CPU truth is
+	// deliberately table-based, independent of the shader's switch dispatch.
+	const std::string effectSource = std::string(NativeEffectBlendHlsl) + R"(
+float4 main(float4 pos:SV_Position):SV_Target0 {
+ uint index=uint(pos.y)*16+uint(pos.x);
+ float4 src=index<64?float4(.2,.6,.9,.25):float4(.9,.1,.3,.75);
+ float4 dst=index<64?float4(.8,.3,.1,.75):float4(.4,.8,.7,.125);
+ return nativeEffectBlend(src,dst,int(index%8),int((index/8)%8));
+})";
+	ComPtr<ID3DBlob> effectCode;
+	ComPtr<ID3D11PixelShader> effectShader;
+	hr=D3DCompile(effectSource.data(),effectSource.size(),"native-effect-blend",nullptr,nullptr,
+		"main","ps_5_0",D3DCOMPILE_ENABLE_STRICTNESS,0,effectCode.GetAddressOf(),diagnostics.ReleaseAndGetAddressOf());
+	if(SUCCEEDED(hr))hr=surface.device->CreatePixelShader(effectCode->GetBufferPointer(),effectCode->GetBufferSize(),nullptr,effectShader.GetAddressOf());
+	if(FAILED(hr)){error=HrText("compile native effect blend",hr);return false;}
+	surface.context->OMSetRenderTargets(1,&target,nullptr);
+	surface.context->OMSetBlendState(nullptr,nullptr,0xffffffff);
+	surface.context->PSSetShader(effectShader.Get(),nullptr,0);
+	surface.context->Draw(4,0);
+	Image effectPixels;
+	if(!Readback(surface.device.Get(),surface.context.Get(),outputTexture.Get(),effectPixels,error))return false;
+	unsigned wrongAlphaMismatches=0;
+	for(unsigned i=0;i<Width*Height;++i) {
+		const std::array<double,4> src=i<64?std::array<double,4>{.2,.6,.9,.25}:std::array<double,4>{.9,.1,.3,.75};
+		const std::array<double,4> dst=i<64?std::array<double,4>{.8,.3,.1,.75}:std::array<double,4>{.4,.8,.7,.125};
+		for(unsigned c=0;c<4;++c) {
+			const double s[]={0,1,dst[c],1-dst[c],src[3],1-src[3],dst[3],1-dst[3]};
+			const double d[]={0,1,src[c],1-src[c],src[3],1-src[3],dst[3],1-dst[3]};
+			const double expected=(std::min)(1.,dst[c]*d[(i/8)%8]+src[c]*s[i%8]);
+			const int actual=effectPixels.rgba[i*4+c];
+			if(std::abs(actual-int(std::lround(expected*255)))>1) {
+				error="native effect GPU blend mismatch at mode-pair "+std::to_string(i);return false;
+			}
+			const int flattened=int(std::lround((src[c]*src[3]+dst[c]*(1-src[3]))*255));
+			if(std::abs(actual-flattened)>1)++wrongAlphaMismatches;
+		}
+	}
+	if(!wrongAlphaMismatches){error="flattened-alpha negative did not fail";return false;}
 	return result.protectedPixels != 0 && result.protectedMismatch == 0
 		&& result.worldChanged == 0 && result.wrongProtectedMismatch == result.protectedPixels;
 }

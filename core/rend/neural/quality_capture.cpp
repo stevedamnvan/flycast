@@ -397,7 +397,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -422,6 +422,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		source.bytesPerPixel=4;source.bytes=returned.bgra;
 		const auto input=ToRgba(source),native=ToRgba(raw[0]),overlay=ToRgba(raw[1]),output=ToRgba(raw[2]),presented=ToRgba(raw[3]);
 		auto world=input;
+		if(preEffects&&!evaluated){error="pre-effect capture requires evaluated output";return false;}
 		if(evaluated) {
 			RawTexture evaluatedRaw;
 			if(!ReadTexture(device,context,evaluated,evaluatedRaw,error))return false;
@@ -431,6 +432,27 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 			}
 			world=ToRgba(evaluatedRaw);
 			if(!WritePng(directory/"evaluated-remix.png",world,error))return false;
+		}
+		std::uint64_t effectPixels=0,effectWorldPixels=0;
+		if(preEffects) {
+			RawTexture beforeRaw;
+			if(!ReadTexture(device,context,preEffects,beforeRaw,error))return false;
+			if(beforeRaw.width!=640||beforeRaw.height!=480
+				||(beforeRaw.format!=DXGI_FORMAT_R8G8B8A8_UNORM&&beforeRaw.format!=DXGI_FORMAT_B8G8R8A8_UNORM)) {
+				error="pre-effect preview extent or format";return false;
+			}
+			const auto before=ToRgba(beforeRaw);auto difference=world;
+			for(std::size_t p=0;p<640*480;++p) {
+				bool changed=false;
+				for(unsigned c=0;c<3;++c) {
+					const int delta=int(world.pixels[p*4+c])-int(before.pixels[p*4+c]);
+					difference.pixels[p*4+c]=static_cast<std::uint8_t>(std::abs(delta));changed|=delta!=0;
+				}
+				difference.pixels[p*4+3]=255;effectPixels+=changed;
+				if(raw[1].bytes[p]<128)effectWorldPixels+=changed;
+			}
+			if(!WritePng(directory/"neural-before-native-effects.png",before,error)
+				||!WritePng(directory/"native-effects-absolute-difference.png",difference,error))return false;
 		}
 		std::uint64_t protectedPixels=0,hudMismatch=0,worldMismatch=0,displayMismatch=0;
 		for(std::size_t p=0;p<640*480;++p) {
@@ -446,6 +468,9 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		std::ofstream report(directory/"preview.json");report.imbue(std::locale::classic());
 		report<<"{\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
 			<<",\"evaluated_remix\":"<<(evaluated?"true":"false")
+			<<",\"native_effects_applied\":"<<(preEffects?"true":"false")
+			<<",\"native_effect_rgb_changed_pixels\":"<<effectPixels
+			<<",\"native_effect_unprotected_rgb_changed_pixels\":"<<effectWorldPixels
 			<<",\"replay_original_frame\":"<<replayOriginalFrame
 			<<",\"sequence\":"<<returned.source.sequence<<",\"source_digest\":"<<returned.source.digest
 			<<",\"producer_epoch\":"<<returned.producer.epoch<<",\"producer_ordinal\":"<<returned.producer.ordinal

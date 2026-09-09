@@ -317,11 +317,14 @@ protected:
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeEvaluatedSource;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeEvaluatedOverlay;
 	ComPtr<ID3D11Texture2D> remakeEvaluatedTexture;
+	ComPtr<ID3D11Texture2D> remakePreEffectTexture; // Explicit preview capture only.
 	ComPtr<ID3D11ShaderResourceView> remakeEvaluatedView;
 	std::uint64_t remakeLastEvaluationAttempt=0;
 	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
+	std::shared_ptr<const flycast::rend::neural::RemakeOitEffects> remakeCurrentEffects;
+	std::string remakeCurrentEffectsReason="unsupported-renderer";
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
 	ComPtr<ID3D11Texture2D> remakeCompositeTexture;
 	ComPtr<ID3D11ShaderResourceView> remakeCompositeView,remakeDisplayedView;
@@ -330,6 +333,8 @@ protected:
 	unsigned remakePreviewCaptureAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
+		remakePreEffectTexture.reset();
+		remakeCurrentEffects.reset();
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();

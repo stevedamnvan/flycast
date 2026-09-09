@@ -16,8 +16,11 @@ not recovered world/camera truth. LOG525 proves bounded live paired returned
 input delivery; LOG526 confirms three source-qualified retained-input external
 outputs through matched ON/clean/OFF controls. LOG529 adds capture-independent
 ordinary-frame scene feed:60 matched moving sources and56 bounded retained paired
-replies. Returned presentation, combined ordinary gameplay, returned-scene temporal
-guidance and full camera acceptance remain pending.
+replies. LOG542 subsequently records600 paired OIT returns and595 distinct
+displayed sources; LOG544 proves25 consecutive exact-input external results
+through clean HUD composition and completed Present. Returned presentation is
+therefore experimentally implemented, not absent. Full combined ordinary-gameplay
+acceptance, returned-scene temporal guidance and camera acceptance remain pending.
 The strict replay residual stays
 failed/parked; neither approximation nor a mock closes that gate.
 
@@ -41,7 +44,9 @@ It has scheduling priority over unavailable-title expansion and hardware-only
 tests. Public Auto remains the Faithful default. Uncanny remains user-selected.
 The transformative remake lane may deliberately change materials, lighting,
 color, and appearance; unstable geometry, broken HUD, trails, frame-identity
-errors, emulation slowdown, or crashes are not aesthetic freedoms.
+errors, emulation slowdown, or crashes are not aesthetic freedoms. Intentional
+source trails and translucent gameplay effects must be preserved; only added
+reconstruction persistence is a temporal defect.
 
 ## Reuse candidates and evidence limits
 

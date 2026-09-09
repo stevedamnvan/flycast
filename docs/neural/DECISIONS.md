@@ -1,5 +1,34 @@
 # Neural rendering decisions
 
+## D-174: preserve ordered native effects rather than flattening translucency
+
+The OIT resolver uses all64 blend pairs, destination alpha/color, a secondary
+accumulation buffer and saturation after each fragment. Reuse its blend kernel
+for effect preservation; a single alpha layer or native-minus-opaque residual
+cannot represent this contract. The production kernel is GPU-tested against
+independent coefficient tables on both D3D11 surfaces. Delayed ownership,
+occlusion, multipass and actual moving composition remain required before
+declaring effects integrated. No current-frame effect data may be attached to
+an older returned scene. LOG554 records failures and bounded kernel evidence.
+LOG555 implements the first copy-based, off-by-default single-pass OIT path:
+source receipt owns fragment/pointer/parameter/constants; the original resolver
+is replayed over evaluated color on a state-restoring deferred command list.
+Shaders are selected from the owning native renderer; copied resources and the
+factory/context remain device-validated. The installed shader interceptor's
+GetDevice identity must not be mistaken for copied-resource ownership. Different
+real devices still fail the GPU fixture. Preserve the pre-effect neural color in
+the next evidence slice; a combined image alone cannot isolate the contribution.
+
+## D-173: captured moving HUD envelope and depleted plate
+
+Known Soulcalibur HUD atlas paths admit depth up to .24 after the moving
+capture demonstrated .230914, retaining lower/finite/list/order/region and
+shape checks. Atlas801607344 is admitted only in the two measured planar
+health-plate rectangles. LOG547-551 retain failed controls and the exact2192
+comparison with restored HUD. This is measured profile coverage, not general
+depth-independent HUD recognition. Additive HUD effects and world translucency
+remain open. The implementation is fork-verified at3f3600b44.
+
 ## D-172: explicitly gated OIT return and monotonic HUD coverage
 
 The returned-scene path is permitted in OIT only with exact developer opt-in

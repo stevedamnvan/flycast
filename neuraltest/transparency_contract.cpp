@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "rend/dx11/oit/native_effect_blend.h"
+#include "rend/neural/remake_oit_effects.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -16,7 +18,7 @@
 #include <sstream>
 #include <vector>
 
-using Microsoft::WRL::ComPtr;
+template<class T> using TestComPtr = Microsoft::WRL::ComPtr<T>;
 
 namespace neuraltest {
 namespace {
@@ -26,10 +28,10 @@ constexpr UINT Height = 1;
 constexpr std::uint32_t Eol = 0xffffffffu;
 
 struct Surface {
-	ComPtr<ID3D11Device> device;
-	ComPtr<ID3D11DeviceContext> context;
-	ComPtr<ID3D12Device> device12;
-	ComPtr<ID3D12CommandQueue> queue12;
+	TestComPtr<ID3D11Device> device;
+	TestComPtr<ID3D11DeviceContext> context;
+	TestComPtr<ID3D12Device> device12;
+	TestComPtr<ID3D12CommandQueue> queue12;
 	std::string name;
 	std::string adapter;
 };
@@ -51,8 +53,8 @@ std::string HrText(const char *operation, HRESULT hr)
 
 std::string AdapterName(ID3D11Device *device)
 {
-	ComPtr<IDXGIDevice> dxgi;
-	ComPtr<IDXGIAdapter> adapter;
+	TestComPtr<IDXGIDevice> dxgi;
+	TestComPtr<IDXGIAdapter> adapter;
 	DXGI_ADAPTER_DESC desc{};
 	if (FAILED(device->QueryInterface(IID_PPV_ARGS(dxgi.GetAddressOf())))
 		|| FAILED(dxgi->GetAdapter(adapter.GetAddressOf()))
@@ -115,6 +117,9 @@ public:
 	HRESULT STDMETHODCALLTYPE Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID,
 		LPCVOID *data, UINT *bytes) override
 	{
+		if (std::strcmp(fileName, "native_effect_blend.hlsl") == 0) {
+			*data = NativeEffectBlendHlsl; *bytes = sizeof(NativeEffectBlendHlsl) - 1; return S_OK;
+		}
 		if (std::strcmp(fileName, "oit_header.hlsl") != 0) return E_FAIL;
 		*data = header_.data(); *bytes = static_cast<UINT>(header_.size()); return S_OK;
 	}
@@ -124,7 +129,7 @@ private:
 };
 
 bool CreateTexture(ID3D11Device *device, DXGI_FORMAT format, UINT bindFlags,
-	const void *data, UINT pitch, ComPtr<ID3D11Texture2D>& texture, std::string& error)
+	const void *data, UINT pitch, TestComPtr<ID3D11Texture2D>& texture, std::string& error)
 {
 	D3D11_TEXTURE2D_DESC desc{};
 	desc.Width = Width; desc.Height = Height; desc.MipLevels = 1; desc.ArraySize = 1;
@@ -144,7 +149,7 @@ bool ReadMask(ID3D11Device *device, ID3D11DeviceContext *context,
 	source->GetDesc(&desc);
 	desc.Usage = D3D11_USAGE_STAGING; desc.BindFlags = 0;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	ComPtr<ID3D11Texture2D> staging;
+	TestComPtr<ID3D11Texture2D> staging;
 	HRESULT hr = device->CreateTexture2D(&desc, nullptr, staging.GetAddressOf());
 	if (SUCCEEDED(hr)) context->CopyResource(staging.Get(), source);
 	D3D11_MAPPED_SUBRESOURCE mapped{};
@@ -191,9 +196,9 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		{"MAX_PIXELS_PER_FRAGMENT", "8"}, {"DITHERING", "0"}, {nullptr, nullptr}
 	};
 	OitInclude includes(header);
-	ComPtr<ID3DBlob> vsCode;
-	ComPtr<ID3DBlob> psCode;
-	ComPtr<ID3DBlob> diagnostics;
+	TestComPtr<ID3DBlob> vsCode;
+	TestComPtr<ID3DBlob> psCode;
+	TestComPtr<ID3DBlob> diagnostics;
 	HRESULT hr = D3DCompile(vertex, std::strlen(vertex), "transparency-vs", nullptr,
 		nullptr, "main", "vs_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
 		vsCode.GetAddressOf(), diagnostics.GetAddressOf());
@@ -206,8 +211,8 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 			diagnostics->GetBufferSize()) : HrText("compile transparency shaders", hr);
 		return false;
 	}
-	ComPtr<ID3D11VertexShader> vs;
-	ComPtr<ID3D11PixelShader> ps;
+	TestComPtr<ID3D11VertexShader> vs;
+	TestComPtr<ID3D11PixelShader> ps;
 	hr = surface.device->CreateVertexShader(vsCode->GetBufferPointer(), vsCode->GetBufferSize(),
 		nullptr, vs.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(psCode->GetBufferPointer(),
@@ -227,10 +232,10 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	const std::array<std::uint32_t, Width> opaque = {
 		0xff202020u, 0xff202020u, 0xff202020u, 0xff202020u
 	};
-	ComPtr<ID3D11Texture2D> opaqueTexture;
-	ComPtr<ID3D11Texture2D> pointerTexture;
-	ComPtr<ID3D11Texture2D> colorTexture;
-	ComPtr<ID3D11Texture2D> maskTexture;
+	TestComPtr<ID3D11Texture2D> opaqueTexture;
+	TestComPtr<ID3D11Texture2D> pointerTexture;
+	TestComPtr<ID3D11Texture2D> colorTexture;
+	TestComPtr<ID3D11Texture2D> maskTexture;
 	if (!CreateTexture(surface.device.Get(), DXGI_FORMAT_R8G8B8A8_UNORM,
 		D3D11_BIND_SHADER_RESOURCE, opaque.data(), Width * 4, opaqueTexture, error)
 		|| !CreateTexture(surface.device.Get(), DXGI_FORMAT_R32_UINT,
@@ -239,10 +244,10 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		D3D11_BIND_RENDER_TARGET, nullptr, 0, colorTexture, error)
 		|| !CreateTexture(surface.device.Get(), DXGI_FORMAT_R8_UNORM,
 		D3D11_BIND_RENDER_TARGET, nullptr, 0, maskTexture, error)) return false;
-	ComPtr<ID3D11ShaderResourceView> opaqueView;
-	ComPtr<ID3D11UnorderedAccessView> pointerUav;
-	ComPtr<ID3D11RenderTargetView> colorTarget;
-	ComPtr<ID3D11RenderTargetView> maskTarget;
+	TestComPtr<ID3D11ShaderResourceView> opaqueView;
+	TestComPtr<ID3D11UnorderedAccessView> pointerUav;
+	TestComPtr<ID3D11RenderTargetView> colorTarget;
+	TestComPtr<ID3D11RenderTargetView> maskTarget;
 	hr = surface.device->CreateShaderResourceView(opaqueTexture.Get(), nullptr,
 		opaqueView.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreateUnorderedAccessView(pointerTexture.Get(),
@@ -259,14 +264,14 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	bufferDesc.StructureByteStride = sizeof(OitPixel);
 	D3D11_SUBRESOURCE_DATA pixelData{pixels.data(), 0, 0};
-	ComPtr<ID3D11Buffer> pixelBuffer;
+	TestComPtr<ID3D11Buffer> pixelBuffer;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateBuffer(&bufferDesc, &pixelData,
 		pixelBuffer.GetAddressOf());
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pixelUavDesc{};
 	pixelUavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pixelUavDesc.Format = DXGI_FORMAT_UNKNOWN;
 	pixelUavDesc.Buffer.NumElements = static_cast<UINT>(pixels.size());
-	ComPtr<ID3D11UnorderedAccessView> pixelUav;
+	TestComPtr<ID3D11UnorderedAccessView> pixelUav;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateUnorderedAccessView(pixelBuffer.Get(),
 		&pixelUavDesc, pixelUav.GetAddressOf());
 
@@ -274,14 +279,14 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	bufferDesc.StructureByteStride = sizeof(std::int32_t) * 2;
 	D3D11_SUBRESOURCE_DATA polyData{poly.data(), 0, 0};
-	ComPtr<ID3D11Buffer> polyBuffer;
+	TestComPtr<ID3D11Buffer> polyBuffer;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateBuffer(&bufferDesc, &polyData,
 		polyBuffer.GetAddressOf());
 	D3D11_SHADER_RESOURCE_VIEW_DESC polyViewDesc{};
 	polyViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	polyViewDesc.Format = DXGI_FORMAT_UNKNOWN;
 	polyViewDesc.Buffer.NumElements = 1;
-	ComPtr<ID3D11ShaderResourceView> polyView;
+	TestComPtr<ID3D11ShaderResourceView> polyView;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateShaderResourceView(polyBuffer.Get(),
 		&polyViewDesc, polyView.GetAddressOf());
 
@@ -292,17 +297,74 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	std::array<float, 24> constants{};
 	constants[21] = 1.f;
 	D3D11_SUBRESOURCE_DATA constantsData{constants.data(), 0, 0};
-	ComPtr<ID3D11Buffer> constantBuffer;
+	TestComPtr<ID3D11Buffer> constantBuffer;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateBuffer(&constantsDesc, &constantsData,
 		constantBuffer.GetAddressOf());
 	D3D11_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	samplerDesc.AddressU = samplerDesc.AddressV = samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	ComPtr<ID3D11SamplerState> sampler;
+	TestComPtr<ID3D11SamplerState> sampler;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateSamplerState(&samplerDesc,
 		sampler.GetAddressOf());
 	if (FAILED(hr)) { error = HrText("create transparency resources", hr); return false; }
+	// Exercise the production source-owned snapshot and deferred resolver at its
+	// supported extent. Mutate original pointers after capture; replay must still
+	// preserve the captured effects, repeat without consuming them, and reject a
+	// different producer. This fixture starts with depth-filtered fragments; it
+	// does not claim to test geometry occlusion.
+	std::vector<std::uint32_t> fullPointers(640*512), fullBackground(640*480,0xff202020u);
+	for(std::size_t i=0;i<fullPointers.size();++i)fullPointers[i]=pointers[i%4];
+	D3D11_TEXTURE2D_DESC fullDesc{};
+	fullDesc.Width=640;fullDesc.Height=512;fullDesc.MipLevels=fullDesc.ArraySize=fullDesc.SampleDesc.Count=1;
+	fullDesc.Format=DXGI_FORMAT_R32_UINT;fullDesc.BindFlags=D3D11_BIND_UNORDERED_ACCESS;
+	D3D11_SUBRESOURCE_DATA fullData{fullPointers.data(),640*4,0};
+	TestComPtr<ID3D11Texture2D> fullPointerTexture,fullColorTexture;
+	hr=surface.device->CreateTexture2D(&fullDesc,&fullData,fullPointerTexture.GetAddressOf());
+	fullDesc.Height=480;fullDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;fullDesc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+	fullData.pSysMem=fullBackground.data();
+	if(SUCCEEDED(hr))hr=surface.device->CreateTexture2D(&fullDesc,&fullData,fullColorTexture.GetAddressOf());
+	if(FAILED(hr)){error=HrText("create source effects fixture",hr);return false;}
+	const flycast::rend::neural::ProducerIdentity effectIdentity{1,20,100};
+	const auto effects=flycast::rend::neural::RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),
+		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get());
+	if(!effects){error="source effects capture failed";return false;}
+	Surface otherDevice;
+	if(!CreateSurface(false,otherDevice,error))return false;
+	if(flycast::rend::neural::RemakeOitEffects::Capture(otherDevice.device.Get(),surface.context.Get(),
+		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get())) {
+		error="source effects accepted a different device";return false;
+	}
+	std::fill(fullPointers.begin(),fullPointers.end(),Eol);
+	surface.context->UpdateSubresource(fullPointerTexture.Get(),0,nullptr,fullPointers.data(),640*4,0);
+	::ComPtr<ID3D11Texture2D> effectOutput;
+	::ComPtr<ID3D11ShaderResourceView> effectView;
+	if(effects->Compose(surface.device.Get(),surface.context.Get(),{1,21,101},fullColorTexture.Get(),effectOutput,effectView)) {
+		error="source effects accepted wrong producer";return false;
+	}
+	for(unsigned repeat=0;repeat<2;++repeat) {
+		if(!effects->Compose(surface.device.Get(),surface.context.Get(),effectIdentity,fullColorTexture.Get(),effectOutput,effectView)) {
+			error="source effects replay failed";return false;
+		}
+		D3D11_TEXTURE2D_DESC readDesc{};effectOutput->GetDesc(&readDesc);
+		readDesc.Usage=D3D11_USAGE_STAGING;readDesc.BindFlags=0;readDesc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+		TestComPtr<ID3D11Texture2D> readTexture;
+		hr=surface.device->CreateTexture2D(&readDesc,nullptr,readTexture.GetAddressOf());
+		if(FAILED(hr)){error=HrText("create effect readback",hr);return false;}
+		surface.context->CopyResource(readTexture.Get(),effectOutput);
+		D3D11_MAPPED_SUBRESOURCE mapped{};
+		hr=surface.context->Map(readTexture.Get(),0,D3D11_MAP_READ,0,&mapped);
+		if(FAILED(hr)){error=HrText("map effect readback",hr);return false;}
+		bool correct=true;
+		for(unsigned y=0;y<480;++y)for(unsigned x=0;x<640;++x) {
+			const auto* p=static_cast<const unsigned char*>(mapped.pData)+y*mapped.RowPitch+x*4;
+			const unsigned expectedRed[]={32,96,160,160}; // OIT pack is RGBA, high byte first.
+			const unsigned expectedOther=x%4?255:32;
+			correct=correct&&p[0]==expectedRed[x%4]&&p[1]==expectedOther&&p[2]==expectedOther&&p[3]==255;
+		}
+		surface.context->Unmap(readTexture.Get(),0);
+		if(!correct){error="source effects snapshot/absent/additive/repeat pixels differ";return false;}
+	}
 
 	ID3D11RenderTargetView *targets[] = {colorTarget.Get(), maskTarget.Get()};
 	ID3D11UnorderedAccessView *uavs[] = {pixelUav.Get(), pointerUav.Get()};
@@ -346,24 +408,24 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		error = "cannot extract production reactive merge shader";
 		return false;
 	}
-	ComPtr<ID3DBlob> mergeCode;
+	TestComPtr<ID3DBlob> mergeCode;
 	hr = D3DCompile(mergePixel.data(), mergePixel.size(), "production-reactive-merge",
 		nullptr, nullptr, "main", "ps_5_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
 		mergeCode.GetAddressOf(), diagnostics.ReleaseAndGetAddressOf());
-	ComPtr<ID3D11PixelShader> mergeShader;
+	TestComPtr<ID3D11PixelShader> mergeShader;
 	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(mergeCode->GetBufferPointer(),
 		mergeCode->GetBufferSize(), nullptr, mergeShader.GetAddressOf());
 	const std::array<std::uint8_t, Width> baseValues = {0, 0, 255, 0};
 	const std::array<std::uint8_t, Width> coverageValues = {0, 255, 0, 255};
-	ComPtr<ID3D11Texture2D> baseTexture;
-	ComPtr<ID3D11Texture2D> coverageTexture;
+	TestComPtr<ID3D11Texture2D> baseTexture;
+	TestComPtr<ID3D11Texture2D> coverageTexture;
 	if (SUCCEEDED(hr) && (!CreateTexture(surface.device.Get(), DXGI_FORMAT_R8_UNORM,
 		D3D11_BIND_RENDER_TARGET, baseValues.data(), Width, baseTexture, error)
 		|| !CreateTexture(surface.device.Get(), DXGI_FORMAT_R8_UNORM,
 		D3D11_BIND_SHADER_RESOURCE, coverageValues.data(), Width, coverageTexture, error)))
 		return false;
-	ComPtr<ID3D11RenderTargetView> baseTarget;
-	ComPtr<ID3D11ShaderResourceView> coverageView;
+	TestComPtr<ID3D11RenderTargetView> baseTarget;
+	TestComPtr<ID3D11ShaderResourceView> coverageView;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateRenderTargetView(baseTexture.Get(), nullptr,
 		baseTarget.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreateShaderResourceView(coverageTexture.Get(), nullptr,
