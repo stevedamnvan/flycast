@@ -81,7 +81,7 @@ int wmain(int argc,wchar_t** argv) {
    snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
    if(argc==18) {
     if(frames!=63 || std::wstring(argv[12])!=L"--next" || std::wstring(argv[14])!=L"--next" ||
-       std::wstring(argv[16])!=L"--capture")throw std::invalid_argument("sequence requires 60 warmup plus three frames and final color capture");
+       (std::wstring(argv[16])!=L"--capture" && !reverseLight))throw std::invalid_argument("sequence requires 60 warmup plus three frames and final color capture");
     sequence.push_back(*snapshot);
     for(int i: {13,15}) {
      const std::filesystem::path root(argv[i]);
@@ -180,7 +180,7 @@ int wmain(int argc,wchar_t** argv) {
    Result submitted{false,"not-submitted"};
    if(!sequence.empty()) {
     if(sequenceResources.size()<=size_t(sequenceIndex)) {
-     sequenceResources.push_back(std::make_unique<RemixScene>(api));
+     sequenceResources.push_back(std::make_unique<RemixScene>(api,false,reverseLight));
      submitted=sequenceResources.back()->SubmitDiagnostic(packet,packet.frame,packet.game,true);
     }else submitted=sequenceResources.back()->Redraw(packet.camera);
     std::cerr<<"sequence_source_frame="<<packet.frame<<" warmup="<<(frame<60)<<" source_sha="<<packet.sourceGitSha<<" temporal_identity_proven=false\n"<<std::flush;

@@ -18,21 +18,22 @@ def main():
     for key in ('capture','tape','ledger','reference_capture','reference','normal_executable','output'):
         p.add_argument(key,type=Path)
     p.add_argument('--group',choices=('large','two','four'),default='large')
+    p.add_argument('--frame',type=int,choices=(1782,1783,1784),default=1782)
     a=p.parse_args()
     if a.output.exists():p.error('new output required')
     if a.group=='large':
         evidence=inspect_capture(a.capture,a.tape,a.ledger,source_details=True)
-        frame=evidence['frames'][0];draws=[277]
+        frame=evidence['frames'][a.frame-1782];draws=[277]
     else:
         extra=dict(domain=FOUR_DOMAIN,target_count=1005,affine_contributions=True) if a.group=='four' else {}
         evidence=incarnated(a.capture,a.tape,a.ledger,source_details=True,**extra)
-        parts=evidence['frames'][0]['draws'];frame=dict(parts[0])
+        parts=evidence['frames'][a.frame-1782]['draws'];frame=dict(parts[0])
         frame['vertices']=[v for part in parts for v in part['vertices']]
         frame['triangles']=[t for part in parts for t in part['triangles']]
         frame['supported_triangles']=sum(part['supported_triangles'] for part in parts)
         frame['omitted_opaque_triangles']=frame['total_opaque_index_triangles']-frame['supported_triangles']
         draws=sorted({v['source_draw'] for v in frame['vertices']})
-    source=a.capture/'frame-001782';target=a.reference_capture/'frame-001782'
+    source=a.capture/f'frame-{a.frame:06d}';target=a.reference_capture/f'frame-{a.frame:06d}'
     scene=bounded_json(source/'pvr-scene.json',64*1024*1024)
     materials=bounded_json(source/'materials/manifest.json',16*1024*1024)
     reference=bounded_json(a.reference,32*1024*1024)

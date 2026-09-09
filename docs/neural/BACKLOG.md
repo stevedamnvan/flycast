@@ -55,7 +55,15 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: prepare moving composed endpoints. LOG434 completes focused
+Current next action: test public retained-mesh skinning/bone-transform transport
+with analytic deformation and a falsifying transform control. LOG437 finds new
+internal geometry hashes on every CreateMesh; stable external IDs alone are not
+history proof. Do not invent private update/previous-position parameters.
+LOG436 renders H/L/M in one
+session but shows moving-fighter ghosting; isolated resource namespaces remain
+diagnostic, not trusted history. Preserve failed temporal output. Complete
+frame-selector/sequence-light checkpoint; LOG437 records completed regressions.
+LOG434 completes focused
 composition tests/full incremental regression for checkpoint. LOG433 renders both fighters
 and temple together (40meshes), retaining four source groups, and passes20 actual
 loader rejection controls. Static diagnostic only; no combined-DLSS5 acceptance.

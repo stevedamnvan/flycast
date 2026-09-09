@@ -1,5 +1,13 @@
 # FC-067 standalone runtime bring-up
 
+LOG436 captures three composed source frames in one warmed session with
+`--capture-reverse-light`; each frame gets its own BMP. Visible fighter ghosting
+is a failed temporal result. Endpoint resources currently have deliberately
+separate namespaces. The pinned public API's CreateMesh allocates new internal
+geometry hashes; investigate retained mesh skinning/instance transforms rather
+than assuming reuse of an external handle proves geometry history. Public source:
+[rtx_remix_api.cpp](https://github.com/NVIDIAGameWorks/dxvk-remix/blob/e876135b37295dc203ccdb7b20a8089629588201/src/dxvk/rtx_render/rtx_remix_api.cpp).
+
 LOG433 adds a40-mesh static composed scene containing both fighters and temple.
 `prepare_embedded_draw_inspect.py` supports `--group large|two|four` for the
 retained H source groups; it runs source arithmetic and cross-capture checks,
