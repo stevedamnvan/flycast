@@ -19,9 +19,18 @@
 #include "dx11_texture.h"
 #include "dx11context.h"
 #include <versionhelpers.h>
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/pvr_material_capture.h"
+#include <cstdlib>
+#endif
 
 void DX11Texture::UploadToGPU(int width, int height, const u8* temp_tex_buffer, bool mipmapped, bool mipmapsIncluded)
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	remakeUpload.reset();
+	const u8* uploadBegin = temp_tex_buffer;
+	std::size_t uploadBytes = 0;
+#endif
 	D3D11_TEXTURE2D_DESC desc{};
 	desc.Width = width;
 	desc.Height = height;
@@ -107,10 +116,19 @@ void DX11Texture::UploadToGPU(int width, int height, const u8* temp_tex_buffer, 
 		u32 w = mipmapLevels == 1 ? width : 1 << i;
 		u32 h = mipmapLevels == 1 ? height : 1 << i;
 		DX11Context::Instance()->getDeviceContext()->UpdateSubresource(texture, mipmapLevels - i - 1, nullptr, temp_tex_buffer, w * bpp, w * bpp * h);
+#ifdef FLYCAST_ENABLE_NEURAL
+		uploadBytes += std::size_t(w) * h * bpp;
+#endif
 		temp_tex_buffer += (1 << (2 * i)) * bpp;
 	}
 	if (mipmapped && !mipmapsIncluded)
 		DX11Context::Instance()->getDeviceContext()->GenerateMips(textureView);
+#ifdef FLYCAST_ENABLE_NEURAL
+	const auto* remake = std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
+	if (remake && remake[0]=='1' && remake[1]=='\0' && (!mipmapped || mipmapsIncluded))
+		remakeUpload = flycast::rend::neural::CaptureMaterialUpload(texture, desc.Format,
+			width, height, mipmapLevels, uploadBegin, uploadBytes, Updates, rttGeneration);
+#endif
 }
 
 #ifndef TARGET_UWP
@@ -133,6 +151,9 @@ bool DX11Texture::Delete()
 
 	textureView.reset();
 	texture.reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+	remakeUpload.reset();
+#endif
 	return true;
 }
 

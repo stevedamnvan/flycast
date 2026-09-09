@@ -1,5 +1,76 @@
 # Neural rendering evidence log
 
+LOG659 corrected serial validation exits0: baseline and no-NGX selftests711/0,
+both builds and feature-off build link. Together with LOG656 automation build,
+711/0 and native material fixture, the four configurations are checked for this
+slice. These are incremental builds, not fresh exact-SHA evidence. LOG657's
+300 consecutive interval and material equality accept the bounded upload fix;
+full pipeline acceptance remains pending. Commit/push and postcommit checks next.
+
+LOG658 material comparator controls reject four malformed packets (short header,
+truncated body, trailing byte, wrong magic) and detect a mutated DDS payload.
+Backlog contract inspection passes its document-only scope. Source2311 visual
+inspection shows intact HUD and brighter/softer experimental world; no quality
+winner declared. Baseline build links, but the first test command used the wrong
+neuraltest executable directory and exited unsuccessfully before subsequent
+builds. Retain remake-palette-validation-test.log; corrected serial validation
+uses neuraltest/neuraltest.exe and is pending.
+
+LOG657 palette-upload-a host/helper exit0,660 helper Presents. The executed
+gameplay review accepts300 consecutive sources2161..2460 with no gaps and no
+failed nonempty-HUD/composition/backbuffer/completed-Present checks. No
+material-cache-pending entries occur in this run. The material comparator
+accepts293 overlapping sources and12984 exact mesh material/state/generation
+and producer identities against upload-a; unmatched sources remain reported.
+This closes the observed material-delivery gap in this interval, not camera
+truth, temporal quality, external provenance or performance acceptance.
+The40-object runtime cleanup warning remains. Evidence: fc067-palette-upload-a-review
+outside Git. Remaining configuration builds and comparator negative controls
+must finish before this slice is committed; no new provenance sweep required.
+
+LOG656 upload-diagnostic-a host/helper0 identifies stalled2182..2184 as
+format65/A8 gpu_palette1 generated_mips0 owned_upload0. Extend owned indices
+and capture the actual32x32 palette upload plus16/256-bank generation hashes.
+Only exact resource/index revision and palette-bank generation seed the cache;
+unqualified cases retain GPU staging. Clear palette owner at renderer teardown.
+Native WARP material fixture passes171 raw/RGBA comparisons,52 negatives,
+32 async exact-mip comparisons and98 async controls, including first-request
+ready from owned indices/palette without a flush. Automation selftest711/0.
+Next palette-upload-a repeats the300-source bounded capture; no observed gap
+reduction yet. The first nonpaletted-only experiment's unchanged gaps remain
+falsifying evidence, not a claimed success.
+
+LOG655 upload-a host/helper0 and660 helper Presents, but all six prior material
+wait sources remain2182/2183/2184/2279/2373/2374. No material-gap improvement
+established; do not promote memory overhead as a performance win. Add format,
+GPU-palette/generated-mip and upload-copy availability to existing pending
+diagnostics, then run a short capture-free121-helper/240-host replay to identify
+the unsupported path before extending the implementation. External settings
+and generation guards remain unchanged; no timing-performance claim.
+
+LOG654 upload-copy GPU fixture passes on native D3D11 WARP; exact encoded DDS
+matches GPU readback for supported BGRA/16-bit complete mip uploads. Ownership,
+foreign resource, upload/RTT revision and malformed layout negatives run. DDS
+is encoded once per upload, not per draw;64MiB accounting includes raw and DDS.
+Initial retained-resource compile failed on const ComPtr.get; corrected using
+its actual const pointer conversion. Resource is retained to prevent address
+reuse ambiguity. Final material fixture records167 raw/RGBA comparisons and48
+negative controls plus existing async controls; automation selftest711/0.
+Next upload-a repeats the300-source moving capture with identical external
+settings/default light and diagnostic-only budget. Compare source packet/native
+bytes and exact missing-source reasons to moving-long-a; no speed/quality claim
+from synchronous capture, and no gap reduction claim before that result.
+
+LOG653 material availability implementation candidate: retain bounded owned
+CPU upload bytes only with the explicit async-neural route enabled. Match live
+resource identity, upload revision, RTT revision, format, dimensions and mip
+count before encoding source DDS without GPU readback. Process-wide64MiB bound;
+unsupported/GPU-paletted/generated-mip cases retain existing async staging.
+No raw geometry/history changes or waits. Reset at upload/delete and carry owner
+on texture move. Material GPU fixture adds exact DDS/readback equality, source
+mutation ownership and stale upload/RTT/layout negatives. Builds/fixtures/live
+gap regression pending; do not claim this removes any measured gap yet.
+
 LOG652 exact gap classification:2182/2183/2184/2279/2373/2374 report
 stage=texture reason=material-cache-pending;2377 reports stage=credit
 reason=no-return-credit. Do not attribute all gaps to texture loading or relax

@@ -13,8 +13,68 @@
 #include <locale>
 #include <sstream>
 #include <stdexcept>
+#include <atomic>
 
 namespace flycast::rend::neural {
+namespace { std::atomic<std::size_t> uploadSnapshotBytes{0}; }
+MaterialUploadSnapshot::~MaterialUploadSnapshot(){uploadSnapshotBytes.fetch_sub(chargedBytes);}
+std::shared_ptr<const MaterialUploadSnapshot> CaptureMaterialUpload(ID3D11Texture2D* resource,
+ DXGI_FORMAT format,unsigned width,unsigned height,unsigned levels,const std::uint8_t* source,
+ std::size_t bytes,unsigned upload,unsigned rtt) noexcept {
+ try {
+  const unsigned bpp=format==DXGI_FORMAT_A8_UNORM?1:format==DXGI_FORMAT_B8G8R8A8_UNORM?4:
+   (format==DXGI_FORMAT_B5G5R5A1_UNORM||format==DXGI_FORMAT_B4G4R4A4_UNORM||format==DXGI_FORMAT_B5G6R5_UNORM)?2:0;
+  if(!resource||!source||!bpp||!width||!height||width>4096||height>4096||!levels||levels>13)return {};
+  if(levels>1&&(width!=height||width!=(1u<<(levels-1))))return {};
+  std::size_t required=0;
+  for(unsigned i=0;i<levels;++i)required+=std::size_t(std::max(1u,width>>i))*std::max(1u,height>>i)*bpp;
+  constexpr std::size_t limit=64*1024*1024;
+  if(bytes!=required||bytes>limit)return {};
+  const auto charge=bytes+(bpp==1?0:(bytes/bpp)*4+148); // Indices need a draw-qualified palette later.
+  if(charge>limit)return {};
+  auto snapshot=std::make_shared<MaterialUploadSnapshot>();
+  auto used=uploadSnapshotBytes.load();
+  do {if(used>limit-charge)return {};} while(!uploadSnapshotBytes.compare_exchange_weak(used,used+charge));
+  snapshot->chargedBytes=charge;snapshot->resource.get()=resource;resource->AddRef();snapshot->upload=upload;snapshot->rtt=rtt;
+  snapshot->pixels.format=format;snapshot->pixels.mips.resize(levels);
+  std::size_t offset=0;
+  for(unsigned i=0;i<levels;++i) {
+   auto& mip=snapshot->pixels.mips[levels-i-1];
+   mip.width=levels==1?width:1u<<i;mip.height=levels==1?height:1u<<i;
+   const auto size=std::size_t(mip.width)*mip.height*bpp;
+   mip.bytes.assign(source+offset,source+offset+size);offset+=size;
+  }
+  std::string error;
+  if(bpp!=1&&!EncodeRemakeMaterialDds(snapshot->pixels,snapshot->dds,error))return {};
+  return snapshot;
+ }catch(...){return {};}
+}
+bool MaterialUploadMatches(const MaterialUploadSnapshot& snapshot,ID3D11Texture2D* resource,
+ const PvrCapturedTexture& generation) noexcept {
+ if(!resource||static_cast<ID3D11Texture2D*>(snapshot.resource)!=resource||snapshot.upload!=generation.upload||snapshot.rtt!=generation.rtt
+  ||snapshot.pixels.mips.empty())return false;
+ D3D11_TEXTURE2D_DESC desc{};resource->GetDesc(&desc);
+ return desc.ArraySize==1&&desc.SampleDesc.Count==1&&desc.Format==snapshot.pixels.format&&desc.Width==snapshot.pixels.mips[0].width
+  &&desc.Height==snapshot.pixels.mips[0].height&&desc.MipLevels==snapshot.pixels.mips.size();
+}
+std::shared_ptr<const MaterialPaletteSnapshot> CaptureMaterialPalette(ID3D11Texture2D* resource,
+ const std::uint32_t* rgba,const std::uint32_t* hash16,const std::uint32_t* hash256) noexcept {
+ try {
+  if(!rgba||!hash16||!hash256)return {};
+  auto snapshot=std::make_shared<MaterialPaletteSnapshot>();
+  snapshot->upload=CaptureMaterialUpload(resource,DXGI_FORMAT_B8G8R8A8_UNORM,32,32,1,
+   reinterpret_cast<const std::uint8_t*>(rgba),4096,0,0);
+  if(!snapshot->upload)return {};
+  std::copy_n(hash16,64,snapshot->hash16.begin());std::copy_n(hash256,4,snapshot->hash256.begin());
+  return snapshot;
+ }catch(...){return {};}
+}
+bool MaterialPaletteMatches(const MaterialPaletteSnapshot& snapshot,ID3D11Texture2D* resource,
+ unsigned bank,bool smallBank,unsigned generation) noexcept {
+ PvrCapturedTexture identity;identity.upload=0;identity.rtt=0;
+ return snapshot.upload&&MaterialUploadMatches(*snapshot.upload,resource,identity)
+  &&bank<(smallBank?64u:4u)&&(smallBank?snapshot.hash16[bank]:snapshot.hash256[bank])==generation;
+}
 namespace {
 using Json=nlohmann::json;
 void Require(bool b,const char* e){if(!b)throw std::runtime_error(e);}
@@ -203,7 +263,8 @@ void RemakeTextureCache::BeginFrame(std::uint64_t frame,std::uint64_t epoch) {
  entries.erase(std::remove_if(entries.begin(),entries.end(),[&](const auto& e){return frame-e->lastFrame>120;}),entries.end());
 }
 bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Texture2D* texture,
- const PvrCapturedTexture& generation,std::vector<unsigned char>& output,std::string& error,ID3D11Texture2D* palette,unsigned paletteBase) {
+ const PvrCapturedTexture& generation,std::vector<unsigned char>& output,std::string& error,ID3D11Texture2D* palette,unsigned paletteBase,
+ const MaterialPixels* cpuPixels,const MaterialMip* cpuPalette) {
  try {
   Require(impl_&&context&&texture,"material-cache-frame-or-resource");auto& cache=*impl_;
   D3D11_TEXTURE2D_DESC sourceDesc{};texture->GetDesc(&sourceDesc);
@@ -223,13 +284,20 @@ bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* conte
   if(it==entries.end()) {
    Require(entries.size()<128&&used<limit,"material-cache-budget");
    auto entry=std::make_unique<Impl::Entry>();std::size_t remaining=limit-used;
-   if(!entry->readback.Begin(device,context,texture,generation,remaining,error))return false;
+   if(cpuPixels) {
+    std::size_t size=0;for(const auto& mip:cpuPixels->mips)size+=mip.bytes.size();
+    Require(size<=remaining,"material-cache-budget");remaining-=size;entry->pixels=*cpuPixels;
+   }else if(!entry->readback.Begin(device,context,texture,generation,remaining,error))return false;
    if(palette) {
-    if(!entry->paletteReadback.Begin(device,context,palette,generation,remaining,error))return false;
+    if(cpuPalette) {
+     Require(cpuPalette->bytes.size()<=remaining,"material-cache-budget");remaining-=cpuPalette->bytes.size();
+     entry->palettePixels.format=DXGI_FORMAT_B8G8R8A8_UNORM;entry->palettePixels.mips.push_back(*cpuPalette);
+    }else if(!entry->paletteReadback.Begin(device,context,palette,generation,remaining,error))return false;
     entry->palette.get()=palette;palette->AddRef();entry->paletteBase=paletteBase;
    }
    entry->source.get()=texture;texture->AddRef();entry->generation=generation;entry->lastFrame=cache.frame;
-   entry->bytes=limit-used-remaining;entries.push_back(std::move(entry));error="material-cache-pending";return false;
+   entry->bytes=limit-used-remaining;used+=entry->bytes;entries.push_back(std::move(entry));it=entries.end()-1;
+   if(!cpuPixels||(palette&&!cpuPalette)){error="material-cache-pending";return false;}
   }
   auto& entry=**it;entry.lastFrame=cache.frame;
   if(entry.dds.empty()) {
@@ -252,7 +320,8 @@ bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* conte
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,const rend_context& live,
- const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache,ID3D11Texture2D* palette) {
+ const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache,ID3D11Texture2D* palette,
+ const MaterialPaletteSnapshot* paletteSnapshot) {
  try {
   Require(!live.isRTT&&draw.list<=2,"view-texture-list");
   const auto& list=draw.list==0?live.global_param_op:draw.list==1?live.global_param_pt:live.global_param_tr;
@@ -272,8 +341,34 @@ bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,con
   if(!texture->gpuPalette)palette=nullptr;
   Require(!texture->gpuPalette||palette,"view-texture-palette-missing");
   if(asyncCache) {
+   // Exact owned CPU upload bytes avoid a GPU round trip. Generated mips,
+   // GPU palettes, RTT/resource replacement and unavailable copies use staging.
+   if(!texture->gpuPalette&&texture->remakeUpload
+    &&MaterialUploadMatches(*texture->remakeUpload,texture->texture,generation)) {
+	   Require(matches(),"view-texture-generation");
+    const auto& bytes=texture->remakeUpload->dds;
+    Require(!bytes.empty()&&bytes.size()<=remaining,"view-texture-budget");
+    output=bytes;remaining-=bytes.size();error.clear();
+    return true;
+   }
    std::vector<unsigned char> bytes;
-   if(!asyncCache->Request(device,context,texture->texture,generation,bytes,error,palette,base))return false;
+   const MaterialPixels* ownedIndices=nullptr;const MaterialMip* ownedPalette=nullptr;
+   if(texture->gpuPalette&&texture->remakeUpload&&generation.palette&&paletteSnapshot&&paletteSnapshot->upload
+    &&MaterialUploadMatches(*texture->remakeUpload,texture->texture,generation)
+    &&MaterialPaletteMatches(*paletteSnapshot,palette,
+     draw.state.tcw.PixelFmt==PixelPal4?draw.state.tcw.PalSelect:draw.state.tcw.PalSelect>>4,
+     draw.state.tcw.PixelFmt==PixelPal4,*generation.palette)) {
+    ownedIndices=&texture->remakeUpload->pixels;ownedPalette=&paletteSnapshot->upload->pixels.mips[0];
+   }
+   if(!asyncCache->Request(device,context,texture->texture,generation,bytes,error,palette,base,ownedIndices,ownedPalette)) {
+    if(error=="material-cache-pending") {
+     D3D11_TEXTURE2D_DESC desc{};texture->texture->GetDesc(&desc);
+     error+=" format="+std::to_string(desc.Format)+" gpu_palette="+std::to_string(texture->gpuPalette)
+      +" generated_mips="+std::to_string((desc.MiscFlags&D3D11_RESOURCE_MISC_GENERATE_MIPS)!=0)
+      +" owned_upload="+std::to_string(bool(texture->remakeUpload));
+    }
+    return false;
+   }
    Require(matches()&&bytes.size()<=remaining,"view-texture-generation-or-budget");
    remaining-=bytes.size();output=std::move(bytes);return true;
   }

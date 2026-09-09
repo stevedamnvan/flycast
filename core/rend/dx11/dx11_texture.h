@@ -21,6 +21,10 @@
 #include <d3d11.h>
 #include <unordered_map>
 #include "windows/comptr.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include <memory>
+namespace flycast::rend::neural { struct MaterialUploadSnapshot; }
+#endif
 
 class DX11Texture final : public BaseTextureCacheData
 {
@@ -29,10 +33,16 @@ public:
 	DX11Texture(DX11Texture&& other) : BaseTextureCacheData(std::move(other)) {
 		std::swap(texture, other.texture);
 		std::swap(textureView, other.textureView);
+#ifdef FLYCAST_ENABLE_NEURAL
+		std::swap(remakeUpload, other.remakeUpload);
+#endif
 	}
 
 	ComPtr<ID3D11Texture2D> texture;
 	ComPtr<ID3D11ShaderResourceView> textureView;
+#ifdef FLYCAST_ENABLE_NEURAL
+	std::shared_ptr<const flycast::rend::neural::MaterialUploadSnapshot> remakeUpload;
+#endif
 
 	std::string GetId() override { return std::to_string((uintptr_t)texture.get()); }
 	void UploadToGPU(int width, int height, const u8* temp_tex_buffer, bool mipmapped,

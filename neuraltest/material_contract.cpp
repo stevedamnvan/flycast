@@ -102,6 +102,36 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
    if(!ReadMaterialPixels(device,context,texture,budget,decoded,error))throw std::runtime_error(error);
    check(budget==1024-21*bpp&&decoded.mips.size()==3,"material-fixture-budget-accounting");
    {
+    std::vector<std::uint8_t> packed;
+    for(int mip=2;mip>=0;--mip)packed.insert(packed.end(),bytes[mip].begin(),bytes[mip].end());
+    auto owned=CaptureMaterialUpload(texture,format,4,4,3,packed.data(),packed.size(),7,2);
+    const bool supported=format!=DXGI_FORMAT_R8G8B8A8_UNORM;
+    check(bool(owned)==supported,"material-upload-supported-layout");
+    if(owned) {
+     PvrCapturedTexture generation;generation.upload=7;generation.rtt=2;
+     check(MaterialUploadMatches(*owned,texture,generation),"material-upload-current-generation");
+     auto changed=generation;++changed.upload;
+     check(!MaterialUploadMatches(*owned,texture,changed),"material-upload-stale-upload-rejected");
+     changed=generation;++changed.rtt;
+     check(!MaterialUploadMatches(*owned,texture,changed),"material-upload-rtt-write-rejected");
+     check(!MaterialUploadMatches(*owned,nullptr,generation),"material-upload-missing-resource-rejected");
+     ComPtr<ID3D11Texture2D> other;
+     check(SUCCEEDED(device->CreateTexture2D(&desc,initial.data(),&other.get()))
+      &&!MaterialUploadMatches(*owned,other,generation),"material-upload-foreign-resource-rejected");
+     std::vector<unsigned char> a,b;
+     const auto* paletteInput=format==DXGI_FORMAT_A8_UNORM?&palette:nullptr;
+     check(EncodeRemakeMaterialDds(owned->pixels,a,error,paletteInput)&&EncodeRemakeMaterialDds(decoded,b,error,paletteInput)&&a==b,
+      "material-upload-dds-identical-to-gpu-readback");
+     check((paletteInput?owned->dds.empty():owned->dds==a)
+      &&owned->chargedBytes==packed.size()+(paletteInput?0:a.size()),"material-upload-encoded-copy-budget");
+     std::fill(packed.begin(),packed.end(),0);
+     check(EncodeRemakeMaterialDds(owned->pixels,b,error,paletteInput)&&a==b,"material-upload-owned-after-source-mutation");
+    }
+    check(!CaptureMaterialUpload(texture,format,4,4,3,packed.data(),packed.size()-1,7,2),"material-upload-truncated-input-rejected");
+    check(!CaptureMaterialUpload(texture,format,8192,8192,1,packed.data(),packed.size(),7,2),"material-upload-extent-bound");
+    comparisons+=supported?5:1;controls+=supported?6:2;
+   }
+   {
     MaterialReadback readback;PvrCapturedTexture generation;generation.upload=7;generation.rtt=2;generation.palette=9;
     MaterialPixels pixels=decoded;std::size_t remaining=1;
     check(!readback.Begin(device,context,texture,generation,remaining,error)&&remaining==1&&!readback.Pending(),"material-async-budget-atomic");++asyncControls;
@@ -137,6 +167,27 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
      auto banked=palette;for(unsigned i=0;i<16;++i)banked.bytes[256*4+i]=palette.bytes[i];
      D3D11_SUBRESOURCE_DATA data{banked.bytes.data(),128,0};ComPtr<ID3D11Texture2D> paletteTexture;
      check(SUCCEEDED(device->CreateTexture2D(&paletteDesc,&data,&paletteTexture.get())),"palette-cache-resource");
+     {
+      std::array<std::uint32_t,1024> raw{};std::memcpy(raw.data(),banked.bytes.data(),4096);
+      std::array<std::uint32_t,64> hash16{};std::array<std::uint32_t,4> hash256{};
+      hash16[16]=7;hash256[1]=9;
+      auto snapshot=CaptureMaterialPalette(paletteTexture,raw.data(),hash16.data(),hash256.data());
+      check(snapshot&&MaterialPaletteMatches(*snapshot,paletteTexture,1,false,9)
+       &&MaterialPaletteMatches(*snapshot,paletteTexture,16,true,7),"palette-upload-bank-identity");
+      check(!MaterialPaletteMatches(*snapshot,paletteTexture,1,false,10)
+       &&!MaterialPaletteMatches(*snapshot,paletteTexture,0,false,9)
+       &&!MaterialPaletteMatches(*snapshot,texture,1,false,9)
+       &&!MaterialPaletteMatches(*snapshot,paletteTexture,4,false,9),"palette-upload-negative-identities");
+      raw.fill(0);hash256[1]=10;
+      check(snapshot->upload->pixels.mips[0].bytes==banked.bytes
+       &&MaterialPaletteMatches(*snapshot,paletteTexture,1,false,9),"palette-upload-owned-data-and-generation");
+      RemakeTextureCache immediate;immediate.BeginFrame(1,1);std::vector<unsigned char> result,truth;
+      check(immediate.Request(device,context,texture,generation,result,error,paletteTexture,256,
+       &decoded,&snapshot->upload->pixels.mips[0])
+       &&EncodeRemakeMaterialDds(decoded,truth,error,&banked,256)&&result==truth,
+       "palette-cpu-upload-first-request-ready-without-flush");
+      asyncControls+=3;asyncComparisons+=1;
+     }
      RemakeTextureCache cache;cache.BeginFrame(1,1);std::vector<unsigned char> dds{42},expected;
      check(!cache.Request(device,context,texture,generation,dds,error)&&error=="material-cache-palette-required"&&cache.Entries()==0,"palette-cache-missing-rejected");++asyncControls;
      auto resolve=[&](const PvrCapturedTexture& gen,unsigned base) {

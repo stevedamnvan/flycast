@@ -317,6 +317,7 @@ protected:
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
+	std::shared_ptr<const flycast::rend::neural::MaterialPaletteSnapshot> remakePaletteUpload;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
 	flycast::rend::neural::RemakeCameraAnchor remakeCameraAnchor;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;

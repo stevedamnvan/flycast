@@ -208,6 +208,7 @@ void DX11Renderer::Term()
 {
 	NOTICE_LOG(RENDERER, "DX11 renderer terminating");
 #ifdef FLYCAST_ENABLE_NEURAL
+	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
 	releaseNeuralResources();
@@ -2709,13 +2710,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	bool ready=true;std::size_t remaining=64*1024*1024;
 	for(const auto& mesh:scene.meshes) {
 		std::vector<unsigned char> bytes;
-		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures,paletteTexture)) {
+		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get())) {
 			if(ready)skip("texture",error);ready=false;
 		}
 	}
 	if(!ready)return;
 	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
-		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture);
+		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get());
 	};
 	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
 	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
@@ -3978,6 +3979,12 @@ void DX11Renderer::updatePaletteTexture()
 	{
 		updatePalette = false;
 		deviceContext->UpdateSubresource(paletteTexture, 0, nullptr, palette32_ram, 32 * sizeof(u32), 32 * sizeof(u32) * 32);
+#ifdef FLYCAST_ENABLE_NEURAL
+		remakePaletteUpload.reset();
+		const auto* remake=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
+		if(remake&&remake[0]=='1'&&remake[1]=='\0')
+			remakePaletteUpload=flycast::rend::neural::CaptureMaterialPalette(paletteTexture,palette32_ram,pal_hash_16,pal_hash_256);
+#endif
 	}
     deviceContext->PSSetShaderResources(1, 1, &paletteTextureView.get());
     deviceContext->PSSetSamplers(1, 1, &samplers->getSampler(false).get());

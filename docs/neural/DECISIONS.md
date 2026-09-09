@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-198: use owned current upload bytes before asynchronous material readback
+
+For explicitly enabled async-neural gameplay, retain complete decoded CPU texture
+uploads and encode their DDS once. Charge raw bytes plus encoded bytes against
+a process-wide64MiB bound. Retain the GPU resource identity and require matching
+upload/RTT revisions and resource layout at consumption; clear on new upload or
+deletion. Native CPU bytes remain owned, never borrowed after upload. Unqualified GPU palettes,
+generated mipmaps and unavailable/unsupported copies retain existing bounded
+readback behavior. This neither reuses stale textures nor changes scene geometry,
+GPU waits or rendering defaults. Qualified GPU palettes use copied indices and
+the actual palette-upload snapshot plus per-bank generation checks (LOG656);
+unqualified palettes retain staging. Validate identical GPU-readback material bytes
+and real-game handoff before claiming delivery improvement.
+
 ## D-197: longer image capture is an explicit diagnostic process budget
 
 The standalone async-return helper may opt into a fixed300-second watchdog

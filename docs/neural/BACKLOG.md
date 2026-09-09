@@ -70,6 +70,22 @@ marked as failures. Four builds and three711/0 suites pass. Default authored
 light3 and external configuration unchanged. Review success does not establish
 temporal quality, external provenance, full scene reconstruction or performance.
 
+Current result LOG657: qualified index/palette uploads deliver300 consecutive
+sources2161..2460 with exact nonempty HUD/composition/backbuffer and completed
+Presents, no material-cache-pending skips.293 overlapping sources retain12984
+exact mesh material/state/generation identities against upload-a. LOG658-659
+complete comparator negative controls and remaining builds/selftests. Commit this
+material-delivery slice, then advance camera/world and sustained integration
+acceptance. This diagnostic capture does not prove performance or scene truth.
+
+Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
+readback only for exact supported complete uploads, within64MiB raw-plus-DDS
+budget. Retained resource/revision/layout identity rejects stale reuse; GPU
+palettes/generated mips fall back. Native WARP material fixture passes167
+comparisons/48 negatives plus existing async checks; automation711/0. upload-a
+repeats300 captured sources with the same bounded launcher. Finish runtime
+source/material comparison and the other build configurations before acceptance.
+
 Lighting control is implemented at532da3645, but tuning is suspended until
 the repaired interval survives broader moving inspection. The earlier40-frame
 lighting comparison preserves its gap/unmatched records and declares no winner.
