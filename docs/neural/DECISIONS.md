@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-197: longer image capture is an explicit diagnostic process budget
+
+The standalone async-return helper may opt into a fixed300-second watchdog
+using a final --diagnostic-capture-budget flag. Default30/120-second budgets,
+source-wait bounds and production rendering policies remain unchanged. Log
+the override and performance exclusion. The300-frame moving review retains
+source gaps and failed HUD frames; neither capture completion nor composition
+checks establish continuous gameplay, visual quality or external provenance.
+
 ## D-196: use a same-frame HUD cohort instead of repeated absolute-depth tuning
 
 The longer combat replay falsifies sufficiency of D-195's sampled floors. A

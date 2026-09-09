@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+For a long bounded moving image capture only, append the final standalone-helper
+switch `--diagnostic-capture-budget` after all other arguments. It is accepted
+only by the async returned-scene route, sets a300-second process watchdog after
+initial source receipt and explicitly disqualifies the run from performance
+evidence. Default short/extended limits stay30/120seconds. Source wait and GPU
+wait policies are unchanged. Do not use this switch for cadence/performance
+acceptance; do not infer that completing a capture proves frame continuity.
+
 The standalone remake-runtime-smoke legacy game-scene route accepts a final
 `--scene-light-radiance VALUE` pair. VALUE is a decimal0..30; omitted means3,
 preserving the existing diagnostic headlight. This is Flycast-authored neutral

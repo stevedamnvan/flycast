@@ -1,5 +1,38 @@
 # Neural rendering evidence log
 
+LOG652 exact gap classification:2182/2183/2184/2279/2373/2374 report
+stage=texture reason=material-cache-pending;2377 reports stage=credit
+reason=no-return-credit. Do not attribute all gaps to texture loading or relax
+the ownership/backpressure guard. Inspect both dependencies at their existing
+bounded handoff points. A failed documentation patch made no file change.
+
+LOG651 moving-long-a host/helper0,660 helper Presents/outcome0,300 captures
+2164..2470. New reviewer independently verifies nonempty HUD, exact composition,
+backbuffer RGB and completed Presents for all300; minimum protected18283 pixels.
+Gaps2181->2185,2278->2280,2372->2375,2376->2378 remain explicit: not continuous300.
+The earlier light-one-b negative correctly exits1 and retains visibly marked
+failed frames2224..2232. Positive review exits0; quantized native/returned/combined
+GIF and three stills saved at fc067-moving-long-a-review outside Git. Midpoint
+2318 inspected; visual quality/scene completeness and external provenance are
+not established by composition checks. Codex open request queued, not confirmed
+visible. Runtime logs confirm diagnostic watchdog300/performance_eligible=false.
+Four builds complete, three enabled suites711/0. Existing40-object helper cleanup
+warning remains. At2182..2184 raw logs explicitly report material-cache-pending,
+with returned2181 held until2185 material submission. Next address bounded
+material availability without stale texture reuse or blocking emulation; inspect
+all gaps before assigning a common cause. No lighting/default promotion.
+
+LOG650 extended moving capture preparation: add explicit final
+--diagnostic-capture-budget switch to the async returned-scene helper only.
+It selects a300-second whole-process diagnostic watchdog after source receipt;
+default30/120-second limits and production GPU/frame policies are unchanged.
+The switch reports performance_eligible=false and rejects unsupported routes
+before runtime loading. Automation build/suite711/0; actual unsupported-route
+CLI exits2. Planned moving-long-a:300 unique captured sources,660 helper frames
+(60 warmup),1200 host samples,420-second host watchdog, default authored light3,
+same external configuration and sentinel off. This is not performance evidence.
+Retain gaps/failures;300 captures alone do not prove300 consecutive accepted frames.
+
 LOG649 relative HUD cohort live confirmation: hud-relative-a host/helper0,
 240 helper Presents/outcome0,120 captures2162..2285 with gaps2181->2185 and
 2278->2280. All120 independently checked nonempty masks, exact native/evaluated

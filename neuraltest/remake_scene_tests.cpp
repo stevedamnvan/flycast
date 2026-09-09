@@ -2,6 +2,7 @@
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
 #include "remake_scene_lighting.h"
+#include "remake_runtime_budget.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -13,6 +14,12 @@ TestCounts TestSceneContract() {
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ expect(RemakeRuntimeBudget(false,false,120)==30u,"ordinary runtime budget unchanged");
+ expect(RemakeRuntimeBudget(false,true,120)==30u,"short returned-scene budget unchanged");
+ expect(RemakeRuntimeBudget(false,true,121)==120u,"extended returned-scene budget unchanged");
+ expect(RemakeRuntimeBudget(false,true,660)==120u,"performance budget not extended implicitly");
+ expect(!RemakeRuntimeBudget(true,false,120),"capture budget rejects unsupported route");
+ expect(RemakeRuntimeBudget(true,true,660)==300u,"explicit diagnostic budget remains bounded");
  for(const auto* value:{L"0",L"0.03",L"1",L"3",L"30"})
   expect(ParseSceneLightRadiance(value).has_value(),"bounded authored light accepts decimal");
  expect(ParseSceneLightRadiance(L"0.03")==.03f,"authored light preserves fractional value");

@@ -6,6 +6,7 @@
 #include "remake_d3d9_dynamic.h"
 #include "remake_d3d9_scene.h"
 #include "remake_scene_lighting.h"
+#include "remake_runtime_budget.h"
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
 #include <filesystem>
@@ -45,6 +46,10 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
+ bool diagnosticCaptureBudget=false;
+ if(argc>=2&&std::wstring(argv[argc-1])==L"--diagnostic-capture-budget") {
+  diagnosticCaptureBudget=true;--argc;
+ }
  std::optional<float> sceneLightRadiance;
  if(argc>=3&&std::wstring(argv[argc-2])==L"--scene-light-radiance") {
   sceneLightRadiance=ParseSceneLightRadiance(argv[argc-1]);
@@ -62,6 +67,8 @@ int wmain(int argc,wchar_t** argv) {
  if(!*argv[4] || *end || frames<1 || frames>(extendedReturn?660:120) || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
+ const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,frames);
+ if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
  std::optional<Packet> snapshot;
  std::vector<Packet> sequence;
  std::filesystem::path capture;
@@ -236,7 +243,10 @@ int wmain(int argc,wchar_t** argv) {
  if(!std::filesystem::is_regular_file(runtime,error)) {
   std::cerr<<"runtime unavailable runtime_loaded=false gpu_image_proven=false\n";return 3;
  }
- Watchdog watchdog(extendedReturn&&frames>120?120:30);
+ std::cerr<<"runtime_watchdog_seconds="<<*runtimeBudget
+  <<" diagnostic_capture_budget="<<diagnosticCaptureBudget
+  <<" performance_eligible="<<(diagnosticCaptureBudget?"false":"not-established")<<'\n';
+ Watchdog watchdog(*runtimeBudget);
  // Only the explicitly supplied directory and Windows system directory are searched.
  HMODULE module=LoadLibraryExW(runtime.c_str(),nullptr,LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR|LOAD_LIBRARY_SEARCH_SYSTEM32);
  if(!module) { std::cerr<<"runtime load failed win32="<<GetLastError()<<"\n";return 4; }

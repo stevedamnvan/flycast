@@ -57,18 +57,18 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG649):** save the relative HUD correction, then
-extend the moving comparison toward the300-frame acceptance interval instead
-of more light tuning. The same-frame known atlas/layout/depth cohort restores
-the later2282 dropout; all120 captures2162..2285 have nonempty exact HUD and
-completed-Present joins. Two gaps remain explicit; this is not continuous300.
-Four builds and three705/0 suites pass. A300-source diagnostic capture exceeded
-the old time budget, so provide an explicit bounded capture-only helper-watchdog
-option if needed; do not change production GPU waits, performance measurements
-or frame acceptance. Keep native/returned/combined moving comparisons and
-source gaps, effects, HUD, missing geometry and camera labels visible. Default
-authored light3 and external configuration remain unchanged. Check uncaptured
-later sources including2288; no further absolute-depth-floor tuning.
+**Operational next action (LOG651):** save the long-capture/review checkpoint,
+then address material delivery causing gameplay source gaps. All300 captures
+2164..2470 have nonempty exact HUD/composition/backbuffer and completed Presents;
+four gaps remain and prevent a continuous300 claim. LOG652 resolves six omitted
+sources to material-cache-pending and2377 to no-return-credit. Improve current
+texture availability and inspect backpressure without stale texture reuse,
+relaxed ownership, GPU waits or emulation slowdown. Do not begin another
+HUD-floor/light-tuning loop.
+Native/returned/combined moving review is retained, with negative empty-HUD frames
+marked as failures. Four builds and three711/0 suites pass. Default authored
+light3 and external configuration unchanged. Review success does not establish
+temporal quality, external provenance, full scene reconstruction or performance.
 
 Lighting control is implemented at532da3645, but tuning is suspended until
 the repaired interval survives broader moving inspection. The earlier40-frame
