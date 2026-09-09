@@ -1,5 +1,24 @@
 # Neural rendering decisions
 
+## D-157: capture returned-scene depth before attaching native guidance to new color
+
+The public CopyRenderingOutput DEPTH enum alone does not specify numerical
+semantics. A new bounded legacy memory-depth option captures typedRGBA32F from
+the same completed Remix frame as final color, without binary inspection or
+configuration changes. It preserves raw channels and source frame/sequence.
+The inspector compares both a linear-view-Z hypothesis and the exact supplied
+D3D9 projection, using emitted opaque draw overlap; it never fits corrections
+or declares guidance accepted merely because normalized errors are small.
+
+Actual depth-a values lie near1 and strongly reject linear view distance.
+They are consistent with the supplied normal-direction projection depth;
+reversed normalized depth is a failing analytic control. Compressed far depth
+can conceal large view-space differences. Clear/no-geometry, edge/disocclusion,
+motion and missing-surface semantics still need the changed-route contract.
+Next return matched color/depth together and validate the explicit projection
+conversion/polarity before neural submission; do not relabel native guidance
+or close Gate16/17/combined provenance on this readback alone.
+
 ## D-156: estimated view-space coverage is an explicit alternate experiment
 
 FLYCAST_REMAKE_ESTIMATE_UNTRACED=1 opts into mixed observed/projected-depth

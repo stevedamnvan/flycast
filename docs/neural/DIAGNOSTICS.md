@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+Use --capture-d3d9-scene-memory-depth on the bounded live consumer to retain
+same-frame public depth as BMP-name.depth.rgba32f alongside color. The depth
+format is four little-endian float channels,640x480, top-down. Run
+remake_depth_inspect.py SOURCE_ROOT CONSUMER_BMP_PREFIX on frames1782..1784.
+It reports linear-Z and supplied-projection hypotheses, matched opaque-ID
+overlap and wrong reversed depth, never guidance acceptance. Preserve raw
+channels; don't treat R as linear view distance or fit away discrepancies.
+
 Opt-in mixed view-space coverage: set FLYCAST_REMAKE_ESTIMATE_UNTRACED=1 only
 in the temporary publisher environment and restore it afterward. LOG520 est-a
 shows both fighters and arena with40 opaque meshes; scope must remain

@@ -106,6 +106,14 @@ Default observed conversion, geometry/texture bounds and omissions stay intact.
 Three moving endpoints pass exact return/composition/native-target checks;
 physical/world, missing translucent effects and longer temporal coverage remain
 unproven. Next integrate returned scene color at the neural submission and
+presentation boundary. LOG521 captures public typed Remix depth alongside color
+on all three frames. Linear-view-distance interpretation fails; supplied normal
+projection-depth interpretation is strongly supported but full guidance remains
+unproven. Next transport matched returned color/depth together, explicitly
+validate projection conversion/polarity and align motion/masks before neural
+submission. Preserve clear/omitted-surface uncertainty and native fallback;
+do not repeat old Gate10 transport or native polarity fixtures.
+Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed
 native fallback. Do not label it public DLAA or complete recovered geometry.
 Keep protected overlays late and require changed-route Gate10 before combined
