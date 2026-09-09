@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-155: source exchange precedes composition, archival does not own delivery
+
+Extracted source exchange from capture-file writing. On the explicit native
+capture/channel route, displayFramebuffer prepares an owned source snapshot,
+current textures and frame-qualified return before the composite starts. Late
+capture archives that existing result without submitting a duplicate. Cache
+identity includes frame, epoch, ordinal and cycle; configuration resets clear
+ownership. The receipt explicitly records prepared_before_composite. Native,
+accepted-history and output-presentation ownership remain unchanged.
+
+This is still a bounded synchronous developer lane, not production pacing.
+RTT/direct framebuffer/OIT and nonnative consumer routes do not enter this new
+preparation hook. The partial scene cannot authorize full-frame replacement;
+complete moving scene coverage remains required alongside asynchronous feeding.
+
 ## D-154: zero-alpha discard is blend-scoped, not universal transparency policy
 
 For classified overlay draws replayed through normal SrcAlpha/InvSrcAlpha

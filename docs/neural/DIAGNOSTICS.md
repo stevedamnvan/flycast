@@ -1,5 +1,12 @@
 # Neural diagnostics
 
+LOG519 native capture/channel now exchanges source and returned pixels at
+displayFramebuffer entry, before composition. Require prepared_before_composite
+true in every expected remake-return.json; source sequence/frame/digest and
+pixel checks remain required. This does not imply the result reached Present.
+The optional bounded return-test wait is still synchronous developer proof,
+off by default and excluded from performance measurements.
+
 For the bounded returned-color GPU composite, additionally set
 FLYCAST_REMAKE_COMPOSITE_TEST=1 only in the temporary publisher environment.
 Restore the previous value afterward. Run remake_composite_inspect.py on the

@@ -91,8 +91,12 @@ integration step on the remaining rectangles. Preserve captured-atlas bounds
 and generic/unknown-title behavior; wrong texture, region,
 depth, RTT and title controls already pass. Capture moving comparisons and
 report alpha-boundary/background preservation, not just masked-pixel equality.
-Next move frame-qualified return handling before the existing DX11 protected
-overlay pass without substituting the incomplete
+LOG519 moves exchange before composition on the bounded native capture/channel
+route. Three actual receipts are ready before composite, with exact protected
+composition and native-target preservation. Archival does not own delivery or
+resubmit the packet. Async pacing and returned Present remain unproven.
+Next expand the missing fighter/arena scene coverage and integrate the existing
+protected overlay pass without substituting the incomplete
 temple for full gameplay. Retain native fallback and explicit diagnostic labels;
 move the supported feed off capture into an asynchronous/budgeted ordinary-frame
 path. Do not replace the native frame with the incomplete temple or make another

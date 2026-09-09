@@ -400,6 +400,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 		return;
 	root_ = root;
 	remakeChannel_.Close();
+	remakePreparedBeforeComposite_=false;
 	remakeReturnedImage_.reset();
 	pvrSnapshot_.reset();
 	remakeView_.reset();
@@ -542,13 +543,72 @@ bool QualityCaptureGpuTimer::EndAndResolve(ID3D11DeviceContext *context,
 	return timings.available;
 }
 
+void QualityCaptureWriter::ExchangeRemakePacket()
+{
+	std::string conversionError;
+	if(const auto* token=std::getenv("FLYCAST_REMAKE_CHANNEL");token&&*token) {
+		if(!remakeChannel_.IsOpen()&&!remakeChannel_.OpenPublisher(token,conversionError))remakePacketStatus_=conversionError;
+		else {
+			RemakeReturnedImage returned;std::string returnError;
+			if(remakeChannel_.ReceiveImage(returned,returnError)==RemakeChannelResult::Received) {
+				std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
+					(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
+				remakeReturnedImage_=std::move(returned);
+			}
+			RemakeChannelReceipt receipt;
+			const auto result=remakeChannel_.Publish(*remakePacket_,receipt,conversionError);
+			if(result==RemakeChannelResult::Published)remakePacketStatus_="live-published sequence="+std::to_string(receipt.sequence)
+				+" bytes="+std::to_string(receipt.bytes)+" digest="+std::to_string(receipt.digest)+"; presentation-unproven";
+			else remakePacketStatus_=conversionError;
+			// Explicit synchronous developer proof only, never ordinary pacing.
+			const auto* waitTest=std::getenv("FLYCAST_REMAKE_RETURN_TEST_WAIT");
+			if(result==RemakeChannelResult::Published&&waitTest&&std::strcmp(waitTest,"1")==0) {
+				const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+				do {
+					const auto received=remakeChannel_.ReceiveImage(returned,returnError);
+					if(received==RemakeChannelResult::Received) {
+						std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
+							(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
+						remakeReturnedImage_=std::move(returned);break;
+					}
+					if(received!=RemakeChannelResult::Empty)break;
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				}while(std::chrono::steady_clock::now()<deadline);
+			}
+		}
+	}
+}
+
+bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& snapshot,
+	const QualityCaptureMetadata& metadata,const RemakeTextureReader& reader)
+{
+	if(remakePreparedBeforeComposite_&&remakePacket_&&remakePacket_->frame==metadata.frameId
+		&&remakePacket_->producer.epoch==metadata.producerIdentity.epoch
+		&&remakePacket_->producer.ordinal==metadata.producerIdentity.ordinal
+		&&remakePacket_->producer.cycle==metadata.producerIdentity.cycle)
+		return ReturnedRemakeFrame(metadata.frameId)!=nullptr;
+	remakePreparedBeforeComposite_=false;remakePacket_.reset();remakeView_.reset();remakeReturnedImage_.reset();
+	if(!CapturesCurrentFrame()||!reader)return false;
+	RemakeViewScene scene;remake::Packet packet;std::string error;
+	if(!BuildRemakeViewScene(snapshot,metadata.producerIdentity,metadata.frameId,scene,error)
+		||!BuildRemakeViewPacket(scene,reader,packet,error)){remakePacketStatus_=error;return false;}
+	remakeView_=std::move(scene);remakePacket_=std::move(packet);
+	ExchangeRemakePacket();remakePreparedBeforeComposite_=true;
+	return ReturnedRemakeFrame(metadata.frameId)!=nullptr;
+}
+
 bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *context,
 	const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 	std::string& error)
 {
 	pvrSnapshot_.reset();
-	remakeView_.reset();
-	remakePacket_.reset();remakePacketStatus_="not-requested";
+	if(!remakePacket_||remakePacket_->frame!=metadata.frameId
+		||remakePacket_->producer.epoch!=metadata.producerIdentity.epoch
+		||remakePacket_->producer.ordinal!=metadata.producerIdentity.ordinal
+		||remakePacket_->producer.cycle!=metadata.producerIdentity.cycle) {
+		remakeView_.reset();remakePacket_.reset();remakePacketStatus_="not-requested";
+		remakePreparedBeforeComposite_=false;
+	}
 	if (!WantsFrame()) return true;
 	if (seen_++ < skip_) return true;
 	if (textures.pvrPacketRequested && !textures.pvrContext)
@@ -936,39 +996,9 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		else remakePacketStatus_=conversionError;
 		if(remakeView_ && textures.remakeTextureReader) {
 			remake::Packet packet;
-			if(BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)) {
-				remakePacket_=std::move(packet);remakePacketStatus_="owned-live-source-packet; consumer-not-connected";
-				if(const auto* token=std::getenv("FLYCAST_REMAKE_CHANNEL");token&&*token) {
-					if(!remakeChannel_.IsOpen()&&!remakeChannel_.OpenPublisher(token,conversionError))remakePacketStatus_=conversionError;
-					else {
-						RemakeReturnedImage returned;std::string returnError;
-						if(remakeChannel_.ReceiveImage(returned,returnError)==RemakeChannelResult::Received) {
-							std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
-								(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
-							remakeReturnedImage_=std::move(returned);
-						}
-						RemakeChannelReceipt receipt;
-						const auto result=remakeChannel_.Publish(*remakePacket_,receipt,conversionError);
-						if(result==RemakeChannelResult::Published)remakePacketStatus_="live-published sequence="+std::to_string(receipt.sequence)
-							+" bytes="+std::to_string(receipt.bytes)+" digest="+std::to_string(receipt.digest)+"; presentation-unproven";
-						else remakePacketStatus_=conversionError;
-						// Explicit synchronous developer proof only, never ordinary pacing.
-						const auto* waitTest=std::getenv("FLYCAST_REMAKE_RETURN_TEST_WAIT");
-						if(result==RemakeChannelResult::Published&&waitTest&&std::strcmp(waitTest,"1")==0) {
-							const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
-							do {
-								const auto received=remakeChannel_.ReceiveImage(returned,returnError);
-								if(received==RemakeChannelResult::Received) {
-									std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
-										(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
-									remakeReturnedImage_=std::move(returned);break;
-								}
-								if(received!=RemakeChannelResult::Empty)break;
-								std::this_thread::sleep_for(std::chrono::milliseconds(1));
-							}while(std::chrono::steady_clock::now()<deadline);
-						}
-					}
-				}
+			if((remakePreparedBeforeComposite_&&remakePacket_)||BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)) {
+				if(!remakePreparedBeforeComposite_) {remakePacket_=std::move(packet);remakePacketStatus_="owned-live-source-packet; consumer-not-connected";}
+				if(!remakePreparedBeforeComposite_) ExchangeRemakePacket();
 				// Archive the actual owned return for byte comparison with consumer output.
 				if(remakeReturnedImage_&&remakeReturnedImage_->frame==metadata.frameId) {
 					const auto& returned=*remakeReturnedImage_;
@@ -976,6 +1006,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 					receiptFile.imbue(std::locale::classic());
 					receiptFile<<"{\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
 						<<",\"source_digest\":"<<returned.source.digest<<",\"pixel_bytes\":"<<returned.bgra.size()
+						<<",\"prepared_before_composite\":"<<(remakePreparedBeforeComposite_?"true":"false")
 						<<",\"presentation_proven\":false}\n";
 					if(!receiptFile)remakePacketStatus_+="; return-receipt-write-failed";
 					std::ofstream pixelsFile(frameRoot/"remake-return.bgra",std::ios::binary);

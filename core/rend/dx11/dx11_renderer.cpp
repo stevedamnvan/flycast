@@ -2496,6 +2496,23 @@ void DX11Renderer::displayFramebuffer()
 {
 #ifndef LIBRETRO
 #ifdef FLYCAST_ENABLE_NEURAL
+	const auto* remakeToken=std::getenv("FLYCAST_REMAKE_CHANNEL");
+	if(remakeToken&&*remakeToken && activeNeuralMode==1 && !activeNeuralSurface
+		&& !IsOitRenderer() && rendContext && !rendContext->isRTT && !config::EmulateFramebuffer.get()
+		&& config::NeuralCapturePvrPacket.get() && neuralQualityCapturePending
+		&& neuralQualityCapture.CapturesCurrentFrame()) {
+		std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
+		for(int column=0;column<4;++column)for(int row=0;row<4;++row)viewport[column*4+row]=matrix[column][row];
+		flycast::rend::neural::PvrDecodedPacket snapshot;std::string error;
+		if(flycast::rend::neural::SnapshotPvrScenePacket(*rendContext,viewport,
+			neuralQualityCaptureMetadata.frameId,neuralQualityCaptureMetadata.gameId,snapshot,error)) {
+			const auto reader=[this,remaining=std::size_t(64*1024*1024)](const flycast::rend::neural::PvrCapturedDraw& draw,
+				std::vector<unsigned char>& bytes,std::string& reason) mutable {
+				return flycast::rend::neural::ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,reason);
+			};
+			neuralQualityCapture.PrepareRemakeBeforeComposite(snapshot,neuralQualityCaptureMetadata,reader);
+		}
+	}
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
