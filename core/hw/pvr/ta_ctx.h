@@ -4,6 +4,10 @@
 #include "pvr_regs.h"
 #include "oslib/oslib.h"
 #include "rend/neural/producer_identity.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/source_observation.h"
+#include <memory>
+#endif
 #include <glm/glm.hpp>
 
 #include <algorithm>
@@ -246,6 +250,9 @@ struct Rect
 struct rend_context
 {
 	flycast::rend::neural::ProducerIdentity captureProducer;
+#ifdef FLYCAST_ENABLE_NEURAL
+	std::vector<flycast::rend::neural::SourceVertexObservation> sourceVertices;
+#endif
 	void InvalidateCaptureProducer() noexcept { captureProducer = {}; }
 	f32 fZ_max;
 
@@ -284,6 +291,9 @@ struct rend_context
 	void Clear()
 	{
 		idx.clear();
+#ifdef FLYCAST_ENABLE_NEURAL
+		sourceVertices.clear();
+#endif
 		global_param_op.clear();
 		global_param_pt.clear();
 		global_param_tr.clear();
@@ -312,6 +322,11 @@ struct rend_context
 //vertex lists
 struct TA_context
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	// Optional producer-owned child-local observations. No allocation when off.
+	// Attached before queue publication; never inferred from projected vertices.
+	std::unique_ptr<flycast::rend::neural::SourceObservationBatch> sourceObservations;
+#endif
 	u32 Address;
 	u32 lastFrameUsed;
 
@@ -367,6 +382,9 @@ struct TA_context
 	void Reset()
 	{
 		verify(tad.End() - tad.thd_root <= (ptrdiff_t)TA_DATA_SIZE);
+#ifdef FLYCAST_ENABLE_NEURAL
+		sourceObservations.reset();
+#endif
 		rend.InvalidateCaptureProducer();
 		tad.Clear();
 		nextContext = nullptr;

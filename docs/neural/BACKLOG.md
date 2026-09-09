@@ -189,6 +189,49 @@ the unchanged upload/RTT controls.
 LOG484 completes snapshot checkpoint: four incremental builds,Python331,
 SDK179,3x352 selftests. Advance witnessed live transform/camera provider;
 snapshot ownership scope does not satisfy recovered geometry or M4 presentation.
+LOG485 locates prior live observations in retained temporary x64/SQ/TA patches,
+not tracked runtime code. Their1781..1783 gates cannot serve live gameplay.
+Next extract bounded per-frame producer/source-copy handoff from those proven
+points, with reset/overflow/incomplete-generation rejection; do not wholesale
+apply the historical tracing patch or invent camera identity from PVR depth.
+LOG486 starts bounded SourceObservationBatch transport with frame/epoch lookup
+and failure controls. Not a live provider yet. Next wire actual TA-context copy
+observations with child/context identity and reset lifetime; no fixed frame lists.
+LOG487 corrects queue timing: collect by context generation, attach actual
+producer identity only on queue publication, reject future-cycle records.
+Continue context-local observer hookup; do not guess next frame stamps.
+LOG488 attaches optional observation ownership to each TA_context and resets it
+on reuse. No records emitted yet. Next x64/SQ observer must supply actual writer/
+generation; ta_thd_data32_i alone lacks that upstream provenance.
+LOG489 adds opt-in x64 non-MMU SQ invocation scope (actual PC/address, serial
+not RAM generation). Next scope reentrancy/overflow and actual native parity,
+then TA-context join; no upstream transform or TA record authority yet.
+LOG490 deeper nesting/exhaustion/unwind tests pass366; actual opt-in invocation
+confirmed,3 captures complete. Native parity against prior off run is2/3 exact,
+1783 differs: next matched same-build off/on/repeat and packet comparison.
+Do not call full parity passed. The user subsequently prioritized live
+integration; retain this discrepancy without blocking diagnostic TA attribution.
+LOG491 same-binary off/on/repeat: all source packet values exact; off/repeat
+pixels exact3/3, on differs8 pixels by1 at1783. Reproducible zero-tolerance
+parity failure remains parked, not waived or blamed on run noise. Both follow-up
+material captures complete3 frames/clean close. Next connect actual scoped SQ
+copies to child-local TA records and decoded vertices, then the live transform/
+camera provider and Remix return path. Further pixel-isolation work is deferred
+unless this discrepancy prevents trustworthy integration evidence.
+LOG493 connects live SQ copies to actual decoded polygon vertices. Corrected
+replay records14806 copies and14764 exact-byte vertex joins per late gameplay
+producer, with3 captures/clean close and367 selftests. This establishes the
+submission/consumer seam, not upstream transforms. Next retain the join in the
+owned snapshot and connect actual source RAM/transform observations; camera
+semantics and combined presentation remain pending. Complete four-build
+regression before committing this observer slice. LOG494 now retains14764 live
+source joins in each of3 actual owned captures and passes370 selftests, including
+source retirement/wrong-vertex controls. Next connect executed SQ stores to
+their RAM-read/transform lineage through the existing x64 memory-operation seam;
+PREF submission PC alone is not the upstream writer. Serial build regression
+completes in LOG495: four builds,3x370 selftests,SDK179 andPython331 pass.
+Do not repeat the now-proven snapshot join as a substitute for
+advancing the transform provider.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

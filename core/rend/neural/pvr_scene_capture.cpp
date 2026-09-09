@@ -110,6 +110,22 @@ bool SnapshotPvrScenePacket(const rend_context& ctx,const std::array<float,16>& 
   error="pvr-snapshot-unsupported-or-bound";return false;
  }
  PvrDecodedPacket result;result.frame=frame;result.game=game;result.gitSha=GIT_HASH;
+#ifdef FLYCAST_ENABLE_NEURAL
+ if (!ctx.sourceVertices.empty()) {
+  if (!ctx.captureProducer.Available() || ctx.sourceVertices.size() > SourceObservationBatch::capacity) {
+   error="pvr-snapshot-source-identity-or-bound";return false;
+  }
+  for (const auto& source : ctx.sourceVertices) {
+   const auto& copy=source.copy;
+   if (copy.decodedVertex>=ctx.verts.size() || copy.before!=copy.after ||
+       std::memcmp(copy.after.data()+1,&ctx.verts[copy.decodedVertex].x,3*sizeof(float))) {
+    error="pvr-snapshot-source-vertex-mismatch";return false;
+   }
+  }
+  result.sourceProducer=ctx.captureProducer;
+  result.sourceVertices=ctx.sourceVertices;
+ }
+#endif
  result.viewport=viewport;result.framebufferSize={ctx.framebufferWidth,ctx.framebufferHeight};
  result.clearFramebuffer=ctx.clearFramebuffer;result.vertices=ctx.verts;result.indices=ctx.idx;
  result.sortedTriangles=ctx.sortedTriangles;result.sortedOrderCaptured=true;

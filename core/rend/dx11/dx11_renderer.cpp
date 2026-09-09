@@ -2080,6 +2080,10 @@ void DX11Renderer::captureNeuralQualityFrame()
 		if (textures.pvrPacketRequested) {
 			const auto frame = neuralQualityCaptureMetadata.frameId;
 			const auto* snapshot = neuralQualityCapture.CapturedPvrSnapshot(frame);
+			if (snapshot && !snapshot->sourceVertices.empty())
+				NOTICE_LOG(RENDERER, "PVR owned source snapshot: frame=%llu producer=%llu joined-vertices=%zu",
+					static_cast<unsigned long long>(frame), static_cast<unsigned long long>(snapshot->sourceProducer.ordinal),
+					snapshot->sourceVertices.size());
 			const bool valid = snapshot && textures.pvrContext
 				&& snapshot->game == settings.content.gameId
 				&& !neuralQualityCapture.CapturedPvrSnapshot(frame + 1)

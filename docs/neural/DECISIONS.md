@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-145: retain child-qualified live submission joins, not inferred transforms
+
+The opt-in x64 non-MMU observer records executed SQ invocation identity and
+exact TA copy bytes. Queue publication stamps each child batch with the root
+producer identity. Polygon decoding joins by child-local offset and exact
+packet bytes, including PCW; typed vertex payload starts four bytes later.
+The render context retains a bounded owned collection, and the capture snapshot
+copies it only when submitted XYZ still equals the decoded vertex. Context
+retirement cannot invalidate the copied records. Disk packet versions remain
+unchanged and do not implicitly carry this optional live provenance.
+SQ invocation serial is not RAM content generation, PREF PC is not the upstream
+transform writer, and a projected vertex join does not establish camera/world
+truth. Those remain separate obligations before Remix scene activation.
+Per user reprioritization, LOG491 native pixel discrepancy stays failed/parked
+without blocking diagnostic integration work. No production parity waiver.
+
 ## D-144: owned projected snapshots at the bounded capture boundary
 
 SnapshotPvrScenePacket shares range validation with the existing writer, owns

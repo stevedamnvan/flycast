@@ -4,6 +4,8 @@
 #include "capture_transition.h"
 #include "remake_scene.h"
 #include "rend/neural/pvr_scene_capture.h"
+#include "rend/neural/source_observation.h"
+#include "rend/neural/source_sq_scope.h"
 #include <chrono>
 #include <fstream>
 #include "json/json.hpp"
@@ -105,6 +107,52 @@ int RunSelfTests()
 	}
 	{
 		QualityCaptureWriter capture;
+		SourceObservationBatch observations;
+		{
+			SourceSqScope sq(0x8c001000,0xe0000020);
+			const auto invocation=currentSourceSq;
+			suite.Expect(invocation.serial&&invocation.pc==0x8c001000&&invocation.address==0xe0000020,
+				"source SQ invocation retains observed PC and address");
+			{SourceSqScope nested(0x8c002000,0xe0000040);
+			 suite.Expect(!currentSourceSq.serial,"source SQ nested invocation not falsely attributed");
+			 {SourceSqScope deeper(0x8c003000,0xe0000060);
+			 suite.Expect(!currentSourceSq.serial,"source SQ third nesting cannot restore attribution");}}
+			suite.Expect(currentSourceSq.serial==invocation.serial,"source SQ nested exit restores outer scope");
+		}
+		suite.Expect(!currentSourceSq.serial,"source SQ exit clears invocation");
+		const auto savedSerial=sourceSqSerial;sourceSqSerial=UINT64_MAX;
+		{SourceSqScope exhausted(0x8c001000,0xe0000020);
+		 suite.Expect(!currentSourceSq.serial,"source SQ serial exhaustion rejects attribution");}
+		sourceSqSerial=savedSerial;
+		try {SourceSqScope unwinding(0x8c001000,0xe0000020);throw 1;}catch(int){}
+		suite.Expect(!currentSourceSq.serial&&!sourceSqScopeActive,"source SQ exception unwinds attribution");
+		ProducerIdentity identity{3,100,900};SourceCopyObservation observation;
+		observation.generation=1;observation.writerPc=0x8c000100;observation.cycle=800;
+		observations.BeginContext(12);
+		suite.Expect(observations.Append(observation)&&!observations.Get(identity)
+			&&observations.Seal(identity,1)&&observations.Get(identity),
+			"source observation stamps only at producer queue boundary");
+		observations.BeginContext(13);observations.Append(observation);
+		suite.Expect(!observations.Seal({3,100,799},1)&&!observations.Get(identity),
+			"source observation rejects copy newer than queue stamp");
+		observations.Begin(identity);
+		suite.Expect(observations.Append(observation)&&observations.Seal(1)&&observations.Get(identity),
+			"source observation seals exact frame copy");
+		suite.Expect(!observations.JoinVertex({4,100,900},0,observation.after.data(),7)
+			&& !observations.JoinVertex(identity,32,observation.after.data(),7)
+			&& observations.JoinVertex(identity,0,observation.after.data(),7)
+			&& !observations.JoinVertex(identity,0,observation.after.data(),8)
+			&& observations.Get(identity)->front().decodedVertex==7,
+			"source vertex join requires exact frame offset and unique consumer");
+		suite.Expect(!observations.Get({4,100,900})&&!observations.Get({3,101,900}),
+			"source observation rejects reset and wrong frame");
+		observations.Begin({3,101,1000});
+		suite.Expect(!observations.Get(identity)&&!observations.Seal(1),"source observation reset and incomplete reject");
+		observations.Begin(identity);observation.after[1]=1;
+		suite.Expect(!observations.Append(observation)&&!observations.Seal(1),"source observation altered copy rejects");
+		observations.Begin(identity);observation.after[1]=0;
+		suite.Expect(observations.Append(observation)&&!observations.Append(observation)&&!observations.Seal(1),
+			"source observation duplicate offset poisons batch");
 		suite.Expect(capture.CapturedPvrSnapshot(1)==nullptr,"quality snapshot initially unavailable");
 		capture.Configure("capture-a", 0, 2);
 		suite.Expect(capture.CapturesCurrentFrame() && capture.ConsumeCaptureStart()
@@ -1456,6 +1504,20 @@ int RunSelfTests()
 		ctx.verts[1].x=9;
 		suite.Expect(live.vertices[1].x==1.25f,"PVR snapshot survives source mutation");
 		ctx.verts[1].x=1.25f;
+#ifdef FLYCAST_ENABLE_NEURAL
+		ctx.captureProducer={2,7,900};
+		SourceVertexObservation joined; joined.child=3; joined.copy.decodedVertex=1;
+		std::memcpy(joined.copy.after.data()+1,&ctx.verts[1].x,3*sizeof(float));
+		joined.copy.before=joined.copy.after;ctx.sourceVertices.push_back(joined);
+		suite.Expect(SnapshotPvrScenePacket(ctx,viewport,7,"fixture",live,error)
+			&&live.sourceVertices.size()==1&&live.sourceVertices[0].child==3
+			&&live.sourceProducer.ordinal==7,"PVR snapshot retains child-qualified live source join");
+		ctx.sourceVertices[0].copy.decodedVertex=2;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)
+			&&live.sourceVertices[0].copy.decodedVertex==1,"PVR wrong vertex join rejects without replacing snapshot");
+		ctx.sourceVertices.clear();ctx.captureProducer={};
+		suite.Expect(live.sourceVertices.size()==1,"PVR source join survives producer retirement");
+#endif
 		ctx.isRTT=true;
 		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
 			"PVR snapshot RTT rejection preserves previous output");

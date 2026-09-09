@@ -6,6 +6,7 @@
 #include <string>
 #include <optional>
 #include "hw/pvr/ta_ctx.h"
+#include "source_observation.h"
 namespace flycast::rend::neural {
 struct PvrCapturedTexture {
  std::uint32_t upload=0, rtt=0;
@@ -24,6 +25,9 @@ struct PvrCapturedPass {
 };
 struct PvrDecodedPacket {
  std::uint64_t frame=0;
+ ProducerIdentity sourceProducer;
+ // Optional live-only SQ provenance. Disk packet versions do not contain it.
+ std::vector<SourceVertexObservation> sourceVertices;
  std::string game, gitSha;
  std::array<float,16> viewport{};
  std::array<std::uint32_t,2> framebufferSize{};

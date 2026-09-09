@@ -85,6 +85,9 @@ bool QueueRender(TA_context* ctx)
 #ifdef FLYCAST_ENABLE_NEURAL
 	if (config::NeuralCaptureFrames.get() > 0 && !ctx->rend.isRTT && !settings.platform.isNaomi2())
 		ctx->rend.captureProducer = captureProducerClock.Stamp(sh4_sched_now64());
+	for (TA_context* child = ctx; child != nullptr; child = child->nextContext)
+		if (child->sourceObservations)
+			child->sourceObservations->Seal(ctx->rend.captureProducer, child->sourceObservations->Size());
 #endif
 	rqueue = ctx;
 

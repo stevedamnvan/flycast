@@ -2,6 +2,10 @@
 #include "ta_ctx.h"
 #include "hw/holly/holly_intc.h"
 #include "pvr_mem.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/source_sq_scope.h"
+#include "hw/sh4/sh4_sched.h"
+#endif
 
 /*
 	Threaded TA Implementation
@@ -545,6 +549,38 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 	
 	// Copy the TA data
 	*dst = *data;
+
+#ifdef FLYCAST_ENABLE_NEURAL
+	// Only executed SQ submissions carry this scope. DMA and unsupported CPU
+	// paths remain unattributed; this is not upstream transform provenance.
+	const auto& source = flycast::rend::neural::currentSourceSq;
+	if (source.serial != 0)
+	{
+		try
+		{
+			if (!ta_ctx->sourceObservations)
+			{
+				ta_ctx->sourceObservations = std::make_unique<flycast::rend::neural::SourceObservationBatch>();
+				ta_ctx->sourceObservations->BeginContext(source.serial);
+			}
+			flycast::rend::neural::SourceCopyObservation record;
+			record.generation = source.serial;
+			record.cycle = sh4_sched_now64();
+			record.taOffset = static_cast<u32>(ta_tad.thd_data - ta_tad.thd_root);
+			record.sourceAddress = source.address;
+			record.writerPc = source.pc;
+			memcpy(record.before.data(), data, 32);
+			memcpy(record.after.data(), dst, 32);
+			ta_ctx->sourceObservations->Append(record);
+		}
+		catch (const std::bad_alloc&)
+		{
+			// Observation failure must not interrupt the original TA submission.
+			if (ta_ctx->sourceObservations)
+				ta_ctx->sourceObservations->BeginContext(0);
+		}
+	}
+#endif
 
 	ta_tad.thd_data += 32;
 

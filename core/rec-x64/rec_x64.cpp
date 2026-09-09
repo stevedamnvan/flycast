@@ -21,6 +21,21 @@ using namespace Xbyak::util;
 #include "oslib/unwind_info.h"
 #include "oslib/virtmem.h"
 #include "cfg/option.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/source_sq_scope.h"
+#include <cstdlib>
+static bool sourceSqObservationEnabled() {
+	static const bool enabled=[](){const char* value=std::getenv("FLYCAST_NEURAL_SOURCE_OBSERVATION");
+		return value && std::string(value)=="1";}();
+	return enabled;
+}
+static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
+	flycast::rend::neural::SourceSqScope observation(pc,address);
+	static bool reported=false;
+	if(!reported) {reported=true;NOTICE_LOG(DYNAREC,"Neural source SQ observer invoked: pc=%08x address=%08x diagnostic-only",pc,address);}
+	ctx->doSqWrite(address,ctx);
+}
+#endif
 
 static void (*mainloop)();
 static void (*handleException)();
@@ -380,10 +395,18 @@ public:
 					}
 					else
 					{
+					#ifdef FLYCAST_ENABLE_NEURAL
+						if(sourceSqObservationEnabled()) {
+							mov(call_regs[2],block->vaddr+op.guest_offs);
+							GenCall(observedSourceSqWrite);
+						} else
+					#endif
+						{
 						mov(rax, (size_t)&sh4ctx.doSqWrite);
 						saveXmmRegisters();
 						call(qword[rax]);
 						restoreXmmRegisters();
+						}
 					}
 					L(no_sqw);
 				}

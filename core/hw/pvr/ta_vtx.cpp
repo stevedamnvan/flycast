@@ -26,6 +26,9 @@ static u8 float_to_satu8(float val) {
 }
 
 static TA_context *vd_ctx;
+#ifdef FLYCAST_ENABLE_NEURAL
+static TA_context *sourceDecodeContext;
+#endif
 #define vd_rc (vd_ctx->rend)
 
 constexpr u32 ListType_None = -1;
@@ -669,6 +672,17 @@ private:
 		cv->x = vtx->xyz[0];
 		cv->y = vtx->xyz[1];
 		cv->z = invW;
+#ifdef FLYCAST_ENABLE_NEURAL
+		if (sourceDecodeContext && sourceDecodeContext->sourceObservations)
+		{
+			// The typed vertex starts after PCW, not at the 32-byte TA record.
+			const auto* packet = reinterpret_cast<const u8*>(vtx) - sizeof(PCW);
+			const auto offset = packet - sourceDecodeContext->tad.thd_root;
+			if (offset >= 0 && static_cast<size_t>(offset) < TA_DATA_SIZE)
+				sourceDecodeContext->sourceObservations->JoinVertex(vd_ctx->rend.captureProducer,
+					static_cast<u32>(offset), packet, static_cast<u32>(vd_rc.verts.size() - 1));
+		}
+#endif
 		update_fz(invW);
 		return cv;
 	}
@@ -1235,6 +1249,9 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 
 	while (childCtx != nullptr)
 	{
+#ifdef FLYCAST_ENABLE_NEURAL
+		sourceDecodeContext = childCtx;
+#endif
 		Ta_Dma* ta_data = (Ta_Dma *)childCtx->getTADataBegin();
 		Ta_Dma* ta_data_end = (Ta_Dma *)childCtx->getTADataEnd();
 
@@ -1278,6 +1295,34 @@ static void ta_parse_vdrc(TA_context* ctx, bool primRestart)
 	}
 
 	vd_ctx = nullptr;
+#ifdef FLYCAST_ENABLE_NEURAL
+	sourceDecodeContext = nullptr;
+	ctx->rend.sourceVertices.clear();
+	if (ctx->sourceObservations) {
+		size_t copies = 0, vertices = 0;
+		unsigned childIndex = 0;
+		bool retained = true;
+		for (auto* child = ctx; child; child = child->nextContext)
+		{
+			if (child->sourceObservations)
+				if (const auto* records = child->sourceObservations->Get(ctx->rend.captureProducer)) {
+					copies += records->size();
+					for (const auto& record : *records) if (record.decodedVertex != UINT32_MAX) {
+						++vertices;
+						if (retained) try {
+							if (ctx->rend.sourceVertices.size() == flycast::rend::neural::SourceObservationBatch::capacity)
+								retained = false;
+							else ctx->rend.sourceVertices.push_back({childIndex, record});
+						} catch (const std::bad_alloc&) { retained = false; }
+					}
+				}
+			++childIndex;
+		}
+		if (!retained) ctx->rend.sourceVertices.clear();
+		NOTICE_LOG(RENDERER, "PVR live source join: producer=%llu copies=%zu decoded-vertices=%zu upstream-transform=unknown",
+			static_cast<unsigned long long>(ctx->rend.captureProducer.ordinal), copies, vertices);
+	}
+#endif
 }
 
 static void ta_parse_naomi2(TA_context* ctx, bool primRestart)
