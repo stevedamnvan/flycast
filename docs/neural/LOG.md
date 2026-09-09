@@ -1,5 +1,12 @@
 # Neural rendering evidence log
 
+LOG525 regression: four serial incremental builds and all enabled497/497 tests
+pass; SDK193/193. Final logging clarification reports live_provider=true for
+actual live-channel input instead of the old hardcoded false; retained-file
+replay remains false. This does not change the source/readback behavior.
+
+#525 2026-09-09 5e4a41f75 plus working tree | Retained nr-on-b scene alone renders visible fighters/arena,63 Presents and clean exit0. First coexist-a attempt missed temporal overlap (host exits05:36:17, helper starts05:36:29); retained as invalid coexistence evidence. Coexist-b overlaps a running hook-enabled host and exits0/nonempty. Added explicit FLYCAST_REMAKE_NOACTIVATE_TEST to match live SW_SHOWNOACTIVATE: coexist-c also overlaps, renders visible scene and exits0 with63 Presents; host remains live and later completes3600 samples/clean close. These workloads are isolation, NOT performance acceptance. Retained depth hashes match isolated/noactivate on all three frames; color hashes differ, so exact scene packets do not lock neural input images. Added producer-context Flush after constructing the owned packet and before developer exchange/wait. Actual nr-flush-a live run now returns and applies all three paired frames1782-1784, Flycast exits0/clean-close3 and Remix exits0/63 Presents. Input inspector passes exact color/depth conversion, zero motion/confidence/ID, full bias, accepted eval and exact HUD/world composition for all three. Same-frame marker logs show1024/1024 on all three. Final image reviewed: nonempty fighters/arena, protected HUD and bottom-right marker. Consumer-reported tuple unchanged off/1/1/203/0/0/enabled, EnableHooks2. Config hash remains222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC. Flush-run improvement supports pending-work submission before waiting, not a general driver root-cause claim. Strict combined provenance remains UNCONFIRMED until clean restored candidate/ON/OFF use identical returned input images and exact source provenance. No temporal/async/quality/performance acceptance; old40-object cleanup warning persists. Automation build/selftests497/497 pass; other final regression pending.
+
 LOG524 final checks: all four serial incremental builds and enabled497/497
 selftests pass; SDK193/193, Python333/333 passed before final help/empty guard.
 Byte inspection confirms all1228800 color bytes and all1228800 depth bytes of

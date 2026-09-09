@@ -2521,7 +2521,11 @@ void DX11Renderer::prepareRemakeCapture()
 				std::vector<unsigned char>& bytes,std::string& reason) mutable {
 				return flycast::rend::neural::ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,reason);
 			};
-			neuralQualityCapture.PrepareRemakeBeforeComposite(snapshot,neuralQualityCaptureMetadata,reader);
+			neuralQualityCapture.PrepareRemakeBeforeComposite(snapshot,neuralQualityCaptureMetadata,reader,[this] {
+				// Developer-only exchange may block for another GPU process. Submit
+				// pending producer work before waiting; not a completion/Present proof.
+				deviceContext->Flush();
+			});
 		}
 	}
 }

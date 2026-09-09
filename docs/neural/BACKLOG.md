@@ -149,6 +149,22 @@ Immediate discriminator: render the retained failing packet alone and with the
 external host active, preserving identical scene bytes and no config edits.
 The swapchain warning also exists in a successful run; do not chase it alone.
 Retained-packet comparison is explicitly diagnostic, not live-source acceptance.
+Retained nr-on-b scene renders nonempty alone and with a running external host;
+the first concurrency attempt missed overlap and is retained as invalid.
+The successful overlapping helper used SW_SHOW, unlike live SW_SHOWNOACTIVATE,
+so foreground activation may have paused the host. Next use explicit
+FLYCAST_REMAKE_NOACTIVATE_TEST=1 with the identical retained packets to match
+the live window policy before attributing failure to GPU submission timing.
+No-activation retained replay also succeeds while the external host remains
+live. Next focused experiment flushes pending producer GPU work after packet
+construction and before the developer wait. It is not a completion fence or
+performance proof; retain failure if the cold live handoff still returns empty.
+LOG525 flush-a now returns all three nonempty pairs, applies them to external
+evaluation and passes exact input/HUD/world composition plus1024/1024 markers;
+both processes exit0. Full combined provenance remains unconfirmed. Next lock
+actual returned input images for clean/marked/policy-off comparison while
+requiring exact game-producer provenance. Packet-only replay changes color
+hashes and cannot satisfy this gate. Then real temporal guidance/async feed.
 do not repeat old Gate10 transport or native polarity fixtures.
 Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed

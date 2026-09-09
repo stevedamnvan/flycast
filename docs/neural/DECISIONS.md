@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-161: submit producer GPU work before a synchronous cross-process wait
+
+The explicit capture/channel path flushes its D3D11 context after constructing
+the owned scene packet and before publication/optional developer wait. This
+submits pending work; it is not a completion fence, a neural acceptance signal
+or Present proof. Ordinary disabled gameplay never enters this path.
+LOG525's live external-consumer run passes the returned input/composition and
+marker checks after this change; prior missing/empty-return failures remain.
+Retained-packet replay succeeds even with no-activation and a running external
+host, narrowing but not proving the underlying runtime cause. An explicit
+no-activation diagnostic switch preserves this reproducible isolation control.
+Retained scene replay has differing final-color hashes, so combined provenance
+must lock actual returned input images, not assume packets guarantee identical
+path-traced pixels. Such replay stays labeled diagnostic and cannot replace
+the live/asynchronous gameplay requirements.
+
 ## D-160: absolute capture scheduling aligns controls without disabling bypass
 
 Public/native capture skip counts eligible capture callbacks. Experimental

@@ -17,6 +17,8 @@
 #include <d3d9.h>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 
 namespace {
 struct Watchdog {
@@ -205,7 +207,7 @@ int wmain(int argc,wchar_t** argv) {
    if(legacyMemory) {
     auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok)throw std::invalid_argument(own.reason);
     for(auto& endpoint:sequence){own=OwnDiagnosticTextures(endpoint);if(!own.ok)throw std::invalid_argument(own.reason);}
-    std::cout<<"texture_transport=owned-memory file_reads_during_draw=false live_provider=false\n";
+    std::cout<<"texture_transport=owned-memory file_reads_during_draw=false live_provider="<<(liveChannel?"true":"false")<<'\n';
    }
    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
@@ -273,7 +275,10 @@ int wmain(int argc,wchar_t** argv) {
  if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"startup failed code="<<int(status)<<"\n";outcome=9; }
  else {
   std::cerr<<"phase=show-window begin\n"<<std::flush;
-  ShowWindow(window,liveChannel?SW_SHOWNOACTIVATE:SW_SHOW);
+  const char* noActivateTest=std::getenv("FLYCAST_REMAKE_NOACTIVATE_TEST");
+  const bool noActivate=liveChannel||(noActivateTest&&std::strcmp(noActivateTest,"1")==0);
+  std::cerr<<"diagnostic_window_noactivate="<<noActivate<<" live_channel="<<liveChannel<<'\n';
+  ShowWindow(window,noActivate?SW_SHOWNOACTIVATE:SW_SHOW);
   std::cerr<<"phase=show-window end\n"<<std::flush;
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.

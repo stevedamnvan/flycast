@@ -581,7 +581,7 @@ void QualityCaptureWriter::ExchangeRemakePacket()
 }
 
 bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& snapshot,
-	const QualityCaptureMetadata& metadata,const RemakeTextureReader& reader)
+	const QualityCaptureMetadata& metadata,const RemakeTextureReader& reader,const std::function<void()>& beforeExchange)
 {
 	if(remakePreparedBeforeComposite_&&remakePacket_&&remakePacket_->frame==metadata.frameId
 		&&remakePacket_->producer.epoch==metadata.producerIdentity.epoch
@@ -596,6 +596,7 @@ bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& 
 	if(!BuildRemakeViewScene(snapshot,metadata.producerIdentity,metadata.frameId,scene,error,estimateUntraced)
 		||!BuildRemakeViewPacket(scene,reader,packet,error)){remakePacketStatus_=error;return false;}
 	remakeView_=std::move(scene);remakePacket_=std::move(packet);
+	if(beforeExchange)beforeExchange();
 	ExchangeRemakePacket();remakePreparedBeforeComposite_=true;
 	return ReturnedRemakeFrame(metadata.frameId)!=nullptr;
 }

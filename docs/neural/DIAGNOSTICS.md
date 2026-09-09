@@ -1,5 +1,11 @@
 # Neural diagnostics
 
+For retained-packet coexistence isolation, `FLYCAST_REMAKE_NOACTIVATE_TEST=1`
+uses the live helper's SW_SHOWNOACTIVATE policy even with --live-artifact.
+Restore this child environment after the test. Verify actual process/log-time
+overlap; a sequential replay does not establish coexistence. These diagnostics
+never establish performance or combined external-output provenance.
+
 For exact renderer-ID intervals use `neuraltest capture --start-frame N`
 (positive, at most10000000). This overrides eligible-capture `--skip` counting
 without disabling menu/2D bypass. Default0 retains existing skip semantics.

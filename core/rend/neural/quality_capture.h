@@ -150,7 +150,8 @@ public:
 		return remakePacket_ && remakePacket_->frame==frame ? &*remakePacket_ : nullptr;
 	}
 	const std::string& RemakePacketStatus() const noexcept {return remakePacketStatus_;}
-	bool PrepareRemakeBeforeComposite(const PvrDecodedPacket&,const QualityCaptureMetadata&,const RemakeTextureReader&);
+	bool PrepareRemakeBeforeComposite(const PvrDecodedPacket&,const QualityCaptureMetadata&,const RemakeTextureReader&,
+		const std::function<void()>& beforeExchange = {});
 	const RemakeReturnedImage* ReturnedRemakeFrame(std::uint64_t frame) const noexcept {
 		return remakeReturnedImage_&&remakeReturnedImage_->frame==frame ? &*remakeReturnedImage_ : nullptr;
 	}
