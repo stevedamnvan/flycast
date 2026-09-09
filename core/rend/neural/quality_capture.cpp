@@ -396,7 +396,8 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* device,
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
-	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error)
+	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -411,18 +412,30 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 				error="preview requires exact unscaled SDR extent";return false;
 			}
 		}
-		const auto directory=root/("source-"+std::to_string(returned.frame)+"-present-"+std::to_string(current));
+		const auto directory=root/("frame-"+std::to_string(returned.frame)+"-present-"+std::to_string(current));
 		std::filesystem::create_directories(root);
 		if(!std::filesystem::create_directory(directory)) {error="preview directory exists";return false;}
+		if(scene&&!WriteLockedRemakeInput(directory,*scene,returned,error))return false;
 		RawTexture raw[4];
 		for(unsigned i=0;i<4;++i)if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
 		RawTexture source;source.width=640;source.height=480;source.format=DXGI_FORMAT_B8G8R8A8_UNORM;
 		source.bytesPerPixel=4;source.bytes=returned.bgra;
 		const auto input=ToRgba(source),native=ToRgba(raw[0]),overlay=ToRgba(raw[1]),output=ToRgba(raw[2]),presented=ToRgba(raw[3]);
+		auto world=input;
+		if(evaluated) {
+			RawTexture evaluatedRaw;
+			if(!ReadTexture(device,context,evaluated,evaluatedRaw,error))return false;
+			if(evaluatedRaw.width!=640||evaluatedRaw.height!=480
+				||(evaluatedRaw.format!=DXGI_FORMAT_R8G8B8A8_UNORM&&evaluatedRaw.format!=DXGI_FORMAT_B8G8R8A8_UNORM)) {
+				error="evaluated preview extent or format";return false;
+			}
+			world=ToRgba(evaluatedRaw);
+			if(!WritePng(directory/"evaluated-remix.png",world,error))return false;
+		}
 		std::uint64_t protectedPixels=0,hudMismatch=0,worldMismatch=0,displayMismatch=0;
 		for(std::size_t p=0;p<640*480;++p) {
 			const bool protectedPixel=raw[1].bytes[p]>=128;protectedPixels+=protectedPixel;
-			const auto* expected=(protectedPixel?native.pixels.data():input.pixels.data())+p*4;
+			const auto* expected=(protectedPixel?native.pixels.data():world.pixels.data())+p*4;
 			const bool changed=std::memcmp(expected,output.pixels.data()+p*4,4)!=0;
 			if(protectedPixel)hudMismatch+=changed;else worldMismatch+=changed;
 			displayMismatch+=std::memcmp(output.pixels.data()+p*4,presented.pixels.data()+p*4,3)!=0;
@@ -432,6 +445,8 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 			||!WritePng(directory/"flycast-pre-osd-backbuffer.png",presented,error))return false;
 		std::ofstream report(directory/"preview.json");report.imbue(std::locale::classic());
 		report<<"{\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
+			<<",\"evaluated_remix\":"<<(evaluated?"true":"false")
+			<<",\"replay_original_frame\":"<<replayOriginalFrame
 			<<",\"sequence\":"<<returned.source.sequence<<",\"source_digest\":"<<returned.source.digest
 			<<",\"producer_epoch\":"<<returned.producer.epoch<<",\"producer_ordinal\":"<<returned.producer.ordinal
 			<<",\"protected_pixels\":"<<protectedPixels<<",\"hud_rgba_mismatches\":"<<hudMismatch

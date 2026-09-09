@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include <cstdlib>
+#include <cstring>
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/remake_input_replay.h"
@@ -1346,6 +1348,17 @@ int PerformanceCommand(const Args& args)
 	const auto injection = Value(args, "--inject", "none");
 	const auto transition = Value(args, "--transition", "none");
 	const auto inputReplay = Value(args, "--input-replay", "no");
+	const auto remakeEvidence = Value(args, "--remake-evidence", "none");
+	if(remakeEvidence!="none"&&remakeEvidence!="marker"&&remakeEvidence!="restored") {
+		std::cerr<<"--remake-evidence must be none, marker or restored\n";return 2;
+	}
+	if(remakeEvidence!="none") {
+		const auto* returned=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
+		const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+		if(lane!="dlss5"||api!="d3d11on12"||!returned||std::strcmp(returned,"1")!=0||!capture||!*capture) {
+			std::cerr<<"remake evidence requires explicit async neural preview capture and dlss5 On12; not performance evidence\n";return 2;
+		}
+	}
 	if (lane != "native" && lane != "dlaa" && lane != "sr-quality" && lane != "dlss5")
 	{
 		std::cerr << "invalid performance lane\n";
@@ -1574,7 +1587,11 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralD3D12Surface=" + (api == "d3d11on12" ? L"yes" : L"no")
 		+ L",config:rend.NeuralMatchOutputResolution=yes"
 		+ L",config:rend.NeuralCaptureFrames=0"
-		+ L",config:rend.NeuralDlss5EvidenceCapture=no"
+		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (remakeEvidence!="none"?L"yes":L"no")
+		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames=480"
+		+ L",config:rend.NeuralDlss5EvidenceStartFrame=0"
+		+ L",config:rend.NeuralDlss5EvidencePresentMarker=" + (remakeEvidence=="restored"?L"no":L"yes")
+		+ L",config:rend.NeuralDlss5EvidenceMarkerBottomRight=yes"
 		+ L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralPerformanceFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralPerformanceWarmup=" + std::to_wstring(warmup)

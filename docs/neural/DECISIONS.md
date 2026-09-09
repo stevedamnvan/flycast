@@ -1,5 +1,24 @@
 # Neural rendering decisions
 
+## D-168: returned-scene evaluation keeps original presentation identity
+
+The explicit async neural experiment reserves stage submissions for returned
+scenes, not alternating current native PVR and delayed Remix inputs. Submit
+fresh source IDs once with reset-only/full-bias, zero-motion, zero-jitter inputs
+using returned projection depth; never advance native correspondence from them.
+Copy accepted output to an owned texture while wrapped output is acquired, then
+retain original receipt-qualified HUD ownership. Composite/display that pair
+under the existing bounded monotonic policy. Count remake-evaluated separately
+from raw Remix and ordinary neural Presents. This establishes neither external
+mutation nor temporal-quality acceptance; the combined route still needs its
+own source/output/provenance evidence. Diagnostic captures save evaluated color
+separately and compare world pixels to it, not to raw Remix input.
+LOG532 k/l/m now supplies the focused proof for ten consecutive retained-input
+displayed frames, not continuous live delivery or temporal reconstruction.
+Keep reset-only guidance and eight-frame expiry explicit; the next integration
+work must address sustained delivery and OIT rather than another generic
+provenance cycle. Intentional source trails are content, not automatic defects.
+
 ## D-167: distinguish returned preview from neural presentation
 
 The opt-in ordinary returned-image preview composites receipt-owned original

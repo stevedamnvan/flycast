@@ -1,5 +1,37 @@
 # Neural diagnostics
 
+FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES optionally overrides the default three
+diagnostic attempts with1..30; invalid or oversized text disables capture.
+Archive-j requested12 and verified12 source/input archives. This is still
+synchronous diagnostic work, never performance evidence, and does not alter
+the eight-frame source-age/fallback policy.
+
+For the async returned-scene provenance regression only, the performance
+launcher accepts --remake-evidence none|marker|restored. Non-none requires
+dlss5/d3d11on12 plus explicit ASYNC_NEURAL and PREVIEW_CAPTURE environment
+options. It arms the existing bottom-right sentinel for at most480 evaluations;
+it does not enable normal quality capture or claim performance eligibility.
+Invalid/unarmed invocations reject before process launch. Archive-f contains
+three verified source/input archives ready for ASYNC_LOCKED_INPUT_ROOT replay.
+
+New async preview captures use frame-SOURCE-present-CURRENT directories. When
+source ownership is available they also contain the existing locked-input
+archive files. Set FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT to that root only for
+explicit developer comparisons, together with preview capture. The reader
+requires exact producer clock, serialized scene/materials and archived input
+hashes. It rejects unmatched sources rather than silently using fresh pixels;
+accepted replay logs input_origin=locked-replay-not-live and preview.json records
+replay_original_frame. Existing old source-... image directories remain valid
+pixel evidence but lack the scene archive needed for this new replay seam.
+
+With `FLYCAST_REMAKE_ASYNC_NEURAL=1` and async preview enabled, the experiment
+evaluates only fresh returned scenes using reset/full-bias guidance. Display
+logs say `kind=remake-evaluated`; captures add evaluated-remix.png and
+evaluated_remix=true. Compare unprotected pixels to that evaluated image, not
+raw returned-remix.png. Public-DLAA eval-d verifies this distinction with raw
+substitution controls. External mutation remains unconfirmed until the changed
+route's explicit provenance checks pass. Defaults and external settings unchanged.
+
 `FLYCAST_REMAKE_PREVIEW_CAPTURE=ABSOLUTE_DIRECTORY` captures at most three new
 raw-preview frames per renderer instance. It writes source/current-qualified
 native, mask, returned, composite and actual pre-OSD backbuffer PNGs plus

@@ -349,7 +349,7 @@ void DX11Context::Present()
 	if(pendingRemakeSource) {
 		NOTICE_LOG(RENDERER,"Remake preview present: source=%llu current=%llu kind=%s completed=%d hresult=%x external_nr=false",
 			(unsigned long long)pendingRemakeSource,(unsigned long long)pendingRemakeCurrent,
-			pendingRemakeHeldNative?"held-native":"remake",hr==S_OK,unsigned(hr));
+			pendingRemakeHeldNative?"held-native":pendingRemakeEvaluated?"remake-evaluated":"remake",hr==S_OK,unsigned(hr));
 		pendingRemakeSource=0;pendingRemakeCurrent=0;
 	}
 	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET)

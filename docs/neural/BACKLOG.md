@@ -75,6 +75,69 @@ most three synchronous preview captures per renderer instance. Preserve raw
 returned color, original native/HUD mask, composite and actual pre-OSD backbuffer
 with source/current/receipt IDs. Require exact640x480, do not overwrite an
 existing frame directory, and label the entire run ineligible for performance.
+
+Next integration bounds (base fc415a22f): explicit
+`FLYCAST_REMAKE_ASYNC_NEURAL=1` reserves neural evaluation for fresh returned
+scenes; do not alternate native and returned inputs in one temporal history.
+Validate original overlay/producer/receipt and eight-frame age, clear native
+draw correspondence, use zero jitter/motion/confidence and reset/full bias.
+Own an accepted evaluated-color snapshot plus its original overlay. The working
+display hookup now composites that snapshot, records remake-evaluated separately
+and optionally captures evaluated color plus actual backbuffer. First test public
+DLAA on the unchanged OFF stage, then the supplied external route with focused
+provenance controls; public success is not external proof. No external configuration changes. Falsify
+duplicate evaluation, native-history advancement and current-HUD substitution.
+LOG532 public eval-d now accepts25 unique returned evaluations and completes19
+evaluated Presents. Three actual backbuffers exactly match evaluated world and
+original HUD, with independent raw-substitution negatives. All four incremental
+builds and545/545 enabled tests pass. Next: supplied external route plus focused
+output/provenance controls on this changed display path; no public-as-external
+claim. Working slice remains uncommitted while that integration is in progress.
+LOG532 supplied-ON eval-e runs and captures evaluated output with protected HUD,
+but external provenance is pending. Same-frame public/external raw Remix inputs
+differ (runtime history), so their output comparison is rejected. Next reuse
+source-qualified locked returned-input replay for exact ON/clean/OFF controls;
+the evaluated display now notifies the existing original-ID sentinel verifier.
+Do not treat active tuple/Feature18 log plus a screenshot as proof.
+Replay implementation bounds: only explicit preview capture retains a shared
+owned source packet with the existing two-pending/accepted/evaluated overlay
+slots (packet wire limit72MiB). At most three new capture directories archive
+source packet, exact returned BGRA/depth and checked receipt/input hashes.
+ASYNC_LOCKED_INPUT_ROOT reuses the existing producer/scene/hash verifier before
+substituting pixels, logs retained replay distinctly, and keeps current receipt
+ownership only after matching the whole scene. This is developer-only replay,
+not fresh consumer delivery or performance evidence. Wrong receipt, changed
+scene/input and overwrite must fail. No external config changes.
+LOG532 archive-f produces three source/input archives verified by the existing
+locked reader. Next use that root for marked/restored/OFF comparisons via the
+new strictly gated --remake-evidence launcher option; do not recapture another
+unmatched ordinary-run comparison. Archive-f itself has no sentinel proof.
+LOG532 g/h/i now confirms ONE original1867 retained-input external result reaches
+the changed evaluated display path under exact ON/clean/OFF inputs, sentinel,
+PNG/backbuffer and HUD checks. Earlier original1864/1866 outputs equal OFF and
+remain explicitly unconfirmed (startup interval). Next widen the bounded archive
+to obtain a post-startup moving sequence; do not call one frame the working
+pipeline. External configuration and previously completed gates stay unchanged.
+Next bounds: keep three captures by default; explicit developer-only
+FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES allows1..30, with invalid input disabling
+capture. Request12 for the next live archive and matched controls, retaining
+startup records rather than counting them as external. This changes only the
+bounded diagnostic window, not eight-frame fallback or ordinary rendering.
+LOG532 archive-j captured and verified all12 requested source/input archives
+(1861,1862,1864..1873). Use that root for the next matched marked/restored/OFF
+controls. Sixty moving source pairs were checked,56 retained; do not equate
+transport coverage with sustained combined presentation. The full300/600-frame
+working-pipeline criteria below are still open and must not be reduced.
+LOG532 marked-k has completed:12 evaluated retained inputs, ten distinct
+displayed-source captures, successful marker readback on the later frames.
+Restored-l and unchanged hook-disabled-m now complete the focused comparison:
+ten consecutive original frames1864..1873 have exact-input external alteration,
+marked successful Presents and clean backbuffer/original-HUD pixel equality.
+The two unchanged startup frames are excluded. Commit the independently proven
+integration slice, then remove sustained-delivery bottlenecks and add OIT support.
+Do not divert into aesthetic trail tuning or general profiling before sustained
+delivery and OIT integration; preserve intentional source effects.
+
 Implementation bounds: developer-only `FLYCAST_REMAKE_ASYNC_PRESENT=1`, normal
 DX11 at 640x480, capture mode disabled. First align source time with a bounded
 native hold, then display monotonically advancing returned frames with their

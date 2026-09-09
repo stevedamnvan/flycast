@@ -6,7 +6,7 @@
 
 namespace flycast::rend::neural {
 
-enum class PresentationKind { Automatic, Remake, HeldNative };
+enum class PresentationKind { Automatic, Remake, HeldNative, RemakeEvaluated };
 
 struct PresentationCadenceStats {
 	std::uint64_t observedPresents = 0;
@@ -15,6 +15,7 @@ struct PresentationCadenceStats {
 	std::uint64_t neuralPresents = 0;
 	std::uint64_t nativePresents = 0;
 	std::uint64_t remakePresents = 0;
+	std::uint64_t remakeEvaluatedPresents = 0;
 	std::uint64_t heldNativePresents = 0;
 	std::uint64_t remakeTransitions = 0;
 	std::uint64_t acceptedNotPresented = 0;
@@ -46,7 +47,8 @@ public:
 		}
 
 		++stats_.observedPresents;
-		const bool remake=kind==PresentationKind::Remake;
+		const bool evaluated=kind==PresentationKind::RemakeEvaluated;
+		const bool remake=kind==PresentationKind::Remake||evaluated;
 		const bool held=kind==PresentationKind::HeldNative;
 		const bool neural = outputFrameId != 0&&!remake&&!held;
 		if(remake)++stats_.remakePresents;
@@ -55,6 +57,7 @@ public:
 		else
 			++stats_.nativePresents;
 		if(held)++stats_.heldNativePresents;
+		if(evaluated)++stats_.remakeEvaluatedPresents;
 		if(hasPresentation_&&remake!=previousRemake_)++stats_.remakeTransitions;
 		if (hasPresentation_ && !remake&&!previousRemake_&&neural != previousNeural_)
 			++stats_.nativeNeuralAlternations;
@@ -72,7 +75,7 @@ public:
 		if (sourceFrameId != 0)
 			previousSourceFrameId_ = sourceFrameId;
 
-		if (acceptedFrameId != 0 && (!neural || outputFrameId != acceptedFrameId))
+		if (acceptedFrameId != 0 && ((!neural&&!evaluated) || outputFrameId != acceptedFrameId))
 			++stats_.acceptedNotPresented;
 		if (!neural&&!remake&&!held)
 		{

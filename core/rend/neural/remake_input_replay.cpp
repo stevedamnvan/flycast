@@ -9,6 +9,38 @@
 #include <locale>
 
 namespace flycast::rend::neural {
+bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake::Packet& packet,
+ const RemakeReturnedImage& image,std::string& error)
+{
+ try {
+  RemakeNeuralInput input;
+  if(!BuildRemakeNeuralInput(image,packet.frame,packet.producer,input))throw std::runtime_error("archive-invalid-input");
+  std::ostringstream wire(std::ios::binary);
+  if(!SerializeRemakeViewPacket(wire,packet,error))return false;
+  auto digest=[](const void* bytes,std::size_t count){auto p=static_cast<const unsigned char*>(bytes);std::uint64_t h=14695981039346656037ull;
+   for(std::size_t i=0;i<count;++i){h^=p[i];h*=1099511628211ull;}return h;};
+  const auto serialized=wire.str();const auto hash=digest(serialized.data(),serialized.size());
+  if(!image.source.sequence||image.source.digest!=hash||image.source.bytes!=serialized.size())throw std::runtime_error("archive-source-receipt-mismatch");
+  const char* names[]={"remake-view.bin","remake-return.bgra","remake-return-depth.f32","remake-return.json","manifest.json"};
+  for(const auto* name:names)if(std::filesystem::exists(directory/name))throw std::runtime_error("archive-file-exists");
+  if(!std::filesystem::is_directory(directory))throw std::runtime_error("archive-directory-missing");
+  auto write=[&](const char* name,const void* bytes,std::size_t count){std::ofstream out(directory/name,std::ios::binary);
+   out.write(static_cast<const char*>(bytes),count);if(!out)throw std::runtime_error("archive-write-failed");};
+  write(names[0],serialized.data(),serialized.size());write(names[1],image.bgra.data(),image.bgra.size());
+  write(names[2],image.projectionDepth.data(),image.projectionDepth.size()*sizeof(float));
+  nlohmann::json receipt={{"frame",packet.frame},{"source_digest",hash},{"sequence",image.source.sequence},
+   {"depth_values",image.projectionDepth.size()},{"pixel_bytes",image.bgra.size()}};
+  auto hex=[](std::uint64_t value){std::ostringstream out;out.imbue(std::locale::classic());out<<std::uppercase<<std::hex<<std::setw(16)<<std::setfill('0')<<value;return out.str();};
+  nlohmann::json manifest={{"frame_id",packet.frame},{"git_sha",packet.sourceGitSha},
+   {"remake_input","returned-scene-reset-only-inverted-projection-experiment"},
+   {"producer_identity",{{"epoch",packet.producer.epoch},{"ordinal",packet.producer.ordinal},{"cycle",packet.producer.cycle}}},
+   {"contract_hashes",{{"color_fnv64",hex(digest(input.rgba.data(),input.rgba.size()))},
+    {"depth_fnv64",hex(digest(input.invertedDepth.data(),input.invertedDepth.size()*sizeof(float)))}}}};
+  const auto receiptText=receipt.dump(),manifestText=manifest.dump();
+  write(names[3],receiptText.data(),receiptText.size());write(names[4],manifestText.data(),manifestText.size());
+  error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
 bool SameRemakeReplayScene(const remake::Packet& retained,const remake::Packet& current,std::string& error)
 {
  // Renderer counters and build labels may differ. Never normalize game clock,

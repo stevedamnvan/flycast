@@ -429,6 +429,7 @@ void PerformanceTracker::WriteReport()
 		<< ", \"neural_presents\": " << cadenceStats.neuralPresents
 		<< ", \"native_presents\": " << cadenceStats.nativePresents
 		<< ", \"remake_presents\": " << cadenceStats.remakePresents
+		<< ", \"remake_evaluated_presents\": " << cadenceStats.remakeEvaluatedPresents
 		<< ", \"held_native_presents\": " << cadenceStats.heldNativePresents
 		<< ", \"remake_transitions\": " << cadenceStats.remakeTransitions
 		<< ", \"accepted_not_presented\": " << cadenceStats.acceptedNotPresented
@@ -507,7 +508,7 @@ void PerformanceTracker::WriteReport()
 			<< ", \"source_frame_id\": " << s.sourceFrameId
 			<< ", \"accepted_frame_id\": " << s.acceptedFrameId
 			<< ", \"output_frame_id\": " << s.outputFrameId
-			<< ", \"presentation_kind\": \"" << (s.presentationKind==PresentationKind::Remake?"remake":s.presentationKind==PresentationKind::HeldNative?"held-native":"automatic") << "\""
+			<< ", \"presentation_kind\": \"" << (s.presentationKind==PresentationKind::RemakeEvaluated?"remake-evaluated":s.presentationKind==PresentationKind::Remake?"remake":s.presentationKind==PresentationKind::HeldNative?"held-native":"automatic") << "\""
 			<< ", \"neural_mode\": " << s.neuralMode
 			<< ", \"reset_history\": " << (s.resetHistory ? "true" : "false") << '}';
 	}

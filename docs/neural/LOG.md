@@ -1,5 +1,152 @@
 # Neural rendering evidence log
 
+LOG532 k/l/m ACCEPTED bounded changed-route integration: marked ON, clean ON,
+and existing hook-disabled OFF all finish exit0/120 helper Presents and240
+host samples/clean close. All12 retained inputs match color/depth/motion/mask
+across controls; marked/clean additionally match returned output hashes.
+Original frames1864..1873 are ten consecutive externally altered outputs;
+1861/1862 remain unchanged startup controls and are excluded. For each of the
+ten, clean evaluated PNG hashes equal the logged returned hash, independent
+original-native/R8-mask recomposition equals the full composite, and actual
+pre-OSD backbuffer RGB equals that composite. Marked counterparts have1024/1024
+sentinel pixels and completed candidate Presents; clean captures join successful
+remake-evaluated Presents. Host logs report Feature18 create/evaluate and stable
+off/1/1/203/0/0/enabled tuple; OFF explicitly reports all hooks disabled.
+Read-only Python checks actually ran; fresh Python340/340 and SDK193/193 pass.
+Visual inspection of source1872 shows fighters, temple and intact HUD, retaining
+the approximate scene/material limitations. Evidence is under fc067-restored-l
+and logs remake-{marked,restored,off}-{flycast,reshade}-{k,l,m}; no performance,
+fresh exact-SHA, recovered camera or full-pipeline acceptance is inferred.
+Next commit this tested slice and address sustained delivery/OIT. Do not rerun
+general transport or optimize away intentional source trails.
+
+LOG532 marked-k follow-through: both existing process handles returned exit0;
+host completed240 samples/clean close and helper120 Presents. Twelve retained
+inputs reached developer evaluation with zero reported capture failures; ten
+distinct displayed-source pixel directories exist (1821..1830), with the later
+marker readbacks reporting1024/1024. This is marked-output reachability, not yet
+a twelve-frame external-output claim. Archived both host logs before launching
+restored-l concurrently with its helper against the same archive-j inputs.
+The staged owned executable SHA256 is
+3F09AC78C09B234B0D50B8AF2838F8805371E6D65082F342E644B5E676972C9C;
+external configuration remains at222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Helper still reports40 undisposed common device objects. A read-only inspection
+command failed on a spelled-out numeric argument and was corrected; no test
+or capture was restarted. Clean and hook-disabled matching remain next.
+
+LOG532 widened archive-j: add developer capture-count parser, default3 and
+explicit1..30, invalid/overflow/trailing-text disabled. Automation plus other
+three serial incremental builds pass; enabled551/551 tests pass. Request12
+captures with60 source frames: helper exits0/120 Presents, host exits0/240
+samples/clean close. All12 capture/archive directories validate through the
+existing locked reader; source1861,1862,1864..1873 have successful pixel captures.
+Transport inspector verifies60 pairs,58 published returns,two busy drops,56
+retained age1..2,two not retained,ten source gaps. These numbers do not imply
+continuous display or external provenance for all frames. Next marked/clean/OFF
+controls use fc067-window-j-composites, retaining first-two startup results.
+No fallback threshold or external settings changed. Goal's300-frame moving
+and separate600-frame/99-percent normal/OIT acceptance remain unchanged/open.
+
+LOG532 final g/h/i regression: SDK mock193/193 and Python340/340 pass; backlog
+and diff checks pass. Prior all-four incremental builds and enabled549/549
+remain green. No standalone runtime/camera/whole-pipeline closure inferred.
+
+LOG532 matched g/h/i controls: marked ON, restored ON and unchanged safe-mode
+OFF each exit0 with helper90 Presents and host180 samples/clean close. All three
+archived inputs match exact color/depth/motion/mask hashes; marked/restored
+returned hashes match all3. Marked frames1818/1819 reach1024/1024 sentinel pixels
+and completed Presents; clean captures preserve exact original HUD/evaluated
+world/backbuffer. OFF logs explicit EnableHooks=0 safe mode. Inputs corresponding
+to original1864/1866 have identical ON/OFF returned hashes and are NOT external
+mutation evidence. Original1867 is confirmed in this bounded changed-route
+scope: ON returned78277A1F80E8F281 differs from OFF855EEC5C57EE0251 under exact
+four-input equality; clean evaluated PNG hashes to ON and independently
+recomposes to the actual backbuffer, with original HUD exact. Consumer logs
+reported off/1/1/203/0/0/enabled and Feature18 creation/evaluation. This is ONE
+retained-input externally altered displayed frame, not sustained moving/full
+pipeline acceptance. All runs use identical owned exe SHA256
+7876109651E6713F2D7D55C8C67924CCEFF8FA52FE30CA33013806EB35940704.
+Embedded Git label remains stale3e78a6f4f; actual basefc415a22f plus working tree,
+not fresh exact-SHA evidence. All four incremental builds and549/549 enabled
+tests pass. Next widen the bounded archive sequence beyond consumer startup,
+not another generic transport phase; retain unchanged first-two controls.
+
+LOG532 live archive-f: unchanged supplied-ON config, helper exits0/90 Presents,
+host exits0/180 samples/clean close. Captured frame1864-present1866,
+1866-present1867,1867-present1868 directories include exact original packets,
+returned BGRA/depth and input-hash manifests; each pixel capture reports success.
+All three archives pass the existing check-locked-remake-input command (1228800
+color bytes,307200 depth values each). Add performance launcher diagnostic
+--remake-evidence none|marker|restored, restricted to explicit async neural/
+preview capture plus dlss5 On12, with existing480-frame bottom-right sentinel
+settings. Invalid mode and unarmed invocation both reject before launch.
+Automation rebuild/selftest549/549 pass. Async evaluation now invokes existing
+consumer-status/evidence hash logging; this edit follows archive-f, so archive-f
+is not sentinel proof. Next run locked replay marked/clean/OFF controls. The
+launcher retains its historical performance name, but these runs are explicitly
+synchronous/ineligible for performance. All raw artifacts remain outside Git.
+
+LOG532 source-checked async replay implementation: explicit preview capture
+retains source packet ownership with the existing pending/accepted/evaluated
+overlay slots. New frame-... capture directories can write the existing locked
+replay format: source packet, BGRA, projection depth, receipt and validated
+color/depth hashes. Writer rejects mismatched source receipt and existing files.
+ASYNC_LOCKED_INPUT_ROOT invokes the existing exact producer/scene/input verifier
+before selecting retained pixels; current overlay receipt is attached only after
+verification, and replay original frame is logged/captured explicitly. No
+substitution is represented as live consumer delivery. First build failed on
+missing ReadLockedRemakeInput declaration; explicit header inclusion fixes it.
+Automation incremental build and549/549 selftests pass, including four new
+archive/negative/roundtrip checks. Live archive/replay and external marked/
+clean/OFF controls remain pending; no external provenance acceptance yet.
+
+LOG532 supplied-ON eval-e: unchanged configuration SHA256
+222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC;
+owned staged executable B6652F53692A40C7ACD14046785D60FDCF612EB0827ED7A5831692D54B9141AE.
+Host exits0/180 samples/clean close; helper exits0/90 Presents. Host reports
+active off/1/1/203/0/0/enabled tuple and feature18 create/first evaluation.
+Three evaluated-composite pairs1861/1863,1862/1864,1864/1865 havezero HUD/world/
+backbuffer mismatches; last backbuffer viewed with fighters/temple/HUD. These
+facts alone are NOT external provenance. Reject public-D versus supplied-E
+frame1864 output comparison: original native/HUD mask match, but raw Remix
+inputs differ despite same scene digest, so output difference is not an
+exact-input control. Preserve rejected comparison. Next retain/replay exact
+returned inputs under existing source-qualified scene checks and run marked/
+clean/policy-off controls on the evaluated display path. Added its original-ID
+QueueNeuralOutputPresent notification so the existing sentinel/backbuffer
+verifier can observe copied evaluated output; this edit is after eval-e and
+must be tested separately. No settings or binary internals changed.
+
+LOG532 live public-DLAA eval-d: helper exits0/90 Presents and host exits0/180
+samples/clean close. Inspector validates30 paired source/image files,27
+published returns,three busy,25 retained age1..2,two not retained,ten gaps.
+All25 retained scenes have unique accepted neural evaluations;19 evaluated
+Remix Presents complete. Three source/current pairs1864/1866,1866/1867,
+1867/1868 capture evaluated color separately and have17509/17553/17493 protected
+pixels,zero HUD/world RGBA mismatch and zero backbuffer RGB mismatch. Independent
+Pillow recomposition and exact successful evaluated-Present joins pass all3;
+shifted-display/raw-world substitution controls reject. Raw/evaluated images
+differ. First backbuffer visually inspected: fighters/temple/HUD visible with
+known camera-relative omissions; not temporal or remake-quality acceptance.
+All four incremental builds pass; enabled545/545 tests pass. Source-only
+transport inspector intentionally does not claim presentation/external proof.
+Synchronous captures are not performance evidence. Next test supplied external
+route with changed-route provenance and negative controls; public success is
+not Feature18/output evidence. Helper40-object cleanup warning remains.
+
+LOG532 evaluated-display implementation: select owned evaluated source/color/
+original overlays when async neural is requested, composite evaluated world
+then original HUD, and retain separate remake-evaluated cadence/Present labels.
+Capture keeps evaluated-remix.png separately; world expectation uses evaluated
+color, while HUD uses original native. First build failed C2662 because the
+custom ComPtr get() lacks a const overload; use its existing pointer conversion.
+Corrected automation build passes545/545 selftests, including evaluated-source
+latency/hold accounting without standalone/external provenance claims. Live
+public-DLAA eval-d launched with unchanged OFF configuration and synchronous
+three-frame preview capture; results pending. Remaining builds run serially.
+
+#532 2026-09-09 fc415a22f plus working tree | Begin ordinary returned-scene neural submission behind FLYCAST_REMAKE_ASYNC_NEURAL=1. Reserve the stage for returned sources (no alternating native history), require source-qualified original overlay and age, suppress duplicate source attempts, share the existing validated color/depth upload, clear native motion/confidence/draw correspondence, set explicit zero jitter/reset/full bias, and own a copy of accepted D3D12 output plus original source/overlay. Do not mark returned evaluation as accepted native correspondence. The evaluated display hookup remains pending, so this opt-in suppresses raw preview and keeps native fallback. Automation build and existing544/544 selftests pass; no live evaluation/presentation or new-path correctness claim yet. Code review corrected preliminary numeric mode checks to actual Dlaa/Dlss5Experimental enum symbols before building. Next connect the owned evaluated snapshot to the proven overlay/display path and extend its separate accounting/proof; do not commit this unproven intermediate slice.
+
 LOG531 final focused checks: independent Pillow recomposition of all three
 saved PNG sets equals the actual backbuffer RGB, with exact successful Present
 joins. Six deliberately shifted-display/omitted-overlay controls reject.

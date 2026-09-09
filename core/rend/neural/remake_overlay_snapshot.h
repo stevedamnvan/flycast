@@ -22,6 +22,9 @@ struct RemakeOverlayIdentity {
 };
 struct RemakeOverlaySnapshot {
  RemakeOverlayIdentity identity;
+ // Only retained under explicit developer capture/replay, never ordinary play.
+ std::shared_ptr<const remake::Packet> captureScene;
+ std::uint64_t replayOriginalFrame=0;
  ComPtr<ID3D11Texture2D> color,mask;
  ComPtr<ID3D11ShaderResourceView> colorView,maskView;
 };

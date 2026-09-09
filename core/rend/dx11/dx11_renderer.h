@@ -37,6 +37,7 @@
 #include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/remake_overlay_snapshot.h"
 #include "rend/neural/remake_presentation.h"
+#include "rend/neural/remake_neural_input.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -148,6 +149,8 @@ protected:
 	void prepareRemakeAsyncFeed();
 	flycast::rend::neural::RemakeDisplayDecision selectRemakePreview(bool permitted);
 	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
+	bool uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input);
+	void evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame);
 	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();
@@ -311,6 +314,11 @@ protected:
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
+	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeEvaluatedSource;
+	flycast::rend::neural::RemakeOverlaySnapshot remakeEvaluatedOverlay;
+	ComPtr<ID3D11Texture2D> remakeEvaluatedTexture;
+	ComPtr<ID3D11ShaderResourceView> remakeEvaluatedView;
+	std::uint64_t remakeLastEvaluationAttempt=0;
 	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
@@ -318,12 +326,15 @@ protected:
 	ComPtr<ID3D11Texture2D> remakeCompositeTexture;
 	ComPtr<ID3D11ShaderResourceView> remakeCompositeView,remakeDisplayedView;
 	std::uint64_t remakeCompositeFrame=0,remakeDisplayedFrame=0;
+	bool remakeCompositeEvaluated=false,remakeDisplayedEvaluated=false;
 	unsigned remakePreviewCaptureAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
+		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
 		remakeCompositeView.reset();remakeDisplayedView.reset();remakeCompositeFrame=remakeDisplayedFrame=0;
+		remakeCompositeEvaluated=remakeDisplayedEvaluated=false;
 	}
 	std::string remakeAsyncToken;
 	std::uint64_t remakeAsyncEpoch=0;

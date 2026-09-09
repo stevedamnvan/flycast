@@ -222,6 +222,21 @@ int RunSelfTests()
 				auto digest=[](const void* data,size_t size){auto p=static_cast<const unsigned char*>(data);std::uint64_t h=14695981039346656037ull;for(size_t i=0;i<size;++i){h^=p[i];h*=1099511628211ull;}return h;};
 				auto hex=[](std::uint64_t h){std::ostringstream out;out<<std::uppercase<<std::hex<<std::setw(16)<<std::setfill('0')<<h;return out.str();};
 				std::ostringstream wire(std::ios::binary);SerializeRemakeViewPacket(wire,packet,error);const auto bytes=wire.str();
+				image.source={1,digest(bytes.data(),bytes.size()),static_cast<std::uint32_t>(bytes.size())};
+				const auto writerRoot=root/"writer",writerFolder=writerRoot/"frame-test";
+				std::filesystem::create_directory(writerRoot);std::filesystem::create_directory(writerFolder);
+				auto wrongReceipt=image;wrongReceipt.source.digest^=1;
+				suite.Expect(!WriteLockedRemakeInput(writerFolder,packet,wrongReceipt,error)
+					&&std::filesystem::is_empty(writerFolder),"returned replay archive rejects wrong receipt before writing");
+				suite.Expect(WriteLockedRemakeInput(writerFolder,packet,image,error),"returned replay archive writes checked source and input");
+				RemakeReturnedImage roundtrip;std::uint64_t writerOriginal=0;
+				suite.Expect(ReadLockedRemakeInput(writerRoot,packet,roundtrip,writerOriginal,error)
+					&&roundtrip.bgra==image.bgra&&roundtrip.projectionDepth==image.projectionDepth,
+					"returned replay archive roundtrips exact color and depth through existing verifier");
+				suite.Expect(!WriteLockedRemakeInput(writerFolder,packet,image,error)&&error=="archive-file-exists",
+					"returned replay archive refuses overwrite");
+				for(const auto& file:std::filesystem::directory_iterator(writerFolder))std::filesystem::remove(file.path());
+				std::filesystem::remove(writerFolder);std::filesystem::remove(writerRoot);
 				{std::ofstream f(folder/"remake-return.bgra",std::ios::binary);f.write(reinterpret_cast<const char*>(image.bgra.data()),image.bgra.size());}
 				{std::ofstream f(folder/"remake-return-depth.f32",std::ios::binary);f.write(reinterpret_cast<const char*>(image.projectionDepth.data()),image.projectionDepth.size()*4);}
 				nlohmann::json receipt={{"frame",packet.frame},{"source_digest",digest(bytes.data(),bytes.size())},{"sequence",1},{"depth_values",640*480},{"pixel_bytes",640*480*4}};
@@ -250,6 +265,11 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
 			RemakePresentationPolicy policy;
+			suite.Expect(RemakePreviewCaptureLimit(nullptr)==3&&RemakePreviewCaptureLimit("12")==12
+				&&RemakePreviewCaptureLimit("30")==30,"preview diagnostic count preserves default and bounded moving window");
+			suite.Expect(RemakePreviewCaptureLimit("31")==0&&RemakePreviewCaptureLimit("-1")==0
+				&&RemakePreviewCaptureLimit("12junk")==0&&RemakePreviewCaptureLimit("")==0
+				&&RemakePreviewCaptureLimit("99999999999999999999")==0,"preview diagnostic count rejects invalid or unbounded values");
 			suite.Expect(policy.Choose(100,0,true).kind==RemakeDisplayKind::Fallback,"preview waits for first return");
 			auto decision=policy.Choose(101,99,true);
 			suite.Expect(decision.kind==RemakeDisplayKind::HoldNative&&decision.frame==101,"preview entry holds current native instead of rewinding");
@@ -1469,6 +1489,13 @@ int RunSelfTests()
 		suite.Expect(preview.Stats().neuralPresents==0&&preview.Stats().remakePresents==1
 			&&preview.Stats().heldNativePresents==1&&preview.Stats().acceptedNotPresented==2,
 			"same-frame raw preview and native hold cannot masquerade as neural presentation");
+		PresentationCadence evaluated;
+		evaluated.Observe(22,20,20,true,PresentationKind::RemakeEvaluated);
+		evaluated.Observe(23,0,20,true,PresentationKind::RemakeEvaluated);
+		suite.Expect(evaluated.Stats().remakeEvaluatedPresents==2&&evaluated.Stats().neuralPresents==0
+			&&evaluated.Stats().acceptedNotPresented==0&&evaluated.Stats().outputFrameRepeats==1
+			&&evaluated.Stats().frameIdentityMismatches==0,
+			"evaluated Remix presents retain original accepted source without claiming standalone neural provenance");
 	}
 	{
 		RecoveryController recovery;
