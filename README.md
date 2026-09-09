@@ -19,9 +19,13 @@ not represent the experimental development checkpoint.
 - Neural rendering is off by default, with native rendering as the fallback.
   Public DLAA Auto remains the Faithful baseline; Uncanny is a user-selected,
   deliberately less faithful experiment, not a proven quality winner.
-- RTX Remix scene/camera preparation and a standalone runtime test harness
-  are under development. Actual Remix GPU rendering and the combined
-  Remix → external DLSS 5 → Flycast presentation path are **not yet proven**.
+- The isolated RTX Remix runtime harness has rendered synthetic fixtures and
+  bounded, textured Soulcalibur scene snapshots, including three captured
+  source-frame endpoints in one warmed session. This is diagnostic evidence,
+  not complete moving gameplay: scene coverage, camera acceptance, temporal
+  identity, and runtime cleanup remain open.
+- The combined Remix → external DLSS 5 → Flycast presentation path is
+  **not yet proven**. Standalone Remix captures do not establish that pipeline.
 
 See the [live backlog](docs/neural/BACKLOG.md) for scoped acceptance and
 remaining work, and the [evidence log](docs/neural/LOG.md) for tests actually run.
