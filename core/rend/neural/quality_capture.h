@@ -20,6 +20,13 @@ struct rend_context;
 
 namespace flycast::rend::neural {
 
+// Synchronous developer-only preview proof; caller bounds attempts and supplies
+// receipt-matched original surfaces. Not external neural provenance.
+bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device*,
+	ID3D11DeviceContext*, const RemakeReturnedImage&, std::uint64_t current,
+	ID3D11Texture2D* original, ID3D11Texture2D* mask,
+	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error);
+
 enum class CaptureGpuTimingPoint : std::uint8_t {
 	PvrBegin,
 	PvrEnd,

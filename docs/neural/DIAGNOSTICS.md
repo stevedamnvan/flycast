@@ -1,5 +1,21 @@
 # Neural diagnostics
 
+`FLYCAST_REMAKE_PREVIEW_CAPTURE=ABSOLUTE_DIRECTORY` captures at most three new
+raw-preview frames per renderer instance. It writes source/current-qualified
+native, mask, returned, composite and actual pre-OSD backbuffer PNGs plus
+preview.json. Each result still requires exact source/current successful Present
+log joining. Synchronous readbacks make the run ineligible for performance;
+performance.json now explicitly marks this when the environment option is set.
+LOG531 pixel-c validates three such pairs with zero mismatches. This does not
+prove external Neural Rendering or full scene/camera correctness.
+
+Working-tree preview: `FLYCAST_REMAKE_ASYNC_PRESENT=1` additionally requests
+ordinary returned-image composition/display on the existing async channel.
+It is limited to normal DX11 640x480 with bounded capture disabled. Present
+logs identify source/current IDs and held-native versus raw Remix; neither
+is external-output proof. Live pixel validation remains pending. Disable the
+option or reset the session to clear a latched eight-frame timeout fallback.
+
 `remake_async_inspect.py --publisher LOG --consumer LOG --prefix BMP_PREFIX
 --require-overlays` also requires each retained reply's exact original-frame
 overlay receipt. The WARP material fixture tests immutable native color and R8

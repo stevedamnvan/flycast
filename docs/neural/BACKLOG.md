@@ -57,6 +57,30 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 Current action: compose and present delayed returned scenes using their owned
 original HUD/overlay/native surfaces and explicitly distinct source/current IDs.
+LOG531 working-tree live b now reaches22 successful raw-Remix Presents and five
+held-native Presents; eight-frame stale timeout latches fallback without later
+reentry. All four incremental builds and544/544 enabled tests pass. Next capture
+the actual Flycast composite for source/HUD pixel validation, then connect the
+returned image to neural evaluation. Raw preview is not combined DLSS5 proof.
+LOG531 pixel c completes the bounded display check: three actual backbuffers
+match receipt-owned native HUD and returned world pixels exactly, each joined
+to successful Present; source/current pairs1861/1863,1862/1864,1864/1865. Visual
+review shows fighters/temple/HUD with unresolved approximate scene omissions.
+Next: finish focused capture/fallback regression and commit this display slice,
+then feed returned-scene color/depth through neural evaluation with original
+overlay ownership and separate accepted source/current identities. Do not redo
+generic transport or claim camera/relighting acceptance from the preview.
+Pixel-check bounds: a separate explicit developer output directory permits at
+most three synchronous preview captures per renderer instance. Preserve raw
+returned color, original native/HUD mask, composite and actual pre-OSD backbuffer
+with source/current/receipt IDs. Require exact640x480, do not overwrite an
+existing frame directory, and label the entire run ineligible for performance.
+Implementation bounds: developer-only `FLYCAST_REMAKE_ASYNC_PRESENT=1`, normal
+DX11 at 640x480, capture mode disabled. First align source time with a bounded
+native hold, then display monotonically advancing returned frames with their
+original HUD. Eight-frame expiration latches fallback until reset; raw Remix
+must not count as displayed DLSS 5. Falsify backward/future IDs, stale returns,
+and timeout reentry; build before actual moving presentation validation.
 LOG530 retains receipt-keyed original surfaces; actual30-source On12 run accepts
 27 paired replies with matching original overlays at age2. No display override
 exists yet. LOG529 ordinary-frame feed

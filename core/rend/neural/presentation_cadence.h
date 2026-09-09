@@ -6,12 +6,17 @@
 
 namespace flycast::rend::neural {
 
+enum class PresentationKind { Automatic, Remake, HeldNative };
+
 struct PresentationCadenceStats {
 	std::uint64_t observedPresents = 0;
 	std::uint64_t missingPresents = 0;
 	std::uint64_t acceptedEvaluations = 0;
 	std::uint64_t neuralPresents = 0;
 	std::uint64_t nativePresents = 0;
+	std::uint64_t remakePresents = 0;
+	std::uint64_t heldNativePresents = 0;
+	std::uint64_t remakeTransitions = 0;
 	std::uint64_t acceptedNotPresented = 0;
 	std::uint64_t frameIdentityMismatches = 0;
 	std::uint64_t sourceFrameRepeats = 0;
@@ -28,7 +33,7 @@ struct PresentationCadenceStats {
 class PresentationCadence final {
 public:
 	void Observe(std::uint64_t sourceFrameId, std::uint64_t acceptedFrameId,
-		std::uint64_t outputFrameId, bool presented) noexcept
+		std::uint64_t outputFrameId, bool presented,PresentationKind kind=PresentationKind::Automatic) noexcept
 	{
 		if (acceptedFrameId != 0)
 			++stats_.acceptedEvaluations;
@@ -41,15 +46,21 @@ public:
 		}
 
 		++stats_.observedPresents;
-		const bool neural = outputFrameId != 0;
-		if (neural)
+		const bool remake=kind==PresentationKind::Remake;
+		const bool held=kind==PresentationKind::HeldNative;
+		const bool neural = outputFrameId != 0&&!remake&&!held;
+		if(remake)++stats_.remakePresents;
+		else if (neural)
 			++stats_.neuralPresents;
 		else
 			++stats_.nativePresents;
-		if (hasPresentation_ && neural != previousNeural_)
+		if(held)++stats_.heldNativePresents;
+		if(hasPresentation_&&remake!=previousRemake_)++stats_.remakeTransitions;
+		if (hasPresentation_ && !remake&&!previousRemake_&&neural != previousNeural_)
 			++stats_.nativeNeuralAlternations;
 		hasPresentation_ = true;
 		previousNeural_ = neural;
+		previousRemake_=remake;
 
 		if (sourceFrameId != 0 && previousSourceFrameId_ != 0)
 		{
@@ -61,9 +72,9 @@ public:
 		if (sourceFrameId != 0)
 			previousSourceFrameId_ = sourceFrameId;
 
-		if (acceptedFrameId != 0 && outputFrameId != acceptedFrameId)
+		if (acceptedFrameId != 0 && (!neural || outputFrameId != acceptedFrameId))
 			++stats_.acceptedNotPresented;
-		if (!neural)
+		if (!neural&&!remake&&!held)
 		{
 			previousOutputFrameId_ = 0;
 			return;
@@ -71,7 +82,7 @@ public:
 		if (previousOutputFrameId_ == outputFrameId)
 			++stats_.outputFrameRepeats;
 		previousOutputFrameId_ = outputFrameId;
-		if (sourceFrameId == 0 || outputFrameId > sourceFrameId)
+		if (sourceFrameId == 0 || outputFrameId==0 || outputFrameId > sourceFrameId)
 		{
 			++stats_.frameIdentityMismatches;
 			return;
@@ -80,7 +91,7 @@ public:
 		++stats_.latencySamples;
 		stats_.latencyFramesTotal += latency;
 		stats_.latencyFramesMax = (std::max)(stats_.latencyFramesMax, latency);
-		if (acceptedFrameId != 0 && outputFrameId != acceptedFrameId)
+		if (neural && acceptedFrameId != 0 && outputFrameId != acceptedFrameId)
 			++stats_.frameIdentityMismatches;
 	}
 
@@ -92,6 +103,7 @@ private:
 	std::uint64_t previousOutputFrameId_ = 0;
 	bool hasPresentation_ = false;
 	bool previousNeural_ = false;
+	bool previousRemake_ = false;
 };
 
 } // namespace flycast::rend::neural

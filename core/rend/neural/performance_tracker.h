@@ -40,7 +40,7 @@ public:
 	void RecordEvaluation(std::uint64_t frameId, bool accepted,
 		bool resetHistory) noexcept;
 	void StagePresentation(std::uint64_t sourceFrameId,
-		std::uint64_t outputFrameId) noexcept;
+		std::uint64_t outputFrameId,PresentationKind kind=PresentationKind::Automatic) noexcept;
 	void EndFrame(ID3D11DeviceContext *context, const StageStats& stats,
 		std::uint32_t rendererResourceObjects);
 	void RecordPresent() noexcept;
@@ -59,6 +59,7 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		PresentationKind presentationKind=PresentationKind::Automatic;
 		int neuralMode = 0;
 		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;
@@ -77,6 +78,7 @@ private:
 		std::uint64_t sourceFrameId = 0;
 		std::uint64_t acceptedFrameId = 0;
 		std::uint64_t outputFrameId = 0;
+		PresentationKind presentationKind=PresentationKind::Automatic;
 		int neuralMode = 0;
 		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;

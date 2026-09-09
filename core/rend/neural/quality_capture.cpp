@@ -393,6 +393,56 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 
 } // namespace
 
+bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* device,
+	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
+	ID3D11Texture2D* original, ID3D11Texture2D* mask,
+	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error)
+{
+	try {
+		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
+			||returned.bgra.size()!=640*480*4) {error="preview identity or extent";return false;}
+		ID3D11Texture2D* textures[]={original,mask,composite,backbuffer};
+		for(unsigned i=0;i<4;++i) {
+			if(!textures[i]) {error="preview missing texture";return false;}
+			D3D11_TEXTURE2D_DESC desc{};textures[i]->GetDesc(&desc);
+			if(desc.Width!=640||desc.Height!=480||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
+				||(i==1?desc.Format!=DXGI_FORMAT_R8_UNORM:
+				(desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM&&desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM))) {
+				error="preview requires exact unscaled SDR extent";return false;
+			}
+		}
+		const auto directory=root/("source-"+std::to_string(returned.frame)+"-present-"+std::to_string(current));
+		std::filesystem::create_directories(root);
+		if(!std::filesystem::create_directory(directory)) {error="preview directory exists";return false;}
+		RawTexture raw[4];
+		for(unsigned i=0;i<4;++i)if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
+		RawTexture source;source.width=640;source.height=480;source.format=DXGI_FORMAT_B8G8R8A8_UNORM;
+		source.bytesPerPixel=4;source.bytes=returned.bgra;
+		const auto input=ToRgba(source),native=ToRgba(raw[0]),overlay=ToRgba(raw[1]),output=ToRgba(raw[2]),presented=ToRgba(raw[3]);
+		std::uint64_t protectedPixels=0,hudMismatch=0,worldMismatch=0,displayMismatch=0;
+		for(std::size_t p=0;p<640*480;++p) {
+			const bool protectedPixel=raw[1].bytes[p]>=128;protectedPixels+=protectedPixel;
+			const auto* expected=(protectedPixel?native.pixels.data():input.pixels.data())+p*4;
+			const bool changed=std::memcmp(expected,output.pixels.data()+p*4,4)!=0;
+			if(protectedPixel)hudMismatch+=changed;else worldMismatch+=changed;
+			displayMismatch+=std::memcmp(output.pixels.data()+p*4,presented.pixels.data()+p*4,3)!=0;
+		}
+		if(!WritePng(directory/"returned-remix.png",input,error)||!WritePng(directory/"original-native.png",native,error)
+			||!WritePng(directory/"original-overlay-mask.png",overlay,error)||!WritePng(directory/"composited-remix.png",output,error)
+			||!WritePng(directory/"flycast-pre-osd-backbuffer.png",presented,error))return false;
+		std::ofstream report(directory/"preview.json");report.imbue(std::locale::classic());
+		report<<"{\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
+			<<",\"sequence\":"<<returned.source.sequence<<",\"source_digest\":"<<returned.source.digest
+			<<",\"producer_epoch\":"<<returned.producer.epoch<<",\"producer_ordinal\":"<<returned.producer.ordinal
+			<<",\"protected_pixels\":"<<protectedPixels<<",\"hud_rgba_mismatches\":"<<hudMismatch
+			<<",\"world_rgba_mismatches\":"<<worldMismatch<<",\"backbuffer_rgb_mismatches\":"<<displayMismatch
+			<<",\"synchronous_capture\":true,\"performance_eligible\":false,\"external_nr_proven\":false,\"present_completion_requires_log_join\":true}\n";
+		if(!report){error="preview report write";return false;}
+		if(hudMismatch||worldMismatch||displayMismatch){error="preview pixel mismatch; artifacts retained";return false;}
+		return true;
+	}catch(const std::exception& e){error=e.what();return false;}
+}
+
 void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof, std::uint64_t startFrame, std::uint64_t startProducer)
 {

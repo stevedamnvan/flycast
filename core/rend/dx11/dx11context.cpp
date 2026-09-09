@@ -270,6 +270,7 @@ void DX11Context::term()
 	swapchain3.reset();
 	pendingNeuralOutputFrameId = 0;
 	pendingNeuralOutputPresent = false;
+	pendingRemakeSource=0;pendingRemakeCurrent=0;
 	neuralEvidenceBackBufferAttempts = 0;
 	neuralEvidenceLastCapturedFrameId = ~std::uint64_t{0};
 #endif
@@ -344,6 +345,12 @@ void DX11Context::Present()
 	{
 		pendingNeuralOutputFrameId = 0;
 		pendingNeuralOutputPresent = false;
+	}
+	if(pendingRemakeSource) {
+		NOTICE_LOG(RENDERER,"Remake preview present: source=%llu current=%llu kind=%s completed=%d hresult=%x external_nr=false",
+			(unsigned long long)pendingRemakeSource,(unsigned long long)pendingRemakeCurrent,
+			pendingRemakeHeldNative?"held-native":"remake",hr==S_OK,unsigned(hr));
+		pendingRemakeSource=0;pendingRemakeCurrent=0;
 	}
 	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET)
 		acquireWrappedBackBuffer();

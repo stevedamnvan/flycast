@@ -1,5 +1,62 @@
 # Neural rendering evidence log
 
+LOG531 final focused checks: independent Pillow recomposition of all three
+saved PNG sets equals the actual backbuffer RGB, with exact successful Present
+joins. Six deliberately shifted-display/omitted-overlay controls reject.
+SDK mock193/193 and Python340/340 pass; all four builds and enabled544/544
+selftests previously passed for this slice. ACCEPTED only for bounded raw-Remix
+display and original-HUD composition. Full working-pipeline acceptance remains
+open. No proprietary binary/config/media or private capture is staged.
+
+LOG531 pixel c: add separate developer-only FLYCAST_REMAKE_PREVIEW_CAPTURE
+directory, maximum three attempts per renderer instance, exact640x480 SDR
+extent and non-overwriting frame directories. Retain original native/R8 mask,
+returned Remix, protected composite and actual pre-OSD backbuffer. Three source/
+current pairs1861/1863,1862/1864,1864/1865 have17441/17375/17509 protected pixels,
+zero protected/unprotected RGBA mismatch and zero composite/backbuffer RGB
+mismatch. Each exact pair joins a successful raw-Remix Present. Inspected first
+backbuffer: fighters, temple and intact HUD visible; black/missing regions and
+approximate rendering remain, not scene/camera quality acceptance. Consumer
+exits0/90 Presents; host exits0/180 samples/clean close. Inspector verifies30
+source/image pairs,29 published returns,one busy,26 retained at age1..2 and
+seven gaps. Report explicitly marks synchronous capture enabled and preview
+performance excluded; do not use timings from this run. All four incremental
+builds pass and enabled selftests544/544. No external config changes. Files stay
+outside Git under fc067-pixels-c-composites and fc067-pixels-c-host. Raw-preview
+transport inspector still correctly says presentation_proven=false because it
+does not inspect the new backbuffer evidence. Combined DLSS5 remains next.
+
+LOG531 live b: synchronized launch succeeds, helper exits0/90 Presents and
+host exits0/180 samples/clean close. Existing inspector verifies30 source/image
+pairs,29 published returns,one busy drop,26 retained original-overlay receipts
+at age2,three replies not retained,seven source gaps. Actual context logs record
+five successful held-native and22 raw-Remix Presents. Returned display advances
+1861..1876, then holds1876 through current1884; a subsequent delivery gap trips
+the eight-frame fallback latch. Later retained1896..1911 replies do not reenter.
+Measured180-frame window includes10 Remix/five held/165 public Presents,zero
+missing/identity errors,four output repeats,15 source gaps and two Remix
+transitions; window is not the complete27-preview-Present interval. Helper still
+reports40 undisposed common objects. No pixel proof or whole-pipeline performance
+claim: raw helper files are not Flycast backbuffer captures. Next capture actual
+composited preview pixels with exact original HUD/source IDs, then connect
+returned-scene evaluation; do not repeat generic transport validation.
+
+LOG531 live attempt a rejected: consumer starts07:21:54, publisher07:22:21;
+host reaches producer1780 at64.54 seconds, after the consumer's90-second
+initial deadline. Helper exits2 before runtime load; host exits0/180 samples
+with no async publications or preview Presents. This is launch skew, not
+presentation evidence. Preserve remake-present-{consumer,publisher,flycast}-a
+logs. Retry b launches both processes concurrently, same binary/settings and
+new channel/output paths. Owned exe SHA256
+5D0F13B51DE22A2033BE4C7ABA24413B50C33BA3AB07158B886ABB4D4DA73007;
+external OFF config remains656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7.
+
+LOG531 build completion: serial automation, NGX baseline, no-NGX and
+feature-off incremental builds all exit successfully; all three enabled
+selftests pass544/544. Actual moving in-Flycast preview is the next check.
+
+#531 2026-09-09 1c54a274f plus working tree | Resume actual returned-image display integration: compose original receipt-owned HUD over raw Remix, align entry via a native hold, bound stale output to eight frames and latch fallback, and separate raw/held/neural accounting. Remove an unused conditional placeholder before building. First automation incremental build/selftest passes543/543; review finds same-frame raw output could incorrectly count a background accepted evaluation as presented. Correct accounting and add its negative check: rebuilt automation passes544/544. Remaining configurations are launched serially in remake-present-*.log; final exits must be checked before claiming success. Backlog inspector and diff check pass. No live preview, pixel preservation, combined DLSS5, or performance acceptance yet; changes remain uncommitted pending relevant runtime proof.
+
 LOG530 regression: all four serial incremental builds pass; enabled534/534
 selftests, SDK193/193, Python340/340, R8 ownership/material fixture and backlog/
 diff checks pass. Existing external config remains byte-hash unchanged. These

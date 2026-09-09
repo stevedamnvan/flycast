@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-167: distinguish returned preview from neural presentation
+
+The opt-in ordinary returned-image preview composites receipt-owned original
+HUD surfaces before display. A short native hold aligns initial source time;
+displayed returned IDs never decrease. Eight-frame expiry latches fallback
+until explicit reset/disable. Raw Remix, held native and public neural output
+have separate presentation accounting. Running native NGX in the background
+does not prove the returned image was evaluated or displayed through DLSS 5.
+This is pending live validation, not combined-pipeline acceptance.
+
 ## D-166: delayed images own their original native color and overlay mask
 
 Before publishing an ordinary scene, GPU-copy its native framebuffer and R8

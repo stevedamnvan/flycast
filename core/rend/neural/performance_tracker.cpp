@@ -4,6 +4,7 @@
 
 #include <dxgi1_4.h>
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <locale>
@@ -174,6 +175,7 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.sourceFrameId = slot.sourceFrameId;
 		sample.acceptedFrameId = slot.acceptedFrameId;
 		sample.outputFrameId = slot.outputFrameId;
+		sample.presentationKind=slot.presentationKind;
 		sample.neuralMode = slot.neuralMode;
 		sample.resetHistory = slot.resetHistory;
 		sample.rendererResourceObjects = slot.rendererResourceObjects;
@@ -207,6 +209,7 @@ void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 		slot.sourceFrameId = 0;
 		slot.acceptedFrameId = 0;
 		slot.outputFrameId = 0;
+		slot.presentationKind=PresentationKind::Automatic;
 		slot.neuralMode = currentNeuralMode_;
 		slot.resetHistory = false;
 		slot.presentIntervalMs = 0.;
@@ -228,11 +231,12 @@ void PerformanceTracker::RecordEvaluation(std::uint64_t frameId, bool accepted,
 }
 
 void PerformanceTracker::StagePresentation(std::uint64_t sourceFrameId,
-	std::uint64_t outputFrameId) noexcept
+	std::uint64_t outputFrameId,PresentationKind kind) noexcept
 {
 	if (activeSlot_ >= RingSize) return;
 	ring_[activeSlot_].sourceFrameId = sourceFrameId;
 	ring_[activeSlot_].outputFrameId = outputFrameId;
+	ring_[activeSlot_].presentationKind=kind;
 }
 
 void PerformanceTracker::Mark(ID3D11DeviceContext *context, GpuTimingPoint point)
@@ -302,7 +306,7 @@ void PerformanceTracker::WriteReport()
 		total.push_back(sample.totalGpuMs);
 		if (sample.presentIntervalMs > 0.) present.push_back(sample.presentIntervalMs);
 		cadence.Observe(sample.sourceFrameId, sample.acceptedFrameId,
-			sample.outputFrameId, sample.presented);
+			sample.outputFrameId, sample.presented,sample.presentationKind);
 	}
 	const auto& cadenceStats = cadence.Stats();
 	std::uint64_t modeTransitions = 0;
@@ -325,15 +329,15 @@ void PerformanceTracker::WriteReport()
 		{
 			seenOffMode = true;
 			++offModeSamples;
-			if (sample.presented && sample.outputFrameId == 0) ++offNativePresents;
+			if (sample.presented && (sample.outputFrameId == 0||sample.presentationKind==PresentationKind::HeldNative)) ++offNativePresents;
 			if (sample.acceptedFrameId != 0) ++offAcceptedEvaluations;
 		}
 		else if (sample.neuralMode == neuralMode_)
 		{
 			++requestedModeSamples;
-			if (sample.presented && sample.outputFrameId != 0)
+			if (sample.presented && sample.outputFrameId != 0&&sample.presentationKind==PresentationKind::Automatic)
 				++requestedModeNeuralPresents;
-			if (sample.presented && sample.outputFrameId == 0)
+			if (sample.presented && (sample.outputFrameId == 0||sample.presentationKind==PresentationKind::HeldNative))
 				++requestedModeNativePresents;
 			if (seenOffMode && sample.acceptedFrameId != 0 && sample.resetHistory)
 				++reentryResetAccepts;
@@ -393,6 +397,8 @@ void PerformanceTracker::WriteReport()
 				? "not-observed-no-accepted-submission"
 				: "native-d3d11-context";
 	std::ofstream report(root_ / "performance.json");
+	const auto* previewCapture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+	const bool synchronousPreview=previewCapture&&*previewCapture;
 	report.imbue(std::locale::classic());
 	report << std::fixed << std::setprecision(6)
 		<< "{\n  \"schema\": 3,\n  \"git_sha\": \"" << GIT_HASH
@@ -403,7 +409,8 @@ void PerformanceTracker::WriteReport()
 		<< ",\n  \"failure_injection\": " << failureInjection_
 		<< ",\n  \"failure_injection_count\": " << failureInjectionCount_
 		<< ",\n  \"failure_injection_after_accepted\": " << failureInjectionAfter_
-		<< ",\n  \"synchronous_capture_enabled\": false"
+		<< ",\n  \"synchronous_capture_enabled\": " << (synchronousPreview?"true":"false")
+		<< ",\n  \"preview_capture_performance_excluded\": " << (synchronousPreview?"true":"false")
 		<< ",\n  \"query_policy\": \"asynchronous; D3D11 DONOTFLUSH or D3D12 map after existing slot fence\""
 		<< ",\n  \"stage_evaluate_gpu_available\": " << (evaluateAvailable ? "true" : "false")
 		<< ",\n  \"stage_evaluate_scope\": \"" << evaluateScope << "\""
@@ -421,6 +428,9 @@ void PerformanceTracker::WriteReport()
 		<< ", \"accepted_evaluations\": " << cadenceStats.acceptedEvaluations
 		<< ", \"neural_presents\": " << cadenceStats.neuralPresents
 		<< ", \"native_presents\": " << cadenceStats.nativePresents
+		<< ", \"remake_presents\": " << cadenceStats.remakePresents
+		<< ", \"held_native_presents\": " << cadenceStats.heldNativePresents
+		<< ", \"remake_transitions\": " << cadenceStats.remakeTransitions
 		<< ", \"accepted_not_presented\": " << cadenceStats.acceptedNotPresented
 		<< ", \"frame_identity_mismatches\": " << cadenceStats.frameIdentityMismatches
 		<< ", \"source_frame_repeats\": " << cadenceStats.sourceFrameRepeats
@@ -497,6 +507,7 @@ void PerformanceTracker::WriteReport()
 			<< ", \"source_frame_id\": " << s.sourceFrameId
 			<< ", \"accepted_frame_id\": " << s.acceptedFrameId
 			<< ", \"output_frame_id\": " << s.outputFrameId
+			<< ", \"presentation_kind\": \"" << (s.presentationKind==PresentationKind::Remake?"remake":s.presentationKind==PresentationKind::HeldNative?"held-native":"automatic") << "\""
 			<< ", \"neural_mode\": " << s.neuralMode
 			<< ", \"reset_history\": " << (s.resetHistory ? "true" : "false") << '}';
 	}

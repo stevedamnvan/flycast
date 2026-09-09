@@ -28,6 +28,7 @@
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_input_replay.h"
 #include "rend/neural/remake_overlay_snapshot.h"
+#include "rend/neural/remake_presentation.h"
 
 #include <algorithm>
 #include <cmath>
@@ -247,6 +248,24 @@ int RunSelfTests()
 			}else suite.Expect(false,"locked replay fixture must own a new directory");
 		}
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
+		{
+			RemakePresentationPolicy policy;
+			suite.Expect(policy.Choose(100,0,true).kind==RemakeDisplayKind::Fallback,"preview waits for first return");
+			auto decision=policy.Choose(101,99,true);
+			suite.Expect(decision.kind==RemakeDisplayKind::HoldNative&&decision.frame==101,"preview entry holds current native instead of rewinding");
+			decision=policy.Choose(103,101,true);
+			suite.Expect(decision.kind==RemakeDisplayKind::Remake&&decision.frame==101,"preview switches at aligned source time");
+			decision=policy.Choose(104,100,true);
+			suite.Expect(decision.kind==RemakeDisplayKind::Remake&&decision.frame==101,"preview rejects backwards returned time");
+			suite.Expect(policy.Choose(110,0,true).kind==RemakeDisplayKind::Fallback,"preview expires held result after eight frames");
+			suite.Expect(policy.Choose(111,111,true).kind==RemakeDisplayKind::Fallback,"preview timeout cannot silently reenter");
+			policy.Choose(112,0,false);
+			suite.Expect(policy.Choose(113,113,true).kind==RemakeDisplayKind::Remake,"explicit disable resets preview latch");
+			policy.Reset();
+			suite.Expect(policy.Choose(100,101,true).kind==RemakeDisplayKind::Fallback,"future preview source fails closed");
+			policy.Reset();policy.Choose(100,100,true);
+			suite.Expect(policy.Choose(99,99,true).kind==RemakeDisplayKind::Fallback,"backwards current frame requires reset");
+		}
 		{
 			RemakeOverlayIdentity owner;owner.frame=packet.frame;owner.producer=packet.producer;owner.receipt={1,22,33};
 			RemakeReturnedImage image;image.frame=owner.frame;image.producer=owner.producer;image.source=owner.receipt;
@@ -1444,6 +1463,12 @@ int RunSelfTests()
 			&& stats.latencyFramesTotal == 1 && stats.latencyFramesMax == 1
 			&& stats.frameIdentityMismatches == 0,
 			"presentation cadence counts accepted drops, repeats, alternation, and latency");
+		PresentationCadence preview;
+		preview.Observe(20,20,20,true,PresentationKind::Remake);
+		preview.Observe(21,21,21,true,PresentationKind::HeldNative);
+		suite.Expect(preview.Stats().neuralPresents==0&&preview.Stats().remakePresents==1
+			&&preview.Stats().heldNativePresents==1&&preview.Stats().acceptedNotPresented==2,
+			"same-frame raw preview and native hold cannot masquerade as neural presentation");
 	}
 	{
 		RecoveryController recovery;

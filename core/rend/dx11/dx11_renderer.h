@@ -36,6 +36,7 @@
 #include "rend/neural/quality_capture.h"
 #include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/remake_overlay_snapshot.h"
+#include "rend/neural/remake_presentation.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -145,6 +146,7 @@ protected:
 	void submitNeuralFrame();
 	void prepareRemakeCapture();
 	void prepareRemakeAsyncFeed();
+	flycast::rend::neural::RemakeDisplayDecision selectRemakePreview(bool permitted);
 	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
 	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
@@ -311,8 +313,17 @@ protected:
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
 	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
+	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
+	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
+	ComPtr<ID3D11Texture2D> remakeCompositeTexture;
+	ComPtr<ID3D11ShaderResourceView> remakeCompositeView,remakeDisplayedView;
+	std::uint64_t remakeCompositeFrame=0,remakeDisplayedFrame=0;
+	unsigned remakePreviewCaptureAttempts=0;
+	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
+		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
+		remakeCompositeView.reset();remakeDisplayedView.reset();remakeCompositeFrame=remakeDisplayedFrame=0;
 	}
 	std::string remakeAsyncToken;
 	std::uint64_t remakeAsyncEpoch=0;

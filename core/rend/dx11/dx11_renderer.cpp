@@ -2508,6 +2508,68 @@ void DX11Renderer::submitNeuralFramebuffer()
 #endif
 
 #ifdef FLYCAST_ENABLE_NEURAL
+flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(bool permitted)
+{
+	using namespace flycast::rend::neural;
+	const auto current=currentNeuralSourceFrameId;
+	const auto* preview=std::getenv("FLYCAST_REMAKE_ASYNC_PRESENT");
+	const bool enabled=preview&&std::strcmp(preview,"1")==0&&permitted&&!remakeAsyncStopped
+		&&rendContext&&!rendContext->isRTT&&!config::EmulateFramebuffer.get()&&!IsOitRenderer()
+		&&current&&currentNeuralGuidanceFrameId==current&&config::NeuralCaptureFrames.get()==0
+		&&neuralQualityCaptureMetadata.renderWidth==640&&neuralQualityCaptureMetadata.renderHeight==480
+		&&neuralQualityCaptureMetadata.outputWidth==640&&neuralQualityCaptureMetadata.outputHeight==480;
+	try {
+		std::uint64_t candidate=0;
+		if(enabled&&remakeAsyncReturned&&remakeAsyncAcceptedOverlay.identity.Matches(*remakeAsyncReturned,current,rendContext->captureProducer)) {
+			const auto& image=*remakeAsyncReturned;candidate=image.frame;
+			if(remakeCompositeFrame!=candidate) {
+				const auto& shader=shaders->getNeuralOverlayCompositePixelShader();
+				if(!shader)throw std::runtime_error("overlay shader unavailable");
+				D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=desc.ArraySize=1;
+				desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;desc.SampleDesc.Count=1;
+				desc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+				D3D11_SUBRESOURCE_DATA initial{image.bgra.data(),640*4,0};
+				ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;
+				ComPtr<ID3D11ShaderResourceView> view;ComPtr<ID3D11DeviceContext> deferred;
+				if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
+					||FAILED(device->CreateRenderTargetView(target,nullptr,&rtv.get()))
+					||FAILED(device->CreateShaderResourceView(target,nullptr,&view.get()))
+					||FAILED(device->CreateDeferredContext(0,&deferred.get())))throw std::runtime_error("composite resources unavailable");
+				Quad composite;composite.init(device,deferred,shaders);
+				D3D11_VIEWPORT viewport{0,0,640,480,0,1};deferred->RSSetViewports(1,&viewport);
+				deferred->OMSetRenderTargets(1,&rtv.get(),nullptr);
+				deferred->OMSetBlendState(blendStates.getState(false),nullptr,0xffffffff);
+				ID3D11ShaderResourceView* views[]={remakeAsyncAcceptedOverlay.colorView.get(),remakeAsyncAcceptedOverlay.maskView.get()};
+				composite.drawCustom(shader,views,2,samplers->getSampler(false));
+				ComPtr<ID3D11CommandList> commands;
+				if(FAILED(deferred->FinishCommandList(FALSE,&commands.get())))throw std::runtime_error("composite command list failed");
+				deviceContext->ExecuteCommandList(commands,TRUE);
+				remakeCompositeTexture=std::move(target);remakeCompositeView=std::move(view);remakeCompositeFrame=candidate;
+			}
+		}
+		auto decision=remakePresentationPolicy.Choose(current,candidate,enabled);
+		if(decision.kind==RemakeDisplayKind::HoldNative) {
+			if(remakeWarmupNative.identity.frame!=decision.frame) {
+				if(decision.frame!=current)throw std::runtime_error("warmup source unavailable");
+				acquireNeuralInputs();
+				const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],current,rendContext->captureProducer,remakeWarmupNative);
+				releaseNeuralInputs();
+				if(!copied)throw std::runtime_error("warmup snapshot unavailable");
+			}
+			remakeDisplayedView=remakeWarmupNative.colorView;remakeDisplayedFrame=decision.frame;
+		}else if(decision.kind==RemakeDisplayKind::Remake) {
+			if(decision.frame==remakeCompositeFrame){remakeDisplayedView=remakeCompositeView;remakeDisplayedFrame=decision.frame;}
+			if(!remakeDisplayedView||remakeDisplayedFrame!=decision.frame)throw std::runtime_error("display source unavailable");
+			remakeWarmupNative={};
+		}else {remakeDisplayedView.reset();remakeWarmupNative={};}
+		return decision;
+	}catch(const std::exception& error) {
+		remakePresentationPolicy.Fail();remakeDisplayedView.reset();remakeWarmupNative={};
+		WARN_LOG(RENDERER,"Remake preview latched fallback: %s",error.what());
+		return {RemakeDisplayKind::Fallback,current};
+	}
+}
+
 void DX11Renderer::prepareRemakeAsyncFeed()
 {
 	try {
@@ -2773,17 +2835,18 @@ void DX11Renderer::displayFramebuffer()
 			neuralDebugActive ? "native" : "normal");
 	}
 #endif
-	const bool queuedNeuralOutput =
 #ifdef FLYCAST_ENABLE_NEURAL
-		neuralPresentationAcquired && !neuralDebugActive;
+	const auto remakeDecision=selectRemakePreview(!neuralDebugActive);
+	const bool remakePreviewDraw=remakeDecision.kind!=flycast::rend::neural::RemakeDisplayKind::Fallback&&remakeDisplayedView;
+	const bool queuedPublicOutput=neuralPresentationAcquired&&!neuralDebugActive&&!remakePreviewDraw;
 	const auto queuedNeuralFrameId = pendingNeuralPresentationFrameId;
-	const auto displayedNeuralFrameId = neuralPresentationView && !neuralDebugActive
+	const auto displayedNeuralFrameId = neuralPresentationView && !neuralDebugActive&&!remakePreviewDraw
 		? pendingNeuralPresentationFrameId : 0;
-#else
-		false;
 #endif
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (neuralDebugActive)
+	if(remakePreviewDraw)
+		quad->draw(remakeDisplayedView,samplers->getSampler(config::LinearInterpolation),nullptr,x,y,w,h,config::Rotate90);
+	else if (neuralDebugActive)
 	{
 		acquireNeuralInputs();
 		quad->drawCustom(*neuralDebugShader, &neuralDebugTexture, 1, {},
@@ -2795,7 +2858,7 @@ void DX11Renderer::displayFramebuffer()
 		quad->draw(presentationView, samplers->getSampler(config::LinearInterpolation), nullptr,
 			x, y, w, h, config::Rotate90);
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (!neuralDebugActive && neuralPresentationView && config::NeuralOverlayPolicy.get() != 2
+	if (!remakePreviewDraw&&!neuralDebugActive && neuralPresentationView && config::NeuralOverlayPolicy.get() != 2
 		&& neuralOverlayMask.views[neuralExportSlot])
 	{
 		const auto& shader = shaders->getNeuralOverlayCompositePixelShader();
@@ -2810,12 +2873,32 @@ void DX11Renderer::displayFramebuffer()
 				config::Rotate90);
 		}
 	}
+	if(remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
+		&&remakeAsyncReturned&&remakeDecision.frame==remakeAsyncReturned->frame
+		&&remakeDecision.frame!=remakePreviewLastCaptured&&remakePreviewCaptureAttempts<3) {
+		if(const auto* directory=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");directory&&*directory) {
+			++remakePreviewCaptureAttempts;remakePreviewLastCaptured=remakeDecision.frame;
+			ComPtr<ID3D11Resource> resource;ComPtr<ID3D11Texture2D> backbuffer;
+			DX11Context::Instance()->getRenderTarget()->GetResource(&resource.get());
+			if(resource)resource->QueryInterface(__uuidof(ID3D11Texture2D),(void**)&backbuffer.get());
+			std::string error;
+			const bool captured=flycast::rend::neural::CaptureRemakePreview(directory,device,deviceContext,*remakeAsyncReturned,
+				currentNeuralSourceFrameId,remakeAsyncAcceptedOverlay.color,remakeAsyncAcceptedOverlay.mask,
+				remakeCompositeTexture,backbuffer,error);
+			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
+				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
+		}
+	}
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeEnd);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		flycast::rend::neural::CaptureGpuTimingPoint::CompositeEnd);
 	neuralPerformance.StagePresentation(currentNeuralSourceFrameId,
-		displayedNeuralFrameId);
+		remakePreviewDraw?remakeDecision.frame:displayedNeuralFrameId,
+		!remakePreviewDraw?flycast::rend::neural::PresentationKind::Automatic:
+		remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake?flycast::rend::neural::PresentationKind::Remake:flycast::rend::neural::PresentationKind::HeldNative);
+	DX11Context::Instance()->QueueRemakePreviewPresent(remakePreviewDraw?remakeDecision.frame:0,currentNeuralSourceFrameId,
+		remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::HoldNative);
 	neuralQualityCapturePublicView.reset();
 	neuralQualityCapturePublicSlot = NeuralExportRingSize;
 	if (neuralQualityCapturePending && neuralPresentationView)
@@ -2829,7 +2912,7 @@ void DX11Renderer::displayFramebuffer()
 		neuralQualityCapturePublicView = neuralCaptureOnlyPublicView;
 		neuralQualityCapturePublicSlot = neuralCaptureOnlyPublicSlot;
 	}
-	if (queuedNeuralOutput)
+	if (queuedPublicOutput)
 	{
 		++neuralAcceptedBlitCount;
 		DX11Context::Instance()->QueueNeuralOutputPresent(queuedNeuralFrameId);
@@ -2842,6 +2925,7 @@ void DX11Renderer::displayFramebuffer()
 	lastPresentedNeuralFrameId = displayedNeuralFrameId;
 	releaseNeuralPresentation();
 	publishNeuralStatus(lastNeuralSubmitStatus,
+		remakePreviewDraw?"Remix preview / original HUD; returned scene not evaluated by DLSS5":
 		neuralDebugActive ? "developer guidance debug view active; neural output not presented"
 			: neuralLiveReason.c_str());
 	const bool capturedGpuTiming = neuralQualityCaptureGpuTimer.EndAndResolve(deviceContext,

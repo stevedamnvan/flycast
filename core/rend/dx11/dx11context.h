@@ -60,6 +60,9 @@ public:
 		pendingNeuralOutputFrameId = frameId;
 		pendingNeuralOutputPresent = true;
 	}
+	void QueueRemakePreviewPresent(std::uint64_t source,std::uint64_t current,bool heldNative)noexcept {
+		pendingRemakeSource=source;pendingRemakeCurrent=current;pendingRemakeHeldNative=heldNative;
+	}
 #endif
 
 	void resize() override;
@@ -124,6 +127,8 @@ private:
 	std::size_t wrappedBackBufferIndex = 0;
 	std::uint64_t pendingNeuralOutputFrameId = 0;
 	bool pendingNeuralOutputPresent = false;
+	std::uint64_t pendingRemakeSource=0,pendingRemakeCurrent=0;
+	bool pendingRemakeHeldNative=false;
 	std::uint64_t neuralOutputPresentCount = 0;
 	std::uint32_t neuralEvidenceBackBufferAttempts = 0;
 	std::uint64_t neuralEvidenceLastCapturedFrameId = ~std::uint64_t{0};
