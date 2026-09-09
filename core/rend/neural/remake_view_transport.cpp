@@ -21,6 +21,7 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
   "source color is not physical albedo; fog offset and modifier shading omitted",
   "HUD and translucent layers not part of this opaque diagnostic scene",
   "camera-relative temporal history and complete scene coverage unproven"};
+	if(scene.estimatedVertices) p.omissions.push_back("projected-depth estimated vertices="+std::to_string(scene.estimatedVertices)+"; no source-transform or physical-depth claim");
  std::size_t vertices=0,textureBytes=0;
  for(const auto& source:scene.meshes) {
   if(source.vertices.size()>65536-vertices || source.vertices.size()%3)return fail("view-packet-vertex-bound");
@@ -73,7 +74,8 @@ void packet(Wire& wire,remake::Packet& p) {
  require(magic==0x56524346&&version==1,"view-wire-schema");
  wire.wide(p.frame);wire.wide(p.producer.epoch);wire.wide(p.producer.ordinal);wire.wide(p.producer.cycle);
  wire.string(p.game,64);wire.string(p.sourceGitSha,64);
- wire.string(p.diagnosticEmbeddingProvenance,128);require(p.diagnosticEmbeddingProvenance==scope,"view-wire-scope");
+ wire.string(p.diagnosticEmbeddingProvenance,128);require(p.diagnosticEmbeddingProvenance==scope
+  ||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction","view-wire-scope");
  wire.real(p.camera.fovY);wire.real(p.camera.aspect);wire.real(p.camera.nearPlane);wire.real(p.camera.farPlane);
  p.space=remake::Space::SampledAnchor;p.diagnosticOrigin=remake::Vec3{};p.camera.provenance=remake::Provenance::Supplied;
  const auto omissions=wire.count(p.omissions.size(),64);if(wire.input)p.omissions.resize(omissions);

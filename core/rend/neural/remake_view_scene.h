@@ -13,6 +13,7 @@ struct RemakeViewVertex {
  std::uint32_t sourceVertex=0;
  std::uint64_t transformSerial=0;
  float transformW=0;
+	bool estimatedPosition=false;
 };
 struct RemakeViewMesh {
  PvrCapturedDraw sourceDraw;
@@ -28,6 +29,7 @@ struct RemakeViewScene {
  std::vector<RemakeViewMesh> meshes;
  std::size_t omittedDraws=0,rejectedVertices=0,degenerateTriangles=0;
  double maximumProjectionError=0;
+	std::size_t estimatedVertices=0;
  const char* scope="observed-camera-relative-experiment-not-world-reconstruction";
 };
 
@@ -36,7 +38,7 @@ struct RemakeViewScene {
 // The empirical tolerance admits an experiment; it does NOT close strict parity.
 inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  const ProducerIdentity& expectedProducer,std::uint64_t expectedFrame,
- RemakeViewScene& output,std::string& error) {
+ RemakeViewScene& output,std::string& error,bool estimateUntraced=false) {
  const auto fail=[&](const char* why){error=why;return false;};
  if(!expectedProducer.Available() || packet.frame!=expectedFrame || !expectedFrame
   || packet.sourceProducer.epoch!=expectedProducer.epoch
@@ -100,6 +102,23 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   out.transformSerial=t.serial;out.transformW=t.output[3];
   converted[index]=out;result.maximumProjectionError=(std::max)(result.maximumProjectionError,residual);
  }
+	if(estimateUntraced) {
+		// Explicit alternative camera-relative embedding, not recovered transforms.
+		// Retain a current observed anchor before applying its measured lens/scale.
+		std::size_t anchors=0;for(const auto& v:converted)if(v)++anchors;
+		if(anchors<3)return fail("estimated-view-missing-observed-anchor");
+		result.scope="mixed-observed-and-projected-depth-estimate-not-world-reconstruction";
+		for(std::size_t i=0;i<packet.vertices.size();++i)if(!converted[i]) {
+			const auto& v=packet.vertices[i];
+			if(!std::isfinite(v.x)||!std::isfinite(v.y)||!std::isfinite(v.z)||v.z<=0
+				||!std::isfinite(v.u)||!std::isfinite(v.v))continue;
+			const double depth=.95/double(v.z);
+			if(depth<.1||depth>2501)continue; // Existing supplied diagnostic enclosure.
+			RemakeViewVertex out;out.source=v;out.sourceVertex=unsigned(i);out.estimatedPosition=true;
+			out.position={float((v.x-320)*depth/result.focalX),float(-(v.y-240)*depth/result.focalY),float(depth)};
+			converted[i]=out;++result.estimatedVertices;
+		}
+	}
  std::size_t totalVertices=0,totalReferences=0;
  for(const auto& draw:packet.draws) {
   if(!draw.state.count)continue;

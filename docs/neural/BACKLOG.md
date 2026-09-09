@@ -95,9 +95,21 @@ LOG519 moves exchange before composition on the bounded native capture/channel
 route. Three actual receipts are ready before composite, with exact protected
 composition and native-target preservation. Archival does not own delivery or
 resubmit the packet. Async pacing and returned Present remain unproven.
-Next expand the missing fighter/arena scene coverage and integrate the existing
-protected overlay pass without substituting the incomplete
-temple for full gameplay. Retain native fallback and explicit diagnostic labels;
+LOG520 expands visible opaque coverage from19-21 to40 meshes: both fighters
+and foreground arena now appear in the returned image. The bounded opt-in
+FLYCAST_REMAKE_ESTIMATE_UNTRACED=1 alternative keeps observed
+vertices, derive missing camera-relative positions from current PVR projected
+XY/reciprocal depth using the already measured lens/scale, require current
+observed anchors, and explicitly label all estimated positions/provenance.
+This is an approximation experiment, not recovered world/camera acceptance.
+Default observed conversion, geometry/texture bounds and omissions stay intact.
+Three moving endpoints pass exact return/composition/native-target checks;
+physical/world, missing translucent effects and longer temporal coverage remain
+unproven. Next integrate returned scene color at the neural submission and
+presentation boundary, with distinct experimental provenance and fail-closed
+native fallback. Do not label it public DLAA or complete recovered geometry.
+Keep protected overlays late and require changed-route Gate10 before combined
+DLSS5 acceptance. Retain native fallback and explicit diagnostic labels;
 move the supported feed off capture into an asynchronous/budgeted ordinary-frame
 path. Do not replace the native frame with the incomplete temple or make another
 offline viewer/count-only tracing phase. Expand missing fighter/arena correspondence alongside

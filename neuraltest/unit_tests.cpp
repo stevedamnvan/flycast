@@ -119,9 +119,27 @@ int RunSelfTests()
 				"live view preserves zero W and original attributes with separate derived normal");
 		}
 		const auto reject=[&](const PvrDecodedPacket& bad,const char* name) {
+			// Default remains strictly observed even when the opt-in estimate exists.
 			RemakeViewScene previous;previous.frame=99;
 			suite.Expect(!BuildRemakeViewScene(bad,p.sourceProducer,7,previous,error)&&previous.frame==99,name);
 		};
+		{
+			auto expanded=p;const auto first=unsigned(expanded.vertices.size());
+			for(unsigned i=0;i<3;++i){auto v=p.vertices[i];v.x+=24;expanded.vertices.push_back(v);}
+			auto draw=expanded.draws[0];draw.ordinal++;draw.state.first=unsigned(expanded.indices.size());draw.state.count=3;
+			expanded.indices.insert(expanded.indices.end(),{first,first+1,first+2});expanded.draws.push_back(draw);
+			RemakeViewScene observed,estimated;
+			suite.Expect(BuildRemakeViewScene(expanded,p.sourceProducer,7,observed,error)&&observed.meshes.size()==1,
+				"default observed lane still omits untraced geometry");
+			const bool ok=BuildRemakeViewScene(expanded,p.sourceProducer,7,estimated,error,true);
+			suite.Expect(ok&&estimated.meshes.size()==2&&estimated.estimatedVertices==3,
+				"opt-in projected estimate expands untraced current geometry");
+			if(ok&&estimated.meshes.size()==2){const auto& v=estimated.meshes[1].vertices[0];
+				suite.Expect(v.estimatedPosition&&v.transformSerial==0&&Near(v.source.x,float(v.position[0]/v.position[2]*estimated.focalX+320))
+					&&Near(v.source.z,.95f/v.position[2]),"estimated vertex is explicitly untraced and reprojects to source");}
+			expanded.sourceVertices.clear();
+			suite.Expect(!BuildRemakeViewScene(expanded,p.sourceProducer,7,estimated,error,true),"projected estimate requires current observed calibration anchor");
+		}
 		auto q=p;q.sourceProducer.ordinal++;reject(q,"live view rejects stale producer without replacing output");
 		q=p;q.frame++;reject(q,"live view rejects wrong frame");
 		q=p;q.game="unknown";reject(q,"live view rejects unsupported title");

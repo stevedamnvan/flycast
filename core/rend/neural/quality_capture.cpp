@@ -590,7 +590,9 @@ bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& 
 	remakePreparedBeforeComposite_=false;remakePacket_.reset();remakeView_.reset();remakeReturnedImage_.reset();
 	if(!CapturesCurrentFrame()||!reader)return false;
 	RemakeViewScene scene;remake::Packet packet;std::string error;
-	if(!BuildRemakeViewScene(snapshot,metadata.producerIdentity,metadata.frameId,scene,error)
+	const auto* estimated=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
+	const bool estimateUntraced=estimated&&std::strcmp(estimated,"1")==0;
+	if(!BuildRemakeViewScene(snapshot,metadata.producerIdentity,metadata.frameId,scene,error,estimateUntraced)
 		||!BuildRemakeViewPacket(scene,reader,packet,error)){remakePacketStatus_=error;return false;}
 	remakeView_=std::move(scene);remakePacket_=std::move(packet);
 	ExchangeRemakePacket();remakePreparedBeforeComposite_=true;
@@ -991,9 +993,11 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	pvrSnapshot_ = std::move(pendingSnapshot);
 	if(pvrSnapshot_ && !pvrSnapshot_->sourceVertices.empty()) {
 		RemakeViewScene scene;std::string conversionError;
-		if(BuildRemakeViewScene(*pvrSnapshot_,metadata.producerIdentity,metadata.frameId,scene,conversionError))
-			remakeView_=std::move(scene);
-		else remakePacketStatus_=conversionError;
+		if(!remakePreparedBeforeComposite_) {
+			if(BuildRemakeViewScene(*pvrSnapshot_,metadata.producerIdentity,metadata.frameId,scene,conversionError))
+				remakeView_=std::move(scene);
+			else remakePacketStatus_=conversionError;
+		}
 		if(remakeView_ && textures.remakeTextureReader) {
 			remake::Packet packet;
 			if((remakePreparedBeforeComposite_&&remakePacket_)||BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)) {

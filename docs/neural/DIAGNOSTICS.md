@@ -1,5 +1,13 @@
 # Neural diagnostics
 
+Opt-in mixed view-space coverage: set FLYCAST_REMAKE_ESTIMATE_UNTRACED=1 only
+in the temporary publisher environment and restore it afterward. LOG520 est-a
+shows both fighters and arena with40 opaque meshes; scope must remain
+mixed-observed-and-projected-depth-estimate-not-world-reconstruction. The
+candidate vertex estimate count is not emitted coverage. Default remains
+observed-only. Inspect actual moving outputs and preserve missing translucency,
+unknown world/physical depth and remaining HUD backdrop defects in reports.
+
 LOG519 native capture/channel now exchanges source and returned pixels at
 displayFramebuffer entry, before composition. Require prepared_before_composite
 true in every expected remake-return.json; source sequence/frame/digest and

@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-156: estimated view-space coverage is an explicit alternate experiment
+
+FLYCAST_REMAKE_ESTIMATE_UNTRACED=1 opts into mixed observed/projected-depth
+camera-relative positions. Untraced finite positive-depth PVR vertices are
+embedded using the existing measured focal lengths and .95 reciprocal-depth
+scale, inside the existing supplied diagnostic enclosure. At least three
+current observed anchors are required. Estimated vertices carry no transform
+serial/W claim, and the serialized scope explicitly names the approximation.
+The count records converted candidate vertices, including candidates not used
+by emitted opaque meshes; it is not a coverage percentage. Original attributes,
+default observed-only behavior, bounds and unsupported draw exclusions remain.
+
+This route is not recovered world geometry, camera truth or completion of M2.
+It is the already permitted labeled view-space experiment used to test full
+visible combat integration instead of repeatedly tracing one missing instruction.
+Actual est-a expands19-21 observed opaque draws to40 and reveals both fighters
+and the arena floor. It does not recover culled geometry, physical normals,
+transparent effects, game lights or world-space temporal identity. No automatic
+selection/presentation follows; moving quality and combined-route gates remain.
+
 ## D-155: source exchange precedes composition, archival does not own delivery
 
 Extracted source exchange from capture-file writing. On the explicit native
