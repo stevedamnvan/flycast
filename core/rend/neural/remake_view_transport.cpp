@@ -3,6 +3,53 @@
 #include <fstream>
 #include <stdexcept>
 namespace flycast::rend::neural {
+namespace {
+// Camera-relative identity transform only. Clip geometry, never widen the
+// supplied enclosure or reinterpret original PVR depth. A triangle can become
+// at most a pentagon after the two parallel plane clips.
+bool ClipViewMesh(remake::Mesh& mesh,float nearPlane,float farPlane) {
+ std::vector<remake::Vertex> clipped;
+ const auto intersect=[](const remake::Vertex& a,const remake::Vertex& b,float plane) {
+  const double t=(double(plane)-a.position.z)/(double(b.position.z)-a.position.z);
+  const auto lerp=[&](float x,float y){return float(double(x)+(double(y)-x)*t);};
+  remake::Vertex v=a;v.position={lerp(a.position.x,b.position.x),lerp(a.position.y,b.position.y),plane};
+  v.u=lerp(a.u,b.u);v.v=lerp(a.v,b.v);
+  // Production source triangles carry a single flat normal.
+  v.publicColor=0;
+  for(unsigned c=0;c<4;++c) {
+   const auto x=(a.publicColor>>(c*8))&255u,y=(b.publicColor>>(c*8))&255u;
+   const auto value=unsigned(std::lround(double(x)+(double(y)-x)*t));
+   v.publicColor|=(value&255u)<<(c*8);
+  }
+  return v;
+ };
+ for(std::size_t i=0;i<mesh.vertices.size();i+=3) {
+  std::vector<remake::Vertex> polygon(mesh.vertices.begin()+i,mesh.vertices.begin()+i+3);
+  for(const auto& v:polygon)if(!std::isfinite(v.position.x)||!std::isfinite(v.position.y)
+   ||!std::isfinite(v.position.z)||!std::isfinite(v.u)||!std::isfinite(v.v))return false;
+  for(unsigned pass=0;pass<2&&!polygon.empty();++pass) {
+   const float plane=pass?farPlane:nearPlane;
+   const auto inside=[&](const remake::Vertex& v){return pass?v.position.z<=plane:v.position.z>=plane;};
+   std::vector<remake::Vertex> next;auto a=polygon.back();bool aInside=inside(a);
+   for(const auto& b:polygon) {
+    const bool bInside=inside(b);
+    if(aInside!=bInside)next.push_back(intersect(a,b,plane));
+    if(bInside)next.push_back(b);
+    a=b;aInside=bInside;
+   }
+   if(next.size()>5)return false;
+   polygon=std::move(next);
+  }
+  for(std::size_t j=1;j+1<polygon.size();++j) {
+   if(clipped.size()>65536-3)return false;
+   clipped.push_back(polygon[0]);clipped.push_back(polygon[j]);clipped.push_back(polygon[j+1]);
+  }
+ }
+ mesh.vertices=std::move(clipped);mesh.indices.clear();
+ for(std::size_t i=0;i<mesh.vertices.size();++i)mesh.indices.push_back(unsigned(i));
+ return true;
+}
+}
 bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReader& reader,
  remake::Packet& output,std::string& error) {
  const auto fail=[&](const char* why){error=why;return false;};
@@ -22,7 +69,7 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
   "HUD and translucent layers not part of this opaque diagnostic scene",
   "camera-relative temporal history and complete scene coverage unproven"};
 	if(scene.estimatedVertices) p.omissions.push_back("projected-depth estimated vertices="+std::to_string(scene.estimatedVertices)+"; no source-transform or physical-depth claim");
- std::size_t vertices=0,textureBytes=0;
+ std::size_t vertices=0,textureBytes=0,clippedVertices=0;
  for(const auto& source:scene.meshes) {
   if(source.vertices.size()>65536-vertices || source.vertices.size()%3)return fail("view-packet-vertex-bound");
   vertices+=source.vertices.size();
@@ -43,6 +90,10 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
    out.publicColor=remake::PublicColorFromBgra({v.source.col[0],v.source.col[1],v.source.col[2],v.source.col[3]});
    mesh.indices.push_back(unsigned(mesh.vertices.size()));mesh.vertices.push_back(out);
   }
+  if(!ClipViewMesh(mesh,p.camera.nearPlane,p.camera.farPlane))return fail("view-packet-clip-invalid-or-bound");
+  if(mesh.vertices.empty())continue;
+  if(mesh.vertices.size()>65536-clippedVertices)return fail("view-packet-clipped-vertex-bound");
+  clippedVertices+=mesh.vertices.size();
   p.meshes.push_back(std::move(mesh));
  }
  auto checked=remake::ReadyForDiagnosticAdapter(p,p.frame,p.game,true);if(!checked.ok){error=checked.reason;return false;}

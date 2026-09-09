@@ -147,6 +147,20 @@ but only16 unique displayed sources (23 Presents). Source1877 to1896 publication
 gap expires the age8 display latch. Next isolate why publication pauses across
 that interval (scene/texture readiness or channel credit), preserving fallback
 and without another generic external-output proof phase.
+Add opt-in ASYNC_DIAGNOSTICS skip reasons for credit, snapshot, scene, texture,
+packet, guidance, overlay and publication. Run the same bounded live interval
+once to identify the missing-stage cause; no acceptance or timing-policy change.
+Gap-p identifies packet clip-unsupported for every frame1878..1895. Next implement
+bounded near/far triangle clipping with interpolated UV/color before the existing
+adapter validator, preserving current enclosure and native source geometry.
+Test unchanged inside, crossing near/far and wholly outside controls, then require
+live publication through the previously rejected interval. Do not weaken the
+validator or expand the supplied clips to manufacture acceptance.
+Clip-q now publishes and displays all18 formerly rejected sources1878..1895,
+with zero clipping rejection and54 distinct displayed evaluated sources overall.
+All four builds/556 enabled tests pass. Commit the clipping/skip-diagnostic slice,
+then extend bounded no-file runtime coverage beyond60 sources to locate remaining
+sustained-delivery limits. Keep full300/600-frame acceptance and OIT work open.
 Do not divert into aesthetic trail tuning or general profiling before sustained
 delivery and OIT integration; preserve intentional source effects.
 

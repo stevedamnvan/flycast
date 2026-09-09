@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-169: clip crossing triangles without weakening the scene contract
+
+LOG534 shows the live publication gap is the supplied enclosure validator,
+not primarily transport throughput. Clip expanded camera-relative triangles
+against the unchanged near/far planes before strict adapter validation. Retain
+flat normals, linearly interpolate UV and packed color/alpha, preserve inside
+ordering and original PVR vertices, and bound generated output. Fully outside
+or nonfinite scenes still reject. This does not recover camera truth, implement
+PVR tile clipping, or justify changing source depth semantics. The existing
+eight-frame presentation expiry remains intact. Opt-in skip diagnostics identify
+future refusal stages without changing readiness or permitting silent reentry.
+
 ## D-168: returned-scene evaluation keeps original presentation identity
 
 The explicit async neural experiment reserves stage submissions for returned

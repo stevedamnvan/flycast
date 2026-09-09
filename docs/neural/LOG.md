@@ -1,5 +1,42 @@
 # Neural rendering evidence log
 
+LOG534 clip-q live result: helper and host exit0. All18 formerly rejected source
+frames1878..1895 are now published and have completed remake-evaluated Presents;
+zero clip-unsupported records remain. Overall61 publications,56 unique accepted
+evaluations and58 evaluated Presents over54 distinct source frames, versus
+return-o's16 unique displayed sources. Each displayed source joins an accepted
+evaluation and is at most8 current-frame ticks old. All four serial incremental
+builds pass; enabled556/556 tests pass. This is live delivery/display evidence,
+not a new pixel provenance, visual-quality or600-frame performance acceptance.
+Material-cache-pending still causes shorter gaps; helper still ends after60
+sources and reports40 undisposed objects. Next extend the bounded no-file live
+run for sustained coverage, retaining watchdog/failure bounds and native fallback.
+
+LOG534 clipping implementation: clip expanded camera-relative triangles against
+the unchanged supplied0.1/2501 planes before strict adapter validation. Preserve
+inside triangle ordering, interpolate UV and all packed color channels, retain
+flat normals and original source vertices, and bound generated geometry. Empty
+or nonfinite scenes still reject atomically. Five new analytic checks pass;
+automation enabled selftest556/556. First build failed because the new fixture
+used Vec3 access on an array position; corrected to indexed access and retained
+the failed q build log. Live clip-q now tests publication through the previous
+gap with diagnostic disk writes, sentinel and locked replay disabled. No live
+success or final cadence claim yet; remaining serial builds and review pending.
+
+LOG534 gap-p isolates the sustained-display failure: all source frames1878..1895
+reach packet construction and reject with clip-unsupported. This is the adapter
+enclosure check in remake_scene.cpp (behind/near/far-plane vertices), not proven
+PVR tile clipping and not channel-credit or disk-write starvation. Both live
+processes exit0; logs archived as remake-gap-{flycast,reshade,consumer,publisher}-p.
+The opt-in skip diagnostics build passes all four serial incremental builds and
+enabled551/551 tests. A Windows wildcard path search failed and was corrected
+using directory plus file filters; no runtime or evidence was restarted.
+Next implement bounded triangle clipping to the existing supplied diagnostic
+near/far planes, interpolating UV/color and retaining source geometry unchanged.
+Do not widen clips, remove adapter rejection, discard crossing triangles wholesale
+or call the supplied enclosure recovered camera truth. Analytic crossing/fully
+outside/unchanged controls and actual publication through1878..1895 must pass.
+
 LOG533 return-o result: both processes exit0;60 live published/received scene
 receipts match,60 paired returns contain307200 depth values,58 publish and56
 are retained/evaluated once. No BMP/depth artifacts exist at the output prefix;

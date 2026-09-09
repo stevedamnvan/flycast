@@ -179,6 +179,33 @@ int RunSelfTests()
 		suite.Expect(BuildRemakeViewPacket(view,reader,packet,error)&&packet.meshes.size()==1
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
+		{
+			auto clippedView=view;clippedView.meshes[0].vertices.resize(3);
+			auto& v=clippedView.meshes[0].vertices;
+			for(unsigned i=0;i<3;++i){v[i].position={float(i==1),float(i==2),1};v[i].source.u=float(i);v[i].source.v=0;}
+			remake::Packet clipped;
+			suite.Expect(BuildRemakeViewPacket(clippedView,reader,clipped,error)&&clipped.meshes[0].vertices.size()==3
+				&&clipped.meshes[0].vertices[1].position.x==1&&clipped.meshes[0].vertices[1].u==1,
+				"view clipping leaves inside triangle order and attributes unchanged");
+			v[0].position[2]=.05f;v[1].position[2]=v[2].position[2]=.15f;
+			for(unsigned c=0;c<4;++c){v[0].source.col[c]=0;v[1].source.col[c]=v[2].source.col[c]=200;}
+			bool nearOk=BuildRemakeViewPacket(clippedView,reader,clipped,error)&&clipped.meshes[0].vertices.size()==6;
+			unsigned intersections=0;
+			if(nearOk)for(const auto& out:clipped.meshes[0].vertices)if(out.position.z==.1f){++intersections;
+				nearOk=nearOk&&((out.publicColor&255)==100)&&out.u>.49f&&out.u<1.01f;}
+			suite.Expect(nearOk&&intersections>=2&&v[0].position[2]==.05f,
+				"view near clipping interpolates color alpha UV and preserves original source");
+			v[0].position[2]=2500;v[1].position[2]=v[2].position[2]=2502;
+			bool farOk=BuildRemakeViewPacket(clippedView,reader,clipped,error)&&clipped.meshes[0].vertices.size()==3;
+			if(farOk)for(const auto& out:clipped.meshes[0].vertices)farOk=farOk&&out.position.z<=2501&&out.position.z>=2500;
+			suite.Expect(farOk,"view far crossing is clipped without widening supplied far plane");
+			for(auto& vertex:v)vertex.position[2]=2502;clipped.frame=99;
+			suite.Expect(!BuildRemakeViewPacket(clippedView,reader,clipped,error)&&clipped.frame==99,
+				"view wholly outside scene rejects atomically rather than fabricating geometry");
+			v[0].position[2]=std::numeric_limits<float>::quiet_NaN();
+			suite.Expect(!BuildRemakeViewPacket(clippedView,reader,clipped,error)&&error=="view-packet-clip-invalid-or-bound",
+				"view clipping rejects nonfinite source instead of hiding it");
+		}
 		const auto wirePath=std::filesystem::temp_directory_path()/("flycast-view-wire-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".bin");
 		remake::Packet decoded;
 		const bool wrote=WriteRemakeViewPacket(wirePath,packet,error);

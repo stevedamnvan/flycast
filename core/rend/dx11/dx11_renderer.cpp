@@ -2594,6 +2594,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	}
 	if(remakeAsyncStopped||IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get())return;
 	const auto& metadata=neuralQualityCaptureMetadata;const auto producer=rendContext->captureProducer;
+	const auto skip=[&](const char* stage,const std::string& reason) {
+		const auto* diagnostics=std::getenv("FLYCAST_REMAKE_ASYNC_DIAGNOSTICS");
+		if(diagnostics&&std::strcmp(diagnostics,"1")==0)
+			NOTICE_LOG(RENDERER,"Remake async skip: frame=%llu producer=%llu stage=%s reason=%s",
+				(unsigned long long)metadata.frameId,(unsigned long long)producer.ordinal,stage,reason.c_str());
+	};
 	if(!producer.Available()||metadata.predominantly2D||metadata.gameId!="T1401N"
 		||metadata.renderWidth!=640||metadata.renderHeight!=480)return;
 	if(const auto* start=std::getenv("FLYCAST_REMAKE_ASYNC_START_PRODUCER");start&&*start) {
@@ -2633,33 +2639,36 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8)) {
 		remakeAsyncReturned.reset();remakeAsyncAcceptedOverlay={};
 	}
-	if(!remakeAsyncChannel.HasReturnCredit())return;
+	if(!remakeAsyncChannel.HasReturnCredit()){skip("credit","no-return-credit");return;}
 	remakeAsyncTextures.BeginFrame(metadata.frameId,producer.epoch);
 	std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
 	for(int c=0;c<4;++c)for(int r=0;r<4;++r)viewport[c*4+r]=matrix[c][r];
 	PvrDecodedPacket snapshot;RemakeViewScene scene;
 	const auto* estimate=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
-	if(!SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error)
-		||!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0))return;
+	if(!SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error)) {skip("snapshot",error);return;}
+	if(!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0)) {skip("scene",error);return;}
 	// Visit every required draw, even when an earlier texture is pending. Publish
 	// no partial scene; a later frame uses its own geometry and current generations.
 	bool ready=true;std::size_t remaining=64*1024*1024;
 	for(const auto& mesh:scene.meshes) {
 		std::vector<unsigned char> bytes;
-		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures))ready=false;
+		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures)) {
+			if(ready)skip("texture",error);ready=false;
+		}
 	}
 	if(!ready)return;
 	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
 		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures);
 	};
-	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error))return;
-	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame)return;
+	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
+	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
 	acquireNeuralInputs();
 	const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],packet.frame,producer,overlay);
 	releaseNeuralInputs();
-	if(!copied)return;
+	if(!copied){skip("overlay","copy-failed");return;}
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
+	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
 		if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)
 			overlay.captureScene=std::make_shared<remake::Packet>(std::move(packet));
