@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `acd9b9487bdbadcc0a1e08e8cdda0c8df15eb8bc`, pushed and remote verified (LOG367). Later evidence-document updates are separate from tested source.
+- Last exact tested checkpoint: `d314b594ade34818e280a70f3660abce8d4dd5c2`, pushed and remote verified (LOG371). Later evidence-document updates are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,11 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint and exact-verify the flat-normal conversion,
-then connect the explicit source-texture experiment contract. LOG370 validates
+Current next action: connect the explicit source-texture experiment contract,
+requiring captured identity/generation association and stale-binding rejection
+before relaxing any captured-texture readiness rejection. LOG371 closes exact
+flat-normal checkpoint verification. LOG370 validates
 the actual H sample and strip-break/expansion controls. Source normals stay unknown;
 derived normals are not camera, shading or real-runtime acceptance.
-Then connect the explicit source-texture experiment without claiming physical albedo.
+The source-color experiment is not physical albedo or full native PVR shading.
 LOG367 closes exact adapter checkpoint verification. Independent M1-GPU still
 requires a compatible supplied runtime; the reviewed cache has header/licenses
 only. Do not repeat that inventory absent a dependency change, and do not add
