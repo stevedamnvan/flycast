@@ -60,6 +60,17 @@ actual source topology, preserving position and normal correctness without
 claiming a recovered game skeleton. LOG440 confirms40 matching topology slots
 but15 draws change color/UV across L/M. Resolve supported dynamic-attribute
 transport before silently freezing source colors or texture coordinates.
+LOG443 establishes a CPU-only per-triangle affine candidate (8337 triangles,
+63 bounded bone batches, normals carried); next prove nonrigid GPU skinning
+and supported dynamic-material transport. No game skeleton or temporal pass.
+LOG444-446 render retained/reference affine synthetic GPU images. Unsaturated
+correct-normal reference is closer than wrong-normal control (interior MAE0.54
+versus3.21), scoped support only, not byte equality or real-fighter acceptance.
+LOG447 proves synthetic retained-mesh constant material destroy/recreate visibly
+updates; duplicate registration correctly leaves old color. LOG448-449 close
+scoped failure-ownership/mock regression (SDK157,Python316,3x331 selftests,four
+builds). Next dynamic texture/attribute representation plus actual retained
+fighter geometry. Constant tint does not solve per-vertex attributes.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

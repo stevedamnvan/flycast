@@ -12,6 +12,7 @@ struct Calls {
  int freedMaterials=0, freedMeshes=0, freedLights=0, failMesh=0;
  int failMaterial=0;
  bool materialFailureReturnsHandle=false;
+ bool materialHandlesByHash=false;
  std::wstring expectedPath;
  const wchar_t* observedPath=nullptr;
  bool valid=true, failDraw=false, distinctMaterials=false;
@@ -19,6 +20,7 @@ struct Calls {
  float expectedLightZ=1;
  bool skinning=false;
  float expectedApex=0;
+ float expectedRadiance=3;
  std::uint32_t expectedColor=0xffffffffu;
  float expectedFov=90,expectedAspect=1,expectedNear=.1f,expectedFar=100;
  Vec3 expectedRight{1,0,0},expectedUp{0,1,0},expectedForward{0,0,1};
@@ -34,7 +36,7 @@ remixapi_ErrorCode REMIXAPI_CALL material(const remixapi_MaterialInfo* p,remixap
  calls.valid &= o->roughnessConstant==(calls.distinctMaterials?(calls.materials==1?.3f:.6f):.8f);
  calls.valid &= o->alphaTestType==7 && o->opacityConstant==1;
  if(calls.distinctMaterials) calls.valid &= o->albedoConstant.x==(calls.materials==1?.2f:.9f);
- *out=reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(calls.materials));
+ *out=reinterpret_cast<remixapi_MaterialHandle>(std::uintptr_t(calls.materialHandlesByHash?p->hash:calls.materials));
  if(calls.failMaterial==calls.materials) {
   if(!calls.materialFailureReturnsHandle)*out=nullptr;
   return failure();
@@ -57,7 +59,7 @@ remixapi_ErrorCode REMIXAPI_CALL mesh(const remixapi_MeshInfo* p,remixapi_MeshHa
 }
 remixapi_ErrorCode REMIXAPI_CALL light(const remixapi_LightInfo* p,remixapi_LightHandle* out) {
  ++calls.lights; const auto* d=static_cast<const remixapi_LightInfoDistantEXT*>(p->pNext);
- calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_LIGHT_INFO && d && d->direction.x==0 && d->direction.y==0 && d->direction.z==calls.expectedLightZ && p->radiance.x==3;
+ calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_LIGHT_INFO && d && d->direction.x==0 && d->direction.y==0 && d->direction.z==calls.expectedLightZ && p->radiance.x==calls.expectedRadiance;
  *out=reinterpret_cast<remixapi_LightHandle>(1); return ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
@@ -277,6 +279,36 @@ int main() {
    "bone deformation retains meshes and materials");
   const auto before=calls.draws;
   expect(!scene.RedrawSyntheticSkinning(p.camera,1.f).ok&&calls.draws==before,"out-of-bound deformation rejects before API");
+ }
+ calls={};calls.skinning=true;calls.expectedRadiance=.03f;
+ { RemixScene scene(interface(),false,false,true,true);auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"dim affine fixture creation");
+  expect(scene.RedrawSyntheticAffine(p.camera).ok&&calls.valid&&calls.meshes==2,
+   "affine redraw retains scene resources");
+ }
+ calls={};
+ { RemixScene scene(interface());auto p=Synthetic();
+  expect(!scene.RedrawSyntheticAffine(p.camera).ok&&calls.draws==0,"affine rejects non-skinning adapter");
+ }
+ calls={};calls.materialHandlesByHash=true;
+ { RemixScene scene(interface());auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok,"material replacement fixture");
+  auto invalid=p.camera;invalid.fovY=0;
+  expect(!scene.RedrawSyntheticMaterial(invalid,true).ok&&calls.materials==2&&calls.freedMaterials==0,
+   "invalid replacement camera changes no materials");
+  expect(scene.RedrawSyntheticMaterial(p.camera,true).ok&&calls.meshes==2&&calls.materials==4&&calls.valid,
+   "replacement reuses meshes and stable material handles");
+ }
+ expect(calls.freedMaterials==4,"replacement material lifetimes released once");
+ for(bool returnHandle:{false,true}) {
+  calls={};calls.materialHandlesByHash=true;
+  { RemixScene scene(interface());auto p=Synthetic();scene.Submit(p,p.frame,p.game);
+   calls.failMaterial=3;calls.materialFailureReturnsHandle=returnHandle;
+   expect(!scene.RedrawSyntheticMaterial(p.camera,true).ok&&calls.draws==2,
+    "failed replacement cannot draw partial frame");
+   expect(!scene.Redraw(p.camera).ok,"failed replacement cannot resume stale scene");
+  }
+  expect(calls.freedMaterials==(returnHandle?3:2),"replacement failure owns only live returned handles");
  }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";

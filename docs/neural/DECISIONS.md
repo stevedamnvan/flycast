@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-138: explicit diagnostic material replacement and affine transport
+
+LOG443-446 support float32 per-triangle affine position/normal transport on
+CPU and an unsaturated synthetic GPU fixture, including wrong-normal control.
+This is not a recovered skeleton or real-game temporal pass. LOG447 proves
+constant material appearance changes on retained geometry through public
+DestroyMaterial then CreateMaterial with the same handle/hash. Repeated
+registration alone is explicitly ignored by pinned public runtime source.
+
+Validate inputs before mutation, clear successfully destroyed ownership slots,
+track even handles returned with failure, and discard/disable the scene after
+a partial replacement. LOG448 tests this ownership in mocks. Dynamic per-vertex
+colors and UVs are not solved by constant material replacement; any texture
+representation must preserve their variation and be independently compared.
+Keep all new controls synthetic-only/off the production path until that work
+and actual moving fighter evidence are complete.
+
 ## D-137: retained public skinning is transport, not recovered animation
 
 LOG438-439 prove a bounded synthetic deformation through retained public

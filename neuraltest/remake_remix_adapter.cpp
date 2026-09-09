@@ -84,6 +84,7 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  if(reverseLightControl_)distant.direction.z=-1;
  remixapi_LightInfo light{}; light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO; light.pNext=&distant;
  light.hash=0xFC067002; light.radiance={3,3,3};
+ if(dimLightControl_)light.radiance={.03f,.03f,.03f};
  if(zeroLightControl_)light.radiance={0,0,0};
  if (api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS || !light_) return {false,"create-light"};
  packet_=p;
@@ -104,6 +105,48 @@ Result RemixScene::Redraw(const Camera& camera) {
 Result RemixScene::RedrawSyntheticSkinning(const Camera& camera,float offset) {
  if(!syntheticSkinning_ || !std::isfinite(offset) || std::abs(offset)>.5f)return {false,"invalid-synthetic-skinning"};
  skinTransforms_[2].matrix[0][3]=offset;
+ return Redraw(camera);
+}
+Result RemixScene::RedrawSyntheticAffine(const Camera& camera) {
+ if(!syntheticSkinning_)return {false,"invalid-synthetic-skinning"};
+ // Nonrigid planar stretch with a normal-consistent third basis vector.
+ const float n=std::sqrt(1.25f*1.25f+.5f*.5f);
+ for(auto& t:skinTransforms_) {
+  t={};t.matrix[0][0]=1.25f;t.matrix[2][0]=.5f;
+  t.matrix[1][1]=1;t.matrix[0][2]=-.5f/n;t.matrix[2][2]=1.25f/n;
+ }
+ return Redraw(camera);
+}
+Result RemixScene::RedrawSyntheticMaterial(const Camera& camera,bool replace) {
+ if(!ready_ || diagnostic_ || packet_.game!="synthetic-overlap" || meshes_.size()!=2)
+  return {false,"synthetic-material-only"};
+ auto check=packet_;check.camera=camera;
+ const auto valid=ReadyForAdapter(check,check.frame,check.game);
+ if(!valid.ok)return valid;
+ for(std::size_t i=0;i<materials_.size();++i) {
+  remixapi_MaterialInfoOpaqueEXT opaque{};
+  opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
+  opaque.albedoConstant={.7f,.02f,.02f};opaque.opacityConstant=1;
+  opaque.roughnessConstant=.8f;opaque.alphaTestType=7;
+  remixapi_MaterialInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
+  info.pNext=&opaque;info.hash=packet_.meshes[i].id;
+  const auto expected=materials_[i];
+  if(replace) {
+   if(api_.DestroyMaterial(expected)!=REMIXAPI_ERROR_CODE_SUCCESS) {
+    ready_=false;return {false,"destroy-material-discard-frame"};
+   }
+   materials_[i]=nullptr;
+  }
+  remixapi_MaterialHandle handle=nullptr;
+  const auto status=api_.CreateMaterial(&info,&handle);
+  // Track even a handle returned alongside failure; never free a destroyed
+  // old slot again or lose a replacement handle when discarding the frame.
+  if(replace)materials_[i]=handle;
+  else if(handle && handle!=expected)materials_.push_back(handle);
+  if(status!=REMIXAPI_ERROR_CODE_SUCCESS || handle!=expected) {
+   ready_=false;return {false,"replace-material-discard-frame"};
+  }
+ }
  return Redraw(camera);
 }
 Result RemixScene::DrawFrame(const Camera& input) {

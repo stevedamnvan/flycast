@@ -10,7 +10,7 @@ namespace neuraltest::remake {
 // A submission failure requires discarding the entire frame, not presentation.
 class RemixScene {
 public:
- explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning) {}
+ explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false, bool dimLightControl=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning), dimLightControl_(dimLightControl) {}
  ~RemixScene();
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
@@ -21,6 +21,8 @@ public:
  // Reuse the immutable submitted geometry; only the explicitly supplied camera changes.
  Result Redraw(const Camera&);
  Result RedrawSyntheticSkinning(const Camera&,float apexOffset);
+ Result RedrawSyntheticAffine(const Camera&);
+ Result RedrawSyntheticMaterial(const Camera&,bool replace);
 private:
  Result SubmitChecked(const Packet&, std::uint64_t, const std::string&, bool diagnostic);
  bool diagnostic_ = false;
@@ -31,6 +33,7 @@ private:
  bool zeroLightControl_=false;
  bool reverseLightControl_=false; // Explicit diagnostic direction, not recovered game lighting.
  bool syntheticSkinning_=false;
+ bool dimLightControl_=false;
  std::array<float,3> skinWeights_{1,1,1};
  std::array<std::uint32_t,3> skinIndices_{0,1,2};
  std::array<remixapi_Transform,3> skinTransforms_{};

@@ -51,6 +51,8 @@ int wmain(int argc,wchar_t** argv) {
  bool zeroLight=false;
  bool reverseLight=false;
  bool skinning=false,wrongSkinning=false;
+ bool affine=false,affineReference=false,wrongAffineNormal=false;
+ bool materialReplace=false,materialRepeat=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -67,12 +69,19 @@ int wmain(int argc,wchar_t** argv) {
   zeroLight=captureOption==L"--capture-zero-light";
   reverseLight=captureOption==L"--capture-reverse-light";
   wrongSkinning=captureOption==L"--capture-skinning-reversed";
-  skinning=wrongSkinning || captureOption==L"--capture-skinning";
+  affine=captureOption==L"--capture-affine-retained";
+  wrongAffineNormal=captureOption==L"--capture-affine-wrong-normal";
+  materialReplace=captureOption==L"--capture-material-replace";
+  materialRepeat=captureOption==L"--capture-material-repeat";
+  if((materialReplace||materialRepeat)&&argc!=7){std::cerr<<"material control is synthetic only\n";return 2;}
+  affineReference=captureOption==L"--capture-affine-reference" || wrongAffineNormal;
+  skinning=wrongSkinning || captureOption==L"--capture-skinning" || affine;
+  if(affineReference && argc!=7){std::cerr<<"affine reference is synthetic only\n";return 2;}
   if(skinning && argc!=7){std::cerr<<"skinning control is synthetic only\n";return 2;}
   reverseOrder=captureOption==L"--capture-depth-reverse-order";
   emptyScene=captureOption==L"--capture-empty";
   if(captureOption==L"--capture-depth" || reverseOrder)captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene && !skinning) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene && !skinning && !affineReference && !materialReplace && !materialRepeat) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -164,7 +173,8 @@ int wmain(int argc,wchar_t** argv) {
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
   std::cerr<<"diagnostic_light_direction=0,0,"<<(reverseLight?-1:1)<<" recovered_game_lighting=false\n";
-  RemixScene retained(api,zeroLight,reverseLight,skinning);
+  RemixScene retained(api,zeroLight,reverseLight,skinning,affine||affineReference||materialReplace||materialRepeat);
+  if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
@@ -176,7 +186,15 @@ int wmain(int argc,wchar_t** argv) {
    const auto sequenceIndex=frame<60?0:frame-60;
    auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
-   if(skinning)packet.camera.position.x=0;
+   if(skinning || affineReference || materialReplace || materialRepeat)packet.camera.position.x=0;
+   if(affineReference) {
+    const float length=std::sqrt(1.25f*1.25f+.5f*.5f);
+    for(auto& mesh:packet.meshes)for(auto& vertex:mesh.vertices) {
+     const auto p=vertex.position,n=*vertex.normal;
+     vertex.position={1.25f*p.x-.5f/length*p.z,p.y,.5f*p.x+1.25f/length*p.z};
+     if(!wrongAffineNormal)vertex.normal=Vec3{1.25f*n.x-.5f/length*n.z,n.y,.5f*n.x+1.25f/length*n.z};
+    }
+   }
    if(reverseOrder)std::reverse(packet.meshes.begin(),packet.meshes.end());
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
@@ -190,7 +208,8 @@ int wmain(int argc,wchar_t** argv) {
     }else submitted=sequenceResources.back()->Redraw(packet.camera);
     std::cerr<<"sequence_source_frame="<<packet.frame<<" warmup="<<(frame<60)<<" source_sha="<<packet.sourceGitSha<<" temporal_identity_proven=false\n"<<std::flush;
    }else submitted=emptyScene?Result{true,"empty-scene-control"}:frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
-    :retained.Submit(packet,packet.frame,packet.game)):skinning?
+    :retained.Submit(packet,packet.frame,packet.game)):(frame==1&&(materialReplace||materialRepeat))?
+     retained.RedrawSyntheticMaterial(packet.camera,materialReplace):affine?retained.RedrawSyntheticAffine(packet.camera):skinning?
      retained.RedrawSyntheticSkinning(packet.camera,(wrongSkinning?-1.f:1.f)*float(frame)/float(frames-1)*.5f):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
