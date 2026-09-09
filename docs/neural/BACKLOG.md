@@ -74,9 +74,28 @@ Current result LOG657: qualified index/palette uploads deliver300 consecutive
 sources2161..2460 with exact nonempty HUD/composition/backbuffer and completed
 Presents, no material-cache-pending skips.293 overlapping sources retain12984
 exact mesh material/state/generation identities against upload-a. LOG658-659
-complete comparator negative controls and remaining builds/selftests. Commit this
-material-delivery slice, then advance camera/world and sustained integration
-acceptance. This diagnostic capture does not prove performance or scene truth.
+complete comparator negative controls and remaining builds/selftests. The fix is
+pushed at ea0842b79; postcommit four builds and three711/0 suites pass.
+LOG661 palette-cadence-a completes595 consecutive combined outputs without
+capture, but active Present median60.6342ms is not speed acceptance. Next native-
+cadence-a uses the same executable, supplied host configuration, replay,640x480
+OIT D3D11On12 and1200 samples after2100 warmup, with neural mode off and remake
+observation disabled. It is an end-to-end native baseline, not an isolated test
+of any one overhead. Compare active-source intervals; retain missing cycle/audio
+telemetry and invalid GPU samples. LOG664 observer-only native rendering
+reproduces68.1854ms median versus11.1101ms native. Next optimize the observer
+hot path with unchanged provenance/epoch/value validation and falsifying unit
+controls. LOG665-668's invalidation-only candidate passes712/0 and two isolated
+runs measure44.176/42.6773ms median. observer-combined-a hit archive-write
+failures on the near-full system drive; retain281 complete records and19 partial
+directories as failed300-frame evidence. Current observer-combined-b repeats on
+the second drive, checking300 captured frames, exact camera/geometry/material
+and original-native/HUD-mask parity against palette-upload-a. All four builds
+and three712/0 suites pass. LOG673-674 full review passes300 consecutive frames
+2197..2496 and264 exact baseline overlaps. Commit
+the independently proven optimization and separately the forced-close reporting
+correction. Further optimization requires bounded profiling, not another guess.
+Normal renderer and camera truth remain open; no removal of required observation.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
 readback only for exact supported complete uploads, within64MiB raw-plus-DDS

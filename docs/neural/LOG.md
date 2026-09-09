@@ -1,5 +1,130 @@
 # Neural rendering evidence log
 
+LOG674 full review process exits0:300 frames2197..2496, no gaps or failed
+composition checks. Moving artifact generated; midpoint2347 visually inspected
+with intact HUD and the existing bright experimental rendering, not a new
+quality winner or full moving perceptual acceptance. Accept the bounded observer
+invalidation optimization based on two isolated timing runs,712/0 suites across
+enabled configurations, feature-off build and exact264-frame source parity.
+Forced-close exit predicate remains a separate uncommitted harness correction.
+
+LOG673 observer-combined-b host/helper exit0, clean host close and660 helper
+Presents. All300 records2197..2496 complete; review JSON passes nonempty exact
+HUD/composition/backbuffer/completed-Present checks with no source gaps.
+All264 baseline overlaps2197..2460 match byte-exact camera/geometry/material,
+original-native PNG and original HUD mask. GIF generation still finishing;
+do not claim moving visual review from numeric checks alone. Storage retry
+succeeds without deleting old evidence.40-object helper warning remains.
+
+LOG672 remaining serial baseline/no-NGX/feature-off builds exit0; baseline and
+no-NGX selftests712/0. observer-combined-a review completes281 records with
+gap2441->2461 and zero completed-record composition failures, not300 success.
+observer-combined-b repeats identical settings/bounds with captures and host
+report on the second drive. Config hash remains unchanged; incomplete original
+attempt preserved. No builds run concurrently with gameplay.
+
+LOG671 observer-combined-a host/helper exit0 and clean host close,660 helper
+Presents;40-object warning persists.300 attempted capture directories but only281
+completed records: archive-write-failed begins2442, with system drive about200MB
+free at inspection.227 completed overlapping sources2215..2441 match exact
+camera/geometry/material/native PNG/HUD mask against palette-upload-a. Full300
+acceptance is rejected; preserve partial files. No user data deleted. Create a
+separate evidence directory on the second local drive (~94GB free) for subsequent
+bounded captures. Do not rerun large captures on the near-full system drive.
+
+LOG670 extend material comparator with explicit --exact-geometry requiring
+byte-exact camera/lens/origin, vertex/normal/UV/color and index payloads with
+length delimiters. Default material-only scope unchanged. Index and camera
+mutation controls are detected only in the expanded scope. Partial live check
+accepts115 overlapping frames including exact original-native PNG and HUD mask;
+full observer-combined-a run/review remains pending. No tolerance introduced.
+
+LOG669 automation rebuild after forced-close reporting correction exits0 and
+712/0 selftests pass. Start observer-combined-a using existing300-capture
+1200-host/660-helper diagnostic bounds, identical tuple and temporal guidance.
+Compare source-qualified material and geometry payloads against palette-upload-a,
+plus nonempty exact HUD/composition/completed Presents. Diagnostic capture is
+excluded from timing conclusions; no new external configuration/provenance sweep.
+
+LOG668 observer-invalidation-b repeat exits0 with clean_close=yes and1200
+samples, Present P50/P95/P99 42.6773/48.8893/50.1789ms. Both candidate runs
+improve observer-only median versus68.1854ms baseline; combined output parity
+and full configuration builds remain necessary before acceptance. Do not call
+the35-37 percent total-frame reduction a directly sampled function-time result.
+
+LOG667 shutdown inspection confirms performance harness forcibly terminates after
+its existing5-second close bound but omitted forcedTermination from exit status.
+Add !forcedTermination to final success predicate; preserve reports, timeout and
+all other checks. This is a reporting correction, not a shutdown fix. Current
+observer-invalidation-b uses the pre-correction executable; build/runtime failure
+validation follows after it terminates. Prior clean_close=no results remain
+failed shutdown evidence even though the old command exited0.
+
+LOG666 observer-invalidation-a exits0,1200 samples, Present P50/P95/P99
+44.176/49.0806/50.2646ms versus baseline68.1854/74.812/77.6966ms.
+First-run median improvement35.2 percent; not yet accepted as repeatable or
+combined-output-safe. clean_close=no persists. Start identical candidate repeat
+observer-invalidation-b before combined geometry/material comparison. No other
+observer optimization is stacked. Profiler discovery found installed Windows WPR
+and VS collector; neither recorded a trace or changed any system session.
+
+LOG665 candidate changes only arithmetic-origin invalidation: disengage optional
+transform and clear value/epoch rather than assigning the entire empty record.
+Active-count decrement and all lookup predicates remain unchanged. Automation
+build and712/0 selftests pass, including explicit cleared-authority control.
+observer-invalidation-a repeats the identical1200-sample observer-only run.
+Timing benefit is pending; do not commit as a speed fix without measurement.
+Baseline clean_window_close=false is retained; unrequested transition flags in
+the launch report do not establish that those transitions were exercised.
+
+LOG664 observer-cadence-a exits0 with1200 native samples and no neural accepts,
+Present P50/P95/P99 68.1854/74.812/77.6966ms. Native baseline median11.1101ms.
+Observer-only reproduces severe slowdown without Remix or neural evaluation;
+GPU timestamp spans alone do not identify active GPU work versus starvation.
+Harness reports clean_close=no despite process command exit0; retain as unresolved
+shutdown evidence. Optimize observer work without dropping required provenance,
+then rerun isolated timing and exact scene/material comparisons. No DLSS timing
+blame or performance success inferred from this diagnostic.
+
+LOG663 native-cadence-a exits0 with1200 native Presents, no identity gaps or
+repeats. Present P50/P95/P99 11.1101/11.6342/11.8108ms, base PVR GPU median
+0.10032ms. Start observer-cadence-a identical native run with only
+FLYCAST_NEURAL_SOURCE_OBSERVATION=1 added. This isolates observer overhead from
+the combined pipeline; no scene feed/helper/neural evaluation or config changes.
+Do not convert frame-rate comparisons into cycle/audio equivalence claims.
+
+LOG662 active595 combined samples in palette-cadence-a have Present lower-rank
+P50/P95/P99 60.6342/69.873/75.2718ms, only19 valid GPU samples. Do not infer
+per-pass bottlenecks from the aggregate615 valid samples, mostly outside the
+combined interval. Start native-cadence-a with identical executable/host config,
+replay/resolution/API/OIT and1200 samples/2100 warmup, native mode and remake
+environment disabled, no helper. Preserve original logs by archive. This tests
+total experimental overhead; source observation instruments CPU memory/transform
+operations and must be isolated before attributing slowdown to RTX rendering.
+Cycle/audio equivalence still needs explicit measurement, not FPS inference.
+
+LOG661 palette-cadence-a host/helper exit0,1200 host samples and660 helper
+Presents. Report contains595 consecutive remake-evaluated outputs2163..2757,
+zero gaps/identity mismatches in that interval, all displayed samples reset=false,
+mean latency1.994975/max2 frames. Overall1200-sample Present P50/P95/P99 is
+60.6342/69.8332/78.644ms;615 GPU timing samples valid and585 invalid. Owned
+neural GPU objects initial137/final152/growth15; VRAM falls168542208 bytes.
+Helper still warns40 undisposed common objects. Not a performance or full
+acceptance pass: startup/native tail are included, normal renderer unsupported,
+paired native emulation/audio timing absent. Aggregate stage reset count597
+must not be misreported as returned-history resets: displayed combined samples
+and returned evaluation logs carry their own history state. Next isolate the
+active interval and paired native timing before optimizing any presumed GPU
+bottleneck. Material continuity is improved, not rendering speed proven.
+
+LOG660 ea0842b79 pushed and fork SHA verified; postcommit serial four builds
+exit0 and automation/baseline/no-NGX selftests each711/0. Existing untracked
+user artifacts preserved. Next palette-cadence-a repeats the noncapture OIT
+1200-sample host/660-frame helper route with default watchdogs and unchanged
+consumer settings, checking sustained delivery after the material fix. No
+synchronous image capture, no claim of complete GPU timing or normal-renderer
+coverage. Normal native-effects snapshot is still unsupported in production.
+
 LOG659 corrected serial validation exits0: baseline and no-NGX selftests711/0,
 both builds and feature-off build link. Together with LOG656 automation build,
 711/0 and native material fixture, the four configurations are checked for this

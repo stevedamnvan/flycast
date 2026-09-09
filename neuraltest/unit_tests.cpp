@@ -957,6 +957,8 @@ int RunSelfTests()
 		 suite.Expect(!GetSourceArithmeticOrigin(7,0x40e00000),"mixed transform arithmetic rejects ambiguous origin");
 		 KillSourceArithmeticOrigin(5,1);
 		 suite.Expect(!GetSourceArithmeticOrigin(5,0x40c00000),"overwritten register cannot revive same-value transform tag");
+		 suite.Expect(!sourceArithmeticOrigins[5].transform&&sourceArithmeticOrigins[5].epoch==0
+			&&sourceArithmeticOrigins[5].value==0,"origin invalidation clears authority without retaining an engaged payload");
 		 ClearSourceArithmeticOrigins();
 		}
 		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);

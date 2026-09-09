@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-199: optimize observer invalidation without weakening source authority
+
+The observer-only native control reproduces the combined path's slowdown.
+Disengaging an arithmetic-origin optional and clearing its epoch/value avoids
+unnecessary inactive matrix payload writes while retaining live-count decrement,
+epoch invalidation and exact-value lookup rules. Two isolated candidate runs
+improve total frame interval; this is not direct function profiling or proof of
+combined performance. Require exact source geometry/material/native preservation
+before accepting the optimization. Do not drop observation or fabricate camera
+truth to meet timing. Forced process termination is a failed shutdown regardless
+of completed samples; harness exit status must agree with its recorded close flag.
+
 ## D-198: use owned current upload bytes before asynchronous material readback
 
 For explicitly enabled async-neural gameplay, retain complete decoded CPU texture

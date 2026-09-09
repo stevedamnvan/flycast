@@ -41,7 +41,9 @@ inline void KillSourceArithmeticOrigin(std::uint32_t reg,std::uint32_t count) no
  for(unsigned i=0;i<count&&reg+i<256;++i) {
   auto& origin=sourceArithmeticOrigins[reg+i];
   if(origin.epoch==sourceArithmeticEpoch&&origin.transform)--sourceArithmeticLive;
-  origin={};
+  // Invalidation needs no write to the inactive transform's matrix payload.
+  // Epoch/value checks and disengagement retain the same lookup semantics.
+  origin.transform.reset();origin.epoch=0;origin.value=0;
  }
 }
 inline void SeedSourceArithmeticOrigin(std::uint32_t reg,const SourceTransform& transform) noexcept {
