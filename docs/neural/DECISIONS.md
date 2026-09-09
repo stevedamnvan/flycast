@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-153: captured Soulcalibur HUD identity is separate from temporal history
+
+The existing T1401N profile now has narrow captured-atlas rules for header,
+timer, health fill, names and counters. Require known texture/state, exact
+640x480 regions, bounded planar/layered depth, appropriate list and late order
+where applicable. Changing palette/glyph topology must not remove known HUD
+protection just because accepted-history stability is below three. Generic and
+unknown-title rules remain unchanged. Unknown atlas reuse/layouts are not proven
+by this three-frame title capture; no whole-title or cross-title acceptance.
+
+Actual composition reveals native-background rectangles in transparent HUD
+quads: existing coverage emits a draw mask even where alpha contributes nothing.
+This is a separate mask-rasterization limitation, not permission to hide it or
+declare complete overlay preservation. Correct alpha coverage before returned
+presentation; do not erase transparent game effects indiscriminately.
+
 ## D-152: reuse the production overlay shader before returned presentation
 
 The bounded return-composite experiment uploads the exact owned640x480 BGRA

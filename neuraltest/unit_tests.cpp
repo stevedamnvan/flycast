@@ -735,6 +735,29 @@ int RunSelfTests()
 			&& !IsTitleSpecificOverlay(soulcaliburBar, 20, 640, 480, 3,
 				OverlayProfile::None),
 			"Soulcalibur profile admits captured top HUD controls without weakening the generic world negative");
+		DrawRecord header=soulcaliburBar;header.list=4;header.texId=671530672u;header.blend=37;
+		header.flags=DrawScreenAligned;header.screenAlignedPrimitiveCount=23;
+		header.bboxMin[0]=28;header.bboxMin[1]=22;header.bboxMax[0]=577;header.bboxMax[1]=38;
+		const auto capturedHud=[](const DrawRecord& draw){return IsTitleSpecificOverlay(draw,20,640,480,0,OverlayProfile::SoulcaliburT1401nHudV1);};
+		suite.Expect(capturedHud(header),"captured Soulcalibur punch-through header survives animated history");
+		auto timer=header;timer.texId=696696496u;timer.bboxMin[0]=282;timer.bboxMin[1]=26;timer.bboxMax[0]=358;timer.bboxMax[1]=76;
+		suite.Expect(capturedHud(timer),"captured Soulcalibur timer atlas is protected");
+		auto fill=soulcaliburBar;fill.blend=37;fill.texId=795315888u;fill.bboxMin[1]=38;fill.bboxMax[1]=64;
+		suite.Expect(capturedHud(fill),"captured Soulcalibur health fill survives palette churn");
+		auto name=header;name.list=2;name.texId=686272176u;name.bboxMin[0]=26;name.bboxMin[1]=62;name.bboxMax[0]=614;name.bboxMax[1]=86;
+		name.zMin=.162346f;name.zMax=.180385f;
+		suite.Expect(capturedHud(name),"captured Soulcalibur layered names retain both sides");
+		auto counter=soulcaliburCounter;counter.blend=37;counter.texId=739217920u;
+		suite.Expect(capturedHud(counter),"captured Soulcalibur counters are protected");
+		auto wrong=header;wrong.texId++;
+		suite.Expect(!capturedHud(wrong),"captured HUD rejects unknown texture");
+		wrong=header;wrong.bboxMax[1]=140;
+		suite.Expect(!capturedHud(wrong),"captured HUD rejects world region");
+		wrong=header;wrong.zMin=.01f;
+		suite.Expect(!capturedHud(wrong),"captured HUD rejects world depth");
+		wrong=header;wrong.flags|=DrawRtt;
+		suite.Expect(!capturedHud(wrong),"captured HUD rejects RTT");
+		suite.Expect(!IsTitleSpecificOverlay(header,20,640,480,0,OverlayProfile::None),"captured HUD is title scoped");
 	}
 	{
 		DrawRecord menu[4]{};

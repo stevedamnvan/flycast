@@ -81,7 +81,14 @@ FLYCAST_REMAKE_COMPOSITE_TEST=1 enables diagnostic capture only. Require same
 source/guidance frame and producer. Three composite-b frames have zero protected
 and unprotected mismatches and same-frame native-target preservation. Actual
 mask coverage1004/1659/1004 pixels is HUD outlines, not full HUD acceptance.
-Next expand explicit title HUD protection to complete HUD content and
+LOG517 captured-atlas classification is now verified on the three moving frames:
+coverage21771/22451/21765 and zero composite mismatches/native-target changes.
+Visible transparent-quad native-background rectangles remain. Next correct the
+overlay mask's alpha coverage using the actual blend semantics. Preserve the
+captured-atlas bounds and generic/unknown-title behavior; wrong texture, region,
+depth, RTT and title controls already pass. Capture moving comparisons and
+report alpha-boundary/background preservation, not just masked-pixel equality.
+Then
 move frame-qualified return handling before the existing DX11 protected
 overlay pass without substituting the incomplete
 temple for full gameplay. Retain native fallback and explicit diagnostic labels;

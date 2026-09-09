@@ -258,6 +258,30 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 	std::uint32_t screenWidth, std::uint32_t screenHeight,
 	std::uint8_t stableAcceptedFrames, OverlayProfile profile) noexcept
 {
+	// Captured T1401N HUD atlases, not a generic top-of-screen rectangle rule.
+	// Palette animation and the timer's changing glyph topology must not make
+	// already identified UI dependent on neural accepted-history continuity.
+	if (profile == OverlayProfile::SoulcaliburT1401nHudV1 && screenWidth == 640 && screenHeight == 480
+		&& drawCount != 0 && draw.indexCount != 0 && draw.blend == 37
+		&& (draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) == 0
+		&& std::isfinite(draw.zMin) && std::isfinite(draw.zMax)
+		&& draw.zMin >= .15f && draw.zMax <= .21f) {
+		const auto inside = [&](int left,int top,int right,int bottom) {
+			return draw.bboxMin[0]>=left && draw.bboxMin[1]>=top && draw.bboxMax[0]<=right
+				&& draw.bboxMax[1]<=bottom && draw.bboxMax[0]>draw.bboxMin[0] && draw.bboxMax[1]>draw.bboxMin[1];
+		};
+		const bool planar=std::abs(draw.zMax-draw.zMin)<=.002f;
+		const bool aligned=(draw.flags & DrawScreenAligned)!=0 && draw.screenAlignedPrimitiveCount!=0;
+		if(draw.list==4 && aligned && planar
+			&& ((draw.texId==671530672u && inside(28,22,577,38))
+				|| (draw.texId==696696496u && inside(282,26,358,76)))) return true;
+		if(draw.list==2 && static_cast<std::size_t>(draw.ordinal)+std::max<std::size_t>(4,drawCount/8)>=drawCount) {
+			if(draw.texId==795315888u && planar && (inside(20,38,272,64)||inside(368,38,620,64)))return true;
+			if(draw.texId==686272176u && aligned && std::abs(draw.zMax-draw.zMin)<=.025f
+				&& inside(26,62,614,86))return true;
+			if(draw.texId==739217920u && planar && (inside(236,66,276,86)||inside(364,66,404,86)))return true;
+		}
+	}
 	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || drawCount == 0
 		|| screenWidth == 0 || screenHeight == 0 || stableAcceptedFrames < 3
 		|| draw.list != 2 || draw.indexCount == 0
