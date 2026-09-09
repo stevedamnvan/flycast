@@ -19,6 +19,9 @@ ordinary-frame scene feed:60 matched moving sources and56 bounded retained paire
 replies. LOG542 subsequently records600 paired OIT returns and595 distinct
 displayed sources; LOG544 proves25 consecutive exact-input external results
 through clean HUD composition and completed Present. Returned presentation is
+also verified after native OIT effect restoration: LOG564 proves28 consecutive
+exact-input outputs with full effect identity, marked/clean/OFF controls, original
+HUD and completed Present. This closes that changed-path regression only. It is
 therefore experimentally implemented, not absent. Full combined ordinary-gameplay
 acceptance, returned-scene temporal guidance and camera acceptance remain pending.
 The strict replay residual stays

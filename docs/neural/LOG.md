@@ -1,5 +1,36 @@
 # Neural rendering evidence log
 
+LOG564 ada37d1fc post-effect provenance matrix uses one incremental executable
+CFAA18F9EC94D13D4BA0E9A97A216C0344151DC2925AFB48693D3FBDD8070CD5.
+Its embedded build label remains3e78a6f4f; do not call this a fresh exact-SHA
+build. Bd archives30 sources2174..2203 with identity evidence; helper100/host240
+both exit0. Be marked replay uses bd, helper121 (bounded120-second source window),
+host240 and publication start2090. All30 source identities match and28 captures
+complete after startup; both processes exit0. Current/source counters differ
+from archive IDs and must be joined through recorded replay_original_frame,
+never assumed equal. Bf clean/restored and bg existing hook-disabled controls
+are pending. All are synchronous diagnostic runs, not performance measurements.
+No external settings changed. Local read-only audit effects-proof-be-bf-bg checks
+the four neural input hashes, full effect identity, marker/clean returned hashes,
+pre-effect PNG identity, post-effect/HUD/backbuffer/completed-Present joins and
+consumer-reported tuple; it must actually run before claiming the matrix passes.
+Bf completes28 captures, bg completes30 effect/input checks with native fallback
+and no experimental evaluated captures; all four matrix host/helper pairs exit0.
+The local audit actually runs and passes28 consecutive originals2176..2203:
+all four neural input hashes equal across marked/clean/OFF; full source effects
+equal the archive; pre-marker returned hashes equal marked/clean and differ from
+OFF for every accepted frame; clean pre-effect PNG equals returned hash; native
+effect difference, original HUD composition, backbuffer RGB and completed Present
+joins are exact. Every marked counterpart has1024/1024 sentinel pixels. Both ON
+logs positively report the unchanged tuple1/1/203/preset0/style0/upscalingOFF;
+OFF remains existing EnableHooks0 with configuration hash656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7.
+Selected moving-combat source2192 was visually inspected with preserved blue
+weapon arc, impact particles and HUD; no visual-quality winner is inferred from
+this still or from provenance. ACCEPTED: bounded post-effect external-output
+regression. Camera/world/scene completeness, final performance, helper cleanup
+warning and full working-pipeline checklist remain open. An initial backlog
+patch missed its context and made no changes; corrected using current text.
+
 LOG563 ba executableF196D5DEAE5299C39F3F3E994F692FD400D523FFBDF70FC6F3720CEFB2194B52
 repeats the ay locked-input comparison with word diagnostics; both processes
 exit0. All2175..2177 reject at canonical word28: retained211709912 versus

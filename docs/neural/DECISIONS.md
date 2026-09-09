@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-179: reuse the accepted post-effect provenance checkpoint
+
+LOG564 traces28 consecutive exact-input external results through source-owned
+native OIT effects, original HUD and completed Present, with marked/clean/OFF
+controls. This closes the regression introduced by effect composition, not the
+whole remake pipeline or a quality/performance gate. Resume scene/camera and
+relighting integration; require another provenance regression only when a later
+change affects the demonstrated ownership/output path. Keep intentional native
+trails, the hybrid/translucency scope and approximation labels explicit.
+
 ## D-178: initialize uploaded constants; retain strict effect replay equality
 
 The first live effect identity failure was canonical word28, an unused but

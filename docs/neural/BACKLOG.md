@@ -51,14 +51,17 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 | FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG529 ordinary-frame feed matches60 moving fighter/arena scenes and paired image files, with56 bounded retained replies. Camera-relative approximation remains explicit; delayed HUD/returned presentation and combined ordinary gameplay remain pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | LOG542 sustained OIT delivery and LOG544 completed original-HUD Presents are experimental evidence; scene completeness and full acceptance remain open |
-| FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG544 confirms25 consecutive exact-input OIT external outputs; full moving matrix remains open, LOG555 effects change requires focused presentation regression |
+| FC-067 / M4-DLSS5 | doing | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG564 confirms28 consecutive exact-input external results after native effects/HUD and completed Present, including effect identity and marked/clean/OFF controls. Full moving quality matrix and upstream scene acceptance remain open; do not repeat this regression without a changed dependency |
 | FC-045, FC-054, FC-055, FC-063, FC-064 / combined hardening | todo | M4-DLSS5 | Capture/overlay/transition/failure/cadence checks on the changed route; asynchronous performance and repeatable launch. Satisfy the working-pipeline checklist below. | pending |
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action (LOG553, user integration-priority correction): preserve native
-translucent gameplay effects on the returned-scene route. Capture throughput is
+Current action (LOG564): post-effect external-output provenance is accepted for
+28 consecutive exact-input frames. Advance M2 scene/camera completeness toward
+moving relighting; retain the camera-relative approximation label and use the
+existing actual geometry/material uploader. No further snapshot/provenance phase
+unless the next rendering change creates a specific regression. Capture throughput is
 parked; LOG552's299 consecutive images do not satisfy300 and the acceptance
 threshold remains unchanged. Reuse LOG542/544 delivery and external-output proof.
 
@@ -167,6 +170,14 @@ is accepted in this bounded scope; next archive a longer post-startup interval
 within30 attempts and run marked/clean/OFF exact-input external-output proof on
 the changed post-effect path. Do not repeat generic transport or reopen capture
 throughput. Full camera/scene/performance acceptance remains open.
+LOG564 completes that focused matrix:28 consecutive originals2176..2203 have
+exact scene/color/depth/motion/mask and effect identity, marked/clean returned
+hash equality, external-versus-disabled differences, and clean original-HUD/
+post-effect/backbuffer/completed-Present joins. Reuse this result. Next inspect
+the current scene omissions and usable camera acceptance requirements, select
+a concrete geometry/camera correction with moving source comparison, and advance
+M2/M3 rather than reopening proven transport. The native effect layer remains
+hybrid preservation, not ray-traced translucent materials or recovered world space.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned
