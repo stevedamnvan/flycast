@@ -121,8 +121,11 @@ struct Wire {
  void string(std::string& s,unsigned bound){const auto n=count(s.size(),bound);if(input)s.resize(n);if(n)bytes(s.data(),n);}
 };
 void packet(Wire& wire,remake::Packet& p) {
- std::uint32_t magic=0x56524346,version=1;wire.word(magic);wire.word(version);
- require(magic==0x56524346&&version==1,"view-wire-schema");
+ // Preserve byte-identical version1 output for existing opaque-only captures.
+ std::uint32_t magic=0x56524346,version=1;
+ if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)version=2;
+ wire.word(magic);wire.word(version);
+ require(magic==0x56524346&&(version==1||version==2),"view-wire-schema");
  wire.wide(p.frame);wire.wide(p.producer.epoch);wire.wide(p.producer.ordinal);wire.wide(p.producer.cycle);
  wire.string(p.game,64);wire.string(p.sourceGitSha,64);
  wire.string(p.diagnosticEmbeddingProvenance,128);require(p.diagnosticEmbeddingProvenance==scope
@@ -136,6 +139,11 @@ void packet(Wire& wire,remake::Packet& p) {
  for(auto& mesh:p.meshes) {
   wire.wide(mesh.id);mesh.frame=p.frame;mesh.transform=std::array<float,12>{1,0,0,0,0,1,0,0,0,0,1,0};
   std::uint32_t tsp=mesh.sourceTsp.value_or(0);wire.word(tsp);mesh.sourceTsp=tsp;
+  if(version==2) {
+   std::uint32_t alpha=mesh.sourceAlphaReference?*mesh.sourceAlphaReference:256u;
+   wire.word(alpha);require(alpha<=256,"view-wire-alpha-reference");
+   if(alpha==256)mesh.sourceAlphaReference.reset();else mesh.sourceAlphaReference=static_cast<std::uint8_t>(alpha);
+  }else mesh.sourceAlphaReference.reset();
   std::uint32_t known=mesh.texture.known;wire.word(known);require(known<=1,"view-wire-texture-known");mesh.texture.known=known!=0;
   wire.wide(mesh.texture.id);wire.wide(mesh.texture.generation);wire.wide(mesh.texture.paletteGeneration);wire.wide(mesh.texture.rttGeneration);
   if(wire.input){mesh.material.emplace();mesh.material->albedo={1,1,1};mesh.material->sourceColorExperiment=true;if(known)mesh.material->sourceTexture=mesh.texture;}

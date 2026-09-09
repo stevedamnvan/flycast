@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG565 based5fe260a6 selects a concrete scene omission: BuildRemakeViewScene
+accepts only opaque list0; punch-through list1 is absent, and the D3D9 uploader
+does not configure alpha testing. First implement explicit optional uint8 source
+alpha threshold in Mesh and version2 view wire only when present. Opaque packets
+continue byte-layout version1; null is opaque and threshold0 remains enabled.
+Tests round-trip0/128/255, preserve old opaque input, and reject unsupported
+cutouts in both current consumers instead of rendering opaque silhouettes.
+Automation selftests582/0 and public-header mock SDK contract197/0 pass.
+This is transport/schema groundwork for missing geometry, not rendered cutout
+support or camera recovery. No cutout scene export is enabled yet. Next bind the
+actual source threshold, implement/test GPU alpha semantics, then opt-in moving
+coverage. Source PVR shader rounds alpha to8bit then keeps alpha>=reference;
+UseAlpha/IgnoreTexAlpha and shading instruction affect the tested alpha and must
+not be discarded. Initial file lookups for remake_view_scene.cpp and wildcard
+remake paths failed; actual implementation is remake_view_scene.h and directory
+search with filename filters. No proprietary files changed.
+All four incremental builds and all three enabled582/0 suites pass; backlog
+consistency inspection passes. Public-header mock197/0 is not a GPU result.
+
 LOG564 ada37d1fc post-effect provenance matrix uses one incremental executable
 CFAA18F9EC94D13D4BA0E9A97A216C0344151DC2925AFB48693D3FBDD8070CD5.
 Its embedded build label remains3e78a6f4f; do not call this a fresh exact-SHA

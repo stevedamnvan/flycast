@@ -187,6 +187,23 @@ int RunSelfTests()
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
 		{
+			std::ostringstream opaque(std::ios::binary);std::string why;
+			const bool oldOk=SerializeRemakeViewPacket(opaque,packet,why);
+			suite.Expect(oldOk&&static_cast<unsigned char>(opaque.str()[4])==1,"opaque view wire retains version1");
+			for(std::uint8_t threshold:{0,128,255}) {
+				auto cutout=packet;cutout.meshes[0].sourceAlphaReference=threshold;
+				std::ostringstream out(std::ios::binary);remake::Packet decoded;
+				bool ok=SerializeRemakeViewPacket(out,cutout,why);
+				std::istringstream in(out.str(),std::ios::binary);
+				ok=ok&&DeserializeRemakeViewPacket(in,decoded,why);
+				suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==2
+					&&decoded.meshes[0].sourceAlphaReference==threshold,"cutout view wire retains explicit threshold including zero");
+			}
+			remake::Packet decoded;std::istringstream in(opaque.str(),std::ios::binary);
+			suite.Expect(DeserializeRemakeViewPacket(in,decoded,why)&&!decoded.meshes[0].sourceAlphaReference,
+				"old opaque view wire never invents alpha testing");
+		}
+		{
 			for(float crossingDepth:{.05f,2502.f}) {
 				auto crossing=p;crossing.sourceVertices.erase(crossing.sourceVertices.begin());
 				crossing.vertices[0].z=.95f/crossingDepth;

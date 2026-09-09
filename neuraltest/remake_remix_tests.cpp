@@ -381,6 +381,10 @@ int main() {
   ++p.frame;for(auto& m:p.meshes)m.frame=p.frame;calls.failDraw=true;
   expect(!scene.RedrawFrozenAttributeTriangles(p).ok&&!scene.Redraw(p.camera).ok,"failed retained draw prevents stale resume");
  }
+ { RemixScene scene(interface());auto p=Synthetic();p.meshes[0].sourceAlphaReference=0;
+  expect(scene.Submit(p,p.frame,p.game).reason=="cutout-material-not-implemented",
+   "public adapter rejects cutout rather than forcing opaque");
+ }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";
  return counts.failed?1:0;

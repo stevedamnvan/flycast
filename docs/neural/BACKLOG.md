@@ -178,6 +178,19 @@ the current scene omissions and usable camera acceptance requirements, select
 a concrete geometry/camera correction with moving source comparison, and advance
 M2/M3 rather than reopening proven transport. The native effect layer remains
 hybrid preservation, not ray-traced translucent materials or recovered world space.
+Next bounded scene correction: the view exporter currently omits punch-through
+draws (list1), and the D3D9 uploader has no alpha-test state. Carry an explicit
+source alpha threshold through the owned scene/wire contract, preserving null
+(opaque) versus threshold0 (enabled cutout). Keep old opaque archives readable
+and reject cutouts in consumers until their alpha path is implemented/tested.
+Then connect source-owned threshold and GPU alpha behavior, proving threshold,
+texture/vertex-alpha, wrong-opaque-silhouette and moving native comparisons before
+enabling the optional cutout scene lane. No translucent-as-opaque shortcut, no
+camera/world acceptance claim and no silent threshold default.
+LOG565 implements that explicit packet field and version2 round-trip contract;
+opaque-only version1 remains unchanged. Both unimplemented consumers reject
+cutouts, including threshold0. Next connect source-owned alpha state and GPU
+alpha-test behavior; do not add more packet-only work instead of this hookup.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

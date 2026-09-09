@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-180: explicit cutout state cannot silently become opaque
+
+Carry an optional source alpha reference, retaining enabled threshold0 separately
+from no alpha test. Emit view-wire version2 only for packets containing cutouts,
+keeping opaque version1 archives compatible. Until each consumer implements and
+proves the corresponding alpha behavior, reject these meshes rather than using
+its opaque defaults. LOG565 is schema groundwork, not permission to include
+unvalidated punch-through geometry or claim a recovered camera.
+
 ## D-179: reuse the accepted post-effect provenance checkpoint
 
 LOG564 traces28 consecutive exact-input external results through source-owned
