@@ -345,8 +345,9 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
  const auto projection=[](float z){return 100.f/99.f-100.f/(99.f*z);};
  std::vector<float> current(640*480,projection(10)),previous=current;
  std::vector<std::uint16_t> ids(640*480,1);
- auto idView=[&](std::uint16_t id,ComPtr<ID3D11ShaderResourceView>& view) {
+ auto idView=[&](std::uint16_t id,ComPtr<ID3D11ShaderResourceView>& view,bool edge=false) {
   std::fill(ids.begin(),ids.end(),id);
+  if(edge)ids[160*640+201]=2;
   D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
   d.Format=DXGI_FORMAT_R16_UINT;d.BindFlags=D3D11_BIND_SHADER_RESOURCE;
   D3D11_SUBRESOURCE_DATA data{};data.pSysMem=ids.data();data.SysMemPitch=640*2;
@@ -364,41 +365,90 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
   value=0;std::memcpy(&value,static_cast<const char*>(mapped.pData)+160*mapped.RowPitch+200*bytes,bytes);
   surface.context->Unmap(staging.Get(),0);return true;
  };
- for(unsigned mode=0;mode<7;++mode) {
+ for(unsigned mode=0;mode<11;++mode) {
   RemakeMotionStream stream;stream.indices={0,1,2};
   stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};
   std::fill(current.begin(),current.end(),projection(10));previous=current;
   if(mode==1)for(auto& v:stream.vertices)v.previousScreen.x-=4;
   if(mode==2)std::fill(previous.begin(),previous.end(),1.f);
   if(mode==4)std::fill(current.begin(),current.end(),1.f);
-  if(mode==6) {
+  if(mode>=6) {
    stream.vertices[1].currentScreen.z=20;
    stream.vertices[2].currentScreen.z=30;
    stream.vertices[1].previousScreen.x-=4;
    for(unsigned y=0;y<480;++y)for(unsigned x=0;x<640;++x) {
     const float b=(x+.5f-100)/400,c=(y+.5f-100)/300,a=1-b-c;
-    current[y*640+x]=std::clamp(projection(1/(a/10+b/20+c/30)),0.f,1.f);
+    const float shift=mode>=7?(mode==10?6.f:.75f):0.f;
+    const float sb=(x+.5f+shift-100)/400,sc=(y+.5f-100)/300,sa=1-sb-sc;
+    current[y*640+x]=std::clamp(projection(1/(sa/10+sb/20+sc/30)),0.f,1.f);
    }
   }
+  if(mode==8)current[160*640+201]=1;
+  if(mode==9){current[160*640+199]=1;current[160*640+201]=1;}
   ComPtr<ID3D11ShaderResourceView> view;if(!idView(mode==3?2:1,view))return false;
   RemakeRasterOutput output;
-  if(!raster.Render(surface.context.Get(),stream,current,previous,mode==5?nullptr:view.Get(),1,100,.1f,0,output,error))return false;
-  std::uint32_t motion=0,bias=0,confidence=0,id=0;
+  if(!raster.Render(surface.context.Get(),stream,current,previous,mode==5?nullptr:view.Get(),1,100,mode>=7?.0001f:.1f,0,output,error))return false;
+  std::uint32_t motion=0,bias=0,confidence=0,id=0,reason=0,rasterBits=0;
   if(!read(output.textures[0].Get(),4,motion)||!read(output.textures[1].Get(),1,confidence)
-   ||!read(output.textures[2].Get(),2,id)||!read(output.textures[3].Get(),1,bias))return false;
+   ||!read(output.textures[2].Get(),2,id)||!read(output.textures[3].Get(),1,bias)
+   ||!read(output.textures[4].Get(),2,reason)||!read(output.textures[5].Get(),4,rasterBits))return false;
+  const unsigned expectedReasons[]={0,0,6,5,1,5,0,0,1,1,1};
+  float actualDepth;std::memcpy(&actualDepth,&rasterBits,4);
+  if(reason!=expectedReasons[mode]||!std::isfinite(actualDepth)
+   ||(mode<6&&std::abs(actualDepth-projection(10))>1e-6f)) {
+   error="remake raster reason/depth diagnostic mismatch mode="+std::to_string(mode);return false;
+  }
   bool valid=false;
   if(mode==0)valid=motion==0&&bias==0&&confidence==255&&id==1;
   if(mode==1)valid=std::abs(int(motion&65535)-int(FloatToHalf(-4)))<=1
    &&(motion>>16)==0&&bias==0&&confidence==255;
   if(mode>=2&&mode<=5)valid=motion==0&&bias==255&&confidence==0&&(mode!=4||id==0);
-  if(mode==6) {
+  if(mode==6||mode==7) {
    const float b=100.5f/400,c=60.5f/300,a=1-b-c;
    const float denominator=a/10+b/20+c/30;
    const auto hx=FloatToHalf((100*a/10+496*b/20+100*c/30)/denominator-200.5f);
    const auto hy=FloatToHalf((100*a/10+100*b/20+400*c/30)/denominator-160.5f);
    valid=std::abs(int(motion&65535)-int(hx))<=1&&std::abs(int(motion>>16)-int(hy))<=1&&bias==0&&confidence==255;
   }
+  if(mode>=8)valid=motion==0&&bias==255&&confidence==0&&id==0;
   if(!valid){error="remake raster mode="+std::to_string(mode)+" motion="+std::to_string(motion)+" bias="+std::to_string(bias)+" confidence="+std::to_string(confidence);return false;}
+ }
+ for(unsigned mode=0;mode<4;++mode) {
+  RemakeMotionStream stream;stream.indices={0,1,2};
+  stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,20},{500,100,20},1,1,1},{{100,400,30},{100,400,30},1,1,1}};
+  for(unsigned y=0;y<480;++y)for(unsigned x=0;x<640;++x) {
+   const float b=(x+.5f+.75f-100)/400,c=(y+.5f-100)/300,a=1-b-c;
+   current[y*640+x]=std::clamp(projection(1/(a/10+b/20+c/30)),0.f,1.f);
+   const float pb=(x+.5f+(mode==3?6.f:.75f)-100)/400,pa=1-pb-c;
+   previous[y*640+x]=std::clamp(projection(1/(pa/10+pb/20+c/30)),0.f,1.f);
+  }
+  if(mode==1)previous[160*640+201]=1;
+  ComPtr<ID3D11ShaderResourceView> view;if(!idView(1,view,mode==2))return false;
+  RemakeRasterOutput output;
+  if(!raster.Render(surface.context.Get(),stream,current,previous,view.Get(),1,100,.0001f,0,output,error))return false;
+  std::uint32_t motion=0,bias=0,reason=0;
+  if(!read(output.textures[0].Get(),4,motion)||!read(output.textures[3].Get(),1,bias)
+   ||!read(output.textures[4].Get(),2,reason))return false;
+  const unsigned expected[]={0,6,5,6};
+  if(motion!=0||bias!=(mode?255u:0u)||reason!=expected[mode]) {
+   error="remake previous-footprint control failed mode="+std::to_string(mode)
+    +" reason="+std::to_string(reason)+" motion="+std::to_string(motion)+" bias="+std::to_string(bias);return false;
+  }
+ }
+ // Retained resource-owner validation must still reject a genuinely different
+ // device after accommodating a host's wrapped creation interface.
+ Surface foreign;if(!CreateSurface(false,foreign,error))return false;
+ D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
+ d.Format=DXGI_FORMAT_R16_UINT;d.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+ ComPtr<ID3D11Texture2D> foreignTexture;ComPtr<ID3D11ShaderResourceView> foreignView;
+ if(FAILED(foreign.device->CreateTexture2D(&d,nullptr,foreignTexture.GetAddressOf()))
+  ||FAILED(foreign.device->CreateShaderResourceView(foreignTexture.Get(),nullptr,foreignView.GetAddressOf())))return false;
+ RemakeMotionStream stream;stream.indices={0,1,2};
+ stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};
+ RemakeRasterOutput rejected;std::string reason;
+ if(raster.Render(surface.context.Get(),stream,current,previous,foreignView.Get(),1,100,.1f,0,rejected,reason)
+  ||reason!="remake-raster-previous-wrong-device"||rejected.textures[0]) {
+  error="remake raster foreign previous owner was not atomically rejected";return false;
  }
  return true;
 }

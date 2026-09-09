@@ -21,6 +21,10 @@ struct rend_context;
 
 namespace flycast::rend::neural {
 class RemakeOitEffects;
+// Only called inside the existing bounded synchronous preview capture.
+bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device*,ID3D11DeviceContext*,
+ const RemakeReturnedImage&,std::uint64_t current,std::uint64_t guidanceFrame,
+ const std::array<ID3D11Texture2D*,6>&,std::string& error);
 
 // Synchronous developer-only preview proof; caller bounds attempts and supplies
 // receipt-matched original surfaces. Not external neural provenance.

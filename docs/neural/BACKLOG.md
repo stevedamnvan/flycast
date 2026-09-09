@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Effects integration checkpoint: `bea3a75776be08c97817a5ee246542792c59a675` (LOG555-557). The bounded moving-capture/logging follow-up is a separate slice. Read actual HEAD on resume; builds are incremental, not fresh exact-SHA evidence.
+- GPU temporal integration checkpoint: `0cd0dad43517bd712570f0a8f5e423edb5edd48c` (LOG599-602), pushed to the fork. LOG603 onward records uncommitted capture/device-owner/depth-consistency follow-up. Read actual HEAD/status on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -56,6 +56,21 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
 
 ### Next-card bounds: FC-067 / M2-scene
+
+**Operational next action (LOG611):** checkpoint the corrected returned-scene
+guidance, then implement/run an exact-source moving reset-only versus temporal
+comparison with focused changed-guidance provenance. ch verifies58 accepted
+evaluations,57 history-enabled and34..50-percent trusted pixel coverage in three
+combat captures, with exact HUD/composition/Present checks. Both-surface shifted-
+slope and crossing/thin-surface/previous-ID/excessive-offset fixtures pass668/0;
+failed HLSL/early-return attempts remain recorded. Stop coverage-only tuning:
+more trusted pixels do not prove a visual win. The previous ce/cf sparse coverage
+is retained as rejected evidence. Do not redo camera anchor,
+CPU matcher, reference ownership or generic transport bring-up. Complete the
+serial four-build/commit checkpoint for the accumulated bounded follow-up.
+
+The paragraphs below retain dependency and experiment history; their older
+"next" instructions do not supersede the operational next action above.
 
 Current action after LOG582: alpha-material integration now passes28 exact-input
 marked/clean/OFF frames with source-qualified native exclusions and protected HUD.
@@ -106,6 +121,20 @@ plus three exact final captures. Next capture actual receipt-matched guidance
 surfaces, measure trusted/reactive coverage and compare moving reset-only versus
 temporal output with focused changed-guidance provenance. The connection now
 executes; visual improvement and full working-pipeline acceptance remain open.
+LOG603-605 add source-bound guidance captures and correct the host-wrapped device
+owner check (failed cd retained; ce zero rejects). Actual trusted coverage is
+only0.44..0.61 percent in three combat frames, despite58 accepted evaluations.
+Current next action: identify current-depth versus previous-ID/depth rejection
+with bounded raster-depth/reason surfaces and controlled sample-position fixtures;
+correct the demonstrated mismatch before claiming useful temporal quality.
+Do not loosen depth tolerances merely to increase counts.668/0 automation tests
+include foreign-device and wrong-source rejection; remaining build checkpoint
+and moving comparison remain open.
+LOG606-607 localize the dominant failure to current-depth consistency, affecting
+70..87 percent of pixels; uncovered geometry is only about2.3 percent. Global
+offset fitting failed and is retained. Next implement/test depth-sample footprint
+handling on analytic slopes with crossing/thin-surface negatives, then rerun
+moving coverage. Do not hard-code a fitted offset or relax a global tolerance.
 This transport seam alone cannot close M2-camera. Do not
 restart generic effects/provenance or diagnose intentional native weapon trails
 as ghosting. Preserve the explicit projected-depth approximation until evidence

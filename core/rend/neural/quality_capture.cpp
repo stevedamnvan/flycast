@@ -394,6 +394,53 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 
 } // namespace
 
+bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device* device,ID3D11DeviceContext* context,
+ const RemakeReturnedImage& source,std::uint64_t current,std::uint64_t guidanceFrame,
+ const std::array<ID3D11Texture2D*,6>& textures,std::string& error)
+{
+ try {
+  if(!root.is_absolute()||!source.frame||guidanceFrame!=source.frame||source.frame>current||current-source.frame>8) {
+   error="guidance capture source mismatch";return false;
+  }
+  const auto directory=root/("frame-"+std::to_string(source.frame)+"-present-"+std::to_string(current));
+  if(!std::filesystem::is_regular_file(directory/"preview.json")) {error="guidance capture missing preview";return false;}
+  const char* names[]={"guidance-motion","guidance-confidence","guidance-draw-id","guidance-bias","guidance-reason","guidance-raster-depth"};
+  const DXGI_FORMAT formats[]={DXGI_FORMAT_R16G16_FLOAT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R32_FLOAT};
+  RawTexture raw[6];
+  for(unsigned i=0;i<6;++i) {
+   if(!textures[i]){error="guidance capture missing surface";return false;}
+   D3D11_TEXTURE2D_DESC desc{};textures[i]->GetDesc(&desc);
+   if(desc.Width!=640||desc.Height!=480||desc.Format!=formats[i]){error="guidance capture format";return false;}
+   if(std::filesystem::exists(directory/(std::string(names[i])+".bin"))){error="guidance capture exists";return false;}
+   if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
+  }
+  std::size_t trusted=0,geometry=0,nonzero=0,invalid=0;float maximum=0;
+  for(std::size_t i=0;i<640*480;++i) {
+   std::uint16_t h[2],id;std::memcpy(h,raw[0].bytes.data()+i*4,4);std::memcpy(&id,raw[2].bytes.data()+i*2,2);
+   const float x=HalfToFloat(h[0]),y=HalfToFloat(h[1]);
+   const bool finite=std::isfinite(x)&&std::isfinite(y);
+   invalid+=!finite;geometry+=id!=0;trusted+=raw[3].bytes[i]==0&&raw[1].bytes[i]>=128;
+   nonzero+=finite&&(x!=0||y!=0);if(finite)maximum=(std::max)(maximum,std::hypot(x,y));
+  }
+  for(unsigned i=0;i<6;++i) {
+   std::ofstream out(directory/(std::string(names[i])+".bin"),std::ios::binary);
+   out.write(reinterpret_cast<const char*>(raw[i].bytes.data()),raw[i].bytes.size());out.close();
+   if(!out||!WritePng(directory/(std::string(names[i])+".png"),ToRgba(raw[i]),error))return false;
+  }
+  std::ofstream report(directory/"guidance.json");report.imbue(std::locale::classic());
+  report<<"{\"source_frame\":"<<source.frame<<",\"current_frame\":"<<current
+   <<",\"sequence\":"<<source.source.sequence<<",\"source_digest\":"<<source.source.digest
+   <<",\"width\":640,\"height\":480,\"trusted_pixels\":"<<trusted<<",\"geometry_pixels\":"<<geometry
+   <<",\"nonzero_motion_pixels\":"<<nonzero<<",\"invalid_motion_pixels\":"<<invalid
+   <<",\"maximum_motion_pixels\":"<<maximum
+   <<",\"binary_layout\":\"row-major little-endian: motion float16x2, confidence uint8 UNORM, draw-id uint16, bias uint8 UNORM, reason uint16, raster-depth float32\""
+   <<",\"reason_labels\":[\"trusted\",\"current-depth\",\"correspondence\",\"prior-clip\",\"outside-or-magnitude\",\"prior-id\",\"prior-depth\",\"uncovered\"]"
+   <<",\"synchronous_capture\":true,\"performance_eligible\":false}\n";
+  report.close();if(!report){error="guidance report write";return false;}
+  return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+
 bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* device,
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,

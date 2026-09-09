@@ -12,8 +12,8 @@ namespace flycast::rend::neural {
 // Isolated deferred-context work preserves the caller's graphics state. Output
 // ownership is explicit: retaining this object retains the corresponding draw IDs.
 struct RemakeRasterOutput {
- std::array<Microsoft::WRL::ComPtr<ID3D11Texture2D>,4> textures;
- std::array<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>,4> views;
+ std::array<Microsoft::WRL::ComPtr<ID3D11Texture2D>,6> textures;
+ std::array<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>,6> views;
 };
 class RemakeMotionRaster {
  template<class T> using Ptr=Microsoft::WRL::ComPtr<T>;
@@ -74,10 +74,6 @@ public:
    ||absoluteTolerance<0||relativeTolerance<0)return fail("remake-raster-input-bound");
   Ptr<ID3D11Device> owner;immediate->GetDevice(owner.GetAddressOf());
   if(owner.Get()!=device.Get())return fail("remake-raster-wrong-device");
-  if(previousDrawIds) {
-   owner.Reset();previousDrawIds->GetDevice(owner.GetAddressOf());
-   if(owner.Get()!=device.Get())return fail("remake-raster-previous-wrong-device");
-  }
   for(auto i:stream.indices)if(i>=stream.vertices.size())return fail("remake-raster-index");
   for(const auto& v:stream.vertices)
    if(!std::isfinite(v.currentScreen.x)||!std::isfinite(v.currentScreen.y)||!std::isfinite(v.currentScreen.z)
@@ -95,9 +91,9 @@ public:
    return SUCCEEDED(device->CreateTexture2D(&d,data?&initial:nullptr,tex.GetAddressOf()))
     &&(!view||SUCCEEDED(device->CreateShaderResourceView(tex.Get(),nullptr,view->GetAddressOf())));
   };
-  RemakeRasterOutput result;std::array<Ptr<ID3D11RenderTargetView>,4> targets;
-  constexpr DXGI_FORMAT formats[]={DXGI_FORMAT_R16G16_FLOAT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R8_UNORM};
-  for(unsigned i=0;i<4;++i)
+  RemakeRasterOutput result;std::array<Ptr<ID3D11RenderTargetView>,6> targets;
+  constexpr DXGI_FORMAT formats[]={DXGI_FORMAT_R16G16_FLOAT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R32_FLOAT};
+  for(unsigned i=0;i<6;++i)
    if(!texture(formats[i],D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE,nullptr,0,result.textures[i],&result.views[i])
     ||FAILED(device->CreateRenderTargetView(result.textures[i].Get(),nullptr,targets[i].GetAddressOf())))return fail("remake-raster-target");
   Ptr<ID3D11Texture2D> depth,current,previous;Ptr<ID3D11ShaderResourceView> currentView,previousView;
@@ -106,6 +102,17 @@ public:
    ||FAILED(device->CreateDepthStencilView(depth.Get(),nullptr,dsv.GetAddressOf()))
    ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,currentDepth.data(),640*4,current,&currentView)
    ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,previousDepth.data(),640*4,previous,&previousView))return fail("remake-raster-depth-create");
+  if(previousDrawIds) {
+   // A host may expose a wrapped creation device while resource GetDevice
+   // returns its underlying device. Compare resource-owner identities on both
+   // sides, not the view's owner against the creation interface pointer.
+   Ptr<ID3D11Device> priorOwner,currentOwner;
+   previousDrawIds->GetDevice(priorOwner.GetAddressOf());currentView->GetDevice(currentOwner.GetAddressOf());
+   Ptr<IUnknown> priorIdentity,currentIdentity;
+   if(!priorOwner||!currentOwner||FAILED(priorOwner.As(&priorIdentity))
+    ||FAILED(currentOwner.As(&currentIdentity))||priorIdentity.Get()!=currentIdentity.Get())
+    return fail("remake-raster-previous-wrong-device");
+  }
   auto buffer=[&](UINT flags,const void* data,UINT bytes,Ptr<ID3D11Buffer>& b) {
    D3D11_BUFFER_DESC d{};d.ByteWidth=bytes;d.Usage=D3D11_USAGE_IMMUTABLE;d.BindFlags=flags;
    D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=data;
@@ -118,10 +125,11 @@ public:
    ||!buffer(D3D11_BIND_CONSTANT_BUFFER,constants,sizeof(constants),contract))return fail("remake-raster-buffer");
   context->ClearState();
   const float zero[4]{},one[4]={1,1,1,1};
-  for(unsigned i=0;i<4;++i)context->ClearRenderTargetView(targets[i].Get(),i==3?one:zero);
+  const float uncovered[4]={7,7,7,7};
+  for(unsigned i=0;i<6;++i)context->ClearRenderTargetView(targets[i].Get(),i==4?uncovered:(i==3||i==5)?one:zero);
   context->ClearDepthStencilView(dsv.Get(),D3D11_CLEAR_DEPTH,1,0);
-  ID3D11RenderTargetView* rt[]={targets[0].Get(),targets[1].Get(),targets[2].Get(),targets[3].Get()};
-  context->OMSetRenderTargets(4,rt,dsv.Get());context->OMSetDepthStencilState(depthState.Get(),0);
+  ID3D11RenderTargetView* rt[]={targets[0].Get(),targets[1].Get(),targets[2].Get(),targets[3].Get(),targets[4].Get(),targets[5].Get()};
+  context->OMSetRenderTargets(6,rt,dsv.Get());context->OMSetDepthStencilState(depthState.Get(),0);
   context->RSSetState(raster.Get());const D3D11_VIEWPORT viewport={0,0,640,480,0,1};context->RSSetViewports(1,&viewport);
   ID3D11Buffer* vb=vertices.Get();UINT stride=sizeof(RemakeMotionVertex),offset=0;
   context->IASetVertexBuffers(0,1,&vb,&stride,&offset);context->IASetIndexBuffer(indices.Get(),DXGI_FORMAT_R32_UINT,0);

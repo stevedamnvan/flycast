@@ -1,5 +1,127 @@
 # Neural rendering evidence log
 
+LOG611 0cd0dad43 plus WIP: ch host/helper exit0; host SHA256
+015AC902C8E3672BE12FD7723D7B35FB35C11D65DE4EDA3B780C1AE02EC78E59.
+58 accepted retained evaluations2173..2242 (nonconsecutive),57 history-enabled,
+zero GPU-guidance rejections; all prior-reference joins exact. Three captures
+2175..2177 independently match guidance receipt/frame/digest and completed
+Presents, with exact HUD RGBA, world composite and backbuffer RGB. Raw trusted
+counts154555/105126/110070 (50.31/34.22/35.83 percent), geometry246357/220820/
+242576; all motion finite, all reactive motion zero. Maximum motion7.96/6.30/
+5.54 pixels. Previous-depth rejects5528/8956/3142 instead of cg's156k..174k.
+Viewed2175 mask shows coherent arena/floor coverage with fighters/edges largely
+reactive; final image retains source weapon/effect content and HUD. This is
+bounded functioning guidance, not proof of temporal image improvement, external
+output mutation under changed guidance, faithful style, performance or full
+pipeline acceptance. Stop coverage-only tuning here. Complete the serial build
+checkpoint, then exact-source moving reset-only versus temporal comparison and
+focused changed-guidance provenance. Preserve external config unchanged and
+native reset-only fallback. All captures remain synchronous/non-performance.
+Final serial automation/NGX/no-NGX/feature-off builds exit0; all three enabled
+selftest suites pass668/0 (remake-footprint-final-*). Backlog consistency passes.
+Checkpoint scope: ACCEPTED off-by-default source-owned guidance capture and
+sampling-consistency correction; visual-quality/provenance comparison remains
+open. No external binaries/configuration, user paths or private media are staged.
+
+LOG610 previous-footprint attempts retained: build1 succeeds but tests665/3 fail
+HLSL compilation with uninitialized-output diagnostics from early returns in the
+unrolled neighbor loop. Accumulate identity/depth predicates before returning.
+Build2/test2 then666/2 fail the neighboring-ID reason control; diagnostic build3
+confirms reactive output but reason6 instead of5. Remove the redundant center-ID
+early return before Jacobian validity and rely on the full3x3 identity check.
+Build4/test4 exit0,668/0 with exact reason assertions unchanged on both APIs.
+Shifted previous samples, neighbor-depth, neighbor-ID and excessive-shift controls
+now pass. Next ch combined gameplay with both footprint checks, unchanged global
+tolerances and source-owned history. No shader failure is a gameplay pass.
+
+LOG609 0cd0dad43 plus WIP: current-footprint build1/test1 exit0,668/0.
+cg host/helper exit0, three captures2165..2167 show trusted26705/20349/13477
+pixels (8.69/6.62/4.39 percent), up from the sparse strict-depth captures.
+Current-depth rejects fall to53715/77923/59110; previous-depth now dominates
+174241/156475/159781. No quality winner is claimed. Next extend the footprint
+to previous pixels using the analytic previous-position Jacobian, evaluating
+derivatives before divergent branches. Require all3x3 previous draw IDs to match
+and previous depth to follow that same plane; singular maps reject. Add shifted
+previous-slope positives and neighbor-depth, neighbor-ID and excessive-shift
+negatives before ch gameplay. Global view-depth tolerances remain unchanged.
+
+LOG608 0cd0dad43 plus WIP: implement bounded current-depth sample footprint
+on each triangle's projection-depth plane, requiring all3x3 returned neighbors
+to fit their corresponding plane intervals. Radius is one render pixel of local
+depth slope, not an increased global view-depth tolerance or claimed consumer
+jitter. Previous-ID/depth checks remain unchanged. Add both-surface analytic
+tests for a0.75px shifted sample on a sloped/deforming triangle, a neighboring
+crossing, one-pixel thin-surface isolation and a6px wrong-sample control. All
+must preserve reactive zero motion on wrong surfaces before live cg testing.
+
+LOG607 0cd0dad43 plus WIP: reason-build2/test2 exit0,668/0 including exact
+reason/depth GPU controls. cf host/helper exit0; staged host SHA256
+6BED4B6223B099A8B8EBBCEDF280C178A1A28A4E5476C1FBF6A356E449B4778A.
+Three complete reason/depth captures2164..2166: current-depth rejects
+216561/268335/262912 of307200 pixels, versus prior-ID58817/13333/17056 and
+prior-depth1867/472/947. Trusted1875/1359/1800 agrees with ce. Thus current-depth
+consistency is the dominant rejection, not missing mesh coverage (uncovered
+7030/7025/7030) or assignment alone. At smooth raster interiors,61k..63k rejected
+depth differences are below1e-6; other differences are materially larger.
+A robust global gradient/offset fit is NOT accepted: on two frames its median
+residual is worse than zero shift. Do not hard-code a fitted camera offset.
+For smooth nonflat interiors,91.0/92.8/95.5 percent of residuals fit within one
+pixel of local raster depth slope, versus59.9..63.1 percent within half a pixel.
+This suggests sample-footprint disagreement but is not proof of an undocumented
+runtime jitter. Next use analytic sloped-surface fixtures with displaced sample
+locations and crossing/thin-surface negatives to establish a bounded slope-aware
+depth consistency rule; keep sharp discontinuities and incorrect surface IDs
+reactive. Do not globally raise view-space tolerance or invent consumer jitter.
+
+LOG606 0cd0dad43 plus WIP: bounded guidance capture now retains independent
+per-pixel rejection categories and actual raster projection depth. Existing
+four neural outputs retain their semantics; extra developer-raster MRTs are
+not consumer parameters. Categories distinguish current-depth, correspondence,
+previous clip/bounds/identity/depth and uncovered pixels. Automation reason-build1
+and test1 exit0,668/0. Extend both-surface fixtures to assert the exact diagnostic
+category and raster depth for their controlled failures, then run cf unchanged
+depth tolerances. This finite diagnostic chooses the next actual integration
+correction; sparse ce coverage remains rejected as useful temporal quality.
+
+LOG605 0cd0dad43 plus WIP: corrected ce host/helper exit0; host SHA256
+92DD154168F985F4F85BBCCD9387BE0F870B81BEB8613DAA94284259A18DA79D.
+58 retained accepted evaluations2162..2231 (nonconsecutive),57 history-enabled,
+zero GPU-guidance rejects. Independently join all prior references to preceding
+accepted sources and all three captures2164..2166 to completed Presents. Exact
+HUD/world/backbuffer checks pass. Recompute raw guidance counts and receipt joins:
+trusted1875/1359/1800 pixels (0.61035/0.44238/0.58594 percent); visible geometry
+IDs83609/31840/37258. Motion finite throughout; every reactive pixel has zero
+motion. Viewed bias/ID images show sparse/stippled acceptance, mostly excluding
+fighters and floor. This is NOT useful temporal-quality acceptance. Returned
+depth medians about0.99 and75th percentiles about0.99849 do not by themselves
+identify the cause. Keep tolerances unchanged until distinguishing raster/depth
+sample disagreement from previous-ID/previous-depth rejection. Add a genuinely
+foreign-device previous-view control on both GPU surfaces: automation build/test
+remake-guidance-foreign-* exit0,668/0; source-mismatch capture controls also pass.
+ce logs archived uniquely after terminal checks. Next retain raster depth and
+rejection categories in bounded diagnostics, compare with actual returned depth
+on source-aligned moving geometry, and correct the demonstrated mismatch. Do not
+promote low coverage, loosen tolerances blindly or return to transport bring-up.
+
+LOG604 0cd0dad43 plus WIP: cd host/helper exit0 but coverage acceptance FAILS.
+Only one guidance capture (2171) exists, with zero trusted/moving pixels and38481
+geometry pixels. Logs identify remake-raster-previous-wrong-device rejects on
+subsequent evaluations; this is not valid temporal coverage evidence. The guard
+added after cc compared resource GetDevice to a wrapped creation-device pointer.
+Correct it to compare canonical IUnknown identities of prior/current resource
+owners, retaining wrong-device rejection. Do not remove the guard or infer that
+cd measured a useful temporal path. Raw failed run/logs remain retained. Next
+build/test the correction and rerun ce using unchanged supplied configuration.
+
+LOG603 0cd0dad43 plus WIP: post-commit four incremental builds and three666/0
+selftests passed. Next bound adds guidance readback only inside the existing
+three-frame synchronous preview capture, with exact displayed/accepted source
+equality. Retain raw half-float motion, confidence, uint16 draw IDs and bias plus
+visualizations and component counts. A mismatched owner must reject rather than
+attribute current guidance to an older displayed frame. Run cd live temporal
+combined gameplay, independently recompute counts and inspect spatial coverage.
+No per-frame ordinary readback, runtime/config change or quality promotion.
+
 LOG602 6cf1b2202 plus WIP: cc runs the connected TEMPORAL_RASTER combined OIT
 experiment, host/helper exit0. Staged host SHA256
 11F789EAC0496F9D8A3C53C9751EB38D3C7B1C1BDB62782AD158AAF81B01CA45.

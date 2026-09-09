@@ -3191,6 +3191,14 @@ void DX11Renderer::displayFramebuffer()
 				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections);
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
+			if(captured&&remakeDisplayedEvaluated&&remakeAcceptedRasterFrame) {
+				std::array<ID3D11Texture2D*,6> guidance{};
+				for(unsigned i=0;i<6;++i)guidance[i]=remakeAcceptedRaster.textures[i].Get();
+				const bool recorded=flycast::rend::neural::CaptureRemakeGuidance(directory,device,deviceContext,*previewSource,
+					currentNeuralSourceFrameId,remakeAcceptedRasterFrame,guidance,error);
+				NOTICE_LOG(RENDERER,"Remake guidance capture: source=%llu success=%d synchronous=true error=%s",
+					(unsigned long long)previewSource->frame,recorded,error.c_str());
+			}
 		}
 	}
 	neuralPerformance.Mark(deviceContext,

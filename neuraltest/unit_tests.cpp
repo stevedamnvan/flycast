@@ -1140,6 +1140,15 @@ int RunSelfTests()
 			std::cerr << error << '\n';
 	}
 	const DrawRecord base = BaseDraw();
+	{
+		RemakeReturnedImage returned;returned.frame=20;
+		std::array<ID3D11Texture2D*,6> surfaces{};std::string error;
+		const auto root=std::filesystem::temp_directory_path();
+		suite.Expect(!CaptureRemakeGuidance(root,nullptr,nullptr,returned,21,19,surfaces,error)
+			&&error=="guidance capture source mismatch","guidance capture rejects previous-owner surface before readback");
+		suite.Expect(!CaptureRemakeGuidance(root,nullptr,nullptr,returned,19,20,surfaces,error)
+			&&error=="guidance capture source mismatch","guidance capture rejects future displayed source before readback");
+	}
 	for(bool on12:{false,true}) {
 		std::string error;
 		const bool valid=RunRemakeMotionRasterFixture(on12,error);

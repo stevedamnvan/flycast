@@ -1,5 +1,24 @@
 # Neural diagnostics
 
+FLYCAST_REMAKE_TEMPORAL_RASTER=1 enables the off-by-default returned-scene GPU
+motion experiment, requiring TEMPORAL_PREPARE plus the existing anchored live
+combined route. It is not native PVR guidance or a faithful-default promotion.
+Previous geometry, depth and draw IDs belong to the last accepted evaluation.
+The current fixed640x480 diagnostic pass retains two extra reason/depth surfaces;
+its allocation costs are not performance acceptance. Public settings and external
+consumer configuration are unchanged.
+
+Within the existing bounded FLYCAST_REMAKE_PREVIEW_CAPTURE only, a matching
+accepted/displayed source writes guidance-motion/confidence/draw-id/bias/reason/
+raster-depth .bin and .png files beside preview.json, plus guidance.json with
+frame/receipt IDs and component counts. Raw rows are packed little-endian:
+motion float16x2, confidence and bias uint8 UNORM, IDs/reasons uint16, raster
+projection depth float32. PNG motion is a visualization, not numeric truth.
+Reasons:0 trusted,1 current-depth mismatch,2 correspondence rejected,3 invalid
+previous clip,4 outside/magnitude,5 previous-ID mismatch,6 previous-depth mismatch,
+7 uncovered. Readback is synchronous and excluded from performance. Missing or
+wrong-source guidance rejects; an enabled-history log alone is not coverage proof.
+
 FLYCAST_REMAKE_EFFECT_IDENTITY=1 opts into synchronous native OIT effect identity
 evidence. With native effects and evaluated preview capture it writes
 native-effect-identity.bin (EFI1 header, word count, canonical little-endian

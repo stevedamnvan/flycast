@@ -1,5 +1,29 @@
 # Neural rendering decisions
 
+## D-188: depth consistency uses the triangle's bounded sampling footprint
+
+Strict center-depth comparison rejected70..87 percent of pixels in cf despite
+only about2.3 percent uncovered raster geometry. A fitted global camera offset
+did not explain the error and was rejected. Compare returned depth against the
+triangle's local projection-depth plane over a one-render-pixel footprint, with
+all3x3 neighboring depths required to follow that plane. This is an experimental
+sampling-uncertainty bound, not a claim about undocumented consumer jitter.
+Do not increase the global view-depth tolerance. For previous-frame checks,
+transform the depth slope through the previous-position Jacobian, account for
+the sampled pixel center and require every neighboring draw ID to match the
+assigned previous draw. Singular mappings, crossings, missing IDs and isolated
+thin surfaces remain reactive. All derivatives precede divergent rejection;
+avoid the redundant early center-ID return that failed the neighboring-ID
+fixture. Keep all falsifying shader/fixture attempts in LOG609-610.
+Current-footprint cg increases trusted coverage to4.4..8.7 percent; this does not
+prove image quality. Acceptance of a visual improvement requires the moving
+comparison and changed-guidance provenance, not more trusted pixels alone.
+
+Retained-view device validation compares canonical identities of resource-owner
+devices on both sides. A host-wrapped creation interface is not comparable by
+raw pointer to a view's GetDevice result. cd failed under that incorrect check;
+ce fixes it and both GPU surfaces still reject a genuinely foreign-device view.
+
 ## D-187: returned geometry drives isolated temporal guidance
 
 Reuse minimum-cost draw assignment with exact full-generation/topology/UV/color
