@@ -34,9 +34,10 @@ void Texture(std::ostream& out,const BaseTextureCacheData* texture) {
  out << ",\"rtt_generation\":" << texture->rttGeneration << '}';
 }
 }
-bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& ctx,
+static bool ValidateContext(const rend_context& ctx,
  const std::array<float,16>& viewport,std::uint64_t frame,
- const std::string& game,std::string& error) {
+ const std::string& game,std::vector<bool>& vertexRanges,
+ std::size_t& nonfinitePositions,std::size_t& nonfiniteReferences,std::string& error) {
  // Bounds checked before building any output. At most 32 MiB serialized text.
  const auto draws=ctx.global_param_op.size()+ctx.global_param_pt.size()+ctx.global_param_tr.size();
  if(ctx.isRTT||frame==0||game.empty()||game.size()>256||ctx.verts.size()>65536
@@ -44,18 +45,18 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
   error="pvr-packet-identity-or-bound";return false;
  }
  for(float v:viewport) if(!std::isfinite(v)) {error="pvr-packet-viewport";return false;}
- std::size_t nonfinitePositions=0;
+ nonfinitePositions=0;
  for(const auto& v:ctx.verts)
   if(!std::isfinite(v.x)||!std::isfinite(v.y)||!std::isfinite(v.z)) ++nonfinitePositions;
  for(auto index:ctx.idx) if(index!=0xffffffffu&&index>=ctx.verts.size()) {
   error="pvr-packet-index";return false;
  }
- std::size_t nonfiniteReferences=0;
+ nonfiniteReferences=0;
  for(auto index:ctx.idx) if(index!=0xffffffffu) {
   const auto& v=ctx.verts[index];
   if(!std::isfinite(v.x)||!std::isfinite(v.y)||!std::isfinite(v.z)) ++nonfiniteReferences;
  }
- std::vector<bool> vertexRanges(ctx.global_param_tr.size());
+ vertexRanges.assign(ctx.global_param_tr.size(),false);
  RenderPass previous{};
  size_t sortedEnd=0;
  for(const auto& pass:ctx.render_passes) {
@@ -99,6 +100,65 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
   }
   ++validationList;
  }
+ return true;
+}
+bool SnapshotPvrScenePacket(const rend_context& ctx,const std::array<float,16>& viewport,
+ std::uint64_t frame,const std::string& game,PvrDecodedPacket& output,std::string& error) {
+ std::vector<bool> ranges;std::size_t nonfinite=0,references=0;
+ if(!ValidateContext(ctx,viewport,frame,game,ranges,nonfinite,references,error))return false;
+ if(references||ctx.modtrig.size()>65536||ctx.framebufferWidth>4096||ctx.framebufferHeight>2160) {
+  error="pvr-snapshot-unsupported-or-bound";return false;
+ }
+ PvrDecodedPacket result;result.frame=frame;result.game=game;result.gitSha=GIT_HASH;
+ result.viewport=viewport;result.framebufferSize={ctx.framebufferWidth,ctx.framebufferHeight};
+ result.clearFramebuffer=ctx.clearFramebuffer;result.vertices=ctx.verts;result.indices=ctx.idx;
+ result.sortedTriangles=ctx.sortedTriangles;result.sortedOrderCaptured=true;
+ result.unusedNonfinite=static_cast<std::uint32_t>(nonfinite);
+ result.modifierTriangles=static_cast<std::uint32_t>(ctx.modtrig.size());
+ result.omissions={"texture-pixels","fog-and-global-register-state","retained-framebuffer-pixels",
+  "offscreen-culled-geometry","game-camera-and-lights","modifier-volume-geometry","Naomi2-matrices-and-lights"};
+ const auto texture=[](const BaseTextureCacheData* t)->std::optional<PvrCapturedTexture> {
+  if(!t)return std::nullopt;
+  PvrCapturedTexture r;r.upload=t->Updates;r.rtt=t->rttGeneration;
+  if(t->tcw.PixelFmt==PixelPal4||t->tcw.PixelFmt==PixelPal8)r.palette=t->palette_hash;
+  return r;
+ };
+ unsigned listId=0;
+ for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr}) {
+  for(std::size_t i=0;i<list->size();++i) {
+   const auto& p=(*list)[i];PvrCapturedDraw d;d.list=listId;d.ordinal=static_cast<std::uint32_t>(i);
+   d.vertexRange=listId==2&&ranges[i];d.state=p;d.texture=texture(p.texture);d.texture1=texture(p.texture1);
+   d.state.texture=nullptr;d.state.texture1=nullptr;result.draws.push_back(d);
+  }
+  ++listId;
+ }
+ for(const auto& p:ctx.render_passes)result.passes.push_back({p.op_count,p.pt_count,p.tr_count,p.mvo_count,p.sorted_tr_count,p.autosort,p.z_clear});
+ output=std::move(result);error.clear();return true;
+}
+bool PvrSnapshotTextureBindingsMatch(const rend_context& ctx,const PvrDecodedPacket& packet) {
+ const auto matches=[](const BaseTextureCacheData* live,const std::optional<PvrCapturedTexture>& saved) {
+  if(!live)return !saved;
+  if(!saved||saved->upload!=live->Updates||saved->rtt!=live->rttGeneration)return false;
+  const bool paletted=live->tcw.PixelFmt==PixelPal4||live->tcw.PixelFmt==PixelPal8;
+  return paletted ? saved->palette && *saved->palette==live->palette_hash : !saved->palette;
+ };
+ std::size_t index=0;unsigned listId=0;
+ for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr}) {
+  for(std::size_t ordinal=0;ordinal<list->size();++ordinal) {
+   if(index>=packet.draws.size())return false;
+   const auto& d=packet.draws[index++];const auto& live=(*list)[ordinal];
+   if(d.list!=listId||d.ordinal!=ordinal||d.state.texture||d.state.texture1||
+      d.state.tcw.full!=live.tcw.full||d.state.tcw1.full!=live.tcw1.full||
+      !matches(live.texture,d.texture)||!matches(live.texture1,d.texture1))return false;
+  }
+  ++listId;
+ }
+ return index==packet.draws.size();
+}
+bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& ctx,
+ const std::array<float,16>& viewport,std::uint64_t frame,const std::string& game,std::string& error) {
+ std::vector<bool> vertexRanges;std::size_t nonfinitePositions=0,nonfiniteReferences=0;
+ if(!ValidateContext(ctx,viewport,frame,game,vertexRanges,nonfinitePositions,nonfiniteReferences,error))return false;
  std::ostringstream out;out.imbue(std::locale::classic());
  out << "{\"schema\":\"flycast-pvr-scene-v2\",\"git_sha\":\"" << GIT_HASH
   << "\",\"frame_id\":" << frame << ",\"game_id\":";String(out,game);

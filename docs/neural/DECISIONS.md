@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-144: owned projected snapshots at the bounded capture boundary
+
+SnapshotPvrScenePacket shares range validation with the existing writer, owns
+geometry/pass metadata and texture-generation values, and clears raw texture
+pointers. QualityCaptureWriter publishes one frame-qualified render-thread-only
+view after its capture success path, invalidating it on the next capture or
+configuration change. This is not an asynchronous resource lease or live Remix
+provider. LOG481-483 exercise actual Soulcalibur capture, returned frame identity,
+current texture bindings and deliberately incorrect upload/RTT metadata.
+Unknown camera, missing texture pixels and other omissions remain explicit.
+Do not forward this projected packet as recovered world geometry. The next
+provider must attach witnessed live transform/camera lineage, not replay the
+offline three-frame composition or invent projection truth.
+
 ## D-143: preserve game-authored temporal effects
 
 User correction: do not classify apparent weapon trails, afterimages or blended

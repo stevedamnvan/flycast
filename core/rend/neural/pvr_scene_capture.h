@@ -39,6 +39,12 @@ struct PvrDecodedPacket {
  // This remains a projected packet, never a recovered world/camera scene.
 };
 // Bounded decoder, not renderer activation. Leaves output unchanged on failure.
+// Caller owns the render context and texture-cache lifetime throughout the copy.
+// Copies metadata only, clears raw texture pointers; no camera reconstruction.
+bool SnapshotPvrScenePacket(const rend_context&, const std::array<float,16>&,
+ std::uint64_t, const std::string&, PvrDecodedPacket&, std::string& error);
+// Same owned render-thread boundary only; validates both texture slots.
+bool PvrSnapshotTextureBindingsMatch(const rend_context&, const PvrDecodedPacket&);
 bool ReadPvrScenePacket(const std::filesystem::path&, std::uint64_t expectedFrame,
  const std::string& expectedGame, PvrDecodedPacket&, std::string& error);
 // Developer capture only. No pointers or texture contents are serialized.

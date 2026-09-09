@@ -142,6 +142,53 @@ integration. Do not extrapolate raster lag to public Remix-output readback.
 LOG473 completes incremental checkpoint regression. Next verify raytraced
 attribute/frame correspondence with controlled evidence and then connect the
 supported live scene route; preserve D-143 and do not repeat raster-only proof.
+LOG474 red/green vertex markers visibly reach the corresponding raytraced
+frames, establishing bounded current attribute response but not exact color
+semantics or temporal fidelity. Next quantify response/interpretation and
+advance the supported live scene connection; markers are diagnostic only.
+LOG475 live-source audit makes the next dependency explicit: current40-mesh
+input is offline composition of transform-tape/ledger evidence for1782-1784.
+Do not feed those recorded packets as purported live gameplay. Next build a
+bounded in-memory PVR snapshot seam retaining frame/game/pass/texture-generation
+identity, then connect witnessed live transform/camera lineage for the supported
+title/domain. Unknown camera or missing lineage must remain native fallback.
+This is a dependency of M2-scene, not permission to claim recovered world space
+or replace the requested live pipeline with an offline replay viewer.
+LOG476 adds shared-validation owned SnapshotPvrScenePacket, with automation
+selftest345/345 including mutation/atomic-rejection controls. Next expand
+texture-generation/pass/bound tests, hook the snapshot behind an explicit
+developer option at the owned live renderer seam, then connect supported
+transform/camera lineage. No raw texture pointers may cross the ownership seam.
+LOG477 adds bound/nonfinite/pass/frame/sorted-order tests; automation350/350.
+Next dedicated texture-generation fixture and bounded live capture hook; no
+texture-lifetime or live-hook pass is implied by existing no-texture fixtures.
+LOG478 wires snapshot publication into existing opt-in bounded capture only,
+with frame-qualified render-thread accessor and invalidation. Automation build
+and350 selftests pass; actual game hook/accessor lifecycle and texture-generation
+fixtures remain next, followed by broader regression and live camera lineage.
+LOG479 fixes publication before final completion-file failure and adds unavailable/
+failed-capture accessor checks; automation352/352. Actual successful GPU capture,
+forced final-write failure, and texture-cache generation ownership remain unrun.
+LOG480 actual3-frame game capture completes but carries stale configure-time
+version stamp. Reconfigure/rebuild then repeat with correct source provenance
+before checkpoint acceptance; do not relabel old capture metadata. Working-tree
+changes must remain explicitly distinguished from the base commit.
+LOG481 restamped working-tree native replay capture succeeds for1782-1784,
+correct base8c5cd655e, clean close and real textured packets. Snapshot capture
+path exercised, but direct accessor/generation-lifetime tests remain pending.
+Native image retains bright weapon effect/HUD/shadows; preserve D-143.
+LOG482 actual post-capture accessor and texture metadata match live cache on
+all3 frames, wrong-frame requests rejected, log retained. Next falsifying
+generation/pointer controls and full snapshot checkpoint; positive logging is
+not yet an automated fail-closed gate or asynchronous lifetime validation.
+LOG483 actual3-frame upload/RTT corruption controls rejected; exact3-row log
+assertion passes with positive bindings/frame checks. Next complete snapshot
+checkpoint regression and live transform/camera provider; palette-specific and
+async resource retirement remain explicitly unproven, not reasons to repeat
+the unchanged upload/RTT controls.
+LOG484 completes snapshot checkpoint: four incremental builds,Python331,
+SDK179,3x352 selftests. Advance witnessed live transform/camera provider;
+snapshot ownership scope does not satisfy recovered geometry or M4 presentation.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

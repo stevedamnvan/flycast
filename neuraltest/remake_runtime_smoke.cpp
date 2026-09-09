@@ -63,7 +63,7 @@ int wmain(int argc,wchar_t** argv) {
  bool retainedTriangles=false;
  bool rebuiltFrozen=false,settledFrozen=false;
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
- bool legacyBackbuffer=false,legacyRaster=false;
+ bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -76,7 +76,9 @@ int wmain(int argc,wchar_t** argv) {
   legacyBackbuffer=captureOption==L"--capture-d3d9-backbuffer"||legacyRaster;
   legacyFrozenAttributes=captureOption==L"--capture-d3d9-scene-frozen-attributes"||captureOption==L"--capture-d3d9-scene-raster-frozen";
   if(legacyFrozenAttributes&&argc!=18)return 2;
-  legacyGame=captureOption==L"--capture-d3d9-scene"||legacyFrozenAttributes||legacyRaster;
+  legacyColorMarker=captureOption==L"--capture-d3d9-scene-color-marker";
+  if(legacyColorMarker&&argc!=18)return 2;
+  legacyGame=captureOption==L"--capture-d3d9-scene"||legacyFrozenAttributes||legacyRaster||legacyColorMarker;
   legacyDynamic=captureOption==L"--capture-d3d9-dynamic"||legacyFrozen||legacyBackbuffer||legacyGame;
   if(legacyDynamic&&!legacyGame&&argc!=7)return 2;
   if(legacyGame&&argc!=14&&argc!=18)return 2;
@@ -259,6 +261,11 @@ int wmain(int argc,wchar_t** argv) {
     if(outcome)break;
    }
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
+   if(legacyColorMarker&&frame>=61) {
+    const auto color=frame==61?0xffff0000u:0xff00ff00u;
+    for(auto& mesh:packet.meshes)for(auto& vertex:mesh.vertices)vertex.publicColor=color;
+    std::cerr<<"diagnostic_color_marker="<<(frame==61?"red":"green")<<" source_frame="<<packet.frame<<" not_quality_evidence=true\n";
+   }
    if(skinning || affineReference || materialReplace || materialRepeat || gradientReference)packet.camera.position.x=0;
    if(gradientReference)for(auto& mesh:packet.meshes) {
     mesh.material->albedo={1,1,1};

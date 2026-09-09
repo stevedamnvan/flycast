@@ -2076,11 +2076,38 @@ void DX11Renderer::captureNeuralQualityFrame()
 	if (!captured)
 		WARN_LOG(RENDERER, "Neural quality capture failed: %s", error.c_str());
 	else if (afterCount != beforeCount)
+	{
+		if (textures.pvrPacketRequested) {
+			const auto frame = neuralQualityCaptureMetadata.frameId;
+			const auto* snapshot = neuralQualityCapture.CapturedPvrSnapshot(frame);
+			const bool valid = snapshot && textures.pvrContext
+				&& snapshot->game == settings.content.gameId
+				&& !neuralQualityCapture.CapturedPvrSnapshot(frame + 1)
+				&& flycast::rend::neural::PvrSnapshotTextureBindingsMatch(*textures.pvrContext, *snapshot);
+			bool wrongUploadRejected = false, wrongRttRejected = false;
+			if (valid) {
+				flycast::rend::neural::PvrDecodedPacket altered;
+				altered.draws = snapshot->draws; // Validator reads bindings only; never alter live cache.
+				for (auto& draw : altered.draws) if (draw.texture) {
+					draw.texture->upload ^= 1u;
+					wrongUploadRejected = !flycast::rend::neural::PvrSnapshotTextureBindingsMatch(*textures.pvrContext, altered);
+					draw.texture->upload ^= 1u;
+					draw.texture->rtt ^= 1u;
+					wrongRttRejected = !flycast::rend::neural::PvrSnapshotTextureBindingsMatch(*textures.pvrContext, altered);
+					break;
+				}
+			}
+			NOTICE_LOG(RENDERER, "PVR owned snapshot: frame=%llu bindings=%s wrong-frame-rejected=%s wrong-upload-rejected=%s wrong-rtt-rejected=%s",
+				static_cast<unsigned long long>(frame), valid ? "verified" : "FAILED",
+				neuralQualityCapture.CapturedPvrSnapshot(frame + 1) ? "no" : "yes",
+				wrongUploadRejected ? "yes" : "no-or-unavailable", wrongRttRejected ? "yes" : "no-or-unavailable");
+		}
 		NOTICE_LOG(RENDERER,
 			"Neural quality capture: game=%s frame=%llu captured=%u submit=%s synchronous-developer-only",
 			settings.content.gameId.c_str(),
 			static_cast<unsigned long long>(neuralQualityCaptureMetadata.frameId),
 			afterCount, neuralQualityCaptureMetadata.submitStatus.c_str());
+	}
 }
 
 void DX11Renderer::captureNeuralLateOverlayFrame()

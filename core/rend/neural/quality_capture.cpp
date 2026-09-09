@@ -397,6 +397,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 		&& lateOverlayProof == lateOverlayProof_)
 		return;
 	root_ = root;
+	pvrSnapshot_.reset();
 	skip_ = skip;
 	limit_ = (std::min)(limit, 240u);
 	lateOverlayProof_ = lateOverlayProof;
@@ -539,6 +540,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	const QualityCaptureMetadata& metadata, const QualityCaptureTextures& textures,
 	std::string& error)
 {
+	pvrSnapshot_.reset();
 	if (!WantsFrame()) return true;
 	if (seen_++ < skip_) return true;
 	if (textures.pvrPacketRequested && !textures.pvrContext)
@@ -560,6 +562,12 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	std::error_code ec;
 	std::filesystem::create_directories(frameRoot, ec);
 	if (ec) { error = "cannot create capture directory: " + ec.message(); return false; }
+	std::optional<PvrDecodedPacket> pendingSnapshot;
+	if (textures.pvrContext) {
+		pendingSnapshot.emplace();
+		if (!SnapshotPvrScenePacket(*textures.pvrContext, textures.pvrViewport,
+			metadata.frameId, metadata.gameId, *pendingSnapshot, error)) return false;
+	}
 	if (textures.pvrContext && !WritePvrScenePacket(frameRoot / "pvr-scene.json",
 		*textures.pvrContext, textures.pvrViewport, metadata.frameId, metadata.gameId, error))
 		return false;
@@ -609,7 +617,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 			for (size_t i = 0; i < native.pixels.size(); i += 4)
 				if (std::memcmp(native.pixels.data() + i, rgba.pixels.data() + i, 4) != 0) ++differences[lane];
 			for (size_t i = 0; i < native.pixels.size(); ++i)
-				maxChannelDelta[lane] = std::max(maxChannelDelta[lane], static_cast<unsigned>(std::abs(int(native.pixels[i]) - int(rgba.pixels[i]))));
+				maxChannelDelta[lane] = (std::max)(maxChannelDelta[lane], static_cast<unsigned>(std::abs(int(native.pixels[i]) - int(rgba.pixels[i]))));
 			if (!WritePng(frameRoot / names[lane], rgba, error)) return false;
 			if (lane == 0) decodedImage = rgba;
 			if (lane == 3) for (size_t i = 0; i < rgba.pixels.size(); i += 4)
@@ -910,6 +918,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 			<< ",\n  \"status\": \"complete\"\n}\n";
 		if (!complete) { error = "failed writing capture completion marker"; return false; }
 	}
+	pvrSnapshot_ = std::move(pendingSnapshot);
 	return true;
 }
 

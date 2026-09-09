@@ -3,6 +3,7 @@
 
 #include "neural_frame.h"
 #include "producer_identity.h"
+#include "pvr_scene_capture.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 
@@ -130,8 +131,14 @@ public:
 		ID3D11DeviceContext *context, ID3D11Texture2D *presented,
 		std::uint64_t frameId, const Rect& contentRect, std::string& error);
 	std::uint32_t CapturedCount() const noexcept { return captured_; }
+	// Render-thread-only borrowed view; invalidated by Configure or next Capture.
+	// A captured projected packet, not a recovered camera/world scene.
+	const PvrDecodedPacket* CapturedPvrSnapshot(std::uint64_t frame) const noexcept {
+		return pvrSnapshot_ && pvrSnapshot_->frame==frame ? &*pvrSnapshot_ : nullptr;
+	}
 
 private:
+	std::optional<PvrDecodedPacket> pvrSnapshot_;
 	std::filesystem::path root_;
 	std::uint32_t skip_ = 0;
 	std::uint32_t limit_ = 0;

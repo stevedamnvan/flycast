@@ -105,6 +105,7 @@ int RunSelfTests()
 	}
 	{
 		QualityCaptureWriter capture;
+		suite.Expect(capture.CapturedPvrSnapshot(1)==nullptr,"quality snapshot initially unavailable");
 		capture.Configure("capture-a", 0, 2);
 		suite.Expect(capture.CapturesCurrentFrame() && capture.ConsumeCaptureStart()
 			&& !capture.ConsumeCaptureStart(),
@@ -116,6 +117,13 @@ int RunSelfTests()
 		suite.Expect(!capture.CapturesCurrentFrame() && !capture.ConsumeCaptureStart(),
 			"quality capture does not reset during skipped warm-up frames");
 		capture.Configure("capture-c", 0, 2);
+		std::string snapshotError;
+		QualityCaptureTextures missingTextures;
+		QualityCaptureMetadata missingMetadata;missingMetadata.frameId=17;
+		suite.Expect(!capture.Capture(nullptr,nullptr,missingMetadata,missingTextures,snapshotError)
+			&&capture.CapturedPvrSnapshot(17)==nullptr&&capture.CapturedPvrSnapshot(16)==nullptr,
+			"quality failed capture exposes no requested or stale snapshot");
+		capture.Configure("capture-d", 0, 2);
 		suite.Expect(capture.ConsumeCaptureStart(),
 			"new quality capture configuration rearms its temporal reset");
 	}
@@ -1441,6 +1449,34 @@ int RunSelfTests()
 			+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".json");
 		std::string error;
 		suite.Expect(WritePvrScenePacket(path,ctx,viewport,7,"fixture",error),"PVR packet bounded export");
+		PvrDecodedPacket live;
+		suite.Expect(SnapshotPvrScenePacket(ctx,viewport,7,"fixture",live,error)
+			&&live.frame==7&&live.vertices.size()==3&&live.draws.size()==1
+			&&!live.draws[0].state.texture&&live.indices==ctx.idx,"PVR live snapshot owned metadata");
+		ctx.verts[1].x=9;
+		suite.Expect(live.vertices[1].x==1.25f,"PVR snapshot survives source mutation");
+		ctx.verts[1].x=1.25f;
+		ctx.isRTT=true;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot RTT rejection preserves previous output");
+		ctx.isRTT=false;ctx.idx[0]=99;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot invalid index rejected atomically");
+		ctx.idx[0]=0;
+		const auto savedWidth=ctx.framebufferWidth;ctx.framebufferWidth=4097;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot framebuffer bound preserves prior output");
+		ctx.framebufferWidth=savedWidth;
+		ctx.verts[0].x=std::numeric_limits<float>::quiet_NaN();
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot referenced nonfinite rejected");
+		ctx.verts[0].x=0;
+		const auto savedPass=ctx.render_passes[0];ctx.render_passes[0].op_count=2;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,8,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot invalid pass coverage rejected");
+		ctx.render_passes[0]=savedPass;
+		suite.Expect(!SnapshotPvrScenePacket(ctx,viewport,0,"fixture",live,error)&&live.frame==7,
+			"PVR snapshot zero frame rejected");
 		std::ifstream file(path,std::ios::binary);
 		const std::string contents((std::istreambuf_iterator<char>(file)),{}); file.close();
 		suite.Expect(contents.find("\"camera_provenance\":\"unknown\"")!=std::string::npos
@@ -1514,6 +1550,10 @@ int RunSelfTests()
 		ctx.render_passes[0].tr_count=1;ctx.render_passes[0].sorted_tr_count=1;
 		ctx.render_passes[0].autosort=true;
 		const bool sortedWritten=WritePvrScenePacket(path,ctx,viewport,7,"fixture",error);
+		suite.Expect(SnapshotPvrScenePacket(ctx,viewport,9,"fixture",live,error)
+			&&live.draws[1].vertexRange&&live.sortedTriangles.size()==1
+			&&live.sortedTriangles[0].first==3&&live.passes[0].autosort,
+			"PVR snapshot owns sorted translucent range semantics");
 		suite.Expect(sortedWritten,"PVR sorted source vertex range is not an index range");
 		suite.Expect(sortedWritten&&ReadPvrScenePacket(path,7,"fixture",decoded,error)
 			&&decoded.draws[1].vertexRange&&decoded.draws[1].state.first==4
