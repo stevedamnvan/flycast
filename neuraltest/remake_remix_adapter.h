@@ -10,7 +10,7 @@ namespace neuraltest::remake {
 // A submission failure requires discarding the entire frame, not presentation.
 class RemixScene {
 public:
- explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false, bool dimLightControl=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning), dimLightControl_(dimLightControl) {}
+ explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false, bool dimLightControl=false, bool vertexColorControl=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning), dimLightControl_(dimLightControl), vertexColorControl_(vertexColorControl) {}
  ~RemixScene();
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
@@ -22,7 +22,7 @@ public:
  Result Redraw(const Camera&);
  Result RedrawSyntheticSkinning(const Camera&,float apexOffset);
  Result RedrawSyntheticAffine(const Camera&);
- Result RedrawSyntheticMaterial(const Camera&,bool replace);
+ Result RedrawSyntheticMaterial(const Camera&,bool replace,const std::filesystem::path& texture={});
 private:
  Result SubmitChecked(const Packet&, std::uint64_t, const std::string&, bool diagnostic);
  bool diagnostic_ = false;
@@ -34,6 +34,7 @@ private:
  bool reverseLightControl_=false; // Explicit diagnostic direction, not recovered game lighting.
  bool syntheticSkinning_=false;
  bool dimLightControl_=false;
+ bool vertexColorControl_=false;
  std::array<float,3> skinWeights_{1,1,1};
  std::array<std::uint32_t,3> skinIndices_{0,1,2};
  std::array<remixapi_Transform,3> skinTransforms_{};

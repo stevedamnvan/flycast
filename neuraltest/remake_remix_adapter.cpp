@@ -117,19 +117,25 @@ Result RemixScene::RedrawSyntheticAffine(const Camera& camera) {
  }
  return Redraw(camera);
 }
-Result RemixScene::RedrawSyntheticMaterial(const Camera& camera,bool replace) {
+Result RemixScene::RedrawSyntheticMaterial(const Camera& camera,bool replace,const std::filesystem::path& texture) {
  if(!ready_ || diagnostic_ || packet_.game!="synthetic-overlap" || meshes_.size()!=2)
   return {false,"synthetic-material-only"};
  auto check=packet_;check.camera=camera;
+ if(!texture.empty())for(auto& mesh:check.meshes) {
+  mesh.material->sourceDds=texture;mesh.material->sourceColorExperiment=true;
+ }
  const auto valid=ReadyForAdapter(check,check.frame,check.game);
  if(!valid.ok)return valid;
  for(std::size_t i=0;i<materials_.size();++i) {
   remixapi_MaterialInfoOpaqueEXT opaque{};
   opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
-  opaque.albedoConstant={.7f,.02f,.02f};opaque.opacityConstant=1;
+  opaque.albedoConstant=texture.empty()?remixapi_Float3D{.7f,.02f,.02f}:remixapi_Float3D{1,1,1};opaque.opacityConstant=1;
   opaque.roughnessConstant=.8f;opaque.alphaTestType=7;
   remixapi_MaterialInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;
   info.pNext=&opaque;info.hash=packet_.meshes[i].id;
+  if(!texture.empty()) {
+   texturePaths_[i]=texture.wstring();info.albedoTexture=texturePaths_[i].c_str();
+  }
   const auto expected=materials_[i];
   if(replace) {
    if(api_.DestroyMaterial(expected)!=REMIXAPI_ERROR_CODE_SUCCESS) {
@@ -165,10 +171,22 @@ Result RemixScene::DrawFrame(const Camera& input) {
   remixapi_InstanceInfo instance{}; instance.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO;
   instance.mesh=meshes_[i]; instance.doubleSided=1;
   remixapi_InstanceInfoBoneTransformsEXT bones{};
+  remixapi_InstanceInfoBlendEXT blend{};
   if(syntheticSkinning_) {
    bones.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT;
    bones.boneTransforms_values=skinTransforms_.data();bones.boneTransforms_count=3;
    instance.pNext=&bones;
+  }
+  if(vertexColorControl_) {
+   // Pinned public surface_shared.h enums, not D3DTOP numeric values:
+   // RtTextureArgSource Texture=1,VertexColor0=2; Modulate=3,SelectArg1=1.
+   blend.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;
+   blend.pNext=instance.pNext;instance.pNext=&blend;
+   blend.textureColorArg1Source=1;blend.textureColorArg2Source=2;
+   blend.textureColorOperation=3;
+   blend.textureAlphaArg1Source=1;blend.textureAlphaOperation=1;
+   blend.tFactor=0xffffffff;blend.writeMask=15;
+   blend.isVertexColorBakedLighting=0;
   }
   for(int row=0;row<3;++row) for(int col=0;col<4;++col)
    instance.transform.matrix[row][col]=(*packet_.meshes[i].transform)[row*4+col];

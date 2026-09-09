@@ -19,6 +19,7 @@ struct Calls {
  float cameraX=0;
  float expectedLightZ=1;
  bool skinning=false;
+ bool vertexBlend=false;
  float expectedApex=0;
  float expectedRadiance=3;
  std::uint32_t expectedColor=0xffffffffu;
@@ -73,8 +74,19 @@ remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
 }
 remixapi_ErrorCode REMIXAPI_CALL draw(const remixapi_InstanceInfo* p) {
  ++calls.draws;
+ const void* next=p->pNext;
+ if(calls.vertexBlend) {
+  const auto* blend=static_cast<const remixapi_InstanceInfoBlendEXT*>(next);
+  calls.valid &= blend&&blend->sType==REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BLEND_EXT;
+  if(blend) {
+   calls.valid &= blend->textureColorArg1Source==1&&blend->textureColorArg2Source==2
+    &&blend->textureColorOperation==3&&blend->textureAlphaOperation==1
+    &&blend->writeMask==15&&!blend->isVertexColorBakedLighting;
+   next=blend->pNext;
+  }
+ }
  if(calls.skinning) {
-  const auto* b=static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(p->pNext);
+  const auto* b=static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(next);
   calls.valid &= b&&b->sType==REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT
    && b->boneTransforms_count==3&&b->boneTransforms_values[2].matrix[0][3]==calls.expectedApex;
  }
@@ -126,13 +138,18 @@ int main() {
   words[27]=0x1000;words[32]=28;words[33]=3;words[35]=1;words[37]=0xff0000ff;
   auto write=[&](std::size_t bytes) {std::ofstream f(path,std::ios::binary);f.write(reinterpret_cast<const char*>(words.data()),bytes);};
   write(152);
-  calls={};calls.expectedPath=path.wstring();
+  calls={};calls.expectedPath=path.wstring();calls.materialHandlesByHash=true;
   {
    auto p=Synthetic();for(auto& m:p.meshes){m.material->sourceDds=path;m.material->sourceColorExperiment=true;}
    RemixScene scene(interface());
    expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"valid DDS path reaches material API");
    for(auto& m:p.meshes)m.material->sourceDds.clear();
    expect(calls.observedPath&&std::wstring(calls.observedPath)==calls.expectedPath,"adapter owns path after caller mutation");
+   expect(scene.RedrawSyntheticMaterial(p.camera,true,path).ok&&calls.meshes==2&&calls.valid,
+    "validated texture replacement preserves mesh handles and path");
+   const auto count=calls.materials;
+   expect(!scene.RedrawSyntheticMaterial(p.camera,true,dir/"missing.dds").ok&&calls.materials==count,
+    "missing replacement texture rejected before mutation");
   }
   auto p=Synthetic();p.meshes[0].material->sourceDds=path;p.meshes[0].material->sourceColorExperiment=true;
   {
@@ -309,6 +326,12 @@ int main() {
    expect(!scene.Redraw(p.camera).ok,"failed replacement cannot resume stale scene");
   }
   expect(calls.freedMaterials==(returnHandle?3:2),"replacement failure owns only live returned handles");
+ }
+ calls={};calls.skinning=true;calls.vertexBlend=true;
+ { RemixScene scene(interface(),false,false,true,false,true);auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"explicit vertex blend preserves bone extension chain");
+  calls.expectedApex=.5f;
+  expect(scene.RedrawSyntheticSkinning(p.camera,.5f).ok&&calls.valid,"vertex blend retained through skinning redraw");
  }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";

@@ -70,7 +70,18 @@ LOG447 proves synthetic retained-mesh constant material destroy/recreate visibly
 updates; duplicate registration correctly leaves old color. LOG448-449 close
 scoped failure-ownership/mock regression (SDK157,Python316,3x331 selftests,four
 builds). Next dynamic texture/attribute representation plus actual retained
-fighter geometry. Constant tint does not solve per-vertex attributes.
+fighter geometry. LOG450 proves a first texture-backed replacement on retained
+synthetic geometry versus duplicate-register control; SDK159 plus chart test
+pass. Full regression remains pending. Next within-triangle source-attribute
+representation and bounded texture lifetime; constant tint is insufficient.
+LOG452 falsifies default texture/vertex gradient equivalence: vertex reference
+renders gray. LOG453 restores gradient via explicit public BlendEXT; texture
+comparison PSNR55.23 vs23.12 without blend. Next actual scene color policy and
+bounded dynamic-attribute representation; retain no-blend negative control.
+LOG455 exercises explicit source color on actual40-mesh H/L/M sequence with
+three readbacks; moving-fighter trails remain. Next retain real triangle geometry
+while representing changing source attributes; color contract is no longer
+blocked on proving visible vertex modulation. Do not repeat static color proof.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

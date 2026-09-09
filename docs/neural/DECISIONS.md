@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-139: explicit source-color modulation, not inferred baked-light removal
+
+LOG452 proves that HardcodedVertex color transport alone is insufficient:
+the synthetic direct-color reference renders gray with default instance state.
+Pinned public surface_shared.h defines Texture1,VertexColor0=2,Modulate3 and
+SelectArg1=1; these are not D3DTOP numeric constants. LOG453 supplies BlendEXT
+explicitly and restores the gradient, with no-blend as the falsifying control.
+Preserve any bone extension when adding blend state. Setting the public
+isVertexColorBakedLighting field false makes this an explicit modulation
+experiment; it does not extract physical albedo or remove baked game lighting.
+
+LOG455 exposes --capture-source-color only for artifact captures, retaining
+the same explicit reverse light as the existing composed-scene control.
+Normal production/default harness behavior is unchanged. Actual source colors
+are visible but isolated-geometry history still trails; do not promote color
+transport, still-image metrics or a three-frame capture to gameplay acceptance.
+
 ## D-138: explicit diagnostic material replacement and affine transport
 
 LOG443-446 support float32 per-triangle affine position/normal transport on
