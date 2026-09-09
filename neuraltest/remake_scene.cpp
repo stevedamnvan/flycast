@@ -58,7 +58,8 @@ float tangent(const Camera& c) { return std::tan(c.fovY * 0.008726646259971648f)
 Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, const Limits& limits) {
  if (p.version != 1) return {false, "schema"};
  if (p.frame != frame || p.game != game || p.game.empty() || p.game.size() > 64) return {false, "identity"};
- if (p.space != Space::World && p.space != Space::View && p.space != Space::PvrProjected) return {false, "space"};
+ if (p.space != Space::World && p.space != Space::View && p.space != Space::PvrProjected
+  && p.space != Space::SampledAnchor) return {false, "space"};
  if (p.camera.provenance != Provenance::Unknown && p.camera.provenance != Provenance::Supplied
   && p.camera.provenance != Provenance::Analytic) return {false, "provenance"};
  if (p.truncated) return {false, "truncated"};
@@ -103,11 +104,16 @@ Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, c
  }
  return {true, "valid-packet-not-scene-proof"};
 }
-Result ReadyForAdapter(const Packet& p, std::uint64_t frame, const std::string& game) {
+static Result ReadyForScene(const Packet& p, std::uint64_t frame, const std::string& game, bool diagnostic) {
  auto result = Validate(p, frame, game); if (!result.ok) return result;
  if (p.camera.provenance == Provenance::Unknown) return {false, "projection-unknown"};
- if (p.space != Space::World) return {false, "world-space-required"};
- if (!p.omissions.empty()) return {false, "incomplete-scene"};
+ if (diagnostic) {
+  if(p.space!=Space::SampledAnchor || p.camera.provenance!=Provenance::Supplied || p.omissions.empty())
+   return {false,"diagnostic-provenance-required"};
+ } else {
+  if (p.space != Space::World) return {false, "world-space-required"};
+  if (!p.omissions.empty()) return {false, "incomplete-scene"};
+ }
  for (const auto& m : p.meshes) {
   if (!m.transform) return {false, "transform-unknown"};
   // M1 accepts baked world-space meshes with an explicit identity transform.
@@ -140,7 +146,14 @@ Result ReadyForAdapter(const Packet& p, std::uint64_t frame, const std::string& 
    if (!finite(s) || s.z < p.camera.nearPlane || s.z > p.camera.farPlane) return {false, "clip-unsupported"};
   }
  }
- return {true, "synthetic-untextured-adapter-ready"};
+ return {true, diagnostic?"diagnostic-only-ready":"synthetic-untextured-adapter-ready"};
+}
+Result ReadyForAdapter(const Packet& p,std::uint64_t frame,const std::string& game) {
+ return ReadyForScene(p,frame,game,false);
+}
+Result ReadyForDiagnosticAdapter(const Packet& p,std::uint64_t frame,const std::string& game,bool clips) {
+ if(!clips)return {false,"diagnostic-clips-not-declared"};
+ return ReadyForScene(p,frame,game,true);
 }
 std::vector<std::uint32_t> Triangles(const Mesh& m) {
  std::vector<std::uint32_t> out;

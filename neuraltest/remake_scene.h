@@ -9,7 +9,7 @@
 
 namespace neuraltest::remake {
 struct Vec3 { float x = 0, y = 0, z = 0; };
-enum class Space { World, View, PvrProjected };
+enum class Space { World, View, PvrProjected, SampledAnchor };
 enum class Provenance { Unknown, Supplied, Analytic };
 enum class Topology { Triangles, Strip };
 struct Camera {
@@ -66,6 +66,9 @@ struct Result { bool ok; std::string reason; };
 Result Validate(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame,
  const Limits& = {});
 Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);
+// Explicit diagnostic route; camera clips are caller-supplied, not recovered.
+Result ReadyForDiagnosticAdapter(const Packet&, std::uint64_t, const std::string&,
+ bool callerSuppliedClips);
 std::vector<std::uint32_t> Triangles(const Mesh&);
 struct FlatNormalMesh {
  Mesh mesh;

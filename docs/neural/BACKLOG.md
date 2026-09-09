@@ -54,10 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: implement separate sampled diagnostic submission under
-D-133, sharing safety checks but retaining ordinary world/omission rejection.
-Keep sampled coordinates, caller clip provenance and exclusions across redraw;
-do not relabel/clear them to pass ReadyForAdapter. LOG386 tests actual
+Current next action: checkpoint/exact-verify the diagnostic entry point, then
+connect bounded prepared artifact ingestion to it for the real-runtime harness.
+LOG389 implements D-133 with sampled coordinates/clip declaration and retained
+omissions across redraw; no ordinary readiness bypass. LOG386 tests actual
 H containment for caller range0.1..104; source game clips remain null.
 LOG385 falsifies Synthetic far100
 on17 H vertices; native depth clipping is disabled. Do not equate a diagnostic

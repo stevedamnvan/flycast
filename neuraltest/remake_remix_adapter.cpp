@@ -9,8 +9,17 @@ RemixScene::~RemixScene() {
  for (auto m:materials_) if (m && api_.DestroyMaterial) api_.DestroyMaterial(m);
 }
 Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::string& game) {
+ return SubmitChecked(p,frame,game,false);
+}
+Result RemixScene::SubmitDiagnostic(const Packet& p,std::uint64_t frame,const std::string& game,bool clips) {
+ if(!clips)return {false,"diagnostic-clips-not-declared"};
+ return SubmitChecked(p,frame,game,true);
+}
+Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std::string& game,bool diagnostic) {
  if (attempted_) return {false,"single-use-adapter"};
- auto checked=ReadyForAdapter(p,frame,game); if (!checked.ok) return checked;
+ auto checked=diagnostic?ReadyForDiagnosticAdapter(p,frame,game,true):ReadyForAdapter(p,frame,game);
+ if (!checked.ok) return checked;
+ diagnostic_=diagnostic;
  if (!api_.CreateMaterial || !api_.DestroyMaterial || !api_.CreateMesh || !api_.DestroyMesh
   || !api_.CreateLight || !api_.DestroyLight || !api_.DrawLightInstance || !api_.SetupCamera || !api_.DrawInstance)
   return {false,"incomplete-public-interface"};
@@ -70,7 +79,8 @@ Result RemixScene::Submit(const Packet& p, std::uint64_t frame, const std::strin
 Result RemixScene::Redraw(const Camera& camera) {
  if(!ready_) return {false,"no-complete-scene"};
  auto check=packet_; check.camera=camera;
- const auto valid=ReadyForAdapter(check,check.frame,check.game);
+ const auto valid=diagnostic_?ReadyForDiagnosticAdapter(check,check.frame,check.game,true)
+  :ReadyForAdapter(check,check.frame,check.game);
  if(!valid.ok) return valid;
  const auto drawn=DrawFrame(camera);
  ready_=drawn.ok;
@@ -96,6 +106,6 @@ Result RemixScene::DrawFrame(const Camera& input) {
   if(api_.DrawInstance(&instance)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"draw-instance-discard-frame"};
  }
  if(api_.DrawLightInstance(light_)!=REMIXAPI_ERROR_CODE_SUCCESS) return {false,"draw-light-discard-frame"};
- return {true,"api-submitted-not-rendered-or-presented"};
+ return {true,diagnostic_?"diagnostic-api-submitted-not-rendered-or-presented":"api-submitted-not-rendered-or-presented"};
 }
 }

@@ -15,9 +15,14 @@ public:
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
  Result Submit(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);
+ Result SubmitDiagnostic(const Packet&, std::uint64_t, const std::string&, bool callerSuppliedClips);
+ bool IsDiagnostic() const { return diagnostic_; }
+ const std::vector<std::string>& RetainedOmissions() const { return packet_.omissions; }
  // Reuse the immutable submitted geometry; only the explicitly supplied camera changes.
  Result Redraw(const Camera&);
 private:
+ Result SubmitChecked(const Packet&, std::uint64_t, const std::string&, bool diagnostic);
+ bool diagnostic_ = false;
  Result DrawFrame(const Camera&);
  Packet packet_;
  bool ready_ = false;

@@ -80,6 +80,27 @@ int main() {
  auto counts=TestSceneContract();
  auto expect=[&](bool v,const char* name) {++(v?counts.passed:counts.failed); std::cout<<(v?"PASS ":"FAIL ")<<name<<'\n';};
  {
+  auto p=Synthetic();p.space=Space::SampledAnchor;p.camera.provenance=Provenance::Supplied;
+  p.omissions={"sample coverage only","game clips unknown"};
+  expect(!ReadyForAdapter(p,p.frame,p.game).ok,"ordinary adapter rejects sampled diagnostic");
+  calls={};RemixScene scene(interface());
+  expect(scene.SubmitDiagnostic(p,p.frame,p.game,false).reason=="diagnostic-clips-not-declared"
+   && calls.materials==0,"diagnostic clips require explicit declaration");
+  expect(scene.SubmitDiagnostic(p,p.frame,p.game,true).reason=="diagnostic-api-submitted-not-rendered-or-presented"
+   && scene.IsDiagnostic() && scene.RetainedOmissions()==p.omissions,"diagnostic submission retains limitations");
+  auto camera=p.camera;camera.position.x=.1f;
+  expect(scene.Redraw(camera).ok && scene.IsDiagnostic() && scene.RetainedOmissions()==p.omissions,
+   "diagnostic redraw retains provenance and omissions");
+  camera.provenance=Provenance::Analytic;const int before=calls.cameras;
+  expect(!scene.Redraw(camera).ok && calls.cameras==before,"diagnostic redraw cannot silently change provenance");
+  auto bad=p;bad.omissions.clear();
+  expect(!ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).ok,"diagnostic limitations cannot be erased");
+  bad=p;bad.meshes[0].vertices[0].normal.reset();
+  expect(ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).reason=="normal-unknown","diagnostic preserves normal safety");
+  bad=p;bad.camera.farPlane=1;
+  expect(ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).reason=="clip-unsupported","diagnostic excludes invalid clips");
+ }
+ {
   const auto dir=std::filesystem::temp_directory_path()/
    ("flycast-dds-test-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
   if(!std::filesystem::create_directory(dir))return 1;
