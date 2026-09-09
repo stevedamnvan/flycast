@@ -83,13 +83,15 @@ and unprotected mismatches and same-frame native-target preservation. Actual
 mask coverage1004/1659/1004 pixels is HUD outlines, not full HUD acceptance.
 LOG517 captured-atlas classification is now verified on the three moving frames:
 coverage21771/22451/21765 and zero composite mismatches/native-target changes.
-Visible transparent-quad native-background rectangles remain. Next correct the
-overlay mask's alpha coverage using the actual blend semantics. Preserve the
-captured-atlas bounds and generic/unknown-title behavior; wrong texture, region,
+LOG518 blend-scoped zero-alpha discard now removes969/1071/1052 unnecessary
+mask pixels with exact remaining composite pixels and unchanged native targets.
+Timer/header rectangles remain; full layer-separated HUD acceptance is pending.
+Do not widen punch-through/additive discard without evidence or stall every
+integration step on the remaining rectangles. Preserve captured-atlas bounds
+and generic/unknown-title behavior; wrong texture, region,
 depth, RTT and title controls already pass. Capture moving comparisons and
 report alpha-boundary/background preservation, not just masked-pixel equality.
-Then
-move frame-qualified return handling before the existing DX11 protected
+Next move frame-qualified return handling before the existing DX11 protected
 overlay pass without substituting the incomplete
 temple for full gameplay. Retain native fallback and explicit diagnostic labels;
 move the supported feed off capture into an asynchronous/budgeted ordinary-frame

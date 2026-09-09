@@ -409,6 +409,10 @@ PSO main(in Pixel inpix)
 #endif
 	pso.z = log2(1.0f + max(w, -0.999999f)) / 34.0f;
 	#if NEURAL_EXPORT == 1
+	// In source-alpha HUD replay, fully transparent samples contribute nothing.
+	// Discard preserves previously accumulated coverage beneath this sample.
+	if (neuralOverlayMask > 1.5f && color.a <= 0.f)
+		discard;
 	float2 candidateMotion = inpix.neuralScreen.zw - inpix.neuralScreen.xy;
 	float magnitudeSquared = dot(candidateMotion, candidateMotion);
 	float trusted = step(.9999f, inpix.neuralPositionValid)
@@ -418,7 +422,7 @@ PSO main(in Pixel inpix)
 	pso.confidence = neuralConfidence * trusted;
 	pso.drawId = neuralDrawId;
 	pso.previousDrawId = trusted >= .5f ? neuralPreviousDrawId : 0;
-	pso.overlayMask = neuralOverlayMask;
+	pso.overlayMask = saturate(neuralOverlayMask);
 	#else
 	pso.col = color;
 	#endif

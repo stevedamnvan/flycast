@@ -2762,6 +2762,11 @@ void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride
 		const int overlayPolicy = std::clamp(config::NeuralOverlayPolicy.get(), 0, 2);
 		constants.neuralOverlayMask = overlayPolicy == 0
 			&& neuralInstrumentation.IsOverlayOrdinal(ordinal) ? 1.f : 0.f;
+		// Mode2 is alpha-aware coverage only for ordinary source-alpha HUD replay.
+		// Other blend modes may contribute even with zero alpha.
+		if(neuralReactiveCoverageActive && constants.neuralOverlayMask>0.f
+			&& gp->tsp.SrcInstr==4 && gp->tsp.DstInstr==5)
+			constants.neuralOverlayMask=2.f;
 		if (neuralReactiveCoverageActive)
 		{
 			constants.neuralConfidence = 0.f;

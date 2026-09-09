@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-154: zero-alpha discard is blend-scoped, not universal transparency policy
+
+For classified overlay draws replayed through normal SrcAlpha/InvSrcAlpha
+reactive coverage, mode2 discards samples whose final shaded alpha is zero.
+This preserves coverage already beneath a noncontributing sample. Saturate
+the mode to a binary output mask. Opaque, punch-through, additive and unknown
+blend paths keep existing semantics; zero alpha alone cannot prove no color
+contribution for arbitrary blend modes. This changes guidance only, not native
+color. Partial alpha remains conservatively protected, not layer-separated.
+
+Actual alpha-a captures remove969/1071/1052 mask pixels but retain timer/header
+background rectangles. Do not claim all rectangles came from translucent
+zero-alpha samples or widen punch-through discard speculatively. Keep this
+visible defect open alongside pre-Present ownership/full-scene work; do not
+make another unbounded mask-polishing phase a prerequisite for all integration.
+
 ## D-153: captured Soulcalibur HUD identity is separate from temporal history
 
 The existing T1401N profile now has narrow captured-atlas rules for header,
