@@ -135,6 +135,20 @@ D3D11On12. This is reset-only, not temporal-quality acceptance. Next run the
 supplied external consumer through this changed route with focused provenance;
 then replace reset-only guidance with verified returned-surface correspondence
 and move the feed off synchronous capture. Do not repeat public connection proof.
+First supplied-consumer attempt nr-on-a failed to deliver Remix packets: capture
+skip counts eligible captures, whereas marker IDs include menu-bypassed renderer
+frames. Native-input markers are not combined proof. Add explicit bounded
+--start-frame renderer-ID capture scheduling, preserving default skip semantics,
+then rerun1782-1784. No bypass disabling or exact-input relaxation.
+LOG524 rerun delivered packets but fails combined acceptance: first two replies
+late, third wholly empty, helper shutdown watchdog124. Also renderer1782 maps
+to game producer1829 versus baseline1781. Next align actual producer identity
+and isolate returned-output/dual-runtime failure. Reject empty paired output;
+do not treat the existing native-input markers as combined provenance.
+Immediate discriminator: render the retained failing packet alone and with the
+external host active, preserving identical scene bytes and no config edits.
+The swapchain warning also exists in a successful run; do not chase it alone.
+Retained-packet comparison is explicitly diagnostic, not live-source acceptance.
 do not repeat old Gate10 transport or native polarity fixtures.
 Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed

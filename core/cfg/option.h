@@ -492,6 +492,7 @@ extern Option<int> NeuralDlssPreset;
 extern OptionString NeuralCaptureDirectory;
 extern Option<int> NeuralCaptureFrames;
 extern Option<int> NeuralCaptureSkip;
+extern Option<int> NeuralCaptureStartFrame;
 extern Option<bool> NeuralCapturePvrPacket;
 extern Option<bool> NeuralCapturePvrReplay;
 extern Option<bool> NeuralCapturePvrMaterials;

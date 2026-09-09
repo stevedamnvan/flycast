@@ -123,7 +123,8 @@ public:
 	};
 
 	void Configure(const std::filesystem::path& root, std::uint32_t skip,
-		std::uint32_t limit, bool lateOverlayProof = false);
+		std::uint32_t limit, bool lateOverlayProof = false, std::uint64_t startFrame = 0);
+	void SetSourceFrame(std::uint64_t frame) noexcept { sourceFrame_ = frame; }
 	bool WantsFrame() const noexcept;
 	bool CapturesCurrentFrame() const noexcept;
 	// Returns true once, immediately before the first retained frame. The
@@ -167,6 +168,7 @@ private:
 	std::uint32_t skip_ = 0;
 	std::uint32_t limit_ = 0;
 	std::uint32_t seen_ = 0;
+	std::uint64_t sourceFrame_ = 0, startFrame_ = 0;
 	std::uint32_t captured_ = 0;
 	std::uint32_t lateOverlayCaptured_ = 0;
 	std::uint64_t previousFrameId_ = 0;

@@ -50,6 +50,7 @@ void Usage()
 		"neuraltest production-scaling --game PATH --flycast EXE --input-replay FILE --out DIR [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--frames 1] [--skip N] [--base-height 480] [--timeout-ms N]\n"
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
+		"capture scheduling: --start-frame 1..10000000 overrides eligible-frame --skip; renderer IDs do not imply matching game-producer identity\n"
 		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
 		"neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id ID --first N --frames 1..30 --fov-deg 30..100 (offline approximation, NOT Remix/DLSS5)\n"
 		"neuraltest material-contract --out NEW_DIR (native texture/mip/palette GPU readback fixture)\n"
@@ -839,10 +840,11 @@ int CaptureCommand(const Args& args)
 	}
 	std::string error;
 	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
-		evidenceFrames = 0, evidenceStartFrame = 0;
+		evidenceFrames = 0, evidenceStartFrame = 0, captureStartFrame = 0;
 	std::uint32_t captureSaveAfter = 0, captureLoadDelay = 30;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
 		|| !Number(args, "--skip", 0, skip, error)
+		|| !Number(args, "--start-frame", 0, captureStartFrame, error) || captureStartFrame > 10000000
 		|| !Number(args, "--savestate-roundtrip-after", 0, captureSaveAfter, error) || captureSaveAfter > 10000
 		|| !Number(args, "--savestate-load-delay", 30, captureLoadDelay, error) || captureLoadDelay == 0 || captureLoadDelay > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -1067,6 +1069,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureDirectory='" + output.wstring() + L"'"
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
+		+ L",config:rend.NeuralCaptureStartFrame=" + std::to_wstring(captureStartFrame)
 		+ L",config:rend.NeuralSaveStateAfter=" + std::to_wstring(captureSaveAfter)
 		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(captureLoadDelay)
 		+ (captureSaveAfter ? L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'" : L"")
@@ -1237,6 +1240,7 @@ int CaptureCommand(const Args& args)
 		<< "\",\n  \"render_height\": " << renderHeight
 		<< ",\n  \"evidence_frames\": " << evidenceFrames
 		<< ",\n  \"evidence_start_frame\": " << evidenceStartFrame
+		<< ",\n  \"capture_start_frame\": " << captureStartFrame
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
 		<< ",\n  \"evidence_presentation\": \"" << evidencePresentation << "\""
 		<< ",\n  \"evidence_marker\": \"" << evidenceMarker << "\""

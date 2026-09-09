@@ -1,5 +1,15 @@
 # Neural diagnostics
 
+For exact renderer-ID intervals use `neuraltest capture --start-frame N`
+(positive, at most10000000). This overrides eligible-capture `--skip` counting
+without disabling menu/2D bypass. Default0 retains existing skip semantics.
+The reset is consumed before the first eligible capture at/after that renderer
+ID; an ineligible target still bypasses rather than forcing neural evaluation.
+Pair it with the same `--evidence-start-frame` for changed-route provenance.
+Renderer IDs can themselves differ from the game producer ordinal after backend
+startup gaps. Always compare producer epoch/ordinal/cycle and exact inputs;
+--start-frame is scheduling, not a declaration of cross-mode source identity.
+
 ## Returned scene submission experiment
 
 `FLYCAST_REMAKE_INPUT_TEST=1` adds a bounded capture-only submission test to the

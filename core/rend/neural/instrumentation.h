@@ -27,6 +27,7 @@ public:
 
 	void SetEnabled(bool enabled) noexcept;
 	bool IsEnabled() const noexcept { return enabled_; }
+	std::uint64_t NextFrameId() const noexcept { return frameId_; }
 	void Discontinuity() noexcept;
 	void SetOverlayGameId(std::string_view gameId) noexcept;
 	const NeuralFrame& CaptureGeometry(const ::rend_context& context, TextureRef color,

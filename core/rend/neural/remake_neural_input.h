@@ -20,6 +20,10 @@ inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
   || image.width!=640 || image.height!=480 || image.bgra.size()!=640*480*4
   || image.projectionDepth.size()!=640*480 || !std::isfinite(image.nearPlane)
   || !std::isfinite(image.farPlane) || !(image.nearPlane>0 && image.farPlane>image.nearPlane)) return false;
+ // A wholly zero color/depth readback is an absent-output diagnostic, not a
+ // usable near-plane scene. Do not reject legitimately black opaque images.
+ if(std::none_of(image.bgra.begin(),image.bgra.end(),[](unsigned char v){return v!=0;})
+  &&std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v==0;}))return false;
  RemakeNeuralInput candidate;
  candidate.rgba=image.bgra;
  candidate.invertedDepth.reserve(image.projectionDepth.size());

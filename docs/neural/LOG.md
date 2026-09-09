@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG524 final checks: all four serial incremental builds and enabled497/497
+selftests pass; SDK193/193, Python333/333 passed before final help/empty guard.
+Byte inspection confirms all1228800 color bytes and all1228800 depth bytes of
+nr-on-b frame1784 are zero. The swapchain warning also occurs in successful
+input-on12-a, so it does not discriminate failure. No helper process remains.
+Configuration hash is unchanged. Next replay the retained failing packet alone
+versus concurrent active host to distinguish source validity from coexistence;
+that replay must be labeled a diagnostic, never purported live gameplay.
+
+LOG524 nr-on-b is NOT ACCEPTED: absolute renderer scheduling produces three
+capture packages and source deliveries, but first two returned pairs miss the
+10s developer wait and frame1784's returned color/depth are all zero. The helper
+publishes all three then exits124 at shutdown watchdog; Flycast exits0/clean-close3.
+Its public log contains a D3D9 invalid swapchain-handle warning; cause unproven.
+Old/new Flycast logs append, so preserve nr-on-a archive and delimit rerun records
+before any confirmation. No external image promoted. Renderer frame1782 maps
+to producer1829/cycle7738677632 versus public baseline producer1781/cycle7605222912:
+renderer-ID alignment alone does NOT establish identical game inputs. Added
+rejection of the wholly zero color+depth pattern, preserving opaque black scenes.
+Next exact producer alignment plus isolated concurrent-runtime failure, not an
+unchanged retry or weaker provenance. Supplied config hash remains unchanged.
+
+#524 2026-09-09 96c704fc6 plus working tree | Reconfigured automation to correct previously stale embedded58fba7087 SHA to96c704fc6; rebuilt and492/492 tests passed. Used existing unchanged hook-enabled stage; host positively reports EnableHooks=2 and tuple off/1/1/203/0/0/enabled. nr-on-a FAILS combined validation: source capture times out exit1, Remix consumer times out waiting for source exit2; three native-input marker Presents are1024/1024 but NOT combined proof. Cause: eligible capture skip1780 is delayed by neural menu bypass, unlike absolute evidence frame1782. Added explicit --start-frame renderer-ID threshold; default skip and conservative bypass unchanged. Four new reset/scheduling controls pass, automation496/496. nr-on-b rerun targets1782-1784 and is pending. Both runs use unchanged supplied text config, original hash222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC verified after first run; only owned executables staged locally. No private binary inspection/config edit. Source, host and failure logs retained. Other configurations and final combined provenance remain pending.
+
 LOG523 final metadata clarification rebuilt successfully in all four serial
 incremental configurations; enabled selftests492/492 each. An early log read
 found two not-yet-created test logs while the verified build process was live;

@@ -249,6 +249,8 @@ int RunSelfTests()
 			image.projectionDepth.assign(640*480,.75f);image.projectionDepth[0]=0;image.projectionDepth[1]=1;
 			image.nearPlane=receivedPacket.camera.nearPlane;image.farPlane=receivedPacket.camera.farPlane;
 			RemakeNeuralInput converted;
+			wrong=image;std::fill(wrong.bgra.begin(),wrong.bgra.end(),0);std::fill(wrong.projectionDepth.begin(),wrong.projectionDepth.end(),0);
+			suite.Expect(!BuildRemakeNeuralInput(wrong,image.frame,image.producer,converted),"remake input rejects wholly empty color and depth readback");
 			image.bgra[0]=11;image.bgra[1]=22;image.bgra[2]=33;image.bgra[3]=44;
 			suite.Expect(BuildRemakeNeuralInput(image,image.frame,image.producer,converted)
 				&&converted.rgba[0]==33&&converted.rgba[1]==22&&converted.rgba[2]==11&&converted.rgba[3]==44
@@ -497,6 +499,16 @@ int RunSelfTests()
 		capture.Configure("capture-d", 0, 2);
 		suite.Expect(capture.ConsumeCaptureStart(),
 			"new quality capture configuration rearms its temporal reset");
+		capture.Configure("capture-absolute", 9999, 2, false, 1782);
+		capture.SetSourceFrame(1781);
+		suite.Expect(!capture.CapturesCurrentFrame()&&!capture.ConsumeCaptureStart(),"absolute capture waits for renderer frame");
+		capture.SetSourceFrame(1782);
+		suite.Expect(capture.CapturesCurrentFrame()&&capture.ConsumeCaptureStart(),"absolute capture ignores bypass-dependent skip count");
+		capture.Configure("capture-absolute", 9999, 2, false, 1782);
+		suite.Expect(!capture.ConsumeCaptureStart(),"same absolute capture cannot rearm reset");
+		capture.Configure("capture-absolute", 9999, 2, false, 1783);
+		capture.SetSourceFrame(1783);
+		suite.Expect(capture.ConsumeCaptureStart(),"changed absolute target rearms capture reset");
 	}
 	{
 		const auto defaultOrigin = GetEvidenceMarkerOrigin(640, 480, false);

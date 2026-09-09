@@ -1731,7 +1731,8 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
-		config::NeuralLateOverlayProof.get());
+		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())));
+	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId());
 	if (neuralQualityCapture.ConsumeCaptureStart())
 	{
 		neuralInstrumentation.Discontinuity();
@@ -2232,7 +2233,8 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
-		config::NeuralLateOverlayProof.get());
+		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())));
+	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId());
 	neuralQualityCaptureGpuTimer.Configure(device, synchronousCapture);
 	neuralQualityCaptureGpuTimer.BeginFrame(deviceContext,
 		neuralQualityCapture.CapturesCurrentFrame());

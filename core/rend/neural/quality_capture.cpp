@@ -393,10 +393,10 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 } // namespace
 
 void QualityCaptureWriter::Configure(const std::filesystem::path& root,
-	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof)
+	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof, std::uint64_t startFrame)
 {
 	if (root == root_ && skip == skip_ && limit == limit_
-		&& lateOverlayProof == lateOverlayProof_)
+		&& lateOverlayProof == lateOverlayProof_ && startFrame == startFrame_)
 		return;
 	root_ = root;
 	remakeChannel_.Close();
@@ -409,6 +409,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 	limit_ = (std::min)(limit, 240u);
 	lateOverlayProof_ = lateOverlayProof;
 	seen_ = captured_ = lateOverlayCaptured_ = 0;
+	startFrame_ = startFrame; sourceFrame_ = 0;
 	captureStartConsumed_ = false;
 	previousFrameId_ = 0;
 	pendingLateOverlayFrameId_ = 0;
@@ -425,7 +426,7 @@ bool QualityCaptureWriter::WantsFrame() const noexcept
 
 bool QualityCaptureWriter::CapturesCurrentFrame() const noexcept
 {
-	return WantsFrame() && seen_ >= skip_;
+	return WantsFrame() && (startFrame_ ? sourceFrame_ >= startFrame_ : seen_ >= skip_);
 }
 
 bool QualityCaptureWriter::ConsumeCaptureStart() noexcept
@@ -612,7 +613,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		remakePreparedBeforeComposite_=false;
 	}
 	if (!WantsFrame()) return true;
-	if (seen_++ < skip_) return true;
+	if (startFrame_ ? metadata.frameId < startFrame_ : seen_++ < skip_) return true;
 	if (textures.pvrPacketRequested && !textures.pvrContext)
 	{
 		error = "requested PVR packet context unavailable";

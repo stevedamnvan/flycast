@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-160: absolute capture scheduling aligns controls without disabling bypass
+
+Public/native capture skip counts eligible capture callbacks. Experimental
+menu/2D bypass excludes some callbacks, while evidence markers use renderer
+frame IDs. Therefore the same skip count does not specify the same source
+interval across modes. An explicit --start-frame config selects a positive
+renderer-ID threshold, separate from default skip counting. The writer observes
+the next instrumentation ID before capture-start reset and GPU timing; Capture
+also checks actual metadata ID. Unchanged configuration cannot rearm reset.
+This does not force ineligible frames through generative processing and does
+not weaken exact input/provenance comparison. No production pacing changes.
+
 ## D-159: connect returned inputs without borrowing native temporal truth
 
 The capture-only test exchanges before TrySubmit, uploads matched returned color
