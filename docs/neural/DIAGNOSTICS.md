@@ -1,5 +1,16 @@
 # Neural diagnostics
 
+Live return proof may set FLYCAST_REMAKE_RETURN_TEST_WAIT=1 in the temporary
+publisher environment, restoring its previous value afterward. This enables
+at most10 seconds of diagnostic polling per frame, never performance evidence.
+Require frame-local remake-return.json matching consumer live_return and input
+receipts. Consumer publication alone does not prove Flycast receipt. The JSON
+records owned receipt only, not presentation; native gameplay remains intact.
+Compare frame-local remake-return.bgra against the consumer BMP pixel payload
+(offset from the BMP header), requiring exactly1228800 bytes and equal hashes.
+JSON must parse without locale repair. LOG515 return-d is the verified example;
+return-a/b/c retain timing, receipt-retention and locale failures respectively.
+
 ## FC-067 live memory handoff (LOG514)
 
 Start the existing runtime tool with `--runtime ABSOLUTE_DLL --frames 63

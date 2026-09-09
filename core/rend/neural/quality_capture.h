@@ -150,6 +150,7 @@ public:
 
 private:
 	RemakeLiveChannel remakeChannel_;
+	std::optional<RemakeReturnedImage> remakeReturnedImage_;
 	std::optional<RemakeViewScene> remakeView_;
 	std::optional<remake::Packet> remakePacket_;
 	std::string remakePacketStatus_="not-requested";

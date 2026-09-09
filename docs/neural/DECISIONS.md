@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-151: returned diagnostic color does not authorize presentation
+
+Channel version2 adds one fixed640x480 BGRA reverse slot, matched to the exact
+source receipt/frame/producer and checked for pixel corruption. Two retained
+source identities bound staleness; duplicates and malformed sources are rejected.
+Owned returned pixels do not advance neural history or replace native gameplay.
+FNV is corruption detection, not authentication. Completed returns may drain
+after orderly consumer close. Ordinary polling is nonblocking; busy means skip.
+FLYCAST_REMAKE_RETURN_TEST_WAIT=1 is a separate developer-only capture proof
+control, off by default, bounded to10 seconds per published frame. Restore its
+temporary environment after testing; exclude it from all performance evidence.
+The initial three-frame producer finished before consumer warmup, so that run
+failed round-trip acceptance. Production asynchronous polling and protected
+composition remain required, not replaced by the diagnostic wait.
+
 ## D-150: bounded live memory delivery is not neural acceptance or presentation
 
 An explicit local channel token connects one Flycast publisher to one Remix

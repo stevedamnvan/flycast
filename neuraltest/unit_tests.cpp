@@ -204,17 +204,40 @@ int RunSelfTests()
 				&&receivedPacket.frame==packet.frame&&receivedPacket.meshes[0].material->sourceDdsBytes==packet.meshes[0].material->sourceDdsBytes
 				&&received.digest==firstReceipt.digest&&received.bytes==firstReceipt.bytes,
 				"live channel receives exact owned payload and matching receipt");
+			RemakeReturnedImage image;image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
+			image.width=640;image.height=480;image.bgra.assign(640*480*4,73);
+			RemakeReturnedImage returned;returned.frame=999;
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Empty&&returned.frame==999,"return empty preserves output");
+			auto wrong=image;wrong.frame++;
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects wrong frame");
+			wrong=image;wrong.source.digest++;
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects wrong source digest");
+			wrong=image;wrong.bgra.pop_back();
+			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects truncated pixels");
+			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published
+				&&publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.bgra==image.bgra
+				&&returned.frame==image.frame&&returned.source.digest==image.source.digest,"return exact owned pixels and source receipt");
+			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Invalid,"return rejects duplicate image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Published&&sent.sequence==3,
 				"live channel busy attempt does not advance publication sequence");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==second.frame
 				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==third.frame,
 				"live channel preserves FIFO after lower-slot reuse");
+			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
+			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return publishes newer source image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
 			auto fourth=advance(third),bad=fourth;bad.meshes[0].vertices[0].normal.reset();
 			suite.Expect(publisher.Publish(bad,sent,error)==RemakeChannelResult::Invalid
 				&&publisher.Publish(fourth,sent,error)==RemakeChannelResult::Published&&sent.sequence==4,
 				"live channel failed serialization releases slot without advancing sequence");
+			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received,"return next source available");
+			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
+			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Busy,"return full slot does not wait");
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==third.frame
+				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return busy retry preserves source ownership");
 			consumer.Close();
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame,
+				"return completed image survives orderly consumer close");
 			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
 				"live channel consumer shutdown leaves producer in native fallback");
 		}

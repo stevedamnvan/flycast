@@ -68,7 +68,16 @@ LOG514 now delivers packets directly from running Flycast to running Remix using
 two bounded shared-memory slots, with no saved-scene reads in the consumer.
 Three source frames have matching sender/receiver receipts and rendered outputs.
 This still uses the synchronous developer capture boundary, not real-time pacing.
-Next connect frame-qualified returned-image ownership, then protected composition;
+LOG515 return-image transport verified: a version2 reverse memory slot carries640x480
+BGRA final color with the exact source receipt/frame/producer, corruption check,
+bounded ownership and stale/duplicate rejection. Flycast polls and retains owned
+pixels at the developer capture boundary; no presentation or history acceptance.
+Three return-d frames have valid source receipts and byte-identical returned
+pixels against consumer output. Invalid source/size, full slot, duplicate and
+orderly-close controls pass. The source hook currently runs after composition;
+next move frame-qualified return handling before the existing DX11 protected
+overlay pass and prove GPU upload/composition without substituting the incomplete
+temple for full gameplay. Retain native fallback and explicit diagnostic labels;
 move the supported feed off capture into an asynchronous/budgeted ordinary-frame
 path. Do not replace the native frame with the incomplete temple or make another
 offline viewer/count-only tracing phase. Expand missing fighter/arena correspondence alongside
@@ -76,7 +85,7 @@ that integration, never substitute the partial temple for the full objective.
 Opt-in resource refresh now handles changed draw counts/topology/generations;
 it does not establish temporal identity or asynchronous retirement safety.
 Native fallback remains authoritative
-until actual returned-image ownership and overlay composition are proven.
+until complete-scene returned presentation and overlay composition are proven.
 
 Completed scoped checks for the material slice: malformed/truncated texture,
 ambiguous file-plus-memory source, aggregate byte overflow, producer mutation,

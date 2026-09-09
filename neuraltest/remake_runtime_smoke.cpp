@@ -69,12 +69,14 @@ int wmain(int argc,wchar_t** argv) {
  const bool liveChannel=argc>=12 && std::wstring(argv[5])==L"--live-channel";
  const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
  flycast::rend::neural::RemakeLiveChannel channel;
+ flycast::rend::neural::RemakeChannelReceipt activeSourceReceipt;
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
   for(;;) {
    std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
    const auto result=channel.Receive(packet,receipt,error);
    if(result==flycast::rend::neural::RemakeChannelResult::Received) {
+    activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
      <<" bytes="<<receipt.bytes<<" digest="<<receipt.digest<<" saved_packets_read=false\n"<<std::flush;
     return;
@@ -405,6 +407,15 @@ int wmain(int argc,wchar_t** argv) {
      }
     }
     cpu->UnlockRect();
+    if(liveChannel&&!floatOutput&&!legacyBackbuffer&&!legacyRaster) {
+     flycast::rend::neural::RemakeReturnedImage returned;
+     returned.source=activeSourceReceipt;returned.frame=packet.frame;returned.producer=packet.producer;
+     returned.width=640;returned.height=480;returned.bgra=pixels;
+     std::string returnError;const auto result=channel.ReturnImage(returned,returnError);
+     std::cout<<"live_return sequence="<<returned.source.sequence<<" frame="<<returned.frame
+      <<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
+      <<" error="<<returnError<<" presentation_proven=false\n"<<std::flush;
+    }
     bool rawOk=true;
     if(floatOutput) {
      const auto rawPath=capturePath.wstring()+L".rgba32f";

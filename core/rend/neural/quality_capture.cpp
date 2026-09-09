@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "quality_capture.h"
 #include <cstdlib>
+#include <cstdio>
 #include "pvr_scene_capture.h"
 #include "motion_reference.h"
 #include "version.h"
@@ -399,6 +400,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 		return;
 	root_ = root;
 	remakeChannel_.Close();
+	remakeReturnedImage_.reset();
 	pvrSnapshot_.reset();
 	remakeView_.reset();
 	remakePacket_.reset();remakePacketStatus_="not-requested";
@@ -939,15 +941,48 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 				if(const auto* token=std::getenv("FLYCAST_REMAKE_CHANNEL");token&&*token) {
 					if(!remakeChannel_.IsOpen()&&!remakeChannel_.OpenPublisher(token,conversionError))remakePacketStatus_=conversionError;
 					else {
+						RemakeReturnedImage returned;std::string returnError;
+						if(remakeChannel_.ReceiveImage(returned,returnError)==RemakeChannelResult::Received) {
+							std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
+								(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
+							remakeReturnedImage_=std::move(returned);
+						}
 						RemakeChannelReceipt receipt;
 						const auto result=remakeChannel_.Publish(*remakePacket_,receipt,conversionError);
 						if(result==RemakeChannelResult::Published)remakePacketStatus_="live-published sequence="+std::to_string(receipt.sequence)
 							+" bytes="+std::to_string(receipt.bytes)+" digest="+std::to_string(receipt.digest)+"; presentation-unproven";
 						else remakePacketStatus_=conversionError;
+						// Explicit synchronous developer proof only, never ordinary pacing.
+						const auto* waitTest=std::getenv("FLYCAST_REMAKE_RETURN_TEST_WAIT");
+						if(result==RemakeChannelResult::Published&&waitTest&&std::strcmp(waitTest,"1")==0) {
+							const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+							do {
+								const auto received=remakeChannel_.ReceiveImage(returned,returnError);
+								if(received==RemakeChannelResult::Received) {
+									std::fprintf(stderr,"Remake returned image source=%llu sequence=%llu bytes=%u presentation=false\n",
+										(unsigned long long)returned.frame,(unsigned long long)returned.source.sequence,(unsigned)returned.bgra.size());
+									remakeReturnedImage_=std::move(returned);break;
+								}
+								if(received!=RemakeChannelResult::Empty)break;
+								std::this_thread::sleep_for(std::chrono::milliseconds(1));
+							}while(std::chrono::steady_clock::now()<deadline);
+						}
 					}
 				}
-				// Diagnostic archival is independent of live publication. The consumer
-				// never reads this file, and a failed archive cannot stall the channel.
+				// Archive the actual owned return for byte comparison with consumer output.
+				if(remakeReturnedImage_&&remakeReturnedImage_->frame==metadata.frameId) {
+					const auto& returned=*remakeReturnedImage_;
+					std::ofstream receiptFile(frameRoot/"remake-return.json");
+					receiptFile.imbue(std::locale::classic());
+					receiptFile<<"{\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
+						<<",\"source_digest\":"<<returned.source.digest<<",\"pixel_bytes\":"<<returned.bgra.size()
+						<<",\"presentation_proven\":false}\n";
+					if(!receiptFile)remakePacketStatus_+="; return-receipt-write-failed";
+					std::ofstream pixelsFile(frameRoot/"remake-return.bgra",std::ios::binary);
+					pixelsFile.write(reinterpret_cast<const char*>(returned.bgra.data()),returned.bgra.size());
+					if(!pixelsFile)remakePacketStatus_+="; return-pixels-write-failed";
+				}
+				// The consumer never reads this archive; failure cannot stall the channel.
 				if(!WriteRemakeViewPacket(frameRoot/"remake-view.bin",*remakePacket_,conversionError))
 					remakePacketStatus_+="; archive-failed="+conversionError;
 			} else remakePacketStatus_=conversionError;
