@@ -2940,8 +2940,6 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(status!=SubmitStatus::Submitted)return;
 		// Returned-scene evaluation is never accepted native PVR correspondence.
 		hasNeuralAcceptedGuidance=false;neuralInstrumentation.Discontinuity();
-		if(activeNeuralMode==static_cast<int>(NeuralMode::Dlss5Experimental)
-			&&neuralStage.GetStats().dlss5Readiness!=Dlss5HookReadiness::ContractEvaluated)return;
 		if(temporal) {
 			const auto* previous=remakeTemporalHistory.Last();const auto previousFrame=previous?previous->frame:0;
 			const bool compatible=remakeTemporalHistory.CanReproject(*temporal);
@@ -2955,6 +2953,12 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			NOTICE_LOG(RENDERER,"Remake temporal reference: source=%llu previous_evaluated=%llu compatible=%d retained=%d history_enabled=%d motion=%s",
 				(unsigned long long)source.frame,(unsigned long long)previousFrame,compatible,retained,rasterHistory,rasterRequested?"returned-geometry":"zero");
 		}
+		// Submitted means this source was successfully evaluated by the public
+		// backend. Retain that source history independently of external output
+		// eligibility; hooks-disabled evaluation must not manufacture zero motion.
+		// This does not authorize presenting or claiming an external neural result.
+		if(activeNeuralMode==static_cast<int>(NeuralMode::Dlss5Experimental)
+			&&neuralStage.GetStats().dlss5Readiness!=Dlss5HookReadiness::ContractEvaluated)return;
 		const auto output=neuralStage.GetOutput();
 		if(output.api!=TextureApi::D3D12||!output.resource
 			||!wrapNeuralOutput(static_cast<ID3D12Resource*>(output.resource),source.frame))return;

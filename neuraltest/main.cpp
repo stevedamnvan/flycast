@@ -1588,6 +1588,10 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralMatchOutputResolution=yes"
 		+ L",config:rend.NeuralCaptureFrames=0"
 		+ L",config:rend.NeuralDlss5EvidenceCapture=" + (remakeEvidence!="none"?L"yes":L"no")
+		// The returned-scene comparison has its own explicit source boundary.
+		// A wall-clock arm delay skips renderer identities before that boundary
+		// and makes an otherwise identical frozen producer sequence unreplayable.
+		+ (remakeEvidence!="none"?L",config:rend.NeuralDlss5EvidenceStartDelayMs=0":L"")
 		+ L",config:rend.NeuralDlss5EvidenceCaptureFrames=480"
 		+ L",config:rend.NeuralDlss5EvidenceStartFrame=0"
 		+ L",config:rend.NeuralDlss5EvidencePresentMarker=" + (remakeEvidence=="restored"?L"no":L"yes")

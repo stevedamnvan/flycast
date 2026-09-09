@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-191: accepted public evaluation and external presentation are separate gates
+
+Retain returned-scene geometry/depth only after successful stage submission, as
+before. External readiness must gate output wrapping/presentation, not erase
+the source history of an already successful public NGX evaluation. LOG631's OFF
+control exposed repeated resets and false zero-motion inputs from that coupling.
+Move readiness rejection below source-history retention; failed/busy submission
+still cannot advance history, and no external-ready claim follows from public
+success. This also keeps exact-input OFF controls comparable with ON history.
+Existing reset/device/game boundaries remain. Validate the changed branch live
+and retain the mismatched control rather than weakening provenance checks.
+
 ## D-190: returned shading consistency is an opt-in reconstruction experiment
 
 LOG620 isolates detail loss in the public reconstruction lane as well as the

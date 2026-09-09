@@ -1,5 +1,71 @@
 # Neural rendering evidence log
 
+LOG632 cv host/helper0,240 helper Presents. Existing three-way audit actually
+passes cs/ct/cv for all28 frames2252..2279: identical evaluated color/depth/motion/
+mask, matching marked/clean pre-marker output hashes, external output differs on
+all28, exact post-native-effect HUD/world/backbuffer and completed Presents.
+Consumer tuple positively reported: upscalingOFF intensity1 globalTone1 white203
+preset0 style0 enabledON. OFF SAFE MODE and full30 accepted/reset sequence checked
+separately; OFF produces no external preview Present. D-191 correction preserves
+history without granting external output eligibility. cs/ct executable349FE868
+and cvE0A30776 differ only by the recorded readiness/history correction, not
+source/guidance inputs; provenance proof is scoped to these exact binaries and
+28 moving source frames. ACCEPTED changed-guidance provenance slice, not quality,
+performance or full pipeline. cr/cu and the over-broad PNG check remain failed
+evidence. Close this dependency; do not repeat generic transport or mask tuning.
+
+LOG631 cu host/helper0, SAFE MODE confirmed,30 successful public evaluations
+but each reset; no external presentation accepted. Existing three-way audit
+actually run and fails neural input mismatch2252. Readiness return occurred
+before retained source history even after SubmitStatus::Submitted, unlike ON.
+Move only the external presentation readiness check below successfully submitted
+source-reference retention. Failed/busy evaluations still return before history;
+external-ineligible output still cannot be wrapped/presented. This distinguishes
+public evaluation ownership from external presentation proof, not acceptance of
+an unavailable external result. Rerun OFF and compare exact histories/inputs;
+retain cu failure. No broad gate or completed-pipeline claim.
+
+LOG630 ct restored run host/helper0,28 captures. Initial combined hash check
+failed because it incorrectly required marked pre-effect PNGs to equal restored
+PNGs: the former intentionally contain the sentinel. Isolated source/effect/
+motion/mask files match28/28; actual evidence-readback tuples (color/depth/motion/
+mask and pre-marker returned hash) match all30 cs/ct evaluations2250..2279.
+No check was relaxed on the actual pre-marker hash contract. cu hooks-disabled
+restored control launched in supplied OFF stage with unchanged config; host29799,
+helper77069. Complete the existing audit only after terminal state and SAFE MODE
+verification. Source/effect input equality is distinct from marker presentation.
+
+LOG629 cs corrected marked run host/helper0,240 helper Presents,30 accepted
+sources2250..2279 with one reset and28 captures2252..2279. Independently checked
+exact full accepted sequence plus28 source packet/color/depth/effect/alpha/motion/
+mask pairs against co. Marker log has34 observations (including repeated/final
+Presents), not34 distinct source frames; final acceptance uses source joins.
+The prior five-second delay is absent. ct restored-output control launched with
+same executable/configuration/archive/boundary; cs logs archived uniquely.
+Existing cleanup warning remains. Full marked/clean/OFF acceptance awaits the
+remaining controls; this short synchronous run is not a performance result.
+
+LOG628 cr terminates host0/helper1 and produces no accepted replay captures:
+all attempted sources2250..2279 reject producer identity. Source2250 is producer
+2281 versus archive/cq2249. Its startup log explicitly reports evidence arming
+delayed5000ms; cq has no such delay. ensureNeuralResources returns before renderer
+instrumentation progresses while PVR producers continue. Fix only the bounded
+remake-evidence launcher to set EvidenceStartDelayMs=0; its existing source2250
+comparison boundary remains authoritative. Do not normalize producer/frame IDs,
+change game clock, relax archive checks or alter ordinary evidence defaults.
+Retain cr as a failed comparison and verify the corrected replay live.
+
+LOG627 5e68316f0 post-commit four incremental builds and three676/0 suites pass.
+Tracked worktree was clean; only the three preexisting untracked entries remain.
+Begin focused changed-temporal-guidance external-output check: cr marked lane
+uses ck frozen scene/color/depth/effects, boundary2250, temporal raster enabled,
+shading experiment explicitly disabled. Existing supplied ON configuration is
+unchanged. This verifies the changed guidance dependency, not generic transport.
+Require marked/restored/OFF exact evaluated input hashes, common accepted history
+and source identities, active consumer tuple and final completed Presents before
+acceptance. Do not count synchronous evidence as performance. No live external
+configuration or third-party binary modifications are authorized or performed.
+
 LOG626 final shading-experiment checkpoint: all four incremental configurations
 build; automation, baseline NGX and no-NGX selftests each pass676/0 in
 remake-color-final-* logs. Disabled-mode source-color retention is suppressed.

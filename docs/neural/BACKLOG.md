@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- GPU temporal integration checkpoint: `0cd0dad43517bd712570f0a8f5e423edb5edd48c` (LOG599-602), pushed to the fork. LOG603 onward records uncommitted capture/device-owner/depth-consistency follow-up. Read actual HEAD/status on resume; builds are incremental, not fresh exact-SHA evidence.
+- Latest pushed checkpoint: `5e68316f0634abc57474f0297f63e96f0a4aea30`; LOG627-632 record launcher synchronization and accepted-history corrections plus completed28-frame changed-guidance provenance. Read actual HEAD/status on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -57,17 +57,20 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG625):** cq completes the bounded shading experiment:
-co/cq motion matches28/28, masks differ28/28, neural output matches28/28 exactly.
-Park D-190 off by default; no more mask thresholds or public tuning. Finish the
-four-build checkpoint including disabled-mode color-retention guard, then the
-focused changed-guidance combined provenance slice on frozen ck inputs using
-existing marked/clean/OFF machinery. This is the outstanding changed dependency,
-not a generic transport reproof. Then advance ordinary combined integration and
-sustained delivery; retain full working-pipeline criteria and failed quality data.
-Require activated color-consistency log, exact frozen source/effects/accepted
-sequence and completed presentation, then compare with cn/co. Preserve failed
-attempts and do not declare visual benefit from synthetic controls alone.
+**Operational next action (LOG632):** changed-guidance provenance is ACCEPTED
+for28 moving frames via cs/ct/cv, exact evaluated inputs, external output changes,
+marked/restored agreement, source-owned effects/HUD and completed Presents.
+OFF retains accepted public history but cannot present external output (D-191).
+Finish four-build/commit checkpoint for the launcher/history corrections, then
+run bounded600-frame ordinary combined OIT delivery with no frozen replay,
+no sentinel, no PNG capture, and shading experiment off. Use existing async
+runtime/launcher; retain camera-relative scope. Report actual eligible/combined/
+skipped counts, age, timing and resource growth; do not treat diagnostic source
+observation overhead or incomplete coverage as final performance acceptance.
+Then correct the measured limiting integration issue and run normal DX11 plus
+paired native timing controls. Keep full300/600-frame exit criteria unchanged;
+no PNG-throughput detour, generic provenance reproof or further mask thresholds.
+cr/cu failures and cq no-effect result remain recorded. D-190 stays parked.
 
 Integration rationale (LOG620): public isolation is complete; do not expand
 the settings sweep or repeat transport bring-up. Implement a bounded returned-color
