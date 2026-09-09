@@ -42,6 +42,19 @@ bool EffectIdentityControls(std::string& error)
  };
  const std::vector<std::uint32_t> heads{0,Eol},state{1,2,3};
  if(!run(pixels,poly,heads,state,source,base))return false;
+ std::ostringstream archive(std::ios::binary);
+ if(!WriteEffectIdentity(archive,base)) {error="effect identity archive write";return false;}
+ for(unsigned mutation=0;mutation<5;++mutation) {
+  auto bytes=archive.str();
+  if(mutation==1)bytes[0]^=1;
+  if(mutation==2)bytes[12]^=1;
+  if(mutation==3)bytes.pop_back();
+  if(mutation==4)bytes.push_back('x');
+  std::istringstream in(bytes,std::ios::binary);
+  if(MatchEffectIdentity(in,base,error)!=(mutation==0)) {
+   error="effect identity archive negative control";return false;
+  }
+ }
  auto moved=pixels;std::swap(moved[0],moved[1]);moved[1].next=0;moved[0].next=Eol;
  moved.push_back({99,0,0,Eol}); // Unreachable allocation is irrelevant.
  if(!run(moved,poly,std::vector<std::uint32_t>{1,Eol},state,source,other)||base!=other)

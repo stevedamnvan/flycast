@@ -6,8 +6,35 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <istream>
+#include <ostream>
 
 namespace flycast::rend::neural {
+inline bool WriteEffectIdentity(std::ostream& out,const std::vector<std::uint32_t>& words) {
+ if(words.empty()||words.size()>16u*1024*1024)return false;
+ const std::uint32_t header[]={0x31494645u,static_cast<std::uint32_t>(words.size())};
+ return bool(out.write(reinterpret_cast<const char*>(header),sizeof(header))
+  .write(reinterpret_cast<const char*>(words.data()),words.size()*4));
+}
+inline bool MatchEffectIdentity(std::istream& in,const std::vector<std::uint32_t>& expected,std::string& error) {
+ std::uint32_t header[2]{};
+ if(expected.empty()||expected.size()>16u*1024*1024
+  ||!in.read(reinterpret_cast<char*>(header),sizeof(header))
+  ||header[0]!=0x31494645u||header[1]!=expected.size()) {
+  error="effect-replay-header";return false;
+ }
+ std::size_t offset=0;
+ for(auto word:expected) {
+  std::uint32_t actual=0;
+  if(!in.read(reinterpret_cast<char*>(&actual),4)||actual!=word) {
+   error="effect-replay-content word="+std::to_string(offset)+" retained="+std::to_string(actual)
+    +" current="+std::to_string(word);return false;
+  }
+  ++offset;
+ }
+ if(in.peek()!=std::char_traits<char>::eof()||in.bad()) {error="effect-replay-trailing-data";return false;}
+ error.clear();return true;
+}
 // Developer replay evidence only. Input must be obtained from an owned snapshot,
 // never from the current frame. No hashing of unused allocation or GPU addresses.
 struct EffectIdentityPixel { std::uint32_t color, depthBits, sequence, next; };

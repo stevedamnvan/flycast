@@ -6,5 +6,6 @@ bool SameRemakeReplayScene(const remake::Packet& retained,const remake::Packet& 
 bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake::Packet&,
  const RemakeReturnedImage&,std::string& error);
 bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packet& current,
- RemakeReturnedImage& output,std::uint64_t& originalFrame,std::string& error);
+ RemakeReturnedImage& output,std::uint64_t& originalFrame,std::string& error,
+ std::filesystem::path* matchedDirectory=nullptr);
 }

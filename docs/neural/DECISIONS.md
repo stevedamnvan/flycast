@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-178: initialize uploaded constants; retain strict effect replay equality
+
+The first live effect identity failure was canonical word28, an unused but
+uninitialized dither field. Initialize the entire shared pixel constant record
+and its explicit96-byte aligned tail, rather than normalizing away mismatches.
+LOG563 verifies native pixel parity and full identity equality across three
+source-matched live frames. Optional synchronous effect archives/replay remain
+bounded at30 attempts and require the existing scene/input checks first; missing
+or altered effect evidence rejects. One completed evaluated Present is a replay
+integration check, not replacement for marked/clean/OFF external-output proof.
+
 ## D-177: snapshot identity readback is explicit evidence work
 
 Read retained GPU data only through the explicit synchronous evidence API;

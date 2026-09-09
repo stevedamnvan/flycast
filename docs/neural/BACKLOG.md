@@ -142,6 +142,31 @@ original-pointer mutation. This API is not called by ordinary rendering or yet
 by capture/replay. Next wire bounded evidence artifacts and replay equality; keep
 the guard until that linkage and negative controls pass. Staging the existing
 large pixel allocation is diagnostic-only and must not enter performance runs.
+Current linkage bounds: exact FLYCAST_REMAKE_EFFECT_IDENTITY=1 writes the retained
+canonical words alongside preview captures and allows locked effect replay only
+after byte-exact identity comparison in the already matched scene directory.
+Cap identity capture and replay attempts at30 per renderer; missing, altered,
+truncated or trailing-data evidence rejects. Existing input/source/age and
+presentation checks remain. First run a three-frame live archive around the
+known combat effect interval, then matched replay; do not claim provenance from
+successful identity extraction alone. Entire run is synchronous/non-performance.
+LOG562 ay archives three real stacks successfully; az rejects all three with
+effect-replay-content despite matching scene inputs. Current next action is to
+locate the exact differing canonical words using the added diagnostics, then
+correct the cause or retain the rejection. Do not relax identity equality or
+claim replay/provenance accepted from the successful archive alone.
+Ba localizes all three failures to word28 (ditherDivisor.x), an uninitialized
+field when dithering is off. Correct initialization of the shared constants and
+explicit96-byte tail, preserving full equality rather than omitting state.
+Next generate a new archive and replay from the initialized build; old ay stays
+unchanged and is not compatible proof for the corrected constant bytes.
+LOG563 bc now matches all three new effect identities exactly; source2173 also
+completes evaluated composition/Present with exact independent pixel checks.
+Initialization preserves all three native reference images. The replay linkage
+is accepted in this bounded scope; next archive a longer post-startup interval
+within30 attempts and run marked/clean/OFF exact-input external-output proof on
+the changed post-effect path. Do not repeat generic transport or reopen capture
+throughput. Full camera/scene/performance acceptance remains open.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

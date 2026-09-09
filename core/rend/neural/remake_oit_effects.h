@@ -8,6 +8,10 @@
 #include <cstring>
 
 namespace flycast::rend::neural {
+inline bool RemakeEffectEvidenceRequested() {
+ const auto* value=std::getenv("FLYCAST_REMAKE_EFFECT_IDENTITY");
+ return value&&std::strcmp(value,"1")==0;
+}
 inline bool RemakeNativeEffectsRequested() {
  const auto* value=std::getenv("FLYCAST_REMAKE_NATIVE_EFFECTS");
  return value&&std::strcmp(value,"1")==0;

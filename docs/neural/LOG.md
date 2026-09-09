@@ -1,5 +1,66 @@
 # Neural rendering evidence log
 
+LOG563 ba executableF196D5DEAE5299C39F3F3E994F692FD400D523FFBDF70FC6F3720CEFB2194B52
+repeats the ay locked-input comparison with word diagnostics; both processes
+exit0. All2175..2177 reject at canonical word28: retained211709912 versus
+current249159016. Header10 + resolver-prefix2 + constant offset16 maps exactly
+to ditherDivisor.x. setupPixelShaderConstants declares an uninitialized local
+and only assigns this field when dithering is enabled; it also copied92 bytes
+into a96-byte GPU allocation. Correct by value-initializing all fields and adding
+explicit tail padding with sizeof96 assertion. Full identity equality remains;
+old archives are retained, not rewritten/normalized. New archive/replay and native
+pixel comparison are required before accepting this correction in gameplay.
+Bb uses executableCFAA18F9EC94D13D4BA0E9A97A216C0344151DC2925AFB48693D3FBDD8070CD5;
+automation build and574/0 selftests pass. Both live processes exit0 and capture
+three sources2171..2173. Independent native PNG comparison against retained aj
+is byte-exact for all three; identity words28..31 and35 (unused dithering fields
+and tail) are now zero. Bc uses the identical executable, bb archive and source
+publication start2090 to cover the archived interval; matched result pending.
+Bc terminates both processes0. All three sources2171..2173 match full effect
+identity exactly; source2173 completes evaluated output and successful Present
+at current2175 (then held within the existing age bound). Its archived identity
+is byte-identical to bb; independent native-mask/evaluated composition and
+backbuffer RGB checks are exact, with19,809 protected pixels and zero mismatches.
+This accepts bounded effect replay linkage, not external NR provenance. The
+supplied configuration hash is unchanged. A launch-label substitution mistake
+left bc consumer/publisher output using bb filenames, replacing those two bb
+text logs; they are now correctly renamed bc. Bb host evidence, stage logs,
+images/identities and actual terminal exit observations remain; do not claim
+the overwritten standalone logs were preserved. Ba/az falsifying logs remain.
+All four initialized-code incremental builds and all three enabled574/0 suites
+pass; backlog consistency and diff whitespace checks pass. No third-party
+configuration or binaries are staged. The next work is the focused post-effect
+external-output matrix, not another proof of snapshot allocation or transport.
+
+LOG562 base77f8dc8ed plus worktree wires optional effect identity capture and
+matched replay. Exact FLYCAST_REMAKE_EFFECT_IDENTITY=1 permits at most30 capture/
+replay identity attempts per renderer. Replay uses the directory selected by the
+existing full scene/input verifier and rejects missing/changed/truncated/trailing
+identity bytes before neural submission. No opt-in still rejects locked effects.
+Stream round-trip/corruption/truncation/trailing controls and automation574/0 pass.
+Live ay uses executable SHA2566DD8214920B6257B36AB7C7DE8460E892A5435AC2712E0BE27B56C7EB0CB2A4E,
+unchanged supplied ON configuration, helper100/host240 after2100 warmup. Both
+exit0; three sources2175..2177 capture successfully, with exact identity file
+sizes2,482,252/2,709,932/2,845,152 bytes. Independent read-only image checks verify
+original-mask native/evaluated composition, exact backbuffer RGB and pre/post
+effect difference for all three. No external-output proof is claimed. Existing
+helper40-object cleanup warning persists. The matched az replay uses the same
+executable and ay archives; its result must be recorded after terminal observation.
+Az rejects all three exact scene-matched sources2175..2177 with effect-replay-content;
+therefore no effect replay or external proof passes. Helper exits0; the rejection
+is retained, not normalized away. Added mismatch word/value diagnostics to locate
+whether the difference is resolver state, fragment data or ordering before any
+correction. The recorded canonical equality requirement remains unchanged.
+Both az processes terminated0; no replay captures were accepted. Final four
+incremental builds and three574/0 selftests pass after mismatch diagnostics.
+ON configuration hash remains222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Read-only inspection of ay2175 finds apparently uninitialized words in the shared
+ditherDivisor region. The selected nondithered final resolver reads shadowScale
+but not that region. This is a candidate explanation, not yet a measured az
+mismatch location. Next use the new word diagnostics before changing semantic
+state selection. The linkage remains uncommitted until its live mismatch is
+resolved; all ay/az logs and failed evidence are retained.
+
 LOG561 basebf2375f4e plus worktree connects the canonical description to an
 explicit owned-snapshot GPU readback API. Records compiled layer count and the
 currently selected nondithered effect resolver variant at capture, preserving

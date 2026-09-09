@@ -109,7 +109,9 @@ protected:
 		float fogDensity;
 		float shadowScale;
 		float alphaTestValue;
+		float constantPadding;
 	};
+	static_assert(sizeof(PixelConstants)==96,"Pixel constants must fill the GPU allocation");
 
 	struct PixelPolyConstants
 	{
@@ -331,6 +333,7 @@ protected:
 	std::uint64_t remakeCompositeFrame=0,remakeDisplayedFrame=0;
 	bool remakeCompositeEvaluated=false,remakeDisplayedEvaluated=false;
 	unsigned remakePreviewCaptureAttempts=0;
+	unsigned remakeEffectReplayAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakePreEffectTexture.reset();

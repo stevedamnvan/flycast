@@ -1,5 +1,17 @@
 # Neural diagnostics
 
+FLYCAST_REMAKE_EFFECT_IDENTITY=1 opts into synchronous native OIT effect identity
+evidence. With native effects and evaluated preview capture it writes
+native-effect-identity.bin (EFI1 header, word count, canonical little-endian
+32-bit words) beside the original source packet. Capture attempts are additionally
+capped at30. Locked async input replay with native effects requires this opt-in
+and a byte-exact match against the effect identity in the scene-matched directory;
+at most30 identity replay attempts are allowed per renderer. Missing/changed/
+truncated/trailing evidence rejects before neural submission. Normal input replay
+without native effects retains its existing contract. This stages the retained
+GPU allocation synchronously and must never be enabled in performance runs.
+Successful identity matching is not external-output or completed-Present proof.
+
 The async helper accepts --return-d3d9-scene-memory-depth in the same argument
 position as --capture-d3d9-scene-memory-depth. It still requires a new absolute
 output prefix for collision checking, but creates no BMP or depth files. Only

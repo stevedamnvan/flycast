@@ -483,7 +483,9 @@ void DX11Renderer::uploadGeometryBuffers()
 
 void DX11Renderer::setupPixelShaderConstants()
 {
-	PixelConstants pixelConstants;
+	// Unused fog alpha/dither fields and the aligned tail are still uploaded.
+	// Initialize them rather than exposing stack/allocation residue to captures.
+	PixelConstants pixelConstants{};
 	// VERT and RAM fog color constants
 	FOG_COL_VERT.getRGBColor(pixelConstants.fog_col_vert);
 	FOG_COL_RAM.getRGBColor(pixelConstants.fog_col_ram);
@@ -2741,7 +2743,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
 		const char* rejected=!remakeAsyncAcceptedOverlay.effects?"missing-effects"
 			:!remakeAsyncAcceptedOverlay.effects->Matches(returned.producer)?"effect-source-mismatch"
-			:lockedRoot&&*lockedRoot?"locked-effects-replay-unsupported":nullptr;
+			:lockedRoot&&*lockedRoot&&!RemakeEffectEvidenceRequested()?"locked-effects-replay-requires-identity":nullptr;
 		if(rejected) {
 			NOTICE_LOG(RENDERER,"Remake effects evaluation rejected: source=%llu reason=%s",(unsigned long long)returned.frame,rejected);
 			return;
@@ -2752,9 +2754,23 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	try {
 		std::optional<RemakeReturnedImage> replay;std::uint64_t replayOriginalFrame=0;
 		if(const auto* root=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");root&&*root) {
-			std::string error;RemakeReturnedImage retained;
-			if(!remakeAsyncAcceptedOverlay.captureScene||!ReadLockedRemakeInput(root,*remakeAsyncAcceptedOverlay.captureScene,retained,replayOriginalFrame,error)) {
+			std::string error;RemakeReturnedImage retained;std::filesystem::path matchedDirectory;
+			if(!remakeAsyncAcceptedOverlay.captureScene||!ReadLockedRemakeInput(root,*remakeAsyncAcceptedOverlay.captureScene,retained,replayOriginalFrame,error,&matchedDirectory)) {
 				NOTICE_LOG(RENDERER,"Remake async locked input rejected: source=%llu reason=%s",(unsigned long long)returned.frame,error.c_str());return;
+			}
+			if(RemakeNativeEffectsRequested()) {
+				if(remakeEffectReplayAttempts>=30) {
+					NOTICE_LOG(RENDERER,"Remake effect replay rejected: evidence-attempt-bound");return;
+				}
+				++remakeEffectReplayAttempts;
+				std::vector<std::uint32_t> identity;
+				std::ifstream evidence(matchedDirectory/"native-effect-identity.bin",std::ios::binary);
+				if(!remakeAsyncAcceptedOverlay.effects->ReadIdentityForEvidence(device,deviceContext,returned.producer,identity,error)
+					||!MatchEffectIdentity(evidence,identity,error)) {
+					NOTICE_LOG(RENDERER,"Remake effect replay rejected: source=%llu reason=%s",(unsigned long long)returned.frame,error.c_str());return;
+				}
+				NOTICE_LOG(RENDERER,"Remake effect replay matched: source=%llu original=%llu synchronous=true performance_eligible=false",
+					(unsigned long long)returned.frame,(unsigned long long)replayOriginalFrame);
 			}
 			// Scene/producer/input hashes were checked above. Current receipt owns
 			// the matching original HUD; pixels are explicitly labeled retained replay.
@@ -3007,6 +3023,7 @@ void DX11Renderer::displayFramebuffer()
 	const auto& previewOverlay=remakeDisplayedEvaluated?remakeEvaluatedOverlay:remakeAsyncAcceptedOverlay;
 	if(remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
 		&&previewSource&&remakeDecision.frame==previewSource->frame
+		&&(!flycast::rend::neural::RemakeEffectEvidenceRequested()||remakePreviewCaptureAttempts<30)
 		&&remakeDecision.frame!=remakePreviewLastCaptured&&remakePreviewCaptureAttempts<
 			flycast::rend::neural::RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),
 				std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))) {
@@ -3033,7 +3050,7 @@ void DX11Renderer::displayFramebuffer()
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
-				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr);
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get());
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
 		}

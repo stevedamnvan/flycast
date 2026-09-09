@@ -55,8 +55,9 @@ bool SameRemakeReplayScene(const remake::Packet& retained,const remake::Packet& 
  error.clear();return true;
 }
 bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packet& current,
- RemakeReturnedImage& output,std::uint64_t& originalFrame,std::string& error)
+ RemakeReturnedImage& output,std::uint64_t& originalFrame,std::string& error,std::filesystem::path* matchedDirectory)
 {
+ if(matchedDirectory)matchedDirectory->clear();
  try {
   std::filesystem::path match;remake::Packet retained;unsigned entries=0;
   for(const auto& entry:std::filesystem::directory_iterator(root)) {
@@ -113,7 +114,7 @@ bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packe
    ||hashes.at("color_fnv64")!=hexDigest(validated.rgba.data(),validated.rgba.size())
    ||hashes.at("depth_fnv64")!=hexDigest(validated.invertedDepth.data(),validated.invertedDepth.size()*sizeof(float)))
     throw std::runtime_error("locked-replay-source-input-hash-mismatch");
-  output=std::move(image);originalFrame=retained.frame;error.clear();return true;
+  output=std::move(image);originalFrame=retained.frame;if(matchedDirectory)*matchedDirectory=match;error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 }

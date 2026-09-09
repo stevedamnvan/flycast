@@ -6,6 +6,7 @@
 #include "motion_reference.h"
 #include "version.h"
 #include "remake_input_replay.h"
+#include "remake_oit_effects.h"
 
 #include <stb/stb_image_write.h>
 
@@ -397,7 +398,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -416,6 +417,14 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		std::filesystem::create_directories(root);
 		if(!std::filesystem::create_directory(directory)) {error="preview directory exists";return false;}
 		if(scene&&!WriteLockedRemakeInput(directory,*scene,returned,error))return false;
+		if(RemakeEffectEvidenceRequested()) {
+			std::vector<std::uint32_t> identity;
+			if(!effects||!preEffects) {error="effect evidence requires evaluated source effects";return false;}
+			if(!effects->ReadIdentityForEvidence(device,context,returned.producer,identity,error))return false;
+			std::ofstream out(directory/"native-effect-identity.bin",std::ios::binary);
+			if(!WriteEffectIdentity(out,identity)) {error="effect evidence write failed";return false;}
+			out.close();if(!out) {error="effect evidence close failed";return false;}
+		}
 		RawTexture raw[4];
 		for(unsigned i=0;i<4;++i)if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
 		RawTexture source;source.width=640;source.height=480;source.format=DXGI_FORMAT_B8G8R8A8_UNORM;

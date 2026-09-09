@@ -19,6 +19,7 @@
 struct rend_context;
 
 namespace flycast::rend::neural {
+class RemakeOitEffects;
 
 // Synchronous developer-only preview proof; caller bounds attempts and supplies
 // receipt-matched original surfaces. Not external neural provenance.
@@ -27,7 +28,8 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device*,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error,
 	ID3D11Texture2D* evaluated = nullptr, const remake::Packet* scene = nullptr,
-	std::uint64_t replayOriginalFrame = 0, ID3D11Texture2D* preEffects = nullptr);
+	std::uint64_t replayOriginalFrame = 0, ID3D11Texture2D* preEffects = nullptr,
+	const RemakeOitEffects* effects = nullptr);
 
 enum class CaptureGpuTimingPoint : std::uint8_t {
 	PvrBegin,
