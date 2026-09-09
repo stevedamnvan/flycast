@@ -109,6 +109,39 @@ submission through that isolated legacy path; no production migration yet.
 LOG465 frozen-color control stays gray versus dynamic colors with identical
 deformation. Proceed to bounded actual packet upload/camera/texture conversion;
 do not repeat the factory or synthetic color proof. Exact fidelity remains open.
+LOG467 now renders actual40-mesh H/L/M through standard D3D9 dynamic buffers,
+updating positions/normals/colors/UV and sampling state. All63 Presents and
+three Remix-output readbacks succeed; first/last images visibly contain both
+fighters and temple with changing pose. Next quantify moving fidelity against
+matched controls, add uploader rejection/lifetime tests and complete four-build
+regression. No live Flycast integration, temporal pass or combined DLSS5 claim.
+LOG468 completes four incremental builds,SDK179,Python331 and3x341 selftests.
+Resource/sampler rejection controls are CPU-tested, not COM failure injection.
+The validated63-frame rerun also exits0 with three readbacks; middle image
+viewed with both fighters/temple visible. Next matched temporal/attribute
+controls and resource-lifetime handling; keep the existing40-object warning
+explicit. No need to repeat unchanged build/factory proofs before those tests.
+LOG470 settled-M and frozen-attribute controls complete but output variability
+confounds attribution: unchanged runs differ almost as much as frozen/current.
+Next deterministic scene backbuffer attribute comparison (explicitly not Remix
+output proof), followed by session/repeat-controlled raytraced evidence. Do not
+promote whole-image difference alone as dynamic-attribute correctness.
+LOG471 raster current/repeat is byte-exact across three frames; frozen control
+changes7400 pixels at1784 but none at1783. Next verify explicit source-frame
+alignment at the raster readback boundary (pre-Present or analytic marker)
+before treating post-Present backbuffer labels as current-frame truth. This
+is diagnostic capture correctness, not a reason to reprove all old gates.
+Apply D-143 to all temporal judgments: preserve native authored effects and
+compare matched moving native evidence before labeling residuals as unwanted
+ghosting. Settled-reference differences alone do not establish such defects.
+LOG472 resolves raster label mismatch: old post-Present1784 exactly equals
+pre-Present1783. Raster-only capture now precedes Present. Current/repeat exact;
+frozen attrs change7400/9133 pixels at1783/1784. Next complete changed-capture
+regression and checkpoint; then raytraced attribute/frame contract and actual
+integration. Do not extrapolate raster lag to public Remix-output readback.
+LOG473 completes incremental checkpoint regression. Next verify raytraced
+attribute/frame correspondence with controlled evidence and then connect the
+supported live scene route; preserve D-143 and do not repeat raster-only proof.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

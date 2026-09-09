@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_scene.h"
+#include "remake_legacy_contract.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -11,6 +12,20 @@ TestCounts TestSceneContract() {
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ {
+  auto base=p.meshes[0];base.sourceTsp=(3u<<6)|(1u<<13);
+  expect(LegacySamplingSupported(base),"legacy linear modulation supported");
+  auto changed=base;changed.sourceTsp.reset();expect(!LegacySamplingSupported(changed),"legacy missing sampler rejected");
+  changed=base;changed.sourceTsp=(3u<<6)|(2u<<13);expect(!LegacySamplingSupported(changed),"legacy trilinear rejected");
+  changed=base;changed.sourceTsp=0;expect(!LegacySamplingSupported(changed),"legacy unsupported shading rejected");
+  changed=base;changed.vertices[0].position.x+=1;changed.vertices[0].u+=.1f;changed.vertices[0].publicColor=0;
+  expect(LegacyResourceCompatible(base,changed),"legacy changing attributes retain resource");
+  changed=base;changed.texture.generation++;expect(!LegacyResourceCompatible(base,changed),"legacy texture revision rejected");
+  changed=base;changed.texture.paletteGeneration++;expect(!LegacyResourceCompatible(base,changed),"legacy palette revision rejected");
+  changed=base;changed.texture.rttGeneration++;expect(!LegacyResourceCompatible(base,changed),"legacy RTT revision rejected");
+  changed=base;std::swap(changed.indices[0],changed.indices[1]);expect(!LegacyResourceCompatible(base,changed),"legacy reindex rejected");
+  changed=base;changed.id++;expect(!LegacyResourceCompatible(base,changed),"legacy draw identity rejected");
+ }
  {
   auto previous=p;previous.frame=1782;previous.sourceGitSha="fixture";previous.diagnosticOrigin=Vec3{1,2,3};
   auto next=previous;next.frame=1783;

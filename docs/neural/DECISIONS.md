@@ -1,5 +1,28 @@
 # Neural rendering decisions
 
+## D-143: preserve game-authored temporal effects
+
+User correction: do not classify apparent weapon trails, afterimages or blended
+effects as reconstruction defects merely because they persist during motion.
+Compare the exact matched native moving sequence and source pass coverage.
+Moving-versus-settled residual is a diagnostic difference, not isolated unwanted
+trail energy. Attribute a defect only to additional persistence/displacement
+introduced by the pipeline, with frame identity established. Current opaque-only
+diagnostic packets omit effects and cannot establish full-frame effect fidelity.
+Never remove native effects to improve a temporal metric.
+
+## D-142: bounded actual-packet legacy transport experiment
+
+Extend D-141 only inside the standalone harness. Preserve per-frame source
+positions, normals, vertex colors, UV and exposed TSP sampling state. Reuse
+texture resources only when exact DDS bytes and recorded generations agree;
+different capture directory names are not texture changes. Reject unsupported
+sampling/shading and changed texture content instead of reusing stale inputs.
+LOG467 establishes three actual-scene output captures, not full PVR shading,
+camera truth, temporal correctness, performance or combined presentation.
+The synchronous byte checks are diagnostic and must not become a live-frame
+implementation. Production integration remains gated by the active backlog.
+
 ## D-141: standard D3D9 factory for legacy draw-capture experiments
 
 LOG463-464 retain failed black Remix captures while backbuffer output proves

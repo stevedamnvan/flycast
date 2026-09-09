@@ -4,6 +4,7 @@
 #include "remake_artifact_loader.h"
 #include "remake_triangle_transport.h"
 #include "remake_d3d9_dynamic.h"
+#include "remake_d3d9_scene.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -61,8 +62,8 @@ int wmain(int argc,wchar_t** argv) {
  bool sourceColor=false;
  bool retainedTriangles=false;
  bool rebuiltFrozen=false,settledFrozen=false;
- bool legacyDynamic=false,legacyFrozen=false;
- bool legacyBackbuffer=false;
+ bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
+ bool legacyBackbuffer=false,legacyRaster=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -71,9 +72,14 @@ int wmain(int argc,wchar_t** argv) {
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
   legacyFrozen=captureOption==L"--capture-d3d9-frozen-color";
-  legacyBackbuffer=captureOption==L"--capture-d3d9-backbuffer";
-  legacyDynamic=captureOption==L"--capture-d3d9-dynamic"||legacyFrozen||legacyBackbuffer;
-  if(legacyDynamic&&argc!=7)return 2;
+  legacyRaster=captureOption==L"--capture-d3d9-scene-raster"||captureOption==L"--capture-d3d9-scene-raster-frozen";
+  legacyBackbuffer=captureOption==L"--capture-d3d9-backbuffer"||legacyRaster;
+  legacyFrozenAttributes=captureOption==L"--capture-d3d9-scene-frozen-attributes"||captureOption==L"--capture-d3d9-scene-raster-frozen";
+  if(legacyFrozenAttributes&&argc!=18)return 2;
+  legacyGame=captureOption==L"--capture-d3d9-scene"||legacyFrozenAttributes||legacyRaster;
+  legacyDynamic=captureOption==L"--capture-d3d9-dynamic"||legacyFrozen||legacyBackbuffer||legacyGame;
+  if(legacyDynamic&&!legacyGame&&argc!=7)return 2;
+  if(legacyGame&&argc!=14&&argc!=18)return 2;
   // Public NORMALS selects packed R32_UINT, not an XYZ float image.
   // D3D9 float-target blitting is not a valid typed readback of that resource.
   if(captureOption==L"--capture-normals") {
@@ -85,7 +91,7 @@ int wmain(int argc,wchar_t** argv) {
   rebuiltFrozen=captureOption==L"--capture-rebuilt-frozen-attributes";
   settledFrozen=captureOption==L"--capture-settled-frozen-attributes";
   if((retainedTriangles||rebuiltFrozen||settledFrozen)&&argc!=18)return 2;
-  sourceColor=captureOption==L"--capture-source-color" || retainedTriangles || rebuiltFrozen || settledFrozen;
+  sourceColor=captureOption==L"--capture-source-color" || retainedTriangles || rebuiltFrozen || settledFrozen || legacyGame;
   if(sourceColor&&argc!=14&&argc!=18){std::cerr<<"source color control requires artifact\n";return 2;}
   reverseLight=captureOption==L"--capture-reverse-light" || sourceColor;
   wrongSkinning=captureOption==L"--capture-skinning-reversed";
@@ -131,7 +137,7 @@ int wmain(int argc,wchar_t** argv) {
      auto next=LoadDiagnosticArtifact(root/L"scene.json",root/L"assets",clipNear,clipFar);
      if(!DiagnosticContinuation(sequence.back(),next))throw std::invalid_argument("sequence identity/origin mismatch");
      // Diagnostic isolation: no temporal resource identity claim across endpoints.
-     if(!retainedTriangles&&!rebuiltFrozen&&!settledFrozen)for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
+     if(!retainedTriangles&&!rebuiltFrozen&&!settledFrozen&&!legacyGame)for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
      sequence.push_back(std::move(next));
     }
     if(retainedTriangles||rebuiltFrozen||settledFrozen)for(auto& endpoint:sequence)endpoint=TriangleBatches(endpoint);
@@ -195,12 +201,13 @@ int wmain(int argc,wchar_t** argv) {
  std::cerr<<"phase=startup begin\n"<<std::flush;
  if(capture.empty())status=api.Startup(&startup);
  else {
-  if(legacyDynamic) {
+  if(legacyDynamic&&!legacyRaster) {
    using Create9Ex=HRESULT (WINAPI*)(UINT,IDirect3D9Ex**);
    const auto create=reinterpret_cast<Create9Ex>(GetProcAddress(module,"Direct3DCreate9Ex"));
    status=create&&SUCCEEDED(create(D3D_SDK_VERSION,&ownedD3D))?REMIXAPI_ERROR_CODE_SUCCESS:REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
    std::cerr<<"legacy_factory=Direct3DCreate9Ex draw_conversion_expected=true\n";
   }else status=api.dxvk_CreateD3D9?api.dxvk_CreateD3D9(0,&ownedD3D):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  if(legacyRaster)std::cerr<<"raster_contract_only=true factory=public_api draw_conversion_expected=false remix_output_proof=false\n";
   if(status==REMIXAPI_ERROR_CODE_SUCCESS && ownedD3D) {
    D3DPRESENT_PARAMETERS pp{};pp.BackBufferWidth=640;pp.BackBufferHeight=480;
    // Capture reads the backbuffer after Present; DISCARD cannot preserve it.
@@ -230,6 +237,7 @@ int wmain(int argc,wchar_t** argv) {
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   DynamicD3D9Fixture legacyFixture(ownedDevice,api);
+  D3D9PacketScene legacyScene(ownedDevice,api);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -239,6 +247,17 @@ int wmain(int argc,wchar_t** argv) {
    if(quit) { outcome=10;break; }
    const auto sequenceIndex=settledFrozen?2:frame<60?0:frame-60;
    auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   if(legacyFrozenAttributes) {
+    const auto& first=sequence.front();
+    for(std::size_t m=0;m<packet.meshes.size();++m) {
+     if(!LegacyResourceCompatible(first.meshes.at(m),packet.meshes[m])) {outcome=11;break;}
+     for(std::size_t v=0;v<packet.meshes[m].vertices.size();++v) {
+      auto& current=packet.meshes[m].vertices[v];const auto& original=first.meshes[m].vertices[v];
+      current.u=original.u;current.v=original.v;current.publicColor=original.publicColor;
+     }
+    }
+    if(outcome)break;
+   }
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
    if(skinning || affineReference || materialReplace || materialRepeat || gradientReference)packet.camera.position.x=0;
    if(gradientReference)for(auto& mesh:packet.meshes) {
@@ -261,7 +280,11 @@ int wmain(int argc,wchar_t** argv) {
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
-   if(legacyDynamic) {
+   if(legacyGame) {
+    const auto hr=legacyScene.Draw(packet);
+    submitted={SUCCEEDED(hr),"legacy-scene-draw-not-presentation-proof"};
+    std::cerr<<"legacy_scene_hresult="<<hr<<" source_frame="<<packet.frame<<" current_vertex_attributes="<<!legacyFrozenAttributes<<" frozen_attribute_control="<<legacyFrozenAttributes<<'\n';
+   }else if(legacyDynamic) {
     const auto hr=legacyFixture.Draw(frames==1?0.f:float(frame)/float(frames-1),legacyFrozen);
     submitted={SUCCEEDED(hr),"legacy-dynamic-draw-not-presentation-proof"};
     std::cerr<<"legacy_dynamic_hresult="<<hr<<" frame="<<frame<<" frozen_color="<<legacyFrozen<<'\n';
@@ -281,13 +304,17 @@ int wmain(int argc,wchar_t** argv) {
      retained.RedrawSyntheticSkinning(packet.camera,(wrongSkinning?-1.f:1.f)*float(frame)/float(frames-1)*.5f):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
+   const auto presentFrame=[&]() {
    remixapi_PresentInfo present{};present.sType=REMIXAPI_STRUCT_TYPE_PRESENT_INFO;
    std::cerr<<"phase=present begin frame="<<frame<<'\n'<<std::flush;
    status=api.Present(&present);
    std::cerr<<"phase=present end frame="<<frame<<" code="<<int(status)<<'\n'<<std::flush;
-   if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;break; }
+   if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;return false; }
    accepted++;
-  if(!capture.empty() && (accepted==frames || (!sequence.empty() && frame>=60&&!settledFrozen)) && ownedDevice) {
+   return true;
+   };
+   if(!legacyRaster&&!presentFrame())break;
+  if(!capture.empty() && (frame+1==frames || (!sequence.empty() && frame>=60&&!settledFrozen)) && ownedDevice) {
    const std::filesystem::path capturePath=sequence.empty()?capture:
     std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
@@ -342,9 +369,10 @@ int wmain(int argc,wchar_t** argv) {
     hr=ok&&rawOk?S_OK:E_FAIL;
    }
    if(cpu)cpu->Release();if(gpu)gpu->Release();
-   std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true backbuffer_only="<<legacyBackbuffer<<"\n"<<std::flush;
+   std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true backbuffer_only="<<legacyBackbuffer<<" pre_present="<<legacyRaster<<"\n"<<std::flush;
    if(FAILED(hr)){outcome=14;break;}
   }
+   if(legacyRaster&&!presentFrame())break;
   }
  }
  // Window destruction can dispatch callbacks installed by the runtime.

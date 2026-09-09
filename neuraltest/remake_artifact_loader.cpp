@@ -112,6 +112,7 @@ Packet LoadDiagnosticArtifact(const std::filesystem::path& path,const std::files
   need(number(asset.at("bytes"))==bytes.size()&&asset.at("sha256")==sha(bytes)&&b.at("dds_sha256")==asset.at("sha256"),"asset hash mismatch");
   need(b.at("palette_hash").is_null(),"palette identity import unsupported");
   m.texture={aid,number(b.at("upload_generation")),0,number(b.at("rtt_generation")),true};
+  const auto tsp=number(b.at("tsp"));need(tsp<=UINT32_MAX,"source TSP range");m.sourceTsp=std::uint32_t(tsp);
   m.material=Mesh::Material{};m.material->albedo={1,1,1};m.material->sourceColorExperiment=true;
   m.material->sourceDds=file;m.material->sourceTexture=m.texture;
   for(const auto& v:input.at("vertices")) {

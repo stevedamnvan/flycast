@@ -45,6 +45,7 @@ struct Mesh {
  std::uint64_t id = 0, frame = 0;
  Topology topology = Topology::Triangles;
  TextureIdentity texture;
+ std::optional<std::uint32_t> sourceTsp; // Diagnostic original sampling/state word.
  // Row-major 3x4 object-to-world; absent means unknown, not identity.
  std::optional<std::array<float, 12>> transform;
  std::vector<Vertex> vertices;
