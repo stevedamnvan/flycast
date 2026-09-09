@@ -434,7 +434,7 @@ bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device* devic
    <<",\"nonzero_motion_pixels\":"<<nonzero<<",\"invalid_motion_pixels\":"<<invalid
    <<",\"maximum_motion_pixels\":"<<maximum
    <<",\"binary_layout\":\"row-major little-endian: motion float16x2, confidence uint8 UNORM, draw-id uint16, bias uint8 UNORM, reason uint16, raster-depth float32\""
-   <<",\"reason_labels\":[\"trusted\",\"current-depth\",\"correspondence\",\"prior-clip\",\"outside-or-magnitude\",\"prior-id\",\"prior-depth\",\"uncovered\"]"
+   <<",\"reason_labels\":[\"trusted\",\"current-depth\",\"correspondence\",\"prior-clip\",\"outside-or-magnitude\",\"prior-id\",\"prior-depth\",\"uncovered\",\"returned-color-change\"]"
    <<",\"synchronous_capture\":true,\"performance_eligible\":false}\n";
   report.close();if(!report){error="guidance report write";return false;}
   return true;

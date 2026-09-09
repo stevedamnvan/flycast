@@ -388,6 +388,7 @@ int RunSelfTests()
 					image.nearPlane=scene->camera.nearPlane;image.farPlane=scene->camera.farPlane;
 					image.width=640;image.height=480;image.projectionDepth.assign(640*480,.25f);
 					RemakeTemporalHistory history;
+					image.bgra.assign(640*480*4,42);
 					suite.Expect(!history.Accept(scene,image,false)&&!history.Last(),"failed returned evaluation cannot advance temporal reference");
 					for(unsigned mutation=0;mutation<4;++mutation) {
 						auto bad=image;
@@ -398,6 +399,8 @@ int RunSelfTests()
 					suite.Expect(history.Accept(scene,image,true)&&history.Last()->frame==scene->frame,
 						"successful matching returned evaluation owns temporal reference");
 					image.projectionDepth[0]=.5f;
+					image.bgra[0]=84;
+					suite.Expect(history.Color()[0]==42,"accepted returned color is independently owned");
 					suite.Expect(history.Depth()[0]==.25f&&!history.Accept(scene,image,true),"accepted depth is owned and duplicate evaluation rejected");
 					auto next=std::make_shared<RemakeTemporalScene>(*scene);++next->frame;++next->producer.ordinal;++next->producer.cycle;
 					++next->receipt.sequence;++next->receipt.digest;
@@ -409,9 +412,11 @@ int RunSelfTests()
 					image.frame=next->frame;image.producer=next->producer;image.source=next->receipt;
 					suite.Expect(!history.Accept(next,image,false)&&history.Last()->frame==scene->frame,
 						"busy or failed next evaluation keeps last successful source");
+					suite.Expect(history.Color()[0]==42,"failed evaluation cannot advance returned shading history");
 					suite.Expect(history.Accept(next,image,true)&&history.Last()->frame==next->frame&&history.Depth()[0]==.5f,
 						"successful next evaluation advances geometry and depth together");
-					history.Reset();suite.Expect(!history.Last()&&history.Depth().empty(),"returned temporal reset releases reference data");
+					suite.Expect(history.Color()[0]==84,"accepted evaluation advances returned shading with geometry");
+					history.Reset();suite.Expect(!history.Last()&&history.Depth().empty()&&history.Color().empty(),"returned temporal reset releases reference data");
 				}
 				auto unsupported=anchored;unsupported.diagnosticEmbeddingProvenance=packet.diagnosticEmbeddingProvenance;
 				suite.Expect(!CaptureRemakeTemporalScene(unsupported,error),"returned temporal preparation requires explicit anchored geometry");

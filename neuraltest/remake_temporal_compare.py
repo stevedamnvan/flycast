@@ -71,6 +71,8 @@ def main():
     parser.add_argument("--first-evaluation", type=int, required=True)
     parser.add_argument("--first-capture", type=int, required=True)
     parser.add_argument("--count", type=int, required=True)
+    parser.add_argument("--reset-label", default="Remix + NR: reset each frame")
+    parser.add_argument("--temporal-label", default="Remix + NR: geometry history")
     args = parser.parse_args()
     require(2 <= args.count <= 30 and args.out.is_absolute() and not args.out.exists(), "invalid count/output target")
     frames = list(range(args.first_capture, args.first_capture + args.count))
@@ -82,6 +84,7 @@ def main():
               "native-effect-identity.bin", "native-alpha-exclusions.bin",
               "original-native.png", "original-overlay-mask.png")
     report = {"frames": frames, "source_hashes": {}, "external_output_provenance": "not established by this comparison",
+              "lane_labels": {"reset": args.reset_label, "temporal": args.temporal_label},
               "performance_eligible": False, "winner": None,
               "scope": "same frozen source, different reconstruction guidance/history; not an identical-NGX-input settings sweep"}
     sources, outputs, previews = [], [[], []], []
@@ -112,7 +115,7 @@ def main():
         changed += not np.array_equal(outputs[0][-1], outputs[1][-1])
         panel = Image.new("RGB", (1920, 504), "#181818")
         draw = ImageDraw.Draw(panel)
-        for x, (label, picture) in enumerate(zip(("Native PVR", "Remix + NR: reset each frame", "Remix + NR: geometry history"),
+        for x, (label, picture) in enumerate(zip(("Native PVR", args.reset_label, args.temporal_label),
                                                 (rgba(paths[0] / "original-native.png"), *finals))):
             draw.text((x * 640 + 8, 5), f"{label} | source {frame}", fill="white")
             panel.paste(Image.fromarray(picture), (x * 640, 24))

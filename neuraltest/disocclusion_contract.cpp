@@ -435,6 +435,30 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
     +" reason="+std::to_string(reason)+" motion="+std::to_string(motion)+" bias="+std::to_string(bias);return false;
   }
  }
+ // Returned shading changes must reject history without rejecting stable RGB
+ // merely because alpha differs. Exercise the production shader on both APIs.
+ for(unsigned mode=0;mode<3;++mode) {
+  RemakeMotionStream stream;stream.indices={0,1,2};
+  stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};
+  std::fill(current.begin(),current.end(),projection(10));previous=current;
+  std::vector<unsigned char> now(640*480*4,100),before=now;
+  if(mode==1)for(auto& vertex:stream.vertices)vertex.previousScreen.x-=4;
+  if(mode==1)for(unsigned i=0;i<before.size();i+=4)before[i]=180;
+  if(mode==2)for(unsigned i=3;i<before.size();i+=4)before[i]=0;
+  ComPtr<ID3D11ShaderResourceView> view;if(!idView(1,view))return false;
+  RemakeRasterOutput output;
+  if(!raster.Render(surface.context.Get(),stream,current,previous,view.Get(),1,100,.1f,0,output,error,&now,&before))return false;
+  std::uint32_t motion=0,bias=0,reason=0;
+  if(!read(output.textures[0].Get(),4,motion)||!read(output.textures[3].Get(),1,bias)
+   ||!read(output.textures[4].Get(),2,reason))return false;
+  const bool motionCorrect=mode==1?(std::abs(int(motion&65535)-int(FloatToHalf(-4)))<=1&&(motion>>16)==0):motion==0;
+  if(!motionCorrect||bias!=(mode==1?255u:0u)||reason!=(mode==1?8u:0u)) {
+   error="remake shading consistency control mode="+std::to_string(mode);return false;
+  }
+  before.pop_back();RemakeRasterOutput rejected;
+  if(raster.Render(surface.context.Get(),stream,current,previous,view.Get(),1,100,.1f,0,rejected,error,&now,&before)
+   ||error!="remake-raster-color-bound"||rejected.textures[0])return false;
+ }
  // Retained resource-owner validation must still reject a genuinely different
  // device after accommodating a host's wrapped creation interface.
  Surface foreign;if(!CreateSurface(false,foreign,error))return false;

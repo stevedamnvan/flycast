@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+FLYCAST_REMAKE_COLOR_CONSISTENCY=1 enables the off-by-default returned-shading
+experiment only when the existing temporal raster is requested. It compares
+current returned RGB with bilinearly reprojected last-accepted returned RGB;
+per-channel differences above8/255 produce rejection reason8. Alpha is ignored.
+The GPU guidance log reports activation and threshold. Missing color bytes fail
+closed. This is a provisional SDR reconstruction-safety threshold, not an
+external consumer control or proven quality default. Additional uploads and
+retained color memory must be included in subsequent non-synchronous timings.
+
 FLYCAST_REMAKE_COMPARE_START_FRAME requests a positive decimal source-frame
 boundary (maximum10000000) for neural evaluation during an explicit bounded
 moving preview capture only. Before that source, rendering/publishing continues

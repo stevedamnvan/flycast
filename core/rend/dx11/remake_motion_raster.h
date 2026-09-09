@@ -64,8 +64,12 @@ public:
  bool Render(ID3D11DeviceContext* immediate,const RemakeMotionStream& stream,
   const std::vector<float>& currentDepth,const std::vector<float>& previousDepth,
   ID3D11ShaderResourceView* previousDrawIds,float nearPlane,float farPlane,
-  float absoluteTolerance,float relativeTolerance,RemakeRasterOutput& output,std::string& error) {
+  float absoluteTolerance,float relativeTolerance,RemakeRasterOutput& output,std::string& error,
+  const std::vector<unsigned char>* currentColor=nullptr,const std::vector<unsigned char>* previousColor=nullptr) {
   auto fail=[&](const char* why){error=why;return false;};
+  if(bool(currentColor)!=bool(previousColor)||(currentColor
+   &&(currentColor->size()!=640*480*4||previousColor->size()!=640*480*4)))
+   return fail("remake-raster-color-bound");
   if(!device||!immediate||stream.vertices.empty()||stream.vertices.size()>65536
    ||stream.indices.empty()||stream.indices.size()>262144||stream.indices.size()%3
    ||currentDepth.size()!=640*480||previousDepth.size()!=640*480
@@ -118,7 +122,12 @@ public:
    D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=data;
    return SUCCEEDED(device->CreateBuffer(&d,&initial,b.GetAddressOf()));
   };
-  const float constants[]={640,480,nearPlane,farPlane,absoluteTolerance,relativeTolerance,0,0};
+  Ptr<ID3D11Texture2D> colorNow,colorBefore;
+  Ptr<ID3D11ShaderResourceView> colorNowView,colorBeforeView;
+  if(currentColor&&(!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,currentColor->data(),640*4,colorNow,&colorNowView)
+   ||!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,previousColor->data(),640*4,colorBefore,&colorBeforeView)))
+   return fail("remake-raster-color-create");
+  const float constants[]={640,480,nearPlane,farPlane,absoluteTolerance,relativeTolerance,currentColor?1.f:0.f,8.f/255.f};
   Ptr<ID3D11Buffer> vertices,indices,contract;
   if(!buffer(D3D11_BIND_VERTEX_BUFFER,stream.vertices.data(),UINT(stream.vertices.size()*sizeof(RemakeMotionVertex)),vertices)
    ||!buffer(D3D11_BIND_INDEX_BUFFER,stream.indices.data(),UINT(stream.indices.size()*4),indices)
@@ -136,7 +145,7 @@ public:
   context->IASetInputLayout(layout.Get());context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   context->VSSetShader(vs.Get(),nullptr,0);context->PSSetShader(ps.Get(),nullptr,0);
   ID3D11Buffer* cb=contract.Get();context->VSSetConstantBuffers(0,1,&cb);context->PSSetConstantBuffers(0,1,&cb);
-  ID3D11ShaderResourceView* srvs[]={currentView.Get(),previousView.Get(),previousDrawIds};context->PSSetShaderResources(0,3,srvs);
+  ID3D11ShaderResourceView* srvs[]={currentView.Get(),previousView.Get(),previousDrawIds,colorNowView.Get(),colorBeforeView.Get()};context->PSSetShaderResources(0,5,srvs);
   context->DrawIndexed(UINT(stream.indices.size()),0,0);
   Ptr<ID3D11CommandList> commands;
   if(FAILED(context->FinishCommandList(FALSE,commands.GetAddressOf())))return fail("remake-raster-command-list");

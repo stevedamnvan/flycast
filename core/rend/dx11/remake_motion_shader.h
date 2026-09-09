@@ -50,6 +50,8 @@ cbuffer Contract : register(b0) {
 Texture2D<float> currentDepth : register(t0);
 Texture2D<float> previousDepth : register(t1);
 Texture2D<uint> previousDrawId : register(t2);
+Texture2D<float4> currentColor : register(t3);
+Texture2D<float4> previousColor : register(t4);
 struct Raster {
  float4 position : SV_Position;
  float4 previousClip : TEXCOORD0;
@@ -134,6 +136,23 @@ Guidance main(Raster v) {
  }
  if(!identityValid){o.reason=5;return o;}
  if(!depthValid)return o;
+ // Optional returned-shading experiment. Compare bilinearly reprojected SDR
+ // source color, never the neural output. Alpha is not a brightness multiplier.
+ // Geometric trust does not imply temporally stable path-traced illumination.
+ if(padding.x>0) {
+  float2 p=previousPixel-0.5;int2 base=int2(floor(p));float2 f=frac(p);
+  float3 before=lerp(lerp(previousColor.Load(int3(base,0)).rgb,
+   previousColor.Load(int3(base+int2(1,0),0)).rgb,f.x),
+   lerp(previousColor.Load(int3(base+int2(0,1),0)).rgb,
+   previousColor.Load(int3(base+int2(1,1),0)).rgb,f.x),f.y);
+  float3 delta=abs(currentColor.Load(int3(int2(v.position.xy),0)).rgb-before);
+  // A shading change does not invalidate the already-proven geometric
+  // correspondence. Keep its motion: replacing it with zero would falsely
+  // describe a moving surface as static. Only bias reconstruction to current.
+  if(any(delta>padding.y)){
+   o.motion=motion;o.confidence=v.confidence;o.reason=8;return o;
+  }
+ }
  o.reason=0;
  o.motion=motion; o.confidence=v.confidence; o.bias=0;
  return o;

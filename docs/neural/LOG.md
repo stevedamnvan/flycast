@@ -1,5 +1,116 @@
 # Neural rendering evidence log
 
+LOG626 final shading-experiment checkpoint: all four incremental configurations
+build; automation, baseline NGX and no-NGX selftests each pass676/0 in
+remake-color-final-* logs. Disabled-mode source-color retention is suppressed.
+Backlog consistency and diff whitespace checks pass. Scope is tested opt-in
+mechanism plus rejected/no-effect gameplay evidence, not a quality improvement.
+cp/cq logs and comparisons remain outside Git; user assets remain untouched.
+
+LOG625 cq host/helper exit0. cn/cq comparer passes28 exact-source/effect/history/
+HUD/backbuffer/Present checks, with public temporal metrics exactly matching co:
+source3.4292784, gradient2.7305470, temporal1.7783678. Independent SHA256 check
+finds co/cq motion identical28/28, masks different28/28, and pre-effect neural
+output PNGs identical28/28. The changed public mask has no observable output
+effect in this installed configuration/interval; do not generalize to all NGX
+models or claim private parameter semantics. Park D-190 as an off-by-default
+diagnostic experiment with no demonstrated quality benefit. Preserve cp failure
+and cq no-effect result. Avoid retaining extra source color when experiment is
+disabled. Next complete the focused combined changed-guidance provenance slice
+using frozen-source inputs, then sustained ordinary combined integration. No
+more threshold tuning, no reset-only default promotion, no generic Gate10 rerun.
+
+LOG624 motion-preserving shading variant automation build and676/0 selftest
+pass. cq public frozen gameplay launched with unchanged OFF configuration and
+executable SHA2565CA26151AB24F9CCD9DC6540FB67C2B1F86B488A568EB7CF0DE9DE14F0E87D06.
+Host/helper launch handles84742/12779; inspect terminal state before shared
+builds. cp logs archived by checked unique-name move. cq comparison pending;
+do not treat prior four-build results as verification of this final correction.
+
+LOG623 cp host/helper exit0;28 matched captures2252..2279 pass comparer source,
+effect, history-start, HUD, backbuffer and completed-Present checks. Activation
+is positively logged. Comparison cn/cp generated and midpoint inspected.
+Reject as quality improvement: cp source MAE3.4842126 and gradient2.7860038
+versus co3.4292784/2.7305470; temporal delta1.7631238 versus1.7783678 does not
+outweigh degradation. Native effect/HUD composition remains exact. Public
+backend explicitly forwards frame.mask as pInBiasCurrentColorMask; this is not
+an absolute history discard contract. Correct the experiment's concrete flaw:
+shading rejection zeroed otherwise valid geometric motion. Preserve that motion
+and confidence while biasing current color, retaining zero motion for actual
+geometric failure. The GPU changed-shading fixture now moves4 pixels and must
+retain -4 motion. No threshold search or default promotion; rerun focused checks
+and same frozen public interval before combined propagation. cp evidence retained.
+
+LOG622 D-190 four incremental builds complete successfully; automation, NGX and
+no-NGX suites each pass676/0 (remake-color-build3/selftest3 and baseline/no-ngx/
+off logs). Added CPU assertions prove color independence, failed-evaluation
+retention and accepted advancement; reset assertion also checks color release.
+cp public-DLAA temporal plus color consistency launched on frozen ck inputs,
+source boundary2250, hooks-disabled supplied stage, unchanged configuration
+SHA256656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7.
+Executable SHA256E29E153B29DFC3E0CF667A6E7484BD3F51718FD71980E8C3C51BB493813047CD.
+Bounded240-frame host/helper,30 requested captures; do not rebuild shared tools
+until terminal. Host/helper live handles76142/63981 at launch, not completion
+evidence. Compare source/effect identity and accepted sequence against cn/co,
+then component metrics and moving output. No external-consumer configuration
+changes and no performance claim. Prior co stage logs preserved separately.
+
+LOG621 a701b7155 plus WIP: implemented D-190 opt-in returned-color consistency
+in production guidance shader with bilinear sampling, SDR8/255 rejection and
+reason8; retained source RGB advances with accepted geometry/depth only. Added
+GPU stable/change/alpha-only and malformed-color controls to both API fixtures.
+First build launch failed before compilation because VsDevCmd used an invalid
+host argument; no build log was created. Corrected host_arch launch compiled
+and selftest passed673/0, including the new GPU controls. Added three explicit
+CPU color ownership/failed-evaluation/accepted-evaluation assertions afterward;
+serial automation/baseline/no-NGX/feature-off builds and suites are underway
+under remake-color-* logs. No live benefit, performance, or full acceptance is
+claimed. Existing failed evidence and user assets remain untouched.
+
+LOG620 2026-09-09 a701b7155 plus existing comparer-label WIP: resumed from
+explanation-only turn; process inspection finds no live host/helper/python.
+co publisher reports clean_close=yes, helper shutdown outcome0; existing common
+device-object cleanup warning remains unresolved. Archived final OFF-stage logs
+without overwriting existing evidence. Host reports SAFE MODE/all hooks off.
+Completed cn/co comparison artifact contains28 frames2252..2279, zero HUD
+mismatches and no declared winner; labels correctly identify public DLAA.
+Public reset/temporal source MAE0.7440678/3.4292784, gradient0.8546587/2.7305470,
+temporal delta2.4127223/1.7783678 and source-relative temporal residual
+0.4274891/1.4893458. Midpoint image inspected: no perceptual winner inferred.
+Independent SHA256 comparison matches all28 cm/co files for each of motion,
+bias, confidence, draw ID, raster depth and rejection reason. This localizes
+the degradation to a path that also exists without the external neural hooks;
+it does not establish new external-output provenance or prove a unique cause.
+Executed nearest-neighbor returned-source reprojection over27 frame pairs and
+8,577,180 trusted RGB samples: current-to-previous/zero/reversed motion MAE
+1.9286914/1.9310742/1.9642259. Lighting changes and interpolation confound this
+metric; do not relabel it motion ground truth. Next bounded integration change
+is accepted-returned-color consistency protection, with stable/change negative
+controls and the same frozen moving comparison, not another broad audit.
+All captures are synchronous diagnostics, not performance. No production patch
+or new build/selftest is claimed in this inspection; full goal remains open.
+
+LOG619 cn public-DLAA reset-only host/helper exit0. Host positively reports
+SAFE MODE EnableHooks=0/all hooks off. Exactly30 accepted2250..2279 evaluations
+all reset; all28 displayed2252..2279 captures independently match ck scene,
+returned color/depth, effect/alpha identity and exact HUD/world/backbuffer/
+completed-Present. Same executable SHA25654C7606E44D776F84807D0A6FE5CE92F7431F91CD4F2432FF123B2C8C799CC42;
+OFF-stage config remains656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7.
+co public temporal is launched against the same archive/boundary/stage. Compare
+cn/co only after sequence and source checks; preserve public-DLAA labels and do
+not call the isolation pair a new Feature18 presentation proof by itself.
+
+LOG618 a701b7155: post-commit four incremental builds and three673/0 selftests
+pass. Next isolate public DLAA reset/temporal on ck frozen inputs2250..2279.
+Use the existing supplied hooks-disabled stage, without editing its config;
+require its host SAFE MODE report and actual successful public evaluation.
+The ON-stage cl/cm settings remain recorded separately. Preserve preexisting
+OFF-stage logs under a uniquely named pre-cn archive after confirming that stage
+has no live process. cn public reset-only precedes co public temporal; both
+must match frozen source/effect/accepted sequences and final presentation before
+comparing with each other or attributing external-consumer effects. These are
+synchronous diagnostic lanes, not performance or a new broad transport audit.
+
 LOG617 comparison checkpoint: final serial automation/NGX/no-NGX/feature-off
 builds exit0 and all three enabled suites pass673/0 (remake-compare-final-*).
 Comparer now uses explicit exceptions so optimized Python cannot remove its

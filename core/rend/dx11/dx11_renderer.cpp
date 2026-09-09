@@ -2903,10 +2903,13 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			rasterHistory=previous&&remakeTemporalHistory.CanReproject(*temporal)
 				&&remakeAcceptedRasterFrame==previous->frame&&remakeAcceptedRaster.views[2];
 			const auto& previousDepth=rasterHistory?remakeTemporalHistory.Depth():source.projectionDepth;
+			const char* colorSetting=std::getenv("FLYCAST_REMAKE_COLOR_CONSISTENCY");
+			const bool colorCheck=colorSetting&&std::strcmp(colorSetting,"1")==0;
+			const auto& previousColor=rasterHistory?remakeTemporalHistory.Color():source.bgra;
 			if(!remakeMotionRaster.Initialize(device,DX11Context::Instance()->getCompiler(),error)
 				||!remakeMotionRaster.Render(deviceContext,stream,source.projectionDepth,previousDepth,
 					rasterHistory?remakeAcceptedRaster.views[2].Get():nullptr,source.nearPlane,source.farPlane,
-					.001f,.0001f,rasterOutput,error)) {
+					.001f,.0001f,rasterOutput,error,colorCheck?&source.bgra:nullptr,colorCheck?&previousColor:nullptr)) {
 				NOTICE_LOG(RENDERER,"Remake GPU guidance rejected: source=%llu reason=%s",
 					(unsigned long long)source.frame,error.c_str());return;
 			}
@@ -2916,8 +2919,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			deviceContext->CopyResource(neuralDrawId.textures[neuralExportSlot],rasterOutput.textures[2].Get());
 			deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],rasterOutput.textures[3].Get());
 			releaseNeuralInputs();
-			NOTICE_LOG(RENDERER,"Remake GPU guidance: source=%llu previous=%llu history=%d scope=projected-depth-experiment",
-				(unsigned long long)source.frame,(unsigned long long)(rasterHistory?previous->frame:0),rasterHistory);
+			NOTICE_LOG(RENDERER,"Remake GPU guidance: source=%llu previous=%llu history=%d color_consistency=%d color_threshold_sdr=8/255 scope=projected-depth-experiment",
+				(unsigned long long)source.frame,(unsigned long long)(rasterHistory?previous->frame:0),rasterHistory,colorCheck);
 		}
 		frame.frameId=source.frame;frame.jitterX=frame.jitterY=0;
 		frame.historyValid=false;frame.resetHistory=true;frame.historyAge=0;frame.skippedFrameCount=0;
@@ -2942,7 +2945,9 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(temporal) {
 			const auto* previous=remakeTemporalHistory.Last();const auto previousFrame=previous?previous->frame:0;
 			const bool compatible=remakeTemporalHistory.CanReproject(*temporal);
-			const bool retained=remakeTemporalHistory.Accept(temporal,source,true);
+			const char* colorSetting=std::getenv("FLYCAST_REMAKE_COLOR_CONSISTENCY");
+			const bool retained=remakeTemporalHistory.Accept(temporal,source,true,
+				colorSetting&&std::strcmp(colorSetting,"1")==0);
 			if(retained) {
 				remakeAcceptedRaster=std::move(rasterOutput);
 				remakeAcceptedRasterFrame=rasterRequested?source.frame:0;

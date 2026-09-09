@@ -66,14 +66,16 @@ inline bool CompatibleRemakeTemporalReference(const RemakeTemporalScene& previou
 class RemakeTemporalHistory {
  std::shared_ptr<const RemakeTemporalScene> accepted;
  std::vector<float> acceptedDepth;
+ std::vector<unsigned char> acceptedColor;
 public:
- void Reset(){accepted.reset();acceptedDepth.clear();}
+ void Reset(){accepted.reset();acceptedDepth.clear();acceptedColor.clear();}
  const RemakeTemporalScene* Last()const{return accepted.get();}
  const std::vector<float>& Depth()const{return acceptedDepth;}
+ const std::vector<unsigned char>& Color()const{return acceptedColor;}
  bool CanReproject(const RemakeTemporalScene& next)const {
   return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
  }
- bool Accept(std::shared_ptr<const RemakeTemporalScene> scene,const RemakeReturnedImage& image,bool evaluated) {
+ bool Accept(std::shared_ptr<const RemakeTemporalScene> scene,const RemakeReturnedImage& image,bool evaluated,bool retainColor=true) {
   if(!evaluated||!scene||!scene->Matches(image)||image.width!=640||image.height!=480
    ||image.projectionDepth.size()!=640*480)return false;
   for(float z:image.projectionDepth)if(!std::isfinite(z)||z<0||z>1)return false;
@@ -81,7 +83,8 @@ public:
    ||scene->producer.ordinal<=accepted->producer.ordinal||scene->producer.cycle<accepted->producer.cycle
    ||scene->receipt.sequence<=accepted->receipt.sequence))return false;
   auto depth=image.projectionDepth;
-  accepted=std::move(scene);acceptedDepth=std::move(depth);return true;
+  auto color=retainColor?image.bgra:std::vector<unsigned char>{};
+  accepted=std::move(scene);acceptedDepth=std::move(depth);acceptedColor=std::move(color);return true;
  }
 };
 }

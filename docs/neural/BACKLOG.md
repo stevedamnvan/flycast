@@ -57,9 +57,43 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG616):** checkpoint the bounded comparison/replay
-work, then isolate public reconstruction versus supplied-consumer response on
-the same ck frozen sequence, including focused changed-guidance provenance.
+**Operational next action (LOG625):** cq completes the bounded shading experiment:
+co/cq motion matches28/28, masks differ28/28, neural output matches28/28 exactly.
+Park D-190 off by default; no more mask thresholds or public tuning. Finish the
+four-build checkpoint including disabled-mode color-retention guard, then the
+focused changed-guidance combined provenance slice on frozen ck inputs using
+existing marked/clean/OFF machinery. This is the outstanding changed dependency,
+not a generic transport reproof. Then advance ordinary combined integration and
+sustained delivery; retain full working-pipeline criteria and failed quality data.
+Require activated color-consistency log, exact frozen source/effects/accepted
+sequence and completed presentation, then compare with cn/co. Preserve failed
+attempts and do not declare visual benefit from synthetic controls alone.
+
+Integration rationale (LOG620): public isolation is complete; do not expand
+the settings sweep or repeat transport bring-up. Implement a bounded returned-color
+reprojection consistency experiment at the existing accepted-history boundary:
+protect shading/color changes that geometric depth/identity alone cannot detect,
+without changing source effects or manufacturing motion. First prove rejection
+and stable-surface controls, then rerun the frozen public/combined moving interval.
+Measure retained detail and temporal behavior together; do not promote reset-only
+or maximum rejection as the completed integration. co/cn already demonstrate that
+detail loss exists with external hooks disabled. All six cm/co guidance binaries
+match for all28 frames. Public temporal source/gradient MAE increases from
+0.7441/0.8547 to3.4293/2.7305 while temporal delta drops2.4127 to1.7784.
+Nearest-sample source reprojection on trusted pixels only marginally improves
+over zero motion (1.92869 versus1.93107); this is not proof of incorrect vectors,
+but geometric trust alone is insufficient evidence of stable returned shading.
+Keep the complete pipeline goal, source identity and accepted-history invariants.
+
+Previous isolation bounds (completed, LOG620): comparison/replay checkpoint a701b7155 is
+pushed with all four builds and three673/0 suites passing. cn public-DLAA reset
+replay verifies all30 accepted sources and28 frozen-input/final captures with
+SAFE MODE confirmed. Finish co public temporal in the same hooks-disabled stage,
+on ck frozen inputs and the same2250 evaluation boundary. Require SAFE MODE host
+report, actual public evaluations and exact source/final checks; do not edit
+consumer configuration. Isolate public reconstruction versus supplied-consumer
+response, including focused changed-guidance provenance, before another quality
+change. The comparer supports explicit lane labels so public DLAA is not called NR.
 cl/cm prove28 exact-source2252..2279 moving comparisons and identical accepted
 sequences2250..2279. Temporal RGB delta improves3.3103 ->2.0480 but source MAE
 worsens12.2597 ->14.2512 and gradient MAE2.0058 ->3.5878. No visual winner or

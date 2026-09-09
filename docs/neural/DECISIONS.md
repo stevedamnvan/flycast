@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-190: returned shading consistency is an opt-in reconstruction experiment
+
+LOG620 isolates detail loss in the public reconstruction lane as well as the
+combined route. Depth and draw identity cannot certify stable returned lighting.
+FLYCAST_REMAKE_COLOR_CONSISTENCY=1 therefore tests bilinear previous-source RGB
+against current returned RGB after geometric checks, using the last accepted
+evaluation only. A provisional per-channel 8/255 SDR threshold rejects history
+with bias-current one (reason8). LOG623 rejects the first experiment which also
+zeroed motion/confidence: changed shading must retain already-validated geometry
+motion/confidence, unlike failed depth/identity correspondence. Alpha is ignored;
+native effects/HUD are composed later and are not removed. This is neither
+semantic art-direction masking nor optical flow. Threshold and visual benefit
+remain unproven until matched moving comparisons; it is off by default. Missing
+or malformed color inputs reject the requested raster experiment. Two bounded
+color uploads add cost; synchronous fixture results cannot establish performance.
+
 ## D-189: temporal comparison freezes upstream inputs and evaluation history start
 
 Identical game geometry/source frames do not imply identical Remix returned
