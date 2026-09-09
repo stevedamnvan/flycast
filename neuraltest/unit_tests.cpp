@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "remake_cutout.h"
 #include "ta_provenance.h"
 #include "capture_transition.h"
 #include "remake_scene.h"
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/pvr_material_capture.h"
+#include "rend/neural/pvr_palette_binding.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -38,6 +40,9 @@
 #include <memory>
 #include <string>
 
+// Harness-owned palette generations; production definitions live in texconv.cpp.
+u32 pal_hash_16[64]{};
+u32 pal_hash_256[4]{};
 namespace neuraltest {
 namespace {
 
@@ -98,6 +103,22 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		TCW resource{};resource.PixelFmt=PixelPal4;resource.TexAddr=42;resource.PalSelect=1;
+		auto draw=resource;draw.PalSelect=17;
+		suite.Expect(PvrDrawTextureWordMatches(resource,draw,true),"GPU index texture permits distinct draw palette bank");
+		suite.Expect(!PvrDrawTextureWordMatches(resource,draw,false),"CPU expanded palette texture requires exact bank");
+		++draw.TexAddr;
+		suite.Expect(!PvrDrawTextureWordMatches(resource,draw,true),"GPU palette sharing never permits changed index address");
+		draw=resource;draw.PixelFmt=PixelPal8;
+		suite.Expect(!PvrDrawTextureWordMatches(resource,draw,true),"GPU palette sharing rejects changed index format");
+	}
+	{
+		std::string error;
+		const bool passed=RunLegacyCutoutFixture(error);
+		suite.Expect(passed,"native D3D9 cutout alpha truth and wrong-opaque GPU control");
+		if(!passed)std::cout<<"cutout fixture: "<<error<<'\n';
+	}
 	{
 		PvrDecodedPacket p;p.frame=7;p.game="T1401N";p.gitSha="fixture";p.sourceProducer={2,6,100};
 		p.framebufferSize={640,480};p.viewport={2.f/640,0,0,0,0,-2.f/480,0,0,0,0,1,0,-1,1,0,1};
@@ -186,6 +207,27 @@ int RunSelfTests()
 		suite.Expect(BuildRemakeViewPacket(view,reader,packet,error)&&packet.meshes.size()==1
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
+		{
+			auto source=p;auto cutout=source.draws[0];cutout.list=1;cutout.state.tsp.full=3u<<6;
+			source.draws.push_back(cutout);RemakeViewScene cutoutView;
+			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error)&&cutoutView.meshes.size()==1,
+				"cutout scene export remains disabled by default");
+			suite.Expect(!BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,true)
+				&&error=="view-cutout-source-alpha-missing","cutout export requires source-owned alpha state");
+			source.sourceAlphaReference=0;remake::Packet cutoutPacket;
+			const bool ok=BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,true)
+				&&BuildRemakeViewPacket(cutoutView,reader,cutoutPacket,error);
+			suite.Expect(ok&&cutoutPacket.meshes.size()==2&&!cutoutPacket.meshes[0].sourceAlphaReference
+				&&cutoutPacket.meshes[1].sourceAlphaReference==0
+				&&cutoutPacket.meshes[0].id!=cutoutPacket.meshes[1].id,
+				"cutout geometry retains threshold zero and disjoint list identity end to end");
+			source.draws.back().protectedOverlay=true;
+			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,true)&&cutoutView.meshes.size()==1,
+				"protected cutout HUD is excluded before world transport");
+			source.draws.back().protectedOverlay=false;
+			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error,false,true)&&cutoutView.meshes.size()==2,
+				"unprotected world cutout is not removed by overlay exclusion");
+		}
 		{
 			std::ostringstream opaque(std::ios::binary);std::string why;
 			const bool oldOk=SerializeRemakeViewPacket(opaque,packet,why);

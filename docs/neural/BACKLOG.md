@@ -191,6 +191,54 @@ LOG565 implements that explicit packet field and version2 round-trip contract;
 opaque-only version1 remains unchanged. Both unimplemented consumers reject
 cutouts, including threshold0. Next connect source-owned alpha state and GPU
 alpha-test behavior; do not add more packet-only work instead of this hookup.
+Current cutout implementation bounds: exact FLYCAST_REMAKE_PUNCH_THROUGH=1
+adds supported list1 geometry with source-owned alpha reference captured beside
+the uploaded native constants. Require default alpha clamp, ShadInstr3 and no
+fog-replaced alpha; retain other unsupported-state omissions. IDs include list
+identity; texture reads match the actual opaque/PT list and generation. A
+Flycast-owned D3D9 pixel shader rounds alpha before discard and writes opaque
+alpha after passing; public SDK material adapter remains unsupported. Native
+D3D9 fixtures cover reference0/1/64/128/255, texture/vertex alpha, depth through
+holes, wrong rounding and wrong-opaque controls. Now run the supplied runtime
+with three diagnostic frames before claiming cutout integration accepted.
+LOG566 native GPU alpha/depth controls pass; live bh exports two cutout meshes
+with alpha reference255 but rejects their A8 palette-index textures at the
+existing DDS boundary. No scene reaches Remix; host exits0/helper first-source
+timeout exits1. Next extend the existing asynchronous, generation-qualified
+texture cache to retain source index and palette resources plus exact bank/base,
+then resolve colors/alpha using the existing DecodeMaterialTexel semantics.
+Never treat A8 indices as alpha, bypass generation checks, drop those draws or
+claim native-GPU tests prove the supplied runtime. Keep the current slice WIP
+until this dependency and actual runtime behavior are validated.
+LOG567 implements paired palette staging/decoding; automation589/0 and the
+WARP palette fixture pass. Live bi advances past DDS rejection but fails
+view-texture-binding, with no delivered scene. Native GPU-paletted cache keys
+intentionally omit PalSelect; a shared index texture's cached TCW/palette_hash
+cannot identify each draw's active palette bank. Next qualify the live cutout
+binding using native index-resource identity plus draw-owned bank and current
+authoritative palette generation. Preserve exact source-state checks; do not
+merely remove the equality guard or use the shared texture's stale palette hash.
+LOG568 corrects that binding. Live bj now delivers two cutout meshes through
+Remix return, neural evaluation, native effects/HUD and completed Present.
+Three independently checked captures2179..2181 preserve protected HUD and
+backbuffer RGB exactly; both processes exit0. This is integration progress,
+not cutout visual acceptance: image2180 contains conspicuous dark geometry.
+LOG569 exact packets match for all3 bj/bk frames; dark geometry persists with
+cutouts omitted. More importantly, isolated60-frame raster on/off runs using the
+same source2180 packet identify the admitted meshes as HUD stage/time and round
+timer:3426 changed RGB pixels, bounds28,22..357,75, zero below y100. Do not call
+these missing world geometry or feed protected HUD into ray tracing simply
+because alpha testing works. Next reuse neuralInstrumentation.IsOverlayOrdinal
+classification at scene export, carrying exact list/ordinal mapping, to exclude
+protected HUD meshes before uploader submission while retaining native overlay
+composition. Then continue actual world/camera completeness; the dark world
+shapes are not caused by these cutouts. Keep cutout lane off by default and
+unaccepted for world coverage until a genuine world-cutout case is demonstrated.
+LOG570 implements classifier-based source exclusion. Live bl excludes8 HUD draws,
+including both cutouts, with3 independently verified original-HUD/backbuffer/
+completed-Present captures and both exits0. Finish the build/commit checkpoint,
+then investigate the persistent dark world shapes using retained source geometry
+and controlled draw attribution; do not reopen cutout/HUD or generic provenance.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

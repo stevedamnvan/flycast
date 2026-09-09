@@ -501,6 +501,11 @@ void DX11Renderer::setupPixelShaderConstants()
 
 	// Punch-through alpha ref
 	pixelConstants.alphaTestValue = (PT_ALPHA_REF & 0xFF) / 255.0f;
+#ifdef FLYCAST_ENABLE_NEURAL
+	remakeSourceAlphaReference.reset();
+	if(pixelConstants.colorClampMin[3]==0&&pixelConstants.colorClampMax[3]==1)
+		remakeSourceAlphaReference=static_cast<std::uint8_t>(std::lround(pixelConstants.alphaTestValue*255));
+#endif
 
 	// Dithering
 	dithering = config::EmulateFramebuffer && rendContext->fb_W_CTRL.fb_dither && rendContext->fb_W_CTRL.fb_packmode <= 3;
@@ -2655,19 +2660,37 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	PvrDecodedPacket snapshot;RemakeViewScene scene;
 	const auto* estimate=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
 	if(!SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error)) {skip("snapshot",error);return;}
-	if(!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0)) {skip("scene",error);return;}
+	snapshot.sourceAlphaReference=remakeSourceAlphaReference;
+	// Match the concatenated OP/PT/TR ordinal used by native overlay-mask replay.
+	// Exclude only when that same policy will restore the owned native overlay.
+	unsigned protectedDraws=0;
+	if(config::NeuralOverlayPolicy.get()==0)
+		for(std::size_t ordinal=0;ordinal<snapshot.draws.size();++ordinal) {
+			snapshot.draws[ordinal].protectedOverlay=neuralInstrumentation.IsOverlayOrdinal(ordinal);
+			protectedDraws+=snapshot.draws[ordinal].protectedOverlay;
+		}
+	if(protectedDraws)NOTICE_LOG(RENDERER,"Remake world overlay exclusion: source=%llu protected_draws=%u policy=native-post-composite",
+		(unsigned long long)metadata.frameId,protectedDraws);
+	const auto* cutout=std::getenv("FLYCAST_REMAKE_PUNCH_THROUGH");
+	if(!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0,
+		cutout&&std::strcmp(cutout,"1")==0)) {skip("scene",error);return;}
+	if(cutout&&std::strcmp(cutout,"1")==0) {
+		std::size_t count=0;for(const auto& mesh:scene.meshes)count+=mesh.sourceAlphaReference.has_value();
+		NOTICE_LOG(RENDERER,"Remake cutout scene: source=%llu cutout_meshes=%u alpha_reference=%d scope=experimental",
+			(unsigned long long)metadata.frameId,unsigned(count),snapshot.sourceAlphaReference?int(*snapshot.sourceAlphaReference):-1);
+	}
 	// Visit every required draw, even when an earlier texture is pending. Publish
 	// no partial scene; a later frame uses its own geometry and current generations.
 	bool ready=true;std::size_t remaining=64*1024*1024;
 	for(const auto& mesh:scene.meshes) {
 		std::vector<unsigned char> bytes;
-		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures)) {
+		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures,paletteTexture)) {
 			if(ready)skip("texture",error);ready=false;
 		}
 	}
 	if(!ready)return;
 	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
-		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures);
+		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture);
 	};
 	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
 	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}

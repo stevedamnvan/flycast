@@ -1,4 +1,5 @@
 add_executable(neuraltest
+    remake_cutout.cpp
     remake_preview.cpp
     material_contract.cpp
     remake_scene_tests.cpp
@@ -21,7 +22,7 @@ add_executable(neuraltest
 target_compile_features(neuraltest PRIVATE cxx_std_17)
 target_include_directories(neuraltest PRIVATE "${CMAKE_SOURCE_DIR}/core/deps/stb")
 target_compile_definitions(neuraltest PRIVATE NEURAL_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-target_link_libraries(neuraltest PRIVATE flycast-neural d3dcompiler)
+target_link_libraries(neuraltest PRIVATE flycast-neural d3dcompiler d3d9)
 set_target_properties(neuraltest PROPERTIES FOLDER "Tools")
 
 # Independent bounded developer transport test; no runtime or emulator hooks.
@@ -73,6 +74,6 @@ if(NEURALTEST_REMAKE_SDK)
     target_compile_features(remake-runtime-smoke PRIVATE cxx_std_17)
     target_include_directories(remake-runtime-smoke PRIVATE "${NEURALTEST_REMIX_INCLUDE_DIR}")
     target_compile_definitions(remake-runtime-smoke PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-      target_link_libraries(remake-runtime-smoke PRIVATE user32 bcrypt flycast-neural)
+      target_link_libraries(remake-runtime-smoke PRIVATE user32 bcrypt flycast-neural d3dcompiler)
     set_target_properties(remake-runtime-smoke PROPERTIES FOLDER "Tools")
 endif()

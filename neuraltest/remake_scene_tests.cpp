@@ -48,7 +48,9 @@ TestCounts TestSceneContract() {
   expect(LegacySamplingSupported(base),"legacy linear modulation supported");
   for(std::uint8_t threshold:{0,128,255}) {
    auto cutout=base;cutout.sourceAlphaReference=threshold;
-   expect(!LegacySamplingSupported(cutout),"legacy cutout cannot silently become opaque");
+   expect(LegacySamplingSupported(cutout),"legacy cutout carries supported alpha shading");
+   cutout.sourceTsp=*cutout.sourceTsp|(3u<<22);
+   expect(!LegacySamplingSupported(cutout),"legacy cutout rejects fog-replaced alpha");
   }
   auto changed=base;changed.sourceTsp.reset();expect(!LegacySamplingSupported(changed),"legacy missing sampler rejected");
   changed=base;changed.sourceTsp=(3u<<6)|(2u<<13);expect(!LegacySamplingSupported(changed),"legacy trilinear rejected");

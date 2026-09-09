@@ -70,11 +70,15 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
   "camera-relative temporal history and complete scene coverage unproven"};
 	if(scene.estimatedVertices) p.omissions.push_back("projected-depth estimated vertices="+std::to_string(scene.estimatedVertices)+"; no source-transform or physical-depth claim");
  std::size_t vertices=0,textureBytes=0,clippedVertices=0;
+ for(const auto& mesh:scene.meshes)if(mesh.sourceAlphaReference) {
+  p.omissions.push_back("source alpha-tested cutouts included experimentally; native/Remix coverage validation required");break;
+ }
  for(const auto& source:scene.meshes) {
   if(source.vertices.size()>65536-vertices || source.vertices.size()%3)return fail("view-packet-vertex-bound");
   vertices+=source.vertices.size();
   const auto& draw=source.sourceDraw;
-  remake::Mesh mesh;mesh.id=std::uint64_t(draw.ordinal)+1;mesh.frame=scene.frame;mesh.sourceTsp=draw.state.tsp.full;
+  remake::Mesh mesh;mesh.id=(std::uint64_t(draw.list)<<32)|(std::uint64_t(draw.ordinal)+1);
+  mesh.frame=scene.frame;mesh.sourceTsp=draw.state.tsp.full;mesh.sourceAlphaReference=source.sourceAlphaReference;
   mesh.transform=std::array<float,12>{1,0,0,0,0,1,0,0,0,0,1,0};
   mesh.material.emplace();mesh.material->albedo={1,1,1};mesh.material->sourceColorExperiment=true;
   if(draw.texture) {

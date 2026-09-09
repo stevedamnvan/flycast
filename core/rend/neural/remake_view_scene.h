@@ -17,6 +17,7 @@ struct RemakeViewVertex {
 };
 struct RemakeViewMesh {
  PvrCapturedDraw sourceDraw;
+ std::optional<std::uint8_t> sourceAlphaReference;
  std::vector<RemakeViewVertex> vertices; // Expanded triangle list; flat normals.
 };
 struct RemakeViewScene {
@@ -38,7 +39,7 @@ struct RemakeViewScene {
 // The empirical tolerance admits an experiment; it does NOT close strict parity.
 inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  const ProducerIdentity& expectedProducer,std::uint64_t expectedFrame,
- RemakeViewScene& output,std::string& error,bool estimateUntraced=false) {
+ RemakeViewScene& output,std::string& error,bool estimateUntraced=false,bool includeCutouts=false) {
  const auto fail=[&](const char* why){error=why;return false;};
  if(!expectedProducer.Available() || packet.frame!=expectedFrame || !expectedFrame
   || packet.sourceProducer.epoch!=expectedProducer.epoch
@@ -125,8 +126,12 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  std::size_t totalVertices=0,totalReferences=0;
  for(const auto& draw:packet.draws) {
   if(!draw.state.count)continue;
+  if(draw.protectedOverlay){++result.omittedDraws;continue;}
   const auto& state=draw.state;
-  if(draw.list!=0 || draw.vertexRange || state.isNaomi2() || state.pcw.Volume
+  const bool cutout=includeCutouts&&draw.list==1;
+  if(cutout&&!packet.sourceAlphaReference)return fail("view-cutout-source-alpha-missing");
+  if(cutout&&(state.tsp.ShadInstr!=3||state.tsp.FilterMode>1||state.tsp.FogCtrl==3||state.tcw.PixelFmt==PixelBumpMap)) {++result.omittedDraws;continue;}
+  if((draw.list!=0&&!cutout) || draw.vertexRange || state.isNaomi2() || state.pcw.Volume
    || state.texture || state.texture1 || draw.texture1 || state.isp.ZWriteDis
    || (state.pcw.Texture && !draw.texture)) {++result.omittedDraws;continue;}
   if(state.first>packet.indices.size() || state.count>packet.indices.size()-state.first)
@@ -140,7 +145,7 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
    complete=complete&&converted[vertex].has_value();
   }
   if(!complete){++result.omittedDraws;continue;}
-  RemakeViewMesh mesh;mesh.sourceDraw=draw;
+  RemakeViewMesh mesh;mesh.sourceDraw=draw;if(cutout)mesh.sourceAlphaReference=packet.sourceAlphaReference;
   std::uint32_t previous[2]{};std::size_t stripLength=0;
   for(std::size_t i=state.first;i<std::size_t(state.first)+state.count;++i) {
    const auto vertex=packet.indices[i];

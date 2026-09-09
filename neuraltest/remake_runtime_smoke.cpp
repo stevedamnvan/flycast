@@ -300,7 +300,10 @@ int wmain(int argc,wchar_t** argv) {
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   DynamicD3D9Fixture legacyFixture(ownedDevice,api);
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync);
+  wchar_t cutoutControl[2]{};
+  const bool omitCutoutsControl=GetEnvironmentVariableW(L"FLYCAST_REMAKE_TEST_OMIT_CUTOUTS",cutoutControl,2)==1&&cutoutControl[0]==L'1';
+  std::cout<<"cutout_omission_negative_control="<<omitCutoutsControl<<" input_packet_unchanged=true\n"<<std::flush;
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {

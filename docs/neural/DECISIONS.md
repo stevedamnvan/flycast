@@ -1,5 +1,27 @@
 # Neural rendering decisions
 
+## D-182: protected HUD does not belong in the ray-traced scene
+
+LOG569's exact-source omission/raster controls identify the first two live
+cutout meshes as HUD, not world geometry. Reuse the existing native overlay
+classifier and concatenated source ordinal to exclude protected draws before
+world export, only under the same policy that restores native HUD afterward.
+Do not invent a rectangle classifier or promote cutout transport to demonstrated
+world completeness. Palette/alpha support remains experimental; world-cutout
+acceptance requires actual world content. LOG570 verifies native HUD restoration.
+
+## D-181: palette-bank identity belongs to the draw
+
+Native GPU-paletted texture-cache keys intentionally exclude palette selection.
+The shared texture owns index pixels, not a unique palette bank or current bank
+generation. Snapshot and revalidation therefore use the draw TCW's bank and
+native pal_hash generation; CPU-expanded textures retain cached palette identity.
+Permit only the palette-selection difference in GPU index-resource TCW checks,
+retaining address/format and all other bits. Copy index/palette resources together
+without waits, cache their exact bank/generations, and expand through the existing
+decoder. Missing palette state fails closed. LOG567/568 retain live failures and
+test evidence; this design alone is not gameplay acceptance.
+
 ## D-180: explicit cutout state cannot silently become opaque
 
 Carry an optional source alpha reference, retaining enabled threshold0 separately

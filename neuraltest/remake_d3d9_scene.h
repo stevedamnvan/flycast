@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
+#include "remake_cutout.h"
 #include <d3d9.h>
 #include <remix_c.h>
 #include <fstream>
@@ -20,9 +21,11 @@ class D3D9PacketScene {
  Packet initial_;
  Packet previous_;
  remixapi_LightHandle light_=nullptr;
+ IDirect3DPixelShader9* cutoutShader_=nullptr;
  bool failed_=false,ready_=false;
  bool refreshResources_=false;
  bool allowSkippedSources_=false;
+ bool omitCutoutsControl_=false;
  std::vector<std::vector<unsigned char>> textureBytes_;
  void ReleaseResources() {
   if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
@@ -71,6 +74,8 @@ class D3D9PacketScene {
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
+  for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
+   if(FAILED(CreateLegacyCutoutShader(device_,&cutoutShader_)))return E_FAIL;
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet)) {
    if(!allowSkippedSources_||!AsyncSourceContinuation(previous_,packet))return E_INVALIDARG;
    std::cout<<"async_source_gap previous="<<previous_.frame<<" current="<<packet.frame
@@ -133,11 +138,13 @@ class D3D9PacketScene {
   if(FAILED(hr=device_->BeginScene()))return hr;
   for(std::size_t i=0;i<resources_.size()&&SUCCEEDED(hr);++i) {
    const auto& mesh=packet.meshes[i];auto& r=resources_[i];void* mapped=nullptr;
+   if(omitCutoutsControl_&&mesh.sourceAlphaReference)continue;
    hr=r.vb->Lock(0,UINT(r.indices.size()*sizeof(Vertex)),&mapped,D3DLOCK_DISCARD);if(FAILED(hr))break;
    auto* output=static_cast<Vertex*>(mapped);
    for(std::size_t j=0;j<r.indices.size();++j){const auto& v=mesh.vertices[r.indices[j]];output[j]={v.position.x,v.position.y,v.position.z,v.normal->x,v.normal->y,v.normal->z,v.publicColor,v.u,v.v};}
    hr=r.vb->Unlock();if(FAILED(hr))break;
    const auto tsp=*mesh.sourceTsp;
+   if(FAILED(ApplyLegacyAlpha(device_,mesh,cutoutShader_))){hr=E_FAIL;break;}
    const auto address=[](bool clamp,bool mirror){return clamp?D3DTADDRESS_CLAMP:mirror?D3DTADDRESS_MIRROR:D3DTADDRESS_WRAP;};
    if(FAILED(device_->SetTexture(0,r.texture))||FAILED(device_->SetStreamSource(0,r.vb,0,sizeof(Vertex)))||
       FAILED(device_->SetSamplerState(0,D3DSAMP_ADDRESSU,address(tsp&(1<<16),tsp&(1<<18))))||
@@ -153,9 +160,9 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources){}
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl){}
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
- ~D3D9PacketScene(){ReleaseResources();}
+ ~D3D9PacketScene(){ReleaseResources();if(device_)device_->SetPixelShader(nullptr);if(cutoutShader_)cutoutShader_->Release();}
  HRESULT Draw(const Packet& p){if(failed_)return E_FAIL;try{const auto hr=DrawInternal(p);if(FAILED(hr))failed_=true;return hr;}catch(const std::exception&){failed_=true;return E_FAIL;}}
 };
 }

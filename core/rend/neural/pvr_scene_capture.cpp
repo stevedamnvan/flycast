@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "pvr_scene_capture.h"
+#include "pvr_palette_binding.h"
 #include "hw/pvr/ta_ctx.h"
 #include "rend/TexCache.h"
 #include "version.h"
@@ -134,17 +135,17 @@ bool SnapshotPvrScenePacket(const rend_context& ctx,const std::array<float,16>& 
  result.modifierTriangles=static_cast<std::uint32_t>(ctx.modtrig.size());
  result.omissions={"texture-pixels","fog-and-global-register-state","retained-framebuffer-pixels",
   "offscreen-culled-geometry","game-camera-and-lights","modifier-volume-geometry","Naomi2-matrices-and-lights"};
- const auto texture=[](const BaseTextureCacheData* t)->std::optional<PvrCapturedTexture> {
+ const auto texture=[](const BaseTextureCacheData* t,TCW draw)->std::optional<PvrCapturedTexture> {
   if(!t)return std::nullopt;
   PvrCapturedTexture r;r.upload=t->Updates;r.rtt=t->rttGeneration;
-  if(t->tcw.PixelFmt==PixelPal4||t->tcw.PixelFmt==PixelPal8)r.palette=t->palette_hash;
+  if(t->tcw.PixelFmt==PixelPal4||t->tcw.PixelFmt==PixelPal8)r.palette=PvrDrawPaletteGeneration(*t,draw);
   return r;
  };
  unsigned listId=0;
  for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr}) {
   for(std::size_t i=0;i<list->size();++i) {
    const auto& p=(*list)[i];PvrCapturedDraw d;d.list=listId;d.ordinal=static_cast<std::uint32_t>(i);
-   d.vertexRange=listId==2&&ranges[i];d.state=p;d.texture=texture(p.texture);d.texture1=texture(p.texture1);
+   d.vertexRange=listId==2&&ranges[i];d.state=p;d.texture=texture(p.texture,p.tcw);d.texture1=texture(p.texture1,p.tcw1);
    d.state.texture=nullptr;d.state.texture1=nullptr;result.draws.push_back(d);
   }
   ++listId;
@@ -188,11 +189,11 @@ bool WritePvrSourceWitness(const std::filesystem::path& path,const PvrDecodedPac
  error.clear();return true;
 }
 bool PvrSnapshotTextureBindingsMatch(const rend_context& ctx,const PvrDecodedPacket& packet) {
- const auto matches=[](const BaseTextureCacheData* live,const std::optional<PvrCapturedTexture>& saved) {
+ const auto matches=[](const BaseTextureCacheData* live,const std::optional<PvrCapturedTexture>& saved,TCW draw) {
   if(!live)return !saved;
   if(!saved||saved->upload!=live->Updates||saved->rtt!=live->rttGeneration)return false;
   const bool paletted=live->tcw.PixelFmt==PixelPal4||live->tcw.PixelFmt==PixelPal8;
-  return paletted ? saved->palette && *saved->palette==live->palette_hash : !saved->palette;
+  return paletted ? saved->palette && *saved->palette==PvrDrawPaletteGeneration(*live,draw) : !saved->palette;
  };
  std::size_t index=0;unsigned listId=0;
  for(const auto* list:{&ctx.global_param_op,&ctx.global_param_pt,&ctx.global_param_tr}) {
@@ -201,7 +202,7 @@ bool PvrSnapshotTextureBindingsMatch(const rend_context& ctx,const PvrDecodedPac
    const auto& d=packet.draws[index++];const auto& live=(*list)[ordinal];
    if(d.list!=listId||d.ordinal!=ordinal||d.state.texture||d.state.texture1||
       d.state.tcw.full!=live.tcw.full||d.state.tcw1.full!=live.tcw1.full||
-      !matches(live.texture,d.texture)||!matches(live.texture1,d.texture1))return false;
+      !matches(live.texture,d.texture,live.tcw)||!matches(live.texture1,d.texture1,live.tcw1))return false;
   }
   ++listId;
  }

@@ -16,6 +16,7 @@ struct PvrCapturedDraw {
  // A zero-count draw has no index references; its unused first value is retained.
  std::uint32_t list=0, ordinal=0;
  bool vertexRange=false; // Sorted source strips, not GPU index ranges.
+ bool protectedOverlay=false; // Live source classification; never inferred from old archives.
  PolyParam state{}; // Texture pointers stay null; resolve only against retained resources.
  std::optional<PvrCapturedTexture> texture, texture1;
 };
@@ -28,6 +29,8 @@ struct PvrDecodedPacket {
  ProducerIdentity sourceProducer;
  // Optional live-only SQ provenance. Disk packet versions do not contain it.
  std::vector<SourceVertexObservation> sourceVertices;
+ // Live source renderer state; old decoded disk formats do not imply a value.
+ std::optional<std::uint8_t> sourceAlphaReference;
  std::string game, gitSha;
  std::array<float,16> viewport{};
  std::array<std::uint32_t,2> framebufferSize{};

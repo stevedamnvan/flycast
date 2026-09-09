@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "pvr_material_capture.h"
+#include "pvr_palette_binding.h"
 #include "rend/dx11/dx11_texture.h"
 #include "json/json.hpp"
 #include "version.h"
@@ -149,9 +150,10 @@ MaterialReadbackResult MaterialReadback::Poll(ID3D11DeviceContext* context,ID3D1
   output=std::move(pixels);Reset();error.clear();return MaterialReadbackResult::Ready;
  }catch(const std::exception& e){error=e.what();Reset();return MaterialReadbackResult::Invalid;}
 }
-bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned char>& output,std::string& error) {
+bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned char>& output,std::string& error,const MaterialMip* palette,unsigned paletteBase) {
  try {
-  Require(!pixels.mips.empty()&&pixels.mips.size()<=13&&pixels.format!=DXGI_FORMAT_A8_UNORM,"view-dds-mips-or-palette-unsupported");
+  Require(!pixels.mips.empty()&&pixels.mips.size()<=13,"view-dds-mips");
+  Require(pixels.format!=DXGI_FORMAT_A8_UNORM||(palette&&palette->width==32&&palette->height==32&&palette->bytes.size()==4096&&paletteBase<=1023),"view-dds-palette-required");
   const auto bpp=Bpp(pixels.format);Require(bpp!=0,"view-dds-format");
   const auto width=pixels.mips[0].width,height=pixels.mips[0].height;
   Require(width&&height&&width<=4096&&height<=4096,"view-dds-size");
@@ -170,7 +172,7 @@ bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned c
   word(108,0x1000|(pixels.mips.size()>1?0x400008:0));word(128,28);word(132,3);word(140,1);
   std::size_t cursor=148;
   for(const auto& mip:pixels.mips)for(std::size_t offset=0;offset<mip.bytes.size();offset+=bpp) {
-   std::array<std::uint8_t,4> rgba{};Require(DecodeMaterialTexel(pixels.format,mip.bytes.data()+offset,bpp,rgba),"view-dds-decode");
+   std::array<std::uint8_t,4> rgba{};Require(DecodeMaterialTexel(pixels.format,mip.bytes.data()+offset,bpp,rgba,palette,paletteBase),"view-dds-decode");
    for(auto channel:rgba)data[cursor++]=channel;
   }
   output=std::move(data);error.clear();return true;
@@ -179,7 +181,9 @@ bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned c
 struct RemakeTextureCache::Impl {
  struct Entry {
   ComPtr<ID3D11Texture2D> source;PvrCapturedTexture generation;
-  MaterialReadback readback;std::vector<unsigned char> dds;
+  MaterialReadback readback,paletteReadback;std::vector<unsigned char> dds;
+  ComPtr<ID3D11Texture2D> palette;unsigned paletteBase=0;
+  MaterialPixels pixels,palettePixels;
   std::uint64_t lastFrame=0;std::size_t bytes=0;
  };
  std::vector<std::unique_ptr<Entry>> entries;
@@ -199,13 +203,19 @@ void RemakeTextureCache::BeginFrame(std::uint64_t frame,std::uint64_t epoch) {
  entries.erase(std::remove_if(entries.begin(),entries.end(),[&](const auto& e){return frame-e->lastFrame>120;}),entries.end());
 }
 bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Texture2D* texture,
- const PvrCapturedTexture& generation,std::vector<unsigned char>& output,std::string& error) {
+ const PvrCapturedTexture& generation,std::vector<unsigned char>& output,std::string& error,ID3D11Texture2D* palette,unsigned paletteBase) {
  try {
   Require(impl_&&context&&texture,"material-cache-frame-or-resource");auto& cache=*impl_;
+  D3D11_TEXTURE2D_DESC sourceDesc{};texture->GetDesc(&sourceDesc);
+  if(sourceDesc.Format==DXGI_FORMAT_A8_UNORM) {
+   Require(palette&&generation.palette&&paletteBase<=1023,"material-cache-palette-required");
+   D3D11_TEXTURE2D_DESC desc{};palette->GetDesc(&desc);
+   Require(desc.Width==32&&desc.Height==32&&desc.MipLevels==1&&desc.ArraySize==1&&desc.SampleDesc.Count==1&&desc.Format==DXGI_FORMAT_B8G8R8A8_UNORM,"material-cache-palette-layout");
+  } else {palette=nullptr;paletteBase=0;}
   if(cache.context&&cache.context.get()!=context){Reset();throw std::runtime_error("material-cache-context-changed");}
   if(!cache.context){cache.context.get()=context;context->AddRef();}
   auto& entries=cache.entries;
-  auto it=std::find_if(entries.begin(),entries.end(),[&](const auto& e){return e->source.get()==texture;});
+  auto it=std::find_if(entries.begin(),entries.end(),[&](const auto& e){return e->source.get()==texture&&e->palette.get()==palette&&e->paletteBase==paletteBase;});
   if(it!=entries.end()&&((*it)->generation.upload!=generation.upload||(*it)->generation.rtt!=generation.rtt
    ||(*it)->generation.palette!=generation.palette)){entries.erase(it);it=entries.end();}
   std::size_t used=0;for(const auto& e:entries)used+=e->bytes;
@@ -214,46 +224,64 @@ bool RemakeTextureCache::Request(ID3D11Device* device,ID3D11DeviceContext* conte
    Require(entries.size()<128&&used<limit,"material-cache-budget");
    auto entry=std::make_unique<Impl::Entry>();std::size_t remaining=limit-used;
    if(!entry->readback.Begin(device,context,texture,generation,remaining,error))return false;
+   if(palette) {
+    if(!entry->paletteReadback.Begin(device,context,palette,generation,remaining,error))return false;
+    entry->palette.get()=palette;palette->AddRef();entry->paletteBase=paletteBase;
+   }
    entry->source.get()=texture;texture->AddRef();entry->generation=generation;entry->lastFrame=cache.frame;
    entry->bytes=limit-used-remaining;entries.push_back(std::move(entry));error="material-cache-pending";return false;
   }
   auto& entry=**it;entry.lastFrame=cache.frame;
   if(entry.dds.empty()) {
-   MaterialPixels pixels;const auto result=entry.readback.Poll(context,texture,generation,pixels,error);
-   if(result==MaterialReadbackResult::Pending){error="material-cache-pending";return false;}
-   if(result==MaterialReadbackResult::Invalid){entries.erase(it);return false;}
+   if(entry.pixels.mips.empty()) {
+    const auto result=entry.readback.Poll(context,texture,generation,entry.pixels,error);
+    if(result==MaterialReadbackResult::Invalid){entries.erase(it);return false;}
+   }
+   if(palette&&entry.palettePixels.mips.empty()) {
+    const auto result=entry.paletteReadback.Poll(context,palette,generation,entry.palettePixels,error);
+    if(result==MaterialReadbackResult::Invalid){entries.erase(it);return false;}
+   }
+   if(entry.pixels.mips.empty()||(palette&&entry.palettePixels.mips.empty())){error="material-cache-pending";return false;}
    std::vector<unsigned char> dds;
-   if(!EncodeRemakeMaterialDds(pixels,dds,error)){entries.erase(it);return false;}
+   if(!EncodeRemakeMaterialDds(entry.pixels,dds,error,palette?&entry.palettePixels.mips[0]:nullptr,paletteBase)){entries.erase(it);return false;}
    if(dds.size()>limit-(used-entry.bytes)){entries.erase(it);error="material-cache-budget";return false;}
    entry.bytes=dds.size();entry.dds=std::move(dds);
+   entry.pixels={};entry.palettePixels={};
   }
   output=entry.dds;error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,const rend_context& live,
- const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache) {
+ const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error,RemakeTextureCache* asyncCache,ID3D11Texture2D* palette) {
  try {
-  Require(!live.isRTT&&draw.list==0&&draw.ordinal<live.global_param_op.size(),"view-texture-draw");
-  const auto& source=live.global_param_op[draw.ordinal];
+  Require(!live.isRTT&&draw.list<=1,"view-texture-list");
+  const auto& list=draw.list==0?live.global_param_op:live.global_param_pt;
+  Require(draw.ordinal<list.size(),"view-texture-draw");
+  const auto& source=list[draw.ordinal];
   Require(source.first==draw.state.first&&source.count==draw.state.count&&source.tcw.full==draw.state.tcw.full
    &&source.tsp.full==draw.state.tsp.full&&source.pcw.full==draw.state.pcw.full,"view-texture-state");
   if(!draw.state.pcw.Texture) {
    MaterialPixels white;white.format=DXGI_FORMAT_R8G8B8A8_UNORM;white.mips.push_back({1,1,{255,255,255,255}});
    return EncodeRemakeMaterialDds(white,output,error);
   }
-  Require(source.texture&&draw.texture&&source.texture->tcw.full==draw.state.tcw.full,"view-texture-binding");
+  Require(source.texture&&draw.texture&&PvrDrawTextureWordMatches(source.texture->tcw,draw.state.tcw,source.texture->gpuPalette),"view-texture-binding");
   auto* texture=static_cast<DX11Texture*>(source.texture);const auto& generation=*draw.texture;
-  const auto matches=[&]{return MaterialGenerationMatches(generation,texture->Updates,texture->rttGeneration,generation.palette?texture->palette_hash:0);};
+  const auto matches=[&]{return MaterialGenerationMatches(generation,texture->Updates,texture->rttGeneration,generation.palette?PvrDrawPaletteGeneration(*texture,draw.state.tcw):0);};
   Require(matches()&&texture->texture&&texture->textureView,"view-texture-generation");
+  const unsigned base=draw.state.tcw.PixelFmt==PixelPal4?(draw.state.tcw.PalSelect<<4):((draw.state.tcw.PalSelect>>4)<<8);
+  if(!texture->gpuPalette)palette=nullptr;
+  Require(!texture->gpuPalette||palette,"view-texture-palette-missing");
   if(asyncCache) {
    std::vector<unsigned char> bytes;
-   if(!asyncCache->Request(device,context,texture->texture,generation,bytes,error))return false;
+   if(!asyncCache->Request(device,context,texture->texture,generation,bytes,error,palette,base))return false;
    Require(matches()&&bytes.size()<=remaining,"view-texture-generation-or-budget");
    remaining-=bytes.size();output=std::move(bytes);return true;
   }
   MaterialPixels pixels;if(!ReadMaterialPixels(device,context,texture->texture,remaining,pixels,error))return false;
+  MaterialPixels palettePixels;if(palette&&!ReadMaterialPixels(device,context,palette,remaining,palettePixels,error))return false;
+  Require(!palette||(palettePixels.format==DXGI_FORMAT_B8G8R8A8_UNORM&&palettePixels.mips.size()==1),"view-texture-palette-layout");
   Require(matches(),"view-texture-generation-changed");
-  return EncodeRemakeMaterialDds(pixels,output,error);
+  return EncodeRemakeMaterialDds(pixels,output,error,palette?&palettePixels.mips[0]:nullptr,base);
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,ID3D11DeviceContext* context,
@@ -271,7 +299,7 @@ bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,I
   Require(!live.isRTT,"material-rtt-unsupported");
   const auto output=scene.parent_path()/"materials";Require(!std::filesystem::exists(output),"material-output-exists");
   Require(packet.draws.size()==live.global_param_op.size()+live.global_param_pt.size()+live.global_param_tr.size(),"material-draw-count");
-  struct Pending {const DX11Texture* source;PvrCapturedTexture generation;};
+  struct Pending {const DX11Texture* source;PvrCapturedTexture generation;TCW draw;};
   std::vector<Pending> pending;
   std::map<const DX11Texture*,unsigned> logical;
   Json bindings=Json::array();bool paletteNeeded=false;
@@ -287,7 +315,7 @@ bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,I
     Require(bool(generation)==bool(texture),"material-resource-presence");
     Json binding={{"list",draw.list},{"ordinal",draw.ordinal},{"slot",slot},{"asset",nullptr}};
     if(texture) {
-     Require(MaterialGenerationMatches(*generation,texture->Updates,texture->rttGeneration,generation->palette?texture->palette_hash:0),"material-generation-mismatch");
+     Require(MaterialGenerationMatches(*generation,texture->Updates,texture->rttGeneration,generation->palette?PvrDrawPaletteGeneration(*texture,slot?p.tcw1:p.tcw):0),"material-generation-mismatch");
      Require(texture->texture&&texture->textureView,"material-resource-unavailable");
      Require(texture->rttGeneration==0,"material-rtt-content-unsupported");
      ComPtr<ID3D11Resource> viewed;texture->textureView->GetResource(&viewed.get());
@@ -298,7 +326,7 @@ bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,I
      Require(srv.ViewDimension==D3D11_SRV_DIMENSION_TEXTURE2D&&srv.Format==desc.Format&&srv.Texture2D.MostDetailedMip==0
       &&(srv.Texture2D.MipLevels==desc.MipLevels||srv.Texture2D.MipLevels==UINT(-1)),"material-srv-layout-unsupported");
      auto it=logical.find(texture);
-     if(it==logical.end()) {Require(pending.size()<255,"material-resource-budget");unsigned index=unsigned(pending.size());pending.push_back({texture,*generation});it=logical.emplace(texture,index).first;}
+     if(it==logical.end()) {Require(pending.size()<255,"material-resource-budget");unsigned index=unsigned(pending.size());pending.push_back({texture,*generation,slot?p.tcw1:p.tcw});it=logical.emplace(texture,index).first;}
      const TCW tcw=slot?p.tcw1:p.tcw;const TSP tsp=slot?p.tsp1:p.tsp;
      const unsigned base=tcw.PixelFmt==PixelPal4?(tcw.PalSelect<<4):((tcw.PalSelect>>4)<<8);
      binding["logical_resource"]=it->second;binding["upload_generation"]=texture->Updates;
@@ -323,7 +351,7 @@ bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,I
    Require(palette,"material-palette-unavailable");unsigned index=add(palette);
    Require(assets[index].format==DXGI_FORMAT_B8G8R8A8_UNORM&&assets[index].mips.size()==1&&assets[index].mips[0].width==32&&assets[index].mips[0].height==32,"material-palette-layout");paletteAsset=index;
   }
-  for(const auto& p:pending)Require(MaterialGenerationMatches(p.generation,p.source->Updates,p.source->rttGeneration,p.generation.palette?p.source->palette_hash:0),"material-generation-changed-during-capture");
+  for(const auto& p:pending)Require(MaterialGenerationMatches(p.generation,p.source->Updates,p.source->rttGeneration,p.generation.palette?PvrDrawPaletteGeneration(*p.source,p.draw):0),"material-generation-changed-during-capture");
   for(auto& b:bindings)if(b.contains("logical_resource"))b["asset"]=logicalAssets.at(b["logical_resource"].get<unsigned>());
   std::filesystem::create_directories(output);Json descriptions=Json::array();
   for(unsigned i=0;i<assets.size();++i) {

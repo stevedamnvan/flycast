@@ -322,6 +322,7 @@ protected:
 	ComPtr<ID3D11Texture2D> remakePreEffectTexture; // Explicit preview capture only.
 	ComPtr<ID3D11ShaderResourceView> remakeEvaluatedView;
 	std::uint64_t remakeLastEvaluationAttempt=0;
+	std::optional<std::uint8_t> remakeSourceAlphaReference;
 	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;

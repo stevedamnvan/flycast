@@ -12,8 +12,7 @@ inline bool LegacyResourceCompatible(const Mesh& a,const Mesh& b) {
   a.texture.rttGeneration==b.texture.rttGeneration;
 }
 inline bool LegacySamplingSupported(const Mesh& m) {
- // Until the GPU cutout contract is proven, never render an alpha-tested mesh
- // as opaque just because its texture/sampling state is otherwise supported.
- return !m.sourceAlphaReference && m.sourceTsp && ((*m.sourceTsp>>13)&3)<=1 && ((*m.sourceTsp>>6)&3)==3;
+ return m.sourceTsp && ((*m.sourceTsp>>13)&3)<=1 && ((*m.sourceTsp>>6)&3)==3
+  &&(!m.sourceAlphaReference||((*m.sourceTsp>>22)&3)!=3);
 }
 }

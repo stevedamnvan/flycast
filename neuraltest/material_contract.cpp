@@ -132,6 +132,30 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
     }
     remaining=1024;check(readback.Begin(device,context,texture,generation,remaining,error),"material-async-reset-begin");
     readback.Reset();check(!readback.Pending()&&readback.Poll(context,texture,generation,pixels,error)==MaterialReadbackResult::Invalid,"material-async-reset-retires-ticket");++asyncControls;
+    if(format==DXGI_FORMAT_A8_UNORM) {
+     auto paletteDesc=desc;paletteDesc.Width=paletteDesc.Height=32;paletteDesc.MipLevels=1;paletteDesc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+     auto banked=palette;for(unsigned i=0;i<16;++i)banked.bytes[256*4+i]=palette.bytes[i];
+     D3D11_SUBRESOURCE_DATA data{banked.bytes.data(),128,0};ComPtr<ID3D11Texture2D> paletteTexture;
+     check(SUCCEEDED(device->CreateTexture2D(&paletteDesc,&data,&paletteTexture.get())),"palette-cache-resource");
+     RemakeTextureCache cache;cache.BeginFrame(1,1);std::vector<unsigned char> dds{42},expected;
+     check(!cache.Request(device,context,texture,generation,dds,error)&&error=="material-cache-palette-required"&&cache.Entries()==0,"palette-cache-missing-rejected");++asyncControls;
+     auto resolve=[&](const PvrCapturedTexture& gen,unsigned base) {
+      check(!cache.Request(device,context,texture,gen,dds,error,paletteTexture,base)&&error=="material-cache-pending","palette-cache-queues");
+      context->Flush();const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);bool ready=false;
+      do {ready=cache.Request(device,context,texture,gen,dds,error,paletteTexture,base);if(!ready)std::this_thread::yield();}
+      while(!ready&&error=="material-cache-pending"&&std::chrono::steady_clock::now()<deadline);
+      check(ready,"palette-cache-ready");
+     };
+     resolve(generation,256);
+     check(EncodeRemakeMaterialDds(decoded,expected,error,&banked,256)&&dds==expected,"palette-cache-banked-dds");++asyncComparisons;
+     for(unsigned i=0;i<4;++i)for(unsigned c=0;c<4;++c)check(dds[148+4*i+c]==rgba[i][c],"palette-cache-independent-color-alpha-truth");++asyncComparisons;
+     auto changed=generation;++*changed.palette;banked.bytes[256*4]=123;
+     context->UpdateSubresource(paletteTexture,0,nullptr,banked.bytes.data(),128,0);
+     resolve(changed,256);
+     check(dds!=expected&&dds[150]==123,"palette-cache-generation-updates-color");++asyncComparisons;
+     resolve(changed,0);check(dds==expected&&cache.Entries()==2,"palette-cache-bank-identity");++asyncControls;
+     check(!EncodeRemakeMaterialDds(decoded,expected,error,nullptr),"palette-dds-no-index-as-alpha");++asyncControls;
+    }
     if(format!=DXGI_FORMAT_A8_UNORM) {
      RemakeTextureCache cache;cache.BeginFrame(1,1);std::vector<unsigned char> dds{42},expected;
      check(EncodeRemakeMaterialDds(decoded,expected,error),"material-cache-reference");

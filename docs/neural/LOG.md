@@ -1,5 +1,140 @@
 # Neural rendering evidence log
 
+LOG570 implement live protectedOverlay metadata on captured draws. The async
+world exporter marks it using the same concatenated OP/PT/TR ordinal and
+IsOverlayOrdinal classification as native overlay-mask replay, only with
+automatic native-overlay policy0. BuildRemakeViewScene excludes marked draws
+before texture/mesh transport; old archives default unmarked. No new geometric
+HUD heuristic or game-specific screen rectangle. Tests cover protected cutout
+exclusion and unchanged unprotected cutout inclusion. Live validation pending;
+do not assume both observed HUD cutouts are classified until the run reports it.
+Automation build/selftests pass595/0. Live bl uses executable SHA256
+0B57DBFCA4FF4AFD81D0D68B8AFCCE0BFCAE0A4AD8A8FB079A1129A1402B4D45,
+unchanged supplied configuration222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC,
+and helper omission control off. Logs report8 protected draws excluded and0
+remaining cutout meshes. Both processes exit0. Independent image/log audit
+passes3 captures2176..2178: protected native HUD RGBA, final/backbuffer RGB,
+completed evaluated Presents2178..2180; masks cover19985/18521/18548 pixels.
+Viewed final2178: HUD and intentional effects remain; dark geometry still exists.
+This accepts the bounded HUD/world separation, not recovered camera/world
+cutout quality, changed external-output provenance, or performance. Remaining
+serial build matrix is running; commit only after actual completion. A doc patch
+with an unmatched backlog context was rejected and reapplied with correct scope.
+Serial matrix now completed: all4 incremental builds, all3 enabled selftests
+595/0, mock SDK200/0. Logs cutout-overlay-build1/baseline/no-ngx/off/sdk retain
+the actual runs. The checkpoint supports opt-in palette/alpha transport and
+native HUD/world separation, not genuine world-cutout or full pipeline acceptance.
+
+LOG569 focused cutout attribution: add harness-only exact environment control
+FLYCAST_REMAKE_TEST_OMIT_CUTOUTS=1, which skips cutout draw submission but retains
+the received packet, textures and camera unchanged. Runtime log explicitly
+labels this negative control. No Flycast production toggle or external config
+change. Automation cutout-control-build1 succeeds. Live bk uses the same host
+executable hash as bj, ten bounded captures, and omission enabled only in the
+helper process. Exact packet matching against bj is required before attributing
+image differences; run result pending. bj stage logs archived uniquely.
+bk finishes host0/helper0, negative-control log confirms omission. All3 shared
+bj/bk scene packet files are byte-identical. Returned RGB MAE4.766927/4.437184/
+4.451638 affects299358..300642 pixels; temporal variation prevents treating this
+as a cutout coverage mask. Dark shapes remain visibly present with omission.
+Two further isolated60-frame runtime raster-memory runs read the exact same
+source2180 packet, cutouts on/off, both exit0 (cutout-static-on/off.log). Viewed
+both BMPs; independent RGB difference is3426 pixels boundedx28..357,y22..75,
+zero below y100. These meshes are HUD stage/time and round timer, not missing
+world geometry. This falsifies the assumed world-completeness benefit of this
+specific live cutout case. Reuse protected-overlay classification to exclude
+them from the ray-traced scene; do not discard the tested palette/alpha support
+or falsely accept world-cutout coverage. Existing dark geometry requires separate
+scene/camera work. Static runtime cleanup warning37 persists. No external config
+changes or new performance/provenance claim. Control build succeeded; full
+post-control build/selftest matrix remains pending before committing this WIP.
+
+LOG568 base4e43b3565 plus WIP corrects GPU-paletted draw binding: allow only
+PalSelect differences for shared index resources, derive bank from draw TCW,
+snapshot/revalidate its authoritative native palette hash rather than cached
+texture hash. CPU-expanded paths remain exact. First build2 links Flycast but
+fails harness linkage because native pal_hash arrays are absent; add explicit
+harness-owned arrays, retaining that failure. build3/selftest3 passes593/0,
+including shared-bank positive and address/format/CPU-expanded negative checks.
+Live bj starts with executable SHA256
+0803D989F87F640BDA79A369520E2CED3758D33A4D2C20FD028CB090499431FC;
+configuration hash unchanged222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+bi stage logs are archived under their unique bi names; runtime result pending.
+Live bj completes host0/helper0 with two cutout meshes and alpha_reference255
+successfully published, rendered and returned. Three captures2179..2181 join
+completed evaluated Presents2181..2183. Independent Pillow/numpy checks actually
+run: exact composite/native HUD pixels under original mask, composite/backbuffer
+RGB equality, and completed-Present log join pass all3. Protected pixels are
+18598/18516/18499. This synchronous test is not performance evidence; external_nr
+remains explicitly unproven for this capture. The existing40 common-device-object
+cleanup warning persists. Visual inspection of source2180 native and composed
+images confirms weapon arcs/impact effects and HUD, but conspicuous dark geometry
+prevents declaring cutout fidelity accepted. Next compare exact-source cutout
+on/off output to separate new mesh behavior from existing camera/shadow geometry.
+Remaining serial build matrix finishes successfully: all4 incremental builds,
+all3 enabled selftests593/0, mock SDK200/0; logs palette-cutout-baseline,
+palette-cutout-no-ngx, palette-cutout-off and palette-cutout-sdk. Backlog inspector
+and diff whitespace check also pass. WIP remains uncommitted pending the focused
+cutout visual comparison; no third-party artifacts/configuration staged.
+
+LOG567 base4e43b3565 plus uncommitted cutout/palette work: extend the existing
+asynchronous cache to own paired index/palette copies, retain independently
+completed readbacks, and qualify reuse by resource, bank and upload/RTT/palette
+generation. DDS expansion uses the existing BGRA-palette decoder; A8 alone
+is rejected, never interpreted as alpha. The live renderer passes its actual
+palette texture. Bump-map cutouts remain omitted because their alpha semantics
+are not the implemented texture-alpha contract. Automation incremental build
+and589/0 selftests pass (palette-cutout-build1/selftest1.log). The executed WARP
+material-contract fixture passes bank256, independent RGBA/transparent-pixel
+truth, changed-palette generation, bank separation and missing-palette controls
+(palette-cutout-fixture1.log; external fc067-palette-cutout-fixture1 artifacts).
+Live bi is launched with three bounded captures, executable SHA256
+867E4E95D6DCD8156C8B53DE7C96B8C4C13D5BA0B49DEE07ED8DE8F2F6003B49;
+supplied configuration remains222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Runtime acceptance and remaining build configurations are pending; no new
+transport/provenance or performance acceptance is claimed.
+Live bi finishes host0/helper1 (bounded first-source timeout), without captures
+or scene delivery. The previous palette-DDS failure is replaced by
+view-texture-binding. Source inspection identifies GPU-paletted cache keys
+excluding PalSelect (TexCache.h getTextureCacheData), while the exporter requires
+full cached-TCW equality and snapshots cached palette_hash. Those are not
+draw-specific identities for shared index resources. Next correct this binding
+and generation qualification using actual draw bank and authoritative palette
+state; do not weaken checks blindly. bi failures remain in consumer/publisher
+logs and stage logs pending unique archival. This is a new actionable integration
+finding, not a runtime or external dependency blocker.
+
+LOG566 base4e43b3565 plus worktree implements opt-in source/PT geometry, texture
+and alpha-state hookup plus a native D3D9 GPU fixture. Fixed-function alpha first
+fails vertex128/texture1/reference1; a half-step ADDSIGNED attempt fails
+vertex128/texture254/reference128. Both attempts are retained, not accepted.
+Pivot to a Flycast-owned ps_3_0 shader with explicit8bit rounding/discard and
+alpha1 after acceptance. First compile fails because strict mode rejects legacy
+sampler syntax; diagnostic rerun identifies that error, corrected by the proper
+legacy compile mode. No proprietary shader/binary was inspected or modified.
+GPU fixture now tests40 correct alpha cases and40 wrong-rounding cases, a green
+surface visible only through rejected-depth holes, and an executed wrong-opaque
+control. Source tests verify off-default export, missing-reference rejection,
+threshold0 and disjoint opaque/PT IDs. Current automation selftests589/0 pass.
+Live runtime and other build configurations remain pending. One patch containing
+duplicate operations on a file was rejected before any edit, then corrected.
+Final hookup automation suite589/0 passes. Bh executable
+FAA246D308A28CE24F7805CD8E91D5AC8A53E14C699B4F1EF384EA4AEAAC0A11
+runs with cutout opt-in and unchanged supplied ON settings. It logs two exported
+cutout meshes/reference255, then alternates material-cache-pending and
+view-dds-mips-or-palette-unsupported. Host240 exits0; helper100 receives no scene
+and expires its90-second first-source wait with exit1. No evaluated captures,
+cutout runtime or presentation pass. Existing EncodeRemakeMaterialDds explicitly
+rejects A8 index textures. Next bind their actual palette resources/generation/
+bank through the current asynchronous cache; existing DecodeMaterialTexel already
+knows the palette lookup semantics. Do not weaken the rejection. Guard-only null
+device corrections were added after bh staging and require final builds.
+Final WIP validation completes all four incremental builds, three589/0 suites,
+and mock SDK200/0. No live cutout result is accepted; source/shader/texture
+hookup remains uncommitted while palette support is completed. Follow-up must
+also exclude bump-map alpha from the plain cutout contract: the PVR bump path
+derives alpha differently, so texture-alpha interpretation is not sufficient.
+
 LOG565 based5fe260a6 selects a concrete scene omission: BuildRemakeViewScene
 accepts only opaque list0; punch-through list1 is absent, and the D3D9 uploader
 does not configure alpha testing. First implement explicit optional uint8 source
