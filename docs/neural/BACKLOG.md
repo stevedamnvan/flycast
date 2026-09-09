@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `2620f8db8cd0a8d6c460540a7e11fd533c173dfc`, pushed and remote verified (LOG388). Later changes are separate from tested source.
+- Last exact tested checkpoint: `05fe3d9ac1414b9b965ec7c9289c8da450e7fbde`, pushed and remote verified (LOG390). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,8 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint/exact-verify the diagnostic entry point, then
-connect bounded prepared artifact ingestion to it for the real-runtime harness.
+Current next action: connect bounded prepared artifact ingestion to the real-runtime
+harness diagnostic entry point. Reuse vendored MIT json.hpp; cap input32MiB,
+128meshes/65536vertices/262144indices and existing packet bytes before allocating
+converted arrays. Reject unknown schema, null diagnostic clips, malformed indices,
+paths and changed assets. Preserve calibrated aspect rather than window substitution.
+Keep synthetic CLI behavior separate; no automatic runtime load or config changes.
+LOG390 closes exact diagnostic-entry checkpoint.
 LOG389 implements D-133 with sampled coordinates/clip declaration and retained
 omissions across redraw; no ordinary readiness bypass. LOG386 tests actual
 H containment for caller range0.1..104; source game clips remain null.
