@@ -135,6 +135,18 @@ ten consecutive original frames1864..1873 have exact-input external alteration,
 marked successful Presents and clean backbuffer/original-HUD pixel equality.
 The two unchanged startup frames are excluded. Commit the independently proven
 integration slice, then remove sustained-delivery bottlenecks and add OIT support.
+Next bounded implementation (cae204ca9): add an explicit async helper return-only
+mode that retains paired color/depth readback and receipt publication but writes
+no BMP/depth artifacts. The current helper writes about6MiB per returned source
+and performs480 depth file writes before publishing. Keep the existing capture
+mode unchanged, source-age8 and bounded run unchanged. Falsify no-file behavior
+and require actual live paired returns/evaluations before claiming the new mode
+works. CPU/GPU readback remains a known cost, not zero-copy performance proof.
+Return-o now proves60 disk-free paired returns,56 unique accepted evaluations,
+but only16 unique displayed sources (23 Presents). Source1877 to1896 publication
+gap expires the age8 display latch. Next isolate why publication pauses across
+that interval (scene/texture readiness or channel credit), preserving fallback
+and without another generic external-output proof phase.
 Do not divert into aesthetic trail tuning or general profiling before sustained
 delivery and OIT integration; preserve intentional source effects.
 

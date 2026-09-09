@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+The async helper accepts --return-d3d9-scene-memory-depth in the same argument
+position as --capture-d3d9-scene-memory-depth. It still requires a new absolute
+output prefix for collision checking, but creates no BMP or depth files. Only
+--live-channel-async permits it; other modes reject before runtime loading.
+Paired color/depth GPU readback and receipt-qualified ReturnImage remain intact.
+Logs report artifact_files=disabled. This removes diagnostic disk writes, not
+the blocking readback or source-observation overhead; it is not zero-copy or
+final performance acceptance. Existing capture mode retains all evidence files.
+
 FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES optionally overrides the default three
 diagnostic attempts with1..30; invalid or oversized text disables capture.
 Archive-j requested12 and verified12 source/input archives. This is still

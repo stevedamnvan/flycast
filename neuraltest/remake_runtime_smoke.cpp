@@ -69,6 +69,7 @@ int wmain(int argc,wchar_t** argv) {
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
  bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false,legacyMemory=false;
 	bool captureReturnedDepth=false;
+	bool returnOnly=false;
  const bool liveChannelAsync=argc>=12 && std::wstring(argv[5])==L"--live-channel-async";
  const bool liveChannel=liveChannelAsync || (argc>=12 && std::wstring(argv[5])==L"--live-channel");
  const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
@@ -97,7 +98,11 @@ int wmain(int argc,wchar_t** argv) {
   const int captureIndex=(argc==7||argc==9)?5:argc==18?16:12;
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
-	 captureReturnedDepth=captureOption==L"--capture-d3d9-scene-memory-depth";
+	 returnOnly=captureOption==L"--return-d3d9-scene-memory-depth";
+	 if(returnOnly&&!liveChannelAsync) {
+	  std::cerr<<"return-only requires async live channel\n";return 2;
+	 }
+	 captureReturnedDepth=returnOnly||captureOption==L"--capture-d3d9-scene-memory-depth";
   legacyMemory=captureReturnedDepth||captureOption==L"--capture-d3d9-scene-memory"||captureOption==L"--capture-d3d9-scene-raster-memory";
   legacyFrozen=captureOption==L"--capture-d3d9-frozen-color";
   legacyRaster=captureOption==L"--capture-d3d9-scene-raster"||captureOption==L"--capture-d3d9-scene-raster-frozen"||captureOption==L"--capture-d3d9-scene-raster-memory";
@@ -438,6 +443,7 @@ int wmain(int argc,wchar_t** argv) {
      std::cerr<<"raw_guidance width=640 height=480 channels=RGBA type=float32 rows=top-down frame="<<accepted
       <<" output_type="<<int(captureType)<<" write_ok="<<rawOk<<'\n'<<std::flush;
     }
+    if(!returnOnly) {
     BITMAPFILEHEADER file{};file.bfType=0x4d42;file.bfOffBits=sizeof(file)+sizeof(BITMAPINFOHEADER);file.bfSize=file.bfOffBits+DWORD(pixels.size());
     BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=640;info.biHeight=-480;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
     HANDLE out=CreateFileW(capturePath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
@@ -448,6 +454,7 @@ int wmain(int argc,wchar_t** argv) {
     if(ok)ok=WriteFile(out,pixels.data(),DWORD(pixels.size()),&written,nullptr)&&written==pixels.size();
     if(out!=INVALID_HANDLE_VALUE)CloseHandle(out);
     hr=ok&&rawOk?S_OK:E_FAIL;
+    }
    }
    if(cpu)cpu->Release();if(gpu)gpu->Release();
    std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true backbuffer_only="<<legacyBackbuffer<<" pre_present="<<legacyRaster<<"\n"<<std::flush;
@@ -473,11 +480,14 @@ int wmain(int argc,wchar_t** argv) {
 			for(int y=0;y<480;++y)for(int x=0;x<640;++x)
 				std::memcpy(&returnedFrame.projectionDepth[y*640+x],static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch+x*16,sizeof(float));
 			returnedFrame.nearPlane=packet.camera.nearPlane;returnedFrame.farPlane=packet.camera.farPlane;
+			if(!returnOnly) {
 			HANDLE file=CreateFileW(depthPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
 			bool ok=file!=INVALID_HANDLE_VALUE;
 			for(int y=0;y<480&&ok;++y){DWORD written=0;ok=WriteFile(file,
 				static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch,640*16,&written,nullptr)&&written==640*16;}
-			if(file!=INVALID_HANDLE_VALUE)CloseHandle(file);depthCpu->UnlockRect();depthHr=ok?S_OK:E_FAIL;
+			if(file!=INVALID_HANDLE_VALUE)CloseHandle(file);depthHr=ok?S_OK:E_FAIL;
+			}
+			depthCpu->UnlockRect();
 		}
 		if(depthCpu)depthCpu->Release();if(depthGpu)depthGpu->Release();
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
@@ -487,7 +497,7 @@ int wmain(int argc,wchar_t** argv) {
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
-				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error<<" presentation_proven=false\n"<<std::flush;
+				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
 			if(result==flycast::rend::neural::RemakeChannelResult::Invalid){outcome=14;break;}
 		}
 	 }

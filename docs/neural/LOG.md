@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG533 return-o result: both processes exit0;60 live published/received scene
+receipts match,60 paired returns contain307200 depth values,58 publish and56
+are retained/evaluated once. No BMP/depth artifacts exist at the output prefix;
+no sentinel, preview-capture or locked-replay records occur. Actual evaluated
+Presents number23 over16 unique sources, so this is NOT sustained delivery.
+Source1877/current1879 is followed by source1896/current1898; the last displayed
+1877 correctly expires after current1885. Later evaluations continue but the
+existing timeout latch keeps native fallback. Next identify the publication
+gap (scene/texture readiness versus credit); do not relax age8 or allow silent
+native/neural reentry. Helper's40-object cleanup warning remains open. This
+proves disk-free paired return behavior only, not zero-copy/performance or
+externally changed pixels in this uncaptured run.
+
+LOG533 return-only helper begins fromcae204ca90c3ac435be2e545612bfa5fadeaa9a9.
+Previous integration commit pushed to fork and remote SHA matched; post-commit
+four serial incremental builds passed and enabled551/551 selftests passed.
+Remove per-source BMP plus RGBA32F depth file writes only in an explicit async
+return-only mode; retain paired readback/receipt publication, source-age8 and
+120-Present helper bound. Automation and other three builds pass, enabled551/551
+selftests pass. Non-async return-only invocation rejects with code2 before
+runtime load (PowerShell wrapper also reports exit1 from that expected native
+negative). Live return-o is running without retained-input substitution, sentinel
+or preview capture; no external configuration changes. No success or performance
+claim until its actual returned/evaluated/displayed counts and absent files are
+checked. Original source effects remain content, not an optimization target.
+
 LOG532 k/l/m ACCEPTED bounded changed-route integration: marked ON, clean ON,
 and existing hook-disabled OFF all finish exit0/120 helper Presents and240
 host samples/clean close. All12 retained inputs match color/depth/motion/mask
