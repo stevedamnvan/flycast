@@ -6,8 +6,27 @@
 #include <iomanip>
 #include <stdexcept>
 using namespace neuraltest::remake;
-int main() {
+int main(int argc,char** argv) {
  try {
+  if(argc==2 && std::string(argv[1])=="--flat-normals") {
+   unsigned vertices=0,indices=0;
+   if(!(std::cin>>vertices>>indices) || vertices==0 || vertices>65536
+     || indices==0 || indices>262144) throw std::runtime_error("mesh bounds");
+   Mesh mesh;mesh.vertices.resize(vertices);mesh.indices.resize(indices);
+   for(auto& v:mesh.vertices) if(!(std::cin>>v.position.x>>v.position.y>>v.position.z))
+    throw std::runtime_error("mesh position");
+   for(auto& i:mesh.indices) if(!(std::cin>>i))throw std::runtime_error("mesh index");
+   std::cin>>std::ws;if(!std::cin.eof())throw std::runtime_error("trailing input");
+   // Caller-supplied reconstructed coordinates, not an accepted game world.
+   const auto flat=DeriveFlatNormals(mesh,Space::View);
+   std::cout<<flat.mesh.vertices.size()<<' '<<flat.degenerateTriangles<<'\n'<<std::setprecision(9);
+   for(std::size_t i=0;i<flat.mesh.vertices.size();i+=3) {
+    const auto n=*flat.mesh.vertices[i].normal;
+    std::cout<<n.x<<' '<<n.y<<' '<<n.z<<'\n';
+   }
+   return 0;
+  }
+  if(argc!=1)throw std::runtime_error("unknown mode");
   auto c=Synthetic().camera;
   auto read=[](Vec3& v) { return bool(std::cin>>v.x>>v.y>>v.z); };
   if(!read(c.position)||!read(c.right)||!read(c.up)||!read(c.forward)

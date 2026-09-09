@@ -147,6 +147,46 @@ std::vector<std::uint32_t> Triangles(const Mesh& m) {
  }
  return out;
 }
+FlatNormalMesh DeriveFlatNormals(const Mesh& source, Space space, const Limits& limits) {
+ if(space!=Space::World && space!=Space::View) throw std::invalid_argument("normal coordinate domain");
+ if(source.vertices.size()>limits.vertices || source.indices.size()>limits.indices)
+  throw std::invalid_argument("normal input budget");
+ if(source.topology!=Topology::Triangles && source.topology!=Topology::Strip)
+  throw std::invalid_argument("normal topology");
+ if(source.indices.size()<3 || (source.topology==Topology::Triangles && source.indices.size()%3))
+  throw std::invalid_argument("normal topology");
+ const auto faces=source.topology==Topology::Strip?source.indices.size()-2:source.indices.size()/3;
+ // Worst-case split is checked before copying any mesh or allocating output.
+ if(faces>limits.vertices/3 || faces>limits.indices/3
+   || faces>limits.bytes/(3*(sizeof(Vertex)+sizeof(std::uint32_t))))
+  throw std::invalid_argument("normal expansion budget");
+ for(auto i:source.indices) if(i>=source.vertices.size() || !finite(source.vertices[i].position))
+  throw std::invalid_argument("normal invalid vertex");
+ FlatNormalMesh result;
+ // Copy metadata without copying the potentially large original vertex arrays.
+ result.mesh.id=source.id; result.mesh.frame=source.frame;
+ result.mesh.material=source.material; result.mesh.texture=source.texture;
+ result.mesh.transform=source.transform; result.mesh.topology=Topology::Triangles;
+ result.mesh.vertices.reserve(faces*3);result.mesh.indices.reserve(faces*3);
+ const auto step=source.topology==Topology::Strip?1u:3u;
+ for(std::size_t i=0;i+2<source.indices.size();i+=step) {
+  auto a=source.indices[i],b=source.indices[i+1],c=source.indices[i+2];
+  if(source.topology==Topology::Strip && (i&1))std::swap(a,b);
+  const auto p=source.vertices[a].position,q=source.vertices[b].position,r=source.vertices[c].position;
+  const double ux=double(q.x)-p.x,uy=double(q.y)-p.y,uz=double(q.z)-p.z;
+  const double vx=double(r.x)-p.x,vy=double(r.y)-p.y,vz=double(r.z)-p.z;
+  const double nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+  const double length=std::sqrt(nx*nx+ny*ny+nz*nz);
+  if(length==0) {++result.degenerateTriangles;continue;}
+  const Vec3 normal{float(nx/length),float(ny/length),float(nz/length)};
+  for(auto index:{a,b,c}) {
+   auto vertex=source.vertices[index];vertex.normal=normal;
+   result.mesh.indices.push_back(std::uint32_t(result.mesh.vertices.size()));
+   result.mesh.vertices.push_back(vertex);
+  }
+ }
+ return result;
+}
 Vec3 WorldPosition(const Mesh& m, const Vertex& v) {
  if (!m.transform) throw std::invalid_argument("unknown transform");
  const auto& a=*m.transform; const auto p=v.position;

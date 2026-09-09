@@ -54,10 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: implement explicitly geometry-derived flat normals for the
-supported reconstructed triangle domain under D-130, preserving source unknown
-normal provenance and UV/color attributes. Bound vertex expansion, retain
-degenerate omissions, and test winding/rotation controls before actual samples.
+Current next action: checkpoint and exact-verify the flat-normal conversion,
+then connect the explicit source-texture experiment contract. LOG370 validates
+the actual H sample and strip-break/expansion controls. Source normals stay unknown;
+derived normals are not camera, shading or real-runtime acceptance.
 Then connect the explicit source-texture experiment without claiming physical albedo.
 LOG367 closes exact adapter checkpoint verification. Independent M1-GPU still
 requires a compatible supplied runtime; the reviewed cache has header/licenses

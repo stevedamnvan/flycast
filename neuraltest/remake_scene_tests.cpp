@@ -12,6 +12,42 @@ TestCounts TestSceneContract() {
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
  {
+  auto m=p.meshes[0];m.vertices[0].publicColor=0x12345678;
+  auto flat=DeriveFlatNormals(m,Space::World);
+  expect(flat.mesh.vertices.size()==3 && flat.mesh.vertices[0].normal->z==1
+   && flat.mesh.vertices[0].publicColor==0x12345678 && flat.mesh.vertices[0].v==1
+   && m.vertices[0].normal->z==-1,"derived face preserves attributes and source");
+  std::swap(m.indices[1],m.indices[2]);flat=DeriveFlatNormals(m,Space::World);
+  expect(flat.mesh.vertices[0].normal->z==-1,"derived face winding reversal");
+  for(auto& v:m.vertices) {const auto y=v.position.y;v.position.y=-v.position.z;v.position.z=y;}
+  flat=DeriveFlatNormals(m,Space::View);
+  expect(flat.mesh.vertices[0].normal->y==1,"derived face proper rotation");
+  m.indices={0,0,1};flat=DeriveFlatNormals(m,Space::World);
+  expect(flat.degenerateTriangles==1 && flat.mesh.vertices.empty(),"derived repeated index omission");
+  m=p.meshes[0];m.vertices[2].position=m.vertices[0].position;
+  flat=DeriveFlatNormals(m,Space::World);
+  expect(flat.degenerateTriangles==1,"derived coincident position omission");
+  auto rejected=[&](Mesh mesh,Space space,Limits limits) {
+   try {DeriveFlatNormals(mesh,space,limits);return false;}catch(const std::invalid_argument&) {return true;}
+  };
+  expect(rejected(p.meshes[0],Space::PvrProjected,{}),"derived projected domain rejects");
+  Limits tiny;tiny.vertices=2;
+  expect(rejected(p.meshes[0],Space::World,tiny),"derived vertex budget rejects");
+  tiny=Limits{};tiny.bytes=1;
+  expect(rejected(p.meshes[0],Space::World,tiny),"derived expansion byte budget rejects");
+  m=p.meshes[0];m.indices[0]=999;
+  expect(rejected(m,Space::World,{}),"derived invalid index rejects");
+  m=p.meshes[0];m.vertices[0].position.x=std::numeric_limits<float>::infinity();
+  expect(rejected(m,Space::World,{}),"derived nonfinite rejects");
+  m=p.meshes[0];m.topology=Topology::Strip;
+  m.indices={0,1,2,2,1,0};flat=DeriveFlatNormals(m,Space::World);
+  expect(flat.degenerateTriangles==2 && flat.mesh.vertices.size()==6
+   && flat.mesh.vertices[0].normal->z==1 && flat.mesh.vertices[3].normal->z==1,
+   "derived strip parity survives degenerate break");
+  tiny=Limits{};tiny.vertices=6;
+  expect(rejected(m,Space::World,tiny),"derived worst case expansion rejects before omissions");
+ }
+ {
   auto q=p;q.meshes[0].material.reset();
   expect(ReadyForAdapter(q,7,q.game).reason=="material-unknown","unknown material not synthetic default");
   q=p;q.meshes[0].material->roughness=-1;

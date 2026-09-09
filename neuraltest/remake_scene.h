@@ -65,6 +65,14 @@ Result Validate(const Packet&, std::uint64_t expectedFrame, const std::string& e
  const Limits& = {});
 Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);
 std::vector<std::uint32_t> Triangles(const Mesh&);
+struct FlatNormalMesh {
+ Mesh mesh;
+ std::size_t degenerateTriangles = 0;
+ // Source normals remain unknown; these describe the supplied coordinate mesh.
+ const char* normalProvenance = "geometry-derived-flat";
+};
+// Explicit experiment only. Does not establish coordinate or camera truth.
+FlatNormalMesh DeriveFlatNormals(const Mesh&, Space, const Limits& = {});
 Vec3 WorldPosition(const Mesh&, const Vertex&);
 // Synthetic normalized viewport: x right, y down; z remains linear view Z.
 Vec3 Project(const Camera&, Vec3 world);
