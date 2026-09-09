@@ -14,6 +14,25 @@ TestCounts TestSceneContract() {
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ {
+  auto q=p;q.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
+  q.diagnosticOrigin=Vec3{};q.producer={1,1,1};q.camera.forward={0,0,1};
+  AnchoredSceneLight light;
+  expect(light.Select(q).has_value(),"anchored light accepts qualified initial direction");
+  q.camera.forward={1,0,0};
+  expect(light.Select(q)->z==1,"anchored light ignores later camera rotation");
+  auto bad=q;bad.producer.epoch++;
+  expect(!light.Select(bad),"anchored light rejects different epoch");
+  bad=q;bad.diagnosticOrigin->x=1;
+  expect(!light.Select(bad),"anchored light rejects changed coordinate origin");
+  bad=q;bad.diagnosticEmbeddingProvenance="unknown";
+  expect(!light.Select(bad),"anchored light rejects unanchored scope");
+  bad=q;bad.game="other";
+  expect(!light.Select(bad),"anchored light rejects different game");
+  bad=q;bad.camera.forward={0,0,0};
+  expect(!light.Select(bad),"anchored light rejects invalid direction");
+  expect(light.Select(q)->z==1,"anchored light failures preserve original direction");
+ }
  expect(RemakeRuntimeBudget(false,false,120)==30u,"ordinary runtime budget unchanged");
  expect(RemakeRuntimeBudget(false,true,120)==30u,"short returned-scene budget unchanged");
  expect(RemakeRuntimeBudget(false,true,121)==120u,"extended returned-scene budget unchanged");

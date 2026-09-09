@@ -114,6 +114,27 @@ diagnostic label until evidence supports stronger semantics. Do not reopen the
 parked strict arithmetic replay or run another generic profiling phase. Advance
 the supported camera contract into live Remix scene delivery when proven; keep
 normal-renderer integration and the full working-pipeline checklist open.
+LOG694-695 now measures15 unique meshes/1596 vertices stable across300 frames
+within0.00001717 anchored units; camera-ignored control drifts9.4674..17.3037.
+Point-map inspection places stable support in arena regions and moving clusters
+on fighters, without claiming a semantic classifier or all-background coverage.
+Next use this supported anchored subset for a controlled fixed-coordinate public
+light comparison in the existing live Remix route. Verify lighting attachment
+through camera/object motion; retain the diagnostic camera label and classify
+unsupported moving-background regions before expanding acceptance. Do not spend
+another phase counting matched vertices instead of testing live relighting.
+LOG696-698 implement opt-in fixed anchored light and verify300 consecutive live
+captures, exact HUD/composition,294 exact scene overlaps and253 fixed-direction
+light recreations. Per-packet scope/epoch/game/origin guards then pass eight new
+tests and four builds (three734/0 suites). LOG699 additionally completes actual
+guarded live delivery:600 returns,252 fixed-direction light recreations, clean
+host/helper exits. Save the independent light/analysis slice without promoting
+a visual winner. Next address the working-pipeline reproducible launch seam:
+inspect the existing launcher/settings route and expose the supported anchored
+scene control through owned explicit opt-in setup rather than requiring temporary
+agent-only launch scripts. Preserve scope labels, fallback and external settings;
+the complete camera/quality/performance checklist remains authoritative.
+No lighting winner, general camera recovery or performance acceptance is implied.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
 readback only for exact supported complete uploads, within64MiB raw-plus-DDS

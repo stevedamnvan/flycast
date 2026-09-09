@@ -1,5 +1,84 @@
 # Neural rendering evidence log
 
+LOG699 guarded live run anchored-light-guard-a completes host/helper0 with clean
+close,1200 host samples,600 published returns and252 light recreations all0,0,1.
+Helper SHA067F0A83B3CDE8819E33754D7E373FDEE466EF6F6F7A475D18F969431CAF6322.
+No image capture or synchronous sentinel; this verifies guarded live delivery,
+not full performance acceptance. Latest completed Present source2783/current2785
+logs external_nr=false; no fresh external-output provenance claim is made.
+Earlier matched light comparison completes294 frames with0 HUD mismatches;
+returned RGB MAE across candidates averages7.29293 (8-bit units), not a quality
+score or isolated light-only effect because temporal histories may differ.
+Midpoint2344 visually inspected: both outputs remain bright/soft; no winner.
+Moving GIF retained but not claimed as fully reviewed perceptual acceptance.
+Fixed-light option remains opt-in.40-object runtime warning remains unresolved.
+
+LOG698 anchored light guard is now checked on every submitted packet, not only
+resource recreation. Retain sequence-owned direction outside resource lifetime;
+reject changed epoch/game/origin, unanchored scope, nonfinite/nonunit forward.
+Eight focused tests pass including preservation after rejected inputs and changed
+camera rotation. All four serial builds exit0; automation, baseline and no-NGX
+selftests734/0, feature-off no work required. These are incremental builds.
+LOG697 live300-frame evidence precedes the guard refactor; do not claim a fresh
+post-guard gameplay run. Next verify the guard against the saved valid sequence
+and finish matched moving-light review before committing this bounded slice.
+
+LOG697 anchored-light-a host/helper exit0, clean host close,300 consecutive
+captures2191..2490. Review completes with no gaps or failed nonempty HUD,
+composition/backbuffer/Present checks.253 actual light creations all log0,0,1.
+294 overlap frames against observer-combined-b preserve exact camera/geometry
+and12863 mesh material identities; six unmatched frames each side retained.
+Helper SHA256156EC007666CEC7A52B42C46497C3297086C1C2BF5B014F9AB4E191E7397AD8C;
+host4FDF75A2E3805C58ED7A735914C7CE17DCD14434961B4353EA4E1616536BD0AB.
+External configuration hash unchanged. Midpoint2341 reviewed: fighters/arena
+present and HUD intact, bright/soft experimental rendering remains; no quality
+winner or moving lighting-stability acceptance from this still. Existing40-object
+runtime cleanup warning persists. Matched moving light comparison generated on
+evidence drive; review report is not external provenance or performance proof.
+Next finish fixed-light scope/continuity negative controls and remaining builds,
+then inspect matched moving lighting before deciding whether this opt-in should
+be the supported anchored-scene default. All broader acceptance remains open.
+
+LOG696 light integration inspection finds current live helper light direction
+is reselected from camera.forward on each material resource rebuild. Add explicit
+--scene-light-anchor harness opt-in: retain first direction across rebuilds,
+require anchored diagnostic packet scope, log each actual CreateLight direction.
+Default unchanged; this is an authored directional light, not recovered game
+lighting. Automation build/selftest command exits0. Launch bounded300-frame
+capture using unchanged intensity3/external config,1200 host samples after2100
+warmup,660 helper frames, existing420s host/300s diagnostic helper budgets.
+Compare direction logs and completed output/HUD against prior moving evidence;
+image capture is excluded from performance claims. Pending live outcome and
+remaining configurations. No proprietary binary or external config modified.
+
+LOG695 full-sequence anchor analysis completes300 frames.15 unique meshes/1596
+expanded vertices match every frame with maximum anchored displacement
+0.0000171661376953125. Ignoring camera motion (comparing the same points in each
+frame's view coordinates) yields maximum displacements9.4674..17.3037 for these
+same meshes. Three persisted analysis tests pass: static/translation/ambiguity,
+camera-motion negative and missing-track coverage. Diagnostic projected point
+map visually compared with original native frame2197: stationary points occupy
+arena regions; large moving clusters align with fighters. This is visual region
+correspondence, not a per-triangle semantic classifier. Red points also occur in
+upper scene; do not declare all background stationary or all red points fighters.
+Report anchor-stability-control-003c0b42.json and point map retained outside repo.
+Result supports a stable anchored arena subset for this interval, not general
+physical world/camera recovery. Next integrate this supported subset into a
+controlled fixed-coordinate light comparison using existing public light controls,
+checking whether lighting remains anchored as camera/fighters move. No new
+external configuration edits, no weakened camera acceptance, no strict replay
+restart. Serializer commit003c0b42f is pushed; analysis files remain uncommitted.
+
+LOG694 implement read-only anchored coordinate stability analysis, matching only
+unique topology/UV/texture/state buckets, not draw ordinal. First attempt fails
+because augmented offset assignment loses the string length-prefix advance;
+fix explicit length read and retain failure. Corrected run completes300 archived
+frames2197..2496, with30 unique baseline-to-last matches and changing camera
+pose. Report anchor-stability-003c0b42.json retained on evidence drive. Static,
+known3-unit translation and duplicate-bucket rejection controls pass. This is
+coordinate drift evidence only: arena/fighter classification and all-frame
+stability acceptance remain pending. No renderer or camera policy changed.
+
 LOG693 resume verifies final baseline/no-NGX selftests726/0, feature-off final
 build complete, automation CLI suite726/0; no live gameplay/build process remains.
 Prior tool run verified all300 archived packets2197..2496 against the legacy

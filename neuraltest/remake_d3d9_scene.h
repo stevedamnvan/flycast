@@ -3,6 +3,7 @@
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
 #include "remake_cutout.h"
+#include "remake_scene_lighting.h"
 #include <d3d9.h>
 #include <remix_c.h>
 #include <fstream>
@@ -27,6 +28,8 @@ class D3D9PacketScene {
  bool allowSkippedSources_=false;
  bool omitCutoutsControl_=false;
  float sceneLightRadiance_=3;
+ bool anchoredLight_=false;
+ AnchoredSceneLight anchoredLightDirection_; // Survives material resource rebuilds.
  std::vector<std::vector<unsigned char>> textureBytes_;
  void ReleaseResources() {
   if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
@@ -74,6 +77,8 @@ class D3D9PacketScene {
  }
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
+  const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet):std::optional<Vec3>{};
+  if(anchoredLight_&&!fixedDirection)return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
    if(FAILED(CreateLegacyCutoutShader(device_,&cutoutShader_)))return E_FAIL;
@@ -106,7 +111,13 @@ class D3D9PacketScene {
    // Old prepared artifacts use a reflected anchor. The live-derived packet is
    // already camera-relative (+Z forward), so use an explicitly labeled headlight
    // along that camera direction. This is supplied diagnostic light, not game light.
-   distant.direction=refreshResources_?remixapi_Float3D{packet.camera.forward.x,packet.camera.forward.y,packet.camera.forward.z}:remixapi_Float3D{0,0,-1};
+   Vec3 direction=refreshResources_?packet.camera.forward:Vec3{0,0,-1};
+   if(anchoredLight_) {
+    direction=*fixedDirection;
+   }
+   distant.direction={direction.x,direction.y,direction.z};
+   std::cout<<"scene_light_created frame="<<packet.frame<<" anchored="<<anchoredLight_
+    <<" direction="<<direction.x<<','<<direction.y<<','<<direction.z<<'\n';
    distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
    remixapi_LightInfo light{};light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;light.pNext=&distant;
    light.hash=0xfc067d40;light.radiance={sceneLightRadiance_,sceneLightRadiance_,sceneLightRadiance_};
@@ -161,7 +172,7 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance){
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight){
   failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30;
  }
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;

@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-201: separate authored light lifetime from material rebuilds
+
+The live helper previously selected camera.forward when material resources were
+rebuilt. Add an explicit --scene-light-anchor harness option that retains the
+initial direction across rebuilds and rejects changed coordinate origin, epoch,
+game or unsupported scope on every packet. Keep current default unchanged.
+Observed arena-coordinate stability and live fixed-direction delivery support
+this diagnostic control, not recovered game lighting or general camera truth.
+Neither brighter output nor pixel differences promote a visual winner. Preserve
+native effects/HUD and leave external consumer settings untouched.
+
 ## D-200: const wire output and integration-first continuation
 
 Write validated packets without copying owned texture payloads. Preserve wire

@@ -51,6 +51,10 @@ int wmain(int argc,wchar_t** argv) {
   diagnosticCaptureBudget=true;--argc;
  }
  std::optional<float> sceneLightRadiance;
+ bool anchoredLight=false;
+ if(argc>=2&&std::wstring(argv[argc-1])==L"--scene-light-anchor") {
+  anchoredLight=true;--argc;
+ }
  if(argc>=3&&std::wstring(argv[argc-2])==L"--scene-light-radiance") {
   sceneLightRadiance=ParseSceneLightRadiance(argv[argc-1]);
   if(!sceneLightRadiance){std::cerr<<"invalid scene light radiance: decimal 0..30 required\n";return 2;}
@@ -174,7 +178,7 @@ int wmain(int argc,wchar_t** argv) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
- if(sceneLightRadiance&&!legacyGame){std::cerr<<"scene light requires legacy game scene\n";return 2;}
+ if((sceneLightRadiance||anchoredLight)&&!legacyGame){std::cerr<<"scene light requires legacy game scene\n";return 2;}
  if(argc==12 || argc==14 || argc==18) {
   try {
    if((std::wstring(argv[5])!=L"--artifact"&&!liveArtifact) || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
@@ -323,7 +327,8 @@ int wmain(int argc,wchar_t** argv) {
   std::cout<<"cutout_omission_negative_control="<<omitCutoutsControl<<" input_packet_unchanged=true\n"<<std::flush;
   std::cerr<<"scene_light_radiance="<<sceneLightRadiance.value_or(3)
    <<" scene_light_authored=true recovered_game_lighting=false external_consumer_setting=false\n";
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3));
+  std::cerr<<"scene_light_anchor="<<anchoredLight<<" first_source_direction_fixed="<<anchoredLight<<'\n';
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
