@@ -45,13 +45,22 @@ int wmain(int argc,wchar_t** argv) {
  }
  std::optional<Packet> snapshot;
  std::filesystem::path capture;
+ bool reverseCamera=false;
+ bool zeroLight=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
  if(argc==7 || argc==14) {
   const int captureIndex=argc==7?5:12;
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
-  if(captureOption==L"--capture-normals")captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_NORMALS;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals") || !capture.is_absolute() || std::filesystem::exists(capture)) {
+  // Public NORMALS selects packed R32_UINT, not an XYZ float image.
+  // D3D9 float-target blitting is not a valid typed readback of that resource.
+  if(captureOption==L"--capture-normals") {
+   std::cerr<<"packed normal capture unsupported; typed integer readback required\n";return 2;
+  }
+  reverseCamera=captureOption==L"--capture-reverse-camera";
+  zeroLight=captureOption==L"--capture-zero-light";
+  if(captureOption==L"--capture-depth")captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -124,7 +133,7 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"phase=show-window end\n"<<std::flush;
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
-  RemixScene retained(api);
+  RemixScene retained(api,zeroLight);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -133,6 +142,7 @@ int wmain(int argc,wchar_t** argv) {
    }
    if(quit) { outcome=10;break; }
    auto packet=snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
@@ -150,8 +160,8 @@ int wmain(int argc,wchar_t** argv) {
   }
   if(!capture.empty() && accepted==frames && ownedDevice) {
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
-   const bool normals=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_NORMALS;
-   const auto format=normals?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
+   const bool floatOutput=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
+   const auto format=floatOutput?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
    HRESULT hr=ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
    if(SUCCEEDED(hr))hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&cpu,nullptr);
    if(SUCCEEDED(hr)) {
@@ -162,19 +172,32 @@ int wmain(int argc,wchar_t** argv) {
    if(SUCCEEDED(hr))hr=cpu->LockRect(&locked,nullptr,D3DLOCK_READONLY);
    if(SUCCEEDED(hr)) {
     std::vector<unsigned char> pixels(640*480*4);
+    std::vector<unsigned char> raw(floatOutput?640*480*16:0);
     for(int y=0;y<480;y++) {
      const auto row=static_cast<unsigned char*>(locked.pBits)+y*locked.Pitch;
-     if(!normals)memcpy(pixels.data()+y*640*4,row,640*4);
+     if(floatOutput)memcpy(raw.data()+y*640*16,row,640*16);
+     if(!floatOutput)memcpy(pixels.data()+y*640*4,row,640*4);
      else for(int x=0;x<640;x++) {
       float value[4];memcpy(value,row+x*16,16);
       for(int c=0;c<3;c++) {
-       float mapped=value[2-c]*.5f+.5f;
+       float mapped=value[0]/10.f;
        pixels[(y*640+x)*4+c]=static_cast<unsigned char>(mapped>=1?255:mapped>0?mapped*255:0);
       }
       pixels[(y*640+x)*4+3]=255;
      }
     }
     cpu->UnlockRect();
+    bool rawOk=true;
+    if(floatOutput) {
+     const auto rawPath=capture.wstring()+L".rgba32f";
+     HANDLE rawFile=CreateFileW(rawPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+     DWORD bytes=0;
+     rawOk=rawFile!=INVALID_HANDLE_VALUE;
+     if(rawOk)rawOk=WriteFile(rawFile,raw.data(),DWORD(raw.size()),&bytes,nullptr)&&bytes==raw.size();
+     if(rawFile!=INVALID_HANDLE_VALUE)CloseHandle(rawFile);
+     std::cerr<<"raw_guidance width=640 height=480 channels=RGBA type=float32 rows=top-down frame="<<accepted
+      <<" output_type="<<int(captureType)<<" write_ok="<<rawOk<<'\n'<<std::flush;
+    }
     BITMAPFILEHEADER file{};file.bfType=0x4d42;file.bfOffBits=sizeof(file)+sizeof(BITMAPINFOHEADER);file.bfSize=file.bfOffBits+DWORD(pixels.size());
     BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=640;info.biHeight=-480;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
     HANDLE out=CreateFileW(capture.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
@@ -184,7 +207,7 @@ int wmain(int argc,wchar_t** argv) {
     if(ok)ok=WriteFile(out,&info,sizeof(info),&written,nullptr)&&written==sizeof(info);
     if(ok)ok=WriteFile(out,pixels.data(),DWORD(pixels.size()),&written,nullptr)&&written==pixels.size();
     if(out!=INVALID_HANDLE_VALUE)CloseHandle(out);
-    hr=ok?S_OK:E_FAIL;
+    hr=ok&&rawOk?S_OK:E_FAIL;
    }
    if(cpu)cpu->Release();if(gpu)gpu->Release();
    std::cerr<<"capture_readback_hresult="<<hr<<" image_validation_pending=true\n"<<std::flush;

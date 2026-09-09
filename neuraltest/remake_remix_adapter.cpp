@@ -73,6 +73,7 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  distant.direction={0,0,1}; distant.angularDiameterDegrees=.5f; distant.volumetricRadianceScale=1;
  remixapi_LightInfo light{}; light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO; light.pNext=&distant;
  light.hash=0xFC067002; light.radiance={3,3,3};
+ if(zeroLightControl_)light.radiance={0,0,0};
  if (api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS || !light_) return {false,"create-light"};
  packet_=p;
  const auto drawn=DrawFrame(p.camera);

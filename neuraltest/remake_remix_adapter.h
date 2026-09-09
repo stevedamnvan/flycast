@@ -10,7 +10,7 @@ namespace neuraltest::remake {
 // A submission failure requires discarding the entire frame, not presentation.
 class RemixScene {
 public:
- explicit RemixScene(remixapi_Interface api) : api_(api) {}
+ explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false) : api_(api), zeroLightControl_(zeroLightControl) {}
  ~RemixScene();
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
@@ -27,6 +27,7 @@ private:
  Packet packet_;
  bool ready_ = false;
  remixapi_Interface api_{};
+ bool zeroLightControl_=false;
  std::vector<remixapi_MeshHandle> meshes_;
  std::vector<remixapi_MaterialHandle> materials_;
  std::vector<std::wstring> texturePaths_;

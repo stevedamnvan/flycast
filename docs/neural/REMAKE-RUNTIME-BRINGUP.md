@@ -4,15 +4,27 @@ Status: WIP real synthetic and sampled Soulcalibur snapshot readback (LOG401-402
 M1-GPU acceptance remains unproven: analytic controls and cleanup are pending.
 
 Optional trailing `--capture ABSOLUTE_NEW_BMP` or
-`--capture-normals ABSOLUTE_NEW_BMP` uses a separate application-owned D3D9
+`--capture-depth ABSOLUTE_NEW_BMP` uses a separate application-owned D3D9
 device registered through the public SDK. It does not call standalone Startup.
-The output is fixed640x480; normals use float readback mapped from signed values
-for diagnostic display. Captures are synchronous diagnostics, never performance
+The output is fixed640x480; depth additionally writes unchanged RGBA32F bytes
+to a create-new `.rgba32f` sidecar. The BMP maps depth/10 for display only.
+Captures are synchronous diagnostics, never performance
 evidence. New files only; this is not a production Flycast capture feature.
 The prepared snapshot retains its calibrated camera aspect even at this fixed
 diagnostic buffer size. Successful calls do not certify image correctness.
 Actual final color now shows synthetic triangles and sampled temple geometry;
 runtime teardown still reports undisposed objects. No clean-lifetime acceptance.
+
+Synthetic-only `--capture-reverse-camera ABSOLUTE_NEW_BMP` reverses the
+camera's X motion; `--capture-zero-light ABSOLUTE_NEW_BMP` zeros the supplied
+distant-light radiance. Neither is allowed with a prepared game snapshot.
+`remake_capture_geometry_check.py BMP [--camera-x VALUE] [--normals]` reports
+analytic silhouette overlap for the fixed synthetic fixture; it does not
+declare a gate passed. Bright-color segmentation depends on this fixture's
+lighting. Historical normal visualization/metrics are INVALID: the public
+source buffer is packed R32_UINT, not XYZ floats (LOG408). The harness rejects
+`--capture-normals` before loading the runtime until typed readback exists.
+LOG404-405 retain both matching and falsifying actual-image results.
 
 ## Prepared diagnostic snapshot
 

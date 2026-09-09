@@ -55,7 +55,19 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 ### Next-card bounds: FC-067 / M2-camera
 
 Current next action: validate the LOG401 opaque alpha-test correction with focused
-regressions and analytic overlap/camera/light controls. First actual final-color
+regressions and analytic overlap/camera/light controls. LOG404 measures final
+silhouetteIoU0.9953 against analytic camera, reversed-expectation control0.2963;
+normal visualizationIoU0.8323 remains discrepant, not pixel-aligned truth.
+LOG405 actual reversed-camera finalIoU0.9955 (wrong-camera expectation0.2964)
+and zero-light0 bright pixels establish bounded camera/light response.
+Investigate guidance sampling/overlap and add capture unit coverage next.
+LOG408 supersedes normal alignment suspicion: public normal source is packed
+R32_UINT; float-blit normal images/IoU are invalid evidence. Capture now rejects
+that option pending typed integer readback. Do not tune camera against them.
+LOG407 raw depth now has0 nonfinite pixels and analytic coverageIoU0.99376;
+max error0.02506 remains unexplained, so isolate edges/interiors and add negative
+depth-order controls. Raw normal sidecar support exists but has not been rerun.
+First actual final-color
 capture now shows synthetic triangles after matching public alphaTestType7;
 cleanup warnings and full scene acceptance remain open. Historical LOG400 task:
 diagnose black public final-color readback using controlled
