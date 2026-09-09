@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Standalone developer bring-up, NOT a GPU/readback acceptance gate.
 #include "remake_remix_adapter.h"
+#include "remake_artifact_loader.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -31,14 +32,26 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
- if(argc!=5 || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
-  std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120\n";return 2;
+ if((argc!=5 && argc!=12) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
+  std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR]\n";return 2;
  }
  wchar_t* end=nullptr;
  const long frames=wcstol(argv[4],&end,10);
  const std::filesystem::path runtime(argv[2]);
  if(!*argv[4] || *end || frames<1 || frames>120 || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
+ }
+ std::optional<Packet> snapshot;
+ if(argc==12) {
+  try {
+   if(std::wstring(argv[5])!=L"--artifact" || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
+    throw std::invalid_argument("artifact options");
+   std::size_t a=0,b=0;float clipNear=std::stof(argv[10],&a),clipFar=std::stof(argv[11],&b);
+   if(a!=std::wstring(argv[10]).size()||b!=std::wstring(argv[11]).size())throw std::invalid_argument("clip syntax");
+   snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
+   std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
+    <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
+  }catch(const std::exception& e){std::cerr<<"artifact rejected before runtime load: "<<e.what()<<'\n';return 2;}
  }
  std::error_code error;
  if(!std::filesystem::is_regular_file(runtime,error)) {
@@ -87,11 +100,12 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
-   auto packet=Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   auto packet=snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
-   packet.camera.aspect=float(client.right)/float(client.bottom);
-   const auto submitted=frame==0?retained.Submit(packet,packet.frame,packet.game):retained.Redraw(packet.camera);
+   if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
+   const auto submitted=frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
+    :retained.Submit(packet,packet.frame,packet.game)):retained.Redraw(packet.camera);
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
    remixapi_PresentInfo present{};present.sType=REMIXAPI_STRUCT_TYPE_PRESENT_INFO;
    status=api.Present(&present);

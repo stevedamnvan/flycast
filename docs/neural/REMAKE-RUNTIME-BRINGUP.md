@@ -2,6 +2,33 @@
 
 Status: implementation/CLI checks only. M1-GPU remains unproven.
 
+## Prepared diagnostic snapshot
+
+The standalone harness additionally accepts:
+
+```text
+remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 3 --artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR
+```
+
+This explicitly loads a prepared sampled-anchor scene, verifies bounded assets
+and supplied clip containment before loading a DLL, and uses SubmitDiagnostic.
+It retains calibrated aspect/axes and source-frame identity: no synthetic camera
+translation or window-aspect replacement. Repeated presents of this immutable
+snapshot are NOT moving gameplay evidence. Reported source SHA and omissions
+remain visible. The source artifact's unknown game clip values stay unknown;
+the command arguments are caller-supplied diagnostic limits only.
+
+LOG395 ran the actual H artifact with a confirmed absent runtime: valid
+0.1..104 diagnostic clips pass ingestion then exit3 runtime unavailable;
+0.1..100 rejects before runtime loading with exit2. The synthetic command
+also retains exit3 for absent runtime. No runtime Startup/Present was run.
+
+Use remake-artifact-check with ARTIFACT ASSETS NEAR FAR to validate ingestion
+without any runtime loading capability. artifact_loader_controls.py runs its
+actual positive/13 rejection controls with temporary files. Keep prepared
+game artifacts and DDS publications outside Git. Supplying a compatible legal
+runtime and its dependencies is still required for any GPU bring-up.
+
 `remake-runtime-smoke` is built alongside the pinned-header SDK mock when
 `NEURALTEST_REMAKE_SDK=ON`. It is not linked into Flycast and is not a user
 rendering option. It requires an explicit absolute path to a legitimately

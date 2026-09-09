@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `05fe3d9ac1414b9b965ec7c9289c8da450e7fbde`, pushed and remote verified (LOG390). Later changes are separate from tested source.
+- Last exact tested checkpoint: `906688af100536cc6af2154a492cd5d196fde014`, pushed and remote verified (LOG394). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,13 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint/exact-verify the C++ loader, then connect it to
-the runtime harness with explicit artifact/assets/clips arguments and preserved
-calibrated aspect. LOG393 passes actual positive plus13 malformed controls.
+Current next action: checkpoint/exact-verify the connected snapshot CLI. LOG396
+closes regression/documentation. Afterward actual runtime bring-up requires a
+compatible supplied runtime/dependencies; do not expand mock-only infrastructure
+to substitute for that missing dependency. LOG395 wires explicit artifact/assets/clips into diagnostic
+runtime submission without synthetic camera motion/aspect substitution. Real
+DLL startup/Present remains unavailable pending compatible supplied runtime.
+LOG393 passes actual positive plus13 malformed controls.
 LOG392 loads actual
 H17meshes/6456vertices with calibrated aspect and retained source SHA/omissions;
 far100 rejects. Loader remains WIP, no runtime activation.
