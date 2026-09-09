@@ -1,6 +1,7 @@
 add_library(flycast-neural STATIC
 	remake_scene.cpp
 	remake_view_transport.cpp
+	remake_live_channel.cpp
 	pvr_scene_capture.cpp
 	pvr_scene_decode.cpp
 	pvr_material_capture.cpp

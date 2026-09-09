@@ -102,9 +102,8 @@ void packet(Wire& wire,remake::Packet& p) {
  auto checked=remake::ReadyForDiagnosticAdapter(p,p.frame,p.game,true);require(checked.ok,checked.reason.c_str());
 }
 }
-bool WriteRemakeViewPacket(const std::filesystem::path& path,const remake::Packet& source,std::string& error) {
+bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,std::string& error) {
  try {
-  require(!std::filesystem::exists(path),"view-wire-output-exists");
   auto checked=remake::ReadyForDiagnosticAdapter(source,source.frame,source.game,true);require(checked.ok,checked.reason.c_str());
   // This format only represents the identity-view experiment, not arbitrary cameras/materials.
   require(source.camera.position.x==0&&source.camera.position.y==0&&source.camera.position.z==0
@@ -118,14 +117,26 @@ bool WriteRemakeViewPacket(const std::filesystem::path& path,const remake::Packe
    const auto& m=*mesh.material;
    require(m.albedo.x==1&&m.albedo.y==1&&m.albedo.z==1&&m.roughness==.8f,"view-wire-material");
   }
-  remake::Packet copy=source;std::ofstream out(path,std::ios::binary);Wire wire{nullptr,&out};packet(wire,copy);out.close();require(bool(out),"view-wire-close");error.clear();return true;
+  remake::Packet copy=source;Wire wire{nullptr,&out};packet(wire,copy);require(bool(out),"view-wire-write");error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+bool DeserializeRemakeViewPacket(std::istream& input,remake::Packet& output,std::string& error) {
+ try {
+  Wire wire{&input,nullptr};remake::Packet p;packet(wire,p);
+  require(input.peek()==std::char_traits<char>::eof(),"view-wire-trailing-bytes");output=std::move(p);error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+bool WriteRemakeViewPacket(const std::filesystem::path& path,const remake::Packet& source,std::string& error) {
+ try {
+  require(!std::filesystem::exists(path),"view-wire-output-exists");std::ofstream output(path,std::ios::binary);
+  if(!SerializeRemakeViewPacket(output,source,error))return false;
+  output.close();require(bool(output),"view-wire-close");return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool ReadRemakeViewPacket(const std::filesystem::path& path,remake::Packet& output,std::string& error) {
  try {
   require(std::filesystem::file_size(path)<=72*1024*1024,"view-wire-file-bound");
-  std::ifstream input(path,std::ios::binary);Wire wire{&input,nullptr};remake::Packet p;packet(wire,p);
-  require(input.peek()==std::char_traits<char>::eof(),"view-wire-trailing-bytes");output=std::move(p);error.clear();return true;
+  std::ifstream input(path,std::ios::binary);return DeserializeRemakeViewPacket(input,output,error);
  }catch(const std::exception& e){error=e.what();return false;}
 }
 }

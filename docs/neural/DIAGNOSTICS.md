@@ -1,5 +1,25 @@
 # Neural diagnostics
 
+## FC-067 live memory handoff (LOG514)
+
+Start the existing runtime tool with `--runtime ABSOLUTE_DLL --frames 63
+--live-channel UNIQUE_ASCII_TOKEN --assets ABSOLUTE_CAPTURE_ROOT --clips 0.1 2501
+--capture-d3d9-scene-memory ABSOLUTE_NEW_BMP_PREFIX`. The assets argument is a
+compatibility placeholder in this mode; source geometry/textures arrive from
+memory. Wait for `live_channel_ready=true`, then launch the bounded legal replay
+with `FLYCAST_NEURAL_SOURCE_OBSERVATION=1` and
+`FLYCAST_REMAKE_CHANNEL=UNIQUE_ASCII_TOKEN` in that child environment only.
+Restore the prior environment afterward. The existing three-frame/skip1780
+native packet capture recipe is the verified producer boundary.
+
+Match sender live-published and receiver live_receive sequence/frame/byte/digest
+receipts exactly, and inspect all relevant returned images. Consumer readiness,
+receipt success or Present logs alone do not prove image quality. Initial source
+wait is bounded90s, later receives5s, with the existing GPU watchdog after first
+input. This is a synchronous developer source and a warmed three-frame consumer,
+not ordinary-gameplay pacing or a returned-image/combinedDLSS5 gate. Keep the
+native frame until protected composition and returned ownership are implemented.
+
 ## FC-067 opaque source collection
 
 `python neuraltest/camera_source_inspect.py --capture CAPTURE` checks18 actual

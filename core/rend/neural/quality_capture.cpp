@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "quality_capture.h"
+#include <cstdlib>
 #include "pvr_scene_capture.h"
 #include "motion_reference.h"
 #include "version.h"
@@ -397,6 +398,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 		&& lateOverlayProof == lateOverlayProof_)
 		return;
 	root_ = root;
+	remakeChannel_.Close();
 	pvrSnapshot_.reset();
 	remakeView_.reset();
 	remakePacket_.reset();remakePacketStatus_="not-requested";
@@ -932,9 +934,22 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		else remakePacketStatus_=conversionError;
 		if(remakeView_ && textures.remakeTextureReader) {
 			remake::Packet packet;
-			if(BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)
-				&& WriteRemakeViewPacket(frameRoot/"remake-view.bin",packet,conversionError)) {
+			if(BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)) {
 				remakePacket_=std::move(packet);remakePacketStatus_="owned-live-source-packet; consumer-not-connected";
+				if(const auto* token=std::getenv("FLYCAST_REMAKE_CHANNEL");token&&*token) {
+					if(!remakeChannel_.IsOpen()&&!remakeChannel_.OpenPublisher(token,conversionError))remakePacketStatus_=conversionError;
+					else {
+						RemakeChannelReceipt receipt;
+						const auto result=remakeChannel_.Publish(*remakePacket_,receipt,conversionError);
+						if(result==RemakeChannelResult::Published)remakePacketStatus_="live-published sequence="+std::to_string(receipt.sequence)
+							+" bytes="+std::to_string(receipt.bytes)+" digest="+std::to_string(receipt.digest)+"; presentation-unproven";
+						else remakePacketStatus_=conversionError;
+					}
+				}
+				// Diagnostic archival is independent of live publication. The consumer
+				// never reads this file, and a failed archive cannot stall the channel.
+				if(!WriteRemakeViewPacket(frameRoot/"remake-view.bin",*remakePacket_,conversionError))
+					remakePacketStatus_+="; archive-failed="+conversionError;
 			} else remakePacketStatus_=conversionError;
 		}
 	}

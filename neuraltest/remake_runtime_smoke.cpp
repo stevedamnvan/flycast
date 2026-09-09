@@ -6,6 +6,7 @@
 #include "remake_d3d9_dynamic.h"
 #include "remake_d3d9_scene.h"
 #include "rend/neural/remake_view_transport.h"
+#include "rend/neural/remake_live_channel.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -65,7 +66,24 @@ int wmain(int argc,wchar_t** argv) {
  bool rebuiltFrozen=false,settledFrozen=false;
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
  bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false,legacyMemory=false;
- const bool liveArtifact=argc>=12 && std::wstring(argv[5])==L"--live-artifact";
+ const bool liveChannel=argc>=12 && std::wstring(argv[5])==L"--live-channel";
+ const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
+ flycast::rend::neural::RemakeLiveChannel channel;
+ const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
+  const auto deadline=GetTickCount64()+waitMs;
+  for(;;) {
+   std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
+   const auto result=channel.Receive(packet,receipt,error);
+   if(result==flycast::rend::neural::RemakeChannelResult::Received) {
+    std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
+     <<" bytes="<<receipt.bytes<<" digest="<<receipt.digest<<" saved_packets_read=false\n"<<std::flush;
+    return;
+   }
+   if(result!=flycast::rend::neural::RemakeChannelResult::Empty)throw std::runtime_error(error);
+   if(GetTickCount64()>=deadline)throw std::runtime_error("live channel bounded receive timeout");
+   Sleep(2);
+  }
+ };
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -135,7 +153,13 @@ int wmain(int argc,wchar_t** argv) {
    if(liveArtifact) {
     if(!legacyGame)throw std::invalid_argument("live packet requires legacy uploader");
     Packet p;std::string reason;
-    if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
+    if(liveChannel) {
+     if(frames!=63||argc!=14)throw std::invalid_argument("live channel requires 60 warmup plus three source frames");
+     const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
+     if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
+     std::cout<<"live_channel_ready=true bounded_source_wait_ms=90000 saved_packets_read=false\n"<<std::flush;
+     receiveNext(p,90000);
+    } else if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
     if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
     snapshot=std::move(p);
    } else snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
@@ -245,7 +269,7 @@ int wmain(int argc,wchar_t** argv) {
  if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"startup failed code="<<int(status)<<"\n";outcome=9; }
  else {
   std::cerr<<"phase=show-window begin\n"<<std::flush;
-  ShowWindow(window,SW_SHOW);
+  ShowWindow(window,liveChannel?SW_SHOWNOACTIVATE:SW_SHOW);
   std::cerr<<"phase=show-window end\n"<<std::flush;
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
@@ -265,6 +289,13 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
+   if(liveChannel&&frame>=61) {
+    try {
+     Packet next;receiveNext(next,5000);
+     if(!DiagnosticContinuation(*snapshot,next))throw std::runtime_error("live source continuity rejected");
+     snapshot=std::move(next);
+    }catch(const std::exception& e){std::cerr<<"live source failed: "<<e.what()<<'\n';outcome=11;break;}
+   }
    const auto sequenceIndex=settledFrozen?2:frame<60?0:frame-60;
    auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(legacyFrozenAttributes) {
@@ -339,9 +370,12 @@ int wmain(int argc,wchar_t** argv) {
    return true;
    };
    if(!legacyRaster&&!presentFrame())break;
-  if(!capture.empty() && (frame+1==frames || (!sequence.empty() && frame>=60&&!settledFrozen)) && ownedDevice) {
-   const std::filesystem::path capturePath=sequence.empty()?capture:
+  if(!capture.empty() && (frame+1==frames || ((!sequence.empty()||liveChannel) && frame>=60&&!settledFrozen)) && ownedDevice) {
+   const std::filesystem::path capturePath=sequence.empty()&&!liveChannel?capture:
     std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
+   if(std::filesystem::exists(capturePath)||std::filesystem::exists(capturePath.wstring()+L".rgba32f")) {
+    std::cerr<<"capture output already exists; refusing overwrite\n";outcome=14;break;
+   }
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
    const bool floatOutput=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
    const auto format=floatOutput?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;

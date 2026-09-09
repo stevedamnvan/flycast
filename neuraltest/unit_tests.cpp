@@ -180,6 +180,44 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		next.producer.epoch++;
 		suite.Expect(!remake::DiagnosticContinuation(packet,next),"live packet rejects reset epoch continuity");
+		{
+			RemakeLiveChannel consumer,publisher,duplicate;RemakeChannelReceipt sent,received;
+			const auto token="test-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+			suite.Expect(!publisher.OpenPublisher(token,error),"live channel missing consumer does not wait");
+			suite.Expect(!consumer.CreateConsumer("../invalid",error),"live channel rejects path-like token");
+			const bool created=consumer.CreateConsumer(token,error),opened=publisher.OpenPublisher(token,error);
+			suite.Expect(created&&opened,"live channel opens one consumer and publisher");
+			suite.Expect(!duplicate.CreateConsumer(token,error)&&!duplicate.OpenPublisher(token,error),"live channel rejects duplicate owner and publisher");
+			const auto advance=[](remake::Packet p){++p.frame;++p.producer.ordinal;++p.producer.cycle;for(auto& mesh:p.meshes)mesh.frame=p.frame;return p;};
+			auto second=advance(packet),third=advance(second);
+			remake::Packet receivedPacket;receivedPacket.frame=99;
+			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Empty&&receivedPacket.frame==99,
+				"live channel empty receive preserves caller output");
+			suite.Expect(publisher.Publish(packet,sent,error)==RemakeChannelResult::Published&&sent.sequence==1,
+				"live channel publishes owned packet without files");
+			const auto firstReceipt=sent;
+			suite.Expect(publisher.Publish(second,sent,error)==RemakeChannelResult::Published,
+				"live channel queues second bounded slot");
+			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Busy,
+				"live channel full ring skips instead of waiting");
+			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received
+				&&receivedPacket.frame==packet.frame&&receivedPacket.meshes[0].material->sourceDdsBytes==packet.meshes[0].material->sourceDdsBytes
+				&&received.digest==firstReceipt.digest&&received.bytes==firstReceipt.bytes,
+				"live channel receives exact owned payload and matching receipt");
+			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Published&&sent.sequence==3,
+				"live channel busy attempt does not advance publication sequence");
+			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==second.frame
+				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==third.frame,
+				"live channel preserves FIFO after lower-slot reuse");
+			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
+			auto fourth=advance(third),bad=fourth;bad.meshes[0].vertices[0].normal.reset();
+			suite.Expect(publisher.Publish(bad,sent,error)==RemakeChannelResult::Invalid
+				&&publisher.Publish(fourth,sent,error)==RemakeChannelResult::Published&&sent.sequence==4,
+				"live channel failed serialization releases slot without advancing sequence");
+			consumer.Close();
+			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
+				"live channel consumer shutdown leaves producer in native fallback");
+		}
 	}
 	{
 		std::string args;

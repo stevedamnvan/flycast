@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-150: bounded live memory delivery is not neural acceptance or presentation
+
+An explicit local channel token connects one Flycast publisher to one Remix
+consumer. The consumer creates a new, session-local Windows mapping; existing
+names and duplicate publishers are rejected. Two72MiB payload slots use exclusive
+write/ready/read ownership. A full ring returns Busy without waiting for the
+consumer; failed serialization frees its slot without advancing the publication
+sequence. Consumer shutdown yields publisher fallback. FNV64 receipts detect
+accidental corruption and aid comparison; they are not authentication or GPU
+presentation proof. Slot sequences are transport bookkeeping, never accepted
+neural frame history.
+
+The first hooked producer is still the synchronous developer capture boundary,
+with existing source observation plus FLYCAST_REMAKE_CHANNEL explicitly set.
+No ordinary gameplay behavior, external configuration, private neural API or
+Flycast presentation is activated. Optional archival is independent of live
+publication; the live-channel consumer does not read saved scene packets.
+The bounded runtime test warms the first received packet and consumes two more;
+it is not an FPS/latency or continuous ordinary-gameplay acceptance run.
+
 ## D-149: share the scene contract and connect live-derived packets explicitly
 
 The existing scene types/validation move from neuraltest into

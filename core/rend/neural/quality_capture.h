@@ -6,6 +6,7 @@
 #include "pvr_scene_capture.h"
 #include "remake_view_scene.h"
 #include "remake_view_transport.h"
+#include "remake_live_channel.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 
@@ -148,6 +149,7 @@ public:
 	const std::string& RemakePacketStatus() const noexcept {return remakePacketStatus_;}
 
 private:
+	RemakeLiveChannel remakeChannel_;
 	std::optional<RemakeViewScene> remakeView_;
 	std::optional<remake::Packet> remakePacket_;
 	std::string remakePacketStatus_="not-requested";
