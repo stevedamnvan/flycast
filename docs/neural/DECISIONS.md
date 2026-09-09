@@ -1,5 +1,24 @@
 # Neural rendering decisions
 
+## D-189: temporal comparison freezes upstream inputs and evaluation history start
+
+Identical game geometry/source frames do not imply identical Remix returned
+color/depth: ci/cj falsified that assumption on all30 captures. Freeze one
+bounded archive and replay its color/depth through both reconstruction lanes.
+Retain existing exact scene/effect checks and require original/current source
+frame equality for temporal replay; do not inherit image-only frame remapping.
+The capture-only comparison boundary must actually produce the same accepted
+source sequence with reset at its start. Temporal preparation permits locked
+input only in bounded comparison/effect-identity scope. Ordinary rendering is
+unchanged when the request is absent. Capture two warm-up sources before the
+first displayed comparison. Metrics use pre-native-effect neural output; final
+composition and protected pixels are independently checked against original
+source ownership. Frozen source equality is not identical guidance: history and
+motion intentionally differ between reset-only and temporal lanes. A valid
+method comparison does not itself prove external-consumer mutation or a winner.
+LOG616's28-frame comparison reduces temporal change while increasing source and
+gradient error; retain that mixed result, do not promote the mode by delta alone.
+
 ## D-188: depth consistency uses the triangle's bounded sampling footprint
 
 Strict center-depth comparison rejected70..87 percent of pixels in cf despite

@@ -1140,6 +1140,18 @@ int RunSelfTests()
 			std::cerr << error << '\n';
 	}
 	const DrawRecord base = BaseDraw();
+	suite.Expect(RemakeTemporalReplayFrameMatches(true,2250,2250)
+		&&!RemakeTemporalReplayFrameMatches(true,2249,2250)
+		&&!RemakeTemporalReplayFrameMatches(true,2251,2250)
+		&&!RemakeTemporalReplayFrameMatches(true,0,0),"temporal replay accepts only the exact nonzero source frame");
+	suite.Expect(RemakeTemporalReplayFrameMatches(false,2249,2250),"legacy image-only replay retains its separately labeled remapping scope");
+	suite.Expect(RemakeComparisonEligible(nullptr,1,false),"comparison boundary absent preserves ordinary evaluation");
+	suite.Expect(!RemakeComparisonEligible("2250",2249,true)&&RemakeComparisonEligible("2250",2250,true)
+		&&RemakeComparisonEligible("2250",2251,true),"comparison evaluation starts at exact requested source boundary");
+	suite.Expect(!RemakeComparisonEligible("2250",2250,false)&&!RemakeComparisonEligible("",2250,true)
+		&&!RemakeComparisonEligible("0",2250,true)&&!RemakeComparisonEligible("-1",2250,true)
+		&&!RemakeComparisonEligible("2250x",2250,true)&&!RemakeComparisonEligible("99999999999999999999",2250,true),
+		"comparison boundary rejects unbounded malformed zero and overflow requests");
 	{
 		RemakeReturnedImage returned;returned.frame=20;
 		std::array<ID3D11Texture2D*,6> surfaces{};std::string error;

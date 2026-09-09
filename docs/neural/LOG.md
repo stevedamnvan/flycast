@@ -1,5 +1,84 @@
 # Neural rendering evidence log
 
+LOG617 comparison checkpoint: final serial automation/NGX/no-NGX/feature-off
+builds exit0 and all three enabled suites pass673/0 (remake-compare-final-*).
+Comparer now uses explicit exceptions so optimized Python cannot remove its
+identity/presentation guards. Optimized ci/cj negative exits1 before creating
+output; cl/cm positive2 exits0 and retains the same mixed metrics in the verified
+comparison directory. CLI help and actual positive/negative paths were run;
+not claiming an unrun general comparer test suite. Supplied host logs for cl/cm
+both report upscaling OFF,intensity1,tone1,white203,preset0,style0,enabled ON.
+An attempted no-op LOG patch failed to locate its anchor and made no edit; this
+entry records the actual checkpoint. Scoped ACCEPTED: guarded frozen-source
+comparison/replay and measured mixed result, not temporal quality victory or
+new external mutation proof. Preserve native/reset-only fallback and defaults.
+
+LOG616 cm temporal locked replay host/helper exit0. New fail-closed comparer
+verifies28 consecutive2252..2279 captures: exact packet/returned color/depth/
+effect/alpha/native/HUD source hashes, original frame IDs, both accepted sequences
+2250..2279 with reset only at2250 for temporal, and exact HUD/world/backbuffer/
+completed-Present checks. All28 pre-effect neural outputs differ. Same executable
+SHA25654C7606E44D776F84807D0A6FE5CE92F7431F91CD4F2432FF123B2C8C799CC42.
+Before-native-effects metrics reset -> temporal: source RGB MAE12.259687 ->
+14.251173; gradient MAE2.005757 ->3.587813; temporal RGB delta3.310339 ->2.047959;
+source-relative temporal residual2.133504 ->2.046508; black drift8.183640 ->7.288865;
+saturation-range drift-9.403790 ->-9.418341. Lower temporal change is accompanied
+by worse source/edge error; do NOT declare a winner or promote this experimental
+history mode. Not a public-DLAA quality win, a long sequence or external mutation
+proof. Preserve GIF (quantized5x-slow preview), midpoint PNG, components, source
+hashes and log hashes under fc067-temporal-comparison-cl-cm. Midpoint viewed and
+moving comparison opened for user. Native effects/HUD remain after evaluation.
+Comparer negative ci/cj rejects differing source input before writing any output.
+Next isolate public reconstruction versus supplied-consumer response on this
+same frozen sequence, including focused changed-guidance external provenance;
+do not return to coverage-only tuning or conflate lower delta with image quality.
+
+LOG615 cl reset-only locked replay host/helper exit0. Exactly30 evaluations
+2250..2279 all reset;28 displayed captures2252..2279. Independently verify all
+28 packet/color/depth/effect-identity/alpha-exclusion files match ck byte-for-
+byte. The original/current frame guard does not require remapping. Run cm with
+the same executable and frozen archive, temporal raster enabled, same2250
+boundary. Require identical source/accepted sequence and completed final checks
+before computing/displaying visual differences. cl is a reset reference, not
+proof that temporal reconstruction wins. No external consumer settings changed.
+
+LOG614 ck frozen archive host/helper exit0: exactly30 captures2250..2279, all
+effect-identity files nonempty, independent exact HUD/world/backbuffer and
+completed-Present checks pass. First evaluations2248/2249/2250 all reset.
+Frameguard build1/test1 exit0,673/0 including exact nonzero temporal source,
+past/future/zero rejection and legacy image-only remapping separation. cl starts
+reset-only locked replay at2250 against ck; expected displayed comparison window
+2252..2279 (28 frames), with2250/2251 retained for shared history warm-up. Keep
+scene/effect equality and original-frame guards; no visual pass before both
+lanes prove the same accepted sequence and source bytes. No external config edits.
+
+LOG613 ci/cj host/helper all exit0 and both accept exactly2250..2281, with
+30 consecutive captures2252..2281. Same staged build SHA256
+9BD585142D6F1F0F69E03E889D68CF8AF0E4591B65611A47183AB758801B9CA8;
+original config unchanged. All30 scene packets, native PNGs, HUD masks and alpha
+exclusion files match byte-for-byte. NONE of the30 returned color/depth pairs
+match. Reject this as exact-source visual evidence; do not attribute upstream
+Remix differences to temporal reconstruction. Boundary build1/test1 passes671/0.
+Next freeze one archive's returned color/depth and use existing scene/effect
+identity checks for both lanes. Permit temporal preparation with locked input
+only during bounded comparison capture plus explicit effect-identity mode;
+require exact original/current source-frame equality after locked scene/effect
+validation. Retain all accepted geometry/depth ownership rules. No frame remap
+is permitted for temporal replay. This extends the proven replay seam, not a
+replacement renderer or new consumer configuration.
+
+LOG612 9b0479ced plus WIP: post-commit four incremental builds and three668/0
+selftests pass. Begin bounded moving comparison, not another coverage sweep.
+Temporal preparation currently rejects locked-image replay; do not bypass it.
+Add capture-only FLYCAST_REMAKE_COMPARE_START_FRAME: no neural evaluation before
+the requested returned source, so reset-only/temporal lanes can start together.
+Absent request preserves ordinary execution; malformed/zero/overflow or absent
+bounded moving capture rejects. Both lanes must actually accept the requested
+first frame with reset, and source color/depth/scene bytes must match in compared
+frames. Missing boundary, different source inputs or gaps are not silently
+accepted as matched temporal evidence. Initial bound: frame2250,30 captures,
+240 helper frames, otherwise existing supplied stage/consumer unchanged.
+
 LOG611 0cd0dad43 plus WIP: ch host/helper exit0; host SHA256
 015AC902C8E3672BE12FD7723D7B35FB35C11D65DE4EDA3B780C1AE02EC78E59.
 58 accepted retained evaluations2173..2242 (nonconsecutive),57 history-enabled,

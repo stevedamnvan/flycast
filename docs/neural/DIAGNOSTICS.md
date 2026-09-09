@@ -1,5 +1,22 @@
 # Neural diagnostics
 
+FLYCAST_REMAKE_COMPARE_START_FRAME requests a positive decimal source-frame
+boundary (maximum10000000) for neural evaluation during an explicit bounded
+moving preview capture only. Before that source, rendering/publishing continues
+but returned-scene neural evaluation is held. Malformed input or missing bounded
+capture rejects evaluation. With the variable absent, ordinary execution is
+unchanged. The log must prove that both compared lanes actually accepted the
+requested first source with reset; the setting alone is not synchronization
+evidence. Compare exact source color/depth/scene/effect ownership and accepted
+source sequences. Reset-only versus temporal deliberately differs in guidance
+and history and is not an identical-NGX-input external-consumer settings sweep.
+Temporal locked replay additionally requires explicit effect-identity capture,
+an anchored source and exact original/current source-frame equality after the
+existing scene/effect validation. Without this bounded comparison scope it
+remains rejected. First archive the source frames needed for the evaluation
+boundary, including the pre-presentation warm-up frames; display captures start
+later than the first accepted evaluation.
+
 FLYCAST_REMAKE_TEMPORAL_RASTER=1 enables the off-by-default returned-scene GPU
 motion experiment, requiring TEMPORAL_PREPARE plus the existing anchored live
 combined route. It is not native PVR guidance or a faithful-default promotion.

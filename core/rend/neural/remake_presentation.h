@@ -18,6 +18,21 @@ inline unsigned RemakePreviewCaptureLimit(const char* text,const char* moving=nu
  for(;*text;++text){if(*text<'0'||*text>'9')return 0;value=value*10+unsigned(*text-'0');if(value>maximum)return 0;}
  return value;
 }
+// Diagnostic evaluation start, not an emulation scheduler. With no request the
+// ordinary path is unchanged; malformed or unbounded requests fail closed.
+inline bool RemakeComparisonEligible(const char* start,std::uint64_t frame,bool boundedCapture)noexcept {
+ if(!start)return true;
+ if(!boundedCapture||!*start)return false;
+ std::uint64_t value=0;
+ for(;*start;++start) {
+  if(*start<'0'||*start>'9')return false;
+  value=value*10+unsigned(*start-'0');if(value>10000000)return false;
+ }
+ return value>0&&frame>=value;
+}
+inline bool RemakeTemporalReplayFrameMatches(bool temporal,std::uint64_t original,std::uint64_t current)noexcept {
+ return !temporal||(original!=0&&original==current);
+}
 enum class RemakeDisplayKind { Fallback, HoldNative, Remake };
 struct RemakeDisplayDecision {RemakeDisplayKind kind;std::uint64_t frame;};
 // Align entry with a short original-native hold; never move displayed scene

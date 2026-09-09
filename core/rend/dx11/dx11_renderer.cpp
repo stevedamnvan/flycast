@@ -2720,7 +2720,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const auto* temporalOption=std::getenv("FLYCAST_REMAKE_TEMPORAL_PREPARE");
 	if(temporalOption&&std::strcmp(temporalOption,"1")==0) {
 		const auto* locked=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
-		if(!anchored||!neuralOption||std::strcmp(neuralOption,"1")!=0||(locked&&*locked)) {
+		const auto* compareStart=std::getenv("FLYCAST_REMAKE_COMPARE_START_FRAME");
+		const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+		const bool boundedReplay=compareStart&&capture&&*capture&&RemakeEffectEvidenceRequested()
+			&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
+			&&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0
+			&&RemakeComparisonEligible(compareStart,10000000,true);
+		if(!anchored||!neuralOption||std::strcmp(neuralOption,"1")!=0||((locked&&*locked)&&!boundedReplay)) {
 			skip("temporal-source","requires-anchored-live-neural-source");return;
 		}
 		temporalScene=CaptureRemakeTemporalScene(packet,error);
@@ -2813,6 +2819,11 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
 			&&activeNeuralMode!=static_cast<int>(NeuralMode::Dlss5Experimental)))return;
 	const auto& returned=*remakeAsyncReturned;
+	const auto* comparisonCapture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+	const bool boundedComparison=comparisonCapture&&*comparisonCapture
+		&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
+		&&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0;
+	if(!RemakeComparisonEligible(std::getenv("FLYCAST_REMAKE_COMPARE_START_FRAME"),returned.frame,boundedComparison))return;
 	if(RemakeNativeEffectsRequested()) {
 		const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
 		const char* rejected=!remakeAsyncAcceptedOverlay.effects?"missing-effects"
@@ -2851,6 +2862,12 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 						NOTICE_LOG(RENDERER,"Remake alpha selection replay rejected: %s",error.c_str());return;
 					}
 				}
+			}
+			// Temporal replay must keep exact original source-frame identity. The
+			// older image-only experiment permits remapping, but that must never
+			// manufacture geometry history for a differently numbered source.
+			if(!RemakeTemporalReplayFrameMatches(bool(remakeAsyncAcceptedOverlay.temporalScene),replayOriginalFrame,returned.frame)) {
+				NOTICE_LOG(RENDERER,"Remake temporal replay rejected: original source frame differs");return;
 			}
 			// Scene/producer/input hashes were checked above. Current receipt owns
 			// the matching original HUD; pixels are explicitly labeled retained replay.

@@ -57,9 +57,21 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG611):** checkpoint the corrected returned-scene
-guidance, then implement/run an exact-source moving reset-only versus temporal
-comparison with focused changed-guidance provenance. ch verifies58 accepted
+**Operational next action (LOG616):** checkpoint the bounded comparison/replay
+work, then isolate public reconstruction versus supplied-consumer response on
+the same ck frozen sequence, including focused changed-guidance provenance.
+cl/cm prove28 exact-source2252..2279 moving comparisons and identical accepted
+sequences2250..2279. Temporal RGB delta improves3.3103 ->2.0480 but source MAE
+worsens12.2597 ->14.2512 and gradient MAE2.0058 ->3.5878. No visual winner or
+default promotion. The moving comparison is generated/opened; stop coverage-only
+tuning. ci/cj remain rejected because their returned inputs differed. The comparer
+falsifies that mismatch before writing artifacts. Keep exact scene/effect/frame
+checks and repeat the same frozen-source interval for the next isolation lanes.
+Temporal locked replay is permitted only in bounded comparison/effect-identity
+mode and requires original/current source-frame equality. Automation build/test
+passes673/0. Do not bypass identity checks or compare differing upstream inputs.
+Focused changed-guidance external provenance
+remains separate. ch verifies58 accepted
 evaluations,57 history-enabled and34..50-percent trusted pixel coverage in three
 combat captures, with exact HUD/composition/Present checks. Both-surface shifted-
 slope and crossing/thin-surface/previous-ID/excessive-offset fixtures pass668/0;
