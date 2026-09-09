@@ -5,6 +5,9 @@
 #include "types.h"
 
 #include "sh4_mem.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/source_ram_writer.h"
+#endif
 #include "hw/holly/sb_mem.h"
 #include "sh4_mmr.h"
 #include "hw/pvr/elan.h"
@@ -203,6 +206,9 @@ void mem_Term()
 
 void WriteMemBlock_nommu_dma(u32 dst, u32 src, u32 size)
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::InvalidateSourceRamWrites();
+#endif
 	bool dst_ismem, src_ismem;
 	void* dst_ptr = addrspace::writeConst(dst, dst_ismem, 4);
 	void* src_ptr = addrspace::readConst(src, src_ismem, 4);
@@ -225,6 +231,9 @@ void WriteMemBlock_nommu_dma(u32 dst, u32 src, u32 size)
 
 void WriteMemBlock_nommu_ptr(u32 dst, const u32 *src, u32 size)
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::InvalidateSourceRamWrites();
+#endif
 	bool dst_ismem;
 
 	void* dst_ptr = addrspace::writeConst(dst, dst_ismem, 4);
@@ -259,6 +268,9 @@ void WriteMemBlock_nommu_ptr(u32 dst, const u32 *src, u32 size)
 
 void WriteMemBlock_nommu_sq(u32 dst, const SQBuffer *src)
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::InvalidateSourceRamWrites();
+#endif
 	// destination address is 32-byte aligned
 	SQBuffer *pdst = (SQBuffer *)GetMemPtr(dst, sizeof(SQBuffer));
 	if (pdst != nullptr)

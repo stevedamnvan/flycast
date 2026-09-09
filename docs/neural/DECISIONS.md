@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-146: observed source dataflow is diagnostic until transform correspondence closes
+
+The opt-in x64 source observer now carries actual SQ stores, same-block direct
+register RAM-read links, bounded RAM-producer candidates, and a separate rolling
+FTRV input/matrix/output ring. DirectSourceRead rejects intervening overlapping
+destinations and interpreter boundaries. RAM candidates normalize aliases,
+reject value/address mismatches and expire on collisions, partial writes,
+reset/fallback and the inspected bulk-copy paths. This does not claim coverage
+of every possible RAM mutation or camera/world semantics. An FTRV record may
+not be attached to geometry just because it is recent or numerically similar.
+Require explicit executed dataflow through subsequent arithmetic and stores,
+with matched-record ownership beyond ring eviction. Keep this observer off by
+default and excluded from performance evidence. LOG501's exact-pixel comparison
+remains failed/parked; byte-exact decoded packets prove only that narrower scope.
+
 ## D-145: retain child-qualified live submission joins, not inferred transforms
 
 The opt-in x64 non-MMU observer records executed SQ invocation identity and

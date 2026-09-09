@@ -14,6 +14,10 @@ struct SourceCopyObservation {
  std::uint32_t taOffset=0, sourceAddress=0, writerPc=0;
  std::array<std::uint32_t,8> before{}, after{};
  std::uint32_t decodedVertex = UINT32_MAX;
+ // One executed store PC per XYZ byte; zero means not witnessed/mismatched.
+ std::array<std::uint32_t,12> xyzStorePc{};
+ std::array<std::uint32_t,12> xyzSourceRam{},xyzReadPc{};
+ std::array<std::uint32_t,12> xyzRamProducerPc{};
 };
 struct SourceVertexObservation {
  std::uint32_t child = 0;

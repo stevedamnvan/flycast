@@ -6,6 +6,7 @@
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
+#include "rend/neural/source_read_link.h"
 #include <chrono>
 #include <fstream>
 #include "json/json.hpp"
@@ -121,12 +122,59 @@ int RunSelfTests()
 		}
 		suite.Expect(!currentSourceSq.serial,"source SQ exit clears invocation");
 		const auto savedSerial=sourceSqSerial;sourceSqSerial=UINT64_MAX;
+		ObserveSourceSqStore(0xe0000004,0x8c000200,4,0x12345678);
+		ObserveSourceSqStore(0xe0000024,0x8c000204,4,0xabcdef00);
+		suite.Expect(sourceSqWriters[4].value==0x78&&sourceSqWriters[7].value==0x12
+			&&sourceSqWriters[36].pc==0x8c000204,"source SQ executed stores preserve byte lanes and queue selection");
+		{SourceSqScope consumed(0x8c001000,0xe0000000);}
+		suite.Expect(!sourceSqWriters[4].pc&&sourceSqWriters[36].pc==0x8c000204,
+			"source SQ consumed queue cannot retain stale writer authority");
+		sourceSqWriters={};
+		ObserveSourceSqStore(0xe0000024,0x8c000204,4,0xabcdef00);
+		ResetSourceSqWriters();
+		{SourceSqScope resetSubmission(0x8c001000,0xe0000020);
+		 suite.Expect(!sourceSqWriters[36].pc,"source SQ reset invalidates deferred producer metadata");}
+		ObserveSourceSqStore(0xe0000024,0x8c000204,4,0xabcdef00);
+		InvalidateSourceSqWriters();
+		suite.Expect(!sourceSqWriters[36].pc,"source SQ unsupported interpreter path invalidates writers");
+		sourceRegisterReads[0]={0x8c001000,0x8c002000,0x12345678,true};
+		ObserveSourceSqStore(0xe0000004,0x8c002006,4|(1<<8),0x12345678);
+		suite.Expect(sourceSqWriters[4].ram==0x8c001000&&sourceSqWriters[7].ram==0x8c001003
+			&&sourceSqWriters[4].readPc==0x8c002000,"source SQ direct register read retains byte-address lineage");
+		ObserveSourceSqStore(0xe0000004,0x8c002006,4|(1<<8),0x12345679);
+		suite.Expect(!sourceSqWriters[4].ram,"source SQ mismatched read value rejects RAM lineage");
+		InvalidateSourceSqWriters();
 		{SourceSqScope exhausted(0x8c001000,0xe0000020);
 		 suite.Expect(!currentSourceSq.serial,"source SQ serial exhaustion rejects attribution");}
 		sourceSqSerial=savedSerial;
 		try {SourceSqScope unwinding(0x8c001000,0xe0000020);throw 1;}catch(int){}
 		suite.Expect(!currentSourceSq.serial&&!sourceSqScopeActive,"source SQ exception unwinds attribution");
 		ProducerIdentity identity{3,100,900};SourceCopyObservation observation;
+		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
+		suite.Expect(SourceRamWriter(0xac001000,0x12345678)==0x8c002000,
+			"RAM writer physical alias retains exact observed value");
+		ObserveSourceRamWrite(0x8c001001,0x8c002002,1,0x56);
+		suite.Expect(!SourceRamWriter(0x8c001000,0x12345678),"partial RAM write rejects old whole-word authority");
+		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
+		ObserveSourceRamWrite(0x8c011000,0x8c002004,4,0x12345678);
+		suite.Expect(!SourceRamWriter(0x8c001000,0x12345678)
+			&&SourceRamWriter(0x8c011000,0x12345678)==0x8c002004,"RAM writer collision cannot match another physical address");
+		InvalidateSourceRamWrites();
+		{
+		 std::vector<shil_opcode> ops(3);
+		 ops[0].op=shop_readm;ops[0].size=4;ops[0].rd=shil_param(reg_fr_1);
+		 ops[1].op=shop_mov32;ops[1].rd=shil_param(reg_fr_2);
+		 ops[2].op=shop_writem;ops[2].size=4;ops[2].rs2=shil_param(reg_fr_1);
+		 suite.Expect(DirectSourceRead(ops,2)==0,"direct source read survives unrelated register write");
+		 ops[1].rd=shil_param(reg_fr_1);
+		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects intervening overwrite");
+		 ops[1].rd=shil_param(regv_fv_0);
+		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects overlapping vector write");
+		 ops[1].rd=shil_param();ops[1].rd2=shil_param(reg_fr_1);
+		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects secondary destination write");
+		 ops[1].rd2=shil_param();ops[1].op=shop_ifb;
+		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects interpreter boundary");
+		}
 		observation.generation=1;observation.writerPc=0x8c000100;observation.cycle=800;
 		observations.BeginContext(12);
 		suite.Expect(observations.Append(observation)&&!observations.Get(identity)

@@ -23,6 +23,8 @@ using namespace Xbyak::util;
 #include "cfg/option.h"
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/source_sq_scope.h"
+#include "rend/neural/source_read_link.h"
+#include "rend/neural/source_transform.h"
 #include <cstdlib>
 static bool sourceSqObservationEnabled() {
 	static const bool enabled=[](){const char* value=std::getenv("FLYCAST_NEURAL_SOURCE_OBSERVATION");
@@ -34,6 +36,34 @@ static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
 	static bool reported=false;
 	if(!reported) {reported=true;NOTICE_LOG(DYNAREC,"Neural source SQ observer invoked: pc=%08x address=%08x diagnostic-only",pc,address);}
 	ctx->doSqWrite(address,ctx);
+}
+static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value) {
+	flycast::rend::neural::RefreshSourceSqWriters();
+	flycast::rend::neural::ObserveSourceRamWrite(address,pc,size&255,value);
+	flycast::rend::neural::ObserveSourceSqStore(address,pc,size,value);
+}
+static void DYNACALL invalidateSourceSqWriters() {
+	flycast::rend::neural::InvalidateSourceSqWriters();
+}
+static void DYNACALL beginSourceRead(u32 address,u32 pc,u32 slot) {
+	using namespace flycast::rend::neural;
+	RefreshSourceSqWriters();
+	sourceRegisterReads[slot]={address,pc,0,false};
+}
+static void DYNACALL finishSourceRead(u32 value,u32 slot) {
+	auto& read=flycast::rend::neural::sourceRegisterReads[slot];
+	read.value=value;
+	read.producerPc=flycast::rend::neural::SourceRamWriter(read.address,value);
+	read.valid=(read.address&0x1c000000)==0x0c000000 && !(read.address&3);
+}
+static void (*sourceOriginalFtrv)(float*,const float*,const float*);
+static void observedSourceFtrv(float* output,const float* input,const float* matrix,u32 pc) {
+	flycast::rend::neural::SourceTransform observed;
+	observed.pc=pc;
+	std::copy_n(input,4,observed.input.begin());std::copy_n(matrix,16,observed.matrix.begin());
+	sourceOriginalFtrv(output,input,matrix); // Original arithmetic, including nonunit W.
+	std::copy_n(output,4,observed.output.begin());
+	flycast::rend::neural::RetainSourceTransform(observed);
 }
 #endif
 
@@ -135,6 +165,9 @@ class BlockCompiler : public BaseXbyakRec<BlockCompiler, true>
 public:
 	using BaseCompiler = BaseXbyakRec<BlockCompiler, true>;
 	friend class BaseXbyakRec<BlockCompiler, true>;
+#ifdef FLYCAST_ENABLE_NEURAL
+	u32 sourceCurrentPc=0;
+#endif
 
 	BlockCompiler(Sh4Context& sh4ctx, Sh4CodeBuffer& codeBuffer) : BaseCompiler(sh4ctx, codeBuffer), regalloc(this) { }
 	BlockCompiler(Sh4Context& sh4ctx, Sh4CodeBuffer& codeBuffer, u8 *code_ptr) : BaseCompiler(sh4ctx, codeBuffer, code_ptr), regalloc(this) { }
@@ -165,15 +198,32 @@ public:
 
 		regalloc.DoAlloc(block);
 
+#ifdef FLYCAST_ENABLE_NEURAL
+		std::vector<int> sourceReadForStore;
+		std::array<bool,256> sourceReadNeeded{};
+		if(sourceSqObservationEnabled()&&!mmu_enabled()) {
+			sourceReadForStore.assign(block->oplist.size(),-1);
+			for(size_t i=0;i<block->oplist.size();++i) {
+				const int read=flycast::rend::neural::DirectSourceRead(block->oplist,i);
+				if(read>=0) {sourceReadForStore[i]=read;sourceReadNeeded[read]=true;}
+			}
+		}
+#endif
 		for (current_opid = 0; current_opid < block->oplist.size(); current_opid++)
 		{
 			shil_opcode& op  = block->oplist[current_opid];
+#ifdef FLYCAST_ENABLE_NEURAL
+			sourceCurrentPc=block->vaddr+op.guest_offs;
+#endif
 
 			regalloc.OpBegin(&op, current_opid);
 
 			switch (op.op)
 			{
 			case shop_ifb:
+#ifdef FLYCAST_ENABLE_NEURAL
+				if(sourceSqObservationEnabled()) GenCall(invalidateSourceSqWriters);
+#endif
 				if (mmu_enabled())
 				{
 					mov(call_regs64[2], reinterpret_cast<uintptr_t>(*OpDesc[op.rs3._imm]->oph));	// op handler
@@ -229,6 +279,13 @@ public:
 			break;
 
 			case shop_readm:
+#ifdef FLYCAST_ENABLE_NEURAL
+				if(current_opid<256&&sourceReadNeeded[current_opid]) {
+					shil_param_to_host_reg(op.rs1,call_regs[0]);
+					if(!op.rs3.is_null()) {shil_param_to_host_reg(op.rs3,call_regs[1]);add(call_regs[0],call_regs[1]);}
+					mov(call_regs[1],block->vaddr+op.guest_offs);mov(call_regs[2],static_cast<u32>(current_opid));GenCall(beginSourceRead);
+				}
+#endif
 				if (!GenReadMemImmediate(op, block))
 				{
 					// Not an immediate address
@@ -263,6 +320,11 @@ public:
 						host_reg_to_shil_param(op.rd, rcx);
 					}
 				}
+#ifdef FLYCAST_ENABLE_NEURAL
+				if(current_opid<256&&sourceReadNeeded[current_opid]) {
+					shil_param_to_host_reg(op.rd,call_regs[0]);mov(call_regs[1],static_cast<u32>(current_opid));GenCall(finishSourceRead);
+				}
+#endif
 				break;
 
 			case shop_writem:
@@ -297,6 +359,22 @@ public:
 					int size = op.size == 1 ? MemSize::S8 : op.size == 2 ? MemSize::S16 : op.size == 4 ? MemSize::S32 : MemSize::S64;
 					GenCall((void (*)())MemHandlers[optimise ? MemType::Fast : MemType::Slow][size][MemOp::W], mmu_enabled());
 				}
+#ifdef FLYCAST_ENABLE_NEURAL
+				if(sourceSqObservationEnabled() && !mmu_enabled()) {
+					Xbyak::Label notSq;
+					shil_param_to_host_reg(op.rs1,call_regs[0]);
+					if(!op.rs3.is_null()) {shil_param_to_host_reg(op.rs3,call_regs[1]);add(call_regs[0],call_regs[1]);}
+					Xbyak::Label observedMemory;
+					mov(eax,call_regs[0]);shr(eax,26);cmp(eax,0x38);je(observedMemory,T_NEAR);
+					mov(eax,call_regs[0]);and_(eax,0x1c000000);cmp(eax,0x0c000000);jne(notSq,T_NEAR);L(observedMemory);
+					mov(call_regs[1],block->vaddr+op.guest_offs);mov(call_regs[2],op.size|((sourceReadForStore[current_opid]+1)<<8));
+#if ALLOC_F64 == false
+					if(op.size==8) {mov(rax,(uintptr_t)op.rs2.reg_ptr(sh4ctx));mov(call_regs64[3],qword[rax]);} else
+#endif
+					shil_param_to_host_reg(op.rs2,call_regs64[3]);
+					GenCall(observedSourceSqStore);L(notSq);
+				}
+#endif
 			}
 			break;
 
@@ -643,6 +721,13 @@ public:
                break;
 			}
 		}
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(sourceSqObservationEnabled()&&op.op==shop_ftrv&&regused==3) {
+			sourceOriginalFtrv=reinterpret_cast<void (*)(float*,const float*,const float*)>(function);
+			mov(call_regs[3],sourceCurrentPc);
+			GenCall(observedSourceFtrv);
+		} else
+#endif
 		GenCall((void (*)())function);
 #if ALLOC_F64 == true
 		for (const CC_PS& ccParam : CC_pars)

@@ -5,6 +5,10 @@
 #include "serialize.h"
 #include "stdclass.h"
 #include "hw/sh4/sh4_sched.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/source_sq_scope.h"
+#include "rend/neural/source_transform.h"
+#endif
 
 #include <mutex>
 #include <vector>
@@ -50,6 +54,9 @@ static flycast::rend::neural::ProducerIdentityClock captureProducerClock;
 void ResetCaptureProducerIdentity()
 {
 	captureProducerClock.Reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::ResetSourceSqWriters();
+#endif
 }
 
 bool QueueRender(TA_context* ctx)
@@ -88,6 +95,12 @@ bool QueueRender(TA_context* ctx)
 	for (TA_context* child = ctx; child != nullptr; child = child->nextContext)
 		if (child->sourceObservations)
 			child->sourceObservations->Seal(ctx->rend.captureProducer, child->sourceObservations->Size());
+	if(ctx->sourceObservations && ctx->rend.captureProducer.Available() && flycast::rend::neural::sourceTransforms) {
+		const auto serial=flycast::rend::neural::sourceTransformSerial;
+		const auto& last=(*flycast::rend::neural::sourceTransforms)[serial%4096];
+		NOTICE_LOG(RENDERER,"PVR executed transform observation: producer=%llu serial=%llu last-pc=%08x correspondence=unproven",
+			static_cast<unsigned long long>(ctx->rend.captureProducer.ordinal),static_cast<unsigned long long>(serial),last.pc);
+	}
 #endif
 	rqueue = ctx;
 

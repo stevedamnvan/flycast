@@ -232,6 +232,41 @@ PREF submission PC alone is not the upstream writer. Serial build regression
 completes in LOG495: four builds,3x370 selftests,SDK179 andPython331 pass.
 Do not repeat the now-proven snapshot join as a substitute for
 advancing the transform provider.
+LOG496 now observes executed SQ writes and retains all12 XYZ-byte writer PCs
+for14764 vertices in each of3 gameplay captures; automation372 tests pass.
+Next invalidate writer metadata on reset/interpreter fallback, then connect
+the observed SQ source operands to RAM reads/transform lineage. No more
+submission-only scaffolding: source dataflow is now the missing connection.
+Full configuration regression is pending for this store-hook change.
+LOG497 reset/interpreter invalidation passes374 tests and preserves full observed
+XYZ-store coverage in3 live captures. Nine captured store PCs correspond to the
+three historical read groups. Next implement executed read-to-store register
+lineage, not a pc-minus6/value-only guess and not fixed capture-frame lists.
+Serial remaining configuration builds are running; retain their terminal results.
+LOG498 confirms that prior matrix passed and implements same-block direct
+register read-to-store linkage. All14764 captured polygon vertices now carry
+complete XYZ RAM-read addresses in3 actual frames; automation376 tests pass.
+Next test compile-analysis overlapping/intervening-register-write rejection,
+then connect the RAM-producing writes/transform operations. Do not confuse
+observed reads of projected coordinates with recovered upstream transform
+truth. Full regression remains pending for the new read-link hook.
+LOG499 proves focused reaching-definition rejection controls and adds observed
+RAM-producing writes. Three captures retain14692/14655/14724 complete producer
+links; automation384 tests pass. Next connect the producer instructions to
+executed transform input/result records and address missing DMA/HLE/lifetime
+invalidation before treating these candidates as authoritative upstream truth.
+Keep native fallback for missing domains. Full configuration regression pending.
+LOG500 now records actual live FTRV input/matrix/output using original arithmetic
+and adds bulk-memory invalidation. Three captures complete and384 selftests
+pass. Next connect these executed transforms through producer arithmetic to RAM
+writes, retaining matched records beyond the rolling ring. Latest-PC proximity
+or equal floats are not correspondence proof. Do not repeat invocation counts
+as a substitute for this dataflow connection; full regression remains pending.
+LOG501 completes four-build regression,3x384 selftests,Python331 andSDK179.
+Decoded packets remain exact3/3 against the pre-transform observer; native
+pixels differ1/9/0 by max1, failed/parked. The source-observer checkpoint is
+diagnostic only; next remains transform-to-RAM arithmetic correspondence and
+matched-record ownership, not another downstream invocation-count experiment.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

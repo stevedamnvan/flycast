@@ -2080,10 +2080,29 @@ void DX11Renderer::captureNeuralQualityFrame()
 		if (textures.pvrPacketRequested) {
 			const auto frame = neuralQualityCaptureMetadata.frameId;
 			const auto* snapshot = neuralQualityCapture.CapturedPvrSnapshot(frame);
-			if (snapshot && !snapshot->sourceVertices.empty())
+			if (snapshot && !snapshot->sourceVertices.empty()) {
+				size_t stores=0,reads=0,producers=0;
+				std::vector<u32> storePcs;
+				for(const auto& vertex:snapshot->sourceVertices)
+				{
+					stores+=std::all_of(vertex.copy.xyzStorePc.begin(),vertex.copy.xyzStorePc.end(),[](u32 pc){return pc!=0;});
+					reads+=std::all_of(vertex.copy.xyzSourceRam.begin(),vertex.copy.xyzSourceRam.end(),[](u32 address){return address!=0;});
+					producers+=std::all_of(vertex.copy.xyzRamProducerPc.begin(),vertex.copy.xyzRamProducerPc.end(),[](u32 pc){return pc!=0;});
+					for(auto pc:vertex.copy.xyzStorePc) if(pc && std::find(storePcs.begin(),storePcs.end(),pc)==storePcs.end() && storePcs.size()<32)
+						storePcs.push_back(pc);
+				}
 				NOTICE_LOG(RENDERER, "PVR owned source snapshot: frame=%llu producer=%llu joined-vertices=%zu",
 					static_cast<unsigned long long>(frame), static_cast<unsigned long long>(snapshot->sourceProducer.ordinal),
 					snapshot->sourceVertices.size());
+				NOTICE_LOG(RENDERER,"PVR executed XYZ stores: frame=%llu complete-vertices=%zu",
+					static_cast<unsigned long long>(frame),stores);
+				NOTICE_LOG(RENDERER,"PVR live RAM read linkage: frame=%llu complete-vertices=%zu",
+					static_cast<unsigned long long>(frame),reads);
+				NOTICE_LOG(RENDERER,"PVR observed RAM producers: frame=%llu complete-vertices=%zu diagnostic-only",
+					static_cast<unsigned long long>(frame),producers);
+				for(auto pc:storePcs) NOTICE_LOG(RENDERER,"PVR observed XYZ store instruction: frame=%llu pc=%08x diagnostic-only",
+					static_cast<unsigned long long>(frame),pc);
+			}
 			const bool valid = snapshot && textures.pvrContext
 				&& snapshot->game == settings.content.gameId
 				&& !neuralQualityCapture.CapturedPvrSnapshot(frame + 1)
