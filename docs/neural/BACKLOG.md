@@ -211,7 +211,30 @@ LOG539 fresh OIT output now visibly restores wooden floor beneath the fighters;
 three actual composites/backbuffers pass, with completed evaluated presentation.
 All four builds and559 enabled tests pass. LOG540 now verifies source1860 with
 byte-identical native input/mask and repaired floor reaching completed Present.
-Commit the independently verified export fix after end-to-end regression. Complete
+The export fix is committed and fork-verified at6a7588b20. Next bounded OIT
+integration repair: captured name-atlas depths span .138055..203861, while the
+existing common HUD cutoff starts at .15. Extend only the known name atlas's
+lower bound to .138, retaining list/order/alignment/region/span checks. Require
+failing-old/passing-new tests and a fresh composite; no generic HUD-band rule.
+LOG541 hud-aa now verifies both names restored in three actual backbuffers with
+completed evaluated Presents and independent composition equality. All four
+builds/565 enabled tests pass. Next sustained OIT delivery with synchronous
+captures disabled, then focused combined-route provenance; do not restart
+generic transport or expand HUD diagnostics without a specific new failure.
+LOG542 sustained OIT ab completes600 matching paired returns, zero busy drops,
+597 accepted evaluations and595 distinct displayed sources (544 consecutive,
+max age5), clean host/helper exits, no synchronous preview capture. Next use
+the repaired OIT retained inputs for focused external-output ON/clean/OFF
+proof before committing the combined OIT integration slice. The40-object
+helper cleanup warning, full camera/scene and final timing acceptance stay open.
+LOG544 closes focused repaired-OIT external-output proof for25 consecutive
+originals1856..1880: matched inputs, ON/OFF output differences, marked/clean
+hash identity and actual clean original-HUD/backbuffer/completed-Present joins.
+OFF correctly stays native when external readiness fails. Commit the verified
+OIT/coverage/name integration slice, preserving ac's partial watchdog failure;
+then advance300-frame moving evidence and resource/timing deficiencies rather
+than rerunning this provenance comparison.
+Complete
 scene/camera, name coverage and sustained OIT acceptance remain open.
 Do not label this bounded repair full OIT acceptance.
 Do not divert into aesthetic trail tuning or general profiling before sustained

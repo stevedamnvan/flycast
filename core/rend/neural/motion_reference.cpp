@@ -265,7 +265,9 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 		&& drawCount != 0 && draw.indexCount != 0 && draw.blend == 37
 		&& (draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) == 0
 		&& std::isfinite(draw.zMin) && std::isfinite(draw.zMax)
-		&& draw.zMin >= .15f && draw.zMax <= .21f) {
+		// LOG541: the captured name atlas animates below the other HUD depths.
+		// Keep the wider envelope atlas-specific; region/list/shape checks follow.
+		&& draw.zMin >= (draw.texId == 686272176u ? .138f : .15f) && draw.zMax <= .21f) {
 		const auto inside = [&](int left,int top,int right,int bottom) {
 			return draw.bboxMin[0]>=left && draw.bboxMin[1]>=top && draw.bboxMax[0]<=right
 				&& draw.bboxMax[1]<=bottom && draw.bboxMax[0]>draw.bboxMin[0] && draw.bboxMax[1]>draw.bboxMin[1];

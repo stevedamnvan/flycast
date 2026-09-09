@@ -310,6 +310,9 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
 			RemakePresentationPolicy policy;
+			suite.Expect(RemakeRendererAllowed(false,nullptr)&&!RemakeRendererAllowed(true,nullptr)
+				&&RemakeRendererAllowed(true,"1")&&!RemakeRendererAllowed(true,"10")
+				&&!RemakeRendererAllowed(true,""),"Remix OIT requires exact explicit opt-in and preserves normal eligibility");
 			suite.Expect(RemakePreviewCaptureLimit(nullptr)==3&&RemakePreviewCaptureLimit("12")==12
 				&&RemakePreviewCaptureLimit("30")==30,"preview diagnostic count preserves default and bounded moving window");
 			suite.Expect(RemakePreviewCaptureLimit("31")==0&&RemakePreviewCaptureLimit("-1")==0
@@ -1010,6 +1013,14 @@ int RunSelfTests()
 		auto name=header;name.list=2;name.texId=686272176u;name.bboxMin[0]=26;name.bboxMin[1]=62;name.bboxMax[0]=614;name.bboxMax[1]=86;
 		name.zMin=.162346f;name.zMax=.180385f;
 		suite.Expect(capturedHud(name),"captured Soulcalibur layered names retain both sides");
+		auto animatedName=name;animatedName.zMin=.138055f;animatedName.zMax=.153395f;
+		suite.Expect(capturedHud(animatedName),"captured animated name depth remains protected without accepted history");
+		auto invalidName=animatedName;invalidName.texId++;
+		suite.Expect(!capturedHud(invalidName),"animated name depth does not admit an unknown atlas");
+		invalidName=animatedName;invalidName.bboxMax[1]=140;
+		suite.Expect(!capturedHud(invalidName),"animated name depth does not admit world geometry");
+		invalidName=animatedName;invalidName.zMin=.12f;
+		suite.Expect(!capturedHud(invalidName),"animated name depth retains a bounded lower limit");
 		auto counter=soulcaliburCounter;counter.blend=37;counter.texId=739217920u;
 		suite.Expect(capturedHud(counter),"captured Soulcalibur counters are protected");
 		auto wrong=header;wrong.texId++;

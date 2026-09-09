@@ -181,9 +181,23 @@ private:
 	std::array<ComPtr<ID3D11DepthStencilState>, ModifierVolumeMode::Count> mvStates;
 };
 
+#include "neural_coverage_blend.h"
+
 class BlendStates
 {
 public:
+	ComPtr<ID3D11BlendState> getReactiveCoverageState()
+	{
+		// Coverage is a union: a later non-overlay fragment must not erase HUD
+		// coverage. Only the two coverage targets are writable in this pass.
+		auto& state = states[1024];
+		if (!state)
+		{
+			const auto desc = NeuralCoverageBlendDescription();
+			createBlendState(&desc, &state.get());
+		}
+		return state;
+	}
 	ComPtr<ID3D11BlendState> getState(bool enable, int srcBlend = 0, int destBlend = 0, bool disableWrite = false)
 	{
 		int hash = (int)enable | (srcBlend << 1) | (destBlend << 5) | ((int)disableWrite << 9);

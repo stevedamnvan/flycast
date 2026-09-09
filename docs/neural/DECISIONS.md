@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-172: explicitly gated OIT return and monotonic HUD coverage
+
+The returned-scene path is permitted in OIT only with exact developer opt-in
+ASYNC_OIT=1, after native OIT resolve and guidance export. Preserve original
+receipt-owned native color/mask, accepted-output ownership and existing stale
+fallback. Reactive coverage uses MAX union on only mask/overlay targets so
+later non-HUD fragments cannot erase prior protection. The captured Soulcalibur
+name atlas alone admits the measured lower animated depth envelope; other
+classification guards remain unchanged. LOG537/541 cover GPU/negative/visual
+checks; LOG542 covers600-source delivery and LOG544 covers25 exact-input
+external-output/display joins. None establishes full camera/scene, timing,
+cleanup or title-matrix acceptance. Missing external readiness must withhold
+experimental display, including in the OFF negative-control run.
+
 ## D-171: clip estimated crossing geometry after primitive assembly
 
 Keep finite projected-depth estimates outside the supplied near/far planes

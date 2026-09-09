@@ -2,6 +2,9 @@
 #pragma once
 #include <cstdint>
 namespace flycast::rend::neural {
+inline bool RemakeRendererAllowed(bool oit,const char* optIn)noexcept {
+ return !oit||(optIn&&optIn[0]=='1'&&optIn[1]=='\0');
+}
 // Optional developer-only capture window. Invalid input disables capture;
 // never turn malformed text into an unbounded run.
 inline unsigned RemakePreviewCaptureLimit(const char* text)noexcept {

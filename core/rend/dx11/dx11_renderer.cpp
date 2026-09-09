@@ -2521,7 +2521,8 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 	const auto* asyncNeural=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
 	const bool evaluatedRequested=asyncNeural&&std::strcmp(asyncNeural,"1")==0;
 	const bool enabled=preview&&std::strcmp(preview,"1")==0&&permitted&&!remakeAsyncStopped
-		&&rendContext&&!rendContext->isRTT&&!config::EmulateFramebuffer.get()&&!IsOitRenderer()
+		&&rendContext&&!rendContext->isRTT&&!config::EmulateFramebuffer.get()
+		&&RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		&&current&&currentNeuralGuidanceFrameId==current&&config::NeuralCaptureFrames.get()==0
 		&&neuralQualityCaptureMetadata.renderWidth==640&&neuralQualityCaptureMetadata.renderHeight==480
 		&&neuralQualityCaptureMetadata.outputWidth==640&&neuralQualityCaptureMetadata.outputHeight==480;
@@ -2592,7 +2593,8 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();
 		remakeAsyncToken=token;remakeAsyncEpoch=0;remakeAsyncStopped=false;
 	}
-	if(remakeAsyncStopped||IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get())return;
+	if(remakeAsyncStopped||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
+		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get())return;
 	const auto& metadata=neuralQualityCaptureMetadata;const auto producer=rendContext->captureProducer;
 	const auto skip=[&](const char* stage,const std::string& reason) {
 		const auto* diagnostics=std::getenv("FLYCAST_REMAKE_ASYNC_DIAGNOSTICS");
@@ -2717,7 +2719,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	// Native input must not enter this stage while it is reserved for returned
 	// scenes. Display uses only an owned accepted snapshot and its original HUD.
 	releaseNeuralPresentation();neuralPresentationView.reset();
-	if(!activeNeuralSurface||IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
+	if(!activeNeuralSurface||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
+		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
 		||config::NeuralCaptureFrames.get()!=0||remakeAsyncStopped||!remakeAsyncReturned
 		||frame.renderWidth!=640||frame.renderHeight!=480||frame.outputWidth!=640||frame.outputHeight!=480
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
@@ -2977,6 +2980,16 @@ void DX11Renderer::displayFramebuffer()
 			flycast::rend::neural::RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"))) {
 		if(const auto* directory=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");directory&&*directory) {
 			++remakePreviewCaptureAttempts;remakePreviewLastCaptured=remakeDecision.frame;
+			// Current-frame classification diagnostics are deliberately labeled
+			// separately from the retained displayed source and only emitted in a
+			// bounded explicit capture. They do not establish source HUD ownership.
+			for(const auto& item:neuralInstrumentation.CaptureOverlayDiagnostics()) {
+				const auto& d=item.draw;
+				if(d.bboxMin[1]>=0&&d.bboxMax[1]<=96)
+					NOTICE_LOG(RENDERER,"Remake HUD draw diagnostic: current=%llu ordinal=%u list=%u texture=%u blend=%u flags=%u quads=%u bounds=%d,%d,%d,%d depth=%g,%g classified=%d stability=%u",
+						(unsigned long long)currentNeuralSourceFrameId,d.ordinal,d.list,d.texId,d.blend,d.flags,d.screenAlignedPrimitiveCount,
+						d.bboxMin[0],d.bboxMin[1],d.bboxMax[0],d.bboxMax[1],d.zMin,d.zMax,item.classified,item.stableAcceptedFrames);
+			}
 			ComPtr<ID3D11Resource> resource;ComPtr<ID3D11Texture2D> backbuffer;
 			DX11Context::Instance()->getRenderTarget()->GetResource(&resource.get());
 			if(resource)resource->QueryInterface(__uuidof(ID3D11Texture2D),(void**)&backbuffer.get());
@@ -3239,7 +3252,8 @@ void DX11Renderer::setRenderState(const PolyParam *gp, u32 neuralOrdinalOverride
 	// Apparently punch-through polys support blending, or at least some combinations
 #ifdef FLYCAST_ENABLE_NEURAL
 	if (neuralExportActive)
-		deviceContext->OMSetBlendState(blendStates.getState(false), nullptr, 0xffffffff);
+		deviceContext->OMSetBlendState(neuralReactiveCoverageActive
+			? blendStates.getReactiveCoverageState() : blendStates.getState(false), nullptr, 0xffffffff);
 	else
 #endif
 		deviceContext->OMSetBlendState(blendStates.getState(true, gp->tsp.SrcInstr, gp->tsp.DstInstr), nullptr, 0xffffffff);

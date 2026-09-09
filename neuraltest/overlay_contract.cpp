@@ -14,6 +14,7 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include "rend/dx11/neural_coverage_blend.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -286,6 +287,44 @@ bool RunOverlayContractFixture(bool d3d11On12,
 		}
 		else if (!matches)
 			++result.worldChanged;
+	}
+	// Actual GPU accumulation with the production descriptor. Initialize all
+	// channels to one, then draw zero into coverage slots. MAX must preserve red;
+	// the deliberately wrong overwrite state must erase it.
+	const char* coverageSource = "struct O{float a:SV_TARGET1;float b:SV_TARGET5;}; O main(){O o;o.a=0;o.b=0;return o;}";
+	ComPtr<ID3DBlob> coverageCode;
+	ComPtr<ID3D11PixelShader> coverageShader;
+	hr=D3DCompile(coverageSource,std::strlen(coverageSource),"coverage",nullptr,nullptr,"main","ps_5_0",0,0,
+		coverageCode.GetAddressOf(),diagnostics.ReleaseAndGetAddressOf());
+	if(SUCCEEDED(hr))hr=surface.device->CreatePixelShader(coverageCode->GetBufferPointer(),coverageCode->GetBufferSize(),nullptr,coverageShader.GetAddressOf());
+	std::array<ComPtr<ID3D11Texture2D>,2> coverageTextures;
+	std::array<ComPtr<ID3D11RenderTargetView>,2> coverageTargets;
+	for(unsigned i=0;i<2&&SUCCEEDED(hr);++i) {
+		hr=createTexture(DXGI_FORMAT_R8G8B8A8_UNORM,D3D11_BIND_RENDER_TARGET,nullptr,0,coverageTextures[i]);
+		if(SUCCEEDED(hr))hr=surface.device->CreateRenderTargetView(coverageTextures[i].Get(),nullptr,coverageTargets[i].GetAddressOf());
+	}
+	auto coverageDesc=NeuralCoverageBlendDescription();
+	ComPtr<ID3D11BlendState> unionState,wrongState;
+	if(SUCCEEDED(hr))hr=surface.device->CreateBlendState(&coverageDesc,unionState.GetAddressOf());
+	coverageDesc.RenderTarget[1].BlendEnable=coverageDesc.RenderTarget[5].BlendEnable=FALSE;
+	if(SUCCEEDED(hr))hr=surface.device->CreateBlendState(&coverageDesc,wrongState.GetAddressOf());
+	if(FAILED(hr)){error=HrText("create coverage fixture",hr);return false;}
+	ID3D11RenderTargetView* coverageViews[6]={nullptr,coverageTargets[0].Get(),nullptr,nullptr,nullptr,coverageTargets[1].Get()};
+	surface.context->OMSetRenderTargets(6,coverageViews,nullptr);
+	surface.context->PSSetShader(coverageShader.Get(),nullptr,0);
+	const float white[4]={1,1,1,1};
+	for(unsigned control=0;control<2;++control) {
+		for(auto& rt:coverageTargets)surface.context->ClearRenderTargetView(rt.Get(),white);
+		surface.context->OMSetBlendState(control?wrongState.Get():unionState.Get(),nullptr,0xffffffff);
+		surface.context->Draw(4,0);
+		for(auto& texture:coverageTextures) {
+			auto pixels=result.composited;
+			if(!Readback(surface.device.Get(),surface.context.Get(),texture.Get(),pixels,error))return false;
+			for(std::size_t i=0;i<pixels.rgba.size();++i) {
+				const auto expected=(control&&i%4==0)?0:255;
+				if(pixels.rgba[i]!=expected){error="coverage accumulation or overwrite negative failed";return false;}
+			}
+		}
 	}
 	return result.protectedPixels != 0 && result.protectedMismatch == 0
 		&& result.worldChanged == 0 && result.wrongProtectedMismatch == result.protectedPixels;

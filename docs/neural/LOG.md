@@ -1,5 +1,88 @@
 # Neural rendering evidence log
 
+LOG544 clean ON ad launched with the same floor-z locked inputs and hud-aa
+executable, restored (unmarked) presentation evidence,30 bounded captures.
+Helper budget is100 Presents/40 sources, below ac's43-source watchdog point;
+the30-second watchdog is unchanged. This is a bounded provenance comparison,
+not a shortened substitute for the completed600-source delivery run. Next
+unchanged hook-disabled OFF and exact-input/frame-qualified comparison.
+Clean ON ad exits0 on helper and host, with clean host close.28 original frames
+overlap marked-ac: all color/depth/motion/mask hashes and pre-marker returned
+hashes match exactly. OFF ae is now launched in the existing unchanged
+hook-disabled stage, using an identical executable SHA and floor-z inputs,
+100 helper Presents and restored evidence. No external-output conclusion until
+OFF and the captured/displayed-frame joins are checked.
+OFF ae exits0 on both processes and cleanly closes. It logs accepted public
+control evaluations but correctly withholds experimental presentation because
+readiness=missing-components; do not weaken that guard to obtain OFF captures.
+Frame-qualified local audit joins25 consecutive originals1856..1880 across
+marked-ac,clean-ad and OFF-ae: exact color/depth/motion/mask hashes; identical
+marked/clean pre-marker output hashes; all25 ON outputs differ from OFF. Each
+clean evaluated PNG hashes to the logged output, independently composes with
+its original HUD mask/native image, matches the actual backbuffer and joins
+completed Present. Each marked counterpart has1024/1024 marker pixels and
+completed Present. Native-output substitution is falsified for every clean
+world region. This closes focused repaired-OIT external-output provenance only;
+ac's watchdog failure remains recorded, not a clean-run claim. Full300-frame
+moving-image, camera/scene and final resource/timing acceptance remain open.
+Audit script and raw data stay outside Git (fc067-oit-proof-ac-ad-ae.py).
+
+LOG543 OIT marked-ac launched on the repaired hud-aa executable. Uses existing
+floor-z retained scene/color/depth archives, strict producer/whole-scene/input
+verification and30 bounded preview captures. Explicit marker evidence only;
+not performance. No external configurations changed. Next clean-restored ON
+and unchanged hook-disabled OFF must match exact inputs before any new OIT
+external-output claim. Reject startup-equal outputs rather than counting them.
+Marked-ac completes27 retained captures, but the helper reaches its existing
+30-second watchdog after43 returned sources/103 Presents and exits1. Host
+completes240 samples and exits0 cleanly. Preserve the timeout, logs and partial
+captures; do not report this as a clean whole-run pass. Frame-qualified marker
+and completed presentation joins remain inspectable; external alteration is
+still pending the exact-input clean ON/OFF comparison. No watchdog relaxation.
+
+LOG542 sustained OIT ab launched: existing tested hud-aa executable SHA256
+573DE2074EC34B97E31DAAD5AED9ADBB15168113071C54CEEBB64B040D33B6C4,
+660 helper Presents (60 warmup/600 source budget),1200 host samples,180-second
+host watchdog. Explicit OIT/returned-neural opt-ins; no preview capture, locked
+replay or synchronous sentinel. No concurrent builds. Source observation and
+helper paired GPU readback still exclude final low-overhead performance claims.
+Inspect receipts, accepted evaluations, completed monotonic presentation, age,
+busy/fallback counts and clean shutdown; no generic provenance rerun here.
+Both processes now exit0; host completes1200 samples and clean close. All600
+sender/receiver sequence/frame/producer/byte/digest tuples match, all600 paired
+returns publish, zero busy drops.597 unique accepted evaluations have matching
+published source/sequence and bounded age.598 successful evaluated Presents
+contain595 distinct sources,544 consecutive source IDs, no backward IDs and
+max age5. Every displayed source belongs to an accepted evaluation. Zero
+preview pixel captures. Supplied configuration hash unchanged; no artifact
+files produced by return-only mode. Helper still reports40 undisposed common
+device objects: cleanup remains open. Archived remake-oit-*-ab logs retain the
+run. This is sustained OIT delivery evidence, not300-frame moving pixel proof,
+new external-mutation provenance or final timing/resource acceptance. Next
+focused exact-input OIT external-output proof on the repaired scene/HUD path.
+
+LOG541 bounded name-atlas correction: floor-z diagnostics contain60 identified
+name draws, texture686272176, aligned quads, expected left/right name regions,
+depth envelope .138055..203861. Existing .15 lower bound rejects animated names
+without accepted native history in the returned-scene lane. Test a name-only
+.138 lower limit, preserving all other classification checks and .21 upper
+bound; unknown atlas/world region/lower-depth controls must stay rejected.
+This uses retained diagnostics rather than launching another broad tracing run.
+The old classifier fails only the new captured-depth positive (564 pass,1 fail).
+After the atlas-specific correction all four serial builds succeed and all
+three enabled suites pass565/565. Fresh hud-aa OIT capture is launched with
+three bounded frames, no locked replay and unchanged external configuration;
+visual/Present checks remain pending until it closes. No commit acceptance yet.
+Hud-aa now closes successfully on both processes. Frames1851..1853 have restored
+KILIK and TAKI text, continuous health bars and the repaired wooden floor in
+the actual backbuffers. Independent original-mask composition and backbuffer
+checks pass all three; each joins a completed remake-evaluated Present two
+frames later. External configuration hash remains unchanged. Archived logs
+are remake-hud-*-aa and captures fc067-hud-aa-composites outside Git. This is
+bounded visible HUD repair, not full-title coverage or renewed external-output
+proof. Next run sustained OIT delivery with synchronous captures disabled;
+retain explicit opt-in and full working-pipeline acceptance requirements.
+
 LOG540 floor-z matched-frame check: same staged floor-y executable, fresh
 scene export,30 bounded captures, no locked replay. Helper120 Presents and
 host240 samples both exit0. Frame1860/current1862 matches coverage-v's original
