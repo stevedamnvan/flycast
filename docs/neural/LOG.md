@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG677 remaining baseline/no-NGX/feature-off builds exit0, baseline/no-NGX
+suites720/0. Together with automation this completes four builds and three
+enabled suites for the performance exit correction. Exhaustive helper tests
+prove forced termination returns failure; earlier real clean-close runs exercise
+the success route. No newly injected forced-close process test claimed.
+
+LOG676 performance exit helper automation build and720/0 suite pass, including
+all eight report/check/forced-close combinations. Remaining configurations run
+serially. Next optimized combined cadence uses no image capture and second-drive
+outputs; compare active interval against LOG661 rather than treating isolated
+observer improvement as a measured combined speedup.
+
+LOG675 observer optimization9200902e1 is pushed with matching fork SHA.
+Postcommit serial four builds exit0 and three enabled suites712/0; this was an
+incremental workspace validation including the separately pending harness fix,
+not a clean exact-SHA build. Add exhaustive eight-combination tests to the actual
+performance exit helper: only written report, successful checks and no forced
+termination returns0. Automation rebuild/test pending. No shutdown timeout or
+rendering policy change; this cannot fix the underlying resource warning.
+
 LOG674 full review process exits0:300 frames2197..2496, no gaps or failed
 composition checks. Moving artifact generated; midpoint2347 visually inspected
 with intact HUD and the existing bright experimental rendering, not a new

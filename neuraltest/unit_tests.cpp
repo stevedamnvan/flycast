@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "performance_exit.h"
 #include "remake_cutout.h"
 #include "ta_provenance.h"
 #include "capture_transition.h"
@@ -107,6 +108,11 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	for (unsigned flags=0;flags<8;++flags) {
+		const bool report=(flags&1)!=0, checks=(flags&2)!=0, forced=(flags&4)!=0;
+		suite.Expect(PerformanceExitCode(report,checks,forced)==(flags==3?0:1),
+			"performance exit rejects forced shutdown and incomplete checks/report");
+	}
 	{
 		RemakeTemporalScene previous;previous.frame=10;previous.producer={1,10,100};previous.game="fixture";previous.sourceSha="fixture";
 		previous.camera.provenance=remake::Provenance::Supplied;previous.camera.fovY=90;previous.camera.aspect=640.f/480;

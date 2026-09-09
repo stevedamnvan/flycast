@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "performance_exit.h"
 #include <cstdlib>
 #include <cstring>
 #include "rend/neural/neural_stage.h"
@@ -2203,11 +2204,11 @@ int PerformanceCommand(const Args& args)
 		<< " seh_exception=" << (sehExceptionComplete ? "pass" : "fail")
 		<< " resources=" << (resourceAccountingComplete ? "pass" : "fail")
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';
-	return launchReport && transitionComplete && rendererReinitComplete
+	return PerformanceExitCode(bool(launchReport), transitionComplete && rendererReinitComplete
 		&& rendererSwitchComplete && surfaceSwitchComplete
 		&& actualDeviceRemovalComplete && gameReloadComplete
 		&& saveStateComplete && pauseComplete && modeRoundtripComplete
-		&& sehExceptionComplete && resourceAccountingComplete ? 0 : 1;
+		&& sehExceptionComplete && resourceAccountingComplete, forcedTermination);
 #endif
 }
 

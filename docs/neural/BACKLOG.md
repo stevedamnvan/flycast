@@ -92,9 +92,12 @@ directories as failed300-frame evidence. Current observer-combined-b repeats on
 the second drive, checking300 captured frames, exact camera/geometry/material
 and original-native/HUD-mask parity against palette-upload-a. All four builds
 and three712/0 suites pass. LOG673-674 full review passes300 consecutive frames
-2197..2496 and264 exact baseline overlaps. Commit
-the independently proven optimization and separately the forced-close reporting
-correction. Further optimization requires bounded profiling, not another guess.
+2197..2496 and264 exact baseline overlaps. Optimization9200902e1 is pushed.
+Finish the separately tested forced-close reporting correction, then measure
+noncapture combined cadence on the optimized executable using the existing
+bounded run and second-drive outputs. Compare only the active combined interval
+against LOG661, preserve startup/tail separately, and retain incomplete GPU
+coverage. Further optimization requires bounded profiling, not another guess.
 Normal renderer and camera truth remain open; no removal of required observation.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
