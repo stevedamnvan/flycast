@@ -1,5 +1,26 @@
 # Neural rendering decisions
 
+## D-130: missing Dreamcast normals versus generated face normals
+
+The selected type-3 TA packet has xyz, UV, BaseCol and OffsCol only
+(ta_structs.h::TA_Vertex3). AppendPolyVertex3 copies those attributes and
+does not recover normals. Vertex::nx/ny/nz are explicitly Naomi2 fields;
+elan.cpp::getNormal/setNormal decode that separate path's signed normal
+components. They are not Soulcalibur normal evidence. The scene exporter
+correctly records unknown-for-dreamcast; preserve this source provenance.
+
+For the explicit remake experiment, derive flat face normals from validated
+reconstructed triangle positions after coordinate reflection/winding handling.
+Label them geometry-derived, not game-authored. Split vertices per triangle
+to preserve hard faces and all original UV/color attributes; do not average
+across seams or invent smoothing groups. Reject nonfinite/degenerate faces
+with counted omissions, enforce expansion budgets before allocation, and
+never change the original captured vertices. Unknown coordinate domains are
+still unknown: a cross product cannot establish world-space truth, camera
+acceptance, physical units, or complete scene coverage. Check winding reversal,
+proper rotation and degenerate controls before submitting actual supported
+samples. This is the next bounded implementation, not a rendering pass claim.
+
 ## D-129: explicit DDS format and retained file lifetime
 
 At reviewed Remix revision e876135b37295dc203ccdb7b20a8089629588201,
