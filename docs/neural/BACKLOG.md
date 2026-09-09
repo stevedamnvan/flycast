@@ -135,6 +135,13 @@ malformed pointers/cycles/depth/polygon and truncation rejection. It is not yet
 wired to GPU snapshot extraction or replay. Next connect the owned GPU snapshot
 to this description in explicit evidence mode, retaining exact resolver variant
 and constants; then enforce equality before permitting locked effects replay.
+LOG561 adds explicit synchronous identity readback from the owned GPU snapshot,
+including actual compiled layer count, selected resolver variant and constants.
+GPU fixture checks compare against uploaded CPU truth and preserve identity after
+original-pointer mutation. This API is not called by ordinary rendering or yet
+by capture/replay. Next wire bounded evidence artifacts and replay equality; keep
+the guard until that linkage and negative controls pass. Staging the existing
+large pixel allocation is diagnostic-only and must not enter performance runs.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

@@ -28,6 +28,7 @@
 class DX11OITShaders : CachedDX11Shaders
 {
 public:
+	int getCompiledMaxLayers() const { return maxLayers; }
 	enum Pass { Depth, Color, OIT };
 
 	void init(const ComPtr<ID3D11Device>& device, pD3DCompile D3DCompile);

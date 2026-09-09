@@ -377,8 +377,25 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	if(FAILED(hr)){error=HrText("create source effects fixture",hr);return false;}
 	const flycast::rend::neural::ProducerIdentity effectIdentity{1,20,100};
 	const auto effects=flycast::rend::neural::RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),
-		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get());
+		effectIdentity,pixelBuffer.Get(),fullPointerTexture.Get(),polyBuffer.Get(),constantBuffer.Get(),ps.Get(),vs.Get(),nullptr,8,0);
 	if(!effects){error="source effects capture failed";return false;}
+	std::vector<std::uint32_t> gpuIdentity, repeatedIdentity;
+	if(!effects->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),effectIdentity,gpuIdentity,error))return false;
+	std::vector<flycast::rend::neural::EffectIdentityPixel> expectedPixels(pixels.size());
+	std::memcpy(expectedPixels.data(),pixels.data(),sizeof(pixels));
+	std::vector<flycast::rend::neural::EffectIdentityPoly> expectedPoly(1);
+	std::memcpy(expectedPoly.data(),poly.data(),sizeof(poly));
+	std::vector<std::uint32_t> expectedState(2+constants.size());expectedState[0]=1;expectedState[1]=0;
+	std::memcpy(expectedState.data()+2,constants.data(),sizeof(constants));
+	const std::vector<std::uint32_t> expectedHeads(fullPointers.begin(),fullPointers.begin()+640*480);
+	if(!flycast::rend::neural::CanonicalEffectIdentity({1,20,100},expectedHeads,expectedPixels,expectedPoly,
+		expectedState,8,repeatedIdentity,error)||gpuIdentity!=repeatedIdentity) {
+		error="effect GPU identity differs from uploaded fixture truth";return false;
+	}
+	if(effects->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),{1,21,101},repeatedIdentity,error)
+		||!repeatedIdentity.empty()||error!="effect-evidence-contract") {
+		error="effect GPU identity accepted wrong source";return false;
+	}
 	const auto usage=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,3>{effects.get(),nullptr,effects.get()});
 	const auto emptyUsage=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,3>{});
 	const auto otherEffects=flycast::rend::neural::RemakeOitEffects::Capture(surface.device.Get(),surface.context.Get(),
@@ -397,6 +414,8 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 	}
 	std::fill(fullPointers.begin(),fullPointers.end(),Eol);
 	surface.context->UpdateSubresource(fullPointerTexture.Get(),0,nullptr,fullPointers.data(),640*4,0);
+	if(!effects->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),effectIdentity,repeatedIdentity,error)
+		||gpuIdentity!=repeatedIdentity) {error="effect GPU identity changed with original pointer mutation";return false;}
 	::ComPtr<ID3D11Texture2D> effectOutput;
 	::ComPtr<ID3D11ShaderResourceView> effectView;
 	if(effects->Compose(surface.device.Get(),surface.context.Get(),{1,21,101},fullColorTexture.Get(),effectOutput,effectView)) {

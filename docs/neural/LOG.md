@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG561 basebf2375f4e plus worktree connects the canonical description to an
+explicit owned-snapshot GPU readback API. Records compiled layer count and the
+currently selected nondithered effect resolver variant at capture, preserving
+current rendering behavior. Validates source/context/device, reads retained
+pixels/polygon/constants/pointer content, and canonicalizes with exact state.
+The API stages the bounded native allocation synchronously; it is not invoked
+by ordinary Capture/Compose, is not a performance path and is not yet connected
+to evidence files or locked replay. Initial automation build and574/0 selftest
+pass, including both native/On12 wrong-source and original-pointer mutation
+controls. Final controls additionally compare all extracted words against the
+uploaded CPU fixture. Final validation logs use effect-readback-final prefixes.
+All four final incremental builds and three574/0 suites passed; the backlog
+consistency inspector also passed (document consistency only).
+No live-game or post-effect external proof is claimed by these fixtures.
+
 LOG560 base947aeafa2 plus worktree implements the bounded CPU native-effect
 canonical identity component. It preserves source epoch/ordinal/cycle, resolver
 state, per-pixel stable native depth/poly ordering, exact color/depth/sequence and

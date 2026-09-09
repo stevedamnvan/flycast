@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-177: snapshot identity readback is explicit evidence work
+
+Read retained GPU data only through the explicit synchronous evidence API;
+ordinary capture/resolve must not call it. Preserve actual compiled layer count,
+selected effect resolver variant and exact constant words. LOG561 tests extraction
+against uploaded fixture truth on both D3D11 surfaces. The initial diagnostic
+implementation stages the existing bounded allocation and is deliberately not a
+performance optimization. Evidence-file/replay linkage is the next dependency;
+no live locked-effects guard is removed by this component alone.
+
 ## D-176: effect replay identity describes reachable ordered fragments
 
 An opaque scene receipt cannot identify the separate retained native effect

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "pvr_scene_capture.h"
+#include "remake_effect_identity.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 #include <cstdlib>
@@ -23,6 +24,7 @@ class RemakeOitEffects {
  }
  ProducerIdentity producer;
  std::uint64_t logicalBytes=0;
+ std::uint32_t resolverLayers=0, resolverVariant=0;
  ComPtr<ID3D11Buffer> pixels,parameters,constants;
  ComPtr<ID3D11Texture2D> pointers;
  ComPtr<ID3D11UnorderedAccessView> pixelView;
@@ -44,7 +46,8 @@ public:
  static std::shared_ptr<RemakeOitEffects> Capture(ID3D11Device* device,
   ID3D11DeviceContext* context,const ProducerIdentity& producer,
   ID3D11Buffer* pixels,ID3D11Texture2D* pointers,ID3D11Buffer* parameters,
-  ID3D11Buffer* constants,ID3D11PixelShader* resolve,ID3D11VertexShader* vertex,std::string* error=nullptr) {
+  ID3D11Buffer* constants,ID3D11PixelShader* resolve,ID3D11VertexShader* vertex,std::string* error=nullptr,
+  std::uint32_t layers=0,std::uint32_t variant=0) {
   const auto fail=[&](const std::string& why)->std::shared_ptr<RemakeOitEffects>{if(error)*error=why;return {};};
   if(!device||!context||!producer.Available()||!pixels||!pointers||!parameters
    ||!constants||!resolve||!vertex||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)
@@ -81,6 +84,7 @@ public:
    return fail("resource-bound pixels="+std::to_string(pd.ByteWidth)+" stride="+std::to_string(pd.StructureByteStride)
     +" parameters="+std::to_string(td.ByteWidth)+" constants="+std::to_string(cd.ByteWidth));
   auto owned=std::make_shared<RemakeOitEffects>();
+  owned->resolverLayers=layers;owned->resolverVariant=variant;
   owned->producer=producer;resolve->AddRef();vertex->AddRef();
   owned->resolve.reset(resolve);owned->vertex.reset(vertex);
   pd.Usage=td.Usage=cd.Usage=D3D11_USAGE_DEFAULT;
@@ -108,6 +112,52 @@ public:
   const D3D11_BOX content{0,0,0,640,480,1};
   context->CopySubresourceRegion(owned->pointers,0,0,0,0,pointers,0,&content);
   return owned;
+ }
+ // Explicit synchronous evidence API. Never called by Capture/Compose or the
+ // ordinary render loop. Large staging copies are not performance evidence.
+ bool ReadIdentityForEvidence(ID3D11Device* device,ID3D11DeviceContext* context,
+  const ProducerIdentity& source,std::vector<std::uint32_t>& identity,std::string& error)const {
+  identity.clear();
+  const auto fail=[&](const char* why){error=why;return false;};
+  if(!device||!context||!Matches(source)||!resolverLayers||resolverLayers>256||resolverVariant>1
+   ||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return fail("effect-evidence-contract");
+  ComPtr<ID3D11DeviceContext> factory;device->GetImmediateContext(&factory.get());
+  ComPtr<ID3D11Device> owner,factoryOwner,pixelOwner;
+  context->GetDevice(&owner.get());if(!factory)return fail("effect-evidence-factory");
+  factory->GetDevice(&factoryOwner.get());pixels->GetDevice(&pixelOwner.get());
+  if(!SameDevice(owner,factoryOwner)||(!SameDevice(pixelOwner,owner)&&!SameDevice(pixelOwner,device)))
+   return fail("effect-evidence-device");
+  auto readBuffer=[&](ID3D11Buffer* buffer,void* destination,std::size_t bytes){
+   D3D11_BUFFER_DESC desc{};buffer->GetDesc(&desc);
+   if(desc.ByteWidth!=bytes)return false;
+   desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+   desc.MiscFlags=0;desc.StructureByteStride=0;
+   ComPtr<ID3D11Buffer> staging;if(FAILED(device->CreateBuffer(&desc,nullptr,&staging.get())))return false;
+   context->CopyResource(staging,buffer);D3D11_MAPPED_SUBRESOURCE map{};
+   if(FAILED(context->Map(staging,0,D3D11_MAP_READ,0,&map)))return false;
+   std::memcpy(destination,map.pData,bytes);context->Unmap(staging,0);return true;
+  };
+  D3D11_BUFFER_DESC pd{},td{},cd{};pixels->GetDesc(&pd);parameters->GetDesc(&td);constants->GetDesc(&cd);
+  if(pd.ByteWidth%sizeof(EffectIdentityPixel)||td.ByteWidth%sizeof(EffectIdentityPoly)||cd.ByteWidth%4)
+   return fail("effect-evidence-buffer-layout");
+  std::vector<EffectIdentityPixel> px(pd.ByteWidth/sizeof(EffectIdentityPixel));
+  std::vector<EffectIdentityPoly> pp(td.ByteWidth/sizeof(EffectIdentityPoly));
+  std::vector<std::uint32_t> state(cd.ByteWidth/4),heads(640*480);
+  if(!readBuffer(pixels,px.data(),pd.ByteWidth)||!readBuffer(parameters,pp.data(),td.ByteWidth)
+   ||!readBuffer(constants,state.data(),cd.ByteWidth))return fail("effect-evidence-buffer-read");
+  D3D11_TEXTURE2D_DESC desc{};pointers->GetDesc(&desc);desc.Usage=D3D11_USAGE_STAGING;
+  desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;desc.MiscFlags=0;
+  ComPtr<ID3D11Texture2D> staging;
+  if(FAILED(device->CreateTexture2D(&desc,nullptr,&staging.get())))return fail("effect-evidence-pointer-create");
+  context->CopyResource(staging,pointers);D3D11_MAPPED_SUBRESOURCE map{};
+  if(FAILED(context->Map(staging,0,D3D11_MAP_READ,0,&map)))return fail("effect-evidence-pointer-read");
+  for(unsigned y=0;y<480;++y)std::memcpy(heads.data()+y*640,
+   static_cast<const unsigned char*>(map.pData)+y*map.RowPitch,640*4);
+  context->Unmap(staging,0);
+  // Version of Flycast's resolver contract plus the selected dithering variant.
+  state.insert(state.begin(),{1,resolverVariant});
+  return CanonicalEffectIdentity({source.epoch,source.ordinal,source.cycle},heads,px,pp,state,
+   resolverLayers,identity,error);
  }
  bool Compose(ID3D11Device* device,ID3D11DeviceContext* immediate,
   const ProducerIdentity& source,ID3D11Texture2D* background,

@@ -596,9 +596,11 @@ struct DX11OITRenderer : public DX11Renderer
 			ComPtr<ID3D11Buffer> effectConstants;
 			deviceContext->PSGetConstantBuffers(0, 1, &effectConstants.get());
 			std::string captureError;
+			const auto effectResolver = shaders.getFinalShader(false);
 			remakeCurrentEffects = flycast::rend::neural::RemakeOitEffects::Capture(device, deviceContext,
 				rendContext->captureProducer, buffers.effectPixels(), buffers.effectPointers(),
-				trPolyParamsBuffer, effectConstants, shaders.getFinalShader(false), shaders.getFinalVertexShader(),&captureError);
+				trPolyParamsBuffer, effectConstants, effectResolver, shaders.getFinalVertexShader(),&captureError,
+				shaders.getCompiledMaxLayers(),0);
 			remakeCurrentEffectsReason+=remakeCurrentEffects?" captured":" resource-capture-failed";
 			if(remakeCurrentEffects)remakeCurrentEffectsReason+=" logical-copied-bytes="+std::to_string(remakeCurrentEffects->LogicalBytes());
 			remakeCurrentEffectsReason+=" "+captureError;
