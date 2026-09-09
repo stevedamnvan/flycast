@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG536 final slots-s: host exits0/1200 samples/clean close. Archived host/consumer
+logs;600 receipt pairs independently match sequence/frame/producer/bytes/digest,
+598 evaluated Presents remain monotonic and no image artifacts exist. External
+configuration hash unchanged222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Bounded two-slot delivery slice ACCEPTED; full pipeline acceptance remains open.
+
+LOG536 slots-s helper completes660 Presents/exit0:600 paired returns all publish,
+zero busy drops versus long-r's9. Current host logs show597 unique accepted
+evaluations and598 evaluated Presents over595 unique sources, longest consecutive
+source sequence543. Each displayed source joins an accepted evaluation at age<=8;
+host tail still running at inspection. All four builds and enabled556/556 tests
+pass. Build/selftest activity overlapped this live run, so it is explicitly NOT
+a clean performance comparison. Source tracing/readbacks and40-object helper
+cleanup warning also remain. Next complete close/receipt checks, then commit
+and proceed to OIT rather than repeatedly proving the normal route.
+
+LOG536 two-slot return implementation from930aa72da: shared layout version4
+matches two source credits with two bounded paired-image slots; receive oldest
+ready first. Receipt/integrity/depth/stale/duplicate/close validation remains.
+Updated independent-slot/FIFO tests pass in automation556/556. Both helper and
+Flycast rebuilt and staged for slots-s600-source no-file live run, currently
+running. Do not claim dropped-return improvement until observed; remaining
+serial builds and capacity/compatibility review still required before commit.
+
 LOG535 long-r completes exit0 on both processes:600 live sender/receiver scene
 receipts match,600 paired returns contain307200 depth values,591 return publishes,
 589 unique accepted evaluations and605 completed evaluated Presents over587

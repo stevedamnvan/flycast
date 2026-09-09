@@ -461,9 +461,9 @@ int RunSelfTests()
 				"live channel failed serialization releases slot without advancing sequence");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received,"return next source available");
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
-			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Busy,"return full slot does not wait");
+			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"two outstanding sources have independent return slots");
 			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==third.frame
-				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return busy retry preserves source ownership");
+				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Invalid,"two queued returns preserve oldest-first order and reject duplicates");
 			consumer.Close();
 			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame
 				&&returned.projectionDepth==image.projectionDepth&&returned.nearPlane==image.nearPlane&&returned.farPlane==image.farPlane,

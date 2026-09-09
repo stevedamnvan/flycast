@@ -172,6 +172,17 @@ Next inspect/fix return mailbox contention: two outstanding source credits share
 one image slot, and nine returns were busy-dropped. Preserve bounded ownership,
 receipt matching and monotonic delivery; then advance OIT rather than retuning
 visual settings. Full acceptance remains open.
+Next bounded implementation: version the shared layout to4 and use two paired
+image slots indexed by source sequence, matching the existing two source credits.
+Receive oldest ready first; retain receipt, depth, stale, duplicate and close
+checks. Both Flycast and helper must be rebuilt/staged together. Require FIFO
+and independent-slot tests plus the same600-source live run; no capacity-only
+claim of final performance or unbounded queue growth.
+Slots-s publishes all600 paired returns with zero busy drops;597 unique accepted
+evaluations and595 distinct displayed sources include543 consecutive source IDs.
+All four builds and enabled556/556 tests pass. Complete host-close/log recording
+and commit this slice, then enable/test the changed path in OIT with original
+overlay ownership. Do not spend another phase proving unchanged normal transport.
 Do not divert into aesthetic trail tuning or general profiling before sustained
 delivery and OIT integration; preserve intentional source effects.
 

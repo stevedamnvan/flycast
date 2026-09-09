@@ -19,15 +19,18 @@ struct alignas(64) Slot {
  volatile LONG state;std::uint32_t bytes;std::uint64_t sequence,digest;
  alignas(64) char payload[capacity];
 };
-struct Shared {
- volatile LONG ready,publisherPid;std::uint32_t magic,version,ownerPid;
- Slot slots[2];
+struct ImageSlot {
  volatile LONG imageState;
  RemakeChannelReceipt imageSource;
  std::uint64_t imageFrame,imageEpoch,imageOrdinal,imageCycle,imageDigest;
  unsigned char imagePixels[640*480*4];
 	std::uint32_t depthCount;float nearPlane,farPlane;
 	std::uint64_t depthDigest;float depthPixels[640*480];
+};
+struct Shared {
+ volatile LONG ready,publisherPid;std::uint32_t magic,version,ownerPid;
+ Slot slots[2];
+ ImageSlot images[2];
 };
 bool name(const std::string& token,std::wstring& output) {
  if(token.empty()||token.size()>64)return false;
@@ -81,7 +84,7 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  if(!p->mapping||GetLastError()==ERROR_ALREADY_EXISTS){error="channel-create-or-existing";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared){error="channel-map";return false;}
- p->owner=true;p->shared->magic=0x434d5246;p->shared->version=3;p->shared->ownerPid=GetCurrentProcessId();
+ p->owner=true;p->shared->magic=0x434d5246;p->shared->version=4;p->shared->ownerPid=GetCurrentProcessId();
  // A newly created pagefile-backed mapping is zero-initialized; publish header last.
  InterlockedExchange(&p->shared->ready,1);impl_=std::move(p);error.clear();return true;
 }
@@ -91,7 +94,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  auto p=std::make_unique<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
  if(!p->mapping){error="channel-consumer-unavailable";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
- if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=3){error="channel-header";return false;}
+ if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=4){error="channel-header";return false;}
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
@@ -173,7 +176,7 @@ bool sameReceipt(const RemakeChannelReceipt& a,const RemakeChannelReceipt& b) {
 }
 RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& image,std::string& error) {
  if(!impl_||!impl_->owner){error="return-consumer-role";return RemakeChannelResult::Invalid;}
- auto& p=*impl_;auto& s=*p.shared;
+ auto& p=*impl_;auto& s=p.shared->images[image.source.sequence%2];
  if(!p.live()){error="return-closed";return RemakeChannelResult::Closed;}
  const auto& source=p.sources[image.source.sequence%2];
  if(!image.source.sequence||image.source.sequence<=p.returnedSequence||!sameReceipt(image.source,source.receipt)
@@ -198,7 +201,15 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
 }
 RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,std::string& error) {
  if(!impl_||impl_->owner){error="return-publisher-role";return RemakeChannelResult::Invalid;}
- auto& p=*impl_;auto& s=*p.shared;
+ auto& p=*impl_;
+ // One producer and one receiver. Ready slots are immutable until this receiver
+ // claims them; choose oldest to preserve accepted source order.
+ ImageSlot* oldest=nullptr;
+ for(auto& slot:p.shared->images)
+  if(InterlockedCompareExchange(&slot.imageState,readySlot,readySlot)==readySlot
+   &&(!oldest||slot.imageSource.sequence<oldest->imageSource.sequence))oldest=&slot;
+ if(!oldest){error.clear();return p.live()?RemakeChannelResult::Empty:RemakeChannelResult::Closed;}
+ auto& s=*oldest;
  // A completed slot remains readable after orderly consumer close.
  if(InterlockedCompareExchange(&s.imageState,readingSlot,readySlot)!=readySlot) {
   error.clear();return p.live()?RemakeChannelResult::Empty:RemakeChannelResult::Closed;

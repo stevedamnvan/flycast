@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-170: pair return capacity with bounded source credits
+
+Shared-memory version4 has two paired color/depth image slots for the existing
+two outstanding source credits. Slots are selected by sequence parity and read
+oldest-ready-first; all receipt, depth, duplicate, stale and close checks stay
+intact. No unbounded queue or stale-age relaxation is introduced. Both sides
+must use the same layout version. LOG536's600-source run publishes every return
+without busy drops; this is delivery evidence, not GPU-only performance or
+external pixel provenance for the entire sequence.
+
 ## D-169: clip crossing triangles without weakening the scene contract
 
 LOG534 shows the live publication gap is the supplied enclosure validator,
