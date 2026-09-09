@@ -5,6 +5,7 @@
 #include "remake_triangle_transport.h"
 #include "remake_d3d9_dynamic.h"
 #include "remake_d3d9_scene.h"
+#include "remake_scene_lighting.h"
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
 #include <filesystem>
@@ -44,6 +45,12 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
+ std::optional<float> sceneLightRadiance;
+ if(argc>=3&&std::wstring(argv[argc-2])==L"--scene-light-radiance") {
+  sceneLightRadiance=ParseSceneLightRadiance(argv[argc-1]);
+  if(!sceneLightRadiance){std::cerr<<"invalid scene light radiance: decimal 0..30 required\n";return 2;}
+  argc-=2;
+ }
  if((argc!=5 && argc!=7 && argc!=9 && argc!=12 && argc!=14 && argc!=18) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
   std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR] [--capture|--capture-normals ABSOLUTE_NEW_BMP]\n";return 2;
  }
@@ -160,6 +167,7 @@ int wmain(int argc,wchar_t** argv) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
+ if(sceneLightRadiance&&!legacyGame){std::cerr<<"scene light requires legacy game scene\n";return 2;}
  if(argc==12 || argc==14 || argc==18) {
   try {
    if((std::wstring(argv[5])!=L"--artifact"&&!liveArtifact) || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
@@ -303,7 +311,9 @@ int wmain(int argc,wchar_t** argv) {
   wchar_t cutoutControl[2]{};
   const bool omitCutoutsControl=GetEnvironmentVariableW(L"FLYCAST_REMAKE_TEST_OMIT_CUTOUTS",cutoutControl,2)==1&&cutoutControl[0]==L'1';
   std::cout<<"cutout_omission_negative_control="<<omitCutoutsControl<<" input_packet_unchanged=true\n"<<std::flush;
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl);
+  std::cerr<<"scene_light_radiance="<<sceneLightRadiance.value_or(3)
+   <<" scene_light_authored=true recovered_game_lighting=false external_consumer_setting=false\n";
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3));
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {

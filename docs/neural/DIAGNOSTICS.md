@@ -1,5 +1,16 @@
 # Neural diagnostics
 
+The standalone remake-runtime-smoke legacy game-scene route accepts a final
+`--scene-light-radiance VALUE` pair. VALUE is a decimal0..30; omitted means3,
+preserving the existing diagnostic headlight. This is Flycast-authored neutral
+RGB radiance passed to the public Remix light API, not external DLSS intensity,
+exposure, recovered game lighting or a consumer configuration write. Zero disables
+this light's radiance only; environment/baked lighting may remain. Malformed
+values and unsupported non-game routes reject before runtime loading. The helper
+records `scene_light_radiance` separately from the consumer-reported tuple.
+Treat0..30 as harness safety bounds, not a vendor specification. A new value
+requires moving comparison; a brighter image alone is not a quality win.
+
 Windows launcher pitfall (LOG634): in the installed PowerShell/.NET runtime,
 SetEnvironmentVariable(key,$null,'Process') leaves a present empty variable.
 Use Remove-Item -LiteralPath ('Env:' + key) when the intended setting is absent,

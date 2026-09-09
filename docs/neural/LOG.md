@@ -1,5 +1,40 @@
 # Neural rendering evidence log
 
+LOG643 authored Remix light control: optional final --scene-light-radiance
+decimal0..30 in the standalone legacy game-scene helper; default3 unchanged.
+Public CreateLight receives the value and helper reports it separately from
+external settings. Automation/baseline/no-NGX suites694/0; all four incremental
+builds complete. Actual CLI malformed nan and unsupported synthetic route each
+exit2 before runtime loading. No external configuration changes.
+light-one-a host0/helper1; helper's existing30-second watchdog applies at120
+frames and expires after48 returned sources, leaving43 captures. This is not
+a completed60-source run. Forty overlapping captured source packets are
+byte-identical to integration-moving-a, zero mismatched overlapping packets.
+Inspected2206 returned images preserve scene placement; radiance1 is slightly
+darker, but substantial brightness remains. No quality winner, no default change,
+and no assertion that the headlight alone explains the appearance. Next bounded
+confirmation may use121 helper frames (existing120-second extended-return
+watchdog),240 host samples and60 capture maximum; do not change GPU wait policy.
+The original197 captures join197/197 completed Presents with zero reported HUD,
+world-composite and backbuffer mismatches. These are composition checks, not
+proof of full geometry or temporal visual correctness. Failed runs retained.
+
+LOG642 integration priority correction: detailed GPU query availability is no
+longer the immediate dependency. Postcommit enabled suites677/0 and feature-off
+incremental build verified at c7c860888. Bounded integration-moving-a requests300
+unique displayed captures,660 helper Presents and1200 host samples, sentinel off,
+unchanged consumer configuration. Executable SHA256
+102192E643B3D5FBF3C88D7EA626C47D716DD982BF1F179215E1D594045534FA.
+Host reaches180-second watchdog: exit1, helper exit1/outcome11 after262 Presents.
+Retain197 capture directories, not a300-frame pass. No process remains live.
+Visual inspection of source2372 confirms fighters, arena, native hit effects and
+HUD in combined output; combined scene is substantially brighter and softer than
+native. This still frame does not prove temporal quality or full scene coverage.
+Next inspect the retained moving interval and completed-Present joins before
+changing rendering. Capture overhead is not performance evidence. Preserve the
+timeout failure; any follow-up long capture needs explicitly larger bounded
+diagnostic watchdog, not a rendering-timeout relaxation. GPU timing remains open.
+
 LOG641 final camera/cadence checkpoint: automation, baseline NGX, no-NGX and
 feature-off incremental builds succeed; three enabled suites677/0. Live camera
 rejection reduction and617 exact cadence joins verified separately in LOG640;

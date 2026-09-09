@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-194: authored scene lighting is separate from neural intensity
+
+The existing legacy scene uploader's fixed neutral headlight at radiance3 is
+now a bounded standalone-helper option, default unchanged. Keep source vertex
+colors/textures, geometry, camera, effects and external settings unchanged when
+testing it. The2372 moving capture is already substantially brighter upstream
+of neural evaluation; this motivates a controlled scene-light experiment, not
+a claim that radiance alone explains the difference. Log the authored value,
+reject invalid/unsupported use before loading a runtime, and never call it
+recovered game lighting or a DLSS control. No automatic default promotion.
+
 ## D-193: CPU delivery records do not depend on GPU query availability
 
 Create ordered per-frame metadata at EndFrame regardless of query-ring capacity.

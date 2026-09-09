@@ -26,6 +26,7 @@ class D3D9PacketScene {
  bool refreshResources_=false;
  bool allowSkippedSources_=false;
  bool omitCutoutsControl_=false;
+ float sceneLightRadiance_=3;
  std::vector<std::vector<unsigned char>> textureBytes_;
  void ReleaseResources() {
   if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
@@ -108,7 +109,7 @@ class D3D9PacketScene {
    distant.direction=refreshResources_?remixapi_Float3D{packet.camera.forward.x,packet.camera.forward.y,packet.camera.forward.z}:remixapi_Float3D{0,0,-1};
    distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
    remixapi_LightInfo light{};light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;light.pNext=&distant;
-   light.hash=0xfc067d40;light.radiance={3,3,3};
+   light.hash=0xfc067d40;light.radiance={sceneLightRadiance_,sceneLightRadiance_,sceneLightRadiance_};
    if(api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
    ready_=true;
   }
@@ -160,7 +161,9 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl){}
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance){
+  failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30;
+ }
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
  ~D3D9PacketScene(){ReleaseResources();if(device_)device_->SetPixelShader(nullptr);if(cutoutShader_)cutoutShader_->Release();}
  HRESULT Draw(const Packet& p){if(failed_)return E_FAIL;try{const auto hr=DrawInternal(p);if(FAILED(hr))failed_=true;return hr;}catch(const std::exception&){failed_=true;return E_FAIL;}}

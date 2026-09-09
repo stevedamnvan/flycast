@@ -57,13 +57,33 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG640):** finish the four-build/commit checkpoint
-for camera quantization and CPU cadence retention, then fix nonblocking GPU
-query submission/availability on the combined route. The query ring is busy616
-frames; CPU cadence is now independently retained and verified617/617 against
-completed-Present logs. Never add a synchronous wait or substitute GPU estimates.
-Then run normal DX11 and paired native timing controls using the existing live
-launcher. Keep source-observation/effect-copy overhead explicit.
+**Operational next action (LOG642):** prioritize visible gameplay integration:
+capture a longer bounded moving combined sequence with native source, original
+effects and protected HUD retained; inspect missing geometry, camera alignment,
+material readability and added persistence, then fix the first demonstrated
+integration defect. Do not count intentional source weapon trails as defects.
+The camera/cadence checkpoint is committed at c7c860888; all three postcommit
+selftests pass677/0 and the feature-off incremental build completes. Defer GPU
+query availability and normal/native timing controls until a demonstrated
+performance problem requires them or final acceptance reaches that gate.
+Existing GPU timings remain explicitly incomplete; never invent estimates.
+Bound the next diagnostic capture to300 unique displayed sources, with600
+helper source frames and1200 host samples; no external configuration changes,
+sentinel rerun or performance claim. Preserve actual gaps and failed captures.
+
+Current bounded implementation: expose the existing authored Remix headlight
+radiance in the standalone scene helper (default3 unchanged, decimal0..30).
+The inspected2372 return is already bright before neural evaluation; this is
+not proof that DLSS controls caused the lighting change. Test radiance1 in a
+61-source moving run after60 helper warmup frames,240 host samples,180-second
+diagnostic watchdog. Preserve native effects and external configuration; no
+quality promotion without exact matched moving comparison. Parser/unsupported
+route controls must reject before runtime loading. This is authored scene light,
+not recovered game lighting or an external Neural Rendering intensity control.
+LOG643 retains the120-frame helper watchdog failure:43 captures,40 exact
+overlapping scene packets, radiance1 positively logged. Use121 helper frames
+for the existing extended watchdog on the next confirmation; capture at most60.
+All four builds and three694/0 suites pass; no quality/default promotion.
 
 Latest sustained OIT evidence:597 accepted evaluations,617 completed combined
 Presents,595 distinct sources,149 longest consecutive source IDs. Camera rejects
