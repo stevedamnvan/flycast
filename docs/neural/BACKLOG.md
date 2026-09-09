@@ -54,8 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: prepare the bounded geometry/material artifact for the
-explicit experimental adapter path without inventing camera acceptance. Preserve
+Current next action: finish/checkpoint bounded scene preparation, then evaluate
+the explicit experimental submission contract's remaining coordinate/clip gates.
+LOG382 assembles actual H17meshes/6456split vertices with derived normals and
+verified materials; null clips and renderable=false remain. Preserve
 unknown clips and coordinate/coverage exclusions through serialization; see
 CAMERA-COORDINATE-CONTRACT.md. LOG381 closes exact checkpoint. LOG379 joins actual H geometry
 and14 published textures; strict reprojection and renderable flags stay false.
