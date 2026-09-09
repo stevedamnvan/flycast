@@ -31,6 +31,7 @@ class RemakeOitEffects {
  std::uint32_t resolverLayers=0, resolverVariant=0;
  ComPtr<ID3D11Buffer> pixels,parameters,constants;
  ComPtr<ID3D11Texture2D> pointers;
+ ComPtr<ID3D11Texture2D> evidenceNativeBackground;
  ComPtr<ID3D11UnorderedAccessView> pixelView;
  ComPtr<ID3D11ShaderResourceView> parameterView;
  ComPtr<ID3D11PixelShader> resolve;
@@ -40,9 +41,31 @@ public:
  // Resolver shaders are borrowed from the native cache, not newly allocated.
  std::uint32_t ObjectCount()const noexcept {
   return (pixels?1u:0u)+(parameters?1u:0u)+(constants?1u:0u)
-   +(pointers?1u:0u)+(pixelView?1u:0u)+(parameterView?1u:0u);
+   +(pointers?1u:0u)+(pixelView?1u:0u)+(parameterView?1u:0u)+(evidenceNativeBackground?1u:0u);
  }
  std::uint64_t LogicalBytes()const noexcept {return logicalBytes;}
+ // Developer-only native resolver input, retained at the same source boundary.
+ bool RetainNativeBackgroundForEvidence(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Texture2D* input) {
+  if(!device||!context||!input||!pixels||evidenceNativeBackground||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return false;
+  ComPtr<ID3D11Device> contextOwner,inputOwner,pixelOwner;
+  context->GetDevice(&contextOwner.get());input->GetDevice(&inputOwner.get());pixels->GetDevice(&pixelOwner.get());
+  ComPtr<ID3D11DeviceContext> factory;device->GetImmediateContext(&factory.get());
+  ComPtr<ID3D11Device> factoryOwner;if(!factory)return false;factory->GetDevice(&factoryOwner.get());
+  if(!SameDevice(contextOwner,factoryOwner)
+   ||(!SameDevice(inputOwner,device)&&!SameDevice(inputOwner,contextOwner))
+   ||(!SameDevice(pixelOwner,device)&&!SameDevice(pixelOwner,contextOwner)))return false;
+  D3D11_TEXTURE2D_DESC desc{};input->GetDesc(&desc);
+  if(desc.Width<640||desc.Height<480||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
+   ||(desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM&&desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM))return false;
+  desc.Width=640;desc.Height=480;desc.Usage=D3D11_USAGE_DEFAULT;desc.CPUAccessFlags=desc.MiscFlags=0;
+  desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+  if(FAILED(device->CreateTexture2D(&desc,nullptr,&evidenceNativeBackground.get())))return false;
+  const D3D11_BOX box{0,0,0,640,480,1};context->CopySubresourceRegion(evidenceNativeBackground,0,0,0,0,input,0,&box);
+  logicalBytes+=640u*480*4;return true;
+ }
+ ID3D11Texture2D* NativeBackgroundForEvidence(const ProducerIdentity& source)const {
+  return Matches(source)?static_cast<ID3D11Texture2D*>(evidenceNativeBackground):nullptr;
+ }
  bool Matches(const ProducerIdentity& source)const noexcept {
   return producer.Available()&&source.Available()&&source.epoch==producer.epoch
    &&source.ordinal==producer.ordinal&&source.cycle==producer.cycle;

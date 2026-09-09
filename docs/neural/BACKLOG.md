@@ -239,6 +239,29 @@ including both cutouts, with3 independently verified original-HUD/backbuffer/
 completed-Present captures and both exits0. Finish the build/commit checkpoint,
 then investigate the persistent dark world shapes using retained source geometry
 and controlled draw attribution; do not reopen cutout/HUD or generic provenance.
+LOG571 narrows that artifact: identical source2178 rendered settled and in a
+short consecutive2176..2178 replay lacks live fence-like dark geometry. Live
+has large source gaps and unproven runtime scene retirement; short replay has
+a resource refresh without the artifact. Next reproduce a discontinuity using
+retained actual packets and test documented scene/object lifetime handling.
+Preserve geometry/camera truth and do not hide stale geometry with exclusions.
+CORRECTION LOG572: direct stage inspection disproves that attribution for the
+observed shapes. Returned Remix and pre-effects neural images lack them; native
+effect composition introduces them. Do not pursue speculative runtime resets.
+Next retain actual native opaque resolver input, replay the same retained stack
+over it and the neural background, and verify native-reference parity plus
+per-pixel blend/depth provenance. Determine whether this is incorrect replay or
+native destination-dependent shading exposed by relighting before changing it.
+LOG573 completes that comparison:3 actual native-background replays exactly
+match native RGB, zero mismatches/max delta/MAE. Do not suppress valid source
+effects or implement speculative resets. Finish the bounded diagnostic's
+ownership/build checkpoint, then resume scene/camera/material integration;
+relit translucent world materials need deliberate treatment, while native
+weapon trails/HUD remain protected. No additional generic effects-provenance loop.
+LOG574 GPU ownership checks pass on both APIs. Finish the serial build checkpoint,
+then inspect actual translucent-list world draw blend/depth/material identities
+for a bounded material-integration slice. List membership alone is insufficient;
+keep particles/trails native and prevent dual ownership of any promoted surface.
 
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned

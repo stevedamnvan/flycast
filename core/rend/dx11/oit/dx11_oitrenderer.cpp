@@ -597,10 +597,16 @@ struct DX11OITRenderer : public DX11Renderer
 			deviceContext->PSGetConstantBuffers(0, 1, &effectConstants.get());
 			std::string captureError;
 			const auto effectResolver = shaders.getFinalShader(false);
-			remakeCurrentEffects = flycast::rend::neural::RemakeOitEffects::Capture(device, deviceContext,
+			auto capturedEffects = flycast::rend::neural::RemakeOitEffects::Capture(device, deviceContext,
 				rendContext->captureProducer, buffers.effectPixels(), buffers.effectPointers(),
 				trPolyParamsBuffer, effectConstants, effectResolver, shaders.getFinalVertexShader(),&captureError,
 				shaders.getCompiledMaxLayers(),0);
+			const auto* nativeReference=std::getenv("FLYCAST_REMAKE_EFFECT_NATIVE_REFERENCE");
+			if(capturedEffects&&nativeReference&&std::strcmp(nativeReference,"1")==0
+				&&!capturedEffects->RetainNativeBackgroundForEvidence(device,deviceContext,opaqueTex)) {
+				capturedEffects.reset();captureError="native-reference-copy-failed";
+			}
+			remakeCurrentEffects=std::move(capturedEffects);
 			remakeCurrentEffectsReason+=remakeCurrentEffects?" captured":" resource-capture-failed";
 			if(remakeCurrentEffects)remakeCurrentEffectsReason+=" logical-copied-bytes="+std::to_string(remakeCurrentEffects->LogicalBytes());
 			remakeCurrentEffectsReason+=" "+captureError;

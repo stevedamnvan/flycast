@@ -464,6 +464,15 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 				||!WritePng(directory/"native-effects-absolute-difference.png",difference,error))return false;
 		}
 		std::uint64_t protectedPixels=0,hudMismatch=0,worldMismatch=0,displayMismatch=0;
+		if(effects&&effects->NativeBackgroundForEvidence(returned.producer)) {
+			ComPtr<ID3D11Texture2D> replay;ComPtr<ID3D11ShaderResourceView> replayView;
+			auto* background=effects->NativeBackgroundForEvidence(returned.producer);
+			if(!effects->Compose(device,context,returned.producer,background,replay,replayView)) {error="native-reference-compose";return false;}
+			RawTexture baseRaw,replayRaw;
+			if(!ReadTexture(device,context,background,baseRaw,error)||!ReadTexture(device,context,replay,replayRaw,error))return false;
+			if(!WritePng(directory/"native-opaque-resolver-input.png",ToRgba(baseRaw),error)
+				||!WritePng(directory/"native-effects-replayed-native.png",ToRgba(replayRaw),error))return false;
+		}
 		for(std::size_t p=0;p<640*480;++p) {
 			const bool protectedPixel=raw[1].bytes[p]>=128;protectedPixels+=protectedPixel;
 			const auto* expected=(protectedPixel?native.pixels.data():world.pixels.data())+p*4;

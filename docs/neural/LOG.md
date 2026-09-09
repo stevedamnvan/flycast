@@ -1,5 +1,84 @@
 # Neural rendering evidence log
 
+LOG574 finish native-reference ownership checks. Reject foreign device/context,
+missing owner, wrong source and repeated capture; copied pixels remain owned
+after mutating the source background. Optional copy adds exactly1 object and
+640*480*4 logical bytes. Existing repeated GPU replay goldens now run against
+the saved background after source mutation. Actual transparency-contract runs
+pass native D3D11 and D3D11On12 (effect-reference-owned-d11/on12.log); automation
+selftests595/0 pass. Full serial configuration matrix launched separately;
+completion now verified: all4 incremental builds and all3 enabled selftests595/0
+pass (effect-reference-final/baseline/no-ngx/off logs). Preserve LOG573's exact3
+native-parity frames, no rerun.
+Next integration question is which currently native-only translucent-list draws
+are world surfaces versus effects/HUD. Source list membership alone does not
+prove a blend needs translucency: inspect actual source/destination factors,
+accumulation selection, depth-write state, material/texture and overlay identity.
+Do not convert arbitrary translucent geometry to opaque or double-render a
+promoted surface in both Remix and the retained native stack. Use the existing
+source draw/effect identity to make any future ownership split explicit.
+
+LOG573 da9b0bc1c plus WIP: exact developer flag
+FLYCAST_REMAKE_EFFECT_NATIVE_REFERENCE=1 retains the native opaque resolver
+input at effect capture. The bounded preview replays the same owned effect
+stack over this input and emits native-opaque-resolver-input.png plus
+native-effects-replayed-native.png. Optional resource count/bytes include this
+copy; flag remains off normally, diagnostic captures are not performance.
+First build fails immutable shared-owner mutation; retain before publishing
+const ownership. Second fails const ComPtr.get; use its const pointer conversion.
+Third automation build and595/0 selftests pass. These existing tests do not
+prove the new live native-parity comparison. Live bn launched with executable
+F89E12D26928D9A6FB21A63EB68EF2FFDFDA94FD26E53C5E6C4293EEF879E1EC,
+unchanged config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC;
+three diagnostic captures requested, result pending. bm logs archived uniquely.
+bn finishes host0/helper0. Independent Pillow/numpy comparison actually runs on
+all3 native-reference outputs2171..2173: RGB mismatch0, maximum delta0, MAE0
+against original-native.png for each. Thus the retained effect resolver exactly
+reproduces native output over its actual opaque background in this scope. Do
+not fix the conspicuous relit shapes by discarding valid native effects or by
+inventing a depth/history reset. Their changed appearance belongs to applying
+source effects over different lighting/color, not a demonstrated replay error.
+This closes the immediate native-parity diagnosis; material-aware treatment of
+translucent world content remains separate from exact preservation of weapon
+trails/HUD. New optional native-reference capture remains WIP pending its
+focused ownership tests and other build configurations before commit.
+
+LOG572 correct the LOG571 attribution before implementation. Viewed retained
+bl2178 returned-remix.png and neural-before-native-effects.png: neither contains
+the fence-like dark structures visible in composited-remix.png. Therefore these
+structures are introduced at native-effect replay, not demonstrated stale Remix
+geometry. The previous static/short-replay comparison omitted this stage and
+could not establish temporal causality. Do not implement speculative runtime
+history resets on that evidence. A startup-late bm test had already launched;
+both processes exit0 but source gaps recur2176->2184->2245, so it is not a
+no-gap control. Retain all outputs/logs; source2248..2250 captures exist.
+Source inspection: native OIT rejects hidden fragments against depthTexture at
+fragment creation; retained resolver subsequently only sorts/blends the surviving
+stack. Compose uses no new depth test. This does not yet prove incorrect depth
+or blend behavior: native destination-dependent shading may simply be exposed
+against relit color. Next retain the actual native opaque resolver input and
+compare the same stack over native versus neural backgrounds, with exact source
+identity, before changing occlusion or suppressing source effects. Preserve
+intentional trails and reject guessed geometry exclusion. No code/config change.
+
+LOG571 da9b0bc1c follow-up world artifact isolation. Post-commit all4 incremental
+builds and all3 selftests595/0 completed (da9b0bc1c-post-* logs); fork SHA matched.
+Run retained bl source2178 for60 identical frames through actual legacy Remix
+final-memory and raster-memory captures, both exit0. Viewed settled final image:
+the live fence-like dark shapes are absent. Then run exact bl2176/2177/2178 in
+one63-frame sequence (60 warmup,3 endpoints); exit0 and viewed2178 also lacks
+those shapes. All files are external fc067-world-static-remix/raster.bmp and
+fc067-world-sequence.bmp.frame-*.bmp; logs world-static-*/world-sequence.
+This narrows the cause but does not prove a specific runtime defect. Live bl
+records source gaps2103->2111->2173 and2174->2176, recreating uploader resources
+without proven runtime temporal reset. Short replay has a2177 resource refresh
+yet lacks the artifacts, so refresh alone is insufficient explanation. Next
+controlled source-gap/scene-retirement experiment and reviewed public runtime
+object-history interfaces; do not deform source geometry to hide a temporal
+scene artifact. Reviewed installed public remix_c.h camera declarations expose
+no named history-reset entry; do not invent one. No proprietary binary/config
+inspection/change, no performance or camera acceptance claim.
+
 LOG570 implement live protectedOverlay metadata on captured draws. The async
 world exporter marks it using the same concatenated OP/PT/TR ordinal and
 IsOverlayOrdinal classification as native overlay-mask replay, only with

@@ -426,6 +426,17 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		error="source effects accepted a different device";return false;
 	}
 	std::fill(fullPointers.begin(),fullPointers.end(),Eol);
+	if(effects->RetainNativeBackgroundForEvidence(otherDevice.device.Get(),surface.context.Get(),fullColorTexture.Get())
+		||effects->NativeBackgroundForEvidence(effectIdentity)
+		||!effects->RetainNativeBackgroundForEvidence(surface.device.Get(),surface.context.Get(),fullColorTexture.Get())
+		||effects->RetainNativeBackgroundForEvidence(surface.device.Get(),surface.context.Get(),fullColorTexture.Get())
+		||effects->NativeBackgroundForEvidence({1,21,101})
+		||effects->ObjectCount()!=7||effects->LogicalBytes()!=usage.logicalBytes+640u*480*4) {
+		error="native background ownership/source/repeat/accounting control failed";return false;
+	}
+	// Mutate the source after capture; subsequent replay must use the owned copy.
+	auto changedBackground=fullBackground;std::fill(changedBackground.begin(),changedBackground.end(),0);
+	surface.context->UpdateSubresource(fullColorTexture.Get(),0,nullptr,changedBackground.data(),640*4,0);
 	surface.context->UpdateSubresource(fullPointerTexture.Get(),0,nullptr,fullPointers.data(),640*4,0);
 	if(!effects->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),effectIdentity,repeatedIdentity,error)
 		||gpuIdentity!=repeatedIdentity) {error="effect GPU identity changed with original pointer mutation";return false;}
@@ -435,7 +446,7 @@ float4 main(uint id : SV_VertexID) : SV_Position {
 		error="source effects accepted wrong producer";return false;
 	}
 	for(unsigned repeat=0;repeat<2;++repeat) {
-		if(!effects->Compose(surface.device.Get(),surface.context.Get(),effectIdentity,fullColorTexture.Get(),effectOutput,effectView)) {
+		if(!effects->Compose(surface.device.Get(),surface.context.Get(),effectIdentity,effects->NativeBackgroundForEvidence(effectIdentity),effectOutput,effectView)) {
 			error="source effects replay failed";return false;
 		}
 		D3D11_TEXTURE2D_DESC readDesc{};effectOutput->GetDesc(&readDesc);
