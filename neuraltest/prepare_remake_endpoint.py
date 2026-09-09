@@ -44,6 +44,7 @@ def main():
     for name in ('capture', 'tape', 'ledger', 'topology', 'reference', 'normal_executable', 'output'):
         parser.add_argument(name, type=Path)
     parser.add_argument('--ordinal', type=int, choices=(1781,1782,1783), required=True)
+    parser.add_argument('--batch', type=int, choices=(1,2), default=1)
     parser.add_argument('--calibration', type=float, nargs=2, required=True)
     args = parser.parse_args()
     if args.output.exists():
@@ -51,7 +52,7 @@ def main():
     reference = bounded_json(args.reference,32*1024*1024)
     validate_reference(reference)
     evidence = inspect(args.capture,args.tape,args.ledger,args.topology,
-                       args.calibration,ordinal=args.ordinal,source_details=True)
+                       args.calibration,batch=args.batch,ordinal=args.ordinal,source_details=True)
     camera = anchored_camera(evidence['selected_divided_sources'],args.calibration)
     mesh = rebase(convert(anchor_mesh(evidence['expression_mesh'],camera),args.calibration),
                   reference['fixed_origin'])

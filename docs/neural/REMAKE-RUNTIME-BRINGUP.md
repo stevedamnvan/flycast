@@ -1,5 +1,18 @@
 # FC-067 standalone runtime bring-up
 
+For an isolated snapshot, `--capture-reverse-light ABSOLUTE_NEW_BMP` uses
+diagnostic distant-light direction(0,0,-1), radiance unchanged, instead of the
+default(0,0,1). It is not recovered game lighting or an automatic title preset.
+LOG425-426 retain complete submitted batches using this control. Run the
+harness with its working directory outside the repository: the external runtime
+writes its own cache/logs there. Never stage those runtime-generated files.
+
+`remake_batch_join_inspect.py FIRST FIRST_ASSETS SECOND SECOND_ASSETS OUTPUT`
+creates a new same-frame diagnostic artifact/assets directory after identity
+and byte-hash checks. It retains omissions and both source cameras. This is
+not temporal matching or complete scene acceptance. `remake_subset_inspect.py`
+is a falsifying exclusion tool only; its omissions are explicit, not a fix.
+
 Status: WIP real synthetic and sampled Soulcalibur snapshot readback (LOG401-402).
 M1-GPU acceptance remains unproven: analytic controls and cleanup are pending.
 

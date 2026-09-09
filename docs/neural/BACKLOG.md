@@ -27,8 +27,9 @@ it. The tracker carries the objective; this backlog carries the work plan.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
   Preserve nonunit W. Source coordinate space, matrix semantics and broader
   coverage are unproven. Use OPAQUE-INITIAL-STORES-AUDIT.md, LOG #175.
-- Real Remix GPU rendering, moving relighting and combined Remix/DLSS 5
-  presentation are NOT proven. M2 strict source equality remains failed/parked.
+- Bounded synthetic and textured scene GPU captures exist (LOG401-422).
+  Complete moving relighting and combined Remix/DLSS 5 presentation remain
+  unproven. M2 strict source equality remains failed/parked.
 - Existing standalone neural transport/provenance and runtime coverage remain
   valid evidence; do not redo them just because a new task starts.
 
@@ -54,7 +55,24 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: validate the LOG401 opaque alpha-test correction with focused
+Current next action: expand remaining traced fighter/scene coverage and moving
+joined endpoints. LOG426 joins first/second H batches (33meshes/22assets),
+renders the retained geometry under explicit diagnostic lighting and passes
+four incremental builds plus all recorded focused regressions.
+LOG425 reverse-light control reveals full submitted second batch without
+deletions; default unchanged, not recovered game lighting. Run full regression
+for later changes to subset/preparation/lighting tools.
+LOG424 single-sided and SKY-category controls both remain black and were
+reverted; do not repeat or adopt them as fixes.
+LOG423 individually restores four suspects;
+2522 is the primary darkening trigger and full batch minus only2522 restores
+visible temple. Do not permanently drop it. Distinguish shadowing, surface
+occlusion and material conversion before joining full batches.
+The subset is explicitly incomplete, not accepted scene coverage. Runtime
+cleanup and typed normal readback remain open; do not repeat completed waits.
+
+Historical progression (superseded next actions, retained for evidence):
+validate the LOG401 opaque alpha-test correction with focused
 regressions and analytic overlap/camera/light controls. LOG404 measures final
 silhouetteIoU0.9953 against analytic camera, reversed-expectation control0.2963;
 normal visualizationIoU0.8323 remains discrepant, not pixel-aligned truth.

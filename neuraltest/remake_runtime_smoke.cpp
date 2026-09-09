@@ -49,6 +49,7 @@ int wmain(int argc,wchar_t** argv) {
  std::filesystem::path capture;
  bool reverseCamera=false;
  bool zeroLight=false;
+ bool reverseLight=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -63,10 +64,11 @@ int wmain(int argc,wchar_t** argv) {
   }
   reverseCamera=captureOption==L"--capture-reverse-camera";
   zeroLight=captureOption==L"--capture-zero-light";
+  reverseLight=captureOption==L"--capture-reverse-light";
   reverseOrder=captureOption==L"--capture-depth-reverse-order";
   emptyScene=captureOption==L"--capture-empty";
   if(captureOption==L"--capture-depth" || reverseOrder)captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseOrder && !emptyScene) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -156,7 +158,8 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"phase=show-window end\n"<<std::flush;
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
-  RemixScene retained(api,zeroLight);
+  std::cerr<<"diagnostic_light_direction=0,0,"<<(reverseLight?-1:1)<<" recovered_game_lighting=false\n";
+  RemixScene retained(api,zeroLight,reverseLight);
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;

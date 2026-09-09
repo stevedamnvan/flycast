@@ -16,6 +16,7 @@ struct Calls {
  const wchar_t* observedPath=nullptr;
  bool valid=true, failDraw=false, distinctMaterials=false;
  float cameraX=0;
+ float expectedLightZ=1;
  std::uint32_t expectedColor=0xffffffffu;
  float expectedFov=90,expectedAspect=1,expectedNear=.1f,expectedFar=100;
  Vec3 expectedRight{1,0,0},expectedUp{0,1,0},expectedForward{0,0,1};
@@ -50,7 +51,7 @@ remixapi_ErrorCode REMIXAPI_CALL mesh(const remixapi_MeshInfo* p,remixapi_MeshHa
 }
 remixapi_ErrorCode REMIXAPI_CALL light(const remixapi_LightInfo* p,remixapi_LightHandle* out) {
  ++calls.lights; const auto* d=static_cast<const remixapi_LightInfoDistantEXT*>(p->pNext);
- calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_LIGHT_INFO && d && d->direction.z==1 && p->radiance.x==3;
+ calls.valid &= p->sType==REMIXAPI_STRUCT_TYPE_LIGHT_INFO && d && d->direction.x==0 && d->direction.y==0 && d->direction.z==calls.expectedLightZ && p->radiance.x==3;
  *out=reinterpret_cast<remixapi_LightHandle>(1); return ok;
 }
 remixapi_ErrorCode REMIXAPI_CALL camera(const remixapi_CameraInfo* p) {
@@ -253,6 +254,10 @@ int main() {
   expect(scene.Submit(p,7,p.game).reason=="projection-unknown"&&calls.materials==0,"unknown projection makes zero API calls"); }
  { auto a=interface(); a.CreateMesh=nullptr; RemixScene scene(a); auto p=Synthetic();
   expect(scene.Submit(p,7,p.game).reason=="incomplete-public-interface"&&calls.materials==0,"missing entry point makes zero API calls"); }
+ calls={}; calls.expectedLightZ=-1;
+ { RemixScene scene(interface(),false,true); auto p=Synthetic();
+  expect(scene.Submit(p,p.frame,p.game).ok && calls.valid && calls.lights==1,
+   "explicit reversed diagnostic light preserves scene and radiance"); }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";
  return counts.failed?1:0;

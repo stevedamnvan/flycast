@@ -10,7 +10,7 @@ namespace neuraltest::remake {
 // A submission failure requires discarding the entire frame, not presentation.
 class RemixScene {
 public:
- explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false) : api_(api), zeroLightControl_(zeroLightControl) {}
+ explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl) {}
  ~RemixScene();
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
@@ -28,6 +28,7 @@ private:
  bool ready_ = false;
  remixapi_Interface api_{};
  bool zeroLightControl_=false;
+ bool reverseLightControl_=false; // Explicit diagnostic direction, not recovered game lighting.
  std::vector<remixapi_MeshHandle> meshes_;
  std::vector<remixapi_MaterialHandle> materials_;
  std::vector<std::wstring> texturePaths_;

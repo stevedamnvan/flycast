@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-135: bounded scene joins and explicit diagnostic lighting
+
+Same-frame batch joins require matching game/SHA/origin/coordinate semantics,
+unique source draws and identical metadata for shared texture assets. Verify
+every input DDS hash before create-only publication. Retain both independently
+derived cameras; a diagnostic absolute roundoff allowance of1e-12 is recorded
+for their binary64 differences, not a relaxation of strict PVR reprojection.
+Keep all omissions and unaccepted camera/complete-scene status.
+
+LOG425-426 demonstrate that the full submitted batch becomes visible under an
+explicit reversed distant light. This is caller art direction, not recovered
+game lighting. Keep the default unchanged and log the direction. Do not delete
+draw2522 or retain the unsuccessful culling/SKY overrides as a visibility fix.
+
+
 ## D-134: real runtime capture is diagnostic, not pipeline acceptance
 
 LOG398-402 use the explicitly authorized official Remix1.5.2 package outside
