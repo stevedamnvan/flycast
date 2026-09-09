@@ -234,6 +234,31 @@ OFF correctly stays native when external readiness fails. Commit the verified
 OIT/coverage/name integration slice, preserving ac's partial watchdog failure;
 then advance300-frame moving evidence and resource/timing deficiencies rather
 than rerunning this provenance comparison.
+Next bounded moving-evidence implementation: exact developer opt-in
+FLYCAST_REMAKE_MOVING_CAPTURE=1 permits up to360 captures; ordinary cap30 and
+default3 remain unchanged. Keep two outstanding sources, source-age8, no
+overwrite and explicit synchronous/performance-ineligible metadata. First
+request330 fresh OIT captures with the existing660-Present/120-second helper
+bound; measure actual source continuity rather than declaring300 from count.
+Retain source packets for matched comparison lanes; this is not timing evidence.
+LOG547 moving-af retains330 captures but only286 consecutive sources, helper
+watchdog expiry, and a real HUD disappearance at original2192/current2194.
+Fix this longer-window overlay failure before repeating the long capture;
+do not extend the earlier three-frame HUD acceptance to the whole sequence.
+LOG548 raises the captured-atlas upper depth bound to .24 after all five HUD
+atlases reached .230914. Old-code positives fail; corrected automation571 tests
+pass including world/unknown-atlas/.25 negatives. Next recapture original2192
+with retained af inputs, then complete remaining builds and long-run evidence.
+LOG550 ah verifies exact original2192 inputs and restores15233 protected pixels
+through completed Present. Names/timer/fills return, but depleted health-bar
+outline remains visually incomplete; complete HUD coverage stays open. Long
+capture mode now suppresses redundant per-draw logs (pending rebuild) while
+retaining all pixel/identity evidence. Do not repeat generic provenance.
+LOG551 plate-ai restores the depleted plate on exact source2192, adding3182
+protected pixels without losing coverage, with matched backbuffer/Present.
+All four builds and574 enabled tests pass. Commit the captured depth/plate
+repair independently, then resume long moving evidence with reduced diagnostic
+logging. Additive HUD effects and world translucency remain explicit omissions.
 Complete
 scene/camera, name coverage and sustained OIT acceptance remain open.
 Do not label this bounded repair full OIT acceptance.

@@ -1,5 +1,106 @@
 # Neural rendering evidence log
 
+LOG551 depleted health plate: retained ah current2194 diagnostics identify
+texture801607344, blend37, translucent list2, planar depth .207822 and exact
+left/right bar bounds20,37,272,65 /368,37,620,65. This is separate from the
+recognized fill atlas795315888. Add a title-specific planar/region-constrained
+plate rule within existing depth/list/order guards, with different-texture and
+world-region negatives. A nearby additive bar effect (texture765955760/blend33)
+remains unclassified; do not claim all HUD effects accepted from this fix.
+Old code fails only the depleted-plate positive (573 pass,1 fail); corrected
+automation suite passes574/574. Targeted plate-ai replay is live using the
+23-frame retained subset, same failed interval and100 helper Presents rather
+than120; watchdog unchanged. Remaining serial builds run separately, so this
+is diagnostic pixel evidence only. Do not duplicate the active run.
+Plate-ai verifies exact original2192/current2194: native and raw returned PNGs
+match ah byte-for-byte, protection rises15233 to18415 with zero lost coverage,
+both depleted red/black plate outlines are visibly restored. Independent mask
+composition/backbuffer equality and completed evaluated Present join pass.
+All four serial builds succeed; enabled suites574/574. Broader additive HUD
+effects, full moving sequence, world translucency and final acceptance remain
+open; this is the bounded plate/depth repair, not full-title acceptance.
+Both plate-ai processes exit0, helper100 Presents and host240 samples/clean
+close. The40-object helper shutdown warning remains unchanged and open.
+
+LOG550 targeted ah uses the23-frame copied subset and remains live; no restart.
+For the next long run, suppress per-draw HUD diagnostics only under exact
+MOVING_CAPTURE=1 (af wrote225MB of logs). Retain all image/identity/receipt/
+Present evidence and short-capture draw tracing. Reuse the tested exact opt-in
+predicate; this does not alter rendering, masks, fallback or timing acceptance.
+The current ah executable predates this logging-only change.
+Ah reaches the exact failed source2192/current2194. Original-native and raw
+returned PNGs are byte-identical to af; protected pixels increase0 to15233.
+Independent mask composition/backbuffer equality and completed evaluated
+Present join pass. Names,timer and health fills are visibly restored. Visual
+review still finds the depleted health-bar outline incomplete: depth-range
+repair accepted only in its scope, not complete HUD coverage. Preserve that
+remaining defect rather than equating mask equality with full HUD acceptance.
+Ah helper later hits its30-second watchdog after54 returns and exits1; host
+240 samples exits0 cleanly. This does not invalidate the earlier exact-frame
+pixel/Present join, but the whole run is not a clean-pass result. Logs archived.
+
+LOG549 failed-frame ag replay retains one earlier capture but cannot reach2192:
+ReadLockedRemakeInput deserializes all330 full packets on each lookup; observed
+accepted-source intervals are4-5 seconds. Helper receive timeout exits11 after
+66 Presents/six returns; host240 samples exits0 cleanly. Source/receipt checks
+were not relaxed. All remaining build configurations succeed and enabled
+selftests pass571/571. Preserve failed logs/capture. Copy23 existing source
+archives2170..2192 into a new bounded subset directory for immediate targeted
+replay, with originals untouched. Full-directory repeated-read cost remains a
+separate tooling defect; do not widen watchdogs to hide it.
+
+LOG548 moving HUD depth repair: full af draw diagnostics show all five known
+atlases extending above .21; maxima .230007(header) and .230914(timer/names/
+fills/counters). Extend only the title-profile atlas paths' common upper bound
+to .24, retaining finite/lower/list/order/region/shape/span checks. New captured
+name/bar tests and unknown-atlas/world-region/.25-depth negatives accompany
+the correction. This is an empirical captured-envelope correction, not general
+camera-independent HUD identification or full-title coverage acceptance.
+Old code fails both captured-depth positives (569 pass,2 fail). Corrected
+automation build succeeds and selftest passes571/571; all added negatives
+remain rejected. Real-game failed-frame recapture and remaining configuration
+builds are pending. No commit or repaired-image acceptance yet.
+
+LOG547 moving-af is CORRECTIONS_REQUIRED:330 captures exist, longest source
+sequence286, so300 consecutive frames are not proven. Helper reaches120-second
+watchdog after335 returns and exits1; host1200 samples closes cleanly/exit0.
+Independent pixel audit fails its nonempty-mask check at source2192/current2194:
+native image visibly contains full HUD but actual backbuffer has none. Earlier
+short-window HUD acceptance does not cover this camera/combat interval. Retain
+all images and failed audit; do not omit that frame or report full overlay pass.
+The captured diagnostic log is about225MB; consider suppressing per-draw HUD
+tracing only in long moving mode, but first identify the actual missing-mask
+cause. New evidence changes next action to fixing HUD loss before another long
+capture. No clean-run/300-frame/full-pipeline acceptance.
+
+LOG546 moving-evidence window implementation: previous30-frame cap cannot
+satisfy the standing300-consecutive-frame moving-image requirement. Add a
+separate exact opt-in for max360, keeping ordinary cap30/default3. Tests cover
+360 acceptance,361 rejection, malformed opt-in, integer overflow and unchanged
+default. Source-credit/memory ownership and stale fallback stay unchanged;
+captures remain synchronous and performance-ineligible. Disk free check is
+about57GB before launch; bounded330 full source archives may consume several
+GB. Do not delete old evidence or weaken existing helper watchdogs.
+All four serial builds succeed and three enabled suites pass566/566. The
+moving-af run is now live with330 requested captures, no locked replay or
+sentinel,660 helper Presents and240-second host watchdog. Staged executable
+SHA2567F360C278155342AFB84B2F047018624F971C06599BA8084B0E1BD8815CFD1B6.
+Output root fc067-moving-af-composites; logs remake-moving-consumer-af and
+remake-moving-publisher-af. Capture count/continuity, image review and process
+outcomes are pending; do not start a duplicate while these processes remain live.
+
+LOG545 OIT integration committed/pushed as70f38dd52; fork SHA verified. Tracked
+worktree was clean after commit; preexisting metrics/cache/rtx-remix remain
+untracked and untouched. Post-commit serial builds succeed in all four configs;
+all enabled selftests pass565/565. These are incremental builds, not a fresh
+exact-SHA runtime claim. Ownership follow-up finds helper-owned D3D9 pointers
+not explicitly released, but current public NVIDIA rtx_remix_api.cpp Shutdown
+itself releases registered device/factory references to zero. Therefore do not
+blindly add Release after Shutdown (possible dangling-pointer use). The source
+at main is supporting contract research, not verified installed1.5.2 source;
+the short68edea01 raw URL failed. No runtime binary inspected or cleanup patch
+applied. Exact installed-source ownership and the40-object warning remain open.
+
 LOG544 clean ON ad launched with the same floor-z locked inputs and hud-aa
 executable, restored (unmarked) presentation evidence,30 bounded captures.
 Helper budget is100 Presents/40 sources, below ac's43-source watchdog point;

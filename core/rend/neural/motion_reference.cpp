@@ -267,7 +267,8 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 		&& std::isfinite(draw.zMin) && std::isfinite(draw.zMax)
 		// LOG541: the captured name atlas animates below the other HUD depths.
 		// Keep the wider envelope atlas-specific; region/list/shape checks follow.
-		&& draw.zMin >= (draw.texId == 686272176u ? .138f : .15f) && draw.zMax <= .21f) {
+		// LOG547: all five known HUD atlases reach .230914 in moving combat.
+		&& draw.zMin >= (draw.texId == 686272176u ? .138f : .15f) && draw.zMax <= .24f) {
 		const auto inside = [&](int left,int top,int right,int bottom) {
 			return draw.bboxMin[0]>=left && draw.bboxMin[1]>=top && draw.bboxMax[0]<=right
 				&& draw.bboxMax[1]<=bottom && draw.bboxMax[0]>draw.bboxMin[0] && draw.bboxMax[1]>draw.bboxMin[1];
@@ -279,6 +280,8 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 				|| (draw.texId==696696496u && inside(282,26,358,76)))) return true;
 		if(draw.list==2 && static_cast<std::size_t>(draw.ordinal)+std::max<std::size_t>(4,drawCount/8)>=drawCount) {
 			if(draw.texId==795315888u && planar && (inside(20,38,272,64)||inside(368,38,620,64)))return true;
+			// Captured depleted-bar background/outline, separate from its fill.
+			if(draw.texId==801607344u && planar && (inside(20,37,272,65)||inside(368,37,620,65)))return true;
 			if(draw.texId==686272176u && aligned && std::abs(draw.zMax-draw.zMin)<=.025f
 				&& inside(26,62,614,86))return true;
 			if(draw.texId==739217920u && planar && (inside(236,66,276,86)||inside(364,66,404,86)))return true;
