@@ -1022,6 +1022,8 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();
+	remakeAsyncStopped=true;
 	pvrReplayBase.reset();
 	pvrReplayPixelConstants.reset();
 	releaseNeuralPresentation();
@@ -1937,6 +1939,7 @@ void DX11Renderer::submitNeuralFrame()
 		qualityProfile.externalRecommendation;
 	if (neuralQualityCapture.CapturesCurrentFrame())
 		neuralQualityCaptureMetadata.overlayDraws = neuralInstrumentation.CaptureOverlayDiagnostics();
+	prepareRemakeAsyncFeed();
 	prepareRemakeCapture();
 	const bool remakeInputApplied = applyRemakeCaptureInput(frame);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
@@ -2505,6 +2508,78 @@ void DX11Renderer::submitNeuralFramebuffer()
 #endif
 
 #ifdef FLYCAST_ENABLE_NEURAL
+void DX11Renderer::prepareRemakeAsyncFeed()
+{
+	try {
+	using namespace flycast::rend::neural;
+	const auto* requested=std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
+	if(!requested||!*requested)return;
+	const std::string token(requested);
+	if(token!=remakeAsyncToken) {
+		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();
+		remakeAsyncToken=token;remakeAsyncEpoch=0;remakeAsyncStopped=false;
+	}
+	if(remakeAsyncStopped||IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get())return;
+	const auto& metadata=neuralQualityCaptureMetadata;const auto producer=rendContext->captureProducer;
+	if(!producer.Available()||metadata.predominantly2D||metadata.gameId!="T1401N"
+		||metadata.renderWidth!=640||metadata.renderHeight!=480)return;
+	if(const auto* start=std::getenv("FLYCAST_REMAKE_ASYNC_START_PRODUCER");start&&*start) {
+		char* end=nullptr;const auto ordinal=std::strtoul(start,&end,10);
+		if(*end||ordinal>10000000||producer.ordinal<ordinal)return;
+	}
+	if(remakeAsyncEpoch&&remakeAsyncEpoch!=producer.epoch) {
+		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();remakeAsyncReturned.reset();remakeAsyncStopped=true;
+		WARN_LOG(RENDERER,"Remake async epoch changed: new consumer token required; native presentation retained");return;
+	}
+	remakeAsyncEpoch=producer.epoch;std::string error;
+	if(!remakeAsyncChannel.IsOpen()&&!remakeAsyncChannel.OpenPublisher(token,error))return;
+	RemakeReturnedImage returned;
+	const auto received=remakeAsyncChannel.ReceiveImage(returned,error);
+	if(received==RemakeChannelResult::Received) {
+		RemakeNeuralInput validated;
+		const bool accepted=returned.frame<=metadata.frameId&&metadata.frameId-returned.frame<=8
+			&&returned.producer.epoch==producer.epoch
+			&&BuildRemakeNeuralInput(returned,returned.frame,returned.producer,validated);
+		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
+			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
+			(unsigned long long)returned.source.sequence,(unsigned long long)metadata.frameId,accepted);
+		if(accepted)remakeAsyncReturned=std::move(returned);
+	}
+	if(received==RemakeChannelResult::Closed) {
+		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();remakeAsyncReturned.reset();remakeAsyncStopped=true;return;
+	}
+	remakeAsyncChannel.ExpireReturns(metadata.frameId,producer,8);
+	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8))remakeAsyncReturned.reset();
+	remakeAsyncTextures.BeginFrame(metadata.frameId,producer.epoch);
+	std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
+	for(int c=0;c<4;++c)for(int r=0;r<4;++r)viewport[c*4+r]=matrix[c][r];
+	PvrDecodedPacket snapshot;RemakeViewScene scene;
+	const auto* estimate=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
+	if(!SnapshotPvrScenePacket(*rendContext,viewport,metadata.frameId,metadata.gameId,snapshot,error)
+		||!BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0))return;
+	// Visit every required draw, even when an earlier texture is pending. Publish
+	// no partial scene; a later frame uses its own geometry and current generations.
+	bool ready=true;std::size_t remaining=64*1024*1024;
+	for(const auto& mesh:scene.meshes) {
+		std::vector<unsigned char> bytes;
+		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures))ready=false;
+	}
+	if(!ready)return;
+	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
+		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures);
+	};
+	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error))return;
+	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
+	if(result==RemakeChannelResult::Published)
+		NOTICE_LOG(RENDERER,"Remake async publish: frame=%llu producer=%llu sequence=%llu bytes=%u digest=%llu capture=false wait=false presentation=false",
+			(unsigned long long)packet.frame,(unsigned long long)producer.ordinal,(unsigned long long)receipt.sequence,
+			receipt.bytes,(unsigned long long)receipt.digest);
+	} catch(const std::exception& error) {
+		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();remakeAsyncReturned.reset();remakeAsyncStopped=true;
+		WARN_LOG(RENDERER,"Remake async feed stopped: %s; existing presentation retained",error.what());
+	}
+}
+
 void DX11Renderer::prepareRemakeCapture()
 {
 	const auto* remakeToken=std::getenv("FLYCAST_REMAKE_CHANNEL");

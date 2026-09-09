@@ -143,6 +143,7 @@ protected:
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
 	void prepareRemakeCapture();
+	void prepareRemakeAsyncFeed();
 	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
 	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
@@ -304,6 +305,12 @@ protected:
 	std::uint32_t loggedNeuralOutputHeight = 0;
 	std::uint64_t neuralEvidenceArmDeadlineMs = 0;
 	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
+	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
+	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
+	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
+	std::string remakeAsyncToken;
+	std::uint64_t remakeAsyncEpoch=0;
+	bool remakeAsyncStopped=false;
 	flycast::rend::neural::QualityCaptureGpuTimer neuralQualityCaptureGpuTimer;
 	flycast::rend::neural::QualityCaptureMetadata neuralQualityCaptureMetadata;
 	ComPtr<ID3D11ShaderResourceView> neuralQualityCapturePublicView;

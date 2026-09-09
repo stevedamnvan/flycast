@@ -13,6 +13,7 @@
 
 #include <mutex>
 #include <vector>
+#include <cstdlib>
 
 extern u32 fskip;
 static int RenderCount;
@@ -91,7 +92,8 @@ bool QueueRender(TA_context* ctx)
 	verify(rqueue == nullptr);
 	ctx->rend.captureProducer = {};
 #ifdef FLYCAST_ENABLE_NEURAL
-	if (config::NeuralCaptureFrames.get() > 0 && !ctx->rend.isRTT && !settings.platform.isNaomi2())
+	const auto* asyncRemake = std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
+	if ((config::NeuralCaptureFrames.get() > 0 || (asyncRemake && *asyncRemake)) && !ctx->rend.isRTT && !settings.platform.isNaomi2())
 		ctx->rend.captureProducer = captureProducerClock.Stamp(sh4_sched_now64());
 	for (TA_context* child = ctx; child != nullptr; child = child->nextContext)
 		if (child->sourceObservations)

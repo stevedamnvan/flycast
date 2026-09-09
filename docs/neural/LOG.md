@@ -1,5 +1,49 @@
 # Neural rendering evidence log
 
+LOG529 final checks: guard-inclusive four serial incremental builds pass with
+523/523 enabled selftests, SDK193/193, Python339/339 and the60-source inspector.
+Async-c own executable SHA256 is
+ACC8FCA47625B086D4FEA1E862F6E7ED8BAAF4429FA2718FFF429F95DDDD60B5;
+source build labels may remain stale from the shared generated version header.
+This is explicitly working-tree/incremental evidence, not a fresh exact-SHA run.
+
+LOG529 regression: four serial incremental builds, enabled523/523 selftests,
+SDK193/193 and Python339/339 pass before final C++ exception containment guard.
+The guard stops only the experimental feed on ordinary C++ failure and retains
+existing presentation. Generic harness resource checks do not yet account for
+all new cache/channel objects; no combined leak/performance gate is claimed.
+
+LOG529 async-c: capture-disabled ordinary host completes240 samples/clean close;
+helper exits0/120 Presents over60 moving source packets. Inspector matches all60
+sender/receiver sequence/frame/producer/byte/digest receipts and checks60 nonempty
+640x480 color images plus finite normalized depth planes. Producer publishes61
+sources; helper publishes59 paired replies and explicitly drops sequence5 with
+return-busy. Host retains56 pairs aged2..3 renderer frames; three published replies
+are not retained, and11 source gaps are recorded. The initial inspector wrongly
+required every async return to publish and fails on the explicit busy drop;
+corrected inspector reports that drop separately, rejects unaccounted missing
+replies, and never certifies presentation/temporal quality. Six new Python
+controls cover receipt mutation, duplicate publication, age violation, missing
+return and explicit busy accounting. Final frame1948 visually inspected: moving
+fighters/temple rendered; no HUD composite, aesthetic or camera-truth acceptance.
+Existing40-object helper cleanup warning persists. No external config edits.
+Next retain original source HUD/native surfaces keyed by issued receipt and
+integrate delayed presentation with distinct source/current identities.
+
+LOG529 async-b: corrected ordinary producer completes180 public-DLAA samples,
+capture disabled, clean close; helper receives source frames1782/1783/1791,
+producers1781/1782/1790, with owned10,171,143-byte packets and three paired depth
+returns. All three output BMPs/depth files exist; final BMP visually inspected:
+both fighters, temple and floor rendered, no protected HUD composition. Helper
+exits0/63 Presents and explicitly logs source gap1783->1791 with runtime temporal
+reset unproven. Existing40-object cleanup warning persists. Sender INFO receipts
+were hidden by the default log level, so exact bidirectional receipt aggregation
+is not claimed for b. Change only those opt-in logs to NOTICE and run c with60
+moving source frames. No capture-time wait or feature enablement was used to fix
+the source stamp dependency. No combined-output or production pacing claim.
+
+#529 2026-09-09 d38fa2c03 plus working tree | Wire opt-in ordinary DX11 scene feed to bounded async texture cache and return-credit channel. Capture remains disabled; source publication uses complete current scene/materials, no capture wait. Retain at most one valid paired reply with original source identity and8-frame expiry, but no returned presentation yet. Explicit helper async mode accepts forward source gaps under invariant game/build/epoch/origin and recreates uploader resources; external runtime temporal reset remains unproven, strict old diagnostic path unchanged. Automation build523/523 tests pass. First actual async-a helper exits2 after90s with no source; host completes180 ordinary public-DLAA samples/clean close, but producer IDs are0. Cause: QueueRender stamps producer identity only when NeuralCaptureFrames>0. Corrected condition explicitly includes async opt-in while retaining RTT/Naomi2 exclusions; no fake capture enabled. Corrected async-b run pending. Existing OFF consumer config hash remains656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7. Do not read generic harness transition=pass flags as executed transitions; no transitions requested. Source observation overhead/helper captures are not whole-pipeline performance acceptance.
+
 LOG528 regression: all four serial incremental builds pass; automation/NGX/
 no-NGX selftests516/516 each, SDK193/193, restored GPU material fixture and
 backlog/diff checks pass. Production synchronous capture remains the default.

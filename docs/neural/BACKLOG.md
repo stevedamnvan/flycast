@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current implementation base: `3e78a6f4f0e80926706ae1bbd1c706a8f31668b7` (LOG525 live returned-input checkpoint). LOG526 is uncommitted work on exact-input downstream confirmation. Builds are incremental, not fresh exact-SHA evidence.
+- Current implementation base: `d38fa2c0377cae767ed12bf77291ef4fc738968b` (LOG528 async material cache). LOG529 ordinary-feed hookup is working-tree evidence. Builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -46,7 +46,7 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 |---|---|---|---|---|
 | FC-067 / M2-camera | todo | LOG175, LOG509-511 | Complete the usable coordinate/camera contract alongside the supported live-scene experiment. Retain camera-relative labels and failed exact arithmetic; no further count-only or constant-fitting phase. | Live common-origin subset and measured calibration candidate exist; world/camera acceptance pending |
 | FC-067 / M1-GPU | todo | public-header adapter already tested | Preserve verified synthetic and actual moving GPU output. Remaining runtime cleanup warning needs focused ownership work, not repeated factory/camera bring-up. | LOG404-412, LOG467-474; GPU output verified in bounded scope, cleanup warning remains open |
-| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG514 live two-process memory delivery and three matching receipts/rendered outputs verified. Ordinary-frame asynchronous feed, fighters/full arena and returned/combined presentation pending |
+| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG529 ordinary-frame feed matches60 moving fighter/arena scenes and paired image files, with56 bounded retained replies. Camera-relative approximation remains explicit; delayed HUD/returned presentation and combined ordinary gameplay remain pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | pending |
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | pending |
@@ -55,8 +55,12 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action: move scene delivery off the capture boundary into opt-in
-ordinary-frame asynchronous integration. LOG526 marked/clean/hook-disabled
+Current action: retain receipt-keyed original HUD/overlay and native fallback
+surfaces for delayed returned-image presentation. LOG529 ordinary-frame feed
+matches60 sender/receiver scenes,60 image pairs,59 published replies and56
+retained pairs at2..3 frames old. One return is explicitly busy-dropped and three
+published replies are not retained. This is not returned presentation or combined
+ordinary gameplay acceptance. LOG526 marked/clean/hook-disabled
 comparison confirms all three exact-input external outputs with active tuple
 off/1/1/203/0/0/enabled. Marked and clean inputs/composition pass all three.
 This is source-qualified retained-input replay, not fresh continuous output,
@@ -86,12 +90,28 @@ pending instead of waiting. Reject generation/resource/context changes without
 publishing partial pixels. Compare all supported formats/mips to the existing
 texture fixture, with busy/budget/reset/mismatch paths. Bounded cache now exists;
 WARP fixture reports28 exact mip/DDS comparisons and92 async controls. Deliberate
-generation-invalidation bypass fails; restored implementation passes. Current
-action is wire the opt-in ordinary-frame feed using this cache and return-credit
-channel, prewarm all required materials before publishing a complete current
-scene, and handle skipped frames explicitly in the helper (reset, not false
-consecutive history). Retain the strict existing consecutive diagnostic path.
+generation-invalidation bypass fails; restored implementation passes. LOG529
+wires the opt-in ordinary-frame feed using this cache and return-credit channel,
+prewarms required materials before publishing a complete current scene and
+handles skipped frames explicitly in the helper without false consecutive
+history. The strict existing consecutive diagnostic path remains unchanged.
 Do not add another isolated texture fixture phase instead of this hookup.
+LOG529 working bounds: explicit FLYCAST_REMAKE_ASYNC_CHANNEL ordinary DX11
+hook streams complete current scenes using the cache, without capture gating or
+GPU/readback waits. Unsupported/2D/RTT/direct-FB stay on existing presentation.
+Poll paired returns under original identity; expire at8 renderer frames, retain
+at most one valid pair, but do not present it without matching HUD ownership.
+New helper --live-channel-async accepts forward source gaps explicitly while
+old --live-channel remains strict. Gap handling resets our uploader resources;
+the supplied public camera interface exposes no proven runtime history reset,
+so do not claim a Remix temporal reset or temporal quality. Test actual ordinary
+Soulcalibur replay with capture disabled and compare sender/receiver receipts.
+LOG529 async-c does so over60 moving sources; current live card now advances to
+original-frame HUD/overlay ownership and delayed result presentation. Preserve
+separate renderer/current versus source/returned IDs in stage, cadence and
+capture metadata. Do not stamp an older image as current or reuse native PVR
+motion/depth for the changed Remix scene. Start with explicit reset/full-bias
+guidance and label temporal limitations, then implement returned-scene guidance.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.

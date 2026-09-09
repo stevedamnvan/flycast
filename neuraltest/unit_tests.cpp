@@ -246,6 +246,22 @@ int RunSelfTests()
 			}else suite.Expect(false,"locked replay fixture must own a new directory");
 		}
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
+		{
+			auto skipped=next;skipped.frame+=3;skipped.producer.ordinal+=3;skipped.producer.cycle+=3;
+			suite.Expect(remake::AsyncSourceContinuation(packet,skipped)&&!remake::DiagnosticContinuation(packet,skipped),"async dropped source accepted only by explicit non-temporal policy");
+			auto wrong=skipped;++wrong.producer.epoch;
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects different epoch");
+			wrong=skipped;wrong.producer.ordinal=packet.producer.ordinal;
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects repeated producer");
+			wrong=skipped;wrong.frame=packet.frame;
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects repeated renderer frame");
+			wrong=skipped;wrong.game="other";
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects changed game");
+			wrong=skipped;wrong.sourceGitSha="other";
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects changed source build");
+			wrong=skipped;wrong.diagnosticOrigin->x+=1;
+			suite.Expect(!remake::AsyncSourceContinuation(packet,wrong),"async source rejects changed coordinate origin");
+		}
 		next.producer.epoch++;
 		suite.Expect(!remake::DiagnosticContinuation(packet,next),"live packet rejects reset epoch continuity");
 		{

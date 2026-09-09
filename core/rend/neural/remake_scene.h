@@ -89,6 +89,17 @@ inline bool DiagnosticContinuation(const Packet& previous,const Packet& next) {
  return std::isfinite(a.x)&&std::isfinite(a.y)&&std::isfinite(a.z)&&
   a.x==b.x&&a.y==b.y&&a.z==b.z;
 }
+// Explicit dropped-frame transport policy, NOT temporal continuity. Keep the
+// strict diagnostic predicate above unchanged. Consumer must label any gap.
+inline bool AsyncSourceContinuation(const Packet& previous,const Packet& next) {
+ if(!previous.producer.Available()||!next.producer.Available()
+  ||previous.producer.epoch!=next.producer.epoch||next.producer.ordinal<=previous.producer.ordinal
+  ||next.producer.cycle<previous.producer.cycle||next.frame<=previous.frame)return false;
+ if(!previous.diagnosticOrigin||!next.diagnosticOrigin||previous.game.empty()||previous.game!=next.game
+  ||previous.sourceGitSha.empty()||previous.sourceGitSha!=next.sourceGitSha)return false;
+ const auto a=*previous.diagnosticOrigin,b=*next.diagnosticOrigin;
+ return std::isfinite(a.x)&&std::isfinite(a.y)&&std::isfinite(a.z)&&a.x==b.x&&a.y==b.y&&a.z==b.z;
+}
 Result Validate(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame,
  const Limits& = {});
 Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);

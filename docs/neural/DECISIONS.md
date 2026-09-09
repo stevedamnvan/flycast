@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-165: opt-in ordinary scene feed is separate from returned presentation
+
+FLYCAST_REMAKE_ASYNC_CHANNEL enables source stamping and DX11 scene publication
+without NeuralCaptureFrames. Complete ready material sets are required; missing
+textures skip the whole current scene while all required copies are prewarmed.
+No capture writer or synchronous wait participates. Return credits and8-frame
+expiration bound delayed source ownership; at most one validated returned pair
+is retained under its original identity. It is not composited or passed to NGX
+with current-frame HUD/motion. Epoch or renderer-resource change closes this
+session and requires a fresh consumer token. Ordinary native/public presentation
+is preserved until returned-frame and overlay ownership is implemented.
+
+The helper's explicit --live-channel-async accepts forward frame/producer gaps
+under the same game/build/epoch/origin. Existing --live-channel and diagnostic
+continuity remain strict. A gap recreates uploader resources and invalidates our
+correspondence; this is NOT proof of resetting the external Remix runtime's
+temporal accumulation. The inspected public camera struct has no reset field.
+Do not invent a parameter or label gapped output temporally correct. This is
+integration evidence only; returned-scene temporal guidance remains open.
+
 ## D-164: own asynchronous texture copies by resource and generation
 
 MaterialReadback queues one staging copy/event on the owning immediate D3D11

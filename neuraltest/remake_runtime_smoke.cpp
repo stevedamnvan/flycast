@@ -69,7 +69,8 @@ int wmain(int argc,wchar_t** argv) {
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
  bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false,legacyMemory=false;
 	bool captureReturnedDepth=false;
- const bool liveChannel=argc>=12 && std::wstring(argv[5])==L"--live-channel";
+ const bool liveChannelAsync=argc>=12 && std::wstring(argv[5])==L"--live-channel-async";
+ const bool liveChannel=liveChannelAsync || (argc>=12 && std::wstring(argv[5])==L"--live-channel");
  const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
  flycast::rend::neural::RemakeLiveChannel channel;
  flycast::rend::neural::RemakeChannelReceipt activeSourceReceipt;
@@ -160,7 +161,7 @@ int wmain(int argc,wchar_t** argv) {
     if(!legacyGame)throw std::invalid_argument("live packet requires legacy uploader");
     Packet p;std::string reason;
     if(liveChannel) {
-     if(frames!=63||argc!=14)throw std::invalid_argument("live channel requires 60 warmup plus three source frames");
+     if((liveChannelAsync?frames<61:frames!=63)||argc!=14)throw std::invalid_argument("live channel requires 60 warmup plus bounded source frames");
      const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
      if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
      std::cout<<"live_channel_ready=true bounded_source_wait_ms=90000 saved_packets_read=false\n"<<std::flush;
@@ -290,7 +291,7 @@ int wmain(int argc,wchar_t** argv) {
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   DynamicD3D9Fixture legacyFixture(ownedDevice,api);
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact);
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -301,7 +302,7 @@ int wmain(int argc,wchar_t** argv) {
    if(liveChannel&&frame>=61) {
     try {
      Packet next;receiveNext(next,5000);
-     if(!DiagnosticContinuation(*snapshot,next))throw std::runtime_error("live source continuity rejected");
+     if(!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
      snapshot=std::move(next);
     }catch(const std::exception& e){std::cerr<<"live source failed: "<<e.what()<<'\n';outcome=11;break;}
    }

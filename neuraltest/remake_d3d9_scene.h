@@ -22,6 +22,7 @@ class D3D9PacketScene {
  remixapi_LightHandle light_=nullptr;
  bool failed_=false,ready_=false;
  bool refreshResources_=false;
+ bool allowSkippedSources_=false;
  std::vector<std::vector<unsigned char>> textureBytes_;
  void ReleaseResources() {
   if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
@@ -70,7 +71,12 @@ class D3D9PacketScene {
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
-  if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet))return E_INVALIDARG;
+  if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet)) {
+   if(!allowSkippedSources_||!AsyncSourceContinuation(previous_,packet))return E_INVALIDARG;
+   std::cout<<"async_source_gap previous="<<previous_.frame<<" current="<<packet.frame
+    <<" uploader_resources_reset=true runtime_temporal_reset_proven=false\n";
+   ReleaseResources(); // Reset our correspondence only, not an undocumented runtime history API.
+  }
   if(ready_ && refreshResources_) {
    bool compatible=packet.game==initial_.game && packet.meshes.size()==resources_.size();
    for(std::size_t i=0;compatible&&i<packet.meshes.size();++i)
@@ -147,7 +153,7 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false):device_(device),api_(api),refreshResources_(refreshResources){}
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources){}
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
  ~D3D9PacketScene(){ReleaseResources();}
  HRESULT Draw(const Packet& p){if(failed_)return E_FAIL;try{const auto hr=DrawInternal(p);if(FAILED(hr))failed_=true;return hr;}catch(const std::exception&){failed_=true;return E_FAIL;}}

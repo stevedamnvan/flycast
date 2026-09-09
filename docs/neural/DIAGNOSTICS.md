@@ -1,5 +1,23 @@
 # Neural diagnostics
 
+## Ordinary-frame scene feed (experimental, no returned presentation yet)
+
+Set child-only `FLYCAST_REMAKE_ASYNC_CHANNEL=UNIQUE_TOKEN`,
+`FLYCAST_NEURAL_SOURCE_OBSERVATION=1` and, for the labeled projected-depth
+estimate, `FLYCAST_REMAKE_ESTIMATE_UNTRACED=1`. Optional
+`FLYCAST_REMAKE_ASYNC_START_PRODUCER=N` delays source work until that game ordinal
+(0..10000000). Use the existing normal DX11 public neural lane at640x480. Capture
+may remain disabled. Launch the supplied-runtime helper with the same recipe as
+below but `--live-channel-async`, and61..120 total frames (60 warmup,1..60 new
+source frames). Helper output captures are bounded diagnostics, not performance.
+
+Sender `Remake async publish` and receiver `live_receive` receipts must match.
+`Remake async return` logs original source/current renderer frames and whether
+the validated pair was retained; presentation=false is intentional. Source gap
+logs explicitly disclaim external runtime temporal reset. Epoch/resource change
+requires a new helper/token. Never run the capture channel and async channel
+with the same token or relabel retained output as current-frame presentation.
+
 `neuraltest material-contract --out NEW_DIR` also exercises asynchronous staging
 and the generation-qualified texture cache on native D3D11 WARP. Report fields
 `async_exact_mips` include raw mip and DDS comparisons; `async_controls` counts

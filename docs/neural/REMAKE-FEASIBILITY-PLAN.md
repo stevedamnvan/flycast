@@ -14,8 +14,10 @@ Remix output; LOG484/509 establish owned live snapshots and a bounded observed
 transform-dependency subset. LOG510-511 retain a measured calibration candidate,
 not recovered world/camera truth. LOG525 proves bounded live paired returned
 input delivery; LOG526 confirms three source-qualified retained-input external
-outputs through matched ON/clean/OFF controls. Ordinary asynchronous gameplay,
-returned-scene temporal guidance and full camera acceptance remain pending.
+outputs through matched ON/clean/OFF controls. LOG529 adds capture-independent
+ordinary-frame scene feed:60 matched moving sources and56 bounded retained paired
+replies. Returned presentation, combined ordinary gameplay, returned-scene temporal
+guidance and full camera acceptance remain pending.
 The strict replay residual stays
 failed/parked; neither approximation nor a mock closes that gate.
 
