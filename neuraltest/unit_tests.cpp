@@ -233,6 +233,66 @@ int RunSelfTests()
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
 		{
+			auto anchored=packet;
+			anchored.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
+			anchored.diagnosticOrigin=remake::Vec3{1000,2000,3000};
+			anchored.camera.position={2,3,4};
+			anchored.camera.right={0,0,-1};anchored.camera.up={0,1,0};anchored.camera.forward={1,0,0};
+			// Embed the same view geometry through a proper inverse camera rotation.
+			for(auto& mesh:anchored.meshes)for(auto& v:mesh.vertices) {
+				const auto a=v.position,n=*v.normal;
+				v.position={2+a.z,3+a.y,4-a.x};v.normal=remake::Vec3{n.z,n.y,-n.x};
+			}
+			std::ostringstream out(std::ios::binary);remake::Packet decoded;
+			bool ok=SerializeRemakeViewPacket(out,anchored,error);
+			std::istringstream in(out.str(),std::ios::binary);
+			ok=ok&&DeserializeRemakeViewPacket(in,decoded,error);
+			suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==4
+				&&decoded.camera.position.x==2&&decoded.camera.right.z==-1&&decoded.camera.forward.x==1
+				&&decoded.diagnosticOrigin->y==2000,"live camera wire retains pose and fixed sequence origin");
+			bool same=ok;
+			if(ok)for(std::size_t i=0;i<packet.meshes[0].vertices.size();++i) {
+				const auto a=remake::Project(packet.camera,packet.meshes[0].vertices[i].position);
+				const auto b=remake::Project(decoded.camera,decoded.meshes[0].vertices[i].position);
+				same=same&&Near(a.x,b.x)&&Near(a.y,b.y)&&Near(a.z,b.z);
+			}
+			suite.Expect(same,"live transported camera and embedded geometry preserve projection");
+			for(unsigned bad=0;bad<3;++bad) {
+				auto bytes=out.str();
+				const auto poseOffset=8+32+12+anchored.game.size()+anchored.sourceGitSha.size()
+					+anchored.diagnosticEmbeddingProvenance.size()+16;
+				if(bad==0)bytes[4]=3; // Old schema must not consume the new pose layout.
+				if(bad==1) {const float one=1;std::memcpy(bytes.data()+poseOffset+12,&one,4);}
+				if(bad==2)bytes.resize(poseOffset+48+8); // Truncated fixed origin.
+				std::istringstream corrupt(bytes,std::ios::binary);decoded.frame=99;
+				suite.Expect(!DeserializeRemakeViewPacket(corrupt,decoded,error)&&decoded.frame==99,
+					"live camera wire malformed schema basis or origin rejects atomically");
+			}
+			auto moved=anchored;++moved.frame;++moved.producer.ordinal;++moved.producer.cycle;
+			for(auto& mesh:moved.meshes)mesh.frame=moved.frame;
+			moved.camera.position.z+=1;
+			std::ostringstream movedWire(std::ios::binary);
+			ok=SerializeRemakeViewPacket(movedWire,moved,error);
+			std::istringstream movedInput(movedWire.str(),std::ios::binary);
+			ok=ok&&DeserializeRemakeViewPacket(movedInput,decoded,error);
+			const auto point=anchored.meshes[0].vertices[0].position;
+			const auto before=remake::Project(anchored.camera,point);
+			const auto after=remake::Project(decoded.camera,point);
+			suite.Expect(ok&&remake::DiagnosticContinuation(anchored,decoded)&&after.x>before.x
+				&&Near(after.y,before.y)&&Near(after.z,before.z),"live moving camera survives wire without recentering");
+			decoded.diagnosticOrigin->x+=1;
+			suite.Expect(!remake::DiagnosticContinuation(anchored,decoded),"live changed camera anchor breaks continuity");
+			for(unsigned bad=0;bad<4;++bad) {
+				auto invalid=anchored;
+				if(bad==0)invalid.camera.right.x=1;
+				if(bad==1)invalid.camera.forward.x=-1;
+				if(bad==2)invalid.diagnosticOrigin->x=std::numeric_limits<float>::infinity();
+				if(bad==3)invalid.diagnosticEmbeddingProvenance=packet.diagnosticEmbeddingProvenance;
+				std::ostringstream rejected(std::ios::binary);
+				suite.Expect(!SerializeRemakeViewPacket(rejected,invalid,error),"live camera wire rejects invalid basis origin or legacy scope");
+			}
+		}
+		{
 			auto source=p;auto cutout=source.draws[0];cutout.list=1;cutout.state.tsp.full=3u<<6;
 			source.draws.push_back(cutout);RemakeViewScene cutoutView;
 			suite.Expect(BuildRemakeViewScene(source,p.sourceProducer,7,cutoutView,error)&&cutoutView.meshes.size()==1,

@@ -1,5 +1,40 @@
 # Neural rendering evidence log
 
+LOG585 camera wire version4: serial automation/baseline/no-NGX/feature-off builds
+complete exit0; enabled selftests619/0 each. Malformed schema/basis/truncated
+origin reject atomically. Existing opaque version1 and cutout/alpha tests pass.
+No runtime run required for unchanged identity camera path; moving live camera
+still awaits producer integration. Read-only retained source-witness-a analysis
+finds two8c03a9ea matrix groups per1782..1784. They differ ONLY in matrix[3,3]
+(0 versus1), not independent camera domains. All selected input W bits are1;
+preserve actual output W distinction. Largest group shares753 points with1783
+and736 with1784; second group193 throughout. Normalized top-three affine relative
+transforms have determinant0.9999999903/0.9999999516 and orthogonality residual
+5.24e-8/8.73e-8. Both group deltas coincide because their top-three rows coincide,
+NOT independent corroboration. This identifies a reusable common source anchor
+candidate, not static-world semantics. Next implement receipt-qualified fixed
+first-frame anchor and relative camera from this common observed transform,
+requiring unchanged source-point support, proper rigid delta and explicit reset
+on incompatibility; keep world/physical semantics unproven. Embed scene positions
+and normals into that anchor and carry its camera through version4. Wrong-camera,
+wrong-origin and source-domain controls must fail; then actual moving comparison.
+No additional settings/provenance search before that integration.
+
+LOG584 52945db59 alpha slice committed/pushed to fork; remote SHA equals local
+52945db59ccf271fc691109e696238e8d22f1808. Post-commit incremental four builds
+and three608/0 selftests pass (alpha-52945 logs); not freshly reconfigured SHA
+runtime evidence. Only pre-existing metrics/cache/rtx-remix untracked remain.
+Next camera integration found a concrete transport restriction: D3D9 uploader
+already applies packet camera but live wire only permits identity pose/origin.
+Implement version4 for explicit diagnostic-camera-embedded-anchor scope, carrying
+proper camera pose and fixed sequence origin; versions1..3 remain unchanged.
+Initial automation build/selftest camera-wire-build1/test1 passes616/0 including
+translated/rotated geometry projection, moving camera, origin discontinuity and
+invalid pose/scope controls. Added malformed input schema/basis/truncated-origin
+atomic rejection checks afterward; these require the next build. No live camera,
+world reconstruction or new runtime acceptance claimed. A guessed reference
+filename read failed; actual orientation/coordinate helpers were inspected instead.
+
 LOG583 alpha integration checkpoint: serial alpha-close automation, baseline,
 no-NGX and feature-off builds complete exit0. Three enabled selftests each608/0;
 public SDK mock contract200/0 (runtime_loaded=false, no GPU claim).

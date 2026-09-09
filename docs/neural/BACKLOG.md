@@ -59,8 +59,14 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 Current action after LOG582: alpha-material integration now passes28 exact-input
 marked/clean/OFF frames with source-qualified native exclusions and protected HUD.
-Finish its reviewed build/commit checkpoint, then implement the usable camera /
-scene contract using existing source observations and live uploader. Do not
+Committed and pushed as52945db59; post-commit incremental four builds and three
+608-test suites pass. Implement the usable camera / scene contract using existing
+source observations and live uploader. First remove the live wire's identity-pose
+restriction: carry supplied proper camera basis/position and fixed sequence origin
+under an explicit diagnostic anchored scope, leaving legacy bytes unchanged.
+Prove camera motion and projection survive serialization and malformed poses fail;
+then connect a source-qualified sequence anchor, not a first-arbitrary-draw camera.
+This transport seam alone cannot close M2-camera. Do not
 restart generic effects/provenance or diagnose intentional native weapon trails
 as ghosting. Preserve the explicit projected-depth approximation until evidence
 supports an actual coordinate/camera contract. Returned-scene temporal guidance

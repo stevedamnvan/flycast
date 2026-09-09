@@ -106,6 +106,13 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
 }
 namespace {
 constexpr const char* scope="observed-camera-relative-experiment-not-world-reconstruction";
+constexpr const char* anchoredScope="diagnostic-camera-embedded-anchor-not-world-reconstruction";
+bool identityPose(const remake::Camera& c) {
+ return c.position.x==0&&c.position.y==0&&c.position.z==0
+  &&c.right.x==1&&c.right.y==0&&c.right.z==0
+  &&c.up.x==0&&c.up.y==1&&c.up.z==0
+  &&c.forward.x==0&&c.forward.y==0&&c.forward.z==1;
+}
 void require(bool yes,const char* why){if(!yes)throw std::runtime_error(why);}
 struct Wire {
  std::istream* input=nullptr;std::ostream* output=nullptr;
@@ -130,14 +137,22 @@ void packet(Wire& wire,remake::Packet& p) {
  std::uint32_t magic=0x56524346,version=1;
  if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)version=2;
  if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaBlend)version=3;
+ if(wire.output&&p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
  wire.word(magic);wire.word(version);
- require(magic==0x56524346&&(version>=1&&version<=3),"view-wire-schema");
+ require(magic==0x56524346&&(version>=1&&version<=4),"view-wire-schema");
  wire.wide(p.frame);wire.wide(p.producer.epoch);wire.wide(p.producer.ordinal);wire.wide(p.producer.cycle);
  wire.string(p.game,64);wire.string(p.sourceGitSha,64);
  wire.string(p.diagnosticEmbeddingProvenance,128);require(p.diagnosticEmbeddingProvenance==scope
-  ||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction","view-wire-scope");
+  ||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction"
+  ||(version==4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
  wire.real(p.camera.fovY);wire.real(p.camera.aspect);wire.real(p.camera.nearPlane);wire.real(p.camera.farPlane);
- p.space=remake::Space::SampledAnchor;p.diagnosticOrigin=remake::Vec3{};p.camera.provenance=remake::Provenance::Supplied;
+ p.space=remake::Space::SampledAnchor;p.camera.provenance=remake::Provenance::Supplied;
+ if(version==4) {
+  require(p.diagnosticEmbeddingProvenance==anchoredScope,"view-wire-anchor-scope");
+  wire.vector(p.camera.position);wire.vector(p.camera.right);wire.vector(p.camera.up);wire.vector(p.camera.forward);
+  if(wire.input)p.diagnosticOrigin.emplace();
+  require(p.diagnosticOrigin.has_value(),"view-wire-origin");wire.vector(*p.diagnosticOrigin);
+ }else p.diagnosticOrigin=remake::Vec3{};
  const auto omissions=wire.count(p.omissions.size(),64);if(wire.input)p.omissions.resize(omissions);
  for(auto& text:p.omissions)wire.string(text,256);
  const auto meshes=wire.count(p.meshes.size(),128);if(wire.input)p.meshes.resize(meshes);
@@ -174,13 +189,10 @@ void packet(Wire& wire,remake::Packet& p) {
 bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,std::string& error) {
  try {
   auto checked=remake::ReadyForDiagnosticAdapter(source,source.frame,source.game,true);require(checked.ok,checked.reason.c_str());
-  // This format only represents the identity-view experiment, not arbitrary cameras/materials.
-  require(source.camera.position.x==0&&source.camera.position.y==0&&source.camera.position.z==0
-   && source.camera.right.x==1&&source.camera.right.y==0&&source.camera.right.z==0
-   && source.camera.up.x==0&&source.camera.up.y==1&&source.camera.up.z==0
-   && source.camera.forward.x==0&&source.camera.forward.y==0&&source.camera.forward.z==1,"view-wire-camera");
-  require(source.diagnosticOrigin && source.diagnosticOrigin->x==0 && source.diagnosticOrigin->y==0
-   && source.diagnosticOrigin->z==0,"view-wire-origin");
+  const bool anchored=source.diagnosticEmbeddingProvenance==anchoredScope;
+  require(anchored||identityPose(source.camera),"view-wire-camera");
+  require(source.diagnosticOrigin && (anchored||(source.diagnosticOrigin->x==0 && source.diagnosticOrigin->y==0
+   && source.diagnosticOrigin->z==0)),"view-wire-origin");
   for(const auto& mesh:source.meshes) {
    require(mesh.topology==remake::Topology::Triangles && mesh.sourceTsp && mesh.frame==source.frame,"view-wire-topology-or-frame");
    const auto& m=*mesh.material;

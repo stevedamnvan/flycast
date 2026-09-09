@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-184: live camera transport preserves a fixed diagnostic anchor
+
+Wire version4 carries supplied position, proper orthonormal basis and sequence
+origin only under diagnostic-camera-embedded-anchor-not-world-reconstruction.
+Versions1..3 retain their identity-camera bytes. Never silently recenter each
+frame, overwrite a supplied pose with identity, or infer a world-space claim
+from successful serialization. Existing adapter validation rejects invalid bases;
+deserialization remains atomic. LOG584-585 prove transport/projection controls,
+not producer camera recovery. A live anchored producer must bind its fixed
+reference to source continuity and reset/reject incompatible source evidence.
+
 ## D-183: promoted alpha materials have one source-qualified owner
 
 The explicit alpha-combined experiment exports supported primary source-alpha /
