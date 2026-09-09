@@ -3,6 +3,7 @@
 #include "remake_remix_adapter.h"
 #include "remake_artifact_loader.h"
 #include "remake_triangle_transport.h"
+#include "remake_d3d9_dynamic.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -60,6 +61,8 @@ int wmain(int argc,wchar_t** argv) {
  bool sourceColor=false;
  bool retainedTriangles=false;
  bool rebuiltFrozen=false,settledFrozen=false;
+ bool legacyDynamic=false,legacyFrozen=false;
+ bool legacyBackbuffer=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -67,6 +70,10 @@ int wmain(int argc,wchar_t** argv) {
   const int captureIndex=(argc==7||argc==9)?5:argc==18?16:12;
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
+  legacyFrozen=captureOption==L"--capture-d3d9-frozen-color";
+  legacyBackbuffer=captureOption==L"--capture-d3d9-backbuffer";
+  legacyDynamic=captureOption==L"--capture-d3d9-dynamic"||legacyFrozen||legacyBackbuffer;
+  if(legacyDynamic&&argc!=7)return 2;
   // Public NORMALS selects packed R32_UINT, not an XYZ float image.
   // D3D9 float-target blitting is not a valid typed readback of that resource.
   if(captureOption==L"--capture-normals") {
@@ -104,7 +111,7 @@ int wmain(int argc,wchar_t** argv) {
   reverseOrder=captureOption==L"--capture-depth-reverse-order";
   emptyScene=captureOption==L"--capture-empty";
   if(captureOption==L"--capture-depth" || reverseOrder)captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene && !skinning && !affineReference && !materialReplace && !materialRepeat && !gradientReference) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseLight && !reverseOrder && !emptyScene && !skinning && !affineReference && !materialReplace && !materialRepeat && !gradientReference && !legacyDynamic) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -188,12 +195,18 @@ int wmain(int argc,wchar_t** argv) {
  std::cerr<<"phase=startup begin\n"<<std::flush;
  if(capture.empty())status=api.Startup(&startup);
  else {
-  status=api.dxvk_CreateD3D9?api.dxvk_CreateD3D9(0,&ownedD3D):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+  if(legacyDynamic) {
+   using Create9Ex=HRESULT (WINAPI*)(UINT,IDirect3D9Ex**);
+   const auto create=reinterpret_cast<Create9Ex>(GetProcAddress(module,"Direct3DCreate9Ex"));
+   status=create&&SUCCEEDED(create(D3D_SDK_VERSION,&ownedD3D))?REMIXAPI_ERROR_CODE_SUCCESS:REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+   std::cerr<<"legacy_factory=Direct3DCreate9Ex draw_conversion_expected=true\n";
+  }else status=api.dxvk_CreateD3D9?api.dxvk_CreateD3D9(0,&ownedD3D):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
   if(status==REMIXAPI_ERROR_CODE_SUCCESS && ownedD3D) {
    D3DPRESENT_PARAMETERS pp{};pp.BackBufferWidth=640;pp.BackBufferHeight=480;
    // Capture reads the backbuffer after Present; DISCARD cannot preserve it.
    pp.BackBufferFormat=D3DFMT_A8R8G8B8;pp.BackBufferCount=1;pp.SwapEffect=D3DSWAPEFFECT_COPY;
    pp.hDeviceWindow=window;pp.Windowed=TRUE;
+   if(legacyDynamic){pp.EnableAutoDepthStencil=TRUE;pp.AutoDepthStencilFormat=D3DFMT_D24S8;}
    const HRESULT hr=ownedD3D->CreateDeviceEx(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,
     D3DCREATE_HARDWARE_VERTEXPROCESSING,&pp,nullptr,&ownedDevice);
    status=SUCCEEDED(hr)&&ownedDevice&&api.dxvk_RegisterD3D9Device?
@@ -216,6 +229,7 @@ int wmain(int argc,wchar_t** argv) {
   if(rebuiltFrozen||settledFrozen)std::cerr<<"rebuilt_frozen_attributes=true settled_reference="<<settledFrozen<<" recovered_skeleton=false\n";
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
+  DynamicD3D9Fixture legacyFixture(ownedDevice,api);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -247,7 +261,11 @@ int wmain(int argc,wchar_t** argv) {
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
-   if(retainedTriangles) {
+   if(legacyDynamic) {
+    const auto hr=legacyFixture.Draw(frames==1?0.f:float(frame)/float(frames-1),legacyFrozen);
+    submitted={SUCCEEDED(hr),"legacy-dynamic-draw-not-presentation-proof"};
+    std::cerr<<"legacy_dynamic_hresult="<<hr<<" frame="<<frame<<" frozen_color="<<legacyFrozen<<'\n';
+   }else if(retainedTriangles) {
     submitted=frame==0?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true):
      frame<=60?retained.Redraw(packet.camera):retained.RedrawFrozenAttributeTriangles(packet);
     std::cerr<<"retained_source_frame="<<packet.frame<<" frozen_source_attributes=true\n";
@@ -275,10 +293,11 @@ int wmain(int argc,wchar_t** argv) {
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
    const bool floatOutput=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
    const auto format=floatOutput?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
-   HRESULT hr=ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
+   HRESULT hr=legacyBackbuffer?ownedDevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&gpu):
+    ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
    if(SUCCEEDED(hr))hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&cpu,nullptr);
    if(SUCCEEDED(hr)) {
-    auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(gpu,captureType):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+    auto copied=legacyBackbuffer?REMIXAPI_ERROR_CODE_SUCCESS:api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(gpu,captureType):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
     hr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(gpu,cpu):E_FAIL;
    }
    D3DLOCKED_RECT locked{};
@@ -323,7 +342,7 @@ int wmain(int argc,wchar_t** argv) {
     hr=ok&&rawOk?S_OK:E_FAIL;
    }
    if(cpu)cpu->Release();if(gpu)gpu->Release();
-   std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true\n"<<std::flush;
+   std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true backbuffer_only="<<legacyBackbuffer<<"\n"<<std::flush;
    if(FAILED(hr)){outcome=14;break;}
   }
   }

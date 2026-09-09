@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-141: standard D3D9 factory for legacy draw-capture experiments
+
+LOG463-464 retain failed black Remix captures while backbuffer output proves
+ordinary D3D9 geometry was drawn. Pinned public rtx_remix_api.cpp factory calls
+CreateD3D9 with WithDrawCallConversion=false. Standard Direct3DCreate9Ex in
+d3d9_main.cpp uses the defaulttrue. Use the standard exported factory only for
+the isolated legacy fixture, then register the device through the public API.
+Existing public-mesh fixtures keep their original factory. No runtime binary
+patch or external configuration write is involved.
+
+LOG464-465 visibly exercise changing vertex colors/deformation in Remix output
+and a gray frozen-color control. This is not motion-quality or game acceptance.
+Prefer investigating direct original-attribute updates over fixed per-frame
+triangle DDS rebaking: LOG461 measured its fidelity/data-size tradeoff. Keep the
+sampler/tile probes as diagnostic evidence, not a competing production renderer.
+
 ## D-140: retained triangles are a labeled geometry-history ablation
 
 LOG457-458 split validated triangle lists into at most256 triangles per instance

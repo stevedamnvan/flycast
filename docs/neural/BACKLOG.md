@@ -90,6 +90,25 @@ LOG458 matched rebuilt/settled controls support a modest error reduction in
 floor/fighter regions, not general temporal acceptance. SDK169 includes bounded
 bones/topology/duplicate-frame/failure checks. Next changing source attributes
 on retained geometry; stop extending frozen-only visual experiments.
+LOG460 supplies tested mip-zero source-attribute sampling;4490/8337 actual
+triangle centroids change L/M. Next bounded per-triangle representation with
+measured interpolation/filtering error, then moving material updates. Mip-zero
+sampling does not prove full PVR shading or original minification fidelity.
+LOG461 shows fixed tiles trade detail loss against46MB/generation for only
+three fighter draws. Prioritize a bounded D3D9 dynamic-buffer compatibility
+experiment for direct vertex attributes before implementing per-frame DDS
+baking. This is isolated runtime investigation, not a new production backend.
+LOG463 dynamic D3D9 fixture draws/readbacks succeed but images are black,
+including explicit-camera rerun. Next diagnose legacy capture/injection ownership
+and separate raster output from Remix output using public interfaces; do not
+call HRESULT success a graphics pass or repeat the same black-image run unchanged.
+LOG464 resolves black output: API factory disables legacy draw conversion;
+standard Direct3DCreate9Ex factory enables it. Actual dynamic fixture now appears
+in Remix final output. Next changing-attribute controls and bounded game-packet
+submission through that isolated legacy path; no production migration yet.
+LOG465 frozen-color control stays gray versus dynamic colors with identical
+deformation. Proceed to bounded actual packet upload/camera/texture conversion;
+do not repeat the factory or synthetic color proof. Exact fidelity remains open.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter
