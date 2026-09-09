@@ -1,6 +1,35 @@
 """DDS DX10 serialization of already-decoded source RGBA; no color conversion."""
 import struct
 import hashlib
+import json
+from pathlib import Path
+
+
+def publish_capture(scene, materials, ordinals, directory, output):
+    """Create-only asset export. A manifest is present only after readback checks."""
+    bundle=capture_bundle(scene,materials,ordinals,directory)
+    output=Path(output)
+    # No overwrite, recursive cleanup, or third-party configuration writes.
+    output.mkdir(exist_ok=False)
+    assets={}
+    for aid,asset in bundle['assets'].items():
+        name=f'asset-{aid}.dds';path=output/name
+        with path.open('xb') as stream:
+            stream.write(asset['dds'])
+        if hashlib.sha256(path.read_bytes()).hexdigest()!=asset['sha256']:
+            raise ValueError('published DDS readback mismatch')
+        assets[str(aid)]={k:v for k,v in asset.items() if k!='dds'}
+        assets[str(aid)].update(file=name,bytes=len(asset['dds']))
+    manifest={k:v for k,v in bundle.items() if k!='assets'}
+    manifest.update(schema='flycast-source-dds-bundle-v1',assets=assets,
+                    complete=True,external_configuration_written=False)
+    encoded=(json.dumps(manifest,sort_keys=True,indent=2)+'\n').encode('utf-8')
+    # Interrupted output stays explicit and is never reused by this exporter.
+    pending=output/'manifest.pending'
+    with pending.open('xb') as stream:stream.write(encoded)
+    if pending.read_bytes()!=encoded:raise ValueError('manifest readback mismatch')
+    pending.rename(output/'manifest.json')
+    return manifest
 
 
 def capture_bundle(scene, materials, ordinals, directory):

@@ -54,8 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: publish bounded owned DDS assets with manifest identity
-for the reconstructed selection. LOG374 closes exact checkpoint verification
+Current next action: verify/checkpoint the create-only DDS publisher, then bind
+its published manifest to the reconstructed geometry artifact while retaining
+explicit camera/scene exclusions. LOG375 publishes14 H assets outside Git.
+LOG374 closes exact checkpoint verification
 and actual H mesh-to-texture selection join (17 draws,14 assets).
 LOG373 connects verified captured mip bytes to in-memory DDS hashes/generations
 and positive mock API transport; no runtime texture result. LOG371 closes exact
