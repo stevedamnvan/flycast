@@ -113,9 +113,12 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
 			if(!std::isfinite(v.x)||!std::isfinite(v.y)||!std::isfinite(v.z)||v.z<=0
 				||!std::isfinite(v.u)||!std::isfinite(v.v))continue;
 			const double depth=.95/double(v.z);
-			if(depth<.1||depth>2501)continue; // Existing supplied diagnostic enclosure.
+			// Preserve crossing primitives for the downstream triangle clipper.
+			// Rejecting one outside vertex here discards the entire source draw.
+			// The supplied .1..2501 enclosure is still enforced after expansion.
 			RemakeViewVertex out;out.source=v;out.sourceVertex=unsigned(i);out.estimatedPosition=true;
 			out.position={float((v.x-320)*depth/result.focalX),float(-(v.y-240)*depth/result.focalY),float(depth)};
+			if(!std::isfinite(out.position[0])||!std::isfinite(out.position[1])||!std::isfinite(out.position[2]))continue;
 			converted[i]=out;++result.estimatedVertices;
 		}
 	}

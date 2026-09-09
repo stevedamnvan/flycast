@@ -143,6 +143,13 @@ int RunSelfTests()
 			if(ok&&estimated.meshes.size()==2){const auto& v=estimated.meshes[1].vertices[0];
 				suite.Expect(v.estimatedPosition&&v.transformSerial==0&&Near(v.source.x,float(v.position[0]/v.position[2]*estimated.focalX+320))
 					&&Near(v.source.z,.95f/v.position[2]),"estimated vertex is explicitly untraced and reprojects to source");}
+			for(float crossingDepth:{.05f,2502.f}) {
+				auto crossing=expanded;crossing.vertices[first].z=.95f/crossingDepth;
+				RemakeViewScene crossingView;
+				suite.Expect(BuildRemakeViewScene(crossing,p.sourceProducer,7,crossingView,error,true)
+					&&crossingView.meshes.size()==2&&crossingView.meshes[1].vertices.size()==3,
+					"estimated clip-crossing primitive reaches downstream triangle clipper intact");
+			}
 			expanded.sourceVertices.clear();
 			suite.Expect(!BuildRemakeViewScene(expanded,p.sourceProducer,7,estimated,error,true),"projected estimate requires current observed calibration anchor");
 		}
@@ -180,6 +187,17 @@ int RunSelfTests()
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
 		{
+			for(float crossingDepth:{.05f,2502.f}) {
+				auto crossing=p;crossing.sourceVertices.erase(crossing.sourceVertices.begin());
+				crossing.vertices[0].z=.95f/crossingDepth;
+				RemakeViewScene converted;remake::Packet clipped;
+				bool ok=BuildRemakeViewScene(crossing,p.sourceProducer,7,converted,error,true)
+					&&BuildRemakeViewPacket(converted,reader,clipped,error)
+					&&clipped.meshes.size()==1&&clipped.meshes[0].vertices.size()==6;
+				if(ok)for(const auto& v:clipped.meshes[0].vertices)
+					ok=ok&&v.position.z>=.1f&&v.position.z<=2501.f;
+				suite.Expect(ok,"estimated PVR crossing reaches bounded clipped transport end to end");
+			}
 			auto clippedView=view;clippedView.meshes[0].vertices.resize(3);
 			auto& v=clippedView.meshes[0].vertices;
 			for(unsigned i=0;i<3;++i){v[i].position={float(i==1),float(i==2),1};v[i].source.u=float(i);v[i].source.v=0;}

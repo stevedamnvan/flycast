@@ -183,6 +183,37 @@ evaluations and595 distinct displayed sources include543 consecutive source IDs.
 All four builds and enabled556/556 tests pass. Complete host-close/log recording
 and commit this slice, then enable/test the changed path in OIT with original
 overlay ownership. Do not spend another phase proving unchanged normal transport.
+OIT bounded implementation: explicit ASYNC_OIT=1 permits the inherited returned
+scene path only after OIT's drawStrips resolve and renderNeuralExports. Preserve
+the actual resolved fbTex and original-frame R8 overlay mask; public/native
+paths and RTT/direct-framebuffer bypass remain unchanged. First require three
+actual OIT composite/backbuffer pixel checks with original HUD, then sustained
+delivery. This does not implement missing translucent world geometry or claim
+full OIT acceptance merely because the opt-in runs.
+Oit-t is CORRECTIONS_REQUIRED despite three mask-based composite equality checks:
+visual review finds holes in the HUD mask and missing arena floor, absent in
+original native. Inspect OIT replay geometry/state and mask generation; do not
+commit or start long OIT testing until actual HUD coverage is corrected. Preserve
+this falsifying capture rather than reporting mask equality as overlay success.
+Normal-u exact scene replay confirms OIT-specific mask holes, separate from
+shared returned-scene floor limitations. Next add MAX accumulation only for
+reactive coverage/mask targets so unclassified translucent draws cannot erase
+earlier protection; require overwrite negative and failed-frame comparison.
+Do not conflate continuous health bars with complete HUD/title acceptance.
+Coverage-v restores906 formerly erased pixels on exact native/returned inputs,
+with no lost coverage and exact composite/backbuffer equality. Health bars now
+pass visual review; names remain incompletely classified. Focused blend GPU
+regression passes on D3D11 and D3D11On12. Prioritize shared floor/scene export
+before additional name-classification work: test estimated vertices crossing
+the supplied clip planes through conversion and downstream clipping. Preserve
+the failed floor captures; a synthetic repair is not real-game floor acceptance.
+LOG539 fresh OIT output now visibly restores wooden floor beneath the fighters;
+three actual composites/backbuffers pass, with completed evaluated presentation.
+All four builds and559 enabled tests pass. LOG540 now verifies source1860 with
+byte-identical native input/mask and repaired floor reaching completed Present.
+Commit the independently verified export fix after end-to-end regression. Complete
+scene/camera, name coverage and sustained OIT acceptance remain open.
+Do not label this bounded repair full OIT acceptance.
 Do not divert into aesthetic trail tuning or general profiling before sustained
 delivery and OIT integration; preserve intentional source effects.
 

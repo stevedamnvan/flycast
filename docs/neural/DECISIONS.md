@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-171: clip estimated crossing geometry after primitive assembly
+
+Keep finite projected-depth estimates outside the supplied near/far planes
+until the existing bounded triangle clipper. Per-vertex enclosure rejection
+before assembly discarded whole draws, including visible arena floor. The
+transport still enforces .1..2501 and vertex limits; observed-only defaults,
+native PVR depth and the explicit camera-relative approximation remain unchanged.
+LOG538-540 provide failing controls, repaired conversion and same-frame floor
+evidence. This does not establish recovered world/camera or full-scene parity.
+
 ## D-170: pair return capacity with bounded source credits
 
 Shared-memory version4 has two paired color/depth image slots for the existing

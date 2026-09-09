@@ -1,5 +1,136 @@
 # Neural rendering evidence log
 
+LOG540 floor-z matched-frame check: same staged floor-y executable, fresh
+scene export,30 bounded captures, no locked replay. Helper120 Presents and
+host240 samples both exit0. Frame1860/current1862 matches coverage-v's original
+native PNG and overlay mask byte-for-byte. The new returned image visibly
+contains the wooden floor where the failed old image has a black gap/raised
+strip. Independent composite and backbuffer equality pass; the log joins
+source1860 to completed remake-evaluated Present (hresult0). Consumer config
+hash remains unchanged. This is scoped floor repair, not fresh external-output
+provenance, performance, complete HUD or world/camera acceptance. Images and
+archived remake-floor-*-z logs remain outside Git. Added near/far end-to-end
+conversion-to-transport regressions. An early test rebuild hit LNK1104 because
+the launcher was running; retained that failure and reran only after both
+processes exited. No live process was interrupted or restarted.
+Serial retry succeeds for all four configurations; all three enabled selftests
+pass561/561 including both end-to-end crossing tests. Backlog inspection and
+diff whitespace checks pass. The floor commit excludes the still-working OIT
+opt-in, coverage implementation and HUD diagnostics; their evidence is retained
+here without treating those code changes as committed or fully accepted.
+
+LOG539 floor-y live validation (40d9f268f plus working tree): fresh OIT scene
+export, no locked replay,120 helper Presents and240 host samples; both exit0
+and host closes cleanly. Captures1851/1853,1852/1854,1853/1855 now visibly show
+the wooden floor beneath both fighters. Source1853 joins accepted evaluation,
+owned output and completed remake-evaluated Present at current1855. Independent
+PNG composition/backbuffer checks pass all three captures. This is not an
+exact-frame old/new comparison (retained failed floor frame1860), nor new
+external-mutation proof or performance acceptance. Names remain missing;
+camera-relative limitations and helper40-object shutdown warning remain.
+All four incremental configurations build successfully; automation,NGX and
+no-NGX selftests pass559/559. Staged executable SHA256
+76A2B1B4A4291A1A13B19591960C13CB698CA73B369D7124A69215445A7FBBE0;
+consumer configuration retains hash222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Evidence remains outside Git in fc067-floor-y-composites and the archived
+remake-floor-*-y logs. Next obtain same-frame floor evidence and finish the
+bounded scene-export regression before committing this independently proven fix.
+
+LOG538 scene-clip-y: user priority correction moves shared missing floor/scene
+export ahead of further HUD diagnostics. No old helper/host processes remain;
+name-x host log reports clean close with240 samples. Source inspection finds
+estimated vertices outside .1..2501 discarded before triangle clipping, which
+omits their entire draw. Two new near/far crossing conversion regressions fail
+on the old code (557 passed,2 failed; negative build succeeds). Preserve finite
+estimated positions until existing bounded triangle clipping instead; supplied
+clips and default observed-only behavior remain unchanged. Real-game floor
+causality is still a hypothesis, not a proven repair. Initial read attempt used
+the parent directory and failed harmlessly; corrected to repository directory.
+The corrected automation build exits0 and selftest passes559/559, including
+both previously failing crossing cases. Backlog contract inspection passes;
+it is document consistency only. Remaining configuration builds and fresh
+gameplay floor comparison are pending; no commit or full-scene acceptance yet.
+
+LOG537 name-x bounded diagnostics: explicit preview attempts now log current
+top-HUD draw texture/blend/flags/quads/bounds/depth/classified/stability. Current
+frame is explicitly distinct from retained source; no inferred source ownership.
+Automation builds pass. OIT name-x uses the same retained input root and awaits
+the capture interval to identify missing name classification before changing
+profile rules. No external config changes or additional acceptance claims.
+
+LOG537 focused GPU coverage fixture w passes on native D3D11 and D3D11On12.
+The fixture shares the production blend descriptor, draws zero over initialized
+coverage at targets1/5, checks MAX preserves red and leaves other channels
+unchanged, then verifies disabled-blend overwrite erases red. Existing exact
+overlay composite checks also pass33 protected pixels/no mismatch on both APIs.
+Commands actually ran; no GPU behavior inferred from descriptor inspection.
+The shared descriptor extraction is behavior-preserving. Next name-draw
+classification and shared floor export; full OIT acceptance stays rejected.
+
+LOG537 coverage-v exact-input result: both processes exit0. Retained original
+1860/current1862 capture has byte-identical native and returned Remix inputs to
+failed oit-t. Protected coverage grows13952->14858, restoring906 pixels without
+losing any prior coverage. Independent composition/backbuffer equality passes;
+visual mask review confirms health-bar holes closed. This paired pre-fix capture
+is the actual overwrite negative, not a hypothetical failure. Character-name
+protection remains incomplete and shared floor export is unresolved. Do not
+accept full HUD/OIT from this repair. Dedicated GPU blend fixture and remaining
+build checks are still part of pre-commit regression.
+
+LOG537 coverage-v implementation: reactive replay uses independent MAX blending
+only on mask target1 and overlay target5; all other target writes disabled.
+Normal depth/motion export and native color blending retain previous states.
+Code review initialized valid blend enums on all independent targets before
+the second build. Automation build and557/557 tests pass; these existing tests
+do not independently prove GPU accumulation. OIT coverage-v now replays the
+exact retained oit-t scene inputs to test the failed HUD region; no success
+claimed until pixel comparison. Full HUD classification and floor coverage
+remain separate open items.
+
+LOG537 normal-u completes exit0 on both processes. Whole-scene/producer replay
+accepts original1858/1859/1860; one completed pixel capture1860/1862. Its returned
+Remix input is byte-identical to oit-t, while original overlay masks differ in
+5352 values and native images in5343 channel values. Visual normal mask has
+continuous health bars, unlike OIT's holes. Scene equivalence separates shared
+floor/export limitations from OIT overlay coverage. Source inspection finds
+reactive coverage runs without depth and disables blending while writing zero
+overlay for unclassified translucent draws, allowing erasure in OIT submission
+order. Next test monotonic MAX accumulation on reactive mask/overlay targets,
+not depth/motion targets, against the failed frame and a falsifying overwrite
+control. Missing left-name classification and floor coverage remain separate;
+do not declare full HUD protection from fixed health bars alone.
+
+LOG537 ownership inspection: OIT and normal opaque draws both use indexed strips;
+OIT resolves before inherited display and restores native replay resources.
+No OIT-only mutation established yet. Normal-u now uses the same owned executable
+and retained oit-t scene/input archives through the whole-scene/producer checker.
+If accepted, compare original masks/native images at exact producer identity;
+do not assume the floor/HUD defect is OIT-specific or patch state speculatively.
+Both processes launched, no result yet. Failed wildcard/missing-path searches
+were corrected; original code and external configuration remain untouched.
+
+LOG537 oit-t CORRECTIONS_REQUIRED: both processes exit0; all four builds and
+enabled557/557 tests pass. Three actual backbuffers (1858/1860,1859/1861,
+1860/1862) independently equal evaluated world plus original native under R8
+mask, and join successful Presents; protected counts13984/13965/13952. Raw-world
+substitution negatives differ. However visual inspection REJECTS acceptance:
+the original native health bars are intact, while the protection mask has holes
+that admit transformed scene geometry over them; the returned scene also loses
+much of the arena floor. Mask equality alone did not detect missing protection.
+Retain native/mask/evaluated/composite images in fc067-oit-t-composites. Next
+inspect OIT replay vertex/index/state ownership and overlay coverage before
+any sustained OIT run or commit. This is not an OIT HUD/provenance/quality pass.
+
+LOG537 OIT opt-in begins from40d9f268f: OIT drawStrips resolves before inherited
+submitNeuralFrame/renderNeuralExports/displayFramebuffer; original resolved
+fbTex and source R8 mask are retained by the existing owned overlay snapshot.
+Exact ASYNC_OIT=1 now enables this shared path; absent/malformed values retain
+bypass. Automation builds and557/557 tests pass. Live oit-t requests three
+synchronous original-HUD/composite/backbuffer captures, with no locked replay
+or sentinel. Both processes launched; actual pixel validation remains pending.
+This does not add unsupported translucent world geometry or prove full OIT
+quality/provenance/performance. Remaining serial builds still required.
+
 LOG536 final slots-s: host exits0/1200 samples/clean close. Archived host/consumer
 logs;600 receipt pairs independently match sequence/frame/producer/bytes/digest,
 598 evaluated Presents remain monotonic and no image artifacts exist. External
