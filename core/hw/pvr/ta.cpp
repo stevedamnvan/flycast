@@ -571,6 +571,8 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 			record.writerPc = source.pc;
 			memcpy(record.before.data(), data, 32);
 			memcpy(record.after.data(), dst, 32);
+			for(unsigned component=0;component<3;++component)
+				record.xyzTransforms[component]=flycast::rend::neural::sourceSqTransforms[(source.address&32)/4+1+component];
 			const auto* bytes=reinterpret_cast<const u8*>(data);
 			for(unsigned i=0;i<12;++i) {
 				const auto& writer=flycast::rend::neural::sourceSqWriters[(source.address&32)+4+i];
@@ -579,6 +581,7 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 					record.xyzRamProducerPc[i]=writer.producerPc;
 				}
 			}
+			for(unsigned i=0;i<12;++i)if(!record.xyzStorePc[i])record.xyzTransforms[i/4].reset();
 			ta_ctx->sourceObservations->Append(record);
 		}
 		catch (const std::bad_alloc&)

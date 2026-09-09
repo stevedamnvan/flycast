@@ -8,6 +8,7 @@
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_transform.h"
+#include "rend/neural/source_arithmetic.h"
 #endif
 
 #include <mutex>
@@ -97,7 +98,13 @@ bool QueueRender(TA_context* ctx)
 			child->sourceObservations->Seal(ctx->rend.captureProducer, child->sourceObservations->Size());
 	if(ctx->sourceObservations && ctx->rend.captureProducer.Available() && flycast::rend::neural::sourceTransforms) {
 		const auto serial=flycast::rend::neural::sourceTransformSerial;
+		NOTICE_LOG(RENDERER,"PVR transform arithmetic: producer=%llu observed=%llu rejected=%llu",
+			static_cast<unsigned long long>(ctx->rend.captureProducer.ordinal),
+			static_cast<unsigned long long>(flycast::rend::neural::sourceArithmeticSerial),
+			static_cast<unsigned long long>(flycast::rend::neural::sourceArithmeticRejected));
 		const auto& last=(*flycast::rend::neural::sourceTransforms)[serial%4096];
+		NOTICE_LOG(RENDERER,"PVR direct transform stores: producer=%llu total=%llu",
+			static_cast<unsigned long long>(ctx->rend.captureProducer.ordinal),static_cast<unsigned long long>(flycast::rend::neural::sourceDirectTransformStores));
 		NOTICE_LOG(RENDERER,"PVR executed transform observation: producer=%llu serial=%llu last-pc=%08x correspondence=unproven",
 			static_cast<unsigned long long>(ctx->rend.captureProducer.ordinal),static_cast<unsigned long long>(serial),last.pc);
 	}

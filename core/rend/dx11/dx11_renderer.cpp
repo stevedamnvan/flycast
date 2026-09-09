@@ -2081,13 +2081,17 @@ void DX11Renderer::captureNeuralQualityFrame()
 			const auto frame = neuralQualityCaptureMetadata.frameId;
 			const auto* snapshot = neuralQualityCapture.CapturedPvrSnapshot(frame);
 			if (snapshot && !snapshot->sourceVertices.empty()) {
-				size_t stores=0,reads=0,producers=0;
+				const auto coverage=flycast::rend::neural::MeasurePvrSourceCoverage(*snapshot);
+				NOTICE_LOG(RENDERER,"PVR transform coverage: frame=%llu complete-xyz=%zu common-origin=%zu complete-draws=%zu partial-draws=%zu diagnostic-only",
+					static_cast<unsigned long long>(frame),coverage.completeVertices,coverage.commonOriginVertices,coverage.completeDraws,coverage.partialDraws);
+				size_t stores=0,reads=0,producers=0,transformComponents=0;
 				std::vector<u32> storePcs;
 				for(const auto& vertex:snapshot->sourceVertices)
 				{
 					stores+=std::all_of(vertex.copy.xyzStorePc.begin(),vertex.copy.xyzStorePc.end(),[](u32 pc){return pc!=0;});
 					reads+=std::all_of(vertex.copy.xyzSourceRam.begin(),vertex.copy.xyzSourceRam.end(),[](u32 address){return address!=0;});
 					producers+=std::all_of(vertex.copy.xyzRamProducerPc.begin(),vertex.copy.xyzRamProducerPc.end(),[](u32 pc){return pc!=0;});
+					for(const auto& transform:vertex.copy.xyzTransforms)transformComponents+=transform.has_value();
 					for(auto pc:vertex.copy.xyzStorePc) if(pc && std::find(storePcs.begin(),storePcs.end(),pc)==storePcs.end() && storePcs.size()<32)
 						storePcs.push_back(pc);
 				}
@@ -2100,6 +2104,8 @@ void DX11Renderer::captureNeuralQualityFrame()
 					static_cast<unsigned long long>(frame),reads);
 				NOTICE_LOG(RENDERER,"PVR observed RAM producers: frame=%llu complete-vertices=%zu diagnostic-only",
 					static_cast<unsigned long long>(frame),producers);
+				NOTICE_LOG(RENDERER,"PVR owned vertex transforms: frame=%llu components=%zu observed-dependency-only",
+					static_cast<unsigned long long>(frame),transformComponents);
 				for(auto pc:storePcs) NOTICE_LOG(RENDERER,"PVR observed XYZ store instruction: frame=%llu pc=%08x diagnostic-only",
 					static_cast<unsigned long long>(frame),pc);
 			}

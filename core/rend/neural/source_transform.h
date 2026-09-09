@@ -15,6 +15,13 @@ struct SourceTransform {
 // correspondence with a RAM write; consumers must prove that separately.
 inline thread_local std::unique_ptr<std::array<SourceTransform,4096>> sourceTransforms;
 inline thread_local std::uint64_t sourceTransformSerial=0;
+inline thread_local std::array<std::uint64_t,256> sourceTransformSlots{};
+inline thread_local std::uint64_t sourceDirectTransformStores=0;
+inline const SourceTransform* FindSourceTransform(std::uint64_t serial) noexcept {
+ if(!serial||!sourceTransforms)return nullptr;
+ const auto& record=(*sourceTransforms)[serial%sourceTransforms->size()];
+ return record.serial==serial?&record:nullptr;
+}
 inline void RetainSourceTransform(SourceTransform observation) noexcept {
  if(sourceTransformSerial==UINT64_MAX)return;
  if(!sourceTransforms)sourceTransforms.reset(new(std::nothrow) std::array<SourceTransform,4096>{});

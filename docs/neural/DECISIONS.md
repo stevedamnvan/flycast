@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-147: common-origin vertex/draw coverage is a dependency subset, not a camera
+
+Validated register handoff across compiled blocks allows observed transform
+dependencies to reach captured XYZ. Coverage requires all three components to
+carry the same executed transform serial and payload; complete draws require
+every referenced vertex to satisfy that condition. Duplicated source vertex
+records do not receive coverage. This is a selection boundary for the next
+supported live scene experiment, not permission to reinterpret original input
+coordinates as world space or claim evaluated projection reconstruction.
+Retain complete derivation evidence and establish camera/coordinate semantics
+with falsifying controls before activating reconstructed geometry. Preserve
+the zero-coverage and timed-out earlier attempts; diagnostic observers stay
+off by default and excluded from performance measurements.
+
 ## D-146: observed source dataflow is diagnostic until transform correspondence closes
 
 The opt-in x64 source observer now carries actual SQ stores, same-block direct

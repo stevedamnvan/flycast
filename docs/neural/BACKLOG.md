@@ -267,6 +267,52 @@ Decoded packets remain exact3/3 against the pre-transform observer; native
 pixels differ1/9/0 by max1, failed/parked. The source-observer checkpoint is
 diagnostic only; next remains transform-to-RAM arithmetic correspondence and
 matched-record ownership, not another downstream invocation-count experiment.
+LOG502 adds actual direct FTRV-component-to-RAM-store correspondence, accepting
+only exact reaching definition, executed serial and output bits. Three captures
+show thousands of such stores per late frame; automation388 tests pass. Next
+propagate owned matched transform data through RAM reads and the TA snapshot;
+then cover the intervening projection arithmetic. Store counts are not vertex
+coverage, and serials alone do not survive ring eviction. Full regression pending.
+LOG503 completes owned direct-transform handoff and390 selftests, but actual
+captured XYZ has ZERO directly linked components in all3 frames. Direct-only
+correspondence is insufficient. Pivot now to executed projection/arithmetic
+and intermediate RAM-copy dataflow; retain the zero result and stop repeating
+direct-store count captures. No recovered geometry or camera acceptance.
+LOG504 adds direct RAM-copy ownership forwarding and392 tests, but actual
+captured XYZ still has zero transform components. Direct copy omission is not
+the sufficient explanation. Next instrument/evaluate intervening scalar SHIL
+arithmetic operands/results and explicit transform dependencies; do not rerun
+the unchanged direct-only route or declare nearby/equal-value matches valid.
+LOG505 records actual scalar operands/results in FTRV-containing blocks;
+395 selftests pass and3 captures complete with20550637 observations,0 exact
+result rejections. Next propagate explicit transform dependencies through these
+verified operations and into RAM stores, rejecting overwritten/mixed origins.
+The rolling operation ring alone is not geometry lineage or frame coverage.
+LOG506 propagates same-block arithmetic origins with398 tests but actual XYZ
+coverage remains ZERO. Initial whole-tag-clear run timed out; epoch version
+completes3 captures. Next locate cross-block/unsupported-operation loss on the
+actual producer path and extend only with explicit overwrite/invalidation
+coverage. Do not repeat the unchanged same-block scope or call it accepted
+transform-to-vertex correspondence. Full configuration regression pending.
+LOG507 locates the actual loss: block entry8c03c94c clears4 live tags after
+the known FTRV path;8c03c95c/8c03c984 also clear4. Next replace blanket block
+clearing with validated entry-register handoff and cover destination writes
+through traversed blocks, including fallback and bank changes. Boundary-only
+report cap initially filled with startup overwrites; filtered run completed
+and retained the specific gameplay evidence. Do not repeat the same-block trial.
+LOG508 adds validated cross-block register handoff and overwrite/bank/fallback
+protection;400 selftests pass. Three actual captures now retain7533/7581/7498
+transform-dependent XYZ components (NOT complete vertices), first nonzero
+coverage. Next measure complete XYZ/common-origin and draw coverage, retain
+full evaluated derivations, and validate supported geometry/camera semantics.
+Do not promote component counts to recovered scene proof. Full regression pending.
+LOG509 identifies2508/2525/2497 complete common-origin vertices and20/21/19
+fully covered draws across3 captures (4/3/5 partial). Four builds,3x402 tests,
+Python331 andSDK179 pass. Next retain/export covered-draw transform/derivation
+evidence, validate live coordinate/camera relation with wrong-relation controls,
+and connect the supported subset to Remix. Coverage is not reconstruction
+acceptance; missing geometry stays native fallback, and count-only experiments
+must not displace the actual scene connection.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

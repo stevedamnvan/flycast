@@ -42,6 +42,50 @@ struct PvrDecodedPacket {
  std::uint32_t modifierTriangles=0, unusedNonfinite=0;
  // This remains a projected packet, never a recovered world/camera scene.
 };
+struct PvrSourceCoverage {
+ std::size_t components=0,completeVertices=0,commonOriginVertices=0,completeDraws=0,partialDraws=0;
+};
+// Diagnostic coverage only, not camera or reconstruction acceptance.
+inline PvrSourceCoverage MeasurePvrSourceCoverage(const PvrDecodedPacket& packet) {
+ PvrSourceCoverage result;
+ std::vector<unsigned char> coverage(packet.vertices.size(),0),seen(packet.vertices.size(),0);
+ for(const auto& source:packet.sourceVertices) {
+  const auto vertex=source.copy.decodedVertex;
+  if(vertex<seen.size()&&seen[vertex]<2)++seen[vertex];
+ }
+ for(const auto& source:packet.sourceVertices) {
+  const auto vertex=source.copy.decodedVertex;
+  if(vertex>=coverage.size())continue;
+  if(seen[vertex]!=1)continue;
+  const auto& xyz=source.copy.xyzTransforms;
+  unsigned components=0;for(const auto& transform:xyz)components+=transform&&transform->serial!=0;
+  result.components+=components;
+  if(components!=3)continue;
+  ++result.completeVertices;
+  const auto& first=*xyz[0];
+  const auto same=[&](const SourceTransform& other) {
+   return first.serial==other.serial&&first.pc==other.pc
+    &&first.input==other.input&&first.matrix==other.matrix&&first.output==other.output;
+  };
+  if(same(*xyz[1])&&same(*xyz[2]))coverage[vertex]=1;
+ }
+ for(auto value:coverage)result.commonOriginVertices+=value!=0;
+ for(const auto& draw:packet.draws) {
+  if(!draw.state.count)continue;
+  const std::uint64_t end=static_cast<std::uint64_t>(draw.state.first)+draw.state.count;
+  const auto bound=draw.vertexRange?packet.vertices.size():packet.indices.size();
+  if(end>bound)continue;
+  std::size_t matched=0,total=0;
+  for(std::uint64_t i=draw.state.first;i<end;++i) {
+   const auto vertex=draw.vertexRange?static_cast<std::uint32_t>(i):packet.indices[i];
+   if(vertex==UINT32_MAX)continue;
+   ++total;if(vertex<coverage.size())matched+=coverage[vertex]!=0;
+  }
+  if(total&&matched==total)++result.completeDraws;
+  else if(matched)++result.partialDraws;
+ }
+ return result;
+}
 // Bounded decoder, not renderer activation. Leaves output unchanged on failure.
 // Caller owns the render context and texture-cache lifetime throughout the copy.
 // Copies metadata only, clears raw texture pointers; no camera reconstruction.

@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include "source_transform.h"
+#include <optional>
 
 namespace flycast::rend::neural {
 // Observed SQ-to-TA copy only. Does not assert a camera or upstream transform.
@@ -18,6 +20,7 @@ struct SourceCopyObservation {
  std::array<std::uint32_t,12> xyzStorePc{};
  std::array<std::uint32_t,12> xyzSourceRam{},xyzReadPc{};
  std::array<std::uint32_t,12> xyzRamProducerPc{};
+ std::array<std::optional<SourceTransform>,3> xyzTransforms;
 };
 struct SourceVertexObservation {
  std::uint32_t child = 0;

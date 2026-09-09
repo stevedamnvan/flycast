@@ -7,6 +7,8 @@
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
+#include "rend/neural/source_transform.h"
+#include "rend/neural/source_arithmetic.h"
 #include <chrono>
 #include <fstream>
 #include "json/json.hpp"
@@ -150,6 +152,44 @@ int RunSelfTests()
 		try {SourceSqScope unwinding(0x8c001000,0xe0000020);throw 1;}catch(int){}
 		suite.Expect(!currentSourceSq.serial&&!sourceSqScopeActive,"source SQ exception unwinds attribution");
 		ProducerIdentity identity{3,100,900};SourceCopyObservation observation;
+		{
+		 PvrDecodedPacket packet;packet.vertices.resize(3);packet.indices={0,1,2};
+		 PvrCapturedDraw draw;draw.state.first=0;draw.state.count=3;packet.draws.push_back(draw);
+		 SourceTransform transform;transform.serial=7;transform.pc=0x8c001000;
+		 for(unsigned i=0;i<3;++i) {SourceVertexObservation source;source.copy.decodedVertex=i;
+		  for(auto& xyz:source.copy.xyzTransforms)xyz=transform;packet.sourceVertices.push_back(source);}
+		 auto coverage=MeasurePvrSourceCoverage(packet);
+		 suite.Expect(coverage.commonOriginVertices==3&&coverage.completeDraws==1,"source coverage requires every draw vertex");
+		 packet.sourceVertices[1].copy.xyzTransforms[1]->serial=8;
+		 coverage=MeasurePvrSourceCoverage(packet);
+		 suite.Expect(coverage.completeVertices==3&&coverage.commonOriginVertices==2&&coverage.completeDraws==0&&coverage.partialDraws==1,
+			"source coverage separates complete XYZ from common transform origin");
+		}
+		{
+		 SourceArithmetic arithmetic;arithmetic.lhs=0x40000000;arithmetic.rhs=0x3f800000;
+		 arithmetic.layout=1;arithmetic.result=0x40400000;
+		 suite.Expect(VerifySourceArithmetic(arithmetic),"arithmetic witness verifies actual add bits");
+		 arithmetic.result^=1;
+		 suite.Expect(!VerifySourceArithmetic(arithmetic),"arithmetic witness rejects one-bit wrong result");
+		 arithmetic.layout=4;arithmetic.rhs=0;arithmetic.result=0x7f800000;
+		 suite.Expect(!VerifySourceArithmetic(arithmetic),"arithmetic witness rejects singular division");
+		 ClearSourceArithmeticOrigins();SourceTransform transform;transform.serial=123;transform.output[0]=2.0f;
+		 SeedSourceArithmeticOrigin(4,transform);
+		 suite.Expect(ValidateSourceArithmeticRegister(4,0x40000000)&&sourceArithmeticLive==4,
+			"block entry retains exact live register transform");
+		 suite.Expect(!ValidateSourceArithmeticRegister(5,1)&&sourceArithmeticLive==3,
+			"block entry rejects changed register bits independently");
+		 BeginSourceArithmetic(0x8c001000,3|(5<<8)|(4<<16)|(255u<<24),0x40000000,0x40400000);
+		 EndSourceArithmetic(0x40c00000);
+		 suite.Expect(GetSourceArithmeticOrigin(5,0x40c00000)&&GetSourceArithmeticOrigin(5,0x40c00000)->serial==123,
+			"verified multiply propagates actual transform identity");
+		 transform.serial=124;transform.output[0]=1.0f;SeedSourceArithmeticOrigin(6,transform);
+		 BeginSourceArithmetic(0x8c001002,1|(7<<8)|(5<<16)|(6u<<24),0x40c00000,0x3f800000);EndSourceArithmetic(0x40e00000);
+		 suite.Expect(!GetSourceArithmeticOrigin(7,0x40e00000),"mixed transform arithmetic rejects ambiguous origin");
+		 KillSourceArithmeticOrigin(5,1);
+		 suite.Expect(!GetSourceArithmeticOrigin(5,0x40c00000),"overwritten register cannot revive same-value transform tag");
+		 ClearSourceArithmeticOrigins();
+		}
 		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
 		suite.Expect(SourceRamWriter(0xac001000,0x12345678)==0x8c002000,
 			"RAM writer physical alias retains exact observed value");
@@ -174,6 +214,33 @@ int RunSelfTests()
 		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects secondary destination write");
 		 ops[1].rd2=shil_param();ops[1].op=shop_ifb;
 		 suite.Expect(DirectSourceRead(ops,2)<0,"direct source read rejects interpreter boundary");
+		 ops[0].op=shop_ftrv;ops[0].rd=shil_param(regv_fv_0);
+		 ops[1].op=shop_mov32;ops[1].rd=shil_param(reg_fr_8);
+		 suite.Expect(DirectSourceTransform(ops,2)==0,"direct transform store finds exact component definition");
+		 ops[1].rd=shil_param(reg_fr_1);
+		 suite.Expect(DirectSourceTransform(ops,2)<0,"direct transform store rejects intervening arithmetic or overwrite");
+		 SourceTransform transform;transform.pc=0x8c001000;transform.output[3]=2.0f;
+		 RetainSourceTransform(transform);const auto serial=sourceTransformSerial;
+		 suite.Expect(FindSourceTransform(serial)&&FindSourceTransform(serial)->output[3]==2.0f,
+			"executed transform lookup preserves nonunit W");
+		 for(unsigned n=0;n<4096;++n)RetainSourceTransform(transform);
+		 suite.Expect(!FindSourceTransform(serial),"expired transform serial cannot alias replacement ring record");
+		 ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
+		 auto& writer=(*sourceRamWrites)[0x1000/4];
+		 transform.serial=serial;writer.transform=serial;writer.ownedTransform=transform;
+		 const auto owned=SourceRamTransform(0x8c001000,0x12345678);
+		 ObserveSourceRamWrite(0x8c002000,0x8c003000,4,0x12345678);
+		 suite.Expect(CarrySourceRamTransform(0x8c002000,0x8c003000,0x12345678,owned)
+			&&SourceRamTransform(0x8c002000,0x12345678)->serial==serial,
+			"direct RAM copy preserves owned transform through a second address");
+		 suite.Expect(!CarrySourceRamTransform(0x8c002000,0x8c003002,0x12345678,owned)
+			&&!CarrySourceRamTransform(0x8c002000,0x8c003000,0x12345679,owned),
+			"RAM transform forwarding rejects wrong writer and value");
+		 suite.Expect(owned&&owned->serial==serial&&!FindSourceTransform(serial),
+			"RAM writer owns transform after observation ring eviction");
+		 InvalidateSourceRamWrites();
+		 suite.Expect(!SourceRamTransform(0x8c001000,0x12345678)&&owned&&owned->output[3]==2.0f,
+			"RAM invalidation rejects new lookup without invalidating owned transform copy");
 		}
 		observation.generation=1;observation.writerPc=0x8c000100;observation.cycle=800;
 		observations.BeginContext(12);
