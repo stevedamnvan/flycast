@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_remix_adapter.h"
+#include "remake_triangle_transport.h"
 #include <algorithm>
 
 namespace neuraltest::remake {
@@ -25,6 +26,18 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
   for(auto& t:skinTransforms_)for(int i=0;i<3;i++)t.matrix[i][i]=1;
  }
  diagnostic_=diagnostic;
+ if(triangleSkinning_) {
+  if(!diagnostic||syntheticSkinning_)return {false,"triangle-skinning-diagnostic-only"};
+  triangleSkins_.resize(p.meshes.size());
+  for(std::size_t i=0;i<p.meshes.size();++i) {
+   const auto& m=p.meshes[i];auto& skin=triangleSkins_[i];
+   if(m.topology!=Topology::Triangles||m.vertices.empty()||m.vertices.size()%3||m.vertices.size()>768||m.indices.size()!=m.vertices.size())return {false,"triangle-skinning-bound"};
+   skin.weights.assign(m.vertices.size(),1);skin.indices.resize(m.vertices.size());skin.transforms.resize(m.vertices.size()/3);
+   for(std::size_t j=0;j<m.vertices.size();++j){if(m.indices[j]!=j)return {false,"triangle-skinning-index"};skin.indices[j]=std::uint32_t(j/3);}
+   for(auto& t:skin.transforms)for(int r=0;r<3;++r)t.matrix[r][r]=1;
+  }
+  lastTriangleFrame_=p.frame;
+ }
  if (!api_.CreateMaterial || !api_.DestroyMaterial || !api_.CreateMesh || !api_.DestroyMesh
   || !api_.CreateLight || !api_.DestroyLight || !api_.DrawLightInstance || !api_.SetupCamera || !api_.DrawInstance)
   return {false,"incomplete-public-interface"};
@@ -73,6 +86,11 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
    surface.skinning_value.blendIndices_values=skinIndices_.data();surface.skinning_value.blendIndices_count=3;
   }
   remixapi_MeshInfo info{}; info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;
+  if(triangleSkinning_) {
+   const auto& s=triangleSkins_[i];surface.skinning_hasvalue=1;surface.skinning_value.bonesPerVertex=1;
+   surface.skinning_value.blendWeights_values=s.weights.data();surface.skinning_value.blendWeights_count=s.weights.size();
+   surface.skinning_value.blendIndices_values=s.indices.data();surface.skinning_value.blendIndices_count=s.indices.size();
+  }
   info.hash=mesh.id; info.surfaces_values=&surface; info.surfaces_count=1;
   remixapi_MeshHandle handle=nullptr;
   const auto status=api_.CreateMesh(&info,&handle);
@@ -155,6 +173,28 @@ Result RemixScene::RedrawSyntheticMaterial(const Camera& camera,bool replace,con
  }
  return Redraw(camera);
 }
+Result RemixScene::RedrawFrozenAttributeTriangles(const Packet& next) {
+ if(!ready_||!triangleSkinning_)return {false,"no-retained-triangle-scene"};
+ auto previous=packet_;previous.frame=lastTriangleFrame_;
+ if(!DiagnosticContinuation(previous,next)||next.meshes.size()!=packet_.meshes.size())return {false,"triangle-continuation"};
+ const auto valid=ReadyForDiagnosticAdapter(next,next.frame,next.game,true);if(!valid.ok)return valid;
+ auto pending=triangleSkins_;
+ try {
+  for(std::size_t i=0;i<next.meshes.size();++i) {
+   const auto& old=packet_.meshes[i];const auto& current=next.meshes[i];
+   if(old.id!=current.id||old.indices!=current.indices||old.vertices.size()!=current.vertices.size()||old.transform!=current.transform)
+    return {false,"triangle-topology-changed"};
+   for(std::size_t j=0;j<old.vertices.size();j+=3) {
+    const auto matrix=TriangleAffine(&old.vertices[j],&current.vertices[j]);
+    for(int r=0;r<3;++r)for(int c=0;c<4;++c)pending[i].transforms[j/3].matrix[r][c]=matrix[r*4+c];
+   }
+  }
+ }catch(const std::exception&){return {false,"triangle-affine-rejected"};}
+ // Intentional diagnostic ablation: base UV/color/textures remain frame zero.
+ triangleSkins_.swap(pending);
+ const auto drawn=Redraw(next.camera);if(drawn.ok)lastTriangleFrame_=next.frame;
+ return drawn;
+}
 Result RemixScene::DrawFrame(const Camera& input) {
  remixapi_CameraInfoParameterizedEXT parameters{};
  parameters.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO_PARAMETERIZED_EXT;
@@ -175,6 +215,11 @@ Result RemixScene::DrawFrame(const Camera& input) {
   if(syntheticSkinning_) {
    bones.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT;
    bones.boneTransforms_values=skinTransforms_.data();bones.boneTransforms_count=3;
+   instance.pNext=&bones;
+  }
+  if(triangleSkinning_) {
+   bones.sType=REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT;
+   bones.boneTransforms_values=triangleSkins_[i].transforms.data();bones.boneTransforms_count=triangleSkins_[i].transforms.size();
    instance.pNext=&bones;
   }
   if(vertexColorControl_) {

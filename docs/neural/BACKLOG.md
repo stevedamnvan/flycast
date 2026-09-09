@@ -82,6 +82,14 @@ LOG455 exercises explicit source color on actual40-mesh H/L/M sequence with
 three readbacks; moving-fighter trails remain. Next retain real triangle geometry
 while representing changing source attributes; color contract is no longer
 blocked on proving visible vertex modulation. Do not repeat static color proof.
+LOG457 runs actual retained triangle H/L/M with explicit frozen-attribute
+ablation; floor/leg trails visibly reduced, upper-body artifacts remain. Next
+expanded topology/normal/failure controls, quantified trail comparison and
+source-attribute-preserving update. Frozen attributes are not the final route.
+LOG458 matched rebuilt/settled controls support a modest error reduction in
+floor/fighter regions, not general temporal acceptance. SDK169 includes bounded
+bones/topology/duplicate-frame/failure checks. Next changing source attributes
+on retained geometry; stop extending frozen-only visual experiments.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

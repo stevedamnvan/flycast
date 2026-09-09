@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-140: retained triangles are a labeled geometry-history ablation
+
+LOG457-458 split validated triangle lists into at most256 triangles per instance
+and carry one affine edge/normal transform per triangle using public bone data.
+No game skeleton is recovered. Initial material, UV and vertex colors remain
+explicitly frozen in this diagnostic; this is not source-attribute preservation.
+Rebuilt-frozen and settled-frozen controls share that limitation and permit a
+geometry-history comparison without confounding changing colors. The measured
+regional error reduction is narrow evidence, not temporal or gameplay acceptance.
+Reject incompatible frame/topology before drawing; after a draw failure discard
+the scene. Production integration must advance history only on accepted output,
+preserve changing source attributes and satisfy the full backlog checks.
+Next work must leave the frozen-only ablation rather than tuning it as a product.
+
 ## D-139: explicit source-color modulation, not inferred baked-light removal
 
 LOG452 proves that HardcodedVertex color transport alone is insufficient:

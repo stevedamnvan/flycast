@@ -2,6 +2,7 @@
 // Standalone developer bring-up, NOT a GPU/readback acceptance gate.
 #include "remake_remix_adapter.h"
 #include "remake_artifact_loader.h"
+#include "remake_triangle_transport.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -57,6 +58,8 @@ int wmain(int argc,wchar_t** argv) {
  bool gradientReference=false;
  bool gradientBlend=false;
  bool sourceColor=false;
+ bool retainedTriangles=false;
+ bool rebuiltFrozen=false,settledFrozen=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -71,7 +74,11 @@ int wmain(int argc,wchar_t** argv) {
   }
   reverseCamera=captureOption==L"--capture-reverse-camera";
   zeroLight=captureOption==L"--capture-zero-light";
-  sourceColor=captureOption==L"--capture-source-color";
+  retainedTriangles=captureOption==L"--capture-retained-frozen-attributes";
+  rebuiltFrozen=captureOption==L"--capture-rebuilt-frozen-attributes";
+  settledFrozen=captureOption==L"--capture-settled-frozen-attributes";
+  if((retainedTriangles||rebuiltFrozen||settledFrozen)&&argc!=18)return 2;
+  sourceColor=captureOption==L"--capture-source-color" || retainedTriangles || rebuiltFrozen || settledFrozen;
   if(sourceColor&&argc!=14&&argc!=18){std::cerr<<"source color control requires artifact\n";return 2;}
   reverseLight=captureOption==L"--capture-reverse-light" || sourceColor;
   wrongSkinning=captureOption==L"--capture-skinning-reversed";
@@ -117,8 +124,22 @@ int wmain(int argc,wchar_t** argv) {
      auto next=LoadDiagnosticArtifact(root/L"scene.json",root/L"assets",clipNear,clipFar);
      if(!DiagnosticContinuation(sequence.back(),next))throw std::invalid_argument("sequence identity/origin mismatch");
      // Diagnostic isolation: no temporal resource identity claim across endpoints.
-     for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
+     if(!retainedTriangles&&!rebuiltFrozen&&!settledFrozen)for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
      sequence.push_back(std::move(next));
+    }
+    if(retainedTriangles||rebuiltFrozen||settledFrozen)for(auto& endpoint:sequence)endpoint=TriangleBatches(endpoint);
+    if(rebuiltFrozen||settledFrozen)for(std::size_t f=1;f<sequence.size();++f) {
+     if(sequence[f].meshes.size()!=sequence[0].meshes.size())throw std::invalid_argument("frozen control topology");
+     for(std::size_t m=0;m<sequence[f].meshes.size();++m) {
+      auto& current=sequence[f].meshes[m];const auto& base=sequence[0].meshes[m];
+      if(current.id!=base.id||current.indices!=base.indices||current.vertices.size()!=base.vertices.size())throw std::invalid_argument("frozen control topology");
+      current.material=base.material;current.texture=base.texture;
+      for(std::size_t v=0;v<current.vertices.size();++v) {
+       current.vertices[v].u=base.vertices[v].u;current.vertices[v].v=base.vertices[v].v;
+       current.vertices[v].publicColor=base.vertices[v].publicColor;
+      }
+      current.id+=f*0x100000000ull;
+     }
     }
     for(const auto& endpoint:sequence) {
      if(std::filesystem::exists(capture.wstring()+L".frame-"+std::to_wstring(endpoint.frame)+L".bmp"))
@@ -190,7 +211,9 @@ int wmain(int argc,wchar_t** argv) {
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
   std::cerr<<"diagnostic_light_direction=0,0,"<<(reverseLight?-1:1)<<" recovered_game_lighting=false\n";
   std::cerr<<"explicit_vertex_color="<<(gradientBlend||sourceColor)<<" baked_lighting_removed=false\n";
-  RemixScene retained(api,zeroLight,reverseLight,skinning,affine||affineReference||materialReplace||materialRepeat||gradientReference,gradientBlend||sourceColor);
+  RemixScene retained(api,zeroLight,reverseLight,skinning,affine||affineReference||materialReplace||materialRepeat||gradientReference,gradientBlend||sourceColor,retainedTriangles);
+  if(retainedTriangles)std::cerr<<"retained_triangle_control=true frozen_source_attributes=true recovered_skeleton=false\n";
+  if(rebuiltFrozen||settledFrozen)std::cerr<<"rebuilt_frozen_attributes=true settled_reference="<<settledFrozen<<" recovered_skeleton=false\n";
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   for(long frame=0;frame<frames;frame++) {
@@ -200,7 +223,7 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
-   const auto sequenceIndex=frame<60?0:frame-60;
+   const auto sequenceIndex=settledFrozen?2:frame<60?0:frame-60;
    auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
    if(skinning || affineReference || materialReplace || materialRepeat || gradientReference)packet.camera.position.x=0;
@@ -224,8 +247,12 @@ int wmain(int argc,wchar_t** argv) {
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
-   if(!sequence.empty()) {
-    if(sequenceResources.size()<=size_t(sequenceIndex)) {
+   if(retainedTriangles) {
+    submitted=frame==0?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true):
+     frame<=60?retained.Redraw(packet.camera):retained.RedrawFrozenAttributeTriangles(packet);
+    std::cerr<<"retained_source_frame="<<packet.frame<<" frozen_source_attributes=true\n";
+   }else if(!sequence.empty()) {
+    if(sequenceResources.empty()||(!settledFrozen&&sequenceResources.size()<=size_t(sequenceIndex))) {
      sequenceResources.push_back(std::make_unique<RemixScene>(api,false,reverseLight,false,false,sourceColor));
      submitted=sequenceResources.back()->SubmitDiagnostic(packet,packet.frame,packet.game,true);
     }else submitted=sequenceResources.back()->Redraw(packet.camera);
@@ -242,7 +269,7 @@ int wmain(int argc,wchar_t** argv) {
    std::cerr<<"phase=present end frame="<<frame<<" code="<<int(status)<<'\n'<<std::flush;
    if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;break; }
    accepted++;
-  if(!capture.empty() && (accepted==frames || (!sequence.empty() && frame>=60)) && ownedDevice) {
+  if(!capture.empty() && (accepted==frames || (!sequence.empty() && frame>=60&&!settledFrozen)) && ownedDevice) {
    const std::filesystem::path capturePath=sequence.empty()?capture:
     std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;

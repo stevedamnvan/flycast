@@ -10,7 +10,7 @@ namespace neuraltest::remake {
 // A submission failure requires discarding the entire frame, not presentation.
 class RemixScene {
 public:
- explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false, bool dimLightControl=false, bool vertexColorControl=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning), dimLightControl_(dimLightControl), vertexColorControl_(vertexColorControl) {}
+ explicit RemixScene(remixapi_Interface api, bool zeroLightControl=false, bool reverseLightControl=false, bool syntheticSkinning=false, bool dimLightControl=false, bool vertexColorControl=false, bool triangleSkinning=false) : api_(api), zeroLightControl_(zeroLightControl), reverseLightControl_(reverseLightControl), syntheticSkinning_(syntheticSkinning), dimLightControl_(dimLightControl), vertexColorControl_(vertexColorControl), triangleSkinning_(triangleSkinning) {}
  ~RemixScene();
  RemixScene(const RemixScene&) = delete;
  RemixScene& operator=(const RemixScene&) = delete;
@@ -23,6 +23,7 @@ public:
  Result RedrawSyntheticSkinning(const Camera&,float apexOffset);
  Result RedrawSyntheticAffine(const Camera&);
  Result RedrawSyntheticMaterial(const Camera&,bool replace,const std::filesystem::path& texture={});
+ Result RedrawFrozenAttributeTriangles(const Packet&);
 private:
  Result SubmitChecked(const Packet&, std::uint64_t, const std::string&, bool diagnostic);
  bool diagnostic_ = false;
@@ -35,6 +36,10 @@ private:
  bool syntheticSkinning_=false;
  bool dimLightControl_=false;
  bool vertexColorControl_=false;
+ bool triangleSkinning_=false;
+ std::uint64_t lastTriangleFrame_=0;
+ struct TriangleSkin {std::vector<float> weights;std::vector<std::uint32_t> indices;std::vector<remixapi_Transform> transforms;};
+ std::vector<TriangleSkin> triangleSkins_;
  std::array<float,3> skinWeights_{1,1,1};
  std::array<std::uint32_t,3> skinIndices_{0,1,2};
  std::array<remixapi_Transform,3> skinTransforms_{};

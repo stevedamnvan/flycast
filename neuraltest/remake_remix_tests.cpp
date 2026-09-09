@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_remix_adapter.h"
+#include "remake_triangle_transport.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -19,6 +20,7 @@ struct Calls {
  float cameraX=0;
  float expectedLightZ=1;
  bool skinning=false;
+ bool triangleSkinning=false;
  bool vertexBlend=false;
  float expectedApex=0;
  float expectedRadiance=3;
@@ -47,7 +49,10 @@ remixapi_ErrorCode REMIXAPI_CALL material(const remixapi_MaterialInfo* p,remixap
 remixapi_ErrorCode REMIXAPI_CALL mesh(const remixapi_MeshInfo* p,remixapi_MeshHandle* out) {
  ++calls.meshes; if(calls.failMesh==calls.meshes) return failure();
  const auto& s=p->surfaces_values[0];
- calls.valid &= bool(s.skinning_hasvalue)==calls.skinning;
+ calls.valid &= bool(s.skinning_hasvalue)==(calls.skinning||calls.triangleSkinning);
+ if(calls.triangleSkinning)calls.valid &= s.skinning_value.bonesPerVertex==1
+  &&s.skinning_value.blendWeights_count==3&&s.skinning_value.blendIndices_count==3
+  &&s.skinning_value.blendIndices_values[2]==0;
  if(calls.skinning)calls.valid &= s.skinning_value.bonesPerVertex==1
   && s.skinning_value.blendWeights_count==3&&s.skinning_value.blendIndices_count==3
   && s.skinning_value.blendWeights_values[2]==1&&s.skinning_value.blendIndices_values[2]==2;
@@ -89,6 +94,11 @@ remixapi_ErrorCode REMIXAPI_CALL draw(const remixapi_InstanceInfo* p) {
   const auto* b=static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(next);
   calls.valid &= b&&b->sType==REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT
    && b->boneTransforms_count==3&&b->boneTransforms_values[2].matrix[0][3]==calls.expectedApex;
+ }
+ if(calls.triangleSkinning) {
+  const auto* b=static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(next);
+  calls.valid &= b&&b->sType==REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT
+   &&b->boneTransforms_count==1;
  }
  calls.valid &= calls.cameras>=1 && p->mesh && p->transform.matrix[0][0]==1 && p->transform.matrix[0][3]==0;
  return calls.failDraw?failure():ok;
@@ -332,6 +342,32 @@ int main() {
   expect(scene.Submit(p,p.frame,p.game).ok&&calls.valid,"explicit vertex blend preserves bone extension chain");
   calls.expectedApex=.5f;
   expect(scene.RedrawSyntheticSkinning(p.camera,.5f).ok&&calls.valid,"vertex blend retained through skinning redraw");
+ }
+ {
+  auto p=Synthetic();const auto batches=TriangleBatches(p);
+  expect(batches.meshes.size()==2&&batches.meshes[0].id==1024&&batches.meshes[0].vertices.size()==3,
+   "triangle batches retain source vertex count and disjoint IDs");
+  auto moved=p.meshes[0].vertices;
+  for(auto& v:moved){v.position.x+=4;v.position.y-=3;}
+  const auto matrix=TriangleAffine(p.meshes[0].vertices.data(),moved.data());
+  expect(std::abs(matrix[3]-4)<1e-6f&&std::abs(matrix[7]+3)<1e-6f&&std::abs(matrix[0]-1)<1e-6f,
+   "triangle affine analytic translation");
+  moved[1]=moved[0];bool rejected=false;
+  try{TriangleAffine(p.meshes[0].vertices.data(),moved.data());}catch(const std::invalid_argument&){rejected=true;}
+  expect(rejected,"triangle affine rejects degenerate target");
+ }
+ calls={};calls.triangleSkinning=true;
+ { auto p=Synthetic();p.space=Space::SampledAnchor;p.camera.provenance=Provenance::Supplied;
+  p.omissions={"diagnostic fixture"};p.sourceGitSha="fixture";p.diagnosticOrigin=Vec3{};
+  RemixScene scene(interface(),false,false,false,false,false,true);
+  expect(scene.SubmitDiagnostic(p,p.frame,p.game,true).ok&&calls.valid,"diagnostic retained triangles create bounded bones");
+  ++p.frame;for(auto& m:p.meshes){m.frame=p.frame;for(auto& v:m.vertices)v.position.x+=.01f;}
+  auto bad=p;bad.meshes[0].indices={1,0,2};const auto draws=calls.draws;
+  expect(!scene.RedrawFrozenAttributeTriangles(bad).ok&&calls.draws==draws,"changed retained topology rejected before draw");
+  expect(scene.RedrawFrozenAttributeTriangles(p).ok&&calls.valid&&calls.meshes==2,"retained triangle update reuses meshes");
+  expect(!scene.RedrawFrozenAttributeTriangles(p).ok,"duplicate retained frame rejected");
+  ++p.frame;for(auto& m:p.meshes)m.frame=p.frame;calls.failDraw=true;
+  expect(!scene.RedrawFrozenAttributeTriangles(p).ok&&!scene.Redraw(p.camera).ok,"failed retained draw prevents stale resume");
  }
  std::cout<<"remake-sdk-contract passed="<<counts.passed<<" failed="<<counts.failed
   <<" runtime_loaded=false gpu_rendered=false presented=false\n";
