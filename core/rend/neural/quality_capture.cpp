@@ -573,6 +573,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		return false;
 	if (textures.pvrMaterials && !textures.pvrMaterials(frameRoot / "pvr-scene.json", error))
 		return false;
+	if(pendingSnapshot&&!pendingSnapshot->sourceVertices.empty()
+		&&!WritePvrSourceWitness(frameRoot / "pvr-source-witness.json",*pendingSnapshot,error))return false;
 
 	auto read = [&](ID3D11Texture2D *texture, RawTexture& raw,
 		QualityCaptureWriter::RgbaImage& rgba) {

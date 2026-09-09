@@ -8,6 +8,7 @@
 #include <fstream>
 #include <locale>
 #include <sstream>
+#include <map>
 
 namespace flycast::rend::neural {
 namespace {
@@ -150,6 +151,41 @@ bool SnapshotPvrScenePacket(const rend_context& ctx,const std::array<float,16>& 
  }
  for(const auto& p:ctx.render_passes)result.passes.push_back({p.op_count,p.pt_count,p.tr_count,p.mvo_count,p.sorted_tr_count,p.autosort,p.z_clear});
  output=std::move(result);error.clear();return true;
+}
+bool WritePvrSourceWitness(const std::filesystem::path& path,const PvrDecodedPacket& packet,std::string& error) {
+ if(!packet.sourceProducer.Available()||packet.sourceVertices.size()>SourceObservationBatch::capacity) {
+  error="source-witness-identity-or-bound";return false;
+ }
+ std::ofstream out(path,std::ios::binary);out.imbue(std::locale::classic());
+ if(!out) {error="source-witness-open";return false;}
+ out<<"{\"schema\":1,\"scope\":\"observed-dependency-not-reconstruction\",\"frame\":"<<packet.frame<<",\"game\":";
+ String(out,packet.game);out<<",\"git\":";String(out,packet.gitSha);
+ out<<",\"producer\":["<<packet.sourceProducer.epoch<<','<<packet.sourceProducer.ordinal<<','<<packet.sourceProducer.cycle<<"],\"vertices\":[";
+ std::map<std::uint64_t,const SourceTransform*> transforms;bool comma=false;
+ for(const auto& source:packet.sourceVertices) {
+  const auto& copy=source.copy;
+  if(copy.decodedVertex>=packet.vertices.size()) {error="source-witness-vertex-bound";return false;}
+  bool any=false;for(const auto& transform:copy.xyzTransforms)any|=transform.has_value();
+  if(!any)continue;
+  if(comma)out<<',';comma=true;
+  out<<"{\"vertex\":"<<copy.decodedVertex<<",\"child\":"<<source.child<<",\"xyz_bits\":[";
+  const auto& vertex=packet.vertices[copy.decodedVertex];out<<Bits(vertex.x)<<','<<Bits(vertex.y)<<','<<Bits(vertex.z)<<"],\"origins\":[";
+  for(unsigned i=0;i<3;++i) {
+   if(i)out<<',';
+   if(copy.xyzTransforms[i]) {const auto& t=*copy.xyzTransforms[i];out<<t.serial;transforms.emplace(t.serial,&t);}
+   else out<<"null";
+  }
+  out<<"]}";
+ }
+ out<<"],\"transforms\":[";comma=false;
+ const auto bits=[&](const auto& values) {out<<'[';bool sep=false;for(float value:values){if(sep)out<<',';sep=true;out<<Bits(value);}out<<']';};
+ for(const auto& entry:transforms) {
+  if(comma)out<<',';comma=true;const auto& t=*entry.second;
+  out<<"{\"serial\":"<<t.serial<<",\"pc\":"<<t.pc<<",\"input_bits\":";bits(t.input);
+  out<<",\"matrix_bits\":";bits(t.matrix);out<<",\"output_bits\":";bits(t.output);out<<'}';
+ }
+ out<<"]}\n";out.close();if(!out){error="source-witness-write";return false;}
+ error.clear();return true;
 }
 bool PvrSnapshotTextureBindingsMatch(const rend_context& ctx,const PvrDecodedPacket& packet) {
  const auto matches=[](const BaseTextureCacheData* live,const std::optional<PvrCapturedTexture>& saved) {

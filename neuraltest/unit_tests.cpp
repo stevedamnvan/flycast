@@ -159,6 +159,16 @@ int RunSelfTests()
 		 for(unsigned i=0;i<3;++i) {SourceVertexObservation source;source.copy.decodedVertex=i;
 		  for(auto& xyz:source.copy.xyzTransforms)xyz=transform;packet.sourceVertices.push_back(source);}
 		 auto coverage=MeasurePvrSourceCoverage(packet);
+		 packet.sourceProducer={1,2,3};packet.frame=4;packet.game="fixture";
+		 const auto witnessPath=std::filesystem::temp_directory_path()/("flycast-source-witness-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".json");
+		 std::string witnessError;
+		 const bool wrote=WritePvrSourceWitness(witnessPath,packet,witnessError);
+		 nlohmann::json witness;if(wrote){std::ifstream input(witnessPath);input>>witness;}
+		 suite.Expect(wrote&&witness["vertices"].size()==3&&witness["transforms"].size()==1
+			&&witness["producer"][1]==2,"source witness retains frame identity and deduplicated transform bits");
+		 std::filesystem::remove(witnessPath);
+		 packet.sourceProducer={};
+		 suite.Expect(!WritePvrSourceWitness(witnessPath,packet,witnessError),"source witness rejects missing producer identity");
 		 suite.Expect(coverage.commonOriginVertices==3&&coverage.completeDraws==1,"source coverage requires every draw vertex");
 		 packet.sourceVertices[1].copy.xyzTransforms[1]->serial=8;
 		 coverage=MeasurePvrSourceCoverage(packet);
