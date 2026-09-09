@@ -78,6 +78,16 @@ LOG412 empty-scene control still reports37 objects without any scene handles
 (rendered runs40). Do not repeat wait/Present-bypass experiments. Preserve this
 open runtime ownership failure; next checkpoint controls, then expand actual
 scene coverage under the still-pending camera contract without claiming M1 done.
+LOG414 rechecks actual first-L frame1783 lineage (3682vertices/2152triangles,
+five retained strict failures). Next prepare L/M with per-frame verified assets
+and fixed H origin, then test actual runtime endpoints; not inferred motion.
+LOG415-416 complete separate L/M prepared/runtime endpoints (not sequence).
+Next bounded one-session H-to-L-to-M transition, preserving source IDs,
+explicit omissions, and resource lifetime; preparation guard positive still pending.
+LOG417-418 now capture each of1782/1783/1784 in one warmed runtime session.
+Swapped endpoints reject before runtime; origin/SHA/skipped-frame controls and
+full regression remain next. Isolated resource namespaces do not prove temporal
+identity; do not promote this3-frame diagnostic to continuous gameplay.
 First actual final-color
 capture now shows synthetic triangles after matching public alphaTestType7;
 cleanup warnings and full scene acceptance remain open. Historical LOG400 task:

@@ -28,6 +28,18 @@ LOG404-405 retain both matching and falsifying actual-image results.
 
 ## Prepared diagnostic snapshot
 
+For a bounded three-endpoint transition, use `--frames 63` and append
+`--next L_DIRECTORY --next M_DIRECTORY --capture ABSOLUTE_NEW_PREFIX`
+after the existing artifact/assets/clips arguments. Each endpoint directory
+contains `scene.json` and `assets/`. The first60 frames are explicitly logged
+H warmup, followed by H/L/M once. Outputs are
+`PREFIX.frame-SOURCE_FRAME.bmp`, all checked create-only. Endpoints must have
+consecutive frame IDs, identical game/source SHA and shared diagnostic origin.
+All scene resources remain retained through the session. Mesh/material IDs are
+isolated across endpoints: this tests diagnostic transitions, not temporal
+correspondence, complete gameplay or performance. Runtime teardown warnings
+remain open. Packed normal capture is still rejected.
+
 The standalone harness additionally accepts:
 
 ```text

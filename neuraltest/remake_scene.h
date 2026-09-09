@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <cmath>
 
 namespace neuraltest::remake {
 struct Vec3 { float x = 0, y = 0, z = 0; };
@@ -56,6 +57,7 @@ struct Packet {
  std::string sourceGitSha; // Optional for synthetic packets; retained on diagnostic import.
  Space space = Space::PvrProjected;
  Camera camera;
+ std::optional<Vec3> diagnosticOrigin; // Shared source anchor, not physical-world proof.
  bool truncated = false;
  std::vector<std::string> omissions;
  std::vector<Mesh> meshes;
@@ -64,6 +66,14 @@ struct Limits {
  std::size_t meshes = 128, vertices = 65536, indices = 262144, bytes = 8 * 1024 * 1024;
 };
 struct Result { bool ok; std::string reason; };
+inline bool DiagnosticContinuation(const Packet& previous,const Packet& next) {
+ if(!previous.diagnosticOrigin || !next.diagnosticOrigin || previous.frame==UINT64_MAX ||
+    next.frame!=previous.frame+1 || previous.game.empty() || next.game!=previous.game ||
+    previous.sourceGitSha.empty() || next.sourceGitSha!=previous.sourceGitSha)return false;
+ const auto a=*previous.diagnosticOrigin,b=*next.diagnosticOrigin;
+ return std::isfinite(a.x)&&std::isfinite(a.y)&&std::isfinite(a.z)&&
+  a.x==b.x&&a.y==b.y&&a.z==b.z;
+}
 Result Validate(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame,
  const Limits& = {});
 Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);

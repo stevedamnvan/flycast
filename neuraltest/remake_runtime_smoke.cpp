@@ -35,7 +35,7 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
- if((argc!=5 && argc!=7 && argc!=12 && argc!=14) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
+ if((argc!=5 && argc!=7 && argc!=12 && argc!=14 && argc!=18) || std::wstring(argv[1])!=L"--runtime" || std::wstring(argv[3])!=L"--frames") {
   std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR] [--capture|--capture-normals ABSOLUTE_NEW_BMP]\n";return 2;
  }
  wchar_t* end=nullptr;
@@ -45,14 +45,15 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
  std::optional<Packet> snapshot;
+ std::vector<Packet> sequence;
  std::filesystem::path capture;
  bool reverseCamera=false;
  bool zeroLight=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
- if(argc==7 || argc==14) {
-  const int captureIndex=argc==7?5:12;
+ if(argc==7 || argc==14 || argc==18) {
+  const int captureIndex=argc==7?5:argc==18?16:12;
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
   // Public NORMALS selects packed R32_UINT, not an XYZ float image.
@@ -69,13 +70,30 @@ int wmain(int argc,wchar_t** argv) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
- if(argc==12 || argc==14) {
+ if(argc==12 || argc==14 || argc==18) {
   try {
    if(std::wstring(argv[5])!=L"--artifact" || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
     throw std::invalid_argument("artifact options");
    std::size_t a=0,b=0;float clipNear=std::stof(argv[10],&a),clipFar=std::stof(argv[11],&b);
    if(a!=std::wstring(argv[10]).size()||b!=std::wstring(argv[11]).size())throw std::invalid_argument("clip syntax");
    snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
+   if(argc==18) {
+    if(frames!=63 || std::wstring(argv[12])!=L"--next" || std::wstring(argv[14])!=L"--next" ||
+       std::wstring(argv[16])!=L"--capture")throw std::invalid_argument("sequence requires 60 warmup plus three frames and final color capture");
+    sequence.push_back(*snapshot);
+    for(int i: {13,15}) {
+     const std::filesystem::path root(argv[i]);
+     auto next=LoadDiagnosticArtifact(root/L"scene.json",root/L"assets",clipNear,clipFar);
+     if(!DiagnosticContinuation(sequence.back(),next))throw std::invalid_argument("sequence identity/origin mismatch");
+     // Diagnostic isolation: no temporal resource identity claim across endpoints.
+     for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
+     sequence.push_back(std::move(next));
+    }
+    for(const auto& endpoint:sequence) {
+     if(std::filesystem::exists(capture.wstring()+L".frame-"+std::to_wstring(endpoint.frame)+L".bmp"))
+      throw std::invalid_argument("sequence capture already exists");
+    }
+   }
    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
   }catch(const std::exception& e){std::cerr<<"artifact rejected before runtime load: "<<e.what()<<'\n';return 2;}
@@ -139,6 +157,7 @@ int wmain(int argc,wchar_t** argv) {
   // Retain all submitted CPU buffers/resources across the bounded sequence.
   // Destruction/Shutdown ordering follows public API usage, not a proved GPU fence.
   RemixScene retained(api,zeroLight);
+  std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -146,14 +165,22 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
-   auto packet=snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   const auto sequenceIndex=frame<60?0:frame-60;
+   auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
    if(reverseOrder)std::reverse(packet.meshes.begin(),packet.meshes.end());
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
-   const auto submitted=emptyScene?Result{true,"empty-scene-control"}:frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
+   Result submitted{false,"not-submitted"};
+   if(!sequence.empty()) {
+    if(sequenceResources.size()<=size_t(sequenceIndex)) {
+     sequenceResources.push_back(std::make_unique<RemixScene>(api));
+     submitted=sequenceResources.back()->SubmitDiagnostic(packet,packet.frame,packet.game,true);
+    }else submitted=sequenceResources.back()->Redraw(packet.camera);
+    std::cerr<<"sequence_source_frame="<<packet.frame<<" warmup="<<(frame<60)<<" source_sha="<<packet.sourceGitSha<<" temporal_identity_proven=false\n"<<std::flush;
+   }else submitted=emptyScene?Result{true,"empty-scene-control"}:frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
     :retained.Submit(packet,packet.frame,packet.game)):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
@@ -163,8 +190,9 @@ int wmain(int argc,wchar_t** argv) {
    std::cerr<<"phase=present end frame="<<frame<<" code="<<int(status)<<'\n'<<std::flush;
    if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;break; }
    accepted++;
-  }
-  if(!capture.empty() && accepted==frames && ownedDevice) {
+  if(!capture.empty() && (accepted==frames || (!sequence.empty() && frame>=60)) && ownedDevice) {
+   const std::filesystem::path capturePath=sequence.empty()?capture:
+    std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
    const bool floatOutput=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
    const auto format=floatOutput?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
@@ -195,7 +223,7 @@ int wmain(int argc,wchar_t** argv) {
     cpu->UnlockRect();
     bool rawOk=true;
     if(floatOutput) {
-     const auto rawPath=capture.wstring()+L".rgba32f";
+     const auto rawPath=capturePath.wstring()+L".rgba32f";
      HANDLE rawFile=CreateFileW(rawPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
      DWORD bytes=0;
      rawOk=rawFile!=INVALID_HANDLE_VALUE;
@@ -206,7 +234,7 @@ int wmain(int argc,wchar_t** argv) {
     }
     BITMAPFILEHEADER file{};file.bfType=0x4d42;file.bfOffBits=sizeof(file)+sizeof(BITMAPINFOHEADER);file.bfSize=file.bfOffBits+DWORD(pixels.size());
     BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=640;info.biHeight=-480;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
-    HANDLE out=CreateFileW(capture.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+    HANDLE out=CreateFileW(capturePath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     DWORD written=0;
     bool ok=out!=INVALID_HANDLE_VALUE;
     if(ok)ok=WriteFile(out,&file,sizeof(file),&written,nullptr)&&written==sizeof(file);
@@ -216,8 +244,9 @@ int wmain(int argc,wchar_t** argv) {
     hr=ok&&rawOk?S_OK:E_FAIL;
    }
    if(cpu)cpu->Release();if(gpu)gpu->Release();
-   std::cerr<<"capture_readback_hresult="<<hr<<" image_validation_pending=true\n"<<std::flush;
-   if(FAILED(hr))outcome=14;
+   std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true\n"<<std::flush;
+   if(FAILED(hr)){outcome=14;break;}
+  }
   }
  }
  // Window destruction can dispatch callbacks installed by the runtime.

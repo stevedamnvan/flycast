@@ -37,6 +37,7 @@ Packet LoadDiagnosticArtifact(const std::filesystem::path& path,const std::files
   && json.at("renderable_by_remix_adapter")==false,"diagnostic artifact schema");
  need(json.at("material_semantic")=="source-color-not-physical-albedo","source color semantic");
  Packet p;p.space=Space::SampledAnchor;p.frame=number(json.at("frame_id"));p.game=json.at("game_id").get<std::string>();
+ p.diagnosticOrigin=vector(json.at("fixed_origin"));
  need(p.game.size()<=64,"game length");
  p.sourceGitSha=json.at("git_sha").get<std::string>();
  need(!p.sourceGitSha.empty()&&p.sourceGitSha.size()<=64,"source SHA length");

@@ -12,6 +12,17 @@ TestCounts TestSceneContract() {
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
  {
+  auto previous=p;previous.frame=1782;previous.sourceGitSha="fixture";previous.diagnosticOrigin=Vec3{1,2,3};
+  auto next=previous;next.frame=1783;
+  expect(DiagnosticContinuation(previous,next),"sequence consecutive source");
+  auto changed=next;changed.frame=1784;expect(!DiagnosticContinuation(previous,changed),"sequence skipped frame rejected");
+  changed=next;changed.game="other";expect(!DiagnosticContinuation(previous,changed),"sequence game rejected");
+  changed=next;changed.sourceGitSha="other";expect(!DiagnosticContinuation(previous,changed),"sequence SHA rejected");
+  changed=next;changed.diagnosticOrigin->x+=1;expect(!DiagnosticContinuation(previous,changed),"sequence origin rejected");
+  changed=next;changed.diagnosticOrigin.reset();expect(!DiagnosticContinuation(previous,changed),"sequence missing origin rejected");
+  changed=next;changed.diagnosticOrigin->x=std::numeric_limits<float>::quiet_NaN();expect(!DiagnosticContinuation(previous,changed),"sequence nonfinite origin rejected");
+ }
+ {
   auto m=p.meshes[0];m.vertices[0].publicColor=0x12345678;
   auto flat=DeriveFlatNormals(m,Space::World);
   expect(flat.mesh.vertices.size()==3 && flat.mesh.vertices[0].normal->z==1
