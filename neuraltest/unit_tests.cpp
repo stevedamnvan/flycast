@@ -1397,6 +1397,23 @@ int RunSelfTests()
 		auto plate=fill;plate.texId=801607344u;plate.bboxMin[0]=20;plate.bboxMax[0]=272;
 		plate.bboxMin[1]=37;plate.bboxMax[1]=65;plate.zMin=plate.zMax=.207822f;
 		suite.Expect(capturedHud(plate),"captured depleted health plate remains protected behind changing fill");
+		{
+			DrawRecord cohort[4]={header,timer,fill,fill};
+			cohort[3].bboxMin[0]=368;cohort[3].bboxMax[0]=620;
+			for(unsigned i=0;i<4;++i){cohort[i].ordinal=i;cohort[i].zMin=cohort[i].zMax=.11f;}
+			const auto scaleFor=[&]{return TitleOverlayDepthScale({cohort,4},640,480,OverlayProfile::SoulcaliburT1401nHudV1);};
+			const float scale=scaleFor();
+			suite.Expect(scale>0 && std::abs(scale*.11f-.18f)<1e-6f,"coherent title HUD supplies relative depth scale");
+			auto normalized=cohort[0];normalized.zMin*=scale;normalized.zMax*=scale;
+			suite.Expect(capturedHud(normalized),"relative HUD protects common depth outside sampled absolute bounds");
+			cohort[1].texId++;
+			suite.Expect(scaleFor()==0,"relative HUD rejects missing known timer atlas");cohort[1]=timer;cohort[1].zMin=cohort[1].zMax=.11f;
+			cohort[3].zMin=cohort[3].zMax=.14f;
+			suite.Expect(scaleFor()==0,"relative HUD rejects incoherent world-depth candidate");cohort[3].zMin=cohort[3].zMax=.11f;
+			cohort[3].bboxMin[1]=140;cohort[3].bboxMax[1]=168;
+			suite.Expect(scaleFor()==0,"relative HUD rejects world-region candidate");
+			suite.Expect(TitleOverlayDepthScale({cohort,4},640,480,OverlayProfile::None)==0,"relative HUD never applies without title profile");
+		}
 		auto wrongPlate=plate;wrongPlate.texId++;
 		suite.Expect(!capturedHud(wrongPlate),"health plate rule rejects different texture");
 		wrongPlate=plate;wrongPlate.bboxMax[1]=140;

@@ -57,16 +57,18 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG647):** extend moving gameplay coverage after the
-verified low-depth HUD repair. Source2224 formerly had visible HUD but zero
-protected pixels; the fix restores20024 pixels. Twelve sources2221..2232 now
-have nonempty exact native HUD composition and completed-Present joins.
-All four builds and three699/0 suites pass. Save this independently proven
-slice, then capture120 unique sources with default authored light3,240 helper
-frames (60 warmup),600 host samples and240-second diagnostic host watchdog.
-Use existing extended helper watchdog, no new GPU waits. Keep capture gaps,
-missing protection, world omissions and failed attempts explicit. This does
-not replace the full300/600 acceptance requirements below.
+**Operational next action (LOG649):** save the relative HUD correction, then
+extend the moving comparison toward the300-frame acceptance interval instead
+of more light tuning. The same-frame known atlas/layout/depth cohort restores
+the later2282 dropout; all120 captures2162..2285 have nonempty exact HUD and
+completed-Present joins. Two gaps remain explicit; this is not continuous300.
+Four builds and three705/0 suites pass. A300-source diagnostic capture exceeded
+the old time budget, so provide an explicit bounded capture-only helper-watchdog
+option if needed; do not change production GPU waits, performance measurements
+or frame acceptance. Keep native/returned/combined moving comparisons and
+source gaps, effects, HUD, missing geometry and camera labels visible. Default
+authored light3 and external configuration remain unchanged. Check uncaptured
+later sources including2288; no further absolute-depth-floor tuning.
 
 Lighting control is implemented at532da3645, but tuning is suspended until
 the repaired interval survives broader moving inspection. The earlier40-frame

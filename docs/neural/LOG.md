@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG649 relative HUD cohort live confirmation: hud-relative-a host/helper0,
+240 helper Presents/outcome0,120 captures2162..2285 with gaps2181->2185 and
+2278->2280. All120 independently checked nonempty masks, exact native/evaluated
+composition, exact backbuffer RGB and completed-Present joins. Protected pixels
+18392..20089, zero reported mismatches. Visual2282 confirms restored original
+text/bars, unlike hud-broader-a. No guarantee for uncaptured2288 or later scenes.
+Runtime executable SHA256 ECBD824FBAE3016EF75026A42733FFB688E231A9F1D24303A040B5CBFBF9C61A.
+Automation/baseline/no-NGX suites705/0; four incremental builds pass. Initial
+ArrayView.size() compile failure retained, fixed to the actual size member.
+ACCEPTED for this broader captured HUD correction, not continuous300-frame,
+full title/world reconstruction or performance acceptance. Residual helper
+40-object cleanup warning persists. External configuration was unchanged.
+
+LOG648 hud-broader-a host/helper0,240 helper Presents and120 captured sources.
+The absolute-floor fix remains valid for its12 tested frames but broader coverage
+falsifies sufficiency: visible native HUD at2282 again has empty protection.
+Do not keep widening per-frame absolute depth limits. Implement a same-frame,
+title-scoped atlas/layout certificate requiring header, timer and both health
+bar sides at coherent foreground depth (2-percent agreement). Captured plate
+layer ratio.9 supplies the foreground equivalent. Normalize only the copied
+title classifier record to.18; raw geometry/depth and generic matching unchanged.
+Missing/incoherent cohorts fall back to existing strict classification, never
+reuse old masks. Add negative tests and rerun the same120-source capture.
+This relative profile is an implementation candidate, not yet live accepted.
+
 LOG647 hud-fixed-a host/helper0,121 helper Presents;12 captures sources2221..2232
 join12 completed Presents. Source2224 now protects20024 pixels instead of0;
 all12 report zero HUD/backbuffer mismatches with19889..20059 protected pixels.

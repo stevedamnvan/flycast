@@ -421,6 +421,8 @@ void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
 	overlayDrawCount_ = 0;
 	const auto currentCount = drawCounts_[currentBuffer_];
 	const auto referenceCount = drawCounts_[referenceBuffer_];
+	const float titleDepthScale = TitleOverlayDepthScale(
+		{drawBuffers_[currentBuffer_].data(), currentCount}, renderWidth, renderHeight, overlayProfile_);
 	struct Occurrence
 	{
 		enum : std::size_t { Capacity = 4 };
@@ -528,9 +530,14 @@ void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
 				? 0 : texture->second;
 			const std::uint16_t textureUses = std::max<std::uint16_t>(
 				current.screenAlignedPrimitiveCount, countedTextureUses);
+			auto titleDraw = current;
+			if (titleDepthScale > 0.f) {
+				titleDraw.zMin *= titleDepthScale;
+				titleDraw.zMax *= titleDepthScale;
+			}
 			if (IsHighConfidenceOverlay(current, currentCount, renderWidth, renderHeight,
 				stability, textureUses)
-				|| IsTitleSpecificOverlay(current, currentCount, renderWidth, renderHeight,
+				|| IsTitleSpecificOverlay(titleDraw, currentCount, renderWidth, renderHeight,
 					stability, overlayProfile_))
 			{
 				overlayBuffer_[ci] = 1;

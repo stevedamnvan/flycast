@@ -317,6 +317,37 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 	return planar || boundedLayeredGlyph;
 }
 
+float TitleOverlayDepthScale(ArrayView<DrawRecord> draws, std::uint32_t width,
+	std::uint32_t height, OverlayProfile profile) noexcept
+{
+	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || width != 640 || height != 480)
+		return 0.f;
+	float minimum = std::numeric_limits<float>::infinity(), maximum = 0.f;
+	unsigned roles = 0;
+	for (const auto& draw : draws) {
+		unsigned role = 0;
+		if (draw.texId == 671530672u) role = 1;
+		else if (draw.texId == 696696496u) role = 2;
+		else if (draw.texId == 795315888u || draw.texId == 801607344u)
+			role = draw.bboxMax[0] <= 272 ? 4 : draw.bboxMin[0] >= 368 ? 8 : 0;
+		if (!role || !std::isfinite(draw.zMin) || !std::isfinite(draw.zMax)
+			|| draw.zMin <= 0.f || draw.zMax < draw.zMin) continue;
+		// Captured plate layer is 0.9 of the foreground HUD layer. Validate
+		// the whole atlas/layout certificate before normalizing title-only depth.
+		const float foreground = draw.zMax / (draw.texId == 801607344u ? .9f : 1.f);
+		const float scale = .18f / foreground;
+		if (!std::isfinite(scale) || scale <= 0.f) continue;
+		auto normalized = draw;
+		normalized.zMin *= scale; normalized.zMax *= scale;
+		if (!IsTitleSpecificOverlay(normalized, draws.size, width, height, 0, profile)) continue;
+		minimum = std::min(minimum, foreground); maximum = std::max(maximum, foreground);
+		roles |= role;
+	}
+	// Header, timer and both health-bar sides must agree in the same frame.
+	// No history reuse, camera guess, rectangle-only match or generic relaxation.
+	return roles == 15 && maximum <= minimum * 1.02f ? .18f / maximum : 0.f;
+}
+
 bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,
 	std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept
 {

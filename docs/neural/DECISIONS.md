@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-196: use a same-frame HUD cohort instead of repeated absolute-depth tuning
+
+The longer combat replay falsifies sufficiency of D-195's sampled floors. A
+title-only certificate identifies the known header, timer and both health-bar
+sides using the existing atlas/layout/state/shape rules, and requires their
+foreground-equivalent depths to agree within2percent. The observed plate depth
+is.9 of foreground. Normalize a copied title-classifier record to.18 only when
+all four roles agree. Do not alter real depth, geometry, motion or generic HUD
+classification. Missing/incoherent cohorts retain strict prior behavior; never
+reuse a previous frame's mask. This is a title-specific rendering relationship,
+not recovered physical depth. Live broader pixel validation is required before
+acceptance and remains separate from the overall working-pipeline gate.
+
 ## D-195: HUD safety needs nonempty classification plus pixel equality
 
 Zero mismatches with an empty HUD mask do not demonstrate preservation. LOG644

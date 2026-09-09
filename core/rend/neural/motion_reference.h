@@ -83,6 +83,8 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 	std::uint32_t screenWidth, std::uint32_t screenHeight,
 	std::uint8_t stableAcceptedFrames, OverlayProfile profile) noexcept;
 const char *OverlayProfileName(OverlayProfile profile) noexcept;
+float TitleOverlayDepthScale(ArrayView<DrawRecord> draws, std::uint32_t width,
+	std::uint32_t height, OverlayProfile profile) noexcept;
 bool IsPredominantly2DFrame(ArrayView<DrawRecord> draws,
 	std::uint32_t renderWidth, std::uint32_t renderHeight) noexcept;
 bool UpdateConservativeBypass(bool candidate, bool active,
