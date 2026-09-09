@@ -81,6 +81,7 @@ struct QualityCaptureMetadata {
 	OverlayProfile overlayProfile = OverlayProfile::None;
 	std::string gameId;
 	std::string submitStatus;
+	std::string remakeInput = "native-pvr";
 	std::string profile = "unassigned";
 	std::string externalRecommendation = "user-controlled";
 	QualityGpuTimings gpuTimings{};

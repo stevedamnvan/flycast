@@ -121,6 +121,20 @@ LOG522 now verifies those rejection controls and exact received color/depth on
 three live combat frames. Offscreen composition remains exact and native targets
 unchanged. Finish affected regression, then implement projection conversion and
 the actual pre-evaluation returned-input selection; do not repeat paired transport.
+Current bounded implementation: move capture exchange before TrySubmit and add
+FLYCAST_REMAKE_INPUT_TEST=1 for reset-only same-resolution640x480 capture.
+Convert returned BGRA to RGBA and normal projection depth to1-d, not PVR log.
+Zero motion/confidence/identity and full current-color bias explicitly avoid
+claiming native guidance for changed surfaces. Require exact producer/frame,
+paired depth, zero jitter and supported normal renderer; reject to native.
+No temporal-quality acceptance: motion/coverage alignment and async feed remain
+required. Verify captured GPU inputs, accepted evaluation and output separately.
+LOG523 verifies exact returned GPU inputs, accepted publicDLAA evaluation and
+final protected/world composition on three frames each of nativeD3D11 and
+D3D11On12. This is reset-only, not temporal-quality acceptance. Next run the
+supplied external consumer through this changed route with focused provenance;
+then replace reset-only guidance with verified returned-surface correspondence
+and move the feed off synchronous capture. Do not repeat public connection proof.
 do not repeat old Gate10 transport or native polarity fixtures.
 Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed

@@ -25,6 +25,7 @@
 #include "rend/neural/quality_profile.h"
 #include "rend/neural/external_control.h"
 #include "rend/neural/producer_identity.h"
+#include "rend/neural/remake_neural_input.h"
 
 #include <algorithm>
 #include <cmath>
@@ -247,6 +248,22 @@ int RunSelfTests()
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
 			image.projectionDepth.assign(640*480,.75f);image.projectionDepth[0]=0;image.projectionDepth[1]=1;
 			image.nearPlane=receivedPacket.camera.nearPlane;image.farPlane=receivedPacket.camera.farPlane;
+			RemakeNeuralInput converted;
+			image.bgra[0]=11;image.bgra[1]=22;image.bgra[2]=33;image.bgra[3]=44;
+			suite.Expect(BuildRemakeNeuralInput(image,image.frame,image.producer,converted)
+				&&converted.rgba[0]==33&&converted.rgba[1]==22&&converted.rgba[2]==11&&converted.rgba[3]==44
+				&&converted.invertedDepth[0]==1&&converted.invertedDepth[1]==0&&converted.invertedDepth[2]==.25f,
+				"remake input swaps BGRA only and inverts exact projection endpoints");
+			const auto kept=converted.invertedDepth;
+			suite.Expect(!BuildRemakeNeuralInput(image,image.frame+1,image.producer,converted)
+				&&converted.invertedDepth==kept,"remake input rejects wrong frame atomically");
+			auto wrongProducer=image.producer;wrongProducer.ordinal++;
+			suite.Expect(!BuildRemakeNeuralInput(image,image.frame,wrongProducer,converted),"remake input rejects wrong producer");
+			wrong=image;wrong.projectionDepth.clear();
+			suite.Expect(!BuildRemakeNeuralInput(wrong,image.frame,image.producer,converted),"remake input refuses color-only guidance");
+			wrong=image;wrong.projectionDepth[2]=std::numeric_limits<float>::quiet_NaN();
+			suite.Expect(!BuildRemakeNeuralInput(wrong,image.frame,image.producer,converted)
+				&&converted.invertedDepth==kept,"remake input rejects NaN without partial conversion");
 			wrong=image;wrong.nearPlane+=.1f;
 			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects depth from wrong projection");
 			wrong=image;wrong.projectionDepth[0]=std::numeric_limits<float>::quiet_NaN();

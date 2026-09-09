@@ -142,6 +142,8 @@ protected:
 	TileClipping setTileClip(u32 val, Rect& rect);
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
+	void prepareRemakeCapture();
+	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
 	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();

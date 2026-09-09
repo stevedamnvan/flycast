@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-159: connect returned inputs without borrowing native temporal truth
+
+The capture-only test exchanges before TrySubmit, uploads matched returned color
+and inverted normalized projection depth to the existing ring, and uses existing
+D3D11On12 acquire/release ownership. A temporary initialized texture copies depth;
+UpdateSubresource is not used on a depth-stencil resource. Ordinary gameplay and
+missing/unsupported returns retain native input. Native motion, draw identity and
+prior depth do not automatically describe returned color. This first connection
+test therefore resets every frame, exports zero motion/confidence/identity and
+full bias-current-color, clears correspondence diagnostics, and invalidates native
+history after accepted evaluation. It is not a replacement for geometry-derived
+returned-surface temporal guidance or an ordinary quality mode. LOG523 confirms
+actual public evaluation and protected final composition on nativeD3D11 and
+D3D11On12. External neural provenance and normal pacing remain separate. Do not
+interpret public bias-current-color as external semantic art-direction masking.
+
 ## D-158: paired returned guidance owns the same publication boundary as color
 
 The optional projection-depth return is published only after both public

@@ -28,6 +28,7 @@
 #include "rend/neural/live_status.h"
 #include "rend/neural/quality_profile.h"
 #include "rend/neural/pvr_scene_capture.h"
+#include "rend/neural/remake_neural_input.h"
 #endif
 
 #include <chrono>
@@ -1890,7 +1891,7 @@ void DX11Renderer::submitNeuralFrame()
 		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views,
 			neuralDrawId.d3d12Resources, DXGI_FORMAT_R16_UINT);
 	}
-	const auto& frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
+	auto frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
 	neuralQualityCaptureMetadata = {};
 	neuralQualityCaptureMetadata.frameId = frame.frameId;
 	neuralQualityCaptureMetadata.producerIdentity = rendContext->captureProducer;
@@ -1934,6 +1935,8 @@ void DX11Renderer::submitNeuralFrame()
 		qualityProfile.externalRecommendation;
 	if (neuralQualityCapture.CapturesCurrentFrame())
 		neuralQualityCaptureMetadata.overlayDraws = neuralInstrumentation.CaptureOverlayDiagnostics();
+	prepareRemakeCapture();
+	const bool remakeInputApplied = applyRemakeCaptureInput(frame);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::EvaluateBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::EvaluateBegin);
@@ -1952,6 +1955,11 @@ void DX11Renderer::submitNeuralFrame()
 		neuralInstrumentation.MarkEvaluated(frame.frameId);
 		neuralAcceptedGuidanceSlot = neuralExportSlot;
 		hasNeuralAcceptedGuidance = true;
+		if (remakeInputApplied) {
+			// Diagnostic reset-only inputs cannot become native correspondence history.
+			hasNeuralAcceptedGuidance = false;
+			neuralInstrumentation.Discontinuity();
+		}
 		const auto stats = neuralStage.GetStats();
 		neuralQualityCaptureMetadata.externalContractEvaluated =
 			stats.dlss5Readiness == Dlss5HookReadiness::ContractEvaluated;
@@ -2492,14 +2500,15 @@ void DX11Renderer::submitNeuralFramebuffer()
 }
 #endif
 
-void DX11Renderer::displayFramebuffer()
-{
-#ifndef LIBRETRO
 #ifdef FLYCAST_ENABLE_NEURAL
+void DX11Renderer::prepareRemakeCapture()
+{
 	const auto* remakeToken=std::getenv("FLYCAST_REMAKE_CHANNEL");
-	if(remakeToken&&*remakeToken && activeNeuralMode==1 && !activeNeuralSurface
+	const auto* inputTest=std::getenv("FLYCAST_REMAKE_INPUT_TEST");
+	const bool requested=inputTest&&std::strcmp(inputTest,"1")==0;
+	if(remakeToken&&*remakeToken && (activeNeuralMode==1 || requested)
 		&& !IsOitRenderer() && rendContext && !rendContext->isRTT && !config::EmulateFramebuffer.get()
-		&& config::NeuralCapturePvrPacket.get() && neuralQualityCapturePending
+		&& config::NeuralCapturePvrPacket.get()
 		&& neuralQualityCapture.CapturesCurrentFrame()) {
 		std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
 		for(int column=0;column<4;++column)for(int row=0;row<4;++row)viewport[column*4+row]=matrix[column][row];
@@ -2513,6 +2522,51 @@ void DX11Renderer::displayFramebuffer()
 			neuralQualityCapture.PrepareRemakeBeforeComposite(snapshot,neuralQualityCaptureMetadata,reader);
 		}
 	}
+}
+
+bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame)
+{
+	using namespace flycast::rend::neural;
+	const auto* request=std::getenv("FLYCAST_REMAKE_INPUT_TEST");
+	if(!request||std::strcmp(request,"1")!=0||!neuralQualityCapture.CapturesCurrentFrame())return false;
+	neuralQualityCaptureMetadata.remakeInput="requested-native-fallback";
+	if(IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
+		||frame.renderWidth!=640||frame.renderHeight!=480||frame.outputWidth!=640||frame.outputHeight!=480
+		||frame.jitterX!=0||frame.jitterY!=0)return false;
+	const auto* returned=neuralQualityCapture.ReturnedRemakeFrame(frame.frameId);
+	RemakeNeuralInput input;
+	if(!returned||!BuildRemakeNeuralInput(*returned,frame.frameId,rendContext->captureProducer,input))return false;
+	D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
+	desc.Format=DXGI_FORMAT_R32_FLOAT;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
+	D3D11_SUBRESOURCE_DATA data{};data.pSysMem=input.invertedDepth.data();data.SysMemPitch=640*sizeof(float);
+	ComPtr<ID3D11Texture2D> upload;
+	if(FAILED(device->CreateTexture2D(&desc,&data,&upload.get())))return false;
+	acquireNeuralInputs();
+	deviceContext->UpdateSubresource(neuralColor.textures[neuralExportSlot],0,nullptr,input.rgba.data(),640*4,0);
+	deviceContext->CopyResource(neuralDepthTextures[neuralExportSlot],upload);
+	const float zero[4]{};const float one[4]={1,1,1,1};
+	deviceContext->ClearRenderTargetView(neuralMotion.targets[neuralExportSlot],zero);
+	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot],zero);
+	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot],zero);
+	deviceContext->ClearRenderTargetView(neuralResolvedMask.targets[neuralExportSlot],one);
+	releaseNeuralInputs();
+	frame.historyValid=false;frame.resetHistory=true;frame.historyAge=0;
+	frame.correspondence={};
+	neuralQualityCaptureMetadata.historyValid=false;neuralQualityCaptureMetadata.resetHistory=true;
+	neuralQualityCaptureMetadata.historyAge=0;
+	neuralQualityCaptureMetadata.correspondence={};
+	neuralQualityCaptureMetadata.profile += " / Remix reset-only diagnostic";
+	neuralQualityCaptureMetadata.remakeInput="returned-scene-reset-only-inverted-projection-experiment";
+	NOTICE_LOG(RENDERER,"Remake neural input: frame=%llu source_sequence=%llu reset=1 motion=zero bias=one depth=inverted-projection",
+		(unsigned long long)frame.frameId,(unsigned long long)returned->source.sequence);
+	return true;
+}
+#endif
+
+void DX11Renderer::displayFramebuffer()
+{
+#ifndef LIBRETRO
+#ifdef FLYCAST_ENABLE_NEURAL
 	neuralPerformance.Mark(deviceContext,
 		flycast::rend::neural::GpuTimingPoint::CompositeBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,

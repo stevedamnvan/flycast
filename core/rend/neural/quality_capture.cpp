@@ -951,6 +951,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		<< ",\n  \"external_settings\": \"" << Json(metadata.externalRecommendation) << "\""
 		<< ",\n  \"evaluation_accepted\": " << (metadata.evaluationAccepted ? "true" : "false")
 		<< ",\n  \"submit_status\": \"" << Json(metadata.submitStatus) << "\""
+		<< ",\n  \"remake_input\": \"" << Json(metadata.remakeInput) << "\""
 		<< ",\n  \"external_contract_evaluated\": "
 		<< (metadata.externalContractEvaluated ? "true" : "false")
 		<< ",\n  \"external_output_confirmed\": "

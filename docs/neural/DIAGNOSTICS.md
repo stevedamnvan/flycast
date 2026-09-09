@@ -1,5 +1,21 @@
 # Neural diagnostics
 
+## Returned scene submission experiment
+
+`FLYCAST_REMAKE_INPUT_TEST=1` adds a bounded capture-only submission test to the
+existing paired live-channel recipe. Require source observation, estimated
+scene opt-in, paired consumer depth output and the developer return wait.
+Use normal DX11,640x480 input/output and zero jitter. Missing/mismatched pairs
+or unsupported dimensions retain native input. It uploads returned RGBA and
+inverted normalized projection depth before actual neural evaluation, with
+zero motion/confidence/draw identity, full reactive bias and reset every
+accepted experimental frame. This is not an ordinary gameplay quality mode.
+No external configuration is edited. Synchronous wait/readback timing is
+excluded from performance evidence. `neuraltest/remake_input_inspect.py ROOT`
+checks exact GPU inputs, accepted evaluation, public output and protected/world
+final composition. External DLSS5 provenance and swapchain scanout require
+their own changed-route evidence; this inspector does not certify them.
+
 Use --capture-d3d9-scene-memory-depth on the bounded live consumer to retain
 same-frame public depth as BMP-name.depth.rgba32f alongside color. The depth
 format is four little-endian float channels,640x480, top-down. Run

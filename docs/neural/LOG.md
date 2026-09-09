@@ -1,5 +1,13 @@
 # Neural rendering evidence log
 
+LOG523 final metadata clarification rebuilt successfully in all four serial
+incremental configurations; enabled selftests492/492 each. An early log read
+found two not-yet-created test logs while the verified build process was live;
+the same process later exited0. No restart or failure conclusion was inferred.
+Actual GPU runs above preceded only that metadata/statistics clarification.
+
+#523 2026-09-09 b19b17b34 plus working tree | Moved bounded source exchange before TrySubmit and added explicit FLYCAST_REMAKE_INPUT_TEST reset-only returned-scene submission. CPU conversion validates640x480 paired frame/producer/clips, swaps BGRA/RGBA without alpha/gamma edits and uses1-d inverted normalized projection depth, never relabeling it native PVR logarithmic depth. Five new controls pass; automation/baseline/no-NGX selftests492/492, all four serial incremental builds, SDK193/193, Python333/333 and backlog inspection pass before final metadata-only clarification. Actual input-a nativeD3D11 and input-on12-a D3D11On12 runs each exit0/clean-close3; each consumer exits0/63 Presents. On all six retained frames, GPU source color equals returned bytes, GPU depth equals1-returnedR32 exactly, motion/confidence/drawID are zero, bias is255, reset is true, evaluation accepted and public output exists. Final protected pixels equal native and other pixels equal public output exactly. Final nativeD3D11 capture visually reviewed: fighters, arena and HUD present. Existing40-object runtime cleanup warning remains. Retained failed commands: rg pattern beginning with-- parsed as option; two docs patch context mismatches rejected without changes; corrected them. Final metadata clears native correspondence statistics and appends diagnostic profile label; rebuild pending. Scope ACCEPTED for bounded Remix-to-publicDLAA input/evaluation/final-composition connection, NOT externalDLSS5, swapchain scanout, temporal quality, full geometry, ordinary async gameplay or performance. Next changed-route supplied-consumer provenance and accepted returned-surface motion/coverage, not another paired transport phase.
+
 LOG522 regression completed: all four serial incremental configurations succeed,
 enabled selftests487/487 each, SDK193/193 and Python333/333. Backlog consistency
 inspection and diff whitespace check pass. These are not fresh exact-SHA builds.
