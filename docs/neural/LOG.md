@@ -1,5 +1,86 @@
 # Neural rendering evidence log
 
+LOG602 6cf1b2202 plus WIP: cc runs the connected TEMPORAL_RASTER combined OIT
+experiment, host/helper exit0. Staged host SHA256
+11F789EAC0496F9D8A3C53C9751EB38D3C7B1C1BDB62782AD158AAF81B01CA45.
+Independently join58 retained accepted evaluations (2184..2250, nonconsecutive),
+57 history-enabled evaluations and zero GPU-guidance rejects. Every previous
+reference equals the preceding accepted source. Captures2186..2188 independently
+pass protected RGBA, world composition, backbuffer RGB and completed-Present;
+protected counts18540/18509/18562. Viewed2186 final shows source weapon arc and
+impact effects retained. No comparison winner is inferred from that still.
+The unchanged supplied config hash is222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Unique cc Flycast/ReShade logs archived after terminal process checks. All of
+this is synchronous non-performance evidence; active history does not establish
+trusted-pixel coverage or external output mutation under the changed guidance.
+Add persistent pipeline/output object accounting and reject a wrong-device prior
+ID view. Next capture the actual receipt-matched guidance surfaces and quantify
+trusted/reactive coverage, then compare moving reset-only and temporal output
+with focused changed-input provenance. Do not reopen general transport proof.
+Final serial automation/NGX/no-NGX/feature-off builds all exit0; each enabled
+selftest suite passes666/0 (remake-motion-final-* logs). Backlog consistency
+inspection and diff whitespace checks pass; neither is rendering evidence.
+The final object-accounting/device-guard edits are build/test covered, not a
+second exact-SHA runtime capture. This checkpoint is accepted for off-by-default
+GPU guidance integration only, not temporal visual quality or complete pipeline.
+
+LOG601 6cf1b2202 plus WIP: implement isolated deferred RemakeMotionRaster with
+bounded geometry/depth uploads, owned motion/confidence/draw-ID/bias outputs and
+state-restoring execution. GPU fixtures run the same shader on native D3D11 and
+D3D11On12: exact static zero, -4px translation (one half-float ULP tolerance),
+perspective/deforming correspondence, incorrect previous/current depth, incorrect
+previous ID and missing history. First run664/2 fails static numerical residue;
+shader suppresses below1/4096-pixel divide noise. Second664/2 fails an exact-bit
+translation check by one half-float ULP; use explicit storage tolerance, not a
+sign/scale relaxation. Strengthen perspective fixture with differing current and
+previous Z and independent homogeneous truth. Third run666/0 passes both surfaces.
+Earlier guessed nonexistent effects-header inspection failed without edits.
+Next live bound: FLYCAST_REMAKE_TEMPORAL_RASTER=1 additionally requires the existing
+temporal preparation/camera scope. Dispatch GPU guidance, copy its four surfaces
+to the neural ring and enable history only when retained draw IDs match the last
+accepted scene. Accept new draw-ID ownership only after successful evaluation;
+reset with renderer/channel. Current projected-depth tolerances are experimental
+view-space0.001 absolute plus0.0001 relative; actual trusted coverage/quality are
+not yet proven. No default setting or external configuration change. Run bounded
+cc combined gameplay then independently inspect guidance/history/final captures.
+All allocations/captures here are correctness work, not performance acceptance.
+
+LOG600 6cf1b2202 plus WIP: cb host/helper both terminate exit0. Independently
+join58 retained evaluations (2163..2233, nonconsecutive) to accepted submissions;
+every previous_evaluated equals the preceding retained source. Motion preparation
+has58 rows, zero rejections, 0..26 trusted draws and maximum113.517502 render
+pixels. Three captures2166..2168 independently pass exact protected RGBA, world
+composition, pre-OSD backbuffer RGB and completed-Present joins. This is CPU
+candidate coverage, not GPU motion or temporal-quality proof. Unique cb host,
+helper and archived Flycast/ReShade logs remain ignored; synchronous capture is
+not performance evidence. No consumer configuration was changed.
+Next integration adds shared returned-scene vertex/pixel shaders with homogeneous
+previous-position interpolation and returned current/previous depth plus previous
+draw-ID rejection. Added remake_motion_shader.h and production shader-compilation
+coverage; automation remake-motion-shader-build1/test1 exit0,664 passed/0 failed.
+Shader compilation is NOT raster correctness: shaders are not yet dispatched by
+the renderer. Next wire a bounded deferred raster using these exact shaders, run
+static/translation/perspective deformation and wrong-depth/wrong-ID controls,
+then connect accepted-history resources. Preserve reset/zero/full-bias fallback
+until that integration is proven. Inspection mistakes (Windows rg wildcard and
+nonexistent guessed effects-header path) produced no edits and were corrected.
+
+LOG599 6cf1b2202 plus WIP: BuildRemakeMotionStream projects receipt-owned geometry
+with each frame's camera, reuses MatchDraws minimum-cost assignment, then requires
+exact full64-bit texture/palette/RTT generations, topology, UV and vertex colors.
+Ordinal remains a weak assignment hint; close best/second-best costs reject.
+Alpha/cutouts, changed topology/generations/color, excessive motion and incompatible
+reference gaps stay reactive with zero candidate motion. Candidate screen positions
+are unclamped; assignment bounding/centroid hints use the content rectangle.
+TEMPORAL_PREPARE now builds/logs these streams against previous successful
+evaluation before submission, but does not upload them or enable neural history.
+Automation build1/test1 passes664/0. Executed static exact zero, +4X, -3Y one-
+vertex deformation, camera translation, sign/scale negatives, repeated-object
+ambiguity, one-to-one reordered geometry, folded-key/full-generation collision,
+palette/RTT/UV/topology/alpha/color/gap and malformed-index controls. Next cb actual
+bounded replay to measure candidate coverage and preserve output, then GPU raster
+and returned-depth/disocclusion. CPU streams alone are not per-pixel motion proof.
+
 LOG598 returned-reference checkpoint: automation build2, baseline, no-NGX and
 feature-off serial builds complete0; all three enabled selftests648/0. Session
 18693 confirmed terminal. Backlog consistency and diff whitespace checks pass.

@@ -2321,6 +2321,9 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 		remakeCurrentEffects.get(),remakeAsyncOverlaySources[0].effects.get(),remakeAsyncOverlaySources[1].effects.get(),
 		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
 	count+=effects.objects;
+	count+=remakeMotionRaster.OwnedObjects();
+	countArray(remakeAcceptedRaster.textures);
+	countArray(remakeAcceptedRaster.views);
 	return count;
 }
 
@@ -2857,21 +2860,63 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		}
 		const auto& source=replay?*replay:returned;
 		const auto temporal=remakeAsyncAcceptedOverlay.temporalScene;
+		const auto* rasterRequest=std::getenv("FLYCAST_REMAKE_TEMPORAL_RASTER");
+		const bool rasterRequested=rasterRequest&&std::strcmp(rasterRequest,"1")==0;
+		if(rasterRequested&&!temporal)return;
+		RemakeMotionStream stream;
+		RemakeRasterOutput rasterOutput;
+		bool rasterHistory=false;
 		if(temporal&&!temporal->Matches(source)) {
 			NOTICE_LOG(RENDERER,"Remake temporal source rejected: receipt mismatch");return;
 		}
+		if(temporal) {
+			std::string error;
+			const auto* previous=remakeTemporalHistory.CanReproject(*temporal)?remakeTemporalHistory.Last():nullptr;
+			if(!BuildRemakeMotionStream(previous,*temporal,stream,error)) {
+				NOTICE_LOG(RENDERER,"Remake geometry motion rejected: %s",error.c_str());return;
+			}
+			NOTICE_LOG(RENDERER,"Remake geometry motion: source=%llu trusted_draws=%u reactive_draws=%u ambiguous_draws=%u trusted_vertices=%u max_pixels=%.9g gpu_guidance=false",
+				(unsigned long long)source.frame,stream.trustedDraws,stream.reactiveDraws,stream.ambiguousDraws,stream.trustedVertices,stream.maximumMotion);
+		}
 		RemakeNeuralInput input;
 		if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)||!uploadRemakeInput(input))return;
+		if(rasterRequested) {
+			std::string error;
+			const auto* previous=remakeTemporalHistory.Last();
+			rasterHistory=previous&&remakeTemporalHistory.CanReproject(*temporal)
+				&&remakeAcceptedRasterFrame==previous->frame&&remakeAcceptedRaster.views[2];
+			const auto& previousDepth=rasterHistory?remakeTemporalHistory.Depth():source.projectionDepth;
+			if(!remakeMotionRaster.Initialize(device,DX11Context::Instance()->getCompiler(),error)
+				||!remakeMotionRaster.Render(deviceContext,stream,source.projectionDepth,previousDepth,
+					rasterHistory?remakeAcceptedRaster.views[2].Get():nullptr,source.nearPlane,source.farPlane,
+					.001f,.0001f,rasterOutput,error)) {
+				NOTICE_LOG(RENDERER,"Remake GPU guidance rejected: source=%llu reason=%s",
+					(unsigned long long)source.frame,error.c_str());return;
+			}
+			acquireNeuralInputs();
+			deviceContext->CopyResource(neuralMotion.textures[neuralExportSlot],rasterOutput.textures[0].Get());
+			deviceContext->CopyResource(neuralConfidence.textures[neuralExportSlot],rasterOutput.textures[1].Get());
+			deviceContext->CopyResource(neuralDrawId.textures[neuralExportSlot],rasterOutput.textures[2].Get());
+			deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],rasterOutput.textures[3].Get());
+			releaseNeuralInputs();
+			NOTICE_LOG(RENDERER,"Remake GPU guidance: source=%llu previous=%llu history=%d scope=projected-depth-experiment",
+				(unsigned long long)source.frame,(unsigned long long)(rasterHistory?previous->frame:0),rasterHistory);
+		}
 		frame.frameId=source.frame;frame.jitterX=frame.jitterY=0;
 		frame.historyValid=false;frame.resetHistory=true;frame.historyAge=0;frame.skippedFrameCount=0;
+		if(rasterHistory) {
+			frame.historyValid=true;frame.resetHistory=false;frame.historyAge=1;
+			frame.skippedFrameCount=unsigned(source.frame-remakeTemporalHistory.Last()->frame-1);
+		}
 		frame.draws={};frame.matches={};frame.correspondence={};frame.predominantly2D=false;
 		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateBegin);
 		const auto status=neuralStage.TrySubmit(frame);
 		logNeuralConsumerStatus(status);
 		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateEnd);
 		neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,true);
-		NOTICE_LOG(RENDERER,"Remake async neural evaluation: source=%llu current=%llu sequence=%llu accepted=%d reset=true motion=zero bias=one displayed=false",
-			(unsigned long long)source.frame,(unsigned long long)currentNeuralSourceFrameId,(unsigned long long)source.source.sequence,status==SubmitStatus::Submitted);
+		NOTICE_LOG(RENDERER,"Remake async neural evaluation: source=%llu current=%llu sequence=%llu accepted=%d reset=%d motion=%s bias=%s displayed=false",
+			(unsigned long long)source.frame,(unsigned long long)currentNeuralSourceFrameId,(unsigned long long)source.source.sequence,status==SubmitStatus::Submitted,
+			frame.resetHistory,rasterRequested?"returned-geometry":"zero",rasterRequested?"returned-depth-consistency":"one");
 		if(status!=SubmitStatus::Submitted)return;
 		// Returned-scene evaluation is never accepted native PVR correspondence.
 		hasNeuralAcceptedGuidance=false;neuralInstrumentation.Discontinuity();
@@ -2881,8 +2926,12 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			const auto* previous=remakeTemporalHistory.Last();const auto previousFrame=previous?previous->frame:0;
 			const bool compatible=remakeTemporalHistory.CanReproject(*temporal);
 			const bool retained=remakeTemporalHistory.Accept(temporal,source,true);
-			NOTICE_LOG(RENDERER,"Remake temporal reference: source=%llu previous_evaluated=%llu compatible=%d retained=%d history_enabled=false motion=zero",
-				(unsigned long long)source.frame,(unsigned long long)previousFrame,compatible,retained);
+			if(retained) {
+				remakeAcceptedRaster=std::move(rasterOutput);
+				remakeAcceptedRasterFrame=rasterRequested?source.frame:0;
+			}
+			NOTICE_LOG(RENDERER,"Remake temporal reference: source=%llu previous_evaluated=%llu compatible=%d retained=%d history_enabled=%d motion=%s",
+				(unsigned long long)source.frame,(unsigned long long)previousFrame,compatible,retained,rasterHistory,rasterRequested?"returned-geometry":"zero");
 		}
 		const auto output=neuralStage.GetOutput();
 		if(output.api!=TextureApi::D3D12||!output.resource

@@ -55,6 +55,14 @@ inline std::shared_ptr<RemakeTemporalScene> CaptureRemakeTemporalScene(const rem
  error.clear();return owned;
 }
 // Reference data for subsequent correspondence. This does not enable NGX history.
+inline bool CompatibleRemakeTemporalReference(const RemakeTemporalScene& previous,const RemakeTemporalScene& next) {
+ return previous.producer.epoch==next.producer.epoch&&next.producer.ordinal>previous.producer.ordinal
+  &&next.producer.cycle>=previous.producer.cycle&&next.frame>previous.frame&&next.frame-previous.frame<=8
+  &&next.game==previous.game&&next.sourceSha==previous.sourceSha
+  &&next.fixedOrigin.x==previous.fixedOrigin.x&&next.fixedOrigin.y==previous.fixedOrigin.y&&next.fixedOrigin.z==previous.fixedOrigin.z
+  &&next.camera.fovY==previous.camera.fovY&&next.camera.aspect==previous.camera.aspect
+  &&next.camera.nearPlane==previous.camera.nearPlane&&next.camera.farPlane==previous.camera.farPlane;
+}
 class RemakeTemporalHistory {
  std::shared_ptr<const RemakeTemporalScene> accepted;
  std::vector<float> acceptedDepth;
@@ -63,14 +71,7 @@ public:
  const RemakeTemporalScene* Last()const{return accepted.get();}
  const std::vector<float>& Depth()const{return acceptedDepth;}
  bool CanReproject(const RemakeTemporalScene& next)const {
-  if(!accepted)return false;
-  const auto& previous=*accepted;
-  return previous.producer.epoch==next.producer.epoch&&next.producer.ordinal>previous.producer.ordinal
-   &&next.producer.cycle>=previous.producer.cycle&&next.frame>previous.frame&&next.frame-previous.frame<=8
-   &&next.game==previous.game&&next.sourceSha==previous.sourceSha
-   &&next.fixedOrigin.x==previous.fixedOrigin.x&&next.fixedOrigin.y==previous.fixedOrigin.y&&next.fixedOrigin.z==previous.fixedOrigin.z
-   &&next.camera.fovY==previous.camera.fovY&&next.camera.aspect==previous.camera.aspect
-   &&next.camera.nearPlane==previous.camera.nearPlane&&next.camera.farPlane==previous.camera.farPlane;
+  return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
  }
  bool Accept(std::shared_ptr<const RemakeTemporalScene> scene,const RemakeReturnedImage& image,bool evaluated) {
   if(!evaluated||!scene||!scene->Matches(image)||image.width!=640||image.height!=480

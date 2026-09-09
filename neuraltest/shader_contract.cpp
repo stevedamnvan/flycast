@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
 #include "rend/dx11/oit/native_effect_blend.h"
+#include "rend/dx11/remake_motion_shader.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -200,6 +201,9 @@ bool ValidateProductionExportShader(std::string& error)
 			return false;
 	}
 	return CompilePixel(pixel, "0", includes, error)
+		&& CompileVertex(RemakeMotionVertexShader, false, false, false, error)
+		&& CompileStandalonePixel(RemakeMotionPixelShader, "remake-motion-depth-consistency",
+			nullptr, nullptr, error)
 		&& CompilePixel(pixel, "1", includes, error)
 		&& CompileVertex(vertex, false, false, false, error)
 		&& CompileVertex(vertex, true, false, false, error)

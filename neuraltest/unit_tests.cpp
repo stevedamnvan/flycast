@@ -10,6 +10,7 @@
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_temporal_scene.h"
+#include "rend/neural/remake_motion_stream.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -106,6 +107,59 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		RemakeTemporalScene previous;previous.frame=10;previous.producer={1,10,100};previous.game="fixture";previous.sourceSha="fixture";
+		previous.camera.provenance=remake::Provenance::Supplied;previous.camera.fovY=90;previous.camera.aspect=640.f/480;
+		RemakeTemporalMesh mesh;mesh.id=1;mesh.sourceTsp=3u<<6;mesh.texture={17,5,7,0,true};mesh.indices={0,1,2};
+		for(auto p:{remake::Vec3{-1,-1,10},remake::Vec3{1,-1,10},remake::Vec3{0,1,10}}){remake::Vertex v;v.position=p;mesh.vertices.push_back(v);}
+		mesh.vertices[1].u=1;mesh.vertices[2].v=1;previous.meshes.push_back(mesh);
+		auto current=previous;++current.frame;++current.producer.ordinal;++current.producer.cycle;
+		RemakeMotionStream stream;std::string error;
+		suite.Expect(BuildRemakeMotionStream(&previous,current,stream,error)&&stream.trustedVertices==3&&stream.maximumMotion==0,
+			"returned geometry static motion is exactly zero");
+		auto translated=current;for(auto& v:translated.meshes[0].vertices)v.position.x+=4.f*10/240;
+		bool ok=BuildRemakeMotionStream(&previous,translated,stream,error);
+		bool truth=ok&&stream.trustedVertices==3;
+		for(const auto& v:stream.vertices)truth=truth&&std::abs(v.previousScreen.x-v.currentScreen.x+4)<.0001f
+			&&v.previousScreen.y==v.currentScreen.y;
+		suite.Expect(truth,"returned geometry positive X translation exports current-to-previous negative four pixels");
+		if(ok&&!stream.vertices.empty()) {
+			const auto& v=stream.vertices[0];const float motion=v.previousScreen.x-v.currentScreen.x;
+			suite.Expect(std::abs(motion-4)>1&&std::abs(motion*2+4)>1,"returned motion reversed-sign and doubled-scale controls fail analytic truth");
+		}
+		auto deformed=current;deformed.meshes[0].vertices[2].position.y-=3.f*10/240;
+		ok=BuildRemakeMotionStream(&previous,deformed,stream,error);
+		suite.Expect(ok&&stream.trustedVertices==3&&stream.vertices[0].previousScreen.y==stream.vertices[0].currentScreen.y
+			&&std::abs(stream.vertices[2].previousScreen.y-stream.vertices[2].currentScreen.y+3)<.0001f,
+			"returned stable-topology deformation retains per-vertex motion");
+		auto camera=current;camera.camera.position.x+=4.f*10/240;
+		ok=BuildRemakeMotionStream(&previous,camera,stream,error);
+		suite.Expect(ok&&stream.trustedVertices==3&&std::abs(stream.vertices[0].previousScreen.x-stream.vertices[0].currentScreen.x-4)<.0001f,
+			"returned geometry camera motion uses prior and current camera poses");
+		for(unsigned mutation=0;mutation<8;++mutation) {
+			auto bad=current;
+			if(mutation==0)bad.meshes[0].texture.generation=(1ull<<32)|4; // Same folded32-bit key as5.
+			if(mutation==1)++bad.meshes[0].texture.paletteGeneration;if(mutation==2)++bad.meshes[0].texture.rttGeneration;
+			if(mutation==3)bad.meshes[0].vertices[0].u=.5f;if(mutation==4)std::swap(bad.meshes[0].indices[0],bad.meshes[0].indices[1]);
+			if(mutation==5)bad.meshes[0].alphaBlend=true;if(mutation==6)bad.meshes[0].vertices[0].publicColor^=1;
+			if(mutation==7)bad.frame+=20;
+			ok=BuildRemakeMotionStream(&previous,bad,stream,error);
+			suite.Expect(ok&&stream.trustedVertices==0&&stream.maximumMotion==0,"returned generation UV topology alpha color or source gap cannot invent trusted motion");
+		}
+		auto repeated=previous;repeated.meshes.push_back(mesh);repeated.meshes.back().id=2;
+		auto ambiguous=repeated;++ambiguous.frame;++ambiguous.producer.ordinal;
+		ok=BuildRemakeMotionStream(&repeated,ambiguous,stream,error);
+		suite.Expect(ok&&stream.trustedVertices==0&&stream.ambiguousDraws==2,"returned identical repeated objects remain ambiguous despite draw ordinal");
+		for(auto& v:repeated.meshes[0].vertices)v.position.x-=3;
+		for(auto& v:repeated.meshes[1].vertices)v.position.x+=3;
+		auto reordered=repeated;++reordered.frame;++reordered.producer.ordinal;std::swap(reordered.meshes[0],reordered.meshes[1]);
+		ok=BuildRemakeMotionStream(&repeated,reordered,stream,error);
+		suite.Expect(ok&&stream.trustedVertices==6&&stream.maximumMotion==0&&stream.vertices[0].previousDraw==2
+			&&stream.vertices[3].previousDraw==1,"returned draw reorder uses minimum-cost one-to-one geometry correspondence");
+		auto malformed=current;malformed.meshes[0].indices[0]=99;stream.vertices.resize(1);
+		suite.Expect(!BuildRemakeMotionStream(&previous,malformed,stream,error)&&stream.vertices.size()==1,
+			"returned malformed geometry rejects motion stream atomically");
+	}
 	{
 		ProducerIdentity owner{1,2,3};const EffectIdentityPoly alpha{(4u<<29)|(5u<<26),0xffffffffu};
 		std::vector<EffectIdentityPoly> params{alpha};std::vector<AlphaEffectSelection> selected{{0,alpha}},out;
@@ -1086,6 +1140,12 @@ int RunSelfTests()
 			std::cerr << error << '\n';
 	}
 	const DrawRecord base = BaseDraw();
+	for(bool on12:{false,true}) {
+		std::string error;
+		const bool valid=RunRemakeMotionRasterFixture(on12,error);
+		suite.Expect(valid,on12?"returned-scene GPU motion and depth controls on D3D11On12":"returned-scene GPU motion and depth controls on native D3D11");
+		if(!valid)std::cerr<<error<<'\n';
+	}
 	suite.Expect(DrawSignature(base) == DrawSignature(base), "draw signature deterministic");
 	auto changed = base;
 	changed.texId++;

@@ -89,7 +89,23 @@ joins plus three protected final captures;648 automation tests pass. Finish
 remaining builds/commit, then use the existing minimum-cost matcher with full
 generation/topology validation to form current/previous geometry streams. Test
 static/translation/deformation/reorder/ambiguity/gap controls before GPU motion
-and returned-depth disocclusion. Do not repeat reference ownership as a new phase.
+and returned-depth disocclusion. LOG599-600 implement/test the CPU stream and
+measure58 actual evaluation candidates with up to26 trusted draws, preserving
+three independently checked final captures. Shared motion/depth-consistency
+shaders compile in664/0 automation selftests but are not yet dispatched. Current
+next action is the bounded GPU raster and its perspective/depth/draw-ID negative
+controls, then accepted-history resource integration and moving output. Do not
+repeat CPU candidate logging or reference ownership as a new phase. LOG601 adds
+the shared deferred GPU raster and passes both-surface fixtures (666/0). The
+explicit TEMPORAL_RASTER experiment connects motion/mask uploads and accepted
+draw-ID history; next run bounded cc gameplay, measure actual guidance coverage
+and inspect moving output, retaining numerical fixture failures. No quality or
+performance acceptance follows from GPU fixture success alone. LOG602 cc verifies
+58 actual accepted evaluations,57 with history and zero GPU-guidance rejections,
+plus three exact final captures. Next capture actual receipt-matched guidance
+surfaces, measure trusted/reactive coverage and compare moving reset-only versus
+temporal output with focused changed-guidance provenance. The connection now
+executes; visual improvement and full working-pipeline acceptance remain open.
 This transport seam alone cannot close M2-camera. Do not
 restart generic effects/provenance or diagnose intentional native weapon trails
 as ghosting. Preserve the explicit projected-depth approximation until evidence

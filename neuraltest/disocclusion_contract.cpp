@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "harness.h"
+#include "rend/dx11/remake_motion_raster.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -336,4 +337,69 @@ V main(uint id : SV_VertexID) {
 		&& result.correctTrailEnergy == 0 && result.wrongTrailEnergy > 0;
 }
 
+bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
+{
+ using namespace flycast::rend::neural;
+ Surface surface;if(!CreateSurface(on12,surface,error))return false;
+ RemakeMotionRaster raster;if(!raster.Initialize(surface.device.Get(),&D3DCompile,error))return false;
+ const auto projection=[](float z){return 100.f/99.f-100.f/(99.f*z);};
+ std::vector<float> current(640*480,projection(10)),previous=current;
+ std::vector<std::uint16_t> ids(640*480,1);
+ auto idView=[&](std::uint16_t id,ComPtr<ID3D11ShaderResourceView>& view) {
+  std::fill(ids.begin(),ids.end(),id);
+  D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
+  d.Format=DXGI_FORMAT_R16_UINT;d.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+  D3D11_SUBRESOURCE_DATA data{};data.pSysMem=ids.data();data.SysMemPitch=640*2;
+  ComPtr<ID3D11Texture2D> tex;
+  return SUCCEEDED(surface.device->CreateTexture2D(&d,&data,tex.GetAddressOf()))
+   &&SUCCEEDED(surface.device->CreateShaderResourceView(tex.Get(),nullptr,view.GetAddressOf()));
+ };
+ auto read=[&](ID3D11Texture2D* texture,unsigned bytes,std::uint32_t& value) {
+  D3D11_TEXTURE2D_DESC d{};texture->GetDesc(&d);d.Usage=D3D11_USAGE_STAGING;d.BindFlags=0;d.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+  ComPtr<ID3D11Texture2D> staging;
+  if(FAILED(surface.device->CreateTexture2D(&d,nullptr,staging.GetAddressOf())))return false;
+  surface.context->CopyResource(staging.Get(),texture);
+  D3D11_MAPPED_SUBRESOURCE mapped{};
+  if(FAILED(surface.context->Map(staging.Get(),0,D3D11_MAP_READ,0,&mapped)))return false;
+  value=0;std::memcpy(&value,static_cast<const char*>(mapped.pData)+160*mapped.RowPitch+200*bytes,bytes);
+  surface.context->Unmap(staging.Get(),0);return true;
+ };
+ for(unsigned mode=0;mode<7;++mode) {
+  RemakeMotionStream stream;stream.indices={0,1,2};
+  stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};
+  std::fill(current.begin(),current.end(),projection(10));previous=current;
+  if(mode==1)for(auto& v:stream.vertices)v.previousScreen.x-=4;
+  if(mode==2)std::fill(previous.begin(),previous.end(),1.f);
+  if(mode==4)std::fill(current.begin(),current.end(),1.f);
+  if(mode==6) {
+   stream.vertices[1].currentScreen.z=20;
+   stream.vertices[2].currentScreen.z=30;
+   stream.vertices[1].previousScreen.x-=4;
+   for(unsigned y=0;y<480;++y)for(unsigned x=0;x<640;++x) {
+    const float b=(x+.5f-100)/400,c=(y+.5f-100)/300,a=1-b-c;
+    current[y*640+x]=std::clamp(projection(1/(a/10+b/20+c/30)),0.f,1.f);
+   }
+  }
+  ComPtr<ID3D11ShaderResourceView> view;if(!idView(mode==3?2:1,view))return false;
+  RemakeRasterOutput output;
+  if(!raster.Render(surface.context.Get(),stream,current,previous,mode==5?nullptr:view.Get(),1,100,.1f,0,output,error))return false;
+  std::uint32_t motion=0,bias=0,confidence=0,id=0;
+  if(!read(output.textures[0].Get(),4,motion)||!read(output.textures[1].Get(),1,confidence)
+   ||!read(output.textures[2].Get(),2,id)||!read(output.textures[3].Get(),1,bias))return false;
+  bool valid=false;
+  if(mode==0)valid=motion==0&&bias==0&&confidence==255&&id==1;
+  if(mode==1)valid=std::abs(int(motion&65535)-int(FloatToHalf(-4)))<=1
+   &&(motion>>16)==0&&bias==0&&confidence==255;
+  if(mode>=2&&mode<=5)valid=motion==0&&bias==255&&confidence==0&&(mode!=4||id==0);
+  if(mode==6) {
+   const float b=100.5f/400,c=60.5f/300,a=1-b-c;
+   const float denominator=a/10+b/20+c/30;
+   const auto hx=FloatToHalf((100*a/10+496*b/20+100*c/30)/denominator-200.5f);
+   const auto hy=FloatToHalf((100*a/10+100*b/20+400*c/30)/denominator-160.5f);
+   valid=std::abs(int(motion&65535)-int(hx))<=1&&std::abs(int(motion>>16)-int(hy))<=1&&bias==0&&confidence==255;
+  }
+  if(!valid){error="remake raster mode="+std::to_string(mode)+" motion="+std::to_string(motion)+" bias="+std::to_string(bias)+" confidence="+std::to_string(confidence);return false;}
+ }
+ return true;
+}
 } // namespace neuraltest

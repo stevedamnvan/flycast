@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-187: returned geometry drives isolated temporal guidance
+
+Reuse minimum-cost draw assignment with exact full-generation/topology/UV/color
+rechecks; ambiguous, alpha-tested/blended and changed-source draws are reactive.
+Ordinal is not identity. Raster current and homogeneous previous positions from
+the owned camera/geometry stream, then divide at the pixel. Require agreement
+with returned current depth, previous accepted depth and previous accepted draw
+identity before exporting previous-minus-current render-pixel motion. This is
+explicit projected-depth experimental guidance, not recovered physical world
+truth. Reject missing/outside/incorrect previous samples with zero motion and
+full current-color bias. Suppress numerical noise below1/4096 pixel only.
+The additional TEMPORAL_RASTER developer switch is off by default. Its deferred
+pass restores caller state and owns bounded output resources; only accepted
+evaluation advances draw-ID ownership alongside the existing scene/depth owner.
+Failure/busy retains the previous owner, and renderer/channel reset clears both.
+First-frame/missing history resets neural evaluation. No runtime configuration,
+public feature parameter, jitter contract or production default is changed.
+LOG601 GPU controls pass both D3D11 surfaces; live coverage, visual improvement,
+changed-guidance provenance and resource/performance acceptance remain open.
+
 ## D-186: returned temporal reference belongs to successful evaluation
 
 The explicit TEMPORAL_PREPARE mode retains geometry/camera/UV/color/topology and
