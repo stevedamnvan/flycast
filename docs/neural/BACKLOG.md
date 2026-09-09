@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `60610246bb033086a725d216eb8b2cdeb7573461`, pushed and remote verified (LOG384). Later changes are separate from tested source.
+- Last exact tested checkpoint: `2620f8db8cd0a8d6c460540a7e11fd533c173dfc`, pushed and remote verified (LOG388). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,9 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint/verify diagnostic clip validation, then connect
-prepared scene data to the bounded developer submission interface with explicit
-diagnostic provenance, never silent world/camera acceptance. LOG386 tests actual
+Current next action: implement separate sampled diagnostic submission under
+D-133, sharing safety checks but retaining ordinary world/omission rejection.
+Keep sampled coordinates, caller clip provenance and exclusions across redraw;
+do not relabel/clear them to pass ReadyForAdapter. LOG386 tests actual
 H containment for caller range0.1..104; source game clips remain null.
 LOG385 falsifies Synthetic far100
 on17 H vertices; native depth clipping is disabled. Do not equate a diagnostic

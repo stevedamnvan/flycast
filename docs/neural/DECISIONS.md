@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-133: separate sampled diagnostic submission from accepted scene submission
+
+ReadyForAdapter currently requires world-space and no omissions. The prepared
+sample has neither proven physical world-space nor complete coverage. Do not
+copy it into a Packet with Space::World and an empty omissions list to get a
+green return. Add a distinct bounded diagnostic entry point with explicit
+sampled-anchor coordinates and declared clip provenance. Keep its exclusions
+with the retained scene across Submit and Redraw; successful API callbacks
+must still report diagnostic-only, not camera/world/gameplay acceptance.
+Share structural/material/normal/index safety checks without weakening the
+ordinary ReadyForAdapter contract. This is preparation for an isolated real
+runtime experiment, not a replacement for the standing moving-gameplay goal.
+
 ## D-132: diagnostic clipping is not recovered game clipping
 
 Normal DX11 creates all three cull rasterizer states with DepthClipEnable=false
