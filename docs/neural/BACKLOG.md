@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `d314b594ade34818e280a70f3660abce8d4dd5c2`, pushed and remote verified (LOG371). Later evidence-document updates are separate from tested source.
+- Last exact tested checkpoint: `f242bc1b209ccd531e65a7a3bb67bce5af12d70e`, pushed and remote verified (LOG374). Later evidence-document updates are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,8 +54,9 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: checkpoint/exact-verify source texture binding, then publish
-bounded owned DDS assets with manifest identity for the reconstructed selection.
+Current next action: publish bounded owned DDS assets with manifest identity
+for the reconstructed selection. LOG374 closes exact checkpoint verification
+and actual H mesh-to-texture selection join (17 draws,14 assets).
 LOG373 connects verified captured mip bytes to in-memory DDS hashes/generations
 and positive mock API transport; no runtime texture result. LOG371 closes exact
 flat-normal checkpoint verification. LOG370 validates
