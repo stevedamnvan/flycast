@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current implementation base: `3f3600b442b6041d9a85f8fac46e14b43b1895aa`. Bounded moving-capture/logging changes remain in the worktree. Builds are incremental, not fresh exact-SHA evidence.
+- Effects integration checkpoint: `bea3a75776be08c97817a5ee246542792c59a675` (LOG555-557). The bounded moving-capture/logging follow-up is a separate slice. Read actual HEAD on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.

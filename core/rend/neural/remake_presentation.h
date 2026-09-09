@@ -7,11 +7,15 @@ inline bool RemakeRendererAllowed(bool oit,const char* optIn)noexcept {
 }
 // Optional developer-only capture window. Invalid input disables capture;
 // never turn malformed text into an unbounded run.
-inline unsigned RemakePreviewCaptureLimit(const char* text)noexcept {
+inline bool RemakeMovingCaptureEnabled(const char* text)noexcept {
+ return text&&text[0]=='1'&&text[1]=='\0';
+}
+inline unsigned RemakePreviewCaptureLimit(const char* text,const char* moving=nullptr)noexcept {
  if(!text)return 3;
  if(!*text)return 0;
+ const unsigned maximum=RemakeMovingCaptureEnabled(moving)?360:30;
  unsigned value=0;
- for(;*text;++text){if(*text<'0'||*text>'9')return 0;value=value*10+unsigned(*text-'0');if(value>30)return 0;}
+ for(;*text;++text){if(*text<'0'||*text>'9')return 0;value=value*10+unsigned(*text-'0');if(value>maximum)return 0;}
  return value;
 }
 enum class RemakeDisplayKind { Fallback, HoldNative, Remake };

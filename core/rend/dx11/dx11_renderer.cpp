@@ -3004,12 +3004,16 @@ void DX11Renderer::displayFramebuffer()
 	if(remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
 		&&previewSource&&remakeDecision.frame==previewSource->frame
 		&&remakeDecision.frame!=remakePreviewLastCaptured&&remakePreviewCaptureAttempts<
-			flycast::rend::neural::RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"))) {
+			flycast::rend::neural::RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),
+				std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))) {
 		if(const auto* directory=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");directory&&*directory) {
 			++remakePreviewCaptureAttempts;remakePreviewLastCaptured=remakeDecision.frame;
 			// Current-frame classification diagnostics are deliberately labeled
 			// separately from the retained displayed source and only emitted in a
 			// bounded explicit capture. They do not establish source HUD ownership.
+			// Moving captures retain pixel/identity evidence, not hundreds of MB
+			// of per-draw debugging text. Short diagnostic captures keep it.
+			if(!flycast::rend::neural::RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE")))
 			for(const auto& item:neuralInstrumentation.CaptureOverlayDiagnostics()) {
 				const auto& d=item.draw;
 				if(d.bboxMin[1]>=0&&d.bboxMax[1]<=96)

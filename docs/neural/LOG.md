@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG557 bea3a75776be08c97817a5ee246542792c59a675 commits the independently proven
+opt-in native OIT effect snapshot/replay and contribution capture. Four serial
+post-commit incremental builds and574/574 enabled selftests pass in the preserved
+worktree; these are not isolated fresh exact-SHA tests. The prior moving-capture
+cap/log suppression changes are intentionally excluded for a separate FC-054
+commit. Their bounds remain default3/ordinary30/explicit360, with overflow,
+malformed opt-in and361 rejection tests; LOG552 retains349 actual captured frames
+but only299 consecutive and helper watchdog failure. This proves bounded capture
+functionality, not the300-frame acceptance gate. The helper/capture throughput
+detour remains parked. Neither slice closes camera, general effect occlusion,
+normal-sort/multipass, new external provenance or resource/performance acceptance.
+
+
 LOG556 effect contribution capture at3f3600b44 plus worktree. The previous turn
 made implementation/GPU/live-presentation progress (LOG555), not full acceptance.
 Retain the already-owned pre-effect neural texture only for explicit preview

@@ -310,6 +310,10 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
 			RemakePresentationPolicy policy;
+			suite.Expect(RemakePreviewCaptureLimit("360","1")==360&&RemakePreviewCaptureLimit(nullptr,"1")==3
+				&&RemakePreviewCaptureLimit("361","1")==0&&RemakePreviewCaptureLimit("360","10")==0
+				&&RemakePreviewCaptureLimit("9999999999999999999","1")==0,
+				"long moving evidence remains explicit bounded and overflow safe with small default");
 			suite.Expect(RemakeRendererAllowed(false,nullptr)&&!RemakeRendererAllowed(true,nullptr)
 				&&RemakeRendererAllowed(true,"1")&&!RemakeRendererAllowed(true,"10")
 				&&!RemakeRendererAllowed(true,""),"Remix OIT requires exact explicit opt-in and preserves normal eligibility");
