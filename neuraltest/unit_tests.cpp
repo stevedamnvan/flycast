@@ -349,6 +349,25 @@ int RunSelfTests()
 				const double scale=precise.sourceVertices[0].copy.xyzTransforms[0]->matrix[0]/supported.focalX;
 				suite.Expect(std::abs(scale*scale-1)*100*supported.focalX>.01,
 					"transpose-as-inverse negative exceeds unchanged projection tolerance");
+				// Rotated translated cameras with clipped off-screen vertices expose
+				// rounding of the public float world position, not a changed lens.
+				bool roundTrips=true;
+				for(unsigned step=0;step<64;++step) {
+					auto moved=observed;moved.frame=later.frame;moved.sourceProducer=later.sourceProducer;
+					const float angle=.013f*step,c=std::cos(angle),s=std::sin(angle);
+					for(auto& witness:moved.sourceVertices)for(auto& t:witness.copy.xyzTransforms) {
+						t->matrix[0]=float(supported.focalX)*c;t->matrix[8]=float(supported.focalX)*s;
+						t->matrix[2]=-s;t->matrix[10]=c;t->matrix[14]=-2.f-.17f*step;
+					}
+					RemakeCameraAnchor trial;auto seed=packet;trial.Apply(observed,supported,seed,error);
+					auto test=packet;test.frame=later.frame;test.producer=later.sourceProducer;
+					for(auto& mesh:test.meshes){mesh.frame=later.frame;for(auto& v:mesh.vertices)v.position={3.f+.13f*step,-2.f,.1f};}
+					if(!trial.Apply(moved,laterView,test,error)) {
+						std::cout<<"camera round-trip step="<<step<<" "<<error<<'\n';roundTrips=false;break;
+					}
+					roundTrips=roundTrips&&trial.MaximumProjectionError()<=.01;
+				}
+				suite.Expect(roundTrips,"rotated translated clipped vertices retain unchanged subpixel guard");
 				// Camera Z=2 makes float(2 + near) - 2 fall just outside near.
 				auto shifted=observed;shifted.frame=later.frame;shifted.sourceProducer=later.sourceProducer;
 				for(auto& s:shifted.sourceVertices)for(auto& t:s.copy.xyzTransforms)t->matrix[14]-=2;

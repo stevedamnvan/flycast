@@ -63,6 +63,7 @@ void PerformanceTracker::Reset()
 	}
 	device_.reset();
 	activeSlot_ = RingSize;
+	cpuOnlySlot_={};cpuOnlyActive_=false;lastEndedSample_=static_cast<std::size_t>(-1);
 	lastEndedSlot_ = RingSize;
 	nextSequence_ = 1;
 	samples_.clear();
@@ -155,8 +156,9 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		}
 		if (!ready) continue;
 		slot.pending = false;
-		if (disjoint.Disjoint || disjoint.Frequency == 0) continue;
+		const bool timingValid = !disjoint.Disjoint && disjoint.Frequency != 0;
 		auto duration = [&](GpuTimingPoint begin, GpuTimingPoint end) {
+			if (!timingValid) return 0.;
 			const auto b = static_cast<std::size_t>(begin);
 			const auto e = static_cast<std::size_t>(end);
 			if (!slot.marked[b] || !slot.marked[e] || timestamps[e] < timestamps[b]) return 0.;
@@ -164,6 +166,7 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 				/ static_cast<double>(disjoint.Frequency);
 		};
 		Sample sample;
+		sample.gpuTimingValid = timingValid;
 		sample.pvrMs = duration(GpuTimingPoint::PvrBegin, GpuTimingPoint::PvrEnd);
 		sample.guidanceMs = duration(GpuTimingPoint::GuidanceBegin, GpuTimingPoint::GuidanceEnd);
 		sample.evaluateMs = duration(GpuTimingPoint::EvaluateBegin, GpuTimingPoint::EvaluateEnd);
@@ -180,7 +183,15 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.resetHistory = slot.resetHistory;
 		sample.rendererResourceObjects = slot.rendererResourceObjects;
 		sample.backendResourceObjects = slot.backendResourceObjects;
-		if (samples_.size() < targetSamples_) samples_.push_back(sample);
+		// CPU metadata was recorded at EndFrame even if the query ring later
+		// stalls. Resolve only the timing fields of its original sequence.
+		if(slot.sequence && slot.sequence<=samples_.size()) {
+			auto& recorded=samples_[slot.sequence-1];
+			recorded.gpuTimingValid=sample.gpuTimingValid;
+			recorded.pvrMs=sample.pvrMs;recorded.guidanceMs=sample.guidanceMs;
+			recorded.evaluateMs=sample.evaluateMs;recorded.compositeMs=sample.compositeMs;
+			recorded.totalGpuMs=sample.totalGpuMs;
+		}
 	}
 	if (samples_.size() >= targetSamples_ && !written_) WriteReport();
 }
@@ -188,6 +199,7 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 {
 	activeSlot_ = RingSize;
+	cpuOnlyActive_=false;
 	if (!Enabled() || !context) return;
 	ResolveAvailable(context);
 	if (!Enabled()) return;
@@ -218,25 +230,29 @@ void PerformanceTracker::BeginFrame(ID3D11DeviceContext *context)
 		return;
 	}
 	++ringBusy_;
+	cpuOnlySlot_={};cpuOnlySlot_.sequence=nextSequence_++;
+	cpuOnlySlot_.neuralMode=currentNeuralMode_;cpuOnlyActive_=true;
 }
 
 void PerformanceTracker::RecordEvaluation(std::uint64_t frameId, bool accepted,
 	bool resetHistory) noexcept
 {
-	if (activeSlot_ < RingSize && accepted)
+	if ((activeSlot_ < RingSize || cpuOnlyActive_) && accepted)
 	{
-		ring_[activeSlot_].acceptedFrameId = frameId;
-		ring_[activeSlot_].resetHistory = resetHistory;
+		auto& slot=cpuOnlyActive_?cpuOnlySlot_:ring_[activeSlot_];
+		slot.acceptedFrameId = frameId;
+		slot.resetHistory = resetHistory;
 	}
 }
 
 void PerformanceTracker::StagePresentation(std::uint64_t sourceFrameId,
 	std::uint64_t outputFrameId,PresentationKind kind) noexcept
 {
-	if (activeSlot_ >= RingSize) return;
-	ring_[activeSlot_].sourceFrameId = sourceFrameId;
-	ring_[activeSlot_].outputFrameId = outputFrameId;
-	ring_[activeSlot_].presentationKind=kind;
+	if (activeSlot_ >= RingSize && !cpuOnlyActive_) return;
+	auto& slot=cpuOnlyActive_?cpuOnlySlot_:ring_[activeSlot_];
+	slot.sourceFrameId = sourceFrameId;
+	slot.outputFrameId = outputFrameId;
+	slot.presentationKind=kind;
 }
 
 void PerformanceTracker::Mark(ID3D11DeviceContext *context, GpuTimingPoint point)
@@ -252,7 +268,8 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 	std::uint32_t rendererResourceObjects)
 {
 	stageStats_ = stats;
-	if (activeSlot_ >= RingSize || !context)
+	lastEndedSample_=static_cast<std::size_t>(-1);
+	if ((activeSlot_ >= RingSize && !cpuOnlyActive_) || !context)
 	{
 		// Advance past warmup and renderer-ring-busy retirements without adding
 		// them to the bounded measurement window.
@@ -267,8 +284,17 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 			{stats.evaluateGpuFrameId, stats.evaluateGpuMs});
 		lastBackendEvaluateSample_ = stats.evaluateGpuSamples;
 	}
-	ring_[activeSlot_].rendererResourceObjects = rendererResourceObjects;
-	ring_[activeSlot_].backendResourceObjects = stats.backendResourceObjects;
+	auto& current=cpuOnlyActive_?cpuOnlySlot_:ring_[activeSlot_];
+	current.rendererResourceObjects=rendererResourceObjects;current.backendResourceObjects=stats.backendResourceObjects;
+	if(samples_.size()<targetSamples_) {
+		Sample sample;sample.sequence=current.sequence;sample.sourceFrameId=current.sourceFrameId;
+		sample.acceptedFrameId=current.acceptedFrameId;sample.outputFrameId=current.outputFrameId;
+		sample.presentationKind=current.presentationKind;sample.neuralMode=current.neuralMode;
+		sample.resetHistory=current.resetHistory;sample.rendererResourceObjects=rendererResourceObjects;
+		sample.backendResourceObjects=stats.backendResourceObjects;
+		lastEndedSample_=samples_.size();samples_.push_back(sample);
+	}
+	if(cpuOnlyActive_){cpuOnlyActive_=false;lastEndedSlot_=RingSize;return;}
 	context->End(ring_[activeSlot_].disjoint);
 	ring_[activeSlot_].pending = true;
 	lastEndedSlot_ = activeSlot_;
@@ -281,6 +307,11 @@ void PerformanceTracker::RecordPresent() noexcept
 	if (lastPresent_ != std::chrono::steady_clock::time_point{})
 		lastPresentIntervalMs_ = std::chrono::duration<double, std::milli>(now - lastPresent_).count();
 	lastPresent_ = now;
+	if(lastEndedSample_<samples_.size()) {
+		samples_[lastEndedSample_].presented=true;
+		samples_[lastEndedSample_].presentIntervalMs=lastPresentIntervalMs_;
+		lastEndedSample_=static_cast<std::size_t>(-1);
+	}
 	if (lastEndedSlot_ < RingSize && ring_[lastEndedSlot_].pending)
 	{
 		ring_[lastEndedSlot_].presented = true;
@@ -301,9 +332,11 @@ void PerformanceTracker::WriteReport()
 	PresentationCadence cadence;
 	for (const auto& sample : samples_)
 	{
-		pvr.push_back(sample.pvrMs); guidance.push_back(sample.guidanceMs);
-		evaluate.push_back(sample.evaluateMs); composite.push_back(sample.compositeMs);
-		total.push_back(sample.totalGpuMs);
+		if (sample.gpuTimingValid) {
+			pvr.push_back(sample.pvrMs); guidance.push_back(sample.guidanceMs);
+			evaluate.push_back(sample.evaluateMs); composite.push_back(sample.compositeMs);
+			total.push_back(sample.totalGpuMs);
+		}
 		if (sample.presentIntervalMs > 0.) present.push_back(sample.presentIntervalMs);
 		cadence.Observe(sample.sourceFrameId, sample.acceptedFrameId,
 			sample.outputFrameId, sample.presented,sample.presentationKind);
@@ -480,6 +513,7 @@ void PerformanceTracker::WriteReport()
 		<< ", \"backend_final\": " << samples_.back().backendResourceObjects << "}"
 		<< ",\n  \"percentiles_ms\": {";
 	auto summary = [&](const char *name, const std::vector<double>& values, bool first) {
+		if(values.empty()){report<<(first?"\n    ":",\n    ")<<'"'<<name<<"\": null";return;}
 		report << (first ? "\n    " : ",\n    ") << '"' << name << "\": {\"p50\": "
 			<< Percentile(values, .50) << ", \"p95\": " << Percentile(values, .95)
 			<< ", \"p99\": " << Percentile(values, .99) << '}';
@@ -493,17 +527,22 @@ void PerformanceTracker::WriteReport()
 	summary("overlay_and_present_blit_gpu", composite, false);
 	summary("frame_gpu_timestamp_span", total, false);
 	summary("present_interval_cpu", present, false);
-	report << "\n  },\n  \"samples_ms\": [";
+	report << "\n  },\n  \"gpu_timing_valid_samples\": " << pvr.size()
+		<< ",\n  \"gpu_timing_invalid_samples\": " << samples_.size()-pvr.size()
+		<< ",\n  \"samples_ms\": [";
 	for (std::size_t i = 0; i < samples_.size(); ++i)
 	{
 		const auto& s = samples_[i];
 		if (i != 0) report << ',';
-		report << "\n    {\"pvr\": " << s.pvrMs << ", \"guidance\": " << s.guidanceMs
-			<< ", \"evaluate\": ";
-		if (nativeEvaluateAvailable) report << s.evaluateMs;
+		auto gpuValue=[&](double value){if(s.gpuTimingValid)report<<value;else report<<"null";};
+		report << "\n    {\"gpu_timing_valid\": " << (s.gpuTimingValid?"true":"false") << ", \"pvr\": ";gpuValue(s.pvrMs);
+		report << ", \"guidance\": ";gpuValue(s.guidanceMs);
+		report << ", \"evaluate\": ";
+		if (nativeEvaluateAvailable && s.gpuTimingValid) report << s.evaluateMs;
 		else report << "null";
-		report << ", \"composite\": " << s.compositeMs << ", \"total\": " << s.totalGpuMs
-			<< ", \"present_interval\": " << s.presentIntervalMs
+		report << ", \"composite\": ";gpuValue(s.compositeMs);
+		report << ", \"total\": ";gpuValue(s.totalGpuMs);
+		report << ", \"present_interval\": " << s.presentIntervalMs
 			<< ", \"presented\": " << (s.presented ? "true" : "false")
 			<< ", \"source_frame_id\": " << s.sourceFrameId
 			<< ", \"accepted_frame_id\": " << s.acceptedFrameId

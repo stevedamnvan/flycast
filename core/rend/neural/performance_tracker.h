@@ -67,6 +67,7 @@ private:
 		double presentIntervalMs = 0.;
 	};
 	struct Sample {
+		bool gpuTimingValid = false;
 		double pvrMs = 0.;
 		double guidanceMs = 0.;
 		double evaluateMs = 0.;
@@ -84,6 +85,9 @@ private:
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
 	};
+	Slot cpuOnlySlot_;
+	bool cpuOnlyActive_ = false;
+	std::size_t lastEndedSample_ = static_cast<std::size_t>(-1);
 	struct BackendEvaluateSample {
 		std::uint64_t frameId = 0;
 		double milliseconds = 0.;

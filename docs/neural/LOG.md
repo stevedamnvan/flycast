@@ -1,5 +1,114 @@
 # Neural rendering evidence log
 
+LOG641 final camera/cadence checkpoint: automation, baseline NGX, no-NGX and
+feature-off incremental builds succeed; three enabled suites677/0. Live camera
+rejection reduction and617 exact cadence joins verified separately in LOG640;
+invalid-timing handling does not establish GPU performance. Active backlog
+consolidated to remove stale live-run instructions and contradictory stop claims.
+No media/runtime/config/captures staged; preexisting user artifacts retained.
+
+LOG640 cadence-b host/helper0; recorder now retains1200 CPU samples:597 accepted
+evaluations,617 combined Presents,595 distinct sources,149 longest consecutive
+source IDs, no frame-identity mismatch. Independent Counter join of every
+(output source,current frame) exactly equals raw completed-Present log617/617.
+584 valid GPU timing samples and616 unavailable samples; all unavailable PVR/
+guidance/total fields independently checked null. Renderer query-ring busy616
+no longer erases CPU cadence. Report source gaps0 refers to current-frame sample
+coverage, not returned-source continuity; repeats24 includes held-native frames.
+Displayed latency mean2.06462/max5. This validates recorder/camera improvement
+only: full300-frame moving pixel proof, steady600-frame lane, timing completeness,
+normal renderer and native timing comparison remain open. Do not promote149 to300
+or count helper660 Presents as600 consecutive displayed gameplay frames.
+
+LOG639 cadence-a host/helper0. New timing-valid diagnostics report1200 valid,
+0 disjoint samples, while renderer ring_busy_count=616: LOG638's disjoint causal
+claim is falsified. Earlier stage busy0 was NOT renderer query-ring busy. The
+query ring exhausted after12 active samples and recorder omitted CPU metadata
+until GPU queries resolved after combined work. Keep disjoint-null handling as
+defensive behavior, but separate every CPU frame record from optional GPU query
+storage. EndFrame owns ordered sample metadata even on query-ring busy; Present
+marks that sample; later query resolution updates only timing by sequence.
+No GPU wait or fabricated timing. Rerun sustained and compare every reported
+completed combined frame with the independent raw Present log.
+
+LOG638 correction to LOG635/637 interpretation: raw completed-Present logs show
+cx315 Presents/278 distinct sources2165..2473, cy617 Presents/595 distinct sources
+2163..2779. The reported10 was timing-sample-derived, not actual presentation.
+cz diagnostic host/helper0 shows continued completed presentation beyond2175
+and no policy-failure transition. Camera refinement DID materially improve live
+delivery; the earlier claimed unchanged10-frame limit was false. Preserve that
+failed diagnosis explicitly. Performance samples jump2174->2791: ResolveAvailable
+discarded whole samples on disjoint/zero-frequency GPU timestamps. Retain their
+valid frame identity/CPU Present data, report GPU values null and separate valid/
+invalid timing counts; exclude invalid GPU values from percentiles. Also record
+actual frame.resetHistory rather than hardcoded true. This is telemetry only,
+not an invented GPU duration or relaxed presentation gate. Live verification pending.
+
+LOG637 cy host/helper0,597 evaluated/owned outputs. Camera rejects fall281->1,
+but combined presentation stays10/1200, so do not attribute the early stop to
+camera errors. First combined interval source2163..2172/current2165..2174; later
+evaluation remains consecutive. Remaining camera reject occurs2709, long after
+the stop. Synthetic677/0 and live reduction support numerical improvement only,
+not full camera or delivery acceptance. Add transition-only presentation-stop
+diagnostics (current/candidate/enable/guidance/source/producer/latch) without
+changing selection behavior; run bounded early interval to locate actual gate.
+Do not extend numerical search or weaken fallback based on a wrong causal guess.
+
+LOG636 deterministic64-pose clipped/off-screen camera fixture reproduces failure
+before production edits: step2 projection0.010986px,676/1 suite. Bounded nearby
+float-lattice correction moves failure to step12/0.031738px (676/1); ray-aligned
+representable-coordinate-plane search moves failure to step44/0.014648px (676/1).
+Add bounded same-ray sampling inside the existing depth error budget, followed
+by unchanged projection/clip/depth checks:677/0 passes all64 poses and existing
+wrong-camera/nonrigid/identity tests. Bounds:27 coordinate planes,129 depth
+samples, at most728 neighboring points, only on an otherwise rejected rounded
+vertex; no lens, world-origin, source or acceptance changes. Retain all three
+failed attempts under remake-anchor-fixture/lattice/ray logs and successful
+remake-anchor-budget logs. No claim that synthetic success fixes gameplay yet.
+Next cy sustained OIT uses identical cx bounds/consumer, only camera correction.
+
+LOG635 cx host/helper0,660 helper Presents. Raw renderer log597 accepted
+evaluations,597 owned evaluated outputs,597 native-effect compositions,0 GPU
+guidance rejects,281 camera-anchor rejects. Performance collector1200 Presents
+reports10 remake-evaluated and1190 native,2 held-native samples,90 evaluation
+records versus597 backend submissions: delayed-source collector attribution
+is not equivalent to raw accepted-source count. No steady-delivery acceptance.
+Observed source gaps677, output repeats2, measured displayed age mean1.75/max2;
+owned objects137 initial/152 final (backend12 retained, not by itself proof of
+leak), VRAM growth-170180608. Present interval P50/P95/P99=55.4746/67.1296/75.4532ms;
+PVR13.2716/15.7066/17.3692ms, guidance9.7929/20.7868/23.3590ms. Tracing/effect-copy
+cost remains; no native timing equivalence claimed. Presentation policy latches
+native after gaps beyond8 frames, so evaluated outputs do not imply presentation.
+Next isolate/correct camera float round-trip for clipped/off-screen vertices:
+current anchor loop only corrects enclosure, and exits on initially enclosed
+vertices even if projection error exceeds0.01px. Build a deterministic failing
+numeric fixture, preserve threshold/clip/depth/source identity, then bounded
+representable-coordinate correction. Do not weaken fallback or accuracy guards.
+
+LOG634 cw host/helper0,1200 measured samples but0 accepted evaluations and0
+combined Presents: REJECTED sustained integration, not pass. Native1200/1200;
+VRAM growth-541274112 bytes, owned objects137 initial/131 final are native-path
+observations only. Camera projection guard also rejected some later sources
+(e.g.0.014648px versus0.01 bound); retain this separate integration limitation.
+Root launcher issue verified with isolated process-env probe: null assignment
+leaves empty present variable on installed runtime; comparison guard rejects
+empty start even without capture. Correct launcher by removing absent variables
+through Env provider in setup/restoration. Preserve strict invalid-input guard.
+Retry cx under otherwise unchanged sustained bounds; no new production shader
+or external configuration change. Native-effects copy/source tracing cost and
+camera rejection remain to assess after actual combined evaluation is active.
+
+LOG633 033b6ca7f post-commit four incremental builds and three676/0 suites pass.
+Next sustained OIT run cw reuses LOG542 bounds:660 helper Presents (60 warmup,
+600 returned-source budget),1200 host samples to leave shutdown margin,180-second
+host watchdog. Live scene/camera/geometry temporal/native-effects integration;
+no locked inputs, PNG preview, marker/sentinel, effect-identity readback or color
+experiment. Keep source observation and paired returned-depth transport visible
+as overhead; this does not by itself establish final99-percent/timing acceptance.
+Measure exact matched receipts, accepted/evaluated Presents, source age/order,
+resource trend and eligible delivery. Do not confuse1200 host samples with600
+combined frames. Existing user consumer configuration remains unchanged.
+
 LOG632 cv host/helper0,240 helper Presents. Existing three-way audit actually
 passes cs/ct/cv for all28 frames2252..2279: identical evaluated color/depth/motion/
 mask, matching marked/clean pre-marker output hashes, external output differs on

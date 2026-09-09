@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+Windows launcher pitfall (LOG634): in the installed PowerShell/.NET runtime,
+SetEnvironmentVariable(key,$null,'Process') leaves a present empty variable.
+Use Remove-Item -LiteralPath ('Env:' + key) when the intended setting is absent,
+and preserve absent-versus-empty state on restoration. Verified by an isolated
+probe: providerExists=true/valueIsNull=false after null assignment, false after
+provider removal. In particular an empty FLYCAST_REMAKE_COMPARE_START_FRAME is
+deliberately invalid; do not relax its guard to hide a launcher error. Ordinary
+delivery runs must remove comparison/capture variables, not set them empty.
+
 FLYCAST_REMAKE_COLOR_CONSISTENCY=1 enables the off-by-default returned-shading
 experiment only when the existing temporal raster is requested. It compares
 current returned RGB with bilinearly reprojected last-accepted returned RGB;

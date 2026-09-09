@@ -43,6 +43,8 @@ class RemakePresentationPolicy {
  std::uint64_t floor_=0,last_=0,tick_=0;
 public:
  void Reset()noexcept{*this={};}
+ bool Active()const noexcept{return phase_==Phase::Active;}
+ bool Failed()const noexcept{return phase_==Phase::Failed;}
  void Fail()noexcept{phase_=Phase::Failed;}
  RemakeDisplayDecision Choose(std::uint64_t current,std::uint64_t candidate,bool enabled)noexcept {
   if(!enabled){Reset();return {RemakeDisplayKind::Fallback,current};}

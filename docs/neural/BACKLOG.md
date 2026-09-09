@@ -57,22 +57,25 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG632):** changed-guidance provenance is ACCEPTED
-for28 moving frames via cs/ct/cv, exact evaluated inputs, external output changes,
-marked/restored agreement, source-owned effects/HUD and completed Presents.
-OFF retains accepted public history but cannot present external output (D-191).
-Finish four-build/commit checkpoint for the launcher/history corrections, then
-run bounded600-frame ordinary combined OIT delivery with no frozen replay,
-no sentinel, no PNG capture, and shading experiment off. Use existing async
-runtime/launcher; retain camera-relative scope. Report actual eligible/combined/
-skipped counts, age, timing and resource growth; do not treat diagnostic source
-observation overhead or incomplete coverage as final performance acceptance.
-Then correct the measured limiting integration issue and run normal DX11 plus
-paired native timing controls. Keep full300/600-frame exit criteria unchanged;
-no PNG-throughput detour, generic provenance reproof or further mask thresholds.
-cr/cu failures and cq no-effect result remain recorded. D-190 stays parked.
+**Operational next action (LOG640):** finish the four-build/commit checkpoint
+for camera quantization and CPU cadence retention, then fix nonblocking GPU
+query submission/availability on the combined route. The query ring is busy616
+frames; CPU cadence is now independently retained and verified617/617 against
+completed-Present logs. Never add a synchronous wait or substitute GPU estimates.
+Then run normal DX11 and paired native timing controls using the existing live
+launcher. Keep source-observation/effect-copy overhead explicit.
 
-Integration rationale (LOG620): public isolation is complete; do not expand
+Latest sustained OIT evidence:597 accepted evaluations,617 completed combined
+Presents,595 distinct sources,149 longest consecutive source IDs. Camera rejects
+fell281->1 with unchanged0.01px/depth/clip guards. The earlier10-frame claim was
+a timing-report artifact, corrected in LOG638-640; presentation policy is unchanged.
+Full300/600-frame exit criteria, residual camera rejection, moving pixel evidence,
+complete timing and resource stability remain open. Do not declare acceptance.
+Changed-guidance provenance remains accepted for28 exact-input frames (LOG632).
+Do not repeat generic transport, mask thresholds or PNG-throughput detours.
+D-190 remains parked. Failed launches and causal guesses remain in LOG.
+
+Historical integration rationale (LOG620, completed/parked): public isolation is complete; do not expand
 the settings sweep or repeat transport bring-up. Implement a bounded returned-color
 reprojection consistency experiment at the existing accepted-history boundary:
 protect shading/color changes that geometric depth/identity alone cannot detect,

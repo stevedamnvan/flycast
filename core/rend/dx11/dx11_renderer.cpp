@@ -2574,7 +2574,13 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 				remakeCompositeEvaluated=evaluatedRequested;
 			}
 		}
+		const bool wasActive=remakePresentationPolicy.Active(),wasFailed=remakePresentationPolicy.Failed();
 		auto decision=remakePresentationPolicy.Choose(current,candidate,enabled);
+		if((wasActive&&!enabled)||(!wasFailed&&remakePresentationPolicy.Failed()))
+			NOTICE_LOG(RENDERER,"Remake presentation stopped: current=%llu candidate=%llu enabled=%d permitted=%d guidance=%llu source=%llu producer=%llu latched=%d",
+				(unsigned long long)current,(unsigned long long)candidate,enabled,permitted,
+				(unsigned long long)currentNeuralGuidanceFrameId,(unsigned long long)(source?source->frame:0),
+				(unsigned long long)(rendContext?rendContext->captureProducer.ordinal:0),remakePresentationPolicy.Failed());
 		if(decision.kind==RemakeDisplayKind::HoldNative) {
 			if(remakeWarmupNative.identity.frame!=decision.frame) {
 				if(decision.frame!=current)throw std::runtime_error("warmup source unavailable");
@@ -2933,7 +2939,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		const auto status=neuralStage.TrySubmit(frame);
 		logNeuralConsumerStatus(status);
 		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateEnd);
-		neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,true);
+		neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,frame.resetHistory);
 		NOTICE_LOG(RENDERER,"Remake async neural evaluation: source=%llu current=%llu sequence=%llu accepted=%d reset=%d motion=%s bias=%s displayed=false",
 			(unsigned long long)source.frame,(unsigned long long)currentNeuralSourceFrameId,(unsigned long long)source.source.sequence,status==SubmitStatus::Submitted,
 			frame.resetHistory,rasterRequested?"returned-geometry":"zero",rasterRequested?"returned-depth-consistency":"one");

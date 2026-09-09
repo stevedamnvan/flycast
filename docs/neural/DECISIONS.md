@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-193: CPU delivery records do not depend on GPU query availability
+
+Create ordered per-frame metadata at EndFrame regardless of query-ring capacity.
+Completed Present updates that record; asynchronous query resolution updates
+only its timing fields by sequence. Ring-busy/disjoint samples retain cadence,
+source/reset/resource data with null GPU durations, excluded from GPU percentiles.
+Never wait for queries to obtain a cadence record. LOG640 verifies617 exact raw/
+report Present joins under616 ring-busy frames. GPU availability itself remains
+an integration issue, not solved by retaining metadata.
+
+## D-192: refine float representation without changing the camera contract
+
+For a rounded embedded vertex that fails existing projection/clip/depth checks,
+search bounded neighboring floats and the same original view ray inside the
+already permitted depth tolerance. Recheck the unchanged0.01px and depth bounds
+before accepting. Keep initially valid vertices unchanged. No recovered world
+semantics, lens adjustment or relaxed rejection follows from this numerical
+correction. LOG636 records a deterministic pre-fix failure and intermediate
+failures; sustained live acceptance and cost remain pending.
+
 ## D-191: accepted public evaluation and external presentation are separate gates
 
 Retain returned-scene geometry/depth only after successful stage submission, as

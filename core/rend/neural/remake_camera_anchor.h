@@ -134,6 +134,76 @@ public:
     v.position=embedPosition({float(input.x*ratio),float(input.y*ratio),targetDepth});
     actual=remake::Project(embedded.camera,v.position);
    }
+   // Inverting in double still rounds each published world coordinate to a
+   // float independently. For near/off-screen vertices that rounded point can
+   // miss the ray even though a neighboring representable point satisfies the
+   // original projection and depth contract. Search a bounded local lattice;
+   // never alter the lens, clip planes, source identity or acceptance limits.
+   const auto projectionError=[&](remake::Vec3 projected) {
+    if(!std::isfinite(projected.x)||!std::isfinite(projected.y)||!std::isfinite(projected.z)
+     ||projected.z<embedded.camera.nearPlane||projected.z>embedded.camera.farPlane
+     ||std::abs(double(projected.z)-expected.z)>(std::max)(1e-5,std::abs(double(expected.z))*1e-5))
+     return std::numeric_limits<double>::infinity();
+    return (std::max)(std::abs(double(projected.x)-expected.x)*scene.size[0],
+     std::abs(double(projected.y)-expected.y)*scene.size[1]);
+   };
+   double best=projectionError(actual);
+   if(best>.01) {
+    const auto center=v.position;
+    std::array<std::array<float,9>,3> grid{};
+    const float axes[]={center.x,center.y,center.z};
+    for(unsigned axis=0;axis<3;++axis) {
+     grid[axis][4]=axes[axis];
+     for(unsigned distance=1;distance<=4;++distance) {
+      grid[axis][4-distance]=std::nextafter(grid[axis][5-distance],-std::numeric_limits<float>::infinity());
+      grid[axis][4+distance]=std::nextafter(grid[axis][3+distance],std::numeric_limits<float>::infinity());
+     }
+    }
+    // Follow the same view ray when selecting a representable coordinate plane.
+    // Independent ULP steps alone cannot follow a steep off-screen ray: one Z
+    // step can require many X steps. Solve its depth in double, then round once.
+    const double ray[]={double(input.x)/input.z,double(input.y)/input.z,1.};
+    double direction[3]{};
+    const double origin[]={embedded.camera.position.x,embedded.camera.position.y,embedded.camera.position.z};
+    for(unsigned r=0;r<3;++r)for(unsigned k=0;k<3;++k)direction[r]+=inverse[r*4+k]*ray[k];
+    for(unsigned axis=0;axis<3&&best>.01;++axis)for(unsigned plane=0;plane<9&&best>.01;++plane) {
+     if(std::abs(direction[axis])<1e-12)continue;
+     const double depth=(double(grid[axis][plane])-origin[axis])/direction[axis];
+     if(depth<=0||std::abs(depth-input.z)>(std::max)(1e-5,std::abs(double(input.z))*1e-5))continue;
+     const remake::Vec3 candidate{float(origin[0]+direction[0]*depth),float(origin[1]+direction[1]*depth),float(origin[2]+direction[2]*depth)};
+     try {
+      const auto projected=remake::Project(embedded.camera,candidate);
+      const double error=projectionError(projected);
+      if(error<best){best=error;v.position=candidate;actual=projected;}
+     }catch(const std::invalid_argument&) {}
+    }
+    // Cover the existing allowed depth interval along that same ray. This is
+    // bounded quantization search, not an enlarged error budget; the unchanged
+    // post-projection check decides whether a representable point is acceptable.
+    const double depthBudget=(std::max)(1e-5,std::abs(double(input.z))*1e-5);
+    for(int step=-64;step<=64&&best>.01;++step) {
+     const double depth=double(input.z)+depthBudget*step/64.;
+     if(depth<embedded.camera.nearPlane||depth>embedded.camera.farPlane)continue;
+     const remake::Vec3 candidate{float(origin[0]+direction[0]*depth),float(origin[1]+direction[1]*depth),float(origin[2]+direction[2]*depth)};
+     try {
+      const auto projected=remake::Project(embedded.camera,candidate);
+      const double error=projectionError(projected);
+      if(error<best){best=error;v.position=candidate;actual=projected;}
+     }catch(const std::invalid_argument&) {}
+    }
+    for(int radius=1;radius<=4&&best>.01;++radius)
+     for(int x=-radius;x<=radius&&best>.01;++x)
+      for(int y=-radius;y<=radius&&best>.01;++y)
+       for(int z=-radius;z<=radius&&best>.01;++z) {
+        if((std::max)({std::abs(x),std::abs(y),std::abs(z)})!=radius)continue;
+        const remake::Vec3 candidate{grid[0][4+x],grid[1][4+y],grid[2][4+z]};
+        try {
+         const auto projected=remake::Project(embedded.camera,candidate);
+         const double error=projectionError(projected);
+         if(error<best){best=error;v.position=candidate;actual=projected;}
+        }catch(const std::invalid_argument&) { /* Invalid neighbor cannot be accepted. */ }
+       }
+   }
    if(actual.z<embedded.camera.nearPlane||actual.z>embedded.camera.farPlane)
     {error="anchor-enclosure-unrepresentable expected="+std::to_string(expected.z)+" actual="+std::to_string(actual.z);return false;}
    const double pixels=(std::max)(std::abs(double(actual.x)-expected.x)*scene.size[0],
