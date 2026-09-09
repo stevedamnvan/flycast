@@ -69,6 +69,16 @@ stamp delayed images with the current frame or pair them with current-frame HUD
 or native motion. Keep the reset-only/full-bias limitation explicit until real
 returned-scene temporal guidance is implemented. Measure delivery/skips/latency
 on moving gameplay; do not call synchronous capture performance evidence.
+LOG527 implements explicit return-credit publication and source-age/epoch
+expiration in the existing channel, with516/516 automation tests after a
+512pass/4fail RED control. A consumed source slot is
+not retired until its returned image is received or its source is explicitly
+expired; a full return ledger skips without waiting. Falsifying case: consume
+two source packets without returning their images, then attempt a third publish.
+It now does not overwrite the first source receipt. Legacy one-way transport is preserved.
+This is an asynchronous ownership prerequisite, not ordinary-feed acceptance;
+next replace synchronous material Map with retained, generation-qualified
+staging copies and nonblocking completion before wiring the ordinary frame hook.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.

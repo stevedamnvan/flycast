@@ -97,6 +97,28 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
  impl_=std::move(p);error.clear();return true;
 }
+RemakeChannelResult RemakeLiveChannel::PublishForReturn(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
+ if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
+ if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
+ if(impl_->sequence!=UINT64_MAX) {
+  const auto& pending=impl_->sources[(impl_->sequence+1)%2];
+  if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence) {
+   error="channel-return-credit-busy";return RemakeChannelResult::Busy;
+  }
+ }
+ return Publish(packet,receipt,error);
+}
+unsigned RemakeLiveChannel::ExpireReturns(std::uint64_t currentFrame,const ProducerIdentity& current,std::uint64_t maxAge) {
+ if(!impl_||impl_->owner||!currentFrame||!current.Available())return 0;
+ unsigned expired=0;
+ for(auto& source:impl_->sources) {
+  if(source.frame&&source.receipt.sequence>impl_->returnedSequence
+   &&(source.producer.epoch!=current.epoch||source.frame>currentFrame||currentFrame-source.frame>maxAge)) {
+   source={};++expired;
+  }
+ }
+ return expired;
+}
 RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
  if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
  auto& p=*impl_;if(!p.live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}

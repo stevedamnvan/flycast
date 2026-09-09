@@ -257,6 +257,35 @@ int RunSelfTests()
 			suite.Expect(created&&opened,"live channel opens one consumer and publisher");
 			suite.Expect(!duplicate.CreateConsumer(token,error)&&!duplicate.OpenPublisher(token,error),"live channel rejects duplicate owner and publisher");
 			const auto advance=[](remake::Packet p){++p.frame;++p.producer.ordinal;++p.producer.cycle;for(auto& mesh:p.meshes)mesh.frame=p.frame;return p;};
+			{
+				RemakeLiveChannel returnConsumer,returnPublisher;RemakeChannelReceipt receipt,first,secondReceipt;
+				const auto returnToken=token+"-credit";
+				bool ready=returnConsumer.CreateConsumer(returnToken,error)&&returnPublisher.OpenPublisher(returnToken,error);
+				auto b=advance(packet),c=advance(b);remake::Packet owned;
+				ready=ready&&returnPublisher.PublishForReturn(packet,receipt,error)==RemakeChannelResult::Published
+					&&returnConsumer.Receive(owned,first,error)==RemakeChannelResult::Received
+					&&returnPublisher.PublishForReturn(b,receipt,error)==RemakeChannelResult::Published
+					&&returnConsumer.Receive(owned,secondReceipt,error)==RemakeChannelResult::Received;
+				suite.Expect(ready,"return-aware source slots consumed with two replies outstanding");
+				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Busy
+					&&error=="channel-return-credit-busy","delayed replies prevent source ledger overwrite despite free transport slots");
+				RemakeReturnedImage delayed;delayed.source=first;delayed.frame=packet.frame;delayed.producer=packet.producer;
+				delayed.width=640;delayed.height=480;delayed.bgra.assign(640*480*4,73);
+				RemakeReturnedImage accepted;
+				suite.Expect(returnConsumer.ReturnImage(delayed,error)==RemakeChannelResult::Published
+					&&returnPublisher.ReceiveImage(accepted,error)==RemakeChannelResult::Received
+					&&accepted.frame==packet.frame,"delayed first reply retains original frame after credit rejection");
+				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Published
+					&&receipt.sequence==3,"returned image releases exactly one source credit without advancing on busy");
+				suite.Expect(returnPublisher.ExpireReturns(c.frame,c.producer,1)==0,"source age at limit remains owned");
+				suite.Expect(returnPublisher.ExpireReturns(c.frame+1,c.producer,1)==1,"source older than age bound expires without waiting");
+				delayed.source=secondReceipt;delayed.frame=b.frame;delayed.producer=b.producer;
+				suite.Expect(returnConsumer.ReturnImage(delayed,error)==RemakeChannelResult::Published
+					&&returnPublisher.ReceiveImage(accepted,error)==RemakeChannelResult::Invalid
+					&&accepted.frame==packet.frame,"expired late reply rejects without changing owned output");
+				auto epoch=c.producer;++epoch.epoch;
+				suite.Expect(returnPublisher.ExpireReturns(c.frame,epoch,10)==1,"epoch reset expires all remaining source ownership");
+			}
 			auto second=advance(packet),third=advance(second);
 			remake::Packet receivedPacket;receivedPacket.frame=99;
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Empty&&receivedPacket.frame==99,

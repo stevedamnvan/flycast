@@ -1,5 +1,12 @@
 # Neural rendering evidence log
 
+LOG527 regression: all four serial incremental builds pass, automation/NGX/
+no-NGX selftests516/516 each and SDK193/193 pass. Backlog contract and diff
+whitespace checks pass. Real shared-memory delayed-return fixtures run locally;
+no new real-game capture or performance pass is claimed for this credit change.
+
+#527 2026-09-09 838c88f09 plus working tree | Begin asynchronous ownership prerequisite: add return-aware publication to the existing two-slot channel, retaining each source receipt until its image is received or explicitly expired. Existing capture exchange uses it; legacy one-way Publish is unchanged. Added explicit source-age/epoch expiration without advancing neural history. Actual shared-memory RED controls consume both packets before returning images: unrestricted publication overwrites the first receipt,512pass/4fail. Return-credit guard makes516/516 pass, including first delayed reply retains original frame, busy does not advance sequence, receipt retirement frees one credit, age boundary, expired reply rejects atomically and epoch expiry. Automation build passes. This is not ordinary-frame feed, GPU performance, camera acceptance or combined gameplay acceptance. Texture export still calls blocking GPU Map and must be replaced by retained generation-qualified staging before ordinary-frame delivery. New epoch also still requires a channel/session restart; expiring receipt ownership does not bypass existing source-order validation. No runtime/config/media changes.
+
 LOG526 completion evidence: marked-c and clean-a pass all three exact returned
 RGBA/inverted-depth, reset/full-bias and protected/native versus world/public
 composition checks. OFF-a also captures3/clean-close0. Strict external verifier

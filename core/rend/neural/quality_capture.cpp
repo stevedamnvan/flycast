@@ -561,7 +561,7 @@ void QualityCaptureWriter::ExchangeRemakePacket()
 				remakeReturnedImage_=std::move(returned);
 			}
 			RemakeChannelReceipt receipt;
-			const auto result=remakeChannel_.Publish(*remakePacket_,receipt,conversionError);
+			const auto result=remakeChannel_.PublishForReturn(*remakePacket_,receipt,conversionError);
 			if(result==RemakeChannelResult::Published)remakePacketStatus_="live-published sequence="+std::to_string(receipt.sequence)
 				+" bytes="+std::to_string(receipt.bytes)+" digest="+std::to_string(receipt.digest)+"; presentation-unproven";
 			else remakePacketStatus_=conversionError;

@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-163: consumed transport slots do not retire returned-image ownership
+
+The source transport and returned-image ownership have different lifetimes.
+PublishForReturn reserves the existing two-record source ledger until a valid
+image is received or the caller explicitly expires ownership by source age or
+epoch. Busy does not publish, advance sequence or wait. Expired replies fail
+without changing the caller's owned image. Expiration is not neural evaluation,
+history advancement or permission to label delayed output as the current frame.
+Legacy one-way Publish remains available for source-only diagnostics. The live
+capture exchange now requests return credits. Ordinary integration must poll
+and expire on its own bounded frame policy and restart the channel on epoch
+change; this API alone does not supply async textures, HUD ownership or pacing.
+
 ## D-162: lock returned pixels only after exact transported-scene qualification
 
 The explicit capture-only locked-input root is not a live output provider.

@@ -1,5 +1,14 @@
 # Neural diagnostics
 
+Return-aware live exchange uses `PublishForReturn`, which can report
+`channel-return-credit-busy` even when transport slots are free: the original
+two source receipts still own pending returned images. This is bounded native
+fallback, not a reason to wait or overwrite them. `ExpireReturns` is a caller-
+driven source-age/epoch retirement API; it rejects late replies and does not
+advance neural history or reset the channel's epoch ordering. Existing bounded
+capture does not automatically expire replies. Ordinary-frame integration must
+provide expiration, restart and matching overlay ownership before presentation.
+
 `FLYCAST_REMAKE_LOCKED_INPUT_ROOT` is an explicit capture-only diagnostic: current
 scene construction must match a retained live returned-input package in full,
 except renderer counter and build label. Producer epoch/ordinal/cycle, geometry,
