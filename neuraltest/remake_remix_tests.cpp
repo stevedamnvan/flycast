@@ -99,6 +99,37 @@ int main() {
    expect(calls.observedPath&&std::wstring(calls.observedPath)==calls.expectedPath,"adapter owns path after caller mutation");
   }
   auto p=Synthetic();p.meshes[0].material->sourceDds=path;p.meshes[0].material->sourceColorExperiment=true;
+  {
+   auto bound=p;auto& mesh=bound.meshes[0];
+   mesh.texture={9,3,5,7,true};mesh.material->sourceTexture=mesh.texture;
+   expect(ReadyForAdapter(bound,bound.frame,bound.game).ok,"explicit source texture identity accepted");
+   {
+    calls={};calls.expectedPath=path.wstring();
+    // Both synthetic surfaces use the explicit file for the mock path check.
+    bound.meshes[1].material->sourceDds=path;
+    bound.meshes[1].material->sourceColorExperiment=true;
+    RemixScene submitted(interface());
+    expect(submitted.Submit(bound,bound.frame,bound.game).ok && calls.valid
+     && calls.materials==2 && calls.draws==2,"bound source texture reaches public API");
+   }
+   for(int field=0;field<5;++field) {
+    auto bad=bound;auto& identity=*bad.meshes[0].material->sourceTexture;
+    if(field==0)identity.id++;
+    if(field==1)identity.generation++;
+    if(field==2)identity.paletteGeneration++;
+    if(field==3)identity.rttGeneration++;
+    if(field==4)identity.known=false;
+    calls={};RemixScene rejected(interface());
+    expect(rejected.Submit(bad,bad.frame,bad.game).reason=="source-texture-identity"
+     && calls.materials==0 && calls.draws==0,"stale source texture makes no API calls");
+   }
+   auto bad=bound;bad.meshes[0].material->sourceDds.clear();
+   expect(ReadyForAdapter(bad,bad.frame,bad.game).reason=="source-texture-identity","identity alone cannot replace asset");
+   bad=bound;bad.meshes[0].texture.known=false;
+   expect(ReadyForAdapter(bad,bad.frame,bad.game).reason=="source-texture-identity","unowned source binding rejects");
+   bad=bound;bad.omissions.push_back("unknown domain");
+   expect(ReadyForAdapter(bad,bad.frame,bad.game).reason=="incomplete-scene","source binding cannot waive omissions");
+  }
   words[32]=29;write(152);
   expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","unexpected sRGB DDS rejects");
   words[32]=28;write(151);

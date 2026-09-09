@@ -3,9 +3,25 @@ import struct
 import io
 from PIL import Image
 from source_dds import encode
+from source_dds import capture_bundle
+from unittest.mock import patch
+import hashlib
 
 
 class DdsTests(unittest.TestCase):
+    def test_bundle_retains_generation_and_encoded_hash(self):
+        captured=dict(textures={3:dict(levels=[dict(width=1,height=1,rgba=b'RGBA',source_hash='original')])},
+            draws=[dict(source_draw=7,bindings=[dict(asset=3,slot=0,upload_generation=2,
+                palette_hash=4,rtt_generation=6,tcw=8,tsp=10)])])
+        with patch('scene_material_binding_inspect.source_textures',return_value=captured) as verified:
+            result=capture_bundle(dict(frame_id=11,game_id='fixture',git_sha='fixture'),{},[7],None)
+        verified.assert_called_once()
+        binding=result['bindings'][0];asset=result['assets'][3]
+        self.assertEqual(binding['dds_sha256'],hashlib.sha256(asset['dds']).hexdigest())
+        self.assertEqual((binding['upload_generation'],binding['palette_hash'],binding['rtt_generation']),(2,4,6))
+        self.assertEqual(asset['source_mip_hashes'],['original'])
+        self.assertEqual(asset['dds'][148:],b'RGBA')
+        self.assertFalse(result['renderable_by_remix_adapter'])
     def test_header_and_exact_payload(self):
         levels=[dict(width=2,height=2,rgba=bytes(range(16))),dict(width=1,height=1,rgba=b'RGBA')]
         d=encode(levels,srgb=False)

@@ -1,5 +1,31 @@
 """DDS DX10 serialization of already-decoded source RGBA; no color conversion."""
 import struct
+import hashlib
+
+
+def capture_bundle(scene, materials, ordinals, directory):
+    """Verified in-memory source assets; no runtime or filesystem publication."""
+    from scene_material_binding_inspect import source_textures
+    from transform_store_inspect import require
+    captured=source_textures(scene,materials,ordinals,directory)
+    assets={};total=0
+    for aid,texture in captured['textures'].items():
+        data=encode(texture['levels'],srgb=False);total+=len(data)
+        require(total<=64*1024*1024,'DDS bundle byte bound')
+        assets[aid]=dict(dds=data,sha256=hashlib.sha256(data).hexdigest(),
+                        source_mip_hashes=[m['source_hash'] for m in texture['levels']],
+                        semantic='source-color-not-physical-albedo')
+    bindings=[]
+    for draw in captured['draws']:
+        for binding in draw['bindings']:
+            if binding['asset'] is None:continue
+            aid=binding['asset']
+            bindings.append(dict(draw=draw['source_draw'],slot=binding['slot'],asset=aid,
+                upload_generation=binding['upload_generation'],
+                palette_hash=binding['palette_hash'],rtt_generation=binding['rtt_generation'],
+                tcw=binding['tcw'],tsp=binding['tsp'],dds_sha256=assets[aid]['sha256']))
+    return dict(frame_id=scene['frame_id'],game_id=scene['game_id'],git_sha=scene['git_sha'],
+                assets=assets,bindings=bindings,bytes=total,renderable_by_remix_adapter=False)
 
 
 def encode(levels, *, srgb):

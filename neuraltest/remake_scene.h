@@ -37,6 +37,8 @@ struct Mesh {
   Vec3 albedo{.7f,.7f,.7f}; float roughness=.8f;
   std::filesystem::path sourceDds;
   bool sourceColorExperiment=false; // Not physical albedo or full PVR shading.
+  // Explicit caller binding; capture importer must verify asset bytes separately.
+  std::optional<TextureIdentity> sourceTexture;
  };
  std::optional<Material> material; // Explicit caller art direction, not inferred PBR.
  std::uint64_t id = 0, frame = 0;

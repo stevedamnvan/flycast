@@ -114,9 +114,17 @@ Result ReadyForAdapter(const Packet& p, std::uint64_t frame, const std::string& 
   // General transforms need inverse-transpose normal handling, not guessed math.
   constexpr std::array<float,12> identity{1,0,0,0, 0,1,0,0, 0,0,1,0};
   if (*m.transform != identity) return {false, "transform-unsupported"};
-  if (m.texture.known) return {false, "textured-material-unsupported"};
+  if (m.texture.known && (!m.material || !m.material->sourceTexture))
+   return {false, "textured-material-unsupported"};
   if (!m.material) return {false,"material-unknown"};
   const auto& material=*m.material;
+  if(material.sourceTexture) {
+   const auto& bound=*material.sourceTexture;
+   if(!m.texture.known || !bound.known || !material.sourceColorExperiment || material.sourceDds.empty()
+    || bound.id!=m.texture.id || bound.generation!=m.texture.generation
+    || bound.paletteGeneration!=m.texture.paletteGeneration || bound.rttGeneration!=m.texture.rttGeneration)
+    return {false,"source-texture-identity"};
+  }
   if(!material.sourceDds.empty() && (!material.sourceColorExperiment || !validSourceDds(material.sourceDds)))
    return {false,"source-texture-contract"};
   if (!finite(material.albedo) || material.albedo.x<0 || material.albedo.x>1

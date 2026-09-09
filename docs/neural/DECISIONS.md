@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-131: explicit captured source-color binding
+
+A material may name the captured TextureIdentity only in the explicit
+sourceColorExperiment with a valid DDS path. Mesh and material identities must
+agree on ID, upload generation, palette generation and RTT generation; both
+must be known. Missing, stale or unowned associations fail before API calls.
+This is caller-contract consistency, not proof of file contents or physical
+albedo. The importer must retain verified capture-to-asset hashes/generations
+through DDS conversion and file lifetime before any game submission. Existing
+camera, world-space, transform, normal and omission checks remain intact.
+This opt-in contract does not reproduce PVR offset color, fog, sampler state
+or baked illumination and must not be represented as native shading parity.
+
 ## D-130: missing Dreamcast normals versus generated face normals
 
 The selected type-3 TA packet has xyz, UV, BaseCol and OffsCol only

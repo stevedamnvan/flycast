@@ -54,9 +54,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: connect the explicit source-texture experiment contract,
-requiring captured identity/generation association and stale-binding rejection
-before relaxing any captured-texture readiness rejection. LOG371 closes exact
+Current next action: checkpoint/exact-verify source texture binding, then publish
+bounded owned DDS assets with manifest identity for the reconstructed selection.
+LOG373 connects verified captured mip bytes to in-memory DDS hashes/generations
+and positive mock API transport; no runtime texture result. LOG371 closes exact
 flat-normal checkpoint verification. LOG370 validates
 the actual H sample and strip-break/expansion controls. Source normals stay unknown;
 derived normals are not camera, shading or real-runtime acceptance.
