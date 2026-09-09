@@ -1,5 +1,16 @@
 # Neural diagnostics
 
+`FLYCAST_REMAKE_LOCKED_INPUT_ROOT` is an explicit capture-only diagnostic: current
+scene construction must match a retained live returned-input package in full,
+except renderer counter and build label. Producer epoch/ordinal/cycle, geometry,
+texture bytes/generations, projection and omissions remain exact. The loader
+also verifies receipt and converted color/depth hashes from the retained live
+manifest. It rejects replay-of-replay, ambiguous matches and corrupt inputs.
+Use with FLYCAST_REMAKE_INPUT_TEST=1 and --start-producer N; this game ordinal
+threshold is exclusive with --start-frame. Replay is labeled in the manifest
+and receipt and does not publish to the live channel. It cannot establish fresh
+Remix rendering or ordinary gameplay, only controlled downstream provenance.
+
 For retained-packet coexistence isolation, `FLYCAST_REMAKE_NOACTIVATE_TEST=1`
 uses the live helper's SW_SHOWNOACTIVATE policy even with --live-artifact.
 Restore this child environment after the test. Verify actual process/log-time

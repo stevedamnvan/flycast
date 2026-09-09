@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current starting HEAD: `b79bd87c25b8e1e18edf79293fc9f340d3174354` (LOG515 returned-pixel checkpoint, pushed and remote verified). Builds are incremental, not fresh exact-SHA evidence. LOG516 offscreen composite work is separately scoped.
+- Current implementation base: `3e78a6f4f0e80926706ae1bbd1c706a8f31668b7` (LOG525 live returned-input checkpoint). LOG526 is uncommitted work on exact-input downstream confirmation. Builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -55,7 +55,20 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-Current action: integrate returned scene composition and full protected content.
+Current action: move scene delivery off the capture boundary into opt-in
+ordinary-frame asynchronous integration. LOG526 marked/clean/hook-disabled
+comparison confirms all three exact-input external outputs with active tuple
+off/1/1/203/0/0/enabled. Marked and clean inputs/composition pass all three.
+This is source-qualified retained-input replay, not fresh continuous output,
+temporal quality or performance acceptance. No additional general provenance
+phase; preserve these controls for a focused changed-route regression.
+The next implementation slice must retain a bounded source-frame ownership
+ledger (returned color/depth plus matching overlay/native fallback), poll without
+waiting for the consumer, and reject expired or different-epoch replies. Do not
+stamp delayed images with the current frame or pair them with current-frame HUD
+or native motion. Keep the reset-only/full-bias limitation explicit until real
+returned-scene temporal guidance is implemented. Measure delivery/skips/latency
+on moving gameplay; do not call synchronous capture performance evidence.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.
@@ -165,6 +178,14 @@ both processes exit0. Full combined provenance remains unconfirmed. Next lock
 actual returned input images for clean/marked/policy-off comparison while
 requiring exact game-producer provenance. Packet-only replay changes color
 hashes and cannot satisfy this gate. Then real temporal guidance/async feed.
+Current implementation: explicit FLYCAST_REMAKE_LOCKED_INPUT_ROOT diagnostic
+reuses retained returned pixels only after exact producer epoch/ordinal/cycle,
+full serialized scene equality (excluding renderer counter/build label), source
+receipt and input-pixel hash checks. Label replay, never fresh live output;
+missing/malformed/ambiguous/different inputs fall back. Add --start-producer to
+schedule matching game ordinals across startup-dependent renderer counters.
+Verify loader negative controls and actual ON/clean/OFF captures without changing
+the supplied consumer configurations or relaxing existing confirmation checks.
 do not repeat old Gate10 transport or native polarity fixtures.
 Continue integration at the
 presentation boundary, with distinct experimental provenance and fail-closed

@@ -26,10 +26,13 @@
 #include "rend/neural/external_control.h"
 #include "rend/neural/producer_identity.h"
 #include "rend/neural/remake_neural_input.h"
+#include "rend/neural/remake_input_replay.h"
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <memory>
 #include <string>
 
@@ -196,6 +199,52 @@ int RunSelfTests()
 			std::filesystem::remove(wirePath);
 		}
 		auto next=packet;next.frame++;next.producer.ordinal++;next.producer.cycle++;
+		auto relabeled=packet;relabeled.frame+=17;relabeled.sourceGitSha="new-build";
+		for(auto& mesh:relabeled.meshes)mesh.frame=relabeled.frame;
+		suite.Expect(SameRemakeReplayScene(packet,relabeled,error),"locked replay permits renderer counter and build label differences only");
+		relabeled.producer.cycle++;
+		suite.Expect(!SameRemakeReplayScene(packet,relabeled,error),"locked replay rejects game clock mismatch");
+		relabeled=packet;relabeled.meshes[0].vertices[0].position.x+=1;
+		suite.Expect(!SameRemakeReplayScene(packet,relabeled,error),"locked replay rejects changed geometry");
+		relabeled=packet;relabeled.meshes[0].material->sourceDdsBytes.back()^=1;
+		suite.Expect(!SameRemakeReplayScene(packet,relabeled,error),"locked replay rejects changed texture bytes");
+		{
+			auto root=wirePath;root += ".locked";
+			if(std::filesystem::create_directory(root)) {
+				const auto folder=root/"frame-test";std::filesystem::create_directory(folder);
+				WriteRemakeViewPacket(folder/"remake-view.bin",packet,error);
+				RemakeReturnedImage image;image.frame=packet.frame;image.producer=packet.producer;
+				image.width=640;image.height=480;image.bgra.assign(640*480*4,73);image.projectionDepth.assign(640*480,.75f);
+				image.nearPlane=packet.camera.nearPlane;image.farPlane=packet.camera.farPlane;
+				RemakeNeuralInput input;BuildRemakeNeuralInput(image,image.frame,image.producer,input);
+				auto digest=[](const void* data,size_t size){auto p=static_cast<const unsigned char*>(data);std::uint64_t h=14695981039346656037ull;for(size_t i=0;i<size;++i){h^=p[i];h*=1099511628211ull;}return h;};
+				auto hex=[](std::uint64_t h){std::ostringstream out;out<<std::uppercase<<std::hex<<std::setw(16)<<std::setfill('0')<<h;return out.str();};
+				std::ostringstream wire(std::ios::binary);SerializeRemakeViewPacket(wire,packet,error);const auto bytes=wire.str();
+				{std::ofstream f(folder/"remake-return.bgra",std::ios::binary);f.write(reinterpret_cast<const char*>(image.bgra.data()),image.bgra.size());}
+				{std::ofstream f(folder/"remake-return-depth.f32",std::ios::binary);f.write(reinterpret_cast<const char*>(image.projectionDepth.data()),image.projectionDepth.size()*4);}
+				nlohmann::json receipt={{"frame",packet.frame},{"source_digest",digest(bytes.data(),bytes.size())},{"sequence",1},{"depth_values",640*480},{"pixel_bytes",640*480*4}};
+				{std::ofstream f(folder/"remake-return.json");f<<receipt;}
+				nlohmann::json manifest={{"frame_id",packet.frame},{"git_sha",packet.sourceGitSha},{"remake_input","returned-scene-reset-only-inverted-projection-experiment"},
+					{"producer_identity",{{"epoch",packet.producer.epoch},{"ordinal",packet.producer.ordinal},{"cycle",packet.producer.cycle}}},
+					{"contract_hashes",{{"color_fnv64",hex(digest(input.rgba.data(),input.rgba.size()))},{"depth_fnv64",hex(digest(input.invertedDepth.data(),input.invertedDepth.size()*4))}}}};
+				{std::ofstream f(folder/"manifest.json");f<<manifest;}
+				RemakeReturnedImage replay;replay.frame=999;std::uint64_t origin=0;
+				suite.Expect(ReadLockedRemakeInput(root,packet,replay,origin,error)&&replay.bgra==image.bgra&&origin==packet.frame,"locked replay loads exact source-qualified pixels");
+				struct GroupedNumbers:std::numpunct<char>{std::string do_grouping() const override{return "\3";} char do_thousands_sep() const override{return ',';}};
+				const auto priorLocale=std::locale::global(std::locale(std::locale::classic(),new GroupedNumbers));
+				const bool groupedResult=ReadLockedRemakeInput(root,packet,replay,origin,error);
+				std::locale::global(priorLocale);
+				suite.Expect(groupedResult,"locked replay hashes remain portable under grouped user locale");
+				auto changed=packet;changed.producer.cycle++;
+				suite.Expect(!ReadLockedRemakeInput(root,changed,replay,origin,error)&&replay.bgra==image.bgra,"locked replay missing producer preserves caller output");
+				{std::fstream f(folder/"remake-return.bgra",std::ios::binary|std::ios::in|std::ios::out);f.put(42);}
+				suite.Expect(!ReadLockedRemakeInput(root,packet,replay,origin,error)&&error=="locked-replay-source-input-hash-mismatch","locked replay rejects changed color bytes");
+				std::filesystem::resize_file(folder/"remake-return-depth.f32",4);
+				suite.Expect(!ReadLockedRemakeInput(root,packet,replay,origin,error)&&error=="locked-replay-file-extent","locked replay rejects truncated depth");
+				for(const auto& f:std::filesystem::directory_iterator(folder))std::filesystem::remove(f.path());
+				std::filesystem::remove(folder);std::filesystem::remove(root);
+			}else suite.Expect(false,"locked replay fixture must own a new directory");
+		}
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		next.producer.epoch++;
 		suite.Expect(!remake::DiagnosticContinuation(packet,next),"live packet rejects reset epoch continuity");
@@ -509,6 +558,11 @@ int RunSelfTests()
 		capture.Configure("capture-absolute", 9999, 2, false, 1783);
 		capture.SetSourceFrame(1783);
 		suite.Expect(capture.ConsumeCaptureStart(),"changed absolute target rearms capture reset");
+		capture.Configure("capture-producer",0,2,false,0,1829);
+		capture.SetSourceFrame(9999,1828);
+		suite.Expect(!capture.CapturesCurrentFrame(),"producer capture does not use renderer counter as source identity");
+		capture.SetSourceFrame(1782,1829);
+		suite.Expect(capture.CapturesCurrentFrame()&&capture.ConsumeCaptureStart(),"producer capture starts at requested game ordinal");
 	}
 	{
 		const auto defaultOrigin = GetEvidenceMarkerOrigin(640, 480, false);

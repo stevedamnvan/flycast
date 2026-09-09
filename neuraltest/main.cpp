@@ -2,6 +2,8 @@
 #include "harness.h"
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/pvr_scene_capture.h"
+#include "rend/neural/remake_input_replay.h"
+#include "rend/neural/remake_view_transport.h"
 #include "json/json.hpp"
 #include "capture_transition.h"
 
@@ -51,6 +53,7 @@ void Usage()
 		"neuraltest capture --game PATH --frames N --skip M --out DIR [--flycast EXE] [--lane native|dlaa|sr-quality|dlss5] [--api d3d11|d3d11on12] [--renderer dx11|dx11-oit] [--preset auto|j|k] [--profile faithful|enhanced|photoreal|uncanny] [--style auto|realistic|stylized|cel|racing|particles|sprite-2d|mixed-video] [--overlay-policy auto|full|disabled] [--render-height N] [--feature-path DIR] [--input-replay yes|no] [--late-overlay-proof] [--proof-overlay fps|neural-status|none] [--evidence-frames 0..480] [--evidence-start-frame N] [--evidence-mask zero|production] [--evidence-presentation marker|restored] [--evidence-marker top-left|bottom-right] [--inject none|create|evaluate|ring-busy|device-removed|runtime-unavailable] [--inject-count N] [--inject-after N] [--timeout-ms N]\n"
 		"neuraltest capture-index --root DIR [--out HTML]\n"
 		"capture scheduling: --start-frame 1..10000000 overrides eligible-frame --skip; renderer IDs do not imply matching game-producer identity\n"
+		"capture scheduling: --start-producer 1..10000000 uses game producer ordinal; mutually exclusive with --start-frame\n"
 		"neuraltest pvr-packet --in JSON --frame N --game-id ID (bounded decode only, no GPU replay)\n"
 		"neuraltest remake-preview --in CAPTURE --out NEW_DIR --game-id ID --first N --frames 1..30 --fov-deg 30..100 (offline approximation, NOT Remix/DLSS5)\n"
 		"neuraltest material-contract --out NEW_DIR (native texture/mip/palette GPU readback fixture)\n"
@@ -840,11 +843,13 @@ int CaptureCommand(const Args& args)
 	}
 	std::string error;
 	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
-		evidenceFrames = 0, evidenceStartFrame = 0, captureStartFrame = 0;
+		evidenceFrames = 0, evidenceStartFrame = 0, captureStartFrame = 0, captureStartProducer = 0;
 	std::uint32_t captureSaveAfter = 0, captureLoadDelay = 30;
 	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
 		|| !Number(args, "--skip", 0, skip, error)
 		|| !Number(args, "--start-frame", 0, captureStartFrame, error) || captureStartFrame > 10000000
+		|| !Number(args, "--start-producer", 0, captureStartProducer, error) || captureStartProducer > 10000000
+		|| (captureStartFrame && captureStartProducer)
 		|| !Number(args, "--savestate-roundtrip-after", 0, captureSaveAfter, error) || captureSaveAfter > 10000
 		|| !Number(args, "--savestate-load-delay", 30, captureLoadDelay, error) || captureLoadDelay == 0 || captureLoadDelay > 10000
 		|| !Number(args, "--render-height", 480, renderHeight, error)
@@ -1070,6 +1075,7 @@ int CaptureCommand(const Args& args)
 		+ L",config:rend.NeuralCaptureFrames=" + std::to_wstring(frames)
 		+ L",config:rend.NeuralCaptureSkip=" + std::to_wstring(skip)
 		+ L",config:rend.NeuralCaptureStartFrame=" + std::to_wstring(captureStartFrame)
+		+ L",config:rend.NeuralCaptureStartProducer=" + std::to_wstring(captureStartProducer)
 		+ L",config:rend.NeuralSaveStateAfter=" + std::to_wstring(captureSaveAfter)
 		+ L",config:rend.NeuralSaveStateLoadDelay=" + std::to_wstring(captureLoadDelay)
 		+ (captureSaveAfter ? L",config:rend.NeuralPerformanceDirectory='" + output.wstring() + L"'" : L"")
@@ -1241,6 +1247,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"evidence_frames\": " << evidenceFrames
 		<< ",\n  \"evidence_start_frame\": " << evidenceStartFrame
 		<< ",\n  \"capture_start_frame\": " << captureStartFrame
+		<< ",\n  \"capture_start_producer\": " << captureStartProducer
 		<< ",\n  \"evidence_mask\": \"" << evidenceMask << "\""
 		<< ",\n  \"evidence_presentation\": \"" << evidencePresentation << "\""
 		<< ",\n  \"evidence_marker\": \"" << evidenceMarker << "\""
@@ -2825,6 +2832,7 @@ int ConfirmExternalCaptureCommand(const Args& args)
 			|| !ShaMatches(JsonStringField(promotion.json, "git_sha"), expectedSha)
 			|| JsonScalarField(promotion.json, "external_output_confirmed") != "false"
 			|| JsonScalarField(promotion.json, "external_contract_evaluated") != "true"
+			|| JsonStringField(promotion.json, "remake_input") == "requested-native-fallback"
 			|| JsonScalarField(promotion.json, "public_output_present") != "true")
 		{
 			std::cerr << "capture manifest is not an eligible unconfirmed external candidate: "
@@ -3730,6 +3738,16 @@ int main(int argc, char **argv)
 		std::cout<<"camera-relative preview written; NOT Remix, path tracing or DLSS5\n";return 0;
 	}
 	if (command == "capture-index") return CaptureIndexCommand(args);
+	if(command=="check-locked-remake-input") {
+		using namespace flycast::rend::neural;
+		if(Value(args,"--packet").empty()||Value(args,"--root").empty())return 2;
+		remake::Packet packet;RemakeReturnedImage image;std::uint64_t original=0;
+		if(!ReadRemakeViewPacket(Value(args,"--packet"),packet,error)
+			||!ReadLockedRemakeInput(Value(args,"--root"),packet,image,original,error))
+		{std::cerr<<error<<'\n';return 1;}
+		std::cout<<"locked-input validated source_frame="<<original<<" producer="<<packet.producer.ordinal
+			<<" color_bytes="<<image.bgra.size()<<" depth_values="<<image.projectionDepth.size()<<" read_only=true live_output=false\n";return 0;
+	}
 	if (command == "compare-captures")
 		return neuraltest::CompareCaptureSequences(Value(args, "--a"), Value(args, "--b"),
 			Value(args, "--out"), Value(args, "--a-output", "external"),

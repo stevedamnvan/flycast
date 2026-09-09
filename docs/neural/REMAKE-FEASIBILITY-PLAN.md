@@ -12,8 +12,11 @@ constraints; it must not carry a second competing current assignment.
 Current evidence anchors: LOG467-474 demonstrate isolated moving real-scene
 Remix output; LOG484/509 establish owned live snapshots and a bounded observed
 transform-dependency subset. LOG510-511 retain a measured calibration candidate,
-not recovered world/camera truth. Live scene submission, returned presentation
-and combined DLSS 5 remain pending. The strict replay residual stays
+not recovered world/camera truth. LOG525 proves bounded live paired returned
+input delivery; LOG526 confirms three source-qualified retained-input external
+outputs through matched ON/clean/OFF controls. Ordinary asynchronous gameplay,
+returned-scene temporal guidance and full camera acceptance remain pending.
+The strict replay residual stays
 failed/parked; neither approximation nor a mock closes that gate.
 
 Immediate work is the backlog's live M2-scene integration card. The runtime is

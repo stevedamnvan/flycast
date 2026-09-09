@@ -5,6 +5,7 @@
 #include "pvr_scene_capture.h"
 #include "motion_reference.h"
 #include "version.h"
+#include "remake_input_replay.h"
 
 #include <stb/stb_image_write.h>
 
@@ -393,14 +394,15 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 } // namespace
 
 void QualityCaptureWriter::Configure(const std::filesystem::path& root,
-	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof, std::uint64_t startFrame)
+	std::uint32_t skip, std::uint32_t limit, bool lateOverlayProof, std::uint64_t startFrame, std::uint64_t startProducer)
 {
 	if (root == root_ && skip == skip_ && limit == limit_
-		&& lateOverlayProof == lateOverlayProof_ && startFrame == startFrame_)
+		&& lateOverlayProof == lateOverlayProof_ && startFrame == startFrame_ && startProducer == startProducer_)
 		return;
 	root_ = root;
 	remakeChannel_.Close();
 	remakePreparedBeforeComposite_=false;
+	remakeInputReplayed_=false;remakeReplayOriginalFrame_=0;
 	remakeReturnedImage_.reset();
 	pvrSnapshot_.reset();
 	remakeView_.reset();
@@ -410,6 +412,7 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 	lateOverlayProof_ = lateOverlayProof;
 	seen_ = captured_ = lateOverlayCaptured_ = 0;
 	startFrame_ = startFrame; sourceFrame_ = 0;
+	startProducer_ = startProducer; sourceProducer_ = 0;
 	captureStartConsumed_ = false;
 	previousFrameId_ = 0;
 	pendingLateOverlayFrameId_ = 0;
@@ -426,7 +429,8 @@ bool QualityCaptureWriter::WantsFrame() const noexcept
 
 bool QualityCaptureWriter::CapturesCurrentFrame() const noexcept
 {
-	return WantsFrame() && (startFrame_ ? sourceFrame_ >= startFrame_ : seen_ >= skip_);
+	return WantsFrame() && (startProducer_ ? sourceProducer_ >= startProducer_
+		: startFrame_ ? sourceFrame_ >= startFrame_ : seen_ >= skip_);
 }
 
 bool QualityCaptureWriter::ConsumeCaptureStart() noexcept
@@ -589,6 +593,7 @@ bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& 
 		&&remakePacket_->producer.cycle==metadata.producerIdentity.cycle)
 		return ReturnedRemakeFrame(metadata.frameId)!=nullptr;
 	remakePreparedBeforeComposite_=false;remakePacket_.reset();remakeView_.reset();remakeReturnedImage_.reset();
+	remakeInputReplayed_=false;remakeReplayOriginalFrame_=0;
 	if(!CapturesCurrentFrame()||!reader)return false;
 	RemakeViewScene scene;remake::Packet packet;std::string error;
 	const auto* estimated=std::getenv("FLYCAST_REMAKE_ESTIMATE_UNTRACED");
@@ -596,6 +601,13 @@ bool QualityCaptureWriter::PrepareRemakeBeforeComposite(const PvrDecodedPacket& 
 	if(!BuildRemakeViewScene(snapshot,metadata.producerIdentity,metadata.frameId,scene,error,estimateUntraced)
 		||!BuildRemakeViewPacket(scene,reader,packet,error)){remakePacketStatus_=error;return false;}
 	remakeView_=std::move(scene);remakePacket_=std::move(packet);
+	if(const auto* locked=std::getenv("FLYCAST_REMAKE_LOCKED_INPUT_ROOT");locked&&*locked) {
+		remakePreparedBeforeComposite_=true; // Preserve rejected replay diagnostics during archival too.
+		RemakeReturnedImage image;
+		if(!ReadLockedRemakeInput(std::filesystem::u8path(locked),*remakePacket_,image,remakeReplayOriginalFrame_,remakePacketStatus_))return false;
+		remakeReturnedImage_=std::move(image);remakeInputReplayed_=true;remakePreparedBeforeComposite_=true;
+		remakePacketStatus_="locked-returned-input-replay-not-live";return true;
+	}
 	if(beforeExchange)beforeExchange();
 	ExchangeRemakePacket();remakePreparedBeforeComposite_=true;
 	return ReturnedRemakeFrame(metadata.frameId)!=nullptr;
@@ -614,7 +626,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		remakePreparedBeforeComposite_=false;
 	}
 	if (!WantsFrame()) return true;
-	if (startFrame_ ? metadata.frameId < startFrame_ : seen_++ < skip_) return true;
+	if (startProducer_ ? metadata.producerIdentity.ordinal < startProducer_
+		: startFrame_ ? metadata.frameId < startFrame_ : seen_++ < skip_) return true;
 	if (textures.pvrPacketRequested && !textures.pvrContext)
 	{
 		error = "requested PVR packet context unavailable";
@@ -1014,6 +1027,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 					receiptFile<<"{\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
 						<<",\"source_digest\":"<<returned.source.digest<<",\"pixel_bytes\":"<<returned.bgra.size()
 						<<",\"prepared_before_composite\":"<<(remakePreparedBeforeComposite_?"true":"false")
+						<<",\"input_origin\":\""<<(remakeInputReplayed_?"locked-replay":"live-channel")<<"\""
+						<<",\"replay_original_frame\":"<<remakeReplayOriginalFrame_
 						<<",\"depth_values\":"<<returned.projectionDepth.size()
 						<<",\"presentation_proven\":false}\n";
 					if(!receiptFile)remakePacketStatus_+="; return-receipt-write-failed";

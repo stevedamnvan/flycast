@@ -129,6 +129,7 @@ OptionString NeuralCaptureDirectory("rend.NeuralCaptureDirectory", "");
 Option<int> NeuralCaptureFrames("rend.NeuralCaptureFrames", 0);
 Option<int> NeuralCaptureSkip("rend.NeuralCaptureSkip", 0);
 Option<int> NeuralCaptureStartFrame("rend.NeuralCaptureStartFrame", 0);
+Option<int> NeuralCaptureStartProducer("rend.NeuralCaptureStartProducer", 0);
 Option<bool> NeuralCapturePvrPacket("rend.NeuralCapturePvrPacket", false);
 Option<bool> NeuralCapturePvrReplay("rend.NeuralCapturePvrReplay", false);
 Option<bool> NeuralCapturePvrMaterials("rend.NeuralCapturePvrMaterials", false);

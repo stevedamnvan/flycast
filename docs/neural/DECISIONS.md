@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-162: lock returned pixels only after exact transported-scene qualification
+
+The explicit capture-only locked-input root is not a live output provider.
+It requires one unique retained packet with matching game epoch/ordinal/cycle
+and full serialized scene content; only renderer counter and source build label
+are normalized for comparison. Original receipt, original live-input manifest,
+and converted RGBA/inverted-depth hashes must also agree. Replay-of-replay,
+corrupt/truncated inputs and source differences reject without changing output.
+Hashes use classic locale regardless of Flycast's user locale. Receipts identify
+locked replay and original frame; accepted metadata never calls it fresh output.
+--start-producer provides an ordinal threshold while exact epoch/cycle/scene
+checks remain mandatory. It does not replace conservative bypass or prove that
+ordinals alone identify matching content. Existing exact hash, marker, Present
+and host controls remain unchanged; requested-native-fallback is now explicitly
+ineligible for promotion. This diagnostic supports downstream exact-input provenance,
+not ordinary async gameplay or temporal-quality acceptance.
+
 ## D-161: submit producer GPU work before a synchronous cross-process wait
 
 The explicit capture/channel path flushes its D3D11 context after constructing

@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG526 completion evidence: marked-c and clean-a pass all three exact returned
+RGBA/inverted-depth, reset/full-bias and protected/native versus world/public
+composition checks. OFF-a also captures3/clean-close0. Strict external verifier
+confirms clean-a3/3 using marked-c and OFF-a fresh logs, exact input/output hashes,
+same-frame sentinel Present and consumer tuple off/1/1/203/0/0/enabled. These runs
+use the identical staged working-tree binary stamped3e78a6f4f, not a clean
+exact-SHA build. Source-qualified retained pixels remain explicitly locked replay;
+LOG525 separately establishes live returned-input delivery. This does not prove
+continuous gameplay, temporal guidance or performance. OFF config SHA256 remains
+656051579D08B667346575164B3C3D8490F40DDD55DB74C8199B0996B56AF2C7.
+Failed final-build attempt retained: LNK1104 because capture still owned the test
+executable; serial retry after actual process completion passes automation build
+and508/508 selftests. All four serial incremental builds pass; all three enabled
+selftests508/508, SDK193/193 and Python333/333 pass. Backlog contract and diff
+whitespace checks pass. Final clean image visually inspected: nonempty fighters,
+arena and protected HUD without the sentinel; no aesthetic winner claimed. Confirmation
+now also explicitly rejects requested-native-fallback; original hash/marker/host
+criteria were not weakened. Next implementation is bounded asynchronous ordinary
+scene delivery and matching returned-frame/overlay ownership, not another replay
+viewer or general transport audit.
+
+#526 2026-09-09 3e78a6f4f plus working tree | Added bounded source-qualified locked returned-input loader, explicit replay metadata/receipts, producer-based capture scheduling and read-only check-locked-remake-input command. Synthetic tests cover renderer/build relabeling only, game clock, geometry and texture mismatch, valid archive, missing producer, changed pixel hash, truncated depth and producer timing. First compile-c fails missing sstream/iomanip in tests; fixed explicitly. Initial actual locked-on-a captures3 and locked-detail-b captures1 both exit0 but reject replay and remain native; no provenance accepted. Exact epoch/ordinal/cycle and zero jitter match retained live inputs. Detailed live rejection is source-input-hash-mismatch; grouped user-locale RED test reproduces it (507pass/1fail). Classic-locale hash formatting fixes it (508/508). A premature generic mismatch inference from fallback-rebuilt packets is not retained as a scene-difference finding; rejected replay packets/status now survive archival. Read-only checker validates original retained live archive. Initial patch-context mismatch and malformed PowerShell foreach pipeline failed without changes, corrected. Marked three-frame locale-corrected rerun is pending. Existing confirmation rules untouched, supplied config not edited. Original live dataset remains fc067-nr-flush-source-a; no replay is labeled fresh/live or performance evidence.
+
 LOG525 regression: four serial incremental builds and all enabled497/497 tests
 pass; SDK193/193. Final logging clarification reports live_provider=true for
 actual live-channel input instead of the old hardcoded false; retained-file

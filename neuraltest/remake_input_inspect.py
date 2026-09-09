@@ -26,7 +26,7 @@ def inspect(folder):
         "motion_zero": bool(np.all(motion == 0)), "bias_full": bool(np.all(bias == 255)),
         "confidence_zero": bool(np.all(confidence == 0)), "identity_zero": bool(np.all(ids == 0)),
         "source_differs_from_native": bool(np.any(source != native)),
-        "explicit_contract": metadata["remake_input"] == "returned-scene-reset-only-inverted-projection-experiment",
+        "explicit_contract": metadata["remake_input"] in ("returned-scene-reset-only-inverted-projection-experiment", "locked-replay-reset-only-inverted-projection-experiment"),
         "reset": metadata["reset_history"] is True,
         "evaluation_accepted": metadata["evaluation_accepted"] is True,
         "public_output_exists": (folder / "public-dlaa-output.png").is_file(),

@@ -1731,8 +1731,9 @@ void DX11Renderer::submitNeuralFrame()
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
-		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())));
-	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId());
+		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())),
+		static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartProducer.get())));
+	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId(),rendContext?rendContext->captureProducer.ordinal:0);
 	if (neuralQualityCapture.ConsumeCaptureStart())
 	{
 		neuralInstrumentation.Discontinuity();
@@ -2233,8 +2234,9 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
 		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
-		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())));
-	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId());
+		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())),
+		static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartProducer.get())));
+	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId(),rendContext?rendContext->captureProducer.ordinal:0);
 	neuralQualityCaptureGpuTimer.Configure(device, synchronousCapture);
 	neuralQualityCaptureGpuTimer.BeginFrame(deviceContext,
 		neuralQualityCapture.CapturesCurrentFrame());
@@ -2506,9 +2508,10 @@ void DX11Renderer::submitNeuralFramebuffer()
 void DX11Renderer::prepareRemakeCapture()
 {
 	const auto* remakeToken=std::getenv("FLYCAST_REMAKE_CHANNEL");
+	const auto* lockedInput=std::getenv("FLYCAST_REMAKE_LOCKED_INPUT_ROOT");
 	const auto* inputTest=std::getenv("FLYCAST_REMAKE_INPUT_TEST");
 	const bool requested=inputTest&&std::strcmp(inputTest,"1")==0;
-	if(remakeToken&&*remakeToken && (activeNeuralMode==1 || requested)
+	if(((remakeToken&&*remakeToken)||(lockedInput&&*lockedInput&&requested)) && (activeNeuralMode==1 || requested)
 		&& !IsOitRenderer() && rendContext && !rendContext->isRTT && !config::EmulateFramebuffer.get()
 		&& config::NeuralCapturePvrPacket.get()
 		&& neuralQualityCapture.CapturesCurrentFrame()) {
@@ -2541,7 +2544,10 @@ bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& f
 		||frame.jitterX!=0||frame.jitterY!=0)return false;
 	const auto* returned=neuralQualityCapture.ReturnedRemakeFrame(frame.frameId);
 	RemakeNeuralInput input;
-	if(!returned||!BuildRemakeNeuralInput(*returned,frame.frameId,rendContext->captureProducer,input))return false;
+	if(!returned||!BuildRemakeNeuralInput(*returned,frame.frameId,rendContext->captureProducer,input)) {
+		WARN_LOG(RENDERER,"Remake input rejected: frame=%llu status=%s",(unsigned long long)frame.frameId,neuralQualityCapture.RemakePacketStatus().c_str());
+		return false;
+	}
 	D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
 	desc.Format=DXGI_FORMAT_R32_FLOAT;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
 	D3D11_SUBRESOURCE_DATA data{};data.pSysMem=input.invertedDepth.data();data.SysMemPitch=640*sizeof(float);
@@ -2562,7 +2568,8 @@ bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& f
 	neuralQualityCaptureMetadata.historyAge=0;
 	neuralQualityCaptureMetadata.correspondence={};
 	neuralQualityCaptureMetadata.profile += " / Remix reset-only diagnostic";
-	neuralQualityCaptureMetadata.remakeInput="returned-scene-reset-only-inverted-projection-experiment";
+	neuralQualityCaptureMetadata.remakeInput=neuralQualityCapture.RemakeInputReplayed()
+		?"locked-replay-reset-only-inverted-projection-experiment":"returned-scene-reset-only-inverted-projection-experiment";
 	NOTICE_LOG(RENDERER,"Remake neural input: frame=%llu source_sequence=%llu reset=1 motion=zero bias=one depth=inverted-projection",
 		(unsigned long long)frame.frameId,(unsigned long long)returned->source.sequence);
 	return true;

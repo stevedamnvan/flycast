@@ -493,6 +493,7 @@ extern OptionString NeuralCaptureDirectory;
 extern Option<int> NeuralCaptureFrames;
 extern Option<int> NeuralCaptureSkip;
 extern Option<int> NeuralCaptureStartFrame;
+extern Option<int> NeuralCaptureStartProducer;
 extern Option<bool> NeuralCapturePvrPacket;
 extern Option<bool> NeuralCapturePvrReplay;
 extern Option<bool> NeuralCapturePvrMaterials;
