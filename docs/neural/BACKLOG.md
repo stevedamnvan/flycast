@@ -66,6 +66,17 @@ restriction: carry supplied proper camera basis/position and fixed sequence orig
 under an explicit diagnostic anchored scope, leaving legacy bytes unchanged.
 Prove camera motion and projection survive serialization and malformed poses fail;
 then connect a source-qualified sequence anchor, not a first-arbitrary-draw camera.
+LOG586-594 wire and verify the off-by-default common-source camera anchor.
+Final bz has62 publications, zero anchor rejections, maximum0.00245-pixel
+projection error and three independently checked HUD/composition/Present captures.
+Numerical failures and corrections remain recorded; physical world semantics,
+scene completeness and broader moving acceptance remain unproven. Finish the
+remaining build/commit checkpoint, then returned-scene temporal integration:
+derive motion from owned geometry/camera against the last successfully evaluated
+receipt, with depth/disocclusion/current-color protection. The current reset /
+zero-motion/full-bias route remains fallback, not temporal quality acceptance.
+The pinned public output API has no motion-vector enum; do not invent one or
+inspect private binaries. Reuse existing geometry raster and correspondence code.
 This transport seam alone cannot close M2-camera. Do not
 restart generic effects/provenance or diagnose intentional native weapon trails
 as ghosting. Preserve the explicit projected-depth approximation until evidence

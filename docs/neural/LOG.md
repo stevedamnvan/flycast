@@ -1,5 +1,145 @@
 # Neural rendering evidence log
 
+LOG595 final camera-anchor matrix: automation enclosure-loop build and632/0
+selftests, baseline final build and632/0, no-NGX final build and632/0, feature-off
+final build all complete0. Session16314 confirmed terminal, no active build
+assumed from log files alone. Backlog consistency and git diff --check pass.
+Source diff reviewed: opt-in publication path only; native/default renderer and
+reset/zero-motion neural fallback remain unchanged. D-185 records the scoped
+anchor contract. Commit this independently verified camera integration, then
+returned-scene accepted-history/motion work; do not repeat general provenance.
+
+LOG594 bz final guarded camera run PASSES its bounded check: host0/helper0,
+121 helper Presents,62 anchored publications and ZERO camera-anchor rejections.
+Maximum source-view/embedded projection residual0.00244140625 pixels, below the
+unchanged.01 threshold. Three captures2165..2167 independently pass native-HUD,
+world composition, backbuffer RGB and completed-Present joins; nonempty capture
+and zero-rejection assertions both executed. Viewed2166 retains fighters, temple,
+native weapon effect and HUD. Fixed reference producer2091 retained throughout.
+Host SHA256683A3FDF17D1A36B359F3702D765D8F77D6F7C0BF8E2B499CFA7EC63C1F45C9F;
+consumer config unchanged222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Prior bw/bx/by and boundary fixture failures remain retained. Automation632/0
+passes; remaining serial baseline/no-NGX/feature-off build/test session16314 is
+running. This is ACCEPTED bounded live common-source camera integration, not a
+recovered physical world, full moving quality matrix, new external-provenance
+proof or performance result.40 common-device cleanup warning remains.
+Next returned-scene temporal integration: current renderer explicitly resets
+every returned evaluation, zero motion/full bias. Reviewed pinned public header
+CopyRenderingOutput exposes final color/depth/normals/object picking/GUI, no
+motion output; no undocumented enum or private binary inspection is authorized.
+Reuse owned geometry and camera with previous successfully evaluated receipt to
+construct motion/correspondence; retain reset/full bias until that path is proven.
+
+LOG593 by run completes host0/helper0,121 helper Presents, three captures2164..2166
+independently pass native-HUD/world/backbuffer/completed-Present checks.62 camera
+publications retain maximum0.00244140625-pixel residual, but ONE clip-unsupported
+rejection remains. The explicit zero-rejection audit assertion FAILS; retain it,
+do not call this uninterrupted camera acceptance. Host SHA256
+FD3EF61B5E51A1DDA327EF7CCC6B82AC24D1E8A2326901E320BFED367D73227D; config unchanged.
+The bounded ray alignment could itself round back outside after initial enclosure
+correction. Replace split loops with one128-step enclosure/ray loop that rechecks
+both after every adjustment, preserving exact clip planes, pixel/depth guards
+and fail-closed rejection on exhaustion. New error identifies unrepresentable
+enclosure separately. Next build/selftest then actual guarded replay; no claim
+that this source edit fixes the remaining live case before running it.
+
+LOG592 camera-anchor-boundary-ray build/test completes0,632/0. The previously
+failing near-boundary fixture now passes with original planes and projection
+threshold; true-inverse and transpose-negative controls also pass. Next by live
+bounded replay (same2090 start/three captures/helper121 and unchanged consumer
+configuration). Require nonempty exact HUD/backbuffer/Present audit and report
+every anchor rejection, not only residuals of accepted packets. Other builds
+and scene/camera acceptance remain pending.
+
+LOG591 boundary reproduction: camera-anchor-boundary-before build succeeds,
+selftest631/1 FAILS the new cameraZ2/near0.1 intersection fixture. First bounded
+view-depth nextafter correction also FAILS631/1; retained after/diagnostic logs
+show projection error0.068359 pixels at normalized XY96.549133,-11.282026.
+World-coordinate quantization jumps farther than a view-depth ULP, so scaling
+ray X/Y by the requested rather than represented depth is insufficient. Next
+bounded four-step alignment uses actual projected depth after world rounding;
+planes, .01-pixel guard and depth tolerance remain unchanged. Ray build/test
+running session97598 was diagnostic terminal1; replacement ray build has its
+own session/logs. No claimed fix or runtime pass from these failed tests.
+
+LOG590 bx corrected inverse run completes host0/helper0,121 helper Presents and
+three captures2166/2167/2169. Nonempty independent native-HUD/world/backbuffer RGB
+and completed-Present checks pass all3; viewed2167 retains fighters/temple/effects.
+62 published camera packets, max projection residual0.00244140625 pixels.
+No projection-mismatch rejections, but11 clip-unsupported rejections remain;
+do not call this continuous camera acceptance. Host SHA256
+B6CACCAEC97DA7B105C7F028EEFE09E723C149EF487A5BD116D446B80BBCF53F; config unchanged.
+Logs archived uniquely. Source inverse/rounded-pose fix is supported by this
+comparison, with remaining enclosure failure explicit. Added near-unit unchanged
+basis and transpose-negative tests, then a cameraZ2/near0.1 boundary fixture:
+float(2+near)-2 may fall outside unchanged near plane. Pre-fix build/test is
+running session49849; require its actual result before applying correction.
+Plan is representable ray-preserving intersection adjustment, not widened clip
+planes or relaxed projection tolerance. No new third-party config or provenance
+sweep. Serial other builds still need rerunning for this correction.
+
+LOG589 inverse correction WIP: use true3x3 inverse for relative source basis and
+actual published float camera basis, then embed vertices around the rounded
+published camera position. Normals use the appropriate transpose and normalize.
+Keep .01-pixel/depth guards unchanged; rejection now reports measured pixels,
+expected viewport coordinates and before/after depth. Automation build3/test3
+passes629/0. Retained bq source2171 packet inspection (owned wire, not third-party
+binary) finds26826 vertices,25033 within viewport, min viewZ0.10000000149 and
+max absolute normalized XY33.7462. Thus near-clipped/offscreen geometry makes
+numerical consistency relevant; this inspection does not prove bw's exact cause.
+Next bx bounded unchanged-config run using corrected executable; no success
+claim until actual guarded frames and nonempty capture audit pass.
+
+LOG588 guarded bw run: host0/helper0 and121 helper Presents, but camera guard
+rejects89 frames and ZERO preview captures are saved. This is NOT a passing
+camera/presentation run.62 accepted publications have maximum reported residual
+0.009765625 pixels; this excludes rejected candidates and cannot characterize
+the full interval. Read-only image audit printed empty[] because it lacked a
+nonempty-count assertion; no pixel/Present pass is claimed. Retain bw logs and
+artifacts unchanged. SHA256B3C2F11F79EAFCB40211F6E84315D8ED684C50ADB1DD8967837B77C15E771352,
+same supplied config asbv. Remaining serial builds running session6104; do not
+edit/rebuild concurrently. Next inspect/correct numerical embedding: transpose
+was used as inverse of a near-orthonormal observed matrix, and double pose was
+rounded separately from embedded positions. Use the actual published camera
+basis/position to derive coordinates and distinguish finite-precision rejection
+from real source-domain discontinuity. Keep .01 guard; do not claim live guarded
+acceptance from clean exits or the earlier unguarded captures.
+
+LOG587 bv actual source-anchor run completes host0/helper0,121 helper Presents,
+62 anchored publications with one fixed reference producer2091. Camera moves
+from0,0,0 atsource2092 to-1.78144777,0.122328535,-1.31217861 at2233; no camera
+rejections. Three captures2165..2167 independently pass native HUD/full world
+composition, backbuffer RGB and completed-Present joins2167..2169. Viewed2166:
+fighters/temple/native impact/HUD visible. Host SHA256
+3313FA38C5EEC0D82D972805F4AA9AC8FDF5EA3F92C789A658CE04354FD278F8;
+unchanged supplied config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+This proves live supplied-anchor camera transport, not recovered game/world camera,
+external output provenance or performance. Existing40-object cleanup warning
+persists. First attempted test-log read while build live was missing; original
+session48537 later completed0 and628/0 result read. After this run add per-vertex
+source-view versus embedded-camera projection guard (.01 render pixels and
+depth-relative1e-5), double-intermediate inverse accumulation, logged max residual
+and explicit wrong-camera sign control. These additions await build/run and must
+not be attributed to bv. Next bounded same-path capture with guard enabled,
+then remaining serial builds; retain actual failure if enclosure precision rejects.
+
+LOG586 95cc51894 plus WIP: implement off-by-default FLYCAST_REMAKE_CAMERA_ANCHOR=1
+on the existing async producer. Select only transforms already validated into
+exported observed vertices, require one common normalized top-three matrix,
+unit input W, at least16 distinct source inputs and continuing reference-point
+support. Preserve matrix/output W as source evidence; no homogeneous source
+rewrite. Compute relative rigid view against the fixed first published reference,
+embed positions/normals into that reference and publish camera through version4.
+Anchor state commits only after successful publication; renderer/token resets
+clear it. This is transport/source-anchor state, not neural evaluation history.
+Missing/ambiguous/nonrigid/changed source support rejects before publication.
+Automation camera-anchor-build1/test1 succeeds628/0, including stable geometry
+under source translation, unchanged projection and six source/domain controls.
+Other builds and actual runtime pending. Next bounded bv existing ON-stage
+Soulcalibur replay at2090, three captures, helper121-frame bound; supplied configs
+unchanged. Require live camera movement, original HUD/final output and source
+projection checks; do not claim game camera/world or temporal guidance accepted.
+
 LOG585 camera wire version4: serial automation/baseline/no-NGX/feature-off builds
 complete exit0; enabled selftests619/0 each. Malformed schema/basis/truncated
 origin reject atomically. Existing opaque version1 and cutout/alpha tests pass.

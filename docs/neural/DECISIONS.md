@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-185: observed camera anchor is fixed, publication-owned and explicitly scoped
+
+FLYCAST_REMAKE_CAMERA_ANCHOR=1 uses the common top-three transform of already
+validated exported source vertices, unit input W and persistent input-point
+support. Keep the first published source-view anchor fixed; later source matrices
+produce relative camera motion. Commit proposed anchor state only with successful
+publication, and clear it with renderer/token reset. It is not accepted neural
+history, physical world recovery or arbitrary first-draw camera selection.
+Use true inverses of observed and published bases, accounting for published float
+position. Represent near/far intersections along their original ray with a bounded
+rounding correction; never widen clip planes or weaken the pixel/depth guard.
+LOG586-594 retain source/negative tests and failed numerical attempts; final bz
+passes62 publications without anchor rejection and three original-HUD Presents.
+The next integration dependency is returned-scene geometry-derived temporal
+guidance. Keep reset/zero-motion/full-bias default until that contract is tested.
+
 ## D-184: live camera transport preserves a fixed diagnostic anchor
 
 Wire version4 carries supplied position, proper orthonormal basis and sequence

@@ -8,6 +8,7 @@
 #include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/pvr_palette_binding.h"
 #include "rend/neural/remake_alpha_ownership.h"
+#include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -232,6 +233,79 @@ int RunSelfTests()
 		suite.Expect(BuildRemakeViewPacket(view,reader,packet,error)&&packet.meshes.size()==1
 			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
 			"live geometry and owned texture form the shared Remix packet");
+		{
+			// Sixteen distinct observed inputs under one affine source basis.
+			auto observed=p;auto supported=view;observed.sourceVertices.clear();supported.meshes[0].vertices.clear();
+			for(unsigned i=0;i<16;++i) {
+				auto witness=p.sourceVertices[0];
+				for(auto& t:witness.copy.xyzTransforms) {
+					t->serial=i+1;t->input={float(i%4),float(i/4),10,1};
+				}
+				observed.sourceVertices.push_back(witness);
+				auto vertex=view.meshes[0].vertices[0];vertex.transformSerial=i+1;supported.meshes[0].vertices.push_back(vertex);
+			}
+			RemakeCameraAnchor anchor;auto initial=packet;
+			suite.Expect(anchor.Apply(observed,supported,initial,error)&&anchor.ReferenceOrdinal()==p.sourceProducer.ordinal,
+				"observed camera anchor initializes fixed first source view");
+			auto later=observed;++later.frame;++later.sourceProducer.ordinal;++later.sourceProducer.cycle;
+			auto laterView=supported;laterView.frame=later.frame;laterView.producer=later.sourceProducer;
+			for(auto& witness:later.sourceVertices)for(auto& t:witness.copy.xyzTransforms)t->matrix[12]+=float(laterView.focalX);
+			auto candidate=packet;candidate.frame=later.frame;candidate.producer=later.sourceProducer;
+			for(auto& mesh:candidate.meshes){mesh.frame=later.frame;for(auto& v:mesh.vertices)v.position.x+=1;}
+			const auto unanchored=candidate;
+			bool ok=anchor.Apply(later,laterView,candidate,error);
+			bool stable=ok;
+			if(ok)for(unsigned i=0;i<candidate.meshes[0].vertices.size();++i)
+				stable=stable&&Near(candidate.meshes[0].vertices[i].position.x,packet.meshes[0].vertices[i].position.x);
+			suite.Expect(stable&&Near(candidate.camera.position.x,-1),"observed source translation becomes camera motion with stable anchor geometry");
+			if(ok) {
+				const auto a=remake::Project(unanchored.camera,unanchored.meshes[0].vertices[0].position);
+				const auto b=remake::Project(candidate.camera,candidate.meshes[0].vertices[0].position);
+				suite.Expect(Near(a.x,b.x)&&Near(a.y,b.y)&&Near(a.z,b.z),"observed camera embedding preserves source projection");
+				auto wrong=candidate.camera;wrong.position.x=-wrong.position.x;
+				const auto c=remake::Project(wrong,candidate.meshes[0].vertices[0].position);
+				suite.Expect(std::abs(c.x-a.x)*640>1,"observed camera wrong direction fails projection truth");
+			}
+			for(unsigned mutation=0;mutation<6;++mutation) {
+				RemakeCameraAnchor trial;auto firstPacket=packet;trial.Apply(observed,supported,firstPacket,error);
+				auto bad=later;auto output=unanchored;auto v=laterView;
+				if(mutation==0)bad.sourceProducer.epoch++;
+				if(mutation==1)bad.sourceVertices[0].copy.xyzTransforms[0]->matrix[12]+=1;
+				if(mutation==2)for(auto& s:bad.sourceVertices)s.copy.xyzTransforms[0]->input[0]+=100;
+				if(mutation==3)bad.sourceVertices.resize(5);
+				if(mutation==4)for(auto& s:bad.sourceVertices)s.copy.xyzTransforms[0]->matrix[0]*=2;
+				if(mutation==5)bad.sourceVertices[0].copy.xyzTransforms[0]->input[3]=0;
+				suite.Expect(!trial.Apply(bad,v,output,error)&&output.camera.position.x==0
+					&&trial.ReferenceOrdinal()==p.sourceProducer.ordinal,"observed camera rejects changed identity domain support or scale atomically");
+			}
+			{
+				// A valid nearly unit source basis must not create motion when unchanged.
+				auto precise=observed;
+				for(auto& s:precise.sourceVertices)for(auto& t:s.copy.xyzTransforms)t->matrix[0]*=1.00000024f;
+				auto nearPacket=packet;for(auto& mesh:nearPacket.meshes)for(auto& v:mesh.vertices){v.position.x=10;v.position.z=.1f;}
+				RemakeCameraAnchor trial;auto firstNear=nearPacket;
+				bool exact=trial.Apply(precise,supported,firstNear,error);
+				precise.frame=later.frame;precise.sourceProducer=later.sourceProducer;
+				nearPacket.frame=later.frame;nearPacket.producer=later.sourceProducer;
+				for(auto& mesh:nearPacket.meshes)mesh.frame=later.frame;
+				exact=exact&&trial.Apply(precise,laterView,nearPacket,error);
+				suite.Expect(exact&&trial.MaximumProjectionError()<.001&&Near(nearPacket.camera.position.x,0),
+					"observed near-plane anchor uses true inverse of nearly unit unchanged basis");
+				const double scale=precise.sourceVertices[0].copy.xyzTransforms[0]->matrix[0]/supported.focalX;
+				suite.Expect(std::abs(scale*scale-1)*100*supported.focalX>.01,
+					"transpose-as-inverse negative exceeds unchanged projection tolerance");
+				// Camera Z=2 makes float(2 + near) - 2 fall just outside near.
+				auto shifted=observed;shifted.frame=later.frame;shifted.sourceProducer=later.sourceProducer;
+				for(auto& s:shifted.sourceVertices)for(auto& t:s.copy.xyzTransforms)t->matrix[14]-=2;
+				RemakeCameraAnchor boundary;auto seed=packet;boundary.Apply(observed,supported,seed,error);
+				auto clipped=packet;clipped.frame=later.frame;clipped.producer=later.sourceProducer;
+				for(auto& mesh:clipped.meshes){mesh.frame=later.frame;for(auto& v:mesh.vertices){v.position.x=10;v.position.z=.1f;}}
+				const bool enclosed=boundary.Apply(shifted,laterView,clipped,error);
+				if(!enclosed)std::cout<<"camera boundary fixture: "<<error<<'\n';
+				suite.Expect(enclosed&&remake::Project(clipped.camera,clipped.meshes[0].vertices[0].position).z>=clipped.camera.nearPlane,
+					"observed camera near-plane intersection remains inside unchanged enclosure");
+			}
+		}
 		{
 			auto anchored=packet;
 			anchored.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";

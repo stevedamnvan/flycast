@@ -38,6 +38,7 @@
 #include "rend/neural/remake_overlay_snapshot.h"
 #include "rend/neural/remake_presentation.h"
 #include "rend/neural/remake_neural_input.h"
+#include "rend/neural/remake_camera_anchor.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -315,6 +316,7 @@ protected:
 	flycast::rend::neural::QualityCaptureWriter neuralQualityCapture;
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
+	flycast::rend::neural::RemakeCameraAnchor remakeCameraAnchor;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeEvaluatedSource;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeEvaluatedOverlay;
@@ -337,6 +339,7 @@ protected:
 	unsigned remakeEffectReplayAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
+		remakeCameraAnchor.Reset();
 		remakePreEffectTexture.reset();
 		remakeCurrentEffects.reset();
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};

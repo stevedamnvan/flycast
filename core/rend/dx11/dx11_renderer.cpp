@@ -2709,6 +2709,10 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture);
 	};
 	remake::Packet packet;if(!BuildRemakeViewPacket(scene,reader,packet,error)){skip("packet",error);return;}
+	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
+	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
+	auto proposedAnchor=remakeCameraAnchor;
+	if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)){skip("camera-anchor",error);return;}
 	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
 	if(RemakeNativeEffectsRequested()) {
@@ -2735,6 +2739,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
 	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
+		if(anchored) {
+			remakeCameraAnchor=std::move(proposedAnchor);
+			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g",
+				(unsigned long long)packet.frame,(unsigned long long)remakeCameraAnchor.ReferenceOrdinal(),
+				packet.camera.position.x,packet.camera.position.y,packet.camera.position.z,remakeCameraAnchor.MaximumProjectionError());
+		}
 		if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)
 			overlay.captureScene=std::make_shared<remake::Packet>(std::move(packet));
 		overlay.identity.receipt=receipt;remakeAsyncOverlaySources[receipt.sequence%2]=std::move(overlay);
