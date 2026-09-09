@@ -1,7 +1,6 @@
 add_executable(neuraltest
     remake_preview.cpp
     material_contract.cpp
-    remake_scene.cpp
     remake_scene_tests.cpp
     artifacts.cpp
 	capture_compare.cpp
@@ -28,7 +27,8 @@ set_target_properties(neuraltest PROPERTIES FOLDER "Tools")
 # Independent bounded developer transport test; no runtime or emulator hooks.
 option(NEURALTEST_COMPACT_TAPE "Build developer consumer-tape contract test" OFF)
 if(NEURALTEST_COMPACT_TAPE)
-    add_executable(remake-camera-project remake_scene.cpp remake_camera_project.cpp)
+    add_executable(remake-camera-project remake_camera_project.cpp)
+    target_link_libraries(remake-camera-project PRIVATE flycast-neural)
     target_compile_features(remake-camera-project PRIVATE cxx_std_17)
     add_executable(compact-consumer-contract compact_consumer_tape_test.cpp)
     target_compile_features(compact-consumer-contract PRIVATE cxx_std_17)
@@ -58,21 +58,21 @@ if(NEURALTEST_REMAKE_SDK)
     if(NOT remake_header_sha STREQUAL "793bec004819ba2bd3d4026032b845c0b2fa7804513a2c6a3895c842f4bfd1e1")
         message(FATAL_ERROR "Remix header differs from the reviewed FC-067 revision; audit before updating the pin")
     endif()
-    add_executable(remake-sdk-contract remake_scene.cpp remake_scene_tests.cpp
+    add_executable(remake-sdk-contract remake_scene_tests.cpp
           remake_remix_adapter.cpp remake_remix_tests.cpp remake_artifact_loader.cpp)
     target_compile_features(remake-sdk-contract PRIVATE cxx_std_17)
     target_include_directories(remake-sdk-contract PRIVATE "${NEURALTEST_REMIX_INCLUDE_DIR}")
       target_compile_definitions(remake-sdk-contract PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-      target_link_libraries(remake-sdk-contract PRIVATE bcrypt)
-      add_executable(remake-artifact-check remake_scene.cpp remake_artifact_loader.cpp remake_artifact_check.cpp)
+      target_link_libraries(remake-sdk-contract PRIVATE bcrypt flycast-neural)
+      add_executable(remake-artifact-check remake_artifact_loader.cpp remake_artifact_check.cpp)
       target_compile_features(remake-artifact-check PRIVATE cxx_std_17)
       target_compile_definitions(remake-artifact-check PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-      target_link_libraries(remake-artifact-check PRIVATE bcrypt)
+      target_link_libraries(remake-artifact-check PRIVATE bcrypt flycast-neural)
     set_target_properties(remake-sdk-contract PROPERTIES FOLDER "Tools")
-      add_executable(remake-runtime-smoke remake_scene.cpp remake_remix_adapter.cpp remake_runtime_smoke.cpp remake_artifact_loader.cpp)
+      add_executable(remake-runtime-smoke remake_remix_adapter.cpp remake_runtime_smoke.cpp remake_artifact_loader.cpp)
     target_compile_features(remake-runtime-smoke PRIVATE cxx_std_17)
     target_include_directories(remake-runtime-smoke PRIVATE "${NEURALTEST_REMIX_INCLUDE_DIR}")
     target_compile_definitions(remake-runtime-smoke PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-      target_link_libraries(remake-runtime-smoke PRIVATE user32 bcrypt)
+      target_link_libraries(remake-runtime-smoke PRIVATE user32 bcrypt flycast-neural)
     set_target_properties(remake-runtime-smoke PROPERTIES FOLDER "Tools")
 endif()

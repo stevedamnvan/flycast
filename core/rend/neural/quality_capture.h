@@ -4,6 +4,8 @@
 #include "neural_frame.h"
 #include "producer_identity.h"
 #include "pvr_scene_capture.h"
+#include "remake_view_scene.h"
+#include "remake_view_transport.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 
@@ -89,6 +91,7 @@ struct PvrReplayTextures {
 	std::array<ComPtr<ID3D11Texture2D>,4> color; // decoded, wrong viewport, wrong depth, retained native buffers
 };
 struct QualityCaptureTextures {
+	RemakeTextureReader remakeTextureReader;
 	std::function<bool(const std::filesystem::path&, std::string&)> pvrMaterials;
 	std::function<bool(const std::filesystem::path&, PvrReplayTextures&, std::string&)> pvrReplay;
 	bool pvrPacketRequested = false;
@@ -136,8 +139,18 @@ public:
 	const PvrDecodedPacket* CapturedPvrSnapshot(std::uint64_t frame) const noexcept {
 		return pvrSnapshot_ && pvrSnapshot_->frame==frame ? &*pvrSnapshot_ : nullptr;
 	}
+	const RemakeViewScene* CapturedRemakeViewScene(std::uint64_t frame) const noexcept {
+		return remakeView_ && remakeView_->frame==frame ? &*remakeView_ : nullptr;
+	}
+	const remake::Packet* CapturedRemakePacket(std::uint64_t frame) const noexcept {
+		return remakePacket_ && remakePacket_->frame==frame ? &*remakePacket_ : nullptr;
+	}
+	const std::string& RemakePacketStatus() const noexcept {return remakePacketStatus_;}
 
 private:
+	std::optional<RemakeViewScene> remakeView_;
+	std::optional<remake::Packet> remakePacket_;
+	std::string remakePacketStatus_="not-requested";
 	std::optional<PvrDecodedPacket> pvrSnapshot_;
 	std::filesystem::path root_;
 	std::uint32_t skip_ = 0;

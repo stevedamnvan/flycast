@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Current starting HEAD: `6779f24cc4fbd83453960237c94f2b1571537b7e` (LOG509 checkpoint, pushed/verified there). Its four builds were incremental, not a fresh exact-SHA build. LOG510-511 source witnesses and the current integration changes remain uncommitted working-tree evidence.
+- Current starting HEAD: `f9b9e19dbc97ef9631bc39709d1651894ffc8483` (LOG512 memory-texture checkpoint, pushed and remote verified). Four builds were incremental, not a fresh exact-SHA build. The live-derived scene work in LOG513 is separate working-tree evidence until its checkpoint commit.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -46,7 +46,7 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 |---|---|---|---|---|
 | FC-067 / M2-camera | todo | LOG175, LOG509-511 | Complete the usable coordinate/camera contract alongside the supported live-scene experiment. Retain camera-relative labels and failed exact arithmetic; no further count-only or constant-fitting phase. | Live common-origin subset and measured calibration candidate exist; world/camera acceptance pending |
 | FC-067 / M1-GPU | todo | public-header adapter already tested | Preserve verified synthetic and actual moving GPU output. Remaining runtime cleanup warning needs focused ownership work, not repeated factory/camera bring-up. | LOG404-412, LOG467-474; GPU output verified in bounded scope, cleanup warning remains open |
-| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG512 owned-memory textures render through Remix; live scene provider and combined presentation pending |
+| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG513 running Flycast produces geometry/texture packets; saved handoff renders changing partial temple in Remix. Continuous delivery, fighters/full arena and combined presentation pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | pending |
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | pending |
@@ -59,15 +59,25 @@ Current action: connect the owned live source to the existing Remix uploader.
 The installed runtime is available; the former unavailable-runtime stop is
 obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
 outputs match exactly on three moving frames and actual Remix output is viewed.
-Next translate the witnessed source subset with explicit camera-relative labels
-and connect frame-qualified live submission. Changing draw counts/topology/generations must
-not silently freeze the first packet. Native fallback remains authoritative
+LOG513 now converts that witnessed subset inside running Flycast and packages
+its current textures using the same shared scene contract as the uploader.
+Actual20/21/19-draw endpoints render through a bounded saved-packet handoff;
+the first fixed-light output was black, and camera-forward diagnostic lighting
+reveals the partial temple. Fighter/full-arena coverage is NOT present.
+Next connect this packet directly to bounded continuous consumer delivery and
+frame-qualified returned-image ownership; do not make another offline viewer or
+count-only tracing phase. Expand missing fighter/arena correspondence alongside
+that integration, never substitute the partial temple for the full objective.
+Opt-in resource refresh now handles changed draw counts/topology/generations;
+it does not establish temporal identity or asynchronous retirement safety.
+Native fallback remains authoritative
 until actual returned-image ownership and overlay composition are proven.
 
 Completed scoped checks for the material slice: malformed/truncated texture,
 ambiguous file-plus-memory source, aggregate byte overflow, producer mutation,
 and file-versus-memory raster equality. Next source-provider checks must reject
-missing correspondence, stale producer identity and unsupported camera domains;
+missing correspondence, stale producer identity and unsupported camera domains
+(CPU controls now exist); continuous-delivery and returned-image controls remain;
 runtime success alone is not image evidence. No new camera tracing phase,
 performance claim, external configuration edit or full-goal acceptance.
 

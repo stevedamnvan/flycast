@@ -1,5 +1,32 @@
 # Neural rendering decisions
 
+## D-149: share the scene contract and connect live-derived packets explicitly
+
+The existing scene types/validation move from neuraltest into
+core/rend/neural/remake_scene.h/.cpp. The test header retains compatibility
+names, but Flycast producers no longer depend on a harness-owned model.
+The opt-in source capture now converts fully witnessed opaque draws directly
+into a camera-relative triangle scene, retaining original PVR attributes,
+source draw/generation identity and transform W. Flat normals are derived,
+not original normals. LOG511's measured title-specific lens and unit-scale
+assumption remain diagnostic; the0.01-pixel relation tolerance is NOT a new
+strict-parity gate or permission to call this recovered world geometry.
+
+Current textures are read at the owned render-thread boundary with generation
+checks and encoded into bounded packet-owned DDS bytes. A8/palette decoding in
+this new direct route is unsupported rather than guessed. All of this remains
+synchronous developer capture, off outside explicit source/capture opt-in.
+The bounded FC-view wire format preserves producer/frame identity, geometry,
+source color, texture bytes and omission labels for the diagnostic handoff.
+Reading saved packets is not continuous live integration or presentation proof.
+
+Only the live-artifact compatibility experiment permits resource recreation
+when topology/draw count/texture content changes. Failures poison that uploader;
+the harness must not Present a failed draw. This is not a trusted temporal
+history or production failure policy. Camera-relative +Z packets use a supplied
+camera-forward diagnostic light; the old reflected-anchor fixed light produced
+black output and remains a retained negative result. No game lighting is inferred.
+
 ## D-148: prioritize the live uploader connection, preserve diagnostic limits
 
 The user's integration correction moves active implementation to M2-scene.

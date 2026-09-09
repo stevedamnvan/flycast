@@ -4,6 +4,7 @@
 #include "capture_transition.h"
 #include "remake_scene.h"
 #include "rend/neural/pvr_scene_capture.h"
+#include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -91,6 +92,95 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		PvrDecodedPacket p;p.frame=7;p.game="T1401N";p.gitSha="fixture";p.sourceProducer={2,6,100};
+		p.framebufferSize={640,480};p.viewport={2.f/640,0,0,0,0,-2.f/480,0,0,0,0,1,0,-1,1,0,1};
+		const std::array<std::array<float,2>,4> points{{{-1,-1},{1,-1},{-1,1},{1,1}}};
+		for(unsigned i=0;i<4;++i) {
+			SourceTransform t;t.serial=i+1;t.pc=0x8c03a9ea;t.input={points[i][0],points[i][1],10,1};
+			t.matrix={614.714447f,0,0,0,0,565.537241f,0,0,0,0,1,0,0,0,0,1};
+			t.output={points[i][0]*t.matrix[0],points[i][1]*t.matrix[5],10,i==0?0.f:1.f};
+			::Vertex v{};v.x=t.output[0]/10+320;v.y=t.output[1]/10+240;v.z=.95f/10;
+			v.u=.25f*i;v.v=.5f;v.col[0]=17;v.col[3]=255;v.spc[0]=9;p.vertices.push_back(v);
+			SourceVertexObservation source;source.copy.decodedVertex=i;
+			std::memcpy(source.copy.after.data()+1,&v.x,3*sizeof(float));source.copy.before=source.copy.after;
+			for(auto& xyz:source.copy.xyzTransforms)xyz=t;p.sourceVertices.push_back(source);
+		}
+		PvrCapturedDraw draw;draw.state.init();draw.ordinal=18;draw.state.count=3;
+		p.draws.push_back(draw);p.indices={0,1,2};
+		RemakeViewScene view;std::string error;
+		suite.Expect(BuildRemakeViewScene(p,p.sourceProducer,7,view,error) && view.meshes.size()==1
+			&& view.meshes[0].vertices.size()==3 && view.meshes[0].sourceDraw.ordinal==18,
+			"live view converts witnessed triangle with source draw identity");
+		if(!view.meshes.empty()) {
+			const auto& v=view.meshes[0].vertices[0];
+			suite.Expect(Near(v.position[0],-1)&&Near(v.position[1],1)&&Near(v.position[2],10)
+				&&Near(v.normal[2],-1)&&v.transformW==0&&v.source.col[0]==17&&v.source.spc[0]==9&&v.source.v==.5f,
+				"live view preserves zero W and original attributes with separate derived normal");
+		}
+		const auto reject=[&](const PvrDecodedPacket& bad,const char* name) {
+			RemakeViewScene previous;previous.frame=99;
+			suite.Expect(!BuildRemakeViewScene(bad,p.sourceProducer,7,previous,error)&&previous.frame==99,name);
+		};
+		auto q=p;q.sourceProducer.ordinal++;reject(q,"live view rejects stale producer without replacing output");
+		q=p;q.frame++;reject(q,"live view rejects wrong frame");
+		q=p;q.game="unknown";reject(q,"live view rejects unsupported title");
+		q=p;q.viewport[5]*=-1;reject(q,"live view rejects flipped viewport");
+		q=p;q.sourceVertices[0].copy.xyzTransforms[1].reset();reject(q,"live view rejects incomplete XYZ draw");
+		q=p;q.sourceVertices.push_back(q.sourceVertices[0]);reject(q,"live view rejects duplicate source vertex authority");
+		q=p;q.vertices[0].x+=1;reject(q,"live view rejects source copy mismatch");
+		q=p;for(auto& t:q.sourceVertices[0].copy.xyzTransforms)t->output[0]*=-1;reject(q,"live view wrong projection sign fails");
+		q=p;for(auto& t:q.sourceVertices[0].copy.xyzTransforms)t->matrix[0]*=2;reject(q,"live view wrong lens scale fails");
+		q=p;for(auto& t:q.sourceVertices[0].copy.xyzTransforms)t->output[2]*=-1;reject(q,"live view wrong depth polarity fails");
+		q=p;q.draws[0].list=2;reject(q,"live view excludes translucent authoritative geometry");
+		q=p;q.draws[0].state.projMatrix=0;reject(q,"live view excludes unproved Naomi2 domain");
+		q=p;q.indices[0]=1234;reject(q,"live view rejects invalid index");
+		q=p;q.indices.assign(262144,0);q.draws[0].state.count=262144;q.draws.push_back(q.draws[0]);
+		reject(q,"live view bounds aggregate index work across overlapping draws");
+		q=p;q.indices={0,1,2,3,UINT32_MAX,0,0,1,2};q.draws[0].state.count=unsigned(q.indices.size());
+		suite.Expect(BuildRemakeViewScene(q,p.sourceProducer,7,view,error)&&view.meshes[0].vertices.size()==9
+			&&view.degenerateTriangles==1&&Near(view.meshes[0].vertices[3].normal[2],-1),
+			"live view retains strip parity through restart and degenerate vertices");
+		MaterialPixels pixels;pixels.format=DXGI_FORMAT_B8G8R8A8_UNORM;pixels.mips.push_back({1,1,{10,20,30,255}});
+		std::vector<unsigned char> dds;
+		suite.Expect(EncodeRemakeMaterialDds(pixels,dds,error)&&remake::ValidSourceDdsBytes(dds)
+			&&dds[148]==30&&dds[149]==20&&dds[150]==10,"live texture encoding retains BGRA to RGBA channel contract");
+		auto badPixels=pixels;badPixels.mips[0].bytes.pop_back();const auto originalDds=dds;
+		suite.Expect(!EncodeRemakeMaterialDds(badPixels,dds,error)&&dds==originalDds,"live texture malformed row rejects atomically");
+		badPixels=pixels;badPixels.format=DXGI_FORMAT_A8_UNORM;
+		suite.Expect(!EncodeRemakeMaterialDds(badPixels,dds,error),"live texture palette is not guessed");
+		remake::Packet packet;
+		const RemakeTextureReader reader=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string&){
+			if(draw.ordinal!=18)return false;bytes=dds;return true;};
+		suite.Expect(BuildRemakeViewPacket(view,reader,packet,error)&&packet.meshes.size()==1
+			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
+			"live geometry and owned texture form the shared Remix packet");
+		const auto wirePath=std::filesystem::temp_directory_path()/("flycast-view-wire-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count())+".bin");
+		remake::Packet decoded;
+		const bool wrote=WriteRemakeViewPacket(wirePath,packet,error);
+		suite.Expect(wrote&&ReadRemakeViewPacket(wirePath,decoded,error)&&decoded.frame==packet.frame
+			&&decoded.producer.cycle==packet.producer.cycle&&decoded.meshes[0].vertices.size()==9
+			&&decoded.meshes[0].material->sourceDdsBytes==dds&&decoded.omissions==packet.omissions
+			&&decoded.meshes[0].vertices[0].publicColor==packet.meshes[0].vertices[0].publicColor,
+			"live view wire retains source identity geometry materials and limitations");
+		suite.Expect(!WriteRemakeViewPacket(wirePath,packet,error),"live view wire never overwrites an existing output");
+		if(wrote) {
+			{std::fstream file(wirePath,std::ios::in|std::ios::out|std::ios::binary);char bad=0;file.write(&bad,1);}
+			decoded.frame=99;
+			suite.Expect(!ReadRemakeViewPacket(wirePath,decoded,error)&&decoded.frame==99,"live view wire wrong schema rejects atomically");
+			std::filesystem::remove(wirePath);WriteRemakeViewPacket(wirePath,packet,error);
+			{std::ofstream file(wirePath,std::ios::app|std::ios::binary);file.put(0);}
+			suite.Expect(!ReadRemakeViewPacket(wirePath,decoded,error),"live view wire trailing byte rejects");
+			std::filesystem::remove(wirePath);WriteRemakeViewPacket(wirePath,packet,error);
+			std::filesystem::resize_file(wirePath,20);
+			suite.Expect(!ReadRemakeViewPacket(wirePath,decoded,error),"live view wire truncated identity rejects");
+			std::filesystem::remove(wirePath);
+		}
+		auto next=packet;next.frame++;next.producer.ordinal++;next.producer.cycle++;
+		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
+		next.producer.epoch++;
+		suite.Expect(!remake::DiagnosticContinuation(packet,next),"live packet rejects reset epoch continuity");
+	}
 	{
 		std::string args;
 		ExternalControlValues values{200, 200, 75, 75, 2, false, true};

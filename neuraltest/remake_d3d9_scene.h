@@ -5,6 +5,7 @@
 #include <d3d9.h>
 #include <remix_c.h>
 #include <fstream>
+#include <iostream>
 #include <cstring>
 #include <algorithm>
 
@@ -20,7 +21,15 @@ class D3D9PacketScene {
  Packet previous_;
  remixapi_LightHandle light_=nullptr;
  bool failed_=false,ready_=false;
+ bool refreshResources_=false;
  std::vector<std::vector<unsigned char>> textureBytes_;
+ void ReleaseResources() {
+  if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
+  for(auto& r:resources_){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}
+  resources_.clear();textureBytes_.clear();
+  if(light_){api_.DestroyLight(light_);light_=nullptr;}
+  ready_=false;
+ }
  static std::vector<unsigned char> ReadTexture(const Mesh::Material& material) {
   if(!material.sourceDdsBytes.empty()) {
    if(!material.sourceDds.empty() || !ValidSourceDdsBytes(material.sourceDdsBytes))throw std::runtime_error("owned texture contract");
@@ -62,6 +71,17 @@ class D3D9PacketScene {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet))return E_INVALIDARG;
+  if(ready_ && refreshResources_) {
+   bool compatible=packet.game==initial_.game && packet.meshes.size()==resources_.size();
+   for(std::size_t i=0;compatible&&i<packet.meshes.size();++i)
+    compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && ReadTexture(*packet.meshes[i].material)==textureBytes_[i];
+   if(!compatible) {
+    std::cout<<"live_source_resource_refresh frame="<<packet.frame<<" draws="<<packet.meshes.size()<<" temporal_identity_proven=false\n";
+    // Diagnostic policy: discard/recreate incompatible resources, never freeze
+    // the first packet. Any failure poisons this uploader; caller must not Present.
+    ReleaseResources();
+   }
+  }
   if(!ready_) {
    initial_=packet;resources_.resize(packet.meshes.size());
    for(const auto& mesh:packet.meshes)textureBytes_.push_back(ReadTexture(*mesh.material));
@@ -71,7 +91,11 @@ class D3D9PacketScene {
     if(FAILED(hr))return hr;if(FAILED(hr=Texture(textureBytes_[i],&r.texture)))return hr;
    }
    remixapi_LightInfoDistantEXT distant{};distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
-   distant.direction={0,0,-1};distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
+   // Old prepared artifacts use a reflected anchor. The live-derived packet is
+   // already camera-relative (+Z forward), so use an explicitly labeled headlight
+   // along that camera direction. This is supplied diagnostic light, not game light.
+   distant.direction=refreshResources_?remixapi_Float3D{packet.camera.forward.x,packet.camera.forward.y,packet.camera.forward.z}:remixapi_Float3D{0,0,-1};
+   distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
    remixapi_LightInfo light{};light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;light.pNext=&distant;
    light.hash=0xfc067d40;light.radiance={3,3,3};
    if(api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
@@ -123,9 +147,9 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api):device_(device),api_(api){}
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false):device_(device),api_(api),refreshResources_(refreshResources){}
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
- ~D3D9PacketScene(){if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}for(auto& r:resources_){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}if(light_)api_.DestroyLight(light_);}
+ ~D3D9PacketScene(){ReleaseResources();}
  HRESULT Draw(const Packet& p){if(failed_)return E_FAIL;try{const auto hr=DrawInternal(p);if(FAILED(hr))failed_=true;return hr;}catch(const std::exception&){failed_=true;return E_FAIL;}}
 };
 }

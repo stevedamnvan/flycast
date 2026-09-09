@@ -2036,6 +2036,12 @@ void DX11Renderer::captureNeuralQualityFrame()
 	{
 		textures.pvrContext = rendContext;
 		textures.pvrPacketRequested = true;
+		if(!IsOitRenderer() && !config::EmulateFramebuffer.get() && rendContext && !rendContext->isRTT) {
+			textures.remakeTextureReader=[this,remaining=std::size_t(64*1024*1024)](const flycast::rend::neural::PvrCapturedDraw& draw,
+				std::vector<unsigned char>& bytes,std::string& reason) mutable {
+				return flycast::rend::neural::ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,reason);
+			};
+		}
 		if (config::NeuralCapturePvrReplay.get())
 			textures.pvrReplay = [this](const std::filesystem::path& path,
 				flycast::rend::neural::PvrReplayTextures& result, std::string& error) {
@@ -2080,6 +2086,13 @@ void DX11Renderer::captureNeuralQualityFrame()
 		if (textures.pvrPacketRequested) {
 			const auto frame = neuralQualityCaptureMetadata.frameId;
 			const auto* snapshot = neuralQualityCapture.CapturedPvrSnapshot(frame);
+			NOTICE_LOG(RENDERER,"PVR live Remix packet: frame=%llu status=%s",
+				static_cast<unsigned long long>(frame),neuralQualityCapture.RemakePacketStatus().c_str());
+			if(const auto* scene=neuralQualityCapture.CapturedRemakeViewScene(frame)) {
+				std::size_t triangles=0;for(const auto& mesh:scene->meshes)triangles+=mesh.vertices.size()/3;
+				NOTICE_LOG(RENDERER,"PVR live view scene: frame=%llu meshes=%zu triangles=%zu omitted-draws=%zu projection-error=%g scope=%s",
+					static_cast<unsigned long long>(frame),scene->meshes.size(),triangles,scene->omittedDraws,scene->maximumProjectionError,scene->scope);
+			} else NOTICE_LOG(RENDERER,"PVR live view scene: frame=%llu unsupported; native unchanged",static_cast<unsigned long long>(frame));
 			if (snapshot && !snapshot->sourceVertices.empty()) {
 				const auto coverage=flycast::rend::neural::MeasurePvrSourceCoverage(*snapshot);
 				NOTICE_LOG(RENDERER,"PVR transform coverage: frame=%llu complete-xyz=%zu common-origin=%zu complete-draws=%zu partial-draws=%zu diagnostic-only",

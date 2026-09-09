@@ -22,6 +22,11 @@ bool ReadMaterialPixels(ID3D11Device*,ID3D11DeviceContext*,ID3D11Texture2D*,
 bool DecodeMaterialTexel(DXGI_FORMAT,const std::uint8_t*,std::size_t,
  std::array<std::uint8_t,4>&,const MaterialMip* palette=nullptr,unsigned paletteBase=0);
 bool MaterialGenerationMatches(const PvrCapturedTexture&,unsigned upload,unsigned rtt,unsigned palette);
+bool EncodeRemakeMaterialDds(const MaterialPixels&,std::vector<unsigned char>&,std::string&);
+// Synchronous developer boundary only; verifies the live primary binding before
+// and after readback. Unsupported formats remain failure/native fallback.
+bool ReadRemakeViewTexture(ID3D11Device*,ID3D11DeviceContext*,const rend_context&,
+ const PvrCapturedDraw&,std::size_t&,std::vector<unsigned char>&,std::string&);
 bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device*,ID3D11DeviceContext*,
  const rend_context&,ID3D11Texture2D* palette,unsigned paletteFormat,unsigned filtering,unsigned anisotropy,
  std::uint64_t frame,const std::string& game,std::string& error,const MaterialShaderGlobals& globals);

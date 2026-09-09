@@ -83,6 +83,53 @@ bool ReadMaterialPixels(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11
   remaining-=bytes;output=std::move(result);error.clear();return true;
  } catch(const std::exception& e){error=e.what();return false;}
 }
+bool EncodeRemakeMaterialDds(const MaterialPixels& pixels,std::vector<unsigned char>& output,std::string& error) {
+ try {
+  Require(!pixels.mips.empty()&&pixels.mips.size()<=13&&pixels.format!=DXGI_FORMAT_A8_UNORM,"view-dds-mips-or-palette-unsupported");
+  const auto bpp=Bpp(pixels.format);Require(bpp!=0,"view-dds-format");
+  const auto width=pixels.mips[0].width,height=pixels.mips[0].height;
+  Require(width&&height&&width<=4096&&height<=4096,"view-dds-size");
+  std::size_t bytes=148;
+  for(unsigned level=0;level<pixels.mips.size();++level) {
+   const auto& mip=pixels.mips[level];
+   Require(mip.width==std::max(1u,width>>level)&&mip.height==std::max(1u,height>>level)
+    &&mip.bytes.size()==std::size_t(mip.width)*mip.height*bpp,"view-dds-mip-layout");
+   if(level>0)Require(pixels.mips[level-1].width>1||pixels.mips[level-1].height>1,"view-dds-excess-mips");
+   const auto size=std::size_t(mip.width)*mip.height*4;Require(size<=64*1024*1024-bytes,"view-dds-byte-bound");bytes+=size;
+  }
+  std::vector<unsigned char> data(bytes,0);
+  const auto word=[&](unsigned offset,unsigned value){for(unsigned i=0;i<4;++i)data[offset+i]=static_cast<unsigned char>(value>>(8*i));};
+  word(0,0x20534444);word(4,124);word(8,0x100f|(pixels.mips.size()>1?0x20000:0));word(12,height);word(16,width);word(20,width*4);
+  word(28,unsigned(pixels.mips.size()));word(76,32);word(80,4);word(84,0x30315844);
+  word(108,0x1000|(pixels.mips.size()>1?0x400008:0));word(128,28);word(132,3);word(140,1);
+  std::size_t cursor=148;
+  for(const auto& mip:pixels.mips)for(std::size_t offset=0;offset<mip.bytes.size();offset+=bpp) {
+   std::array<std::uint8_t,4> rgba{};Require(DecodeMaterialTexel(pixels.format,mip.bytes.data()+offset,bpp,rgba),"view-dds-decode");
+   for(auto channel:rgba)data[cursor++]=channel;
+  }
+  output=std::move(data);error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+bool ReadRemakeViewTexture(ID3D11Device* device,ID3D11DeviceContext* context,const rend_context& live,
+ const PvrCapturedDraw& draw,std::size_t& remaining,std::vector<unsigned char>& output,std::string& error) {
+ try {
+  Require(!live.isRTT&&draw.list==0&&draw.ordinal<live.global_param_op.size(),"view-texture-draw");
+  const auto& source=live.global_param_op[draw.ordinal];
+  Require(source.first==draw.state.first&&source.count==draw.state.count&&source.tcw.full==draw.state.tcw.full
+   &&source.tsp.full==draw.state.tsp.full&&source.pcw.full==draw.state.pcw.full,"view-texture-state");
+  if(!draw.state.pcw.Texture) {
+   MaterialPixels white;white.format=DXGI_FORMAT_R8G8B8A8_UNORM;white.mips.push_back({1,1,{255,255,255,255}});
+   return EncodeRemakeMaterialDds(white,output,error);
+  }
+  Require(source.texture&&draw.texture&&source.texture->tcw.full==draw.state.tcw.full,"view-texture-binding");
+  auto* texture=static_cast<DX11Texture*>(source.texture);const auto& generation=*draw.texture;
+  const auto matches=[&]{return MaterialGenerationMatches(generation,texture->Updates,texture->rttGeneration,generation.palette?texture->palette_hash:0);};
+  Require(matches()&&texture->texture&&texture->textureView,"view-texture-generation");
+  MaterialPixels pixels;if(!ReadMaterialPixels(device,context,texture->texture,remaining,pixels,error))return false;
+  Require(matches(),"view-texture-generation-changed");
+  return EncodeRemakeMaterialDds(pixels,output,error);
+ }catch(const std::exception& e){error=e.what();return false;}
+}
 bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,ID3D11DeviceContext* context,
  const rend_context& live,ID3D11Texture2D* palette,unsigned paletteFormat,unsigned filtering,unsigned anisotropy,std::uint64_t frame,const std::string& game,std::string& error,const MaterialShaderGlobals& globals) {
  try {

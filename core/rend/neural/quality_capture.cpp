@@ -398,6 +398,8 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 		return;
 	root_ = root;
 	pvrSnapshot_.reset();
+	remakeView_.reset();
+	remakePacket_.reset();remakePacketStatus_="not-requested";
 	skip_ = skip;
 	limit_ = (std::min)(limit, 240u);
 	lateOverlayProof_ = lateOverlayProof;
@@ -541,6 +543,8 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 	std::string& error)
 {
 	pvrSnapshot_.reset();
+	remakeView_.reset();
+	remakePacket_.reset();remakePacketStatus_="not-requested";
 	if (!WantsFrame()) return true;
 	if (seen_++ < skip_) return true;
 	if (textures.pvrPacketRequested && !textures.pvrContext)
@@ -921,6 +925,19 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 		if (!complete) { error = "failed writing capture completion marker"; return false; }
 	}
 	pvrSnapshot_ = std::move(pendingSnapshot);
+	if(pvrSnapshot_ && !pvrSnapshot_->sourceVertices.empty()) {
+		RemakeViewScene scene;std::string conversionError;
+		if(BuildRemakeViewScene(*pvrSnapshot_,metadata.producerIdentity,metadata.frameId,scene,conversionError))
+			remakeView_=std::move(scene);
+		else remakePacketStatus_=conversionError;
+		if(remakeView_ && textures.remakeTextureReader) {
+			remake::Packet packet;
+			if(BuildRemakeViewPacket(*remakeView_,textures.remakeTextureReader,packet,conversionError)
+				&& WriteRemakeViewPacket(frameRoot/"remake-view.bin",packet,conversionError)) {
+				remakePacket_=std::move(packet);remakePacketStatus_="owned-live-source-packet; consumer-not-connected";
+			} else remakePacketStatus_=conversionError;
+		}
+	}
 	return true;
 }
 

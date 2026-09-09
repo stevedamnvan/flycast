@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <fstream>
 
-namespace neuraltest::remake {
+namespace flycast::rend::neural::remake {
 namespace {
 bool finite(Vec3 v) { return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z); }
 bool validSourceDdsHeader(const unsigned char* header, std::uint64_t size) {

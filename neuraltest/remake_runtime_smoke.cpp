@@ -5,6 +5,7 @@
 #include "remake_triangle_transport.h"
 #include "remake_d3d9_dynamic.h"
 #include "remake_d3d9_scene.h"
+#include "rend/neural/remake_view_transport.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -64,6 +65,7 @@ int wmain(int argc,wchar_t** argv) {
  bool rebuiltFrozen=false,settledFrozen=false;
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
  bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false,legacyMemory=false;
+ const bool liveArtifact=argc>=12 && std::wstring(argv[5])==L"--live-artifact";
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -126,18 +128,28 @@ int wmain(int argc,wchar_t** argv) {
  }
  if(argc==12 || argc==14 || argc==18) {
   try {
-   if(std::wstring(argv[5])!=L"--artifact" || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
+   if((std::wstring(argv[5])!=L"--artifact"&&!liveArtifact) || std::wstring(argv[7])!=L"--assets" || std::wstring(argv[9])!=L"--clips")
     throw std::invalid_argument("artifact options");
    std::size_t a=0,b=0;float clipNear=std::stof(argv[10],&a),clipFar=std::stof(argv[11],&b);
    if(a!=std::wstring(argv[10]).size()||b!=std::wstring(argv[11]).size())throw std::invalid_argument("clip syntax");
-   snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
+   if(liveArtifact) {
+    if(!legacyGame)throw std::invalid_argument("live packet requires legacy uploader");
+    Packet p;std::string reason;
+    if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
+    if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
+    snapshot=std::move(p);
+   } else snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
    if(argc==18) {
     if(frames!=63 || std::wstring(argv[12])!=L"--next" || std::wstring(argv[14])!=L"--next" ||
        (std::wstring(argv[16])!=L"--capture" && !reverseLight))throw std::invalid_argument("sequence requires 60 warmup plus three frames and final color capture");
     sequence.push_back(*snapshot);
     for(int i: {13,15}) {
      const std::filesystem::path root(argv[i]);
-     auto next=LoadDiagnosticArtifact(root/L"scene.json",root/L"assets",clipNear,clipFar);
+     Packet next;
+     if(liveArtifact) {
+      std::string reason;if(!flycast::rend::neural::ReadRemakeViewPacket(root/L"remake-view.bin",next,reason))throw std::invalid_argument(reason);
+      if(next.camera.nearPlane!=clipNear||next.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
+     } else next=LoadDiagnosticArtifact(root/L"scene.json",root/L"assets",clipNear,clipFar);
      if(!DiagnosticContinuation(sequence.back(),next))throw std::invalid_argument("sequence identity/origin mismatch");
      // Diagnostic isolation: no temporal resource identity claim across endpoints.
      if(!retainedTriangles&&!rebuiltFrozen&&!settledFrozen&&!legacyGame)for(auto& mesh:next.meshes)mesh.id+=sequence.size()*0x100000000ull;
@@ -245,7 +257,7 @@ int wmain(int argc,wchar_t** argv) {
   if(affine||affineReference)std::cerr<<"affine_diagnostic_radiance=0.03 wrong_reference_normal="<<wrongAffineNormal<<'\n';
   std::vector<std::unique_ptr<RemixScene>> sequenceResources;
   DynamicD3D9Fixture legacyFixture(ownedDevice,api);
-  D3D9PacketScene legacyScene(ownedDevice,api);
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
