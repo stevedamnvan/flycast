@@ -67,6 +67,17 @@ that option pending typed integer readback. Do not tune camera against them.
 LOG407 raw depth now has0 nonfinite pixels and analytic coverageIoU0.99376;
 max error0.02506 remains unexplained, so isolate edges/interiors and add negative
 depth-order controls. Raw normal sidecar support exists but has not been rerun.
+LOG408-410 supersede that older next action: interior max0.00004521; reversed
+actual submission order produces byte-identical raw depth. Packed normal
+capture is unsupported. Direct PresentEx does not remove40-object teardown
+warning; temporary bypass reverted. Completion/lifetime remains next.
+LOG411 EVENT completion succeeds but same40 live common objects remain at exit;
+public counter is runtime CommonDeviceObject instances, not caller mesh count.
+Do not add longer waits as a proposed fix; ownership/lifetime remains unresolved.
+LOG412 empty-scene control still reports37 objects without any scene handles
+(rendered runs40). Do not repeat wait/Present-bypass experiments. Preserve this
+open runtime ownership failure; next checkpoint controls, then expand actual
+scene coverage under the still-pending camera contract without claiming M1 done.
 First actual final-color
 capture now shows synthetic triangles after matching public alphaTestType7;
 cleanup warnings and full scene acceptance remain open. Historical LOG400 task:

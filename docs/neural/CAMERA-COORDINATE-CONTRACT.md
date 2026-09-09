@@ -41,6 +41,15 @@ in all three frames. This does not imply identical GPU arithmetic.
 
 ## Next integration dependency
 
+Current update (LOG402-413): the prepared H artifact has now rendered through
+the authorized runtime with visible temple textures; this is a selected static
+snapshot, not complete-scene or moving-camera acceptance. Do not repeat artifact
+assembly as the next task. Inspect existing multi-frame transform evidence for
+a bounded sequence while preserving the common H origin and every omission.
+Runtime cleanup remains open independently (empty-scene37/common rendered40
+objects at exit); its warning cannot be waived by a successful screenshot.
+The text below records the historical pre-runtime integration dependency.
+
 The selected H geometry/material publication join is now implemented (LOG379).
 Do not repeat asset-binding checks as a substitute for scene submission.
 Next assemble a bounded developer artifact carrying source identity, converted

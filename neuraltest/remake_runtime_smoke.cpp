@@ -11,6 +11,7 @@
 #include <chrono>
 #include <d3d9.h>
 #include <vector>
+#include <algorithm>
 
 namespace {
 struct Watchdog {
@@ -47,6 +48,8 @@ int wmain(int argc,wchar_t** argv) {
  std::filesystem::path capture;
  bool reverseCamera=false;
  bool zeroLight=false;
+ bool reverseOrder=false;
+ bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
  if(argc==7 || argc==14) {
   const int captureIndex=argc==7?5:12;
@@ -59,8 +62,10 @@ int wmain(int argc,wchar_t** argv) {
   }
   reverseCamera=captureOption==L"--capture-reverse-camera";
   zeroLight=captureOption==L"--capture-zero-light";
-  if(captureOption==L"--capture-depth")captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
-  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight) && argc==14)) {
+  reverseOrder=captureOption==L"--capture-depth-reverse-order";
+  emptyScene=captureOption==L"--capture-empty";
+  if(captureOption==L"--capture-depth" || reverseOrder)captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
+  if((captureOption!=L"--capture" && captureOption!=L"--capture-normals" && captureOption!=L"--capture-depth" && !reverseCamera && !zeroLight && !reverseOrder && !emptyScene) || !capture.is_absolute() || std::filesystem::exists(capture) || std::filesystem::exists(capture.wstring()+L".rgba32f") || ((reverseCamera || zeroLight || reverseOrder || emptyScene) && argc==14)) {
    std::cerr<<"capture requires new absolute BMP path\n";return 2;
   }
  }
@@ -143,11 +148,12 @@ int wmain(int argc,wchar_t** argv) {
    if(quit) { outcome=10;break; }
    auto packet=snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
    if(reverseCamera)packet.camera.position.x=-packet.camera.position.x;
+   if(reverseOrder)std::reverse(packet.meshes.begin(),packet.meshes.end());
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
-   const auto submitted=frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
+   const auto submitted=emptyScene?Result{true,"empty-scene-control"}:frame==0?(snapshot?retained.SubmitDiagnostic(packet,packet.frame,packet.game,true)
     :retained.Submit(packet,packet.frame,packet.game)):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
@@ -215,6 +221,24 @@ int wmain(int argc,wchar_t** argv) {
   }
  }
  // Window destruction can dispatch callbacks installed by the runtime.
+ if(ownedDevice) {
+  IDirect3DQuery9* completion=nullptr;
+  HRESULT completed=ownedDevice->CreateQuery(D3DQUERYTYPE_EVENT,&completion);
+  if(SUCCEEDED(completed) && completion) {
+   completed=completion->Issue(D3DISSUE_END);
+   if(SUCCEEDED(completed)) {
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+    do {
+     completed=completion->GetData(nullptr,0,D3DGETDATA_FLUSH);
+     if(completed!=S_FALSE)break;
+     SwitchToThread();
+    } while(std::chrono::steady_clock::now()<deadline);
+   }
+   completion->Release();
+  }
+  std::cerr<<"diagnostic_completion_hresult="<<completed<<" bounded_ms=2000\n"<<std::flush;
+  if(completed!=S_OK)outcome=15;
+ }
  // Keep the runtime alive until those callbacks can no longer run.
  std::cerr<<"phase=destroy-window begin\n"<<std::flush;
  DestroyWindow(window);
