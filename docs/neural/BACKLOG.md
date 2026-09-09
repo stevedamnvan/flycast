@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `12c1d20d01c6e7eeb8f2eccdcb19fbf173104517`, pushed and remote verified (LOG381). Later changes are separate from tested source.
+- Last exact tested checkpoint: `60610246bb033086a725d216eb8b2cdeb7573461`, pushed and remote verified (LOG384). Later changes are separate from tested source.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -54,8 +54,11 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: finish/checkpoint bounded scene preparation, then evaluate
-the explicit experimental submission contract's remaining coordinate/clip gates.
+Current next action: evaluate the sampled scene's actual view-depth envelope
+and native clipping behavior to specify the experimental submission contract.
+Do not equate an enclosing diagnostic clip interval with recovered game clips,
+or change null clip serialization without explicit provenance. LOG384 closes
+scene preparation checkpoint; API field presence alone cannot resolve clipping.
 LOG382 assembles actual H17meshes/6456split vertices with derived normals and
 verified materials; null clips and renderable=false remain. Preserve
 unknown clips and coordinate/coverage exclusions through serialization; see
