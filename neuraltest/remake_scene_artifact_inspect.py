@@ -4,6 +4,30 @@ import subprocess
 from transform_store_inspect import require
 
 
+def diagnostic_clips(artifact, near, far):
+    """Check a declared diagnostic interval; never assign recovered game clips."""
+    require(artifact.get('schema')=='flycast-prepared-remake-scene-v1','prepared schema')
+    require(all(type(x) in (int,float) and math.isfinite(x) for x in (near,far))
+            and 0<near<far,'diagnostic clip interval')
+    camera=artifact['camera'];origin=camera['position'];forward=camera['forward']
+    require(len(origin)==len(forward)==3 and all(math.isfinite(x) for x in [*origin,*forward])
+            and abs(sum(x*x for x in forward)-1)<1e-5,'diagnostic camera basis')
+    meshes=artifact['meshes'];require(0<len(meshes)<=128,'diagnostic mesh bound')
+    count=sum(len(m['vertices']) for m in meshes);require(0<count<=65536,'diagnostic vertex bound')
+    depths=[];excluded=[]
+    for mesh in meshes:
+        for index,vertex in enumerate(mesh['vertices']):
+            p=vertex['position'];require(len(p)==3 and all(math.isfinite(x) for x in p),'diagnostic position')
+            z=sum((p[i]-origin[i])*forward[i] for i in range(3))
+            require(math.isfinite(z),'diagnostic depth')
+            depths.append(z)
+            if not near<=z<=far:excluded.append(dict(draw=mesh['source_draw'],vertex=index,depth=z))
+    return dict(provenance='caller-supplied-diagnostic-only',near=near,far=far,
+                minimum=min(depths),maximum=max(depths),vertices=count,excluded=excluded,
+                encloses_submitted_vertices=not excluded,game_clips_recovered=False,
+                renderable_by_remix_adapter=False)
+
+
 def prepare(joined, normal_executable):
     require(joined.get('source_publication_verified') is True,'verified publication required')
     require(joined.get('coordinate_space')=='reflected-selected-source-anchor','converted anchor required')

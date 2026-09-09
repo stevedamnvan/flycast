@@ -54,9 +54,11 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: implement explicitly caller-supplied diagnostic clip
-validation against every prepared vertex under D-132, retaining null source
-game clips and rejecting excluded geometry. LOG385 falsifies Synthetic far100
+Current next action: checkpoint/verify diagnostic clip validation, then connect
+prepared scene data to the bounded developer submission interface with explicit
+diagnostic provenance, never silent world/camera acceptance. LOG386 tests actual
+H containment for caller range0.1..104; source game clips remain null.
+LOG385 falsifies Synthetic far100
 on17 H vertices; native depth clipping is disabled. Do not equate a diagnostic
 enclosure with recovered game clips or camera acceptance. LOG384 closes
 scene preparation checkpoint; API field presence alone cannot resolve clipping.
