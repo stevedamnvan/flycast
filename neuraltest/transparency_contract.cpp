@@ -2,6 +2,7 @@
 #include "harness.h"
 #include "rend/dx11/oit/native_effect_blend.h"
 #include "rend/neural/remake_oit_effects.h"
+#include "rend/neural/remake_effect_identity.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -26,6 +27,54 @@ namespace {
 constexpr UINT Width = 4;
 constexpr UINT Height = 1;
 constexpr std::uint32_t Eol = 0xffffffffu;
+
+bool EffectIdentityControls(std::string& error)
+{
+ using namespace flycast::rend::neural;
+ const EffectIdentitySource source{1,20,100};
+ std::vector<EffectIdentityPixel> pixels{{0xff112233,0x3e800000,0,1},
+  {0xff445566,0x3f000000,1,Eol}};
+ std::vector<EffectIdentityPoly> poly{{0x12345678,0x87654321}};
+ std::vector<std::uint32_t> base,other;
+ auto run=[&](const auto& p,const auto& pp,const auto& heads,const auto& state,
+  const EffectIdentitySource& id,std::vector<std::uint32_t>& out,unsigned layers=8){
+  return CanonicalEffectIdentity(id,heads,p,pp,state,layers,out,error);
+ };
+ const std::vector<std::uint32_t> heads{0,Eol},state{1,2,3};
+ if(!run(pixels,poly,heads,state,source,base))return false;
+ auto moved=pixels;std::swap(moved[0],moved[1]);moved[1].next=0;moved[0].next=Eol;
+ moved.push_back({99,0,0,Eol}); // Unreachable allocation is irrelevant.
+ if(!run(moved,poly,std::vector<std::uint32_t>{1,Eol},state,source,other)||base!=other)
+  {error="effect identity rejected relocated equivalent stack";return false;}
+ for(unsigned mutation=0;mutation<6;++mutation) {
+  auto p=pixels;auto pp=poly;auto s=state;auto id=source;
+  if(mutation==0)p[0].color^=1;
+  if(mutation==1)pp[0].primary^=1u<<29;
+  if(mutation==2)p[0].sequence^=0x80000000u;
+  if(mutation==3)p[0].depthBits=0x3f400000;
+  if(mutation==4)++id.ordinal;
+  if(mutation==5)++s[0];
+  if(!run(p,pp,heads,s,id,other)||base==other)
+   {error="effect identity missed semantic mutation "+std::to_string(mutation);return false;}
+ }
+ const char* failures[]={"effect-identity-cycle","effect-identity-pointer-range",
+  "effect-identity-polygon-range","effect-identity-invalid-depth","effect-identity-truncated-stack"};
+ for(unsigned mutation=0;mutation<5;++mutation) {
+  auto p=pixels;
+  if(mutation==0)p[1].next=0;
+  if(mutation==1)p[1].next=999;
+  if(mutation==2)p[0].sequence=1u<<17;
+  if(mutation==3)p[0].depthBits=0x7fc00000;
+  if(run(p,poly,heads,state,source,other,mutation==4?1:8)||!other.empty()||error!=failures[mutation])
+   {error="effect identity accepted malformed stack";return false;}
+ }
+ pixels[1].depthBits=pixels[0].depthBits;pixels[1].sequence=pixels[0].sequence;
+ if(!run(pixels,poly,heads,state,source,base))return false;
+ pixels[0].next=Eol;pixels[1].next=0;
+ if(!run(pixels,poly,std::vector<std::uint32_t>{1,Eol},state,source,other)||base==other)
+  {error="effect identity erased equal-key blend order";return false;}
+ error.clear();return true;
+}
 
 struct Surface {
 	TestComPtr<ID3D11Device> device;
@@ -171,6 +220,7 @@ bool ReadMask(ID3D11Device *device, ID3D11DeviceContext *context,
 bool RunTransparencyContractFixture(bool d3d11On12,
 	TransparencyContractResult& result, std::string& error)
 {
+	if(!EffectIdentityControls(error))return false;
 	Surface surface;
 	if (!CreateSurface(d3d11On12, surface, error)) return false;
 	result.surface = surface.name; result.adapter = surface.adapter;

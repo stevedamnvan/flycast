@@ -116,6 +116,26 @@ the expected first-snapshot object increase125 ->131. Physical VRAM, transient
 resources and sustained timing remain unproven. Resume focused post-effect
 provenance next; do not equate this startup probe with a stability pass.
 
+Focused replay dependency: retain a source-qualified canonical description of
+the visible native OIT fragment stack, including original color/depth/sequence,
+referenced polygon blend/modifier parameters, resolver constants and variant.
+Allocation addresses and unused fragment-buffer capacity are not semantic
+identity. Preserve the native stable depth/poly ordering, including equal-key
+ties; reject truncated, cyclic, out-of-range or unsupported stacks. First prove
+that relocated equivalent stacks compare equal and changed color, blend, shadow,
+depth/order, producer or resolver state fail. Only then connect bounded,
+developer-only capture/replay verification and remove the existing locked-effects
+rejection for positively matched inputs. No per-frame CPU readback in ordinary
+gameplay, and no claim that an opaque scene digest identifies translucent effects.
+This work unlocks the changed-output proof; it is not a new generic capture or
+profiling phase. Keep the marked/clean/OFF comparison and completed-Present join.
+LOG560 implements the bounded CPU canonical comparison component and exercises
+relocated/unused storage equality, semantic mutations, stable equal-key ordering,
+malformed pointers/cycles/depth/polygon and truncation rejection. It is not yet
+wired to GPU snapshot extraction or replay. Next connect the owned GPU snapshot
+to this description in explicit evidence mode, retaining exact resolver variant
+and constants; then enforce equality before permitting locked effects replay.
+
 The following sequence records historical bounds/results, not competing current
 assignments. Former action: compose and present delayed returned scenes using their owned
 original HUD/overlay/native surfaces and explicitly distinct source/current IDs.

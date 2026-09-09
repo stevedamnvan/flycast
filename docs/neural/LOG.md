@@ -1,5 +1,38 @@
 # Neural rendering evidence log
 
+LOG560 base947aeafa2 plus worktree implements the bounded CPU native-effect
+canonical identity component. It preserves source epoch/ordinal/cycle, resolver
+state, per-pixel stable native depth/poly ordering, exact color/depth/sequence and
+referenced polygon words. GPU addresses and unreachable capacity are excluded.
+Tests verify relocated equivalence, six independent semantic mutations, equal-key
+order sensitivity and exact rejection reasons for cycles, pointer/polygon range,
+nonfinite depth and truncation; failed calls leave no output. These CPU controls
+run inside the existing transparency fixtures and do not increase the574 test
+count or constitute GPU extraction proof. Four incremental builds and all three
+enabled selftests passed before final reason-check strengthening; final rerun
+logs use effect-identity-final prefixes and all four builds / three574/0 suites
+passed with the strengthened checks. Renderer behavior and locked replay guard
+remain unchanged. Next implement source-owned diagnostic extraction and checked
+replay linkage; no new live gameplay/provenance success claimed. The initial
+selftest.cpp lookup failed (file absent); tests were connected to the existing
+RunTransparencyContractFixture entry instead. No third-party assets changed.
+
+LOG559 checkpoint947aeafa2e68f7e3fe118556394e282dd2df042e: verified four
+post-commit incremental build logs (automation, baseline, no-NGX, feature-off),
+three enabled selftest logs each574 passed/0 failed, and no remaining build
+process. Pushed feat/neural-rendering to the user fork and verified ls-remote
+equals that exact SHA. Tracked worktree clean before this documentation update;
+the existing metrics/cache/rtx-remix untracked entries remain untouched. These
+are incremental build checks, not new exact-SHA gameplay or performance proof.
+Source inspection confirms the post-effect provenance dependency: current locked
+input comparison serializes the opaque scene and checks returned input hashes,
+whereas effect ownership is a separate GPU snapshot. The intentional
+locked-effects-replay-unsupported guard remains necessary. Recorded canonical
+visible-stack equality and falsifying controls as the next implementation bound;
+no renderer behavior changed and no new provenance success is claimed. An initial
+lookup for oit_header.h failed because the actual HLSL header is embedded in
+dx11_oitshaders.cpp; the subsequent source inspection used that owning file.
+
 LOG558 c30f2b587 plus worktree corrects native-effect resource accounting. Count
 unique snapshot allocations across current/two pending/accepted/evaluated owners,
 not shared_ptr aliases. Expose logical copied bytes and six actual owned data

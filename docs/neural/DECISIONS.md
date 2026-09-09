@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-176: effect replay identity describes reachable ordered fragments
+
+An opaque scene receipt cannot identify the separate retained native effect
+stack. Compare reachable fragment semantics and referenced polygon state under
+the native stable ordering, together with source and exact resolver state.
+Unreachable storage and allocation addresses are not identity. Equal-key blend
+order remains significant. Malformed or truncated descriptions fail closed.
+LOG560 tests the CPU description component; GPU extraction and replay enforcement
+are still pending, so the existing locked-effects rejection remains in place.
+
 ## D-175: effect ownership accounting is allocation-based
 
 Count each retained effect snapshot once across renderer aliases, and distinguish
