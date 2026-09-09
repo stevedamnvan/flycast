@@ -8,6 +8,7 @@
 #include <fstream>
 #include <locale>
 #include <stdexcept>
+#include <limits>
 namespace neuraltest {
 bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
  using namespace flycast::rend::neural;
@@ -25,6 +26,24 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
   for(unsigned i=0;i<4;++i)for(unsigned c=0;c<4;++c)palette.bytes[i*4+c]=rgba[i][c==0?2:c==2?0:c];
   const DXGI_FORMAT formats[]={DXGI_FORMAT_B5G5R5A1_UNORM,DXGI_FORMAT_B4G4R4A4_UNORM,DXGI_FORMAT_B5G6R5_UNORM,DXGI_FORMAT_B8G8R8A8_UNORM,DXGI_FORMAT_R8G8B8A8_UNORM,DXGI_FORMAT_A8_UNORM};
   unsigned comparisons=0,controls=0;
+  {
+   rend_context emptyContext;
+   MaterialShaderGlobals g;
+   auto rejects=[&](const char* expected) {
+    std::string why;
+    // Null devices and nonexistent scene ensure validation precedes IO/GPU work.
+    check(!WritePvrMaterials(out/"absent-scene.json",nullptr,nullptr,emptyContext,
+     nullptr,0,0,0,1,"fixture",why,g)&&why==expected,"material-globals-rejection");
+    ++controls;
+   };
+   rejects("material-shader-globals-missing");
+   g.valid=true;rejects("material-shader-source-modified");
+   g.sourceBytesUnchanged=true;
+   g.fogVertex[0]=std::numeric_limits<float>::quiet_NaN();rejects("material-fog-nonfinite");
+   g.fogVertex[0]=0;g.clampMax[3]=std::numeric_limits<float>::infinity();rejects("material-clamp-nonfinite");
+   g.clampMax[3]=1;g.fogDensity=std::numeric_limits<float>::infinity();rejects("material-scalar-nonfinite");
+   check(!std::filesystem::exists(out),"material-globals-rejection-no-output");
+  }
   for(auto format:formats) {
    unsigned bpp=format==DXGI_FORMAT_A8_UNORM?1:(format==DXGI_FORMAT_B8G8R8A8_UNORM||format==DXGI_FORMAT_R8G8B8A8_UNORM?4:2);
    D3D11_TEXTURE2D_DESC desc{};desc.Width=desc.Height=4;desc.MipLevels=3;desc.ArraySize=1;desc.Format=format;desc.SampleDesc.Count=1;desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;

@@ -523,12 +523,38 @@ void DX11Renderer::setupPixelShaderConstants()
 	deviceContext->Map(pxlConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubres);
 	memcpy(mappedSubres.pData, &pixelConstants, sizeof(pixelConstants));
 	deviceContext->Unmap(pxlConstants, 0);
+#ifdef FLYCAST_ENABLE_NEURAL
+	materialShaderGlobals = {};
+	if (config::NeuralCapturePvrMaterials.get()) {
+	// Diagnostic representation comparison only; padding is never serialized.
+	std::array<unsigned char,sizeof(PixelConstants)> beforeSnapshot;
+	std::memcpy(beforeSnapshot.data(), &pixelConstants, sizeof(pixelConstants));
+	materialShaderGlobals.fogEnabled = config::Fog.get();
+	for (unsigned i=0;i<3;++i) {
+		materialShaderGlobals.fogVertex[i]=pixelConstants.fog_col_vert[i];
+		materialShaderGlobals.fogRam[i]=pixelConstants.fog_col_ram[i];
+	}
+	for (unsigned i=0;i<4;++i) {
+		materialShaderGlobals.clampMin[i]=pixelConstants.colorClampMin[i];
+		materialShaderGlobals.clampMax[i]=pixelConstants.colorClampMax[i];
+	}
+	materialShaderGlobals.fogDensity=pixelConstants.fogDensity;
+	materialShaderGlobals.alphaReference=pixelConstants.alphaTestValue;
+	materialShaderGlobals.shadowScale=pixelConstants.shadowScale;
+	materialShaderGlobals.sourceBytesUnchanged = std::memcmp(beforeSnapshot.data(),
+		&pixelConstants, sizeof(pixelConstants)) == 0;
+	materialShaderGlobals.valid=materialShaderGlobals.sourceBytesUnchanged;
+	}
+#endif
 	ID3D11Buffer *buffers[] { pxlConstants, pxlPolyConstants };
 	deviceContext->PSSetConstantBuffers(0, std::size(buffers), buffers);
 }
 
 bool DX11Renderer::Render()
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	materialShaderGlobals.valid=false;
+#endif
 	resetContextState();
 	bool is_rtt = rendContext->isRTT;
 	if (!is_rtt)
@@ -2004,7 +2030,7 @@ void DX11Renderer::captureNeuralQualityFrame()
 			return flycast::rend::neural::WritePvrMaterials(path, device, deviceContext,
 				*rendContext, paletteTexture, PAL_RAM_CTRL, config::TextureFiltering.get(),
 				config::AnisotropicFiltering.get(), neuralQualityCaptureMetadata.frameId,
-				settings.content.gameId, error);
+				settings.content.gameId, error, materialShaderGlobals);
 		};
 	if (config::NeuralCapturePvrPacket.get() && neuralQualityCapture.CapturesCurrentFrame())
 	{

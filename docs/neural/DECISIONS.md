@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-127: source material evidence is not physical albedo or native parity
+
+LOG344-355 connects same-frame draw generations, verified raw textures, original
+UV/color/offset attributes and uploaded fog globals. Preserve BGRA input layout,
+effective clamp semantics and explicit-mip sampling labels. Missing fog state
+must reject; later captures cannot retroactively supply old-frame constants.
+CPU snapshot nonmutation is distinct from GPU verification and native-image
+parity. The retained eight-pixel one-level discrepancy remains open; do not
+accept repeated lucky frames or loosen it. This bounded material data path may
+advance independently, but does not make an incomplete scene renderable.
+Normals remain unknown, source textures are not physical albedo, and source
+fog/offset lighting cannot silently be passed off as a complete PBR material.
+
 ## D-126: preserve a fixed sequence basis and separate CPU camera proof
 
 CAMERA-COORDINATE-CONTRACT.md consolidates LOG331-343. Reflect source and view

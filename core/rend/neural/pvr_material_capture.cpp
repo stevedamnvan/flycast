@@ -4,6 +4,7 @@
 #include "json/json.hpp"
 #include "version.h"
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
@@ -83,8 +84,16 @@ bool ReadMaterialPixels(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11
  } catch(const std::exception& e){error=e.what();return false;}
 }
 bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,ID3D11DeviceContext* context,
- const rend_context& live,ID3D11Texture2D* palette,unsigned paletteFormat,unsigned filtering,unsigned anisotropy,std::uint64_t frame,const std::string& game,std::string& error) {
+ const rend_context& live,ID3D11Texture2D* palette,unsigned paletteFormat,unsigned filtering,unsigned anisotropy,std::uint64_t frame,const std::string& game,std::string& error,const MaterialShaderGlobals& globals) {
  try {
+  Require(globals.valid,"material-shader-globals-missing");
+  Require(globals.sourceBytesUnchanged,"material-shader-source-modified");
+  for(const auto& values:{globals.fogVertex,globals.fogRam})
+   for(float v:values)Require(std::isfinite(v),"material-fog-nonfinite");
+  for(const auto& values:{globals.clampMin,globals.clampMax})
+   for(float v:values)Require(std::isfinite(v),"material-clamp-nonfinite");
+  Require(std::isfinite(globals.fogDensity)&&std::isfinite(globals.alphaReference)
+   &&std::isfinite(globals.shadowScale),"material-scalar-nonfinite");
   PvrDecodedPacket packet;if(!ReadPvrScenePacket(scene,frame,game,packet,error))throw std::runtime_error(error);
   Require(!live.isRTT,"material-rtt-unsupported");
   const auto output=scene.parent_path()/"materials";Require(!std::filesystem::exists(output),"material-output-exists");
@@ -160,6 +169,11 @@ bool WritePvrMaterials(const std::filesystem::path& scene,ID3D11Device* device,I
    {"anisotropic_filtering",anisotropy},{"mip_lod_bias",-1.5},{"palette_format",paletteFormat},{"palette_asset",paletteAsset},
    {"readback_bytes",64u*1024*1024-remaining},{"logical_resources",pending.size()},{"assets",descriptions},{"bindings",bindings},
    {"claims",{"capture-seam resources with generation checks; not pre-draw history","no normal/roughness/metalness inference","synchronous developer capture; not performance"}}};
+  result["shader_globals"]={{"provenance","native-pixel-constant-upload"},{"fog_enabled",globals.fogEnabled},
+   {"cpu_snapshot_source_bytes_unchanged",globals.sourceBytesUnchanged},
+   {"fog_color_vertex",globals.fogVertex},{"fog_color_ram",globals.fogRam},
+   {"clamp_min",globals.clampMin},{"clamp_max",globals.clampMax},{"fog_density",globals.fogDensity},
+   {"alpha_reference",globals.alphaReference},{"shadow_scale",globals.shadowScale}};
   std::ofstream manifest(output/"manifest.json");manifest<<result.dump(2);Require(bool(manifest),"material-manifest-write");error.clear();return true;
  } catch(const std::exception& e){error=e.what();return false;}
 }

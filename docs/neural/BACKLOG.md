@@ -54,9 +54,29 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: bind existing selected-draw scene/material records to the
-accepted evidence vertices and identify missing normals, texture assets and clip
-semantics before implementing a game packet adapter. Scope and exclusions are in
+Current next action: checkpoint and verify material/capture slice (LOG357 direct
+C++ guards pass;282 inspectors pass),
+then implement an explicitly supported adapter material representation and resolve
+missing normal semantics. LOG355 connects actual source attributes/textures/fog in
+explicit-mip CPU samples; do not expand this into a substitute renderer. All51 sampled
+draw states bind; synthetic equation inputs are not actual pixel/GPU proof.
+LOG353 proves snapshot CPU
+source bytes unchanged across3 captured frames; not GPU readback or image parity.
+LOG352 retains8 one-level pixel differences at1783 as open regression evidence.
+Do not repeat broad toggles or waive mismatch; continue independent material work.
+Four builds and3x306
+selftests pass; focused3frame capture closes cleanly with constants present.
+Implementation remains uncommitted WIP; no exact native parity claim.
+LOG348 proves old packets omit fog globals; selected equation rejects missing
+state and synthetic goldens pass. Do not infer old-frame constants from new data.
+LOG347
+finds all17draws request offset,vertex fog,linear repeat and ignored texture alpha;
+global overrides are not yet applied. LOG346 preserves original
+UV/color/offset fields;462 vertices per frame require out-of-unit UV handling.
+LOG345 converts14assets/30mips per
+frame; selected shading mode3 multiplies vertex and texture RGBA, not texture alone.
+Keep unknown normals explicit. LOG344 binds17draws to14assets across H/L/M with identity/generation
+controls; this is not physical albedo or a renderable game packet. Scope and exclusions are in
 CAMERA-COORDINATE-CONTRACT.md (D-126). Do not repeat numerical micro-tests.
 LOG343 fixed common origin
 plus actual C++ double intermediates passes H/L/M at unchanged0.001 pixels.

@@ -34,6 +34,7 @@
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/performance_tracker.h"
 #include "rend/neural/quality_capture.h"
+#include "rend/neural/pvr_material_capture.h"
 #include <array>
 #endif
 #ifndef LIBRETRO
@@ -141,6 +142,7 @@ protected:
 	TileClipping setTileClip(u32 val, Rect& rect);
 #ifdef FLYCAST_ENABLE_NEURAL
 	void submitNeuralFrame();
+	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
 	bool syncNeuralMode();
 	bool ensureNeuralResources();
