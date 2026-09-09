@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-186: returned temporal reference belongs to successful evaluation
+
+The explicit TEMPORAL_PREPARE mode retains geometry/camera/UV/color/topology and
+full texture/palette/RTT generations with each published return receipt, without
+copying texture payloads. It requires anchored live neural input and rejects
+locked-image replay. Validate receipt, producer, frame and camera clips before
+using a returned scene; retain its geometry and depth together only after
+successful neural submission and experimental-contract acceptance. Failed,
+busy, duplicate or mismatched results never advance the reference. Reset clears
+it with channel/renderer ownership. Publication anchor state remains separate.
+Reference compatibility is not motion trust or permission to enable history.
+LOG596-597 exercise unit ownership controls and58 actual evaluation-reference
+joins; reset/zero-motion/full-bias still applies until GPU guidance is proven.
+
 ## D-185: observed camera anchor is fixed, publication-owned and explicitly scoped
 
 FLYCAST_REMAKE_CAMERA_ANCHOR=1 uses the common top-three transform of already

@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_live_channel.h"
 #include "remake_oit_effects.h"
+#include "remake_temporal_scene.h"
 #include "windows/comptr.h"
 #include <d3d11.h>
 
@@ -25,6 +26,8 @@ struct RemakeOverlaySnapshot {
  RemakeOverlayIdentity identity;
  // Only retained under explicit developer capture/replay, never ordinary play.
  std::shared_ptr<const remake::Packet> captureScene;
+ // Explicit temporal preparation only; geometry/generations, never DDS payloads.
+ std::shared_ptr<const RemakeTemporalScene> temporalScene;
  std::uint64_t replayOriginalFrame=0;
  std::shared_ptr<const RemakeOitEffects> effects;
  std::vector<AlphaEffectSelection> alphaEffectSelections;

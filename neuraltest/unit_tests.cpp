@@ -9,6 +9,7 @@
 #include "rend/neural/pvr_palette_binding.h"
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
+#include "rend/neural/remake_temporal_scene.h"
 #include "rend/neural/source_observation.h"
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_read_link.h"
@@ -316,6 +317,50 @@ int RunSelfTests()
 			for(auto& mesh:anchored.meshes)for(auto& v:mesh.vertices) {
 				const auto a=v.position,n=*v.normal;
 				v.position={2+a.z,3+a.y,4-a.x};v.normal=remake::Vec3{n.z,n.y,-n.x};
+			}
+			{
+				auto mutablePacket=anchored;
+				auto scene=CaptureRemakeTemporalScene(mutablePacket,error);
+				suite.Expect(scene&&scene->meshes[0].vertices.size()==anchored.meshes[0].vertices.size()
+					&&scene->meshes[0].texture.generation==anchored.meshes[0].texture.generation,
+					"returned temporal snapshot owns geometry and texture generations without material payloads");
+				if(scene) {
+					mutablePacket.meshes[0].vertices[0].position.x+=4;++mutablePacket.meshes[0].texture.generation;
+					suite.Expect(scene->meshes[0].vertices[0].position.x==anchored.meshes[0].vertices[0].position.x
+						&&scene->meshes[0].texture.generation==anchored.meshes[0].texture.generation,
+						"returned temporal snapshot is independent of later source packet edits");
+					scene->receipt={1,99,120};RemakeReturnedImage image;
+					image.frame=scene->frame;image.producer=scene->producer;image.source=scene->receipt;
+					image.nearPlane=scene->camera.nearPlane;image.farPlane=scene->camera.farPlane;
+					image.width=640;image.height=480;image.projectionDepth.assign(640*480,.25f);
+					RemakeTemporalHistory history;
+					suite.Expect(!history.Accept(scene,image,false)&&!history.Last(),"failed returned evaluation cannot advance temporal reference");
+					for(unsigned mutation=0;mutation<4;++mutation) {
+						auto bad=image;
+						if(mutation==0)++bad.source.digest;if(mutation==1)++bad.frame;
+						if(mutation==2)++bad.producer.cycle;if(mutation==3)bad.projectionDepth[0]=std::numeric_limits<float>::quiet_NaN();
+						suite.Expect(!history.Accept(scene,bad,true)&&!history.Last(),"returned history rejects wrong receipt frame producer or depth");
+					}
+					suite.Expect(history.Accept(scene,image,true)&&history.Last()->frame==scene->frame,
+						"successful matching returned evaluation owns temporal reference");
+					image.projectionDepth[0]=.5f;
+					suite.Expect(history.Depth()[0]==.25f&&!history.Accept(scene,image,true),"accepted depth is owned and duplicate evaluation rejected");
+					auto next=std::make_shared<RemakeTemporalScene>(*scene);++next->frame;++next->producer.ordinal;++next->producer.cycle;
+					++next->receipt.sequence;++next->receipt.digest;
+					suite.Expect(history.CanReproject(*next),"returned reference compatibility uses last evaluated source");
+					auto gap=*next;gap.frame+=9;
+					suite.Expect(!history.CanReproject(gap),"returned excessive source gap requires reset");
+					gap=*next;gap.fixedOrigin.x+=1;
+					suite.Expect(!history.CanReproject(gap),"returned changed anchor requires reset");
+					image.frame=next->frame;image.producer=next->producer;image.source=next->receipt;
+					suite.Expect(!history.Accept(next,image,false)&&history.Last()->frame==scene->frame,
+						"busy or failed next evaluation keeps last successful source");
+					suite.Expect(history.Accept(next,image,true)&&history.Last()->frame==next->frame&&history.Depth()[0]==.5f,
+						"successful next evaluation advances geometry and depth together");
+					history.Reset();suite.Expect(!history.Last()&&history.Depth().empty(),"returned temporal reset releases reference data");
+				}
+				auto unsupported=anchored;unsupported.diagnosticEmbeddingProvenance=packet.diagnosticEmbeddingProvenance;
+				suite.Expect(!CaptureRemakeTemporalScene(unsupported,error),"returned temporal preparation requires explicit anchored geometry");
 			}
 			std::ostringstream out(std::ios::binary);remake::Packet decoded;
 			bool ok=SerializeRemakeViewPacket(out,anchored,error);

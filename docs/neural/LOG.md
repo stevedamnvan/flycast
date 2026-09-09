@@ -1,5 +1,46 @@
 # Neural rendering evidence log
 
+LOG598 returned-reference checkpoint: automation build2, baseline, no-NGX and
+feature-off serial builds complete0; all three enabled selftests648/0. Session
+18693 confirmed terminal. Backlog consistency and diff whitespace checks pass.
+Scope ACCEPTED for live geometry/depth reference ownership only; motion remains
+zero and neural history reset. Native/default behavior is unchanged and no
+third-party configuration, media or binaries are staged. Commit this prerequisite
+and proceed directly to geometry correspondence/raster, not another ownership
+or generic external-provenance phase.
+
+LOG597 temporal preparation ca completes host0/helper0,121 helper Presents.
+Executed full reference-chain audit:58 retained successful evaluations, first
+2162/previous0, last2232/previous2231,57 compatible previous references. Every
+retained source joins an accepted evaluation; every previous pointer equals
+the prior retained source, not current emulated frame. No temporal-source rejection.
+Three2165..2167 captures independently pass native-HUD/world/backbuffer RGB and
+completed-Present checks; viewed2166 unchanged in content/overlay placement.
+Host SHA256337FBC5A5441A09D230B45C25A9592B412BF09E03363A02542255641301C16F9,
+unchanged supplied config222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC.
+Automation build2/test2 passes648/0 including corrected actual-source mutation
+test. Remaining serial build/test session18693 running. No live injected-failure
+claim from unit controls; no motion, disocclusion or temporal quality acceptance.
+40 common-device cleanup warning remains. Logs archived uniquely. Next wire
+owned scene records through existing minimum-cost matcher and previous-position
+stream, preserving exact full generation/topology checks; then GPU raster and
+returned-depth consistency before enabling history.
+
+LOG596 22c1a9ead plus WIP returned temporal preparation: add geometry-only
+snapshot (128 meshes/65536 vertices/262144 indices, no DDS payload), exact
+receipt/frame/producer/camera clips, and owned previous successful evaluation
+depth. Explicit FLYCAST_REMAKE_TEMPORAL_PREPARE=1 requires anchored live neural
+input and rejects locked replay. Attach snapshot only on publication; validate
+return before evaluation; retain after successful submission and experimental
+contract acceptance. No change to public neural history/reset/zero-motion/full
+bias yet. Capture-independent ownership makes the next motion raster possible.
+Automation build1/test1 passes648/0, including wrong receipt/frame/producer/depth,
+failed/duplicate/busy acceptance, source-gap/origin reset and simultaneous geometry/
+depth advancement. Review corrected an ineffective source-edit isolation test:
+it previously edited a separate copy instead of the actual captured packet.
+Updated test mutates captured packet geometry and texture generation; rebuild
+pending. No live temporal preparation or geometry-motion quality claim yet.
+
 LOG595 final camera-anchor matrix: automation enclosure-loop build and632/0
 selftests, baseline final build and632/0, no-NGX final build and632/0, feature-off
 final build all complete0. Session16314 confirmed terminal, no active build

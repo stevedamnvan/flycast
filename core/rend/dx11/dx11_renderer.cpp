@@ -2713,6 +2713,16 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
 	auto proposedAnchor=remakeCameraAnchor;
 	if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)){skip("camera-anchor",error);return;}
+	std::shared_ptr<RemakeTemporalScene> temporalScene;
+	const auto* temporalOption=std::getenv("FLYCAST_REMAKE_TEMPORAL_PREPARE");
+	if(temporalOption&&std::strcmp(temporalOption,"1")==0) {
+		const auto* locked=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
+		if(!anchored||!neuralOption||std::strcmp(neuralOption,"1")!=0||(locked&&*locked)) {
+			skip("temporal-source","requires-anchored-live-neural-source");return;
+		}
+		temporalScene=CaptureRemakeTemporalScene(packet,error);
+		if(!temporalScene){skip("temporal-source",error);return;}
+	}
 	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
 	if(RemakeNativeEffectsRequested()) {
@@ -2739,6 +2749,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	RemakeChannelReceipt receipt;const auto result=remakeAsyncChannel.PublishForReturn(packet,receipt,error);
 	if(result!=RemakeChannelResult::Published)skip("publish",error);
 	if(result==RemakeChannelResult::Published) {
+		if(temporalScene){temporalScene->receipt=receipt;overlay.temporalScene=std::move(temporalScene);}
 		if(anchored) {
 			remakeCameraAnchor=std::move(proposedAnchor);
 			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g",
@@ -2845,6 +2856,10 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				(unsigned long long)returned.frame,(unsigned long long)replayOriginalFrame);
 		}
 		const auto& source=replay?*replay:returned;
+		const auto temporal=remakeAsyncAcceptedOverlay.temporalScene;
+		if(temporal&&!temporal->Matches(source)) {
+			NOTICE_LOG(RENDERER,"Remake temporal source rejected: receipt mismatch");return;
+		}
 		RemakeNeuralInput input;
 		if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)||!uploadRemakeInput(input))return;
 		frame.frameId=source.frame;frame.jitterX=frame.jitterY=0;
@@ -2862,6 +2877,13 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		hasNeuralAcceptedGuidance=false;neuralInstrumentation.Discontinuity();
 		if(activeNeuralMode==static_cast<int>(NeuralMode::Dlss5Experimental)
 			&&neuralStage.GetStats().dlss5Readiness!=Dlss5HookReadiness::ContractEvaluated)return;
+		if(temporal) {
+			const auto* previous=remakeTemporalHistory.Last();const auto previousFrame=previous?previous->frame:0;
+			const bool compatible=remakeTemporalHistory.CanReproject(*temporal);
+			const bool retained=remakeTemporalHistory.Accept(temporal,source,true);
+			NOTICE_LOG(RENDERER,"Remake temporal reference: source=%llu previous_evaluated=%llu compatible=%d retained=%d history_enabled=false motion=zero",
+				(unsigned long long)source.frame,(unsigned long long)previousFrame,compatible,retained);
+		}
 		const auto output=neuralStage.GetOutput();
 		if(output.api!=TextureApi::D3D12||!output.resource
 			||!wrapNeuralOutput(static_cast<ID3D12Resource*>(output.resource),source.frame))return;

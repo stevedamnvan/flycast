@@ -317,6 +317,7 @@ protected:
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
 	flycast::rend::neural::RemakeCameraAnchor remakeCameraAnchor;
+	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeAsyncReturned;
 	std::optional<flycast::rend::neural::RemakeReturnedImage> remakeEvaluatedSource;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeEvaluatedOverlay;
@@ -340,6 +341,7 @@ protected:
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakeCameraAnchor.Reset();
+		remakeTemporalHistory.Reset();
 		remakePreEffectTexture.reset();
 		remakeCurrentEffects.reset();
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};

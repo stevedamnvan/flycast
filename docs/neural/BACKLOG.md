@@ -77,6 +77,19 @@ receipt, with depth/disocclusion/current-color protection. The current reset /
 zero-motion/full-bias route remains fallback, not temporal quality acceptance.
 The pinned public output API has no motion-vector enum; do not invent one or
 inspect private binaries. Reuse existing geometry raster and correspondence code.
+First temporal integration bound: explicit TEMPORAL_PREPARE developer mode
+retains bounded geometry/camera/material-generation data without texture bytes,
+bound to each published receipt. Validate it against the returned image and
+retain previous successful evaluation plus depth, never latest emulated frame.
+Failed/busy/duplicate/wrong-receipt results must not advance this reference.
+This prepares correspondence; neural reset/zero-motion/full-bias remains unchanged
+until the subsequent geometry-motion raster/disocclusion fixtures are proven.
+LOG596-597 implement this reference ownership and verify58 actual evaluation
+joins plus three protected final captures;648 automation tests pass. Finish
+remaining builds/commit, then use the existing minimum-cost matcher with full
+generation/topology validation to form current/previous geometry streams. Test
+static/translation/deformation/reorder/ambiguity/gap controls before GPU motion
+and returned-depth disocclusion. Do not repeat reference ownership as a new phase.
 This transport seam alone cannot close M2-camera. Do not
 restart generic effects/provenance or diagnose intentional native weapon trails
 as ghosting. Preserve the explicit projected-depth approximation until evidence
