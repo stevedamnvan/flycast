@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-132: diagnostic clipping is not recovered game clipping
+
+Normal DX11 creates all three cull rasterizer states with DepthClipEnable=false
+(DX11Renderer initialization); its pixel shader writes logarithmic SV_DEPTH.
+Thus a search for conventional near/far names is not a recovery method for
+the upstream game's clipping decisions. Existing game/TA clipping and unseen
+geometry remain distinct questions.
+
+Actual reconstructed H view depths span0.8441100120544434 through
+102.98729705810547. The synthetic harness farPlane100 would exclude17 of3682
+vertices. Never copy Synthetic camera defaults into the prepared game artifact.
+For a diagnostic submission, a separately supplied finite positive clip interval
+must be checked against every submitted vertex and reported as caller-supplied,
+not recovered game values. The source artifact retains null game clips. A
+successful enclosing-range check cannot close camera, visibility, complete
+scene, GPU or moving gameplay gates. Do not silently discard out-of-range faces.
+
 ## D-131: explicit captured source-color binding
 
 A material may name the captured TextureIdentity only in the explicit

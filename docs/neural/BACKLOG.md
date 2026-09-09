@@ -54,10 +54,11 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-camera
 
-Current next action: evaluate the sampled scene's actual view-depth envelope
-and native clipping behavior to specify the experimental submission contract.
-Do not equate an enclosing diagnostic clip interval with recovered game clips,
-or change null clip serialization without explicit provenance. LOG384 closes
+Current next action: implement explicitly caller-supplied diagnostic clip
+validation against every prepared vertex under D-132, retaining null source
+game clips and rejecting excluded geometry. LOG385 falsifies Synthetic far100
+on17 H vertices; native depth clipping is disabled. Do not equate a diagnostic
+enclosure with recovered game clips or camera acceptance. LOG384 closes
 scene preparation checkpoint; API field presence alone cannot resolve clipping.
 LOG382 assembles actual H17meshes/6456split vertices with derived normals and
 verified materials; null clips and renderable=false remain. Preserve
