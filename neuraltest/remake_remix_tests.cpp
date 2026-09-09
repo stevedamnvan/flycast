@@ -193,6 +193,18 @@ int main() {
    bad=bound;bad.omissions.push_back("unknown domain");
    expect(ReadyForAdapter(bad,bad.frame,bad.game).reason=="incomplete-scene","source binding cannot waive omissions");
   }
+  {
+   auto owned=p;for(auto& mesh:owned.meshes){mesh.material->sourceDds=path;mesh.material->sourceColorExperiment=true;}
+   expect(OwnDiagnosticTextures(owned).ok && owned.meshes[0].material->sourceDds.empty()
+    && owned.meshes[0].material->sourceDdsBytes.size()==152,"file bridge publishes owned bytes and removes paths");
+   words[37]=0xff00ff00;write(152);
+   expect(owned.meshes[0].material->sourceDdsBytes[148]==255 && ReadyForAdapter(owned,owned.frame,owned.game).ok,
+    "owned texture remains valid after producer file mutation");
+   calls={};RemixScene memoryRejected(interface());
+   expect(memoryRejected.Submit(owned,owned.frame,owned.game).reason=="memory-texture-requires-legacy-uploader"
+    && calls.materials==0,"path-only public adapter rejects owned bytes before API calls");
+   words[37]=0xff0000ff;write(152);
+  }
   words[32]=29;write(152);
   expect(ReadyForAdapter(p,p.frame,p.game).reason=="source-texture-contract","unexpected sRGB DDS rejects");
   words[32]=28;write(151);

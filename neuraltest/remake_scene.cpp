@@ -9,14 +9,8 @@
 namespace neuraltest::remake {
 namespace {
 bool finite(Vec3 v) { return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z); }
-bool validSourceDds(const std::filesystem::path& path) {
- std::error_code ec;
- if(!path.is_absolute() || path.native().size()>4096 || path.extension()!=L".dds"
-  || !std::filesystem::is_regular_file(path,ec))return false;
- const auto size=std::filesystem::file_size(path,ec);
- if(ec || size<152 || size>64*1024*1024)return false;
- std::array<unsigned char,148> header{};std::ifstream in(path,std::ios::binary);
- if(!in.read(reinterpret_cast<char*>(header.data()),header.size()))return false;
+bool validSourceDdsHeader(const unsigned char* header, std::uint64_t size) {
+ if(size<152 || size>64*1024*1024)return false;
  auto word=[&](unsigned offset) {return std::uint32_t(header[offset])|(std::uint32_t(header[offset+1])<<8)
   |(std::uint32_t(header[offset+2])<<16)|(std::uint32_t(header[offset+3])<<24);};
  if(word(0)!=0x20534444 || word(4)!=124 || word(76)!=32 || word(84)!=0x30315844
@@ -39,6 +33,16 @@ bool validSourceDds(const std::filesystem::path& path) {
  }
  return bytes==size;
 }
+bool validSourceDds(const std::filesystem::path& path) {
+ std::error_code ec;
+ if(!path.is_absolute() || path.native().size()>4096 || path.extension()!=L".dds"
+  || !std::filesystem::is_regular_file(path,ec))return false;
+ const auto size=std::filesystem::file_size(path,ec);
+ if(ec || size<152 || size>64*1024*1024)return false;
+ std::array<unsigned char,148> header{};std::ifstream in(path,std::ios::binary);
+ return in.read(reinterpret_cast<char*>(header.data()),header.size())
+  && validSourceDdsHeader(header.data(),size);
+}
 float dot(Vec3 a,Vec3 b) {return a.x*b.x+a.y*b.y+a.z*b.z;}
 bool validAxes(const Camera& c) {
  const auto r=c.right,u=c.up,f=c.forward;
@@ -55,6 +59,35 @@ bool validCamera(const Camera& c) {
 }
 float tangent(const Camera& c) { return std::tan(c.fovY * 0.008726646259971648f); }
 }
+bool ValidSourceDdsBytes(const std::vector<unsigned char>& bytes) {
+ return bytes.size()>=152 && validSourceDdsHeader(bytes.data(),bytes.size());
+}
+Result OwnDiagnosticTextures(Packet& packet) {
+ auto checked=Validate(packet,packet.frame,packet.game);if(!checked.ok)return checked;
+ Packet owned=packet;
+ std::size_t total=0;
+ for(auto& mesh:owned.meshes) {
+  if(!mesh.material)return {false,"material-unknown"};
+  auto& material=*mesh.material;
+  if(!material.sourceDdsBytes.empty()) {
+   if(!material.sourceDds.empty()||!ValidSourceDdsBytes(material.sourceDdsBytes))return {false,"source-texture-contract"};
+  } else {
+   if(!validSourceDds(material.sourceDds))return {false,"source-texture-contract"};
+   std::error_code ec;const auto size=std::filesystem::file_size(material.sourceDds,ec);
+   if(ec||size>Limits{}.textureBytes-total)return {false,"texture-byte-limit"};
+   material.sourceDdsBytes.resize(static_cast<std::size_t>(size));
+   std::ifstream input(material.sourceDds,std::ios::binary);
+   if(!input.read(reinterpret_cast<char*>(material.sourceDdsBytes.data()),material.sourceDdsBytes.size())
+     || input.peek()!=std::char_traits<char>::eof() || !ValidSourceDdsBytes(material.sourceDdsBytes))
+    return {false,"source-texture-contract"};
+   material.sourceDds.clear();
+  }
+  if(material.sourceDdsBytes.size()>Limits{}.textureBytes-total)return {false,"texture-byte-limit"};
+  total+=material.sourceDdsBytes.size();
+ }
+ checked=Validate(owned,owned.frame,owned.game);if(!checked.ok)return checked;
+ packet=std::move(owned);return {true,"owned-textures-not-live-provider-proof"};
+}
 Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, const Limits& limits) {
  if (p.version != 1) return {false, "schema"};
  if (p.frame != frame || p.game != game || p.game.empty() || p.game.size() > 64) return {false, "identity"};
@@ -67,7 +100,7 @@ Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, c
  if (p.meshes.empty() || p.meshes.size() > limits.meshes || p.omissions.size() > 64) return {false, "count-limit"};
  // Account actual packet-owned element storage, not allocator capacity. Ingestion
  // must check these same limits before allocation; this API accepts no files.
- std::size_t bytes = sizeof(Packet), vertices = 0, indices = 0;
+ std::size_t bytes = sizeof(Packet), vertices = 0, indices = 0, textureBytes = 0;
  auto addBytes = [&](std::size_t n) {
   if (bytes > limits.bytes || n > limits.bytes - bytes) return false;
   bytes += n; return true;
@@ -86,6 +119,8 @@ Result Validate(const Packet& p, std::uint64_t frame, const std::string& game, c
   vertices += m.vertices.size(); indices += m.indices.size();
   if (!addBytes(sizeof(Mesh))) return {false, "byte-limit"};
   if(m.material) {
+   if(m.material->sourceDdsBytes.size()>limits.textureBytes-textureBytes)return {false,"texture-byte-limit"};
+   textureBytes+=m.material->sourceDdsBytes.size();
    const auto length=m.material->sourceDds.native().size();
    if(length>4096 || length>(limits.bytes-bytes)/sizeof(std::filesystem::path::value_type)
     || !addBytes(length*sizeof(std::filesystem::path::value_type)))return {false,"byte-limit"};
@@ -126,9 +161,12 @@ static Result ReadyForScene(const Packet& p, std::uint64_t frame, const std::str
    return {false, "textured-material-unsupported"};
   if (!m.material) return {false,"material-unknown"};
   const auto& material=*m.material;
+  const bool memoryTexture=!material.sourceDdsBytes.empty();
+  if(memoryTexture && (!material.sourceDds.empty() || !material.sourceColorExperiment
+    || !ValidSourceDdsBytes(material.sourceDdsBytes)))return {false,"source-texture-contract"};
   if(material.sourceTexture) {
    const auto& bound=*material.sourceTexture;
-   if(!m.texture.known || !bound.known || !material.sourceColorExperiment || material.sourceDds.empty()
+   if(!m.texture.known || !bound.known || !material.sourceColorExperiment || (material.sourceDds.empty()&&!memoryTexture)
     || bound.id!=m.texture.id || bound.generation!=m.texture.generation
     || bound.paletteGeneration!=m.texture.paletteGeneration || bound.rttGeneration!=m.texture.rttGeneration)
     return {false,"source-texture-identity"};

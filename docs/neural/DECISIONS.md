@@ -1,5 +1,24 @@
 # Neural rendering decisions
 
+## D-148: prioritize the live uploader connection, preserve diagnostic limits
+
+The user's integration correction moves active implementation to M2-scene.
+M2-camera acceptance remains pending, but independent live transport must not
+wait on further tiny-residual fitting. Bounded camera-relative experiments keep
+their labels and cannot claim recovered world space. Existing GPU evidence is
+reused; unresolved runtime cleanup stays open rather than becoming an obsolete
+unavailable-runtime stop. Preserve authored trails under D-143.
+
+The compatibility uploader may consume packet-owned texture bytes in the same
+reviewed RGBA8 DDS layout as its existing file path. Exactly one texture source,
+validated mip layout and aggregate packet bounds are required. Owned texture
+payloads have a separate 64 MiB aggregate limit; existing geometry/metadata limits
+remain 8 MiB. The earlier attempt charging all DDS payloads to the geometry
+budget failed before runtime load and remains recorded. No raw cache
+pointer crosses ownership. The separate public path-only material adapter must
+reject memory textures rather than silently render them untextured. File-backed
+capture conversion is a test bridge, not a live producer or asynchronous proof.
+
 ## D-147: common-origin vertex/draw coverage is a dependency subset, not a camera
 
 Validated register handoff across compiled blocks allows observed transform

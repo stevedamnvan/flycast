@@ -20,6 +20,11 @@ Result RemixScene::SubmitChecked(const Packet& p, std::uint64_t frame, const std
  if (attempted_) return {false,"single-use-adapter"};
  auto checked=diagnostic?ReadyForDiagnosticAdapter(p,frame,game,true):ReadyForAdapter(p,frame,game);
  if (!checked.ok) return checked;
+ // This public material API accepts paths, not caller-owned DDS payloads.
+ // In-memory textures belong to the D3D9 compatibility uploader; never silently
+ // submit them as untextured materials through this separate adapter.
+ for(const auto& mesh:p.meshes)if(!mesh.material->sourceDdsBytes.empty())
+  return {false,"memory-texture-requires-legacy-uploader"};
  if(syntheticSkinning_) {
   if(diagnostic || p.meshes.size()!=2)return {false,"synthetic-skinning-only"};
   for(const auto& m:p.meshes)if(m.vertices.size()!=3 || m.indices!=std::vector<std::uint32_t>{0,1,2})return {false,"synthetic-skinning-topology"};

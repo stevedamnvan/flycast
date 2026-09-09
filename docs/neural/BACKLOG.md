@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Last exact tested checkpoint: `c28fc95c2d33fa5a98a8496b234f18310acc0f38`, pushed and remote verified (LOG397). Later changes are separate from tested source.
+- Current starting HEAD: `6779f24cc4fbd83453960237c94f2b1571537b7e` (LOG509 checkpoint, pushed/verified there). Its four builds were incremental, not a fresh exact-SHA build. LOG510-511 source witnesses and the current integration changes remain uncommitted working-tree evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -35,7 +35,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Ordered queue
 
-Current card: **FC-067 / M1-GPU**.
+Current card: **FC-067 / M2-scene**.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,
@@ -44,18 +44,36 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 | Card | Status | Dependencies | Deliverable / acceptance | Evidence |
 |---|---|---|---|---|
-| FC-067 / M2-camera | blocked(sampled diagnostic preparation complete but runtime validation unavailable -> supply compatible Remix runtime for next rendering experiment) | LOG #175 | Bounded opaque sample coverage and explicit usable camera/coordinate contract, or precise unsupported domains. See next-card bounds below. | LOG397; camera pending, no gameplay acceptance |
-| FC-067 / M1-GPU | doing | public-header adapter already tested | Isolated public Remix runtime harness with real synthetic GPU output/readback, moving camera, overlap and wrong-camera/light controls. A mock remains a mock. This row can proceed if M2-camera is blocked. | LOG398; actual runtime initializes GPU/swapchain, process exits1 without completed-frame evidence |
-| FC-067 / M2-scene | todo | M2-camera usable contract | Export actual geometry/material generations for the supported scene domains; reconstruct/compare moving opaque coverage and depth with falsifying controls. Quantify omissions; do not silently promote the parked strict replay gate. | pending |
+| FC-067 / M2-camera | todo | LOG175, LOG509-511 | Complete the usable coordinate/camera contract alongside the supported live-scene experiment. Retain camera-relative labels and failed exact arithmetic; no further count-only or constant-fitting phase. | Live common-origin subset and measured calibration candidate exist; world/camera acceptance pending |
+| FC-067 / M1-GPU | todo | public-header adapter already tested | Preserve verified synthetic and actual moving GPU output. Remaining runtime cleanup warning needs focused ownership work, not repeated factory/camera bring-up. | LOG404-412, LOG467-474; GPU output verified in bounded scope, cleanup warning remains open |
+| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG512 owned-memory textures render through Remix; live scene provider and combined presentation pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | pending |
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | pending |
 | FC-045, FC-054, FC-055, FC-063, FC-064 / combined hardening | todo | M4-DLSS5 | Capture/overlay/transition/failure/cadence checks on the changed route; asynchronous performance and repeatable launch. Satisfy the working-pipeline checklist below. | pending |
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
 
-### Next-card bounds: FC-067 / M2-camera
+### Next-card bounds: FC-067 / M2-scene
 
-Current next action: apply the bounded retained-mesh transport investigation to
+Current action: connect the owned live source to the existing Remix uploader.
+The installed runtime is available; the former unavailable-runtime stop is
+obsolete. LOG512 removes draw-time texture-file dependence: memory/file raster
+outputs match exactly on three moving frames and actual Remix output is viewed.
+Next translate the witnessed source subset with explicit camera-relative labels
+and connect frame-qualified live submission. Changing draw counts/topology/generations must
+not silently freeze the first packet. Native fallback remains authoritative
+until actual returned-image ownership and overlay composition are proven.
+
+Completed scoped checks for the material slice: malformed/truncated texture,
+ambiguous file-plus-memory source, aggregate byte overflow, producer mutation,
+and file-versus-memory raster equality. Next source-provider checks must reject
+missing correspondence, stale producer identity and unsupported camera domains;
+runtime success alone is not image evidence. No new camera tracing phase,
+performance claim, external configuration edit or full-goal acceptance.
+
+Historical progression below retains superseded next actions as evidence only:
+
+Earlier next action: apply the bounded retained-mesh transport investigation to
 actual source topology, preserving position and normal correctness without
 claiming a recovered game skeleton. LOG440 confirms40 matching topology slots
 but15 draws change color/UV across L/M. Resolve supported dynamic-attribute
@@ -313,6 +331,19 @@ evidence, validate live coordinate/camera relation with wrong-relation controls,
 and connect the supported subset to Remix. Coverage is not reconstruction
 acceptance; missing geometry stays native fallback, and count-only experiments
 must not displace the actual scene connection.
+LOG510 exports owned bit-exact source witnesses and runs moving relation analysis.
+First-frame fit validates later-frame common-origin XYZ close to X/Z+320,
+Y/Z+240,0.95/Z; wrong-row control is grossly wrong.404 selftests and3 captures
+pass. Next prove exact projection arithmetic and matrix/intrinsic/extrinsic
+semantics for this candidate, then connect supported live geometry; empirical
+fit alone is not recovered-camera or render acceptance. Full regression pending.
+LOG511 saved-witness matrix analysis gives a stable calibration candidate:
+FOV45.9903307484 and aspect1.22666655659 under explicit orthogonal/uniform-scale
+basis assumptions. Simplified float32 projection FAILS exact reconstruction
+(maxXY0.00390625); nonunit/zero W remains preserved. Next use the measured
+calibration in a labeled supported scene experiment only after checking its
+coordinate interpretation and retaining executed derivations; do not force the
+failed simplified formula into an exact-proof gate or keep refitting constants.
 LOG438-439 prove synthetic deformation and
 wrong-sign separation with retained public bone transport; four incremental
 builds,3x331 selftests,144 SDK checks and307 Python tests pass. Real fighter

@@ -13,6 +13,37 @@ TestCounts TestSceneContract() {
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
  {
+  std::vector<unsigned char> bytes(152,0);
+  auto word=[&](unsigned at,std::uint32_t value){for(unsigned i=0;i<4;++i)bytes[at+i]=static_cast<unsigned char>(value>>(8*i));};
+  word(0,0x20534444);word(4,124);word(8,0x100f);word(12,1);word(16,1);
+  word(20,4);word(28,1);word(76,32);word(80,4);word(84,0x30315844);
+  word(108,0x1000);word(128,28);word(132,3);word(140,1);
+  bytes[148]=255;bytes[151]=255;
+  expect(ValidSourceDdsBytes(bytes),"owned RGBA texture validates without a file");
+  auto q=p;auto& material=*q.meshes[0].material;
+  material.sourceColorExperiment=true;material.sourceDdsBytes=bytes;
+  expect(ReadyForAdapter(q,q.frame,q.game).ok,"owned texture passes scene contract");
+  bytes[148]=0;
+  expect(material.sourceDdsBytes[148]==255,"owned texture does not borrow producer storage");
+  auto copy=q;copy.meshes[0].material->sourceDdsBytes[148]=0;
+  expect(material.sourceDdsBytes[148]==255,"packet texture copy survives independent mutation");
+  material.sourceDds="ambiguous.dds";
+  expect(ReadyForAdapter(q,q.frame,q.game).reason=="source-texture-contract","two texture sources reject");
+  const auto before=material.sourceDdsBytes;
+  expect(!OwnDiagnosticTextures(q).ok && material.sourceDds=="ambiguous.dds" && material.sourceDdsBytes==before,
+   "failed ownership conversion preserves packet");
+  material.sourceDds.clear();material.sourceDdsBytes[128]=29;
+  expect(ReadyForAdapter(q,q.frame,q.game).reason=="source-texture-contract","owned wrong pixel format rejects");
+  material.sourceDdsBytes=bytes;material.sourceDdsBytes.pop_back();
+  expect(!ValidSourceDdsBytes(material.sourceDdsBytes),"owned truncated mip rejects");
+  material.sourceDdsBytes=bytes;material.sourceDdsBytes.push_back(0);
+  expect(!ValidSourceDdsBytes(material.sourceDdsBytes),"owned trailing bytes reject");
+  material.sourceDdsBytes=bytes;Limits limits;limits.textureBytes=151;
+  expect(Validate(q,q.frame,q.game,limits).reason=="texture-byte-limit","owned texture counts toward payload budget");
+  q.meshes[1].material->sourceDdsBytes=bytes;limits.textureBytes=303;
+  expect(Validate(q,q.frame,q.game,limits).reason=="texture-byte-limit","owned texture budget is aggregate across draws");
+ }
+ {
   auto base=p.meshes[0];base.sourceTsp=(3u<<6)|(1u<<13);
   expect(LegacySamplingSupported(base),"legacy linear modulation supported");
   auto changed=base;changed.sourceTsp.reset();expect(!LegacySamplingSupported(changed),"legacy missing sampler rejected");

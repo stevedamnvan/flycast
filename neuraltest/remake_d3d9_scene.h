@@ -21,21 +21,23 @@ class D3D9PacketScene {
  remixapi_LightHandle light_=nullptr;
  bool failed_=false,ready_=false;
  std::vector<std::vector<unsigned char>> textureBytes_;
- static std::vector<unsigned char> ReadTexture(const std::filesystem::path& path) {
+ static std::vector<unsigned char> ReadTexture(const Mesh::Material& material) {
+  if(!material.sourceDdsBytes.empty()) {
+   if(!material.sourceDds.empty() || !ValidSourceDdsBytes(material.sourceDdsBytes))throw std::runtime_error("owned texture contract");
+   return material.sourceDdsBytes;
+  }
+  const auto& path=material.sourceDds;
   const auto count=std::filesystem::file_size(path);
   if(count<148||count>64*1024*1024)throw std::runtime_error("texture size");
   std::vector<unsigned char> bytes(static_cast<std::size_t>(count));
   std::ifstream stream(path,std::ios::binary);
   if(!stream.read(reinterpret_cast<char*>(bytes.data()),bytes.size()))throw std::runtime_error("texture read");
+  if(!ValidSourceDdsBytes(bytes))throw std::runtime_error("file texture contract");
   return bytes;
  }
  static constexpr DWORD fvf=D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_DIFFUSE|D3DFVF_TEX1;
  static DWORD word(const std::vector<unsigned char>& bytes,std::size_t offset){DWORD v;std::memcpy(&v,bytes.data()+offset,4);return v;}
- HRESULT Texture(const Mesh& mesh,IDirect3DTexture9** output) {
-  const auto path=mesh.material->sourceDds;
-  const auto bytes=std::filesystem::file_size(path);if(bytes<148||bytes>64*1024*1024)return E_INVALIDARG;
-  std::vector<unsigned char> data(static_cast<std::size_t>(bytes));
-  std::ifstream stream(path,std::ios::binary);if(!stream.read(reinterpret_cast<char*>(data.data()),data.size()))return E_FAIL;
+ HRESULT Texture(const std::vector<unsigned char>& data,IDirect3DTexture9** output) {
   if(word(data,0)!=0x20534444||word(data,128)!=28)return E_INVALIDARG;
   const auto width=word(data,16),height=word(data,12),levels=word(data,28);
   if(!width||!height||width>4096||height>4096||!levels||levels>13)return E_INVALIDARG;
@@ -58,15 +60,15 @@ class D3D9PacketScene {
  }
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
-  for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||mesh.material->sourceDds.empty())return E_INVALIDARG;
+  for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet))return E_INVALIDARG;
   if(!ready_) {
    initial_=packet;resources_.resize(packet.meshes.size());
-   for(const auto& mesh:packet.meshes)textureBytes_.push_back(ReadTexture(mesh.material->sourceDds));
+   for(const auto& mesh:packet.meshes)textureBytes_.push_back(ReadTexture(*mesh.material));
    for(std::size_t i=0;i<resources_.size();++i) {
     auto& r=resources_[i];r.indices=Triangles(packet.meshes[i]);if(r.indices.empty())return E_INVALIDARG;
     auto hr=device_->CreateVertexBuffer(UINT(r.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&r.vb,nullptr);
-    if(FAILED(hr))return hr;if(FAILED(hr=Texture(packet.meshes[i],&r.texture)))return hr;
+    if(FAILED(hr))return hr;if(FAILED(hr=Texture(textureBytes_[i],&r.texture)))return hr;
    }
    remixapi_LightInfoDistantEXT distant{};distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
    distant.direction={0,0,-1};distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
@@ -80,7 +82,7 @@ class D3D9PacketScene {
    const auto& m=packet.meshes[i];const auto& old=initial_.meshes[i];
    if(!LegacyResourceCompatible(m,old))return E_INVALIDARG;
    // Capture directories may differ; resource reuse requires exact source bytes.
-   if(ReadTexture(m.material->sourceDds)!=textureBytes_[i])return E_INVALIDARG;
+   if(ReadTexture(*m.material)!=textureBytes_[i])return E_INVALIDARG;
   }
   const auto& c=packet.camera;
   D3DMATRIX identity{};identity._11=identity._22=identity._33=identity._44=1;

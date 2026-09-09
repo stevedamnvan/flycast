@@ -9,14 +9,15 @@ review and advance through the bounded queue without routine human signoff.
 Safety and unproven acceptance remain intact. This file defines architectural
 constraints; it must not carry a second competing current assignment.
 
-Current evidence anchor: LOG #175, OPAQUE-INITIAL-STORES-AUDIT.md and exact
-checkpoint0e095eb75. The selected opaque FTRV and downstream lineage are
-proven. Matrix/source semantics, broad coverage, actual Remix GPU, moving
-relighting and combined DLSS 5 presentation are not. The prior strict replay
-residual stays failed/parked; no approximation or mock closes that gate.
+Current evidence anchors: LOG467-474 demonstrate isolated moving real-scene
+Remix output; LOG484/509 establish owned live snapshots and a bounded observed
+transform-dependency subset. LOG510-511 retain a measured calibration candidate,
+not recovered world/camera truth. Live scene submission, returned presentation
+and combined DLSS 5 remain pending. The strict replay residual stays
+failed/parked; neither approximation nor a mock closes that gate.
 
-Immediate work is the backlog's bounded M2-camera card; M1-GPU is an independent
-ready dependency if camera work cannot progress. The standing objective closes
+Immediate work is the backlog's live M2-scene integration card. The runtime is
+available; do not repeat historical dependency inventories. The standing objective closes
 only on the backlog's working-pipeline checklist, not an individual milestone.
 Historical launch snapshots remain in Git at0e095eb75 and in their source
 audits/LOG entries; they are not continuing orders to pause.

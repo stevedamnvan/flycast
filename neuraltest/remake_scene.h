@@ -37,6 +37,9 @@ struct Mesh {
  struct Material {
   Vec3 albedo{.7f,.7f,.7f}; float roughness=.8f;
   std::filesystem::path sourceDds;
+  // Owned live-transport alternative to a capture file. Exactly one source is
+  // allowed. Same reviewed RGBA8 DDS layout; no borrowed texture-cache pointer.
+  std::vector<unsigned char> sourceDdsBytes;
   bool sourceColorExperiment=false; // Not physical albedo or full PVR shading.
   // Explicit caller binding; capture importer must verify asset bytes separately.
   std::optional<TextureIdentity> sourceTexture;
@@ -66,6 +69,9 @@ struct Packet {
 };
 struct Limits {
  std::size_t meshes = 128, vertices = 65536, indices = 262144, bytes = 8 * 1024 * 1024;
+ // File-backed assets were outside the geometry packet budget. Live payloads
+ // have their own aggregate bound, not an unbounded allowance per draw.
+ std::size_t textureBytes = 64 * 1024 * 1024;
 };
 struct Result { bool ok; std::string reason; };
 inline bool DiagnosticContinuation(const Packet& previous,const Packet& next) {
@@ -82,6 +88,10 @@ Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::st
 // Explicit diagnostic route; camera clips are caller-supplied, not recovered.
 Result ReadyForDiagnosticAdapter(const Packet&, std::uint64_t, const std::string&,
  bool callerSuppliedClips);
+bool ValidSourceDdsBytes(const std::vector<unsigned char>&);
+// Developer file bridge only: copy once, clear paths, validate aggregate bound,
+// then publish atomically. A live producer supplies owned bytes directly.
+Result OwnDiagnosticTextures(Packet&);
 std::vector<std::uint32_t> Triangles(const Mesh&);
 struct FlatNormalMesh {
  Mesh mesh;

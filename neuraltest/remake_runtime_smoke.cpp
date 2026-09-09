@@ -63,7 +63,7 @@ int wmain(int argc,wchar_t** argv) {
  bool retainedTriangles=false;
  bool rebuiltFrozen=false,settledFrozen=false;
  bool legacyDynamic=false,legacyFrozen=false,legacyGame=false,legacyFrozenAttributes=false;
- bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false;
+ bool legacyBackbuffer=false,legacyRaster=false,legacyColorMarker=false,legacyMemory=false;
  bool reverseOrder=false;
  bool emptyScene=false;
  auto captureType=REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_FINAL_COLOR;
@@ -71,14 +71,15 @@ int wmain(int argc,wchar_t** argv) {
   const int captureIndex=(argc==7||argc==9)?5:argc==18?16:12;
   capture=argv[captureIndex+1];
   const std::wstring captureOption=argv[captureIndex];
+  legacyMemory=captureOption==L"--capture-d3d9-scene-memory"||captureOption==L"--capture-d3d9-scene-raster-memory";
   legacyFrozen=captureOption==L"--capture-d3d9-frozen-color";
-  legacyRaster=captureOption==L"--capture-d3d9-scene-raster"||captureOption==L"--capture-d3d9-scene-raster-frozen";
+  legacyRaster=captureOption==L"--capture-d3d9-scene-raster"||captureOption==L"--capture-d3d9-scene-raster-frozen"||captureOption==L"--capture-d3d9-scene-raster-memory";
   legacyBackbuffer=captureOption==L"--capture-d3d9-backbuffer"||legacyRaster;
   legacyFrozenAttributes=captureOption==L"--capture-d3d9-scene-frozen-attributes"||captureOption==L"--capture-d3d9-scene-raster-frozen";
   if(legacyFrozenAttributes&&argc!=18)return 2;
   legacyColorMarker=captureOption==L"--capture-d3d9-scene-color-marker";
   if(legacyColorMarker&&argc!=18)return 2;
-  legacyGame=captureOption==L"--capture-d3d9-scene"||legacyFrozenAttributes||legacyRaster||legacyColorMarker;
+  legacyGame=captureOption==L"--capture-d3d9-scene"||legacyFrozenAttributes||legacyRaster||legacyColorMarker||legacyMemory;
   legacyDynamic=captureOption==L"--capture-d3d9-dynamic"||legacyFrozen||legacyBackbuffer||legacyGame;
   if(legacyDynamic&&!legacyGame&&argc!=7)return 2;
   if(legacyGame&&argc!=14&&argc!=18)return 2;
@@ -160,6 +161,11 @@ int wmain(int argc,wchar_t** argv) {
      if(std::filesystem::exists(capture.wstring()+L".frame-"+std::to_wstring(endpoint.frame)+L".bmp"))
       throw std::invalid_argument("sequence capture already exists");
     }
+   }
+   if(legacyMemory) {
+    auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok)throw std::invalid_argument(own.reason);
+    for(auto& endpoint:sequence){own=OwnDiagnosticTextures(endpoint);if(!own.ok)throw std::invalid_argument(own.reason);}
+    std::cout<<"texture_transport=owned-memory file_reads_during_draw=false live_provider=false\n";
    }
    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
