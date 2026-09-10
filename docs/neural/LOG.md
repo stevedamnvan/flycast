@@ -1,5 +1,15 @@
 # Neural rendering evidence log
 
+LOG765 commit357a5d6d24fae53b5c743a5eb5c218dc52f76bc2 pushed to fork
+feat/neural-rendering (remote ref verified equal to HEAD). It carries both the
+capture-boundary/archive-index slice (LOG743-756) and the anchor-generation slice
+(LOG759-764, D-207) because they share renderer/test/doc files; a hunk split was
+not performed. Verification before commit: automation/baseline/no-NGX/feature-off
+serial builds exit0 in the VS x64 developer environment, three selftests789/0,
+16 launcher tests, contract inspector unchanged (current FC-067 / M2-scene,
+camera outcome pending). Private untracked items (metrics.txt, dxvk cache,
+rtx-remix/) remain untracked. Working pipeline acceptance remains open.
+
 LOG764 bounded cut capture fc067-anchor-boundary-f-capture (same executable as e,
 --capture-frames40 --capture-start-source3090, managed, anchored light): launcher0,
 host0/helper11 orderly, one helper generation, re-anchor at3099, accepted
