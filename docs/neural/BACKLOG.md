@@ -113,13 +113,17 @@ provenance, performance or a perceptual winner. Next operational action: user
 review of the300-frame moving artifacts (four-lane-review-300-a and
 public-vs-combined-300-a). The600-frame gate measurement (LOG780) found the
 combined lane slowing emulation to about16 fps; D-211 (LOG781) moved the feed
-off the render thread, bringing it to about25 fps with explicit fallbacks. Next
-operational action: attribute and move the remaining render-thread cost
-(returned-image evaluation11.6 ms p50 including driver waits; packet build and
-texture reads4.6 ms) so emulation matches the native control within1 percent,
-then re-measure the600-frame gate; record the external consumer's return rate
-(about20 per second) as the combined-share limit rather than lowering the99
-percent criterion. Separate items:
+off the render thread, bringing it to about25 fps with explicit fallbacks. LOG782
+attributes the remaining render-thread cost (evaluation12.8 ms across motion
+stream, raster, upload, submit and receive/verify; feed11.6 ms with packet build
+4.5). Next operational action, needing a user decision first: (a) move the
+returned-image path (receive, verify, input build, motion stream) to a second
+worker with the consumer submit staying on the render thread, and (b) whether a
+lighter packet wire format (texture identity instead of re-sent texture bytes,
+12.6 MB per frame) is acceptable given it starts a new locked-archive lineage
+for the300-frame lanes. Then re-measure the600-frame gate; record the external
+consumer's return rate (about20 per second) as the combined-share limit rather
+than lowering the99 percent criterion. Separate items:
 exact double-precision frustum clipping of near-plane vertices far outside the
 viewport (topology change), round-end overlay protection (FC-055).
 World-consistent lighting/camera across cuts stays with M2-camera; do not

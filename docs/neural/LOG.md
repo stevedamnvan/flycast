@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG782 render-thread attribution after D-211 (fc067-perf-feedworker-timing-b,
+`--cpu-timing`, same replay settings; diagnostic, not performance evidence):
+present interval p50 38.8 ms;1200 emulated frames in47.1 s. Scene feed11.6 ms
+p50 (snapshot1.3, view scene1.25, packet build with texture reads4.5, the rest
+texture readiness, overlay copy and the locked return receive/verify); feed
+worker25.0 ms off the render thread. Returned-image evaluation12.8 ms p50 with
+new sub-scopes: motion stream2.85, motion raster2.3 (max257 with a driver
+wait), input build and upload1.55, consumer submit0.87 (max900, driver wait),
+history accept0.57, about4.6 ms unscoped. No single stage remains; reaching the
+native control within1 percent needs the returned-image path (receive, verify,
+input build, motion stream) off the render thread as well and a lighter
+per-frame packet (textures are re-sent every frame,12.6 MB), which would change
+the packet wire format and therefore the locked-archive lineage of the300-frame
+lanes; that choice is recorded for the user, not made here. Automation
+selftest813/0; sub-scopes are env-gated and cost nothing when off.
+
 LOG781 implementation after the timing measurement: D-211 feed worker. The
 render thread keeps the device-bound stages (snapshot, view scene, texture
 reads, packet build, overlay copy) and hands anchor, temporal capture,

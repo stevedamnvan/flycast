@@ -3052,14 +3052,24 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(temporal) {
 			std::string error;
 			const auto* previous=remakeTemporalHistory.CanReproject(*temporal)?remakeTemporalHistory.Last():nullptr;
-			if(!BuildRemakeMotionStream(previous,*temporal,stream,error)) {
+			bool streamReady;
+			{
+				static thread_local unsigned count=0;
+				RemakeCpuScope timing("evaluate-motion-stream",frame.frameId,count);
+				streamReady=BuildRemakeMotionStream(previous,*temporal,stream,error);
+			}
+			if(!streamReady) {
 				NOTICE_LOG(RENDERER,"Remake geometry motion rejected: %s",error.c_str());return;
 			}
 			NOTICE_LOG(RENDERER,"Remake geometry motion: source=%llu trusted_draws=%u reactive_draws=%u ambiguous_draws=%u trusted_vertices=%u max_pixels=%.9g gpu_guidance=false",
 				(unsigned long long)source.frame,stream.trustedDraws,stream.reactiveDraws,stream.ambiguousDraws,stream.trustedVertices,stream.maximumMotion);
 		}
 		RemakeNeuralInput input;
-		if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)||!uploadRemakeInput(input))return;
+		{
+			static thread_local unsigned count=0;
+			RemakeCpuScope timing("evaluate-input-upload",frame.frameId,count);
+			if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)||!uploadRemakeInput(input))return;
+		}
 		if(rasterRequested) {
 			std::string error;
 			const auto* previous=remakeTemporalHistory.Last();
@@ -3069,10 +3079,16 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			const char* colorSetting=std::getenv("FLYCAST_REMAKE_COLOR_CONSISTENCY");
 			const bool colorCheck=colorSetting&&std::strcmp(colorSetting,"1")==0;
 			const auto& previousColor=rasterHistory?remakeTemporalHistory.Color():source.bgra;
-			if(!remakeMotionRaster.Initialize(device,DX11Context::Instance()->getCompiler(),error)
-				||!remakeMotionRaster.Render(deviceContext,stream,source.projectionDepth,previousDepth,
-					rasterHistory?remakeAcceptedRaster.views[2].Get():nullptr,source.nearPlane,source.farPlane,
-					.001f,.0001f,rasterOutput,error,colorCheck?&source.bgra:nullptr,colorCheck?&previousColor:nullptr)) {
+			bool rasterReady;
+			{
+				static thread_local unsigned count=0;
+				RemakeCpuScope timing("evaluate-raster",frame.frameId,count);
+				rasterReady=remakeMotionRaster.Initialize(device,DX11Context::Instance()->getCompiler(),error)
+					&&remakeMotionRaster.Render(deviceContext,stream,source.projectionDepth,previousDepth,
+						rasterHistory?remakeAcceptedRaster.views[2].Get():nullptr,source.nearPlane,source.farPlane,
+						.001f,.0001f,rasterOutput,error,colorCheck?&source.bgra:nullptr,colorCheck?&previousColor:nullptr);
+			}
+			if(!rasterReady) {
 				NOTICE_LOG(RENDERER,"Remake GPU guidance rejected: source=%llu reason=%s",
 					(unsigned long long)source.frame,error.c_str());return;
 			}
@@ -3093,7 +3109,11 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		}
 		frame.draws={};frame.matches={};frame.correspondence={};frame.predominantly2D=false;
 		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateBegin);
-		const auto status=neuralStage.TrySubmit(frame);
+		const auto status=[&] {
+			static thread_local unsigned count=0;
+			RemakeCpuScope timing("evaluate-submit",frame.frameId,count);
+			return neuralStage.TrySubmit(frame);
+		}();
 		logNeuralConsumerStatus(status);
 		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateEnd);
 		neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,frame.resetHistory);
@@ -3107,8 +3127,11 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			const auto* previous=remakeTemporalHistory.Last();const auto previousFrame=previous?previous->frame:0;
 			const bool compatible=remakeTemporalHistory.CanReproject(*temporal);
 			const char* colorSetting=std::getenv("FLYCAST_REMAKE_COLOR_CONSISTENCY");
-			const bool retained=remakeTemporalHistory.Accept(temporal,source,true,
-				colorSetting&&std::strcmp(colorSetting,"1")==0);
+			const bool retained=[&] {
+				static thread_local unsigned count=0;
+				RemakeCpuScope timing("evaluate-history-accept",frame.frameId,count);
+				return remakeTemporalHistory.Accept(temporal,source,true,colorSetting&&std::strcmp(colorSetting,"1")==0);
+			}();
 			if(retained) {
 				remakeAcceptedRaster=std::move(rasterOutput);
 				remakeAcceptedRasterFrame=rasterRequested?source.frame:0;
