@@ -212,9 +212,14 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
   error="return-source-or-format";return RemakeChannelResult::Invalid;
  }
 	const bool hasDepth=!image.projectionDepth.empty();
-	if((hasDepth&&(image.projectionDepth.size()!=640*480||image.nearPlane!=source.nearPlane||image.farPlane!=source.farPlane
-		||!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return std::isfinite(v)&&v>=0&&v<=1;})))
-		||(!hasDepth&&(image.nearPlane!=0||image.farPlane!=0))) {error="return-depth-contract";return RemakeChannelResult::Invalid;}
+	const char* depthError=nullptr;
+	if(hasDepth) {
+		if(image.projectionDepth.size()!=640*480)depthError="return-depth-extent";
+		else if(image.nearPlane!=source.nearPlane||image.farPlane!=source.farPlane)depthError="return-depth-projection";
+		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return std::isfinite(v);}))depthError="return-depth-nonfinite";
+		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v>=0&&v<=1;}))depthError="return-depth-range";
+	} else if(image.nearPlane!=0||image.farPlane!=0)depthError="return-depth-missing";
+	if(depthError){error=depthError;return RemakeChannelResult::Invalid;}
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;

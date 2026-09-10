@@ -1646,7 +1646,7 @@ int PerformanceCommand(const Args& args)
 	std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
 	mutableCommand.push_back(L'\0');
 	const BOOL launched = CreateProcessW(flycast.wstring().c_str(), mutableCommand.data(),
-		nullptr, nullptr, FALSE, 0, nullptr, flycast.parent_path().wstring().c_str(),
+		nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, flycast.parent_path().wstring().c_str(),
 		&startup, &process);
 	if (restoreFeaturePath)
 		SetEnvironmentVariableW(L"FLYCAST_NGX_FEATURE_PATH",
@@ -1655,6 +1655,17 @@ int PerformanceCommand(const Args& args)
 	{
 		std::cerr << "failed to launch flycast: win32=" << GetLastError() << '\n';
 		return 1;
+	}
+	// Assign before the emulator executes: abrupt harness termination must not
+	// orphan this owned process or descendants. Never target unrelated processes.
+	struct OwnedJob { HANDLE handle=CreateJobObjectW(nullptr,nullptr); ~OwnedJob(){if(handle)CloseHandle(handle);} } job;
+	JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+	limits.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+	if(!job.handle||!SetInformationJobObject(job.handle,JobObjectExtendedLimitInformation,&limits,sizeof(limits))
+		||!AssignProcessToJobObject(job.handle,process.hProcess)||ResumeThread(process.hThread)==DWORD(-1)) {
+		const auto error=GetLastError();TerminateProcess(process.hProcess,1);
+		WaitForSingleObject(process.hProcess,5000);CloseHandle(process.hThread);CloseHandle(process.hProcess);
+		std::cerr<<"failed to own Flycast process lifetime: win32="<<error<<'\n';return 1;
 	}
 	CloseHandle(process.hThread);
 	const auto completion = output / "performance-complete.json";

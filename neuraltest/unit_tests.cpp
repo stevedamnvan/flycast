@@ -870,11 +870,11 @@ int RunSelfTests()
 			suite.Expect(!BuildRemakeNeuralInput(wrong,image.frame,image.producer,converted)
 				&&converted.invertedDepth==kept,"remake input rejects NaN without partial conversion");
 			wrong=image;wrong.nearPlane+=.1f;
-			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects depth from wrong projection");
+				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-projection","return rejects depth from wrong projection");
 			wrong=image;wrong.projectionDepth[0]=std::numeric_limits<float>::quiet_NaN();
-			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects nonfinite depth");
+				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-nonfinite","return rejects nonfinite depth");
 			wrong=image;wrong.projectionDepth[0]=1.01f;
-			suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid,"return rejects out-of-range projection depth");
+				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-range","return rejects out-of-range projection depth");
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return publishes newer source image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
 			auto fourth=advance(third),bad=fourth;bad.meshes[0].vertices[0].normal.reset();
