@@ -18,7 +18,9 @@ unchanged, and each accepted frame records the count and the raw and bounded
 maxima in its omissions and the observed-camera log. This bounds the
 consequence on the image at the existing guard instead of relaxing the guard;
 frames whose off-screen error is tangential or whose effect exceeds the guard
-still reject with the decomposition in the reason.
+still reject with the decomposition in the reason. Verified in play (LOG778:
+104 frames accepted with effect at most0.0014 pixel; the remaining rejections
+are tangential float quantization of near-plane vertices and stay rejected).
 
 ## D-209: returned depth beyond the declared far plane is the far plane
 

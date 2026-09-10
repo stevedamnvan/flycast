@@ -99,13 +99,18 @@ D-209 (1961 of2003 returns clamped, maxima within three float steps of1, none
 above the limit, no rejection), the420 second worker budget (one generation to
 an orderly host end, launcher exit0) and lineage selection (0 ambiguous frames).
 D-210 (LOG777) bounds the on-screen effect of vertices far outside the
-viewport at the unchanged guard and records the decomposition of any remaining
-failure. Next operational action: verify D-210 in a manual session on the open
-stage (offscreen_accepted counts, raw and bounded maxima, remaining
-anchor-projection-mismatch reasons with their decomposition), then resume the
-remaining public-DLAA/native 300-frame lanes. Then resume the remaining public-DLAA/native 300-frame
-lanes. World-consistent lighting/camera across cuts stays with
-M2-camera; do not relabel the generation origin as world truth.
+viewport at the unchanged guard; session i (LOG778) verified it (104 frames
+accepted, effect at most0.0014 pixel) and left78 tangential rejections as the
+recorded float embedding precision limitation. The live scene/camera continuity
+work that took priority over the matrix (LOG757) is at a stable checkpoint:
+managed manual sessions run one helper generation to an orderly host end with
+no rejected return. Next operational action: resume the remaining public-DLAA
+and native300-frame lanes of the four-lane matrix (sources2400..2699, same
+locked archive and watchdogs as the source/combined lanes). Separate items:
+exact double-precision frustum clipping of near-plane vertices far outside the
+viewport (topology change), round-end overlay protection (FC-055).
+World-consistent lighting/camera across cuts stays with M2-camera; do not
+relabel the generation origin as world truth.
 
 Historical operational action (LOG651): save the long-capture/review checkpoint,
 then address material delivery causing gameplay source gaps. All300 captures

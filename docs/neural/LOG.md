@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG778 manual session fc067-anchor-manual-i (open stage, D-210): launcher exit0,
+host report complete (12000 frames at4:31), one helper generation to an orderly
+end,1726 sources,1726 accepted returns,0 rejected;1646 returns clamped beyond the
+far plane with measured maximum1.00000048 (four float steps), none above the
+limit, no near-side value. D-210 verified:104 accepted frames carried far
+off-screen vertices (up to9 per frame, raw public-projection error up to25
+pixels at up to17642 diagonals) with bounded on-screen effect at most0.0014
+pixels and tangential error at most0.0097 pixels. anchor-projection-mismatch
+skips fell from183 (session h) to78; every remaining one is tangential
+(0.0103..2.81 pixels, p50 0.025, effect at most0.0049 pixels,153..23674
+diagonals out): the lateral float quantization of a vertex about a thousand
+units away seen at0.1 depth is about0.3 pixel per representable step, so no
+float world embedding can meet the exact guard for them. Recorded as the float
+embedding precision limitation (about4 percent of exported frames native on this
+stage), not relaxed; an exact double-precision frustum clip of such vertices
+would change mesh topology and stays a separate item. Anchor: two re-anchors
+(102 degrees with145 shared; a complete content change with0 shared points),
+four view cuts including the same round-start dolly pair as sessions e and h,
+0 ambiguous frames, lineage selection on all but three multi-basis frames.
+
 LOG777 implementation after session h: D-210. The projection guard reports the
 actual coordinates, distance in viewport diagonals and the radial/tangential/
 effect decomposition of a failing vertex; vertices at least four diagonals
