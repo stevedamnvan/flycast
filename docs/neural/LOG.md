@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG702 repository launcher live-b exits0: host/helper[0,0], no forced children,
+1200 host samples and clean_close=yes,660 helper Presents/outcome0. Existing
+40-object cleanup warning persists. Five preflight tests pass: no writes/default
+opt-in, inherited controls scrubbed without parent mutation, existing output,
+missing input and unique channels. Add REMAKE-LAUNCH.md with explicit prepared
+host requirements and bounded experimental scope. No fresh external provenance,
+general interactive gameplay or full timing acceptance inferred. Forced-launcher
+termination/descendant cleanup remains untested; normal clean close is verified.
+
+LOG701 first launcher live attempt fails before process start: Windows rename
+cannot archive a log across drives (WinError17). Preserve the failed output
+directory. Replace rename with verified byte-identical copy, keeping originals
+until the host writes its next log. Retry with a new output name; no runtime
+or game process was started by the failed attempt.
+
+LOG700 add repository-owned remake_launch.py bounded opt-in launcher using the
+existing performance harness/helper, explicit prepared Flycast/runtime/legal
+game paths and new output directory. Default is read-only preflight; --run starts
+the established1200/2100 host and660 helper experiment, --anchored-light forwards
+the tested option. Scrub inherited remake controls, preserve prior named logs in
+new output, record owned executable hashes, never edit external configuration.
+Preflight exits0. Live fc067-launcher-live-a launched with same supplied inputs;
+outcome pending. This is a reproducible experiment, not unrestricted interactive
+gameplay or external presentation proof. No proprietary dependencies acquired.
+
 LOG699 guarded live run anchored-light-guard-a completes host/helper0 with clean
 close,1200 host samples,600 published returns and252 light recreations all0,0,1.
 Helper SHA067F0A83B3CDE8819E33754D7E373FDEE466EF6F6F7A475D18F969431CAF6322.

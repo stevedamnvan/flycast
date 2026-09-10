@@ -134,6 +134,13 @@ inspect the existing launcher/settings route and expose the supported anchored
 scene control through owned explicit opt-in setup rather than requiring temporary
 agent-only launch scripts. Preserve scope labels, fallback and external settings;
 the complete camera/quality/performance checklist remains authoritative.
+LOG700-702 implements the repository-owned bounded launcher and documents it in
+REMAKE-LAUNCH.md. Actual host/helper run exits[0,0] with no forced children and
+clean host close; five preflight tests pass. This replaces agent-only experiment
+launching, not an unrestricted interactive setting. Next inspect the existing
+Flycast user-facing neural settings and helper lifetime seam for explicit
+interactive integration; preserve native fallback when the helper is absent.
+Do not present bounded replay success as completion of working gameplay.
 No lighting winner, general camera recovery or performance acceptance is implied.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
