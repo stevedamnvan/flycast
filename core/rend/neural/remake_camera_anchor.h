@@ -16,6 +16,49 @@ class RemakeCameraAnchor {
  std::uint64_t lastFrame=0;
  double projectionError=0;
 public:
+ // Per-frame record of vertices far outside the viewport accepted under the
+ // on-screen effect bound (D-210). Pixels is the raw public-projection error
+ // of the worst such vertex; effect is its bounded on-screen consequence.
+ struct ProjectionReport {
+  std::size_t offscreenAccepted=0;
+  double maxPixels=0,maxEffect=0,maxTangential=0,maxDiagonals=0;
+ };
+ // Decomposition of a projection error for a vertex at `distance` pixels from
+ // the viewport center. Any edge that can affect the image passes within one
+ // viewport diagonal of the center, so a radial error (the depth rounding of a
+ // near-plane vertex scales its projection about the center) moves the visible
+ // crossing point by at most radial*diagonal/distance; a tangential error can
+ // move it by the whole amount and therefore stays under the unchanged 0.01
+ // pixel guard. Only vertices at least four diagonals out qualify.
+ struct OffscreenEffect { double distance=0,diagonals=0,radial=0,tangential=0,effect=0; bool farOutside=false; };
+ static OffscreenEffect OffscreenEffectOf(double expectedX,double expectedY,double actualX,double actualY,double width,double height) {
+  OffscreenEffect o{};
+  const double ex=(expectedX-.5)*width,ey=(expectedY-.5)*height;
+  const double dx=(actualX-expectedX)*width,dy=(actualY-expectedY)*height;
+  const double diagonal=std::hypot(width,height);
+  o.distance=std::hypot(ex,ey);o.diagonals=o.distance/diagonal;
+  if(!(o.distance>0)||!std::isfinite(dx)||!std::isfinite(dy)) {
+   o.radial=o.tangential=o.effect=std::numeric_limits<double>::infinity();return o;
+  }
+  o.radial=(dx*ex+dy*ey)/o.distance;
+  o.tangential=std::abs(dx*ey-dy*ex)/o.distance;
+  o.effect=std::abs(o.radial)*diagonal/o.distance;
+  o.farOutside=o.distance>=4*diagonal;
+  return o;
+ }
+private:
+ ProjectionReport projectionReport{};
+ // The public projection in double for the decomposition only: the float
+ // public projection remains the contract for the unchanged pixel guard.
+ static std::array<double,3> projectDouble(const remake::Camera& c,const remake::Vec3& p) {
+  const double dx=double(p.x)-c.position.x,dy=double(p.y)-c.position.y,dz=double(p.z)-c.position.z;
+  const auto axis=[&](const remake::Vec3& a){return dx*a.x+dy*a.y+dz*a.z;};
+  const double x=axis(c.right),y=axis(c.up),z=axis(c.forward);
+  const double t=std::tan(double(c.fovY)*3.14159265358979323846/360.0);
+  if(!(z>0))return {std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN(),z};
+  return {0.5+x/(2*z*t*c.aspect),0.5-y/(2*z*t),z};
+ }
+public:
  // Diagnostic counts recorded for every evaluated support set: shared points
  // with the fixed reference and with the last accepted set, plus the rigid
  // basis motion from each. It does not decide continuity and asserts no world
@@ -90,9 +133,10 @@ public:
   if(!first.Available()||!report.rejected)return false;
   priorReference=reference;priorAvailable=true;
   first={};reference={};referencePoints.clear();lastPoints.clear();lastBasis={};
-  projectionError=0;report={};++generation;return true;
+  projectionError=0;report={};projectionReport={};++generation;return true;
  }
  double MaximumProjectionError()const{return projectionError;}
+ const ProjectionReport& LastProjectionReport()const{return projectionReport;}
  bool Apply(const PvrDecodedPacket& source,const RemakeViewScene& scene,
   remake::Packet& packet,std::string& error) {
   const auto fail=[&](const char* why){error=why;return false;};
@@ -228,7 +272,7 @@ public:
    +" after rejected source support; origin is the retired view's camera-relative position, not world identity");
   if(bases.size()>1)embedded.omissions.push_back(std::to_string(movingPoints)+" source points under "+std::to_string(bases.size()-1)
    +" additional rigid bases (moving objects) are embedded by view position only and excluded from anchor support");
-  double maximum=0;
+  double maximum=0;ProjectionReport projection{};
   for(auto& mesh:embedded.meshes)for(auto& v:mesh.vertices) {
    const auto input=v.position;
    const auto expected=remake::Project(packet.camera,v.position);
@@ -330,18 +374,39 @@ public:
     {error="anchor-enclosure-unrepresentable expected="+std::to_string(expected.z)+" actual="+std::to_string(actual.z);return false;}
    const double pixels=(std::max)(std::abs(double(actual.x)-expected.x)*scene.size[0],
     std::abs(double(actual.y)-expected.y)*scene.size[1]);
-   if(!std::isfinite(pixels)||pixels>.01||!std::isfinite(actual.z)
-    ||std::abs(double(actual.z)-expected.z)>(std::max)(1e-5,std::abs(double(expected.z))*1e-5))
-    {error="anchor-projection-mismatch pixels="+std::to_string(pixels)+" expected="+std::to_string(expected.x)+","+std::to_string(expected.y)
-     +" depth="+std::to_string(expected.z)+" actual_depth="+std::to_string(actual.z);return false;}
-   maximum=(std::max)(maximum,pixels);
+   const bool depthOk=std::isfinite(actual.z)&&std::abs(double(actual.z)-expected.z)<=(std::max)(1e-5,std::abs(double(expected.z))*1e-5);
+   if(std::isfinite(pixels)&&pixels<=.01&&depthOk){maximum=(std::max)(maximum,pixels);continue;}
+   // D-210: a vertex far outside the viewport whose remaining error is radial
+   // (near-plane depth rounding scaling the projection about the center) is
+   // accepted when its bounded on-screen effect and its tangential component
+   // both satisfy the unchanged 0.01 pixel guard. Measured in double so the
+   // float public projection's own quantization far off-screen is not counted.
+   const auto expectedD=projectDouble(packet.camera,input);
+   const auto actualD=projectDouble(embedded.camera,v.position);
+   const auto off=OffscreenEffectOf(expectedD[0],expectedD[1],actualD[0],actualD[1],double(scene.size[0]),double(scene.size[1]));
+   if(depthOk&&std::isfinite(pixels)&&off.farOutside&&off.tangential<=.01&&off.effect<=.01) {
+    ++projection.offscreenAccepted;
+    projection.maxPixels=(std::max)(projection.maxPixels,pixels);
+    projection.maxEffect=(std::max)(projection.maxEffect,off.effect);
+    projection.maxTangential=(std::max)(projection.maxTangential,off.tangential);
+    projection.maxDiagonals=(std::max)(projection.maxDiagonals,off.diagonals);
+    continue;
+   }
+   error="anchor-projection-mismatch pixels="+std::to_string(pixels)+" expected="+std::to_string(expected.x)+","+std::to_string(expected.y)
+    +" actual="+std::to_string(actual.x)+","+std::to_string(actual.y)+" diagonals="+std::to_string(off.diagonals)
+    +" radial="+std::to_string(off.radial)+" tangential="+std::to_string(off.tangential)+" effect="+std::to_string(off.effect)
+    +" depth="+std::to_string(expected.z)+" actual_depth="+std::to_string(actual.z);
+   return false;
   }
+  if(projection.offscreenAccepted)embedded.omissions.push_back(std::to_string(projection.offscreenAccepted)
+   +" vertices at least four viewport diagonals outside the viewport accepted under the on-screen effect bound (raw public-projection error up to "
+   +std::to_string(projection.maxPixels)+" pixels, bounded on-screen effect up to "+std::to_string(projection.maxEffect)+" pixels)");
   const auto checked=remake::ReadyForDiagnosticAdapter(embedded,embedded.frame,embedded.game,true);
   if(!checked.ok){error=checked.reason;return false;}
   if(!support.available){support.bases=bases.size();support.movingPoints=movingPoints;support.lineageSelected=lineageSelected;}
   lastPoints=points;lastBasis=current;report=support;
   if(!first.Available()){first=p;reference=current;referencePoints=std::move(points);origin=candidateOrigin;}
-  last=p;lastFrame=source.frame;projectionError=maximum;packet=std::move(embedded);error.clear();return true;
+  last=p;lastFrame=source.frame;projectionError=maximum;projectionReport=projection;packet=std::move(embedded);error.clear();return true;
  }
 };
 }

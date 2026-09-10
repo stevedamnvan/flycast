@@ -68,7 +68,9 @@ eight emulated frames apart at the return cadence (`frames_since_last`); a fast
 dolly can therefore log a view cut, which only retires history. Returned depth
 outside the declared clip range is returned as the plane it lies beyond and
 counted per return (`beyond_far_clamped`, `before_near_clamped`, `max_depth`,
-`min_depth`, D-209); values above the projection limit still reject.
+`min_depth`, D-209); values above the projection limit still reject. Vertices
+far outside the viewport whose bounded on-screen effect satisfies the unchanged
+0.01 pixel guard are accepted and counted (`offscreen_accepted`, D-210).
 The run is capped at eight generations and the original whole-run deadline.
 Managed helpers use explicit session-worker mode rather than rotating after600
 returns. The worker has a10000-frame ceiling and retains the120-second runtime

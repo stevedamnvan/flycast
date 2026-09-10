@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG777 implementation after session h: D-210. The projection guard reports the
+actual coordinates, distance in viewport diagonals and the radial/tangential/
+effect decomposition of a failing vertex; vertices at least four diagonals
+outside the viewport whose bounded on-screen effect and tangential error both
+satisfy the unchanged 0.01 pixel guard are accepted and counted
+(`offscreen_accepted`, raw and bounded maxima in the observed-camera log and
+the packet omissions). Unit fixtures: measured-kind radial error (67 pixels at
+about19000 diagonals) has effect below0.01 pixel; a tangential error rejects; a
+vertex two viewports out does not qualify; exact near-plane fixtures report no
+off-screen acceptance. Unverified in play until the next manual session on the
+open stage.
+
 LOG776 manual session fc067-anchor-manual-h (open stage of session e, worker
 budget420, clip-range depth policy, retirement fix; window untouched): launcher
 exit0 with the host report written (12000 frames complete at4:31, all harness

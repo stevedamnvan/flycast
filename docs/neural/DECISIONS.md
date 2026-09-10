@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-210: bounded on-screen effect for vertices far outside the viewport
+
+Sessions d and h left frames rejected by the exact projection guard only for
+vertices thousands of viewports outside the image at the near plane (LOG770,
+LOG776: expected coordinates such as -15898,-23370 viewports, raw errors 5..68
+pixels, relative error below float precision). There a single depth rounding
+step of the float world embedding scales the projection about the center by
+tens of pixels while no visible pixel moves: every edge that can affect the
+image passes within one viewport diagonal of the center, so a radial error of r
+pixels at distance d moves the visible crossing point by at most r*diagonal/d.
+The anchor therefore decomposes the remaining error in double into radial and
+tangential parts for vertices at least four diagonals out and accepts the vertex
+when the bounded effect and the tangential part both satisfy the unchanged 0.01
+pixel guard; everything nearer keeps the exact guard, the depth tolerance is
+unchanged, and each accepted frame records the count and the raw and bounded
+maxima in its omissions and the observed-camera log. This bounds the
+consequence on the image at the existing guard instead of relaxing the guard;
+frames whose off-screen error is tangential or whose effect exceeds the guard
+still reject with the decomposition in the reason.
+
 ## D-209: returned depth beyond the declared far plane is the far plane
 
 The helper's D3D9 projection maps view depth z to f(z-n)/((f-n)z): exactly1 at

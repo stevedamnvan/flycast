@@ -474,6 +474,24 @@ int RunSelfTests()
 				exact=exact&&trial.Apply(precise,laterView,nearPacket,error);
 				suite.Expect(exact&&trial.MaximumProjectionError()<.001&&Near(nearPacket.camera.position.x,0),
 					"observed near-plane anchor uses true inverse of nearly unit unchanged basis");
+				suite.Expect(exact&&trial.LastProjectionReport().offscreenAccepted==0&&trial.LastProjectionReport().maxEffect==0,
+					"exact near-plane vertices are accepted by the unchanged guard, not the off-screen bound");
+				{
+					// D-210 decomposition: a radial error of the measured kind (67 pixels at
+					// about 19000 diagonals) has a bounded on-screen effect far below the
+					// guard; a tangential error or a vertex only two viewports out does not.
+					const double ex=15897.5,ey=-23369.5;
+					const auto radial=RemakeCameraAnchor::OffscreenEffectOf(ex,ey,.5+(ex-.5)*(1+6.6e-6),.5+(ey-.5)*(1+6.6e-6),640,480);
+					suite.Expect(radial.farOutside&&radial.diagonals>18000&&radial.radial>90&&radial.radial<110&&radial.tangential<1e-6&&radial.effect<.01&&radial.effect>.001,
+						"radial off-screen error has a bounded on-screen effect below the guard");
+					const auto tangential=RemakeCameraAnchor::OffscreenEffectOf(ex,ey,ex+1e-4,ey,640,480);
+					suite.Expect(tangential.farOutside&&tangential.tangential>.01&&tangential.effect<.01,
+						"tangential off-screen error stays under the unchanged guard and rejects");
+					const auto twoOut=RemakeCameraAnchor::OffscreenEffectOf(2.5,-1.5,2.5+1e-4,-1.5,640,480);
+					suite.Expect(!twoOut.farOutside&&twoOut.diagonals<4,"a vertex two viewports out is not far outside");
+					const auto center=RemakeCameraAnchor::OffscreenEffectOf(.5,.5,.5,.5,640,480);
+					suite.Expect(!center.farOutside&&std::isinf(center.effect),"the center has no radial direction and never qualifies");
+				}
 				const double scale=precise.sourceVertices[0].copy.xyzTransforms[0]->matrix[0]/supported.focalX;
 				suite.Expect(std::abs(scale*scale-1)*100*supported.focalX>.01,
 					"transpose-as-inverse negative exceeds unchanged projection tolerance");

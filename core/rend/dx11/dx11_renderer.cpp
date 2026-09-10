@@ -2897,12 +2897,14 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(anchored) {
 			remakeCameraAnchor=std::move(proposedAnchor);
 			const auto& support=remakeCameraAnchor.LastSupportReport();
-			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d",
+			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d offscreen_accepted=%u offscreen_max_pixels=%.6g offscreen_max_effect_pixels=%.6g offscreen_max_tangential_pixels=%.6g offscreen_max_diagonals=%.6g",
 				(unsigned long long)packet.frame,(unsigned long long)remakeCameraAnchor.ReferenceOrdinal(),remakeCameraAnchor.Generation(),
 				remakeCameraAnchor.Origin().x,remakeCameraAnchor.Origin().y,remakeCameraAnchor.Origin().z,
 				packet.camera.position.x,packet.camera.position.y,packet.camera.position.z,remakeCameraAnchor.MaximumProjectionError(),
 				unsigned(support.points),unsigned(support.sharedReference),unsigned(support.sharedLast),
-				support.rotationFromLastDegrees,support.translationFromLast,(unsigned long long)support.framesSinceLast,unsigned(support.bases),unsigned(support.movingPoints),int(support.lineageSelected));
+				support.rotationFromLastDegrees,support.translationFromLast,(unsigned long long)support.framesSinceLast,unsigned(support.bases),unsigned(support.movingPoints),int(support.lineageSelected),
+				unsigned(remakeCameraAnchor.LastProjectionReport().offscreenAccepted),remakeCameraAnchor.LastProjectionReport().maxPixels,remakeCameraAnchor.LastProjectionReport().maxEffect,
+				remakeCameraAnchor.LastProjectionReport().maxTangential,remakeCameraAnchor.LastProjectionReport().maxDiagonals);
 		}
 		if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)
 			overlay.captureScene=std::make_shared<remake::Packet>(std::move(packet));

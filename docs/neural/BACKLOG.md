@@ -98,11 +98,12 @@ retirement fix. Session h (LOG776) on the open stage verified the far side of
 D-209 (1961 of2003 returns clamped, maxima within three float steps of1, none
 above the limit, no rejection), the420 second worker budget (one generation to
 an orderly host end, launcher exit0) and lineage selection (0 ambiguous frames).
-Next operational action: measure the far off-screen projection precision
-failures (637 frames in session d,183 in session h with p90 1.25 and max67.5
-pixels) by logging the expected and embedded pixel coordinates and offsets of
-the failing vertices, without relaxing the guard; then define whether a
-labeled, bounded policy for vertices far outside the viewport is justified. Then resume the remaining public-DLAA/native 300-frame
+D-210 (LOG777) bounds the on-screen effect of vertices far outside the
+viewport at the unchanged guard and records the decomposition of any remaining
+failure. Next operational action: verify D-210 in a manual session on the open
+stage (offscreen_accepted counts, raw and bounded maxima, remaining
+anchor-projection-mismatch reasons with their decomposition), then resume the
+remaining public-DLAA/native 300-frame lanes. Then resume the remaining public-DLAA/native 300-frame
 lanes. World-consistent lighting/camera across cuts stays with
 M2-camera; do not relabel the generation origin as world truth.
 
