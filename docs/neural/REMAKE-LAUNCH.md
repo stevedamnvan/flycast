@@ -62,7 +62,13 @@ rigid bases appear in one frame, the dominant one anchors and the rest are
 labeled moving objects; an even split stays ambiguous and native. Session
 workers tolerate60 seconds without a3D source (2D screens between rounds) and
 survive a rejected return as one native frame (`live_return_rejected`, bounded
-to64 per session).
+to64 per session). From-last motion (`rotation_from_last_deg`,
+`translation_from_last`) is measured between consecutive exported sources, about
+eight emulated frames apart at the return cadence (`frames_since_last`); a fast
+dolly can therefore log a view cut, which only retires history. Returned depth
+beyond the declared far plane is returned as the far plane and counted per
+return (`beyond_far_clamped`, `max_depth`, D-209); values above the projection
+limit still reject.
 The run is capped at eight generations and the original whole-run deadline.
 Managed helpers use explicit session-worker mode rather than rotating after600
 returns. The worker has a10000-frame ceiling and retains the120-second runtime

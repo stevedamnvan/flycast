@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-209: returned depth beyond the declared far plane is the far plane
+
+The helper's D3D9 projection maps view depth z to f(z-n)/((f-n)z): exactly1 at
+the declared far plane and up to f/(f-n) for points beyond it, which the
+ray-traced runtime does not clip. On an open stage nearly every return carried
+such values one rounding step above1 and the session died at the rejected-return
+bound (LOG771). The host contract stays [0,1]. The helper labels values in
+(1, f/(f-n)] as beyond the far plane, returns them as1 and logs the count and the
+measured maximum per return (`beyond_far_clamped`, `above_limit`, `max_depth`,
+`far_limit`); values above that limit are left as measured and remain rejected.
+Depth in front of the far plane is never altered and raw depth artifacts stay
+raw. This makes the projection's own semantic explicit; it is not a relaxed
+acceptance, and the returned depth semantics of the runtime remain unverified.
+
 ## D-208: lineage-based support, in-place view cuts and resilient sessions
 
 Manual play (LOG766-770) showed that the first-view support snapshot rejects

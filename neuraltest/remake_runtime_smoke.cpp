@@ -7,12 +7,14 @@
 #include "remake_d3d9_scene.h"
 #include "remake_scene_lighting.h"
 #include "remake_runtime_budget.h"
+#include "remake_return_depth.h"
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
 #include <filesystem>
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -517,6 +519,7 @@ int wmain(int argc,wchar_t** argv) {
 		// Public typed float depth from the same completed Remix frame. Its
 		// numerical semantics are evidence to measure, not assumed PVR depth.
 		const auto depthPath=capturePath.wstring()+L".depth.rgba32f";
+		RemakeFarPlaneReport farPlane{};
 		IDirect3DSurface9* depthGpu=nullptr;IDirect3DSurface9* depthCpu=nullptr;
 		HRESULT depthHr=ownedDevice->CreateRenderTarget(640,480,D3DFMT_A32B32G32R32F,
 			D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
@@ -534,6 +537,9 @@ int wmain(int argc,wchar_t** argv) {
 			for(int y=0;y<480;++y)for(int x=0;x<640;++x)
 				std::memcpy(&returnedFrame.projectionDepth[y*640+x],static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch+x*16,sizeof(float));
 			returnedFrame.nearPlane=packet.camera.nearPlane;returnedFrame.farPlane=packet.camera.farPlane;
+			// Beyond-far-plane values become the far plane (D-209); the raw file
+			// below is written from the locked surface and stays unaltered.
+			farPlane=RemakeClampBeyondFarPlane(returnedFrame.projectionDepth,returnedFrame.nearPlane,returnedFrame.farPlane);
 			if(!returnOnly) {
 			HANDLE file=CreateFileW(depthPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
 			bool ok=file!=INVALID_HANDLE_VALUE;
@@ -545,7 +551,10 @@ int wmain(int argc,wchar_t** argv) {
 		}
 		if(depthCpu)depthCpu->Release();if(depthGpu)depthGpu->Release();
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
-			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr<<'\n'<<std::flush;
+			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr
+			<<" beyond_far_clamped="<<farPlane.beyondFar<<" above_limit="<<farPlane.aboveLimit
+			<<" max_depth="<<std::setprecision(9)<<farPlane.maxDepth<<" far_limit="<<farPlane.limit<<std::setprecision(6)
+			<<" policy=beyond-far-plane-is-far-plane\n"<<std::flush;
 		if(FAILED(depthHr)){outcome=14;break;}
 		if(liveChannel) {
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);

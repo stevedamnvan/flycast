@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG772 implementation after session e: RemakeCameraAnchor selects the anchoring
+basis by exact point lineage with the last accepted set when a frame carries
+several rigid bases (same shared-support thresholds; size majority only without
+lineage; an even split without lineage stays ambiguous) and reports
+frames_since_last, the export interval of the from-last motion, in the observed
+camera and view-cut logs. The helper applies D-209: returned depth in
+(1, f/(f-n)] is returned as the far plane with per-return counts and the
+measured maximum (`beyond_far_clamped`, `above_limit`, `max_depth`,
+`far_limit`); larger values stay as measured and reject; the raw depth artifact
+is unaltered. Automation selftest798/0 (lineage split fixture, interval
+fixture, far-plane clamp within the projection limit only, untouched in-range
+depth, invalid planes unchanged), remake-sdk-contract257/0, launcher tests16.
+Four configurations built serially (automation, baseline, no-ngx, off). The
+policy is unverified in play until the next manual session on the open stage.
+
 LOG771 manual session fc067-anchor-manual-e (lineage basis selection, same
 player, the open stage with two large rigid scenery groups requested): first
 publish at2:30 (source9668, three rigid bases,238 moving points);72 exported
