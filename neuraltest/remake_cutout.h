@@ -33,9 +33,13 @@ float4 main(float4 vertex : COLOR0,float2 uv : TEXCOORD0) : COLOR0 {
 }
 // ShadInstr3 only, matching LegacySamplingSupported. Alpha inputs are selected
 // independently; disabled vertex/texture alpha means one, not zero.
-inline HRESULT ApplyLegacyAlpha(IDirect3DDevice9* device,const Mesh& mesh,IDirect3DPixelShader9* shader=nullptr) {
+// opaqueAlphaOne (D-220 diagnostic A/B only): a mesh that neither blends nor
+// cuts out emits alpha one instead of the texture alpha, so the consumer cannot
+// read an opaque surface as translucent. Off by default; not a source truth.
+inline HRESULT ApplyLegacyAlpha(IDirect3DDevice9* device,const Mesh& mesh,IDirect3DPixelShader9* shader=nullptr,bool opaqueAlphaOne=false) {
  if(!device||!mesh.sourceTsp)return E_INVALIDARG;
  const auto tsp=*mesh.sourceTsp;const bool cutout=mesh.sourceAlphaReference.has_value();
+ const DWORD opaqueAlpha=(opaqueAlphaOne&&!cutout&&!mesh.sourceAlphaBlend)?D3DTA_TFACTOR:D3DTA_TEXTURE;
  if(cutout&&!shader)return E_INVALIDARG;
  const DWORD texture=(tsp&(1u<<19))?D3DTA_TFACTOR:D3DTA_TEXTURE;
  const DWORD vertex=(tsp&(1u<<20))?D3DTA_DIFFUSE:D3DTA_TFACTOR;
@@ -49,7 +53,7 @@ inline HRESULT ApplyLegacyAlpha(IDirect3DDevice9* device,const Mesh& mesh,IDirec
   ||FAILED(device->SetRenderState(D3DRS_ALPHAREF,mesh.sourceAlphaReference.value_or(0)))
   ||FAILED(device->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL))
   ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAOP,(cutout||mesh.sourceAlphaBlend)?D3DTOP_MODULATE:D3DTOP_SELECTARG1))
-  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG1,(cutout||mesh.sourceAlphaBlend)?texture:D3DTA_TEXTURE))
+  ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG1,(cutout||mesh.sourceAlphaBlend)?texture:opaqueAlpha))
   ||FAILED(device->SetTextureStageState(0,D3DTSS_ALPHAARG2,vertex)))return E_FAIL;
  if(FAILED(device->SetTextureStageState(1,D3DTSS_COLOROP,D3DTOP_DISABLE))
   ||FAILED(device->SetPixelShader(cutout?shader:nullptr)))return E_FAIL;

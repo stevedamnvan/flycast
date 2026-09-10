@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-220: the helper starts its runtime before its first source; history retirement keeps compiled objects; the translucent look is the promoted alpha surfaces
+
+LOG793. The live return-only helper creates its device and warms up before
+receiving the first live source, so runtime startup never holds the host's
+sources; warmup is eight frames there. Retiring temporal history at a
+re-anchor (D-207) resets every cross-frame image and the retained raster
+output but keeps compiled pipeline objects that hold no history; a
+re-anchor's cost is the pipeline latency, not a shader compile. Texture
+registrations log a content digest so texture identity across sessions is
+evidence, not assumption. The translucent look is attributed by a bounded A/B
+to the D-183 promoted alpha surfaces; the lane's composition is not changed
+by this decision, and the A/B controls (`--alpha-combined-off`,
+`--opaque-alpha-one`) are diagnostic options, never defaults.
+
 ## D-219: the helper overlaps the next receive with the GPU readback, bounded; transport-only digests may change, receipt digests may not
 
 LOG792. The helper receives the next packet while the GPU completes the

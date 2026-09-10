@@ -1,5 +1,55 @@
 # Neural rendering evidence log
 
+LOG793 D-220: the helper's first-packet startup, the translucent look, texture
+identity across sessions, and the re-anchor stall. (1) First-packet startup:
+the helper received its first live packet before creating its device, so the
+runtime's own startup (device, shaders, Reflex: 16:30:48.9 to 16:30:52.9 in
+fc075-cpu-d220-a, about 4 s) was spent holding the host's three sources;
+shortening the synthetic warmup from 60 to 8 frames alone did not help (prepare
+4529 ms, 185 credit skips). The live return-only session now receives its first
+source after startup and warms for 8 frames: fc075-cpu-d220-b first-packet
+prepare 231 ms, 12 credit skips (185 and about 150 before). (2) Attribution of
+the slower emulated frame: CPU-timing fc075-cpu-d220-b against
+fc075-submit-timing-r (D-218 build) shows a uniform 8 to 10 percent rise across
+the emulator-thread scopes (frame-submit-neural 9.3 to 10.4 ms, scene-feed 3.0
+to 3.4, returned-evaluate 4.6 to 5.0, view-scene 1.09 to 1.17; frame-gap
+unchanged 4.7), not one stage; consistent with contention from the added
+threads, not attributed further. VRAM growth: 406 MB in fc075-cpu-d220-b and
+fc075-perf-d220-c, 948 MB in fc075-perf-d220-d; the 946/948 MB runs end with
+194 owned objects (the maximum) against 188, six renderer objects not released
+by the run's end; not attributed further. (3) Performance-eligible
+fc075-perf-d220-c and -d (OIT route, D-220 helper): present p50 18.82/18.95 ms,
+p95 25.07/24.91, p99 30.25/29.23; 8 and 10 output repeats, latency mean
+3.01/3.71 (max 4), no identity fault; gate reading 98.98 and 98.89 percent
+fresh of steady presents (99.63 percent of remake presents). The non-fresh
+steady presents are 11 and 12, of which 8 to 9 sit at samples 998 to 1006 in
+both runs: the in-session re-anchor at source 3099 (D-207; support report
+last_accepted 1012, shared_last 424, rotation 108 degrees from the reference)
+produces five automatic presents (the new generation's pipeline latency) and
+two to three held-native presents, one of them a 266 ms present interval: the
+first evaluation after the history reset re-initialized the motion raster
+(D3DCompile of both shaders, about 240 ms between the geometry-motion and
+GPU-guidance lines). The raster holds no cross-frame history (its retained
+output is a separate object that is still reset), so retirement now keeps it.
+The support report logs frames_since_last. (4) Texture identity: the helper
+logs a content digest (FNV-1a over the DDS bytes) per texture registration;
+fc075-perf-d220-c and -d registered the same 36 keys with 36 identical
+digests, no re-registration with changed bytes, so replacement assets keyed on
+texture content would match across sessions. (5) Translucent look, bounded A/B
+at source 2601 (capture runs, not performance-eligible): alpha-combined off
+changes 43294 of 307200 pixels of the returned Remix image against the
+baseline capture, concentrated in the gate interior lattice, the banner
+fringes and the floor line (the promoted alpha surfaces render as bright
+translucent material where the source blends a dark interior); opaque alpha
+forced to one changes 5571 pixels. The translucent look is therefore the D-183
+promoted alpha surfaces ray-traced as translucent, not opaque-list texture
+alpha. Composition unchanged; the two controls stay launcher options. (6) The
+RTX Remix Toolkit is not installed; its source clone was refused by the
+session's permission classifier and the NVIDIA App route needs a desktop GUI;
+no third-party binary was inspected or acquired. Performance-eligible fc075-perf-d220-e and -f (raster retained, same helper): present p50 18.14/18.04 ms, p95 23.94/23.47, p99 30.44/32.19; the re-anchor's held-native presents now take 15 to 22 ms (no 266 ms present) but the re-anchor still costs 8 to 10 presents (four to five automatic, three to five held-native), and scattered single repeats vary between runs (16 and 20 repeats against 8 and 10 in -c/-d, several with 9 to 10 ms present intervals: a present before the next evaluation), so the gate reads 98.52 and 97.96 percent fresh of steady presents; not passed. frames_since_last=0 at the rejection: the last accepted source is the previous frame, a genuine one-frame cut (D-207). Selftest
+868/0 (automation, baseline, no-ngx), remake-sdk-contract 260/0, launcher
+tests 16.
+
 LOG792 D-219: the helper's turnaround, the credit skips, and the gate again.
 Credit-skip states (`no-return-credit` skips now log the channel's sequence,
 returned sequence, sources and slot states): in fc075-submit-timing-o, 157

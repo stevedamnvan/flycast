@@ -394,7 +394,10 @@ protected:
 	void retireRemakeTemporalHistory() {
 		remakeReturnWorker.Discard();remakePreparedReturn.reset();
 		remakeTemporalHistory.Reset();
-		remakeMotionRaster={};remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
+		// D-220: the motion raster holds no cross-frame history (its retained
+		// output is remakeAcceptedRaster, reset here); destroying it made the first
+		// evaluation after a re-anchor recompile its shaders (a 266 ms present).
+		remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();

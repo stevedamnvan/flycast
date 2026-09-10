@@ -2814,10 +2814,10 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 				NOTICE_LOG(RENDERER,"Remake async skip: frame=%llu producer=%llu stage=%s reason=%s",
 					(unsigned long long)fed.frame,(unsigned long long)fed.producer.ordinal,fed.stage.c_str(),fed.error.c_str());
 			if(fed.stage=="camera-anchor"&&fed.support.rejected&&fed.error=="anchor-source-support-changed")
-				NOTICE_LOG(RENDERER,"Remake anchor support report: source=%llu reference_producer=%llu points=%u reference=%u shared_reference=%u last_accepted=%u shared_last=%u rotation_from_reference_deg=%.6g translation_from_reference=%.6g rotation_from_last_deg=%.6g translation_from_last=%.6g bases=%u",
+				NOTICE_LOG(RENDERER,"Remake anchor support report: source=%llu reference_producer=%llu points=%u reference=%u shared_reference=%u last_accepted=%u shared_last=%u frames_since_last=%llu rotation_from_reference_deg=%.6g translation_from_reference=%.6g rotation_from_last_deg=%.6g translation_from_last=%.6g bases=%u",
 					(unsigned long long)fed.frame,(unsigned long long)fed.referenceOrdinal,
 					unsigned(fed.support.points),unsigned(fed.support.reference),unsigned(fed.support.sharedReference),
-					unsigned(fed.support.lastAccepted),unsigned(fed.support.sharedLast),
+					unsigned(fed.support.lastAccepted),unsigned(fed.support.sharedLast),(unsigned long long)fed.support.framesSinceLast,
 					fed.support.rotationFromReferenceDegrees,fed.support.translationFromReference,
 					fed.support.rotationFromLastDegrees,fed.support.translationFromLast,unsigned(fed.support.bases));
 			if(fed.supportChanged) {

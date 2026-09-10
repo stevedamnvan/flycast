@@ -161,20 +161,24 @@ performance-eligible fc075-perf-d219-a reads 95.3 percent fresh of steady
 presents (99.1 percent of remake presents, 12 repeats) with the remaining
 credit skips concentrated in the helper's first-packet startup (about 150
 in the first 200 frames after the first feed), and the normal-renderer route
-does not activate the native-effects lane (`unsupported-renderer`). Next
-operational action: attribute and cut the helper's first-packet startup
-(the first packet registers every texture, about 10 MB) so the 120-present
-warmup allowance covers it; attribute the slower emulated frame of
-fc075-perf-d219-a (PVR join period 19.0 against 17.0) and the 946 MB VRAM
-growth with a CPU-timing run of the same build; then repeat two
-performance-eligible OIT runs and evaluate the gate. Decide with the user
-the reported translucent look (LOG792: D-183 promoted alpha surfaces
-ray-traced as translucent, and opaque-list texture alpha passed through):
-verify which mechanism by a bounded A/B (alpha-combined off; opaque alpha
-forced to one) before changing the lane's composition. Re-check the
-in-session re-anchor at source about 3099 (support overlap 424 of 1000) by
-logging the frames since the last accepted source at the rejection. The
-budget lane stays diagnostic.
+does not activate the native-effects lane (`unsupported-renderer`). D-220
+(LOG793): the helper starts its runtime before its first source (startup
+credit skips 185 to 12), texture content digests are identical across two
+sessions (36 of 36), the translucent look is attributed to the D-183 promoted
+alpha surfaces by a bounded A/B (composition unchanged), and the re-anchor at
+source 3099 is the remaining gate cost (98.98 and 98.89 percent fresh of
+steady presents; 8 to 9 of the 11 to 12 non-fresh presents at the re-anchor,
+one a 266 ms motion-raster recompile now removed). Performance-eligible fc075-perf-d220-e and -f (raster retained, same helper): present p50 18.14/18.04 ms, p95 23.94/23.47, p99 30.44/32.19; the re-anchor's held-native presents now take 15 to 22 ms (no 266 ms present) but the re-anchor still costs 8 to 10 presents (four to five automatic, three to five held-native), and scattered single repeats vary between runs (16 and 20 repeats against 8 and 10 in -c/-d, several with 9 to 10 ms present intervals: a present before the next evaluation), so the gate reads 98.52 and 97.96 percent fresh of steady presents; not passed. frames_since_last=0 at the rejection: the last accepted source is the previous frame, a genuine one-frame cut (D-207). Next
+operational action: with the user, decide the D-183 promoted alpha
+composition (the source blends those surfaces over the opaque scene; the
+consumer ray-traces them as translucent materials): candidates are exporting
+them as opaque emissive-free decals, or excluding them from the export and
+keeping them native, each measured by the same source-2601 capture; then
+re-evaluate the gate on two performance-eligible OIT runs. The 946/948 MB
+VRAM runs (six owned renderer objects not released by run end) remain
+unattributed. The RTX Remix Toolkit route needs the user to permit the source
+clone or install it through the NVIDIA App; the lane's texture digests are
+ready for it. The budget lane stays diagnostic.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

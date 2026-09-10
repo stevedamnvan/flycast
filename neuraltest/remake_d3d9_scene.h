@@ -31,6 +31,8 @@ class D3D9PacketScene {
  Packet previous_;
  remixapi_LightHandle light_=nullptr;
  IDirect3DPixelShader9* cutoutShader_=nullptr;
+ // D-220 diagnostic A/B: opaque meshes emit alpha one (env FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1).
+ const bool opaqueAlphaOne_=[]{wchar_t v[2]{};return GetEnvironmentVariableW(L"FLYCAST_REMAKE_OPAQUE_ALPHA_ONE",v,2)==1&&v[0]==L'1';}();
  bool failed_=false,ready_=false;
  bool refreshResources_=false;
  bool allowSkippedSources_=false;
@@ -212,7 +214,7 @@ class D3D9PacketScene {
    for(std::size_t j=0;j<r.indices.size();++j){const auto& v=mesh.vertices[r.indices[j]];output[j]={v.position.x,v.position.y,v.position.z,v.normal->x,v.normal->y,v.normal->z,v.publicColor,v.u,v.v};}
    hr=r.vb->Unlock();if(FAILED(hr))break;
    const auto tsp=*mesh.sourceTsp;
-   if(FAILED(ApplyLegacyAlpha(device_,mesh,cutoutShader_))){hr=E_FAIL;break;}
+   if(FAILED(ApplyLegacyAlpha(device_,mesh,cutoutShader_,opaqueAlphaOne_))){hr=E_FAIL;break;}
    const auto address=[](bool clamp,bool mirror){return clamp?D3DTADDRESS_CLAMP:mirror?D3DTADDRESS_MIRROR:D3DTADDRESS_WRAP;};
    if(FAILED(device_->SetTexture(0,r.texture))||FAILED(device_->SetStreamSource(0,r.vb,0,sizeof(Vertex)))||
       FAILED(device_->SetSamplerState(0,D3DSAMP_ADDRESSU,address(tsp&(1<<16),tsp&(1<<18))))||

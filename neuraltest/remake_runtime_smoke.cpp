@@ -97,6 +97,7 @@ int wmain(int argc,wchar_t** argv) {
  std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
   <<" runtime_watchdog_seconds="<<*runtimeBudget<<"\n"<<std::flush;
  std::optional<Packet> snapshot;
+ std::optional<std::pair<float,float>> deferredLiveClip; // D-220: first live source received after runtime start.
  std::vector<Packet> sequence;
  std::filesystem::path capture;
  std::filesystem::path replacementTexture;
@@ -129,6 +130,14 @@ int wmain(int argc,wchar_t** argv) {
  // failed live source, never a guessed texture.
  std::map<std::array<std::uint64_t,4>,TextureSourceBytes> textureReferences;std::size_t textureReferenceBytes=0;
  unsigned long long referencedMeshes=0,registeredMeshes=0;
+ // D-220: each registration logs a content digest (FNV-1a over the DDS bytes)
+ // so texture identity can be compared across sessions; runtime replacement
+ // assets key on texture content, so a changed digest means a lost match.
+ const auto contentDigest=[](const std::vector<unsigned char>& bytes) {
+  std::uint64_t hash=14695981039346656037ull;
+  for(unsigned char b:bytes){hash^=b;hash*=1099511628211ull;}
+  return hash;
+ };
  const auto textureReferenceKey=[](const Mesh& mesh) {
   return std::array<std::uint64_t,4>{mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration};
  };
@@ -148,8 +157,13 @@ int wmain(int argc,wchar_t** argv) {
     }
     // Re-registration of identical bytes keeps the storage an uploaded resource
     // is bound to; different bytes replace it, so that resource is rebuilt.
-    if(!found->second||*found->second!=bytes)found->second=std::make_shared<const std::vector<unsigned char>>(std::move(bytes));
+    const bool replaced=!found->second||*found->second!=bytes;
+    if(replaced)found->second=std::make_shared<const std::vector<unsigned char>>(std::move(bytes));
     bytes.clear();
+    if(replaced)
+     std::cout<<"texture_register id="<<mesh.texture.id<<" generation="<<mesh.texture.generation<<" palette="<<mesh.texture.paletteGeneration
+      <<" rtt="<<mesh.texture.rttGeneration<<" bytes="<<found->second->size()<<" content_digest="<<std::hex<<contentDigest(*found->second)<<std::dec
+      <<" frame="<<packet.frame<<"\n";
     mesh.textureWire=flycast::rend::neural::remake::TextureWire::Referenced;++registeredMeshes;
    }else if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Referenced) {
     const auto found=textureReferences.find(key);
@@ -294,7 +308,11 @@ int wmain(int argc,wchar_t** argv) {
      const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
      if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
      std::cout<<"live_channel_ready=true bounded_source_wait_ms="<<sourceWaitMs<<" live_idle_wait_ms="<<RemakeLiveIdleWaitMs(sessionWorker)<<" saved_packets_read=false\n"<<std::flush;
-     try{receiveNext(p,sourceWaitMs);}
+     // D-220: the live return-only session receives its first source after the
+     // runtime has started (device, shaders, Reflex: about 4 s), so that startup
+     // is not spent holding the host's three sources.
+     if(liveChannelAsync&&returnOnly){deferredLiveClip=std::make_pair(clipNear,clipFar);}
+     else try{receiveNext(p,sourceWaitMs);}
      catch(const std::runtime_error& e) {
       // A session worker whose channel closes before its first source was
       // retired by the host (a renderer re-initialization requests the next
@@ -305,8 +323,11 @@ int wmain(int argc,wchar_t** argv) {
       throw;
      }
     } else if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
-    if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
-    snapshot=std::move(p);
+    if(deferredLiveClip)std::cout<<"live_first_source=deferred-until-runtime-start\n"<<std::flush;
+    else {
+     if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
+     snapshot=std::move(p);
+    }
    } else snapshot=LoadDiagnosticArtifact(argv[6],argv[8],clipNear,clipFar);
    if(argc==18) {
     if(frames!=63 || std::wstring(argv[12])!=L"--next" || std::wstring(argv[14])!=L"--next" ||
@@ -344,13 +365,15 @@ int wmain(int argc,wchar_t** argv) {
     }
    }
    if(legacyMemory) {
-    auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok)throw std::invalid_argument(own.reason);
-    for(auto& endpoint:sequence){own=OwnDiagnosticTextures(endpoint);if(!own.ok)throw std::invalid_argument(own.reason);}
+    if(snapshot){auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok)throw std::invalid_argument(own.reason);}
+    for(auto& endpoint:sequence){const auto own=OwnDiagnosticTextures(endpoint);if(!own.ok)throw std::invalid_argument(own.reason);}
     std::cout<<"texture_transport=owned-memory file_reads_during_draw=false live_provider="<<(liveChannel?"true":"false")<<'\n';
    }
-   std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
-    <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
-   if(!snapshot->diagnosticEmbeddingProvenance.empty())std::cout<<"diagnostic_embedding="<<snapshot->diagnosticEmbeddingProvenance<<'\n';
+   if(snapshot) {
+    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
+     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
+    if(!snapshot->diagnosticEmbeddingProvenance.empty())std::cout<<"diagnostic_embedding="<<snapshot->diagnosticEmbeddingProvenance<<'\n';
+   }
   }catch(const std::exception& e){std::cerr<<"artifact rejected before runtime load: "<<e.what()<<'\n';return 2;}
  }
  std::error_code error;
@@ -444,6 +467,10 @@ int wmain(int argc,wchar_t** argv) {
    <<" scene_light_authored=true recovered_game_lighting=false external_consumer_setting=false\n";
   std::cerr<<"scene_light_anchor="<<anchoredLight<<" first_source_direction_fixed="<<anchoredLight<<'\n';
   D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight,resolveTextureReference);
+  // D-220: the live return-only session warms the retained scene for eight
+  // frames instead of sixty; the host holds three sources meanwhile and every
+  // warmup frame is a frame of credit skips on its side.
+  const long liveStart=(liveChannelAsync&&returnOnly)?9:61;
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -451,7 +478,22 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
-   if(liveChannel&&frame>=61) {
+   if(deferredLiveClip&&frame==0) {
+    // D-220: deferred first source (see above); the same checks as the eager path.
+    Packet p;
+    try{receiveNext(p,sourceWaitMs);}
+    catch(const std::runtime_error& e) {
+     if(sessionWorker&&std::string(e.what())=="channel-closed"){std::cerr<<"live source failed: channel-closed before first source\n";outcome=11;break;}
+     std::cerr<<"live source failed: "<<e.what()<<'\n';outcome=11;break;
+    }
+    if(p.camera.nearPlane!=deferredLiveClip->first||p.camera.farPlane!=deferredLiveClip->second){std::cerr<<"live source failed: live packet clip declaration mismatch\n";outcome=11;break;}
+    snapshot=std::move(p);
+    if(legacyMemory){auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok){std::cerr<<"live source failed: "<<own.reason<<'\n';outcome=11;break;}}
+    std::cout<<"diagnostic_snapshot=true source_frame="<<snapshot->frame<<" source_sha="<<snapshot->sourceGitSha
+     <<" omissions="<<snapshot->omissions.size()<<" moving_gameplay_proven=false\n";
+    if(!snapshot->diagnosticEmbeddingProvenance.empty())std::cout<<"diagnostic_embedding="<<snapshot->diagnosticEmbeddingProvenance<<'\n';
+   }
+   if(liveChannel&&frame>=liveStart) {
     try {
      Packet next;
      if(prefetchError)throw std::runtime_error(*prefetchError);
@@ -546,7 +588,7 @@ int wmain(int argc,wchar_t** argv) {
    return true;
    };
    if(!legacyRaster&&!presentFrame())break;
-  if(!capture.empty() && (frame+1==frames || ((!sequence.empty()||liveChannel) && frame>=60&&!settledFrozen)) && ownedDevice) {
+  if(!capture.empty() && (frame+1==frames || ((!sequence.empty()||liveChannel) && frame>=liveStart-1&&!settledFrozen)) && ownedDevice) {
 	flycast::rend::neural::RemakeReturnedImage returnedFrame;
    const std::filesystem::path capturePath=sequence.empty()&&!liveChannel?capture:
     std::filesystem::path(capture.wstring()+L".frame-"+std::to_wstring(packet.frame)+L".bmp");
@@ -577,7 +619,7 @@ int wmain(int argc,wchar_t** argv) {
     readbackMs=msSince(readbackStart);
    }
    // D-219: overlap the next packet's receive with this readback's GPU completion.
-   if(liveChannel&&liveChannelAsync&&returnOnly&&SUCCEEDED(hr)&&frame+1<frames&&frame+1>=61&&!prefetched&&!prefetchError)
+   if(liveChannel&&liveChannelAsync&&returnOnly&&SUCCEEDED(hr)&&frame+1<frames&&frame+1>=liveStart&&!prefetched&&!prefetchError)
     prefetchNext(3); // Bounded: about the readback's GPU time, never a frame.
    D3DLOCKED_RECT locked{};
    const auto lockStart=std::chrono::steady_clock::now();

@@ -113,7 +113,11 @@ and `return_ms` (D-219). The live channel keeps three sources in flight
 (D-218); `no-return-credit` skip lines carry the channel state (sequence,
 returned sequence, sources, slot and image states). `--renderer dx11-oit`
 (default) or `dx11` selects the host route; the native-effects lane
-currently activates only on the OIT route (LOG792). The scene feed runs anchor, temporal capture,
+currently activates only on the OIT route (LOG792). `--alpha-combined-off`
+and `--opaque-alpha-one` are the D-220 translucency A/B controls (diagnostic,
+default off). The helper logs `texture_register ... content_digest=` per
+texture registration (D-220) and, in the live return-only mode, receives its
+first source after runtime startup (`live_first_source=deferred-until-runtime-start`). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and

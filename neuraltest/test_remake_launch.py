@@ -111,6 +111,13 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.renderer = 'dx11-oit'
         self.assertEqual(default[3][default[3].index('--timeout-ms')+1], '180000')
         self.assertNotIn('FLYCAST_REMAKE_CPU_TIMING', default[2])
+        self.assertEqual(default[2]['FLYCAST_REMAKE_ALPHA_COMBINED'], '1')
+        self.assertNotIn('FLYCAST_REMAKE_OPAQUE_ALPHA_ONE', default[2])
+        self.args.alpha_combined_off = True; self.args.opaque_alpha_one = True
+        ab = prepare(self.args)[2]
+        self.assertEqual(ab['FLYCAST_REMAKE_ALPHA_COMBINED'], '0')
+        self.assertEqual(ab['FLYCAST_REMAKE_OPAQUE_ALPHA_ONE'], '1')
+        self.args.alpha_combined_off = False; self.args.opaque_alpha_one = False
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
         self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])

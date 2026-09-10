@@ -39,6 +39,11 @@ def prepare(args):
                FLYCAST_REMAKE_ASYNC_START_PRODUCER='0' if args.manual_input else '2090')
     if args.managed_session:
         env['FLYCAST_REMAKE_MANAGED_SESSION'] = '1'
+    # D-220 translucency A/B (diagnostic controls, both default off/unchanged).
+    if getattr(args, 'alpha_combined_off', False):
+        env['FLYCAST_REMAKE_ALPHA_COMBINED'] = '0'
+    if getattr(args, 'opaque_alpha_one', False):
+        env['FLYCAST_REMAKE_OPAQUE_ALPHA_ONE'] = '1'
     host = [str(paths['harness']), 'performance', '--game', str(paths['game']),
             '--flycast', str(paths['flycast']), '--out', str(out/'host'),
             '--frames', '1200', '--warmup', '2100', '--lane', 'dlss5', '--api', 'd3d11on12',
@@ -245,6 +250,10 @@ def main():
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
     p.add_argument('--renderer', choices=['dx11-oit', 'dx11'], default='dx11-oit',
                    help='Host renderer route for the run (the 600-frame gate asks for both); default dx11-oit')
+    p.add_argument('--alpha-combined-off', action='store_true',
+                   help='A/B control: disable the promoted alpha surfaces (FLYCAST_REMAKE_ALPHA_COMBINED=0)')
+    p.add_argument('--opaque-alpha-one', action='store_true',
+                   help='A/B control: the helper draws opaque meshes with alpha one (FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1)')
     p.add_argument('--hook-cycles', action='store_true',
                    help='With --cpu-timing: per-hook cycle accounting on the emulation thread (D-218); diagnostic only')
     p.add_argument('--frame-budget-ms', type=float, default=None,
@@ -269,6 +278,7 @@ def main():
                   cpu_timing=args.cpu_timing,
                   hook_cycles=args.cpu_timing and args.hook_cycles,
                   renderer=args.renderer,
+                  alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,
                   consumer_config_sha256=hashlib.sha256(args.consumer_config.read_bytes()).hexdigest()
