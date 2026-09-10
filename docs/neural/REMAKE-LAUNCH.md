@@ -64,3 +64,25 @@ records at most120 source frames starting at2700. Capture runs use the separate
 diagnostic timeout and are marked ineligible for performance evidence. Preview
 metadata includes session tokens; verify those against helper receipts and
 completed Presents instead of assuming labels prove provenance.
+
+`--remix-only` requires bounded capture and skips neural evaluation of the returned
+scene while preserving the same owned native effects and HUD composition. It is
+a diagnostic comparison, not a performance lane. Metadata explicitly records
+`comparison_lane=remix-only` and `neural_evaluation_skipped=true`; legacy
+`evaluated-remix.png` names the owned pre-HUD presentation surface, not evidence
+of neural execution. The default remains the combined experiment. Compare exact
+returned pixels as well as scene/native/HUD identity before attributing differences
+to neural processing; separate live Remix runs need not return identical pixels.
+
+For exact-input isolation, first use `--effect-identity --capture-frames 30`
+with a positive `--capture-start-source`. Then pass that run's captures directory
+as `--locked-input-root` at the same start frame. Existing source/effect/temporal
+identity checks remain mandatory; missing or mismatched archives reject the run.
+These synchronous diagnostics retain the30-frame limit and cannot prove the
+full300-frame moving quality or performance gate.
+
+`--returned-dlaa` selects public DLAA on the returned Remix image for bounded
+capture; it is mutually exclusive with `--remix-only`. Use an already prepared
+hooks-disabled host and verify its active log reports no neural hooks. Merely
+requesting DLAA is not proof the supplied consumer left it untouched. This is
+not the target-native PVR DLAA lane. The launcher never edits hook policy.

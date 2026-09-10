@@ -170,7 +170,18 @@ artificial600-return rotation:120 consecutive sources2700..2819 in one generatio
 pass receipt/packet and exact HUD/composition/Present checks. Real scene-change
 handover gaps remain open. Finish the pending serial build checkpoint, then
 advance the synchronized native/public-DLAA/Remix/combined moving comparison
-through the existing provenance route. Do not repeat helper-lifetime proof or
+through the existing provenance route. LOG727 verifies120 consecutive effects/HUD-
+preserving Remix-only Presents; exact scene matches but live returned pixels differ,
+so the isolation comparison fails. LOG730 locked replay subsequently matches28
+consecutive color/depth/scene/effect/HUD inputs and completed Presents, with two
+startup omissions retained. LOG736-737 adds28 matched returned-DLAA/combined
+captures and clean shutdown. This is not target-native PVR DLAA, which remains
+missing from the current moving comparison. LOG733's intermittent depth failure
+remains open; LOG735 verifies owned-child abort cleanup and adds specific rejection
+diagnostics without changing acceptance. After saving the tested slices, add the
+target-native PVR DLAA lane to the same moving interval. Keep the supplied tuple's
+worse component metrics and nonreproduced depth failure visible. Do not
+repeat live runs or weaken equality. Do not repeat helper-lifetime proof or
 misclassify intentional native weapon trails as reconstruction defects. No
 lighting winner, general camera recovery or performance acceptance is implied.
 

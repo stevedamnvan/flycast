@@ -540,7 +540,11 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 			error="preview session token invalid";return false;
 		}
 		std::ofstream report(directory/"preview.json");report.imbue(std::locale::classic());
+		const auto* comparison=std::getenv("FLYCAST_REMAKE_COMPARE_REMIX_ONLY");
+		const bool remixOnly=comparison&&std::strcmp(comparison,"1")==0;
 		report<<"{\"session_token\":\""<<sessionToken<<"\",\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
+			<<",\"comparison_lane\":\""<<(remixOnly?"remix-only":"combined-experimental")<<"\""
+			<<",\"neural_evaluation_skipped\":"<<(remixOnly?"true":"false")
 			<<",\"evaluated_remix\":"<<(evaluated?"true":"false")
 			<<",\"native_effects_applied\":"<<(preEffects?"true":"false")
 			<<",\"native_effect_rgb_changed_pixels\":"<<effectPixels

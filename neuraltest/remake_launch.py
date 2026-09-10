@@ -58,6 +58,28 @@ def prepare(args):
         helper.append('--session-worker')
     capture_frames = getattr(args, 'capture_frames', 0)
     capture_start = getattr(args, 'capture_start_source', 0)
+    remix_only = getattr(args, 'remix_only', False)
+    if remix_only and not capture_frames:
+        raise ValueError('Remix-only comparison requires bounded image capture')
+    if remix_only:
+        env['FLYCAST_REMAKE_COMPARE_REMIX_ONLY'] = '1'
+    returned_dlaa = getattr(args, 'returned_dlaa', False)
+    if returned_dlaa:
+        if remix_only or not capture_frames:
+            raise ValueError('Returned DLAA requires capture and cannot skip neural evaluation')
+        host[host.index('--lane')+1] = 'dlaa'
+    effect_identity = getattr(args, 'effect_identity', False)
+    locked = getattr(args, 'locked_input_root', None)
+    if effect_identity or locked:
+        if not 1 <= capture_frames <= 30 or capture_start <= 0:
+            raise ValueError('Exact effects comparison requires 1..30 captures and positive source start')
+        env['FLYCAST_REMAKE_EFFECT_IDENTITY'] = '1'
+        env['FLYCAST_REMAKE_COMPARE_START_FRAME'] = str(capture_start)
+    if locked:
+        locked = Path(locked).resolve(strict=True)
+        if not locked.is_dir() or not any(locked.glob('*/native-effect-identity.bin')):
+            raise ValueError('Locked source requires captured native effect identity')
+        env['FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT'] = str(locked)
     if not 0 <= capture_frames <= 300 or not 0 <= capture_start <= 10000000:
         raise ValueError('Capture bounds exceeded')
     if capture_frames:
@@ -163,6 +185,14 @@ def main():
     p.add_argument('--capture-frames', type=int, default=0,
                    help='Developer image capture 1..300; excludes this run from performance evidence')
     p.add_argument('--capture-start-source', type=int, default=0)
+    p.add_argument('--remix-only', action='store_true',
+                   help='Capture-only comparison: skip neural evaluation, preserve native effects and HUD')
+    p.add_argument('--returned-dlaa', action='store_true',
+                   help='DLAA on returned Remix, not native-PVR DLAA; requires a supplied hooks-disabled host')
+    p.add_argument('--effect-identity', action='store_true',
+                   help='Synchronous exact-effects archive, at most30 frames; never performance evidence')
+    p.add_argument('--locked-input-root', type=Path,
+                   help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
@@ -170,6 +200,9 @@ def main():
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   manual_input=args.manual_input,
                   managed_session=args.managed_session,
+                  comparison_lane='remix-only' if args.remix_only else 'returned-dlaa-requested' if args.returned_dlaa else 'combined-experimental',
+                  locked_input_root=str(args.locked_input_root) if args.locked_input_root else None,
+                  effect_identity=args.effect_identity or bool(args.locked_input_root),
                   performance_eligible=args.capture_frames == 0,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,

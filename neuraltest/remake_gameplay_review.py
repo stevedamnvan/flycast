@@ -44,6 +44,7 @@ def main():
         panel = Image.new('RGB', (1920, 520), '#181818')
         draw = ImageDraw.Draw(panel)
         for i, (label, pixels) in enumerate(zip(('Native PVR', 'Returned Remix scene: before neural/effects/HUD',
+                                                'Remix only: effects/HUD, neural skipped' if record.get('neural_evaluation_skipped') else
                                                 'Combined experimental: effects/HUD composed'), (native, returned, final))):
             draw.text((i*640+8, 4), label, fill='white')
             panel.paste(Image.fromarray(pixels), (i*640, 24))

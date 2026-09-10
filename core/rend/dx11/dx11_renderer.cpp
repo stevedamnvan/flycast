@@ -2982,6 +2982,27 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(temporal&&!temporal->Matches(source)) {
 			NOTICE_LOG(RENDERER,"Remake temporal source rejected: receipt mismatch");return;
 		}
+		if(const auto* comparison=std::getenv("FLYCAST_REMAKE_COMPARE_REMIX_ONLY");comparison) {
+			// Explicit diagnostic lane. Never submit or advance accepted neural
+			// history; retain the same source effects and late overlay ownership.
+			if(std::strcmp(comparison,"1")!=0||!boundedComparison||!RemakeNativeEffectsRequested())return;
+			if(source.bgra.size()!=640*480*4)return;
+			D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;
+			desc.MipLevels=desc.ArraySize=1;desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+			desc.SampleDesc.Count=1;desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+			D3D11_SUBRESOURCE_DATA data{source.bgra.data(),640*4,0};
+			ComPtr<ID3D11Texture2D> raw,composed;ComPtr<ID3D11ShaderResourceView> composedView;
+			if(FAILED(device->CreateTexture2D(&desc,&data,&raw.get()))
+				||!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,raw,composed,composedView,
+					remakeAsyncAcceptedOverlay.alphaEffectSelections))return;
+			remakeEvaluatedSource=source;remakeEvaluatedOverlay=remakeAsyncAcceptedOverlay;
+			remakeEvaluatedOverlay.replayOriginalFrame=replayOriginalFrame;
+			remakeEvaluatedTexture=std::move(composed);remakeEvaluatedView=std::move(composedView);
+			remakePreEffectTexture=std::move(raw);
+			NOTICE_LOG(RENDERER,"Remake comparison output owned: source=%llu sequence=%llu lane=remix-only neural_submitted=false history_advanced=false",
+				(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
+			return;
+		}
 		if(temporal) {
 			std::string error;
 			const auto* previous=remakeTemporalHistory.CanReproject(*temporal)?remakeTemporalHistory.Last():nullptr;

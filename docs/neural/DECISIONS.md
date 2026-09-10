@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-205: separate returned-scene comparison stages and owned test lifetime
+
+Capture-only Remix-only mode skips neural submit/history advance but reuses owned
+native effects and late HUD composition. Returned-DLAA is distinct from native-PVR
+DLAA and requires fresh hooks-disabled host evidence. Compare frozen returned
+color/depth and effects before attributing output differences to processing;
+identical geometry alone is insufficient. Keep unmatched startup frames and
+scope limits; no still or single metric declares a visual winner.
+
+The performance harness assigns its suspended emulator child to a noninherited
+kill-on-close job before execution. A failed assignment fails launch; abrupt
+harness exit must not orphan its emulator. This owns only the launched process
+tree, never arbitrary processes discovered by executable name. Depth validation
+retains strict acceptance while reporting the particular failed component.
+
 ## D-204: managed workers outlive diagnostic batches
 
 Managed returned-scene workers use explicit session-worker mode with a finite

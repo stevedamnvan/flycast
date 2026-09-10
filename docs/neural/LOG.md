@@ -1,5 +1,129 @@
 # Neural rendering evidence log
 
+LOG739 postcommit83bd8c806 four-build chain terminates0, three758/0 selftests.
+Save the separately tested Remix-only/frozen/returned-DLAA comparison controls
+and retained LOG726-738 evidence. Only owned source/docs are staged; third-party
+configuration, captures, binaries and the three existing user untracked items
+remain excluded. Full working-pipeline acceptance remains open.
+
+LOG738 remaining serial builds complete0: baseline/no-NGX758/0 and feature-off
+linked/no work; automation758/0 already verified. Save standalone owned-lifetime
+and depth-diagnostic code as83bd8c806. Postcommit four-build/selftest chain started;
+comparison implementation and this evidence remain pending their separate commit.
+No new gameplay pass is inferred from compilation; intermittent depth failure
+remains open. Next current-matrix omission is native-PVR DLAA, not another repeated
+returned-image isolation run.
+
+LOG737 returned-DLAA c terminates launcher0/host0/final helper11 orderly close,
+no forced children and no remaining host/helper process. Earlier depth failure
+not reproduced, not fixed by diagnostic reporting.15 launcher tests pass again;
+backlog consistency passes. Remaining baseline/no-NGX/feature-off builds started
+only after GPU processes exited. Save independently validated comparison and
+owned-lifetime slices once those builds complete; full working-pipeline goal
+and intermittent depth failure remain open.
+
+LOG736 returned-DLAA retry c reaches28 captures2704..2731 without reproducing
+the earlier depth rejection; intermittent failure remains open. Public/combined
+comparison passes exact scene/native/HUD/returned-color/depth/effect/alpha inputs,
+composition and completed Presents for all28, no unmatched frames. Fresh public
+host reports SAFE MODE/hooks disabled. Pre-effects outputs differ on all28:
+between-output RGB MAE15.64237. Public/combined source MAE4.01799/17.08349,
+gradient error3.07671/3.88591, temporal delta1.95552/2.37250, source-relative
+temporal residual1.69466/2.25445, black drift0.24439/10.04806, saturation-range
+drift-0.19158/-7.37309 (8-bit RGB metrics). Midpoint inspected: combined softer.
+No full-guidance equality, fresh external sentinel proof, moving perceptual winner
+or full matrix acceptance inferred. Runtime still finishing. Current tuple is
+not supported as a quality improvement by these component metrics; do not force
+a winner or generalize to all settings. Retain public/native baselines and advance
+visual settings only inside supported geometry/identity constraints.
+
+LOG735 automation builds and selftest758/0 pass with depth reason assertions.
+Actual owned-job abort test launches native Flycast under performance harness,
+observes child6348 of harness13664 with exact executable path, abruptly terminates
+only that harness, then verifies child absent after2s. This proves this concrete
+abort cleanup case, not the whole transition matrix. Returned-DLAA retry c starts
+with new helper/host diagnostics and job ownership; same unchanged source archive
+and hooks-disabled host. Remaining serial configurations still pending.
+
+LOG734 implement unchanged depth acceptance with distinct extent/projection/
+nonfinite/range/missing diagnostics; existing negative tests now assert reasons.
+Performance harness creates its child suspended, assigns noninherited kill-on-
+job-close ownership, then resumes. Assignment failure terminates only its new
+child and fails launch. First patch matched another CreateProcess call; inspection
+caught and corrected it before build. Automation build/test underway; live abort
+verification and remaining configurations pending. No orphan-cleanup pass yet.
+
+LOG733 returned-DLAA retry b FAILS before target interval: helper outcome14 at
+source2267/sequence87, return-depth-contract rejection; zero captures. Do not
+attribute to jitter without evidence: validator combines depth range/finite and
+near/far equality checks, so current message cannot identify the cause. Supervisor
+correctly refuses unexpected helper retirement but terminates only harness33780;
+its owned Flycast child30940 remains live. Verified exact executable and parent,
+requested normal window close. This exposes a cleanup gap requiring bounded owned
+process-tree lifetime handling, not blanket process-name kills. Public-DLAA
+isolation remains failed; prior combined exact-input28 frames remain valid scoped
+evidence. Next distinguish depth rejection components and fix owned child cleanup.
+
+LOG732 combined locked run finally closes host0/helper11 orderly, no forced
+children. Returned-DLAA attempt a fails before gameplay: host3, no helper session,
+missing deterministic scripts input in existing hooks-disabled host. Copy only
+the existing input replay into its absent destination and verify equal SHA256;
+no external policy/configuration edited. Retry b uses separate evidence root.
+Preserve the failed launch; no public-output acceptance before actual captures.
+
+LOG731 owned launcher adds capture-only returned-DLAA selection, mutually exclusive
+with Remix-only;15 tests pass. Existing separate host text has EnableHooks=0 and
+historical SAFE MODE log; verify a fresh run before claiming uncontaminated public
+output. No external configuration modified. Combined locked run remains live;
+do not overlap another GPU run. Returned-DLAA is not target-native PVR DLAA.
+
+LOG730 locked combined comparison passes28 consecutive2704..2731; archived2702
+and2703 are unmatched startup frames, not a30-frame pass. Comparator checks exact
+scene/native/HUD/returned-color input and original HUD/composition/completed
+Present; independent hash joins also match depth, native-effect identity and
+alpha exclusions for all28. Midpoint2718 inspected: large brightness alteration
+already present in Remix-only; combined result softer. No moving perceptual
+winner, complete guidance equality or new external provenance claim. Runtime
+still finishing at this checkpoint. Preserve locked replay artifact and advance
+the public-DLAA isolation lane instead of another live-input comparison retry.
+
+LOG729 exact Remix-only archive completes launcher0/clean host close.30 captured
+sources2702..2731 (not requested2700 start) are consecutive, each with effect
+identity, exact nonempty HUD/composition/backbuffer and completed Present. Start
+delay retained. Launch combined locked replay at actual2702 against this archive;
+do not relabel the30-frame diagnostic as300-frame acceptance. External host reports
+upscalingOFF/intensity1/tone1/white203/preset0/style0/enabledON; unchanged tuple is
+an isolation control, not a promoted visual preset. Transition 'pass' strings on
+an uninjected run do not establish the transition matrix.
+
+LOG728 remaining Remix-only builds complete0: baseline/no-NGX758/0, feature-off
+linked. Existing120-frame captures lack native-effect-identity.bin because that
+synchronous diagnostic was disabled. Do not bypass replay's effect check. Expose
+owned --effect-identity and --locked-input-root launcher options with existing
+30-frame bound, positive comparison start and archive preflight;14 launcher tests
+pass. Planned30-frame Remix-only archive at2700 enables exact frozen replay. This
+short isolation slice does not replace the outstanding300-frame moving matrix.
+
+LOG727 Remix-only actual run completes host0/final helper11 orderly channel close,
+no forced children.120 consecutive2700..2819 captures pass nonempty exact HUD,
+composition/backbuffer and completed Present checks. Final2819 panel inspected:
+bright returned lighting remains before neural evaluation, HUD retained. Exact
+geometry/material comparator matches120 frames/5040 mesh records to worker capture.
+Strict Remix-versus-neural comparison FAILS at2700: returned pixels differ despite
+matching source geometry. Retain rejection; no causal neural-quality conclusion.
+Use existing locked-input replay for isolation, not relaxed input equality or a
+new random live rerun. Automation build758/0;13 launcher tests pass. Other build
+configurations still required for this uncommitted comparison implementation.
+
+LOG726 postcommit1883bf345 serial four-build command terminates0. Next bounded
+implementation adds a capture-only Remix comparison branch: same returned source,
+owned OIT effects and original HUD, but no neural submit/history advance. Existing
+owned presentation slot is reused; explicit comparison_lane and skipped-evaluation
+metadata distinguish it from combined output. Legacy evaluated_remix field/file
+names identify that presentation slot, not proof of neural execution. Require
+actual moving capture, matching source inputs and zero neural-submit log entries
+before accepting this lane. Defaults and external configuration remain untouched.
+
 LOG725 remaining serial builds terminate0: baseline and no-NGX each758/0;
 feature-off links successfully. Automation session-worker test also758/0.
 These are incremental builds, not fresh exact-SHA builds. Backlog contract

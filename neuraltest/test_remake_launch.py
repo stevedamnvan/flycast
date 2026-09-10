@@ -111,6 +111,38 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertEqual(env['FLYCAST_REMAKE_ASYNC_START_PRODUCER'], '0')
         self.assertEqual(host[host.index('--timeout-ms')+1], '180000')
 
+    def test_remix_only_requires_capture(self):
+        self.args.remix_only = True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.capture_frames = 120
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_COMPARE_REMIX_ONLY'], '1')
+
+    def test_exact_effects_capture_is_bounded(self):
+        self.args.effect_identity = True
+        for count,start in [(0,2700),(31,2700),(30,0)]:
+            self.args.capture_frames=count;self.args.capture_start_source=start
+            with self.assertRaises(ValueError):
+                prepare(self.args)
+        self.args.capture_frames=30;self.args.capture_start_source=2700
+        env=prepare(self.args)[2]
+        self.assertEqual(env['FLYCAST_REMAKE_EFFECT_IDENTITY'],'1')
+        self.assertEqual(env['FLYCAST_REMAKE_COMPARE_START_FRAME'],'2700')
+        self.args.locked_input_root=self.args.game.parent
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
+    def test_returned_dlaa_is_distinct(self):
+        self.args.returned_dlaa=True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.capture_frames=30
+        host=prepare(self.args)[3]
+        self.assertEqual(host[host.index('--lane')+1],'dlaa')
+        self.args.remix_only=True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
 
 if __name__ == '__main__':
     unittest.main()
