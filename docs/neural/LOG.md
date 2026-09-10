@@ -1,5 +1,99 @@
 # Neural rendering evidence log
 
+LOG719 remaining serial configurations complete: baseline/no-NGX753/0,
+feature-off linked; automation753/0 already passed.11 launcher tests pass,
+including exact log archive/config preservation and copy-failure retention.
+Save managed-session slice as scoped ownership/lifetime progress. Full restart
+deadline, visual handover, cross-generation output identity, cleanup/performance
+and external combined provenance after handovers remain open. Next capture
+across an actual helper-generation transition; retain failed earlier runs.
+
+LOG718 managed-lifetime-a completes launcher0, host0/1200 samples/clean close,
+903 returns across g1=600,g2=214,g3=89. g1 exits0 at bound; g2 superseded and g3
+host-closed each exit11 with exact channel-closed reason. Raw final[0,11] retained,
+orderly_host_shutdown=true, forced_children empty. This accepts bounded lifetime
+renewal, not restart-time-budget, capture/provenance or full cadence acceptance.
+Per-helper40-object cleanup warning persists. Host stage logs may append prior
+runs: consumer logs/output root are isolated, but do not derive current-only
+presentation counts from whole stage logs. After verified copy, remove only the
+two named old logs before launch to ensure new host log isolation; archived copies
+remain recoverable. No configurations removed. New log isolation change awaits
+focused test; other configurations must be rebuilt before checkpoint.
+
+LOG717 recorder source confirms Configure resets warmupRemaining to configured
+2100 after renderer recreation; do not silently alter accounting to make180s
+restart run pass. Managed helper lifetime previously ended after600 returns;
+request a fresh generation on closed channel in managed mode, with supervisor
+still rejecting unexpected retired-helper failures. Clean host shutdown may
+classify final helper11/channel-closed as orderly only after actual published
+returns; raw exits remain recorded, host failure/timeout never passes. Nine
+launcher tests pass including false-success controls. Automation build launched.
+Next validate sustained multi-helper lifetime separately, retaining the failed
+restart timing acceptance and full transition requirements.
+
+LOG716 managed-restart-c still fails overall host deadline: raw exits[1,0],
+no forced launcher children. g1 retires after279 Presents; g2 completes660
+Presents/600 returns. Explicit closure shortens restart handover (g2 source
+sequence starts earlier), but does not establish time-budget acceptance. Because
+g2 reaches its bounded limit before the later anchor change, this run does not
+validate that scene-boundary case. Preserve failure; do not call explicit close
+a throughput fix. Next separate recorder post-restart warmup/sample accounting
+from actual render cadence and continuous helper lifetime before further runs.
+No deadline increase or final-gate scope reduction authorized by this result.
+
+LOG715 explicit channel retirement marks ready0 only for consumer owner or
+successfully claimed publisher. Failed duplicate opens retain no close authority.
+Add three actual channel tests: duplicate isolation with successful transfer,
+immediate closed receive after publisher retirement, and rejected reclaim.
+Supervisor accepts documented channel-closed retirement only for superseded
+helper; unrelated failures still abort. Automation build/test launched; live
+handover speed and unchanged-bound completion remain pending.
+
+LOG714 managed-restart-b fails overall: host1 timeout, final helper0 with660
+Presents; generations1..4 retire and generation5 delivers600 returns. Recovery
+is functional but repeated handovers exceed unchanged host budget. No forced
+launcher children; no clean overall pass. Do not increase budget to hide gaps.
+Next remove avoidable5s receive-timeout handover by explicitly retiring a claimed
+publisher channel so its helper unwinds promptly. Failed/unclaimed publishers
+must not close someone else's channel. Preserve per-generation errors and test
+duplicate-open isolation. Earlier attempted empty documentation patch failed
+without modifying files; corrected documented managed-session scope is retained.
+
+LOG713 scene-boundary candidate builds in all four configurations; enabled
+selftests750/0. Eight launcher tests pass, including explicit managed-mode gate
+and rejection of superseded helper crash/invalid-continuity outcomes. Only clean
+exit or documented bounded source timeout can retire a superseded helper without
+aborting supervision; final helper failure still fails the run. Launch managed-
+restart-b with2400 restart and unchanged bounds to test fresh generation after
+both renderer restart and later support-change rejection. Outcome pending.
+
+LOG712 managed-restart-a advances g1->g2 at renderer restart and actual g2
+process publishes447 new returns, with completed evaluated Presents through
+source700/current708. Fresh-session resumption is experimentally demonstrated,
+but whole run remains incomplete: g2 exits11 after subsequent repeated
+anchor-source-support-changed rejects. Do not report this as a clean recovery
+matrix. Route that exact managed-mode rejection to retired channel/history plus
+fresh generation request, keeping the anchor validator unchanged. Eight-session
+cap remains; no generic invalid-data retry or old-token reuse. This new scene-
+boundary behavior is not built/run yet; current host is still completing samples.
+
+LOG711 handshake controls pass750/0 automation tests: actual named mapping,
+eight unique token generations, exhaustion, invalid version without advance and
+unavailable owner. Launch managed-restart-a through owned launcher with explicit
+restart injection at2400, unchanged bounded host/helper budgets and no capture.
+This is the first real managed-resumption test; outcome pending. All previous
+single-channel failed restarts remain retained. No external settings changed.
+
+LOG710 begin opt-in managed session handshake. Launcher owns16-byte named
+control mapping with magic/version/generation/owner PID. Renderer validates live
+owner, atomically requests generation1..8 and derives fresh root-gN channel;
+resource release/epoch change requests renewal. Existing single-claim data channel
+and receipt checks remain unchanged. Launcher starts a new helper per requested
+generation after bounded old-helper unwind, retaining superseded exit results.
+No automatic feature enablement outside explicit --managed-session; no external
+config writes. Automation build and existing launcher tests run; handshake
+negative controls, full builds and actual restart resumption remain pending.
+
 LOG709 final serial builds pass after duplicate cleanup: automation/baseline/
 no-NGX738/0, feature-off linked. Save session visibility/manual-input and marker
 correction checkpoint with LOG706/708 failed continuation retained. Full live UI

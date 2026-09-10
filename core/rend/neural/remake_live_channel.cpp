@@ -60,13 +60,38 @@ public:InputBuffer(char* data,std::size_t size){setg(data,data,data+size);}
 };
 struct SlotGuard {Slot* slot;~SlotGuard(){if(slot)InterlockedExchange(&slot->state,freeSlot);}};
 }
+bool RequestRemakeSession(const std::string& root,std::string& token,std::string& error) {
+ std::wstring path;
+ if(root.size()>48||!name(root,path)){error="session-root-invalid";return false;}
+ path+=L"-control";
+ HANDLE mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
+ if(!mapping){error="session-controller-unavailable";return false;}
+ auto* words=static_cast<volatile LONG*>(MapViewOfFile(mapping,FILE_MAP_ALL_ACCESS,0,0,16));
+ bool ok=false;
+ if(words) {
+  if(words[0]==0x534d5246&&words[1]==1) {
+   HANDLE owner=OpenProcess(SYNCHRONIZE,FALSE,DWORD(words[3]));
+   if(owner&&WaitForSingleObject(owner,0)==WAIT_TIMEOUT) {
+    const LONG generation=InterlockedCompareExchange(words+2,0,0);
+    if(generation>=0&&generation<8&&InterlockedCompareExchange(words+2,generation+1,generation)==generation) {
+     token=root+"-g"+std::to_string(generation+1);ok=true;
+    }
+   }
+   if(owner)CloseHandle(owner);
+  }
+  UnmapViewOfFile(const_cast<LONG*>(words));
+ }
+ CloseHandle(mapping);
+ error=ok?"":"session-controller-invalid-or-exhausted";return ok;
+}
+
 struct RemakeLiveChannel::Impl {
- HANDLE mapping=nullptr,peer=nullptr;Shared* shared=nullptr;bool owner=false;
+ HANDLE mapping=nullptr,peer=nullptr;Shared* shared=nullptr;bool owner=false,publisherClaimed=false;
  std::uint64_t sequence=0,frame=0;ProducerIdentity producer;
  struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;};
  Source sources[2];std::uint64_t returnedSequence=0;
  ~Impl(){
-  if(shared){if(owner)InterlockedExchange(&shared->ready,0);UnmapViewOfFile(shared);}
+  if(shared){if(owner||publisherClaimed)InterlockedExchange(&shared->ready,0);UnmapViewOfFile(shared);}
   if(peer)CloseHandle(peer);if(mapping)CloseHandle(mapping);
  }
  bool live()const{return shared&&InterlockedCompareExchange(&shared->ready,1,1)==1
@@ -98,6 +123,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
+ p->publisherClaimed=true;
  impl_=std::move(p);error.clear();return true;
 }
 bool RemakeLiveChannel::HasReturnCredit()const noexcept {

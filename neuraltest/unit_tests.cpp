@@ -741,10 +741,44 @@ int RunSelfTests()
 			RemakeLiveChannel consumer,publisher,duplicate;RemakeChannelReceipt sent,received;
 			const auto token="test-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 			suite.Expect(!publisher.OpenPublisher(token,error),"live channel missing consumer does not wait");
+			{
+				const auto root=token+"-ctl";
+				const std::wstring mappingName=L"Local\\FlycastRemake-"+std::wstring(root.begin(),root.end())+L"-control";
+				HANDLE mapping=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,16,mappingName.c_str());
+				auto* words=mapping?static_cast<LONG*>(MapViewOfFile(mapping,FILE_MAP_ALL_ACCESS,0,0,16)):nullptr;
+				suite.Expect(words!=nullptr,"managed session control fixture opens");
+				if(words) {
+					words[0]=0x534d5246;words[1]=1;words[2]=0;words[3]=LONG(GetCurrentProcessId());
+					std::string fresh;
+					for(int generation=1;generation<=8;++generation)
+						suite.Expect(RequestRemakeSession(root,fresh,error)&&fresh==root+"-g"+std::to_string(generation),"managed session allocates distinct bounded generation");
+					suite.Expect(!RequestRemakeSession(root,fresh,error),"managed session rejects generation exhaustion");
+					words[2]=0;words[1]=2;
+					suite.Expect(!RequestRemakeSession(root,fresh,error)&&words[2]==0,"managed session rejects wrong version without advancing");
+					words[1]=1;words[3]=0;
+					suite.Expect(!RequestRemakeSession(root,fresh,error)&&words[2]==0,"managed session rejects unavailable owner");
+					UnmapViewOfFile(words);
+				}
+				if(mapping)CloseHandle(mapping);
+			}
 			suite.Expect(!consumer.CreateConsumer("../invalid",error),"live channel rejects path-like token");
 			const bool created=consumer.CreateConsumer(token,error),opened=publisher.OpenPublisher(token,error);
 			suite.Expect(created&&opened,"live channel opens one consumer and publisher");
 			suite.Expect(!duplicate.CreateConsumer(token,error)&&!duplicate.OpenPublisher(token,error),"live channel rejects duplicate owner and publisher");
+			{
+				RemakeLiveChannel c,p,d;RemakeChannelReceipt receipt;remake::Packet received;
+				const auto retirementToken=token+"-retire";
+				const bool ready=c.CreateConsumer(retirementToken,error)&&p.OpenPublisher(retirementToken,error);
+				suite.Expect(ready&&!d.OpenPublisher(retirementToken,error)
+					&&p.PublishForReturn(packet,receipt,error)==RemakeChannelResult::Published
+					&&c.Receive(received,receipt,error)==RemakeChannelResult::Received,
+					"failed duplicate publisher leaves active transport intact");
+				p.Close();
+				suite.Expect(c.Receive(received,receipt,error)==RemakeChannelResult::Closed,
+					"claimed publisher retirement immediately closes consumer receive");
+				suite.Expect(!d.OpenPublisher(retirementToken,error),
+					"retired channel cannot be reclaimed");
+			}
 			const auto advance=[](remake::Packet p){++p.frame;++p.producer.ordinal;++p.producer.cycle;for(auto& mesh:p.meshes)mesh.frame=p.frame;return p;};
 			{
 				RemakeLiveChannel returnConsumer,returnPublisher;RemakeChannelReceipt receipt,first,secondReceipt;

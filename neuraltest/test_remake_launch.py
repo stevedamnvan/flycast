@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from remake_launch import prepare
+from remake_launch import prepare, expected_retirement, orderly_host_shutdown, archive_logs
 
 
 class LaunchPreflightTests(unittest.TestCase):
@@ -15,7 +15,7 @@ class LaunchPreflightTests(unittest.TestCase):
         fixture = Path(__file__).resolve()
         self.args = argparse.Namespace(**{k: fixture for k in
             ('flycast', 'harness', 'helper', 'runtime', 'game')},
-            out=Path(self.temp.name)/'new', anchored_light=False, manual_input=False)
+            out=Path(self.temp.name)/'new', anchored_light=False, manual_input=False, managed_session=False)
 
     def test_no_writes_and_explicit_opt_in(self):
         _, out, _, host, helper = prepare(self.args)
@@ -46,6 +46,47 @@ class LaunchPreflightTests(unittest.TestCase):
     def test_unique_channels(self):
         self.assertNotEqual(prepare(self.args)[2]['FLYCAST_REMAKE_ASYNC_CHANNEL'],
                             prepare(self.args)[2]['FLYCAST_REMAKE_ASYNC_CHANNEL'])
+
+    def test_archive_preserves_exact_logs_and_config(self):
+        root=Path(self.temp.name);out=root/'archive';out.mkdir()
+        (root/'flycast.log').write_bytes(b'old\r\nlog\x00')
+        (root/'reshade.ini').write_bytes(b'user-owned')
+        archive_logs(root,out)
+        self.assertFalse((root/'flycast.log').exists())
+        self.assertEqual((out/'previous-flycast.log').read_bytes(), b'old\r\nlog\x00')
+        self.assertEqual((root/'reshade.ini').read_bytes(), b'user-owned')
+
+    def test_failed_archive_keeps_original(self):
+        root=Path(self.temp.name);out=root/'archive';out.mkdir()
+        source=root/'flycast.log';source.write_bytes(b'keep')
+        with patch('remake_launch.shutil.copy2', side_effect=OSError('copy failed')):
+            with self.assertRaises(OSError):
+                archive_logs(root,out)
+        self.assertEqual(source.read_bytes(), b'keep')
+
+    def test_superseded_crash_is_not_success(self):
+        self.assertTrue(expected_retirement(0, ''))
+        self.assertTrue(expected_retirement(11, 'live source failed: live channel bounded receive timeout'))
+        self.assertTrue(expected_retirement(11, 'live source failed: channel-closed'))
+        self.assertFalse(expected_retirement(11, 'live source continuity rejected'))
+        self.assertFalse(expected_retirement(124, 'live source failed: live channel bounded receive timeout'))
+        self.assertFalse(expected_retirement(-1, ''))
+
+    def test_managed_mode_is_explicit(self):
+        self.assertNotIn('FLYCAST_REMAKE_MANAGED_SESSION', prepare(self.args)[2])
+        self.args.managed_session = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_MANAGED_SESSION'], '1')
+        self.args.renderer_reinit_after = 10001
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
+    def test_orderly_host_shutdown_requires_delivery_and_clean_host(self):
+        log = 'live_return sequence=1 published=1 depth_values=307200\nlive source failed: channel-closed'
+        self.assertTrue(orderly_host_shutdown(0, 11, log))
+        self.assertFalse(orderly_host_shutdown(1, 11, log))
+        self.assertFalse(orderly_host_shutdown(0, 124, log))
+        self.assertFalse(orderly_host_shutdown(0, 11, 'live source failed: channel-closed'))
+        self.assertFalse(orderly_host_shutdown(0, 11, ' published=1 live source failed: live channel bounded receive timeout'))
 
     def test_manual_input_is_explicit_and_not_replay_gated(self):
         default = prepare(self.args)

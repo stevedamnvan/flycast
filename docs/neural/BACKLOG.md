@@ -21,7 +21,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
-- Latest pushed checkpoint: `5e68316f0634abc57474f0297f63e96f0a4aea30`; LOG627-632 record launcher synchronization and accepted-history corrections plus completed28-frame changed-guidance provenance. Read actual HEAD/status on resume; builds are incremental, not fresh exact-SHA evidence.
+- Historical provenance checkpoint: `5e68316f0634abc57474f0297f63e96f0a4aea30`; LOG627-632 record launcher synchronization and accepted-history corrections plus completed28-frame changed-guidance provenance. This is not current HEAD. Read actual HEAD/status and fork ref on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
 - Actual transform `8c03c944` in block `8c03c93a` supplies opaque vertex4.
@@ -154,6 +154,21 @@ accepted, automatic continuation remains failed. Save this slice; next implement
 an explicit fresh-session handshake/lifetime owner for interactive restart rather
 than reopening an old token or resetting receipt counters. Do not repeat the
 same stop-only experiment as if it were progress toward automatic resumption.
+LOG710-714 implements opt-in managed generations with live-owner validation and
+an eight-generation cap. Actual g1->g2 restart resumes447 returns; subsequent
+anchor-support changes now retire histories and request fresh sessions. Second
+run reachesg5 but host times out, so full recovery is not accepted. Current work:
+explicitly retire the claimed publisher to eliminate5s helper receive-timeout
+handover; prove duplicate-open isolation and repeat unchanged bounded restart.
+Do not raise the time limit, relax anchor checks or hide unexpected helper exits.
+LOG718-719 completes bounded managed lifetime:903 returns across three helpers,
+host0/clean close, orderly final channel closure, no forced children. All four
+builds and three753/0 suites pass;11 launcher tests pass. This accepts opt-in
+session ownership/renewal only. Restart-deadline runs remain failed. Next collect
+bounded moving captures spanning a real helper handover, joining each captured
+source to its session generation and completed Present. Check original HUD,
+history reset and no cross-generation stale output before visual acceptance.
+Do not rerun another no-image success loop or claim whole-pipeline completion.
 No lighting winner, general camera recovery or performance acceptance is implied.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU

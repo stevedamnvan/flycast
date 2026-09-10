@@ -358,6 +358,8 @@ protected:
 		remakeCompositeEvaluated=remakeDisplayedEvaluated=false;
 	}
 	std::string remakeAsyncToken;
+	std::string remakeSessionRoot;
+	bool remakeSessionRenewalRequested=true;
 	std::uint64_t remakeAsyncEpoch=0;
 	bool remakeAsyncStopped=false;
 	flycast::rend::neural::QualityCaptureGpuTimer neuralQualityCaptureGpuTimer;

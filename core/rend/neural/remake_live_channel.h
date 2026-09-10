@@ -3,6 +3,8 @@
 #include "remake_scene.h"
 #include <memory>
 namespace flycast::rend::neural {
+// Opt-in launcher-owned control mapping; allocates a new token, never reclaims one.
+bool RequestRemakeSession(const std::string& root,std::string& token,std::string& error);
 enum class RemakeChannelResult { Published, Received, Empty, Busy, Closed, Invalid };
 struct RemakeChannelReceipt {std::uint64_t sequence=0,digest=0;std::uint32_t bytes=0;};
 struct RemakeReturnedImage {

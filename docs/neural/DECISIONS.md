@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-203: managed sessions allocate fresh ownership, never reclaim receipts
+
+Explicit --managed-session enables a launcher-owned16-byte control mapping.
+Validate owner liveness/version, allocate at most eight atomic generations, and
+derive fresh channel names. Renderer resource retirement, epoch change, closed
+helper or exact anchor-support rejection resets retained scene/history before
+new publication. Unexpected helper exits abort supervision; raw superseded exits
+remain in evidence. A claimed publisher closes its channel promptly; failed
+duplicate opens have no close authority. Whole-run timeouts remain failures.
+This is bounded lifecycle support, not general camera truth or seamless visual
+recovery. Verify images/history identity across generations before promotion.
+
 ## D-202: report stopped sessions without reclaiming their channel
 
 Live UI reports requested/open/stopped separately from external presentation.

@@ -1057,6 +1057,7 @@ bool DX11Renderer::ensureNeuralResources()
 
 void DX11Renderer::releaseNeuralResources() noexcept
 {
+	remakeSessionRenewalRequested=true;
 	remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();
 	remakeAsyncStopped=true;
 	pvrReplayBase.reset();
@@ -2640,7 +2641,16 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	using namespace flycast::rend::neural;
 	const auto* requested=std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
 	if(!requested||!*requested)return;
-	const std::string token(requested);
+	std::string token(requested);
+	const auto* managed=std::getenv("FLYCAST_REMAKE_MANAGED_SESSION");
+	if(managed&&std::strcmp(managed,"1")==0) {
+		if(remakeSessionRoot!=requested||remakeSessionRenewalRequested) {
+			std::string error;
+			if(!RequestRemakeSession(requested,token,error))return;
+			remakeSessionRoot=requested;remakeSessionRenewalRequested=false;
+			NOTICE_LOG(RENDERER,"Remake fresh session requested: %s",token.c_str());
+		} else token=remakeAsyncToken;
+	}
 	if(token!=remakeAsyncToken) {
 		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();
 		remakeAsyncToken=token;remakeAsyncEpoch=0;remakeAsyncStopped=false;
@@ -2663,6 +2673,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	static thread_local unsigned feedTimingCount=0;
 	RemakeCpuScope feedTiming("scene-feed",metadata.frameId,feedTimingCount);
 	if(remakeAsyncEpoch&&remakeAsyncEpoch!=producer.epoch) {
+		remakeSessionRenewalRequested=true;
 		remakeAsyncTextures.Reset();remakeAsyncChannel.Close();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async epoch changed: new consumer token required; native presentation retained");return;
 	}
@@ -2693,7 +2704,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		}
 	}
 	if(received==RemakeChannelResult::Closed) {
-		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;return;
+		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;
+		if(managed&&std::strcmp(managed,"1")==0)remakeSessionRenewalRequested=true;
+		return;
 	}
 	remakeAsyncChannel.ExpireReturns(metadata.frameId,producer,8);
 	for(auto& source:remakeAsyncOverlaySources)
@@ -2782,7 +2795,15 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	{
 		static thread_local unsigned count=0;
 		RemakeCpuScope timing("camera-anchor",metadata.frameId,count);
-		if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)){skip("camera-anchor",error);return;}
+		if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)) {
+			skip("camera-anchor",error);
+			if(managed&&std::strcmp(managed,"1")==0&&error=="anchor-source-support-changed") {
+				remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();
+				remakeAsyncStopped=true;remakeSessionRenewalRequested=true;
+				NOTICE_LOG(RENDERER,"Remake anchor support changed: retiring session and history before fresh request");
+			}
+			return;
+		}
 	}
 	std::shared_ptr<RemakeTemporalScene> temporalScene;
 	const auto* temporalOption=std::getenv("FLYCAST_REMAKE_TEMPORAL_PREPARE");

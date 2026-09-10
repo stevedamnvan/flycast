@@ -30,11 +30,27 @@ Image capture and synchronous evidence mode are disabled. Timing results do not
 meet the final performance gate merely because the launcher exits successfully.
 
 Existing Flycast/ReShade logs are copied and verified in the new evidence
-directory before launch; original log files may then be rewritten by their
-owners. Configuration and third-party binaries are not modified. Do not run
+directory before launch; the two original named logs are then removed so their
+owners start fresh logs rather than appending another run. Previous logs remain
+recoverable from those verified copies. Configuration and third-party binaries
+are not modified. Do not run
 another session against the same prepared host simultaneously.
 
 `launch.json`, `publisher.log`, `consumer.log` and the `host` report preserve
 commands, owned executable hashes and process outcomes. Zero exit codes prove
 only successful bounded execution, not active external DLSS 5, image quality,
 camera truth, resource cleanup or presentation provenance. Check those separately.
+
+## Experimental managed sessions
+
+`--managed-session` enables a launcher-owned control mapping. Each renderer
+restart or rejected anchor-support change requests a fresh channel generation
+and a fresh helper process; old receipts and temporal history are not reused.
+The run is capped at eight generations and the original whole-run deadline.
+The old helper must unwind within its bounded timeout. Unexpected helper errors
+abort supervision rather than being hidden by a restart. Logs are separated as
+`consumer-g1.log`, `consumer-g2.log`, etc.; `launch.json` retains superseded exits.
+
+`--renderer-reinit-after 2400` is a developer fault-injection option, not needed
+for ordinary launch. Managed recovery is still being validated; do not treat it
+as an unrestricted interactive mode or a completed transition matrix.
