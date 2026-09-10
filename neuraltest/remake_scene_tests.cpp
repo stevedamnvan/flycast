@@ -39,13 +39,16 @@ TestCounts TestSceneContract() {
  expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
  expect(RemakeLiveIdleWaitMs(true)==60000u&&RemakeLiveIdleWaitMs(false)==5000u,"session worker idle wait is bounded and explicit");
  {
-  std::vector<float> depth{0.f,0.5f,1.f,std::nextafter(1.f,2.f),1.00003f,1.001f,std::numeric_limits<float>::quiet_NaN()};
+  std::vector<float> depth{0.f,0.5f,1.f,std::nextafter(1.f,2.f),1.00003f,1.001f,std::numeric_limits<float>::quiet_NaN(),-0.0004f};
   const auto far=RemakeClampBeyondFarPlane(depth,0.1f,2501.f);
   expect(far.beyondFar==2&&far.aboveLimit==1&&depth[3]==1&&depth[4]==1&&depth[5]==1.001f&&depth[1]==0.5f&&depth[2]==1
    &&far.limit>1&&far.limit<1.0001f&&far.maxDepth==1.001f&&std::isnan(depth[6]),
    "returned depth beyond the far plane becomes the far plane only within the projection limit");
-  std::vector<float> same{0.25f,1.f};const auto none=RemakeClampBeyondFarPlane(same,0.1f,2501.f);
-  expect(none.beyondFar==0&&none.aboveLimit==0&&same[0]==0.25f&&same[1]==1&&none.maxDepth==1,"returned depth within range is untouched");
+  expect(far.beforeNear==1&&depth[7]==0&&far.minDepth==-0.0004f&&depth[0]==0,
+   "returned depth before the near plane becomes the near plane and is counted");
+  std::vector<float> same{0.25f,1.f,0.f};const auto none=RemakeClampBeyondFarPlane(same,0.1f,2501.f);
+  expect(none.beyondFar==0&&none.beforeNear==0&&none.aboveLimit==0&&same[0]==0.25f&&same[1]==1&&same[2]==0&&none.maxDepth==1&&none.minDepth==0,
+   "returned depth within range is untouched");
   std::vector<float> bad{std::nextafter(1.f,2.f)};const auto invalid=RemakeClampBeyondFarPlane(bad,2501.f,0.1f);
   expect(invalid.beyondFar==0&&invalid.limit==0&&bad[0]>1,"invalid clip planes change nothing");
  }
@@ -90,6 +93,8 @@ TestCounts TestSceneContract() {
  expect(RemakeRuntimeBudget(false,true,660)==120u,"performance budget not extended implicitly");
  expect(!RemakeRuntimeBudget(true,false,120),"capture budget rejects unsupported route");
  expect(RemakeRuntimeBudget(true,true,660)==300u,"explicit diagnostic budget remains bounded");
+ expect(RemakeRuntimeBudget(true,true,660,true)==420u,"session worker diagnostic budget covers the manual host bound");
+ expect(RemakeRuntimeBudget(false,true,660,true)==120u&&!RemakeRuntimeBudget(true,false,660,true),"session worker keeps the other budgets");
  for(const auto* value:{L"0",L"0.03",L"1",L"3",L"30"})
   expect(ParseSceneLightRadiance(value).has_value(),"bounded authored light accepts decimal");
  expect(ParseSceneLightRadiance(L"0.03")==.03f,"authored light preserves fractional value");

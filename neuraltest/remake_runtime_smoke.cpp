@@ -90,7 +90,7 @@ int wmain(int argc,wchar_t** argv) {
  }
  const long frames=*frameLimit;
  unsigned rejectedReturns=0;
- const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames);
+ const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames,sessionWorker);
  if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
  std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
   <<" runtime_watchdog_seconds="<<*runtimeBudget<<"\n"<<std::flush;
@@ -552,9 +552,9 @@ int wmain(int argc,wchar_t** argv) {
 		if(depthCpu)depthCpu->Release();if(depthGpu)depthGpu->Release();
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
 			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr
-			<<" beyond_far_clamped="<<farPlane.beyondFar<<" above_limit="<<farPlane.aboveLimit
-			<<" max_depth="<<std::setprecision(9)<<farPlane.maxDepth<<" far_limit="<<farPlane.limit<<std::setprecision(6)
-			<<" policy=beyond-far-plane-is-far-plane\n"<<std::flush;
+			<<" beyond_far_clamped="<<farPlane.beyondFar<<" before_near_clamped="<<farPlane.beforeNear<<" above_limit="<<farPlane.aboveLimit
+			<<" max_depth="<<std::setprecision(9)<<farPlane.maxDepth<<" min_depth="<<farPlane.minDepth<<" far_limit="<<farPlane.limit<<std::setprecision(6)
+			<<" policy=outside-clip-range-is-the-plane\n"<<std::flush;
 		if(FAILED(depthHr)){outcome=14;break;}
 		if(liveChannel) {
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);

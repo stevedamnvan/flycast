@@ -99,8 +99,8 @@ def prepare(args):
         helper.append('--diagnostic-capture-budget')
     if args.manual_input:
         # A player must boot, reach a fight and play through cuts: 12000 emulated
-        # frames (4:50 to over 5:00 observed), a 420 second host bound, the explicit
-        # 300 second helper budget and a 180 second first-source wait. Never
+        # frames (4:50 to over 5:00 observed), a 420 second host bound, the helper's
+        # 420 second session-worker budget and a 180 second first-source wait. Never
         # performance evidence. Trailing helper option order is fixed.
         host[host.index('--warmup')+1] = '3000'
         host[host.index('--frames')+1] = '9000'

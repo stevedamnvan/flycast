@@ -21,7 +21,7 @@ the default keyboard mapping during this bounded session. This also removes the
 replay-specific producer start gate; the renderer still requires supported3D
 Soulcalibur content before exporting. Manual sessions use a larger explicit
 budget:3000 warmup plus9000 measured emulated frames, a420 second host bound,
-the300 second helper budget and a180 second first-source wait
+a420 second session-worker runtime budget and a180 second first-source wait
 (`--source-wait-seconds`). They are never performance evidence. Menus may stay
 native, and failing to enter supported gameplay before the helper's source wait
 is a failed experiment, not a reason to force neural processing onto menus. No
@@ -66,13 +66,15 @@ to64 per session). From-last motion (`rotation_from_last_deg`,
 `translation_from_last`) is measured between consecutive exported sources, about
 eight emulated frames apart at the return cadence (`frames_since_last`); a fast
 dolly can therefore log a view cut, which only retires history. Returned depth
-beyond the declared far plane is returned as the far plane and counted per
-return (`beyond_far_clamped`, `max_depth`, D-209); values above the projection
-limit still reject.
+outside the declared clip range is returned as the plane it lies beyond and
+counted per return (`beyond_far_clamped`, `before_near_clamped`, `max_depth`,
+`min_depth`, D-209); values above the projection limit still reject.
 The run is capped at eight generations and the original whole-run deadline.
 Managed helpers use explicit session-worker mode rather than rotating after600
 returns. The worker has a10000-frame ceiling and retains the120-second runtime
-watchdog (300 seconds for explicit diagnostic capture). Ordinary helper commands
+watchdog (420 seconds for explicit diagnostic capture in session-worker mode,
+so the worker outlives the manual host bound;300 for ordinary diagnostic
+capture). Ordinary helper commands
 keep their original frame limits. Channel closure still retires the worker.
 The old helper must unwind within its bounded timeout. Unexpected helper errors
 abort supervision rather than being hidden by a restart. Logs are separated as

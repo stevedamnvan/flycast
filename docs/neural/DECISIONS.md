@@ -6,13 +6,18 @@ The helper's D3D9 projection maps view depth z to f(z-n)/((f-n)z): exactly1 at
 the declared far plane and up to f/(f-n) for points beyond it, which the
 ray-traced runtime does not clip. On an open stage nearly every return carried
 such values one rounding step above1 and the session died at the rejected-return
-bound (LOG771). The host contract stays [0,1]. The helper labels values in
-(1, f/(f-n)] as beyond the far plane, returns them as1 and logs the count and the
-measured maximum per return (`beyond_far_clamped`, `above_limit`, `max_depth`,
-`far_limit`); values above that limit are left as measured and remain rejected.
-Depth in front of the far plane is never altered and raw depth artifacts stay
-raw. This makes the projection's own semantic explicit; it is not a relaxed
-acceptance, and the returned depth semantics of the runtime remain unverified.
+bound (LOG771); a closed stage then returned slightly negative values for points
+between the camera and the near plane, which the runtime does not clip either
+(LOG773). The host contract stays [0,1]. The helper labels values in
+(1, f/(f-n)] as beyond the far plane and returns them as1, labels negative
+values as before the near plane and returns them as0, and logs the counts and
+measured extremes per return (`beyond_far_clamped`, `before_near_clamped`,
+`above_limit`, `max_depth`, `min_depth`, `far_limit`); values above the limit,
+which no point in front of the camera projects to, are left as measured and
+remain rejected. Depth inside the clip range is never altered and raw depth
+artifacts stay raw. This makes the projection's own semantic explicit; it is not
+a relaxed acceptance, and the returned depth semantics of the runtime remain
+unverified.
 
 ## D-208: lineage-based support, in-place view cuts and resilient sessions
 

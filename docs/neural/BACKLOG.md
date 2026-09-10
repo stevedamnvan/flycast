@@ -89,11 +89,16 @@ view cuts, dominant-basis anchoring, idle tolerance and resilient returns; sessi
 d ran one helper for five minutes with3030 returns. Session e (LOG771) verified
 lineage basis selection (0 ambiguous frames) but died on returned depth beyond
 the far plane on an open stage; D-209 makes that projection semantic explicit in
-the helper. Next operational action: verify D-209 in a manual session on the same
-open stage (one helper generation, returns accepted, `beyond_far_clamped` counts
-and `max_depth` recorded, `above_limit` zero), then measure the far off-screen
-projection precision failures (637 frames in session d, p90 0.117 pixels) without
-relaxing the guard. Then resume the remaining public-DLAA/native 300-frame
+the helper. Session f (LOG773) on a closed stage accepted4544 returns with
+lineage selection across up to11 bases and five genuine re-anchors, exposed the
+near-side mirror of D-209 and the helper's300 second watchdog ending a healthy
+session before the host's420 second bound; LOG774 addresses both. Next
+operational action: verify D-209 on both sides and the worker budget in a manual
+session on the open stage of session e (one helper generation to host end,
+returns accepted, `beyond_far_clamped`/`before_near_clamped` counts and
+`max_depth`/`min_depth` recorded, `above_limit` zero), then measure the far
+off-screen projection precision failures (637 frames in session d, p90 0.117
+pixels) without relaxing the guard. Then resume the remaining public-DLAA/native 300-frame
 lanes. World-consistent lighting/camera across cuts stays with
 M2-camera; do not relabel the generation origin as world truth.
 

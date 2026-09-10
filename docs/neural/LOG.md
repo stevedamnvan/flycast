@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG774 implementation after session f: the session-worker diagnostic runtime
+budget is420 seconds, matching the manual host bound the worker must outlive
+(ordinary helpers keep300/120/30); returned depth before the near plane
+(negative, the projection of0<z<n) is returned as0 and counted
+(`before_near_clamped`, `min_depth`) alongside the far side of D-209. Automation
+selftest and remake-sdk-contract fixtures cover the worker budget and the near
+side. Both unverified in play until the next manual session, which should be on
+the open stage of session e so the far side is exercised too.
+
+LOG773 manual session fc067-anchor-manual-f (D-209 far side, lineage selection,
+same player on a closed stage with many moving objects): first publish at0:58,
+one helper served4548 sources and4544 accepted returns to5:58 with no
+beyond-far value at all (`beyond_far_clamped`0 and `max_depth`1 exactly on every
+return, `above_limit`0), so the far-plane policy was not exercised. Four returns
+were rejected as return-depth-range for depth_min -0.00024..-0.00038: points
+between the camera and the near plane, the near-side mirror of D-209. Five
+re-anchors, all genuine (114..166 degrees,42..146 shared); four view cuts
+(13..89 degrees over4..97 source frames);59 anchor-ambiguous-source-basis frames
+all before the first accepted export (no lineage yet, no size majority); accepted
+frames carried up to11 rigid bases with lineage selection on all but four
+multi-basis frames;65 anchor-projection-mismatch skips (p50 0.020, p90 0.039,
+max0.23 pixels). The helper's300 second runtime watchdog ended the session at
+about6:00 while the host was at frame8637 of12000 under its420 second bound;
+the launcher refused to hide it (launcher exit1, flycast forced, no host
+report). Retained as evidence for lineage and re-anchoring, a failed experiment
+for the run bound.
+
 LOG772 implementation after session e: RemakeCameraAnchor selects the anchoring
 basis by exact point lineage with the last accepted set when a frame carries
 several rigid bases (same shared-support thresholds; size majority only without
