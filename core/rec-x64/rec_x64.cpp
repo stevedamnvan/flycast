@@ -35,6 +35,7 @@ static bool sourceSqObservationEnabled() {
 }
 static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
 	++flycast::rend::neural::SourceHookSqWriteCalls;
+	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookSqWriteCycles);
 	flycast::rend::neural::SourceSqScope observation(pc,address);
 	static bool reported=false;
 	if(!reported) {reported=true;NOTICE_LOG(DYNAREC,"Neural source SQ observer invoked: pc=%08x address=%08x diagnostic-only",pc,address);}
@@ -42,6 +43,7 @@ static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
 }
 static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value) {
 	++flycast::rend::neural::SourceHookStoreCalls;
+	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookStoreCycles);
 	flycast::rend::neural::RefreshSourceSqWriters();
 	// D-217: for 4-byte register stores the storing register (+1) rides in the
 	// upper half of the value; the derived-store origin is looked up here
@@ -67,8 +69,9 @@ static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value
 		const auto* transform=FindSourceTransform(sourceTransformSlots[transformSlot-1]);
 		u32 expected=0;if(transform)memcpy(&expected,&transform->output[component],4);
 		if(transform&&expected==static_cast<u32>(value)&&sourceRamWrites) {
-			auto& writer=(*sourceRamWrites)[((address&0xffffff)/4)%sourceRamWrites->size()];
-			if(writer.pc==pc&&writer.address==(address&0xffffff)) {writer.transform=transform->serial;writer.ownedTransform=*transform;++sourceDirectTransformStores;}
+			const auto index=((address&0xffffff)/4)%sourceRamWrites->size();
+			auto& writer=(*sourceRamWrites)[index];
+			if(writer.pc==pc&&writer.address==(address&0xffffff)) {writer.transform=transform->serial;SourceRamOwnedTransform(index)=*transform;++sourceDirectTransformStores;}
 		}
 	}
 	flycast::rend::neural::ObserveSourceSqStore(address,pc,size,value);
@@ -81,6 +84,7 @@ static void DYNACALL invalidateSourceSqWriters() {
 static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 	using namespace flycast::rend::neural;
 	++SourceHookBoundaryCalls;
+	SourceHookCycles cycles(SourceHookBoundaryCycles);
 	if(!sourceArithmeticLive)return; // D-217: no live origin to report or kill.
 	unsigned live=opcode==UINT32_MAX?sourceArithmeticLive:0;
 	if(opcode!=UINT32_MAX)for(unsigned i=0;i<count&&reg+i<255;++i) {
@@ -99,9 +103,12 @@ static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
 	using namespace flycast::rend::neural;
 	++SourceHookBlockEntryCalls;
+	SourceHookCycles cycles(SourceHookBlockEntryCycles);
 	RefreshSourceSqWriters();
 	if(!sourceArithmeticLive)return;
+	// D-218: the per-register live bytes mirror the origins' liveness exactly.
 	for(u32 reg=0;reg<sh4_reg_count&&reg<255;++reg) {
+		if(!sourceArithmeticLiveBytes[reg])continue;
 		const auto& origin=sourceArithmeticOrigins[reg];
 		if(origin.epoch==sourceArithmeticEpoch&&origin.transform)
 			ValidateSourceArithmeticRegister(reg,*GetRegPtr(*ctx,static_cast<Sh4RegType>(reg)));
@@ -110,10 +117,12 @@ static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
 }
 static void DYNACALL beginSourceRead(u32 address,u32 pc,u32 slot) {
 	using namespace flycast::rend::neural;
+	SourceHookCycles cycles(SourceHookReadCycles);
 	RefreshSourceSqWriters();
 	sourceRegisterReads[slot]={address,pc,0,false};
 }
 static void DYNACALL finishSourceRead(u32 value,u32 slot) {
+	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookReadCycles);
 	auto& read=flycast::rend::neural::sourceRegisterReads[slot];
 	read.value=value;
 	read.producerPc=flycast::rend::neural::SourceRamWriter(read.address,value);
@@ -123,6 +132,7 @@ static void DYNACALL finishSourceRead(u32 value,u32 slot) {
 static void (*sourceOriginalFtrv)(float*,const float*,const float*);
 static void observedSourceFtrv(float* output,const float* input,const float* matrix,u64 identity) {
 	++flycast::rend::neural::SourceHookFtrvCalls;
+	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookFtrvCycles);
 	flycast::rend::neural::KillSourceArithmeticOrigin(static_cast<u32>(identity>>48),4);
 	flycast::rend::neural::SourceTransform observed;
 	observed.pc=static_cast<u32>(identity);
@@ -690,8 +700,19 @@ public:
 					GenCall(flycast::rend::neural::CopySourceArithmeticOrigin);
 					L(noLiveOrigin);
 				} else for(const auto* dst:{&op.rd,&op.rd2})if(dst->is_reg()) {
-					Xbyak::Label noLiveOrigin;
+					Xbyak::Label noLiveOrigin,liveOrigin;
 					mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveFlag));cmp(dword[rax],0);je(noLiveOrigin,T_NEAR);
+					// D-218: call only when a written register holds a live origin;
+					// the call's effect on registers without one was nothing observable.
+					const u32 boundaryCount=dst->count();
+					if(boundaryCount>=1&&boundaryCount<=8&&dst->_reg+boundaryCount<=256) {
+						for(u32 i=0;i<boundaryCount;++i) {
+							mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveBytes[dst->_reg+i]));
+							cmp(byte[rax],0);jne(liveOrigin,T_NEAR);
+						}
+						jmp(noLiveOrigin,T_NEAR);
+					}
+					L(liveOrigin);
 					mov(call_regs[0],sourceCurrentPc);mov(call_regs[1],static_cast<u32>(op.op));
 					mov(call_regs[2],static_cast<u32>(dst->_reg));mov(call_regs[3],dst->count());GenCall(sourceOriginBoundary);
 					L(noLiveOrigin);

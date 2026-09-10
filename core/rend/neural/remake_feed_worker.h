@@ -60,7 +60,7 @@ struct RemakeFeedResult {
  // (D-212); the render thread records them as sent only after Published.
  std::vector<remake::TextureIdentity> registeredTextures;std::size_t registeredBytes=0;
  bool alphaOwnership=false;
- double workerMs=0,packetMs=0;
+ double workerMs=0,packetMs=0,anchorMs=0,temporalMs=0,publishMs=0; // Diagnostic stage times inside the worker.
 };
 class RemakeFeedWorker {
  mutable std::mutex mutex;std::condition_variable wake;std::thread thread;
@@ -96,9 +96,13 @@ class RemakeFeedWorker {
    }
    r.packetMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
   }
+  const auto elapsed=[&]{return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();};
   if(job.anchored) {
+   const auto anchorStart=elapsed();
    proposed=anchor;
-   if(!proposed.Apply(job.snapshot,job.scene,job.packet,error)) {
+   const bool applied=proposed.Apply(job.snapshot,job.scene,job.packet,error);
+   r.anchorMs=elapsed()-anchorStart;
+   if(!applied) {
     r.stage="camera-anchor";r.error=error;r.support=proposed.LastSupportReport();r.referenceOrdinal=proposed.ReferenceOrdinal();
     if(job.managed&&error=="anchor-source-support-changed") {
      // Genuine source-view cut: retire the fixed view here so the next accepted
@@ -112,11 +116,15 @@ class RemakeFeedWorker {
    if(r.support.available&&!r.support.rejected&&(r.support.rotationFromLastDegrees>20||r.support.translationFromLast>1))r.viewCut=true;
   }
   if(job.temporal) {
+   const auto temporalStart=elapsed();
    r.temporalScene=CaptureRemakeTemporalScene(job.packet,error);
+   r.temporalMs=elapsed()-temporalStart;
    if(!r.temporalScene){r.stage="temporal-source";r.error=error;r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;}
   }
   RemakeChannelReceipt receipt;
+  const auto publishStart=elapsed();
   const auto result=job.publish?job.publish(job.packet,receipt,error):RemakeChannelResult::Invalid;
+  r.publishMs=elapsed()-publishStart;
   if(result!=RemakeChannelResult::Published) {
    r.stage="publish";r.error=error.empty()?"feed-publisher-missing":error;
    r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;

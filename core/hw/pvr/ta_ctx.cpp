@@ -59,6 +59,7 @@ static cResetEvent frame_finished;
 #ifdef FLYCAST_ENABLE_NEURAL
 // D-217 diagnostics: where the emulation thread waits for the renderer.
 static unsigned emuWaitFrameFinishedCount=0,emuFramePeriodCount=0;
+static std::uint64_t emuLastCycles=0;
 static std::chrono::steady_clock::time_point emuLastQueued{};
 #endif
 static flycast::rend::neural::ProducerIdentityClock captureProducerClock;
@@ -132,8 +133,22 @@ bool QueueRender(TA_context* ctx)
 		if(emuLastQueued.time_since_epoch().count()&&emuFramePeriodCount<600)
 			if(const char* v=std::getenv("FLYCAST_REMAKE_CPU_TIMING");v&&std::strcmp(v,"1")==0) {
 				++emuFramePeriodCount;
-				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=emu-frame-period elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
-					std::chrono::duration<double,std::milli>(now-emuLastQueued).count());
+				// Per-hook cycle accounting costs about two time-stamp reads per hook
+				// call (several ms per frame); it is a separate opt-in.
+				if(const char* cycles=std::getenv("FLYCAST_REMAKE_HOOK_CYCLES");cycles&&std::strcmp(cycles,"1")==0)
+					flycast::rend::neural::SourceHookCycleTiming=true;
+				const double periodMs=std::chrono::duration<double,std::milli>(now-emuLastQueued).count();
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=emu-frame-period elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",periodMs);
+				{
+					using namespace flycast::rend::neural;
+					const auto cyclesNow=SourceHookCycles::ReadCycles();
+					const double cyclesPerMs=emuLastCycles&&periodMs>0?double(cyclesNow-emuLastCycles)/periodMs:0;
+					emuLastCycles=cyclesNow;
+					const auto ms=[&](std::uint64_t& cycles){const auto v=TakeSourceHookCount(cycles);return cyclesPerMs>0?double(v)/cyclesPerMs:0.0;};
+					NOTICE_LOG(RENDERER,"Remake source hook cycles: stores_ms=%.3f sq_writes_ms=%.3f arithmetic_ms=%.3f ftrv_ms=%.3f block_entries_ms=%.3f boundaries_ms=%.3f copies_ms=%.3f reads_ms=%.3f cycles_per_ms=%.0f diagnostic=true",
+						ms(SourceHookStoreCycles),ms(SourceHookSqWriteCycles),ms(SourceHookArithmeticCycles),ms(SourceHookFtrvCycles),
+						ms(SourceHookBlockEntryCycles),ms(SourceHookBoundaryCycles),ms(SourceHookCopyCycles),ms(SourceHookReadCycles),cyclesPerMs);
+				}
 				NOTICE_LOG(RENDERER,"Remake source hook calls: stores=%llu sq_writes=%llu arithmetic=%llu ftrv=%llu block_entries=%llu invalidations=%llu boundaries=%llu diagnostic=true",
 					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookStoreCalls),
 					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookSqWriteCalls),

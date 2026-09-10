@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <atomic>
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
 #include "log/Log.h"
 
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -16,6 +19,26 @@ inline std::atomic<bool> RemakeFrameTimingActive{false};
 inline thread_local std::uint64_t SourceHookStoreCalls=0,SourceHookSqWriteCalls=0,SourceHookArithmeticCalls=0,SourceHookFtrvCalls=0,
  SourceHookBlockEntryCalls=0,SourceHookInvalidateCalls=0,SourceHookBoundaryCalls=0;
 inline std::uint64_t TakeSourceHookCount(std::uint64_t& counter){const auto v=counter;counter=0;return v;}
+// D-218 diagnostics: time-stamp-counter cycles spent inside each hook while
+// the CPU timing diagnostic is on (plain thread-local accumulators; the
+// emulation thread both accumulates and reports them).
+inline bool SourceHookCycleTiming=false;
+inline thread_local std::uint64_t SourceHookStoreCycles=0,SourceHookSqWriteCycles=0,SourceHookArithmeticCycles=0,SourceHookFtrvCycles=0,
+ SourceHookBlockEntryCycles=0,SourceHookBoundaryCycles=0,SourceHookCopyCycles=0,SourceHookReadCycles=0;
+struct SourceHookCycles {
+	std::uint64_t& accumulator;std::uint64_t start;
+	explicit SourceHookCycles(std::uint64_t& accumulator) noexcept:accumulator(accumulator),start(SourceHookCycleTiming?ReadCycles():0){}
+	~SourceHookCycles(){if(start)accumulator+=ReadCycles()-start;}
+	static std::uint64_t ReadCycles() noexcept {
+#if defined(_MSC_VER)
+		return __rdtsc();
+#elif defined(__x86_64__)||defined(__i386__)
+		return __builtin_ia32_rdtsc();
+#else
+		return 0;
+#endif
+	}
+};
 // Bounded, opt-in elapsed CPU diagnostics (FLYCAST_REMAKE_CPU_TIMING=1, at
 // most 600 samples per stage). Includes driver blocking; never GPU time and
 // never performance evidence.
@@ -28,7 +51,7 @@ public:
 	RemakeCpuScope(const char* label, std::uint64_t frame, unsigned& count)
 		: label(label), frame(frame), enabled(false) {
 		const char* value=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
-		enabled=value&&std::strcmp(value,"1")==0&&count<600;
+		enabled=value&&std::strcmp(value,"1")==0&&count<600&&RemakeFrameTimingActive.load(std::memory_order_relaxed);
 		if(enabled){++count;start=std::chrono::steady_clock::now();}
 	}
 	RemakeCpuScope(const RemakeCpuScope&)=delete;

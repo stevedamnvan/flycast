@@ -163,15 +163,19 @@ int wmain(int argc,wchar_t** argv) {
   return found==textureReferences.end()?nullptr:found->second;
  };
  // Consumer turnaround per image (diagnostic): receive, present, readback, return.
- std::chrono::steady_clock::time_point receivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
+ std::chrono::steady_clock::time_point receivedAt{},previousReceivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
+ double periodMs=0,receiveWaitMs=0,prepareMs=0; // Receive-to-receive period, time idle in receive, receive-to-draw preparation.
  const auto msSince=[](std::chrono::steady_clock::time_point since){return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-since).count();};
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
+  const auto receiveEntry=std::chrono::steady_clock::now();
   for(;;) {
    std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
    const auto result=channel.Receive(packet,receipt,error);
    if(result==flycast::rend::neural::RemakeChannelResult::Received) {
-    receivedAt=std::chrono::steady_clock::now();
+    previousReceivedAt=receivedAt;receivedAt=std::chrono::steady_clock::now();
+    periodMs=previousReceivedAt.time_since_epoch().count()?std::chrono::duration<double,std::milli>(receivedAt-previousReceivedAt).count():0;
+    receiveWaitMs=std::chrono::duration<double,std::milli>(receivedAt-receiveEntry).count();
     resolveTextureReferences(packet);
     activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
@@ -470,6 +474,7 @@ int wmain(int argc,wchar_t** argv) {
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    const auto drawStart=std::chrono::steady_clock::now();
+   prepareMs=receivedAt.time_since_epoch().count()?std::chrono::duration<double,std::milli>(drawStart-receivedAt).count():0;
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
    if(legacyGame) {
@@ -656,6 +661,7 @@ int wmain(int argc,wchar_t** argv) {
 				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error
 				<<" draw_ms="<<drawMs<<" present_ms="<<presentMs<<" readback_ms="<<readbackMs<<" lock_wait_ms="<<lockWaitMs
 				<<" depth_readback_ms="<<depthReadbackMs<<" depth_lock_wait_ms="<<depthLockWaitMs<<" turnaround_ms="<<msSince(receivedAt)
+				<<" period_ms="<<periodMs<<" receive_wait_ms="<<receiveWaitMs<<" prepare_ms="<<prepareMs
 				<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
 			if(result==flycast::rend::neural::RemakeChannelResult::Invalid) {
 				// Per-source rejection: the host keeps native for this source and

@@ -28,12 +28,16 @@ public:
 	void SetEnabled(bool enabled) noexcept;
 	bool IsEnabled() const noexcept { return enabled_; }
 	std::uint64_t NextFrameId() const noexcept { return frameId_; }
+	const std::array<double,6>& GeometryStageMs() const noexcept { return geometryStageMs_; }
 	void Discontinuity() noexcept;
 	void SetOverlayGameId(std::string_view gameId) noexcept;
+	// matchDraws=false skips native draw correspondence (matches stay empty,
+	// previous positions untrusted): for a lane whose motion comes from
+	// returned geometry and never submits native guidance.
 	const NeuralFrame& CaptureGeometry(const ::rend_context& context, TextureRef color,
 		TextureRef depth, std::uint32_t renderWidth, std::uint32_t renderHeight,
 		std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect,
-		Point2 jitter) noexcept;
+		Point2 jitter, bool matchDraws = true) noexcept;
 	const NeuralFrame& CaptureSource(FrameSource source, TextureRef color,
 		std::uint32_t renderWidth, std::uint32_t renderHeight,
 		std::uint32_t outputWidth, std::uint32_t outputHeight,
@@ -99,6 +103,7 @@ private:
 	std::vector<PreviousPosition> previousPositions_;
 	std::size_t trustedPreviousVertexCount_ = 0;
 	CorrespondenceStats correspondenceStats_{};
+	std::array<double,6> geometryStageMs_{}; // append, classify, snapshot, match, previous, finalize
 	std::uint32_t candidateDrawsBeforePositionValidation_ = 0;
 	std::uint32_t candidateTierDraws_[3]{};
 	std::uint64_t candidateAreaBeforePositionValidation_ = 0;

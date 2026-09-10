@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_view_transport.h"
+#include <array>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -24,26 +25,30 @@ bool ClipViewMesh(remake::Mesh& mesh,float nearPlane,float farPlane) {
   }
   return v;
  };
+ clipped.reserve(mesh.vertices.size());
+ // Fixed-capacity polygons (a triangle clipped by two planes has at most six
+ // candidates before the pentagon bound applies): no heap use per triangle.
+ struct Polygon {std::array<remake::Vertex,8> v;std::size_t n=0;};
  for(std::size_t i=0;i<mesh.vertices.size();i+=3) {
-  std::vector<remake::Vertex> polygon(mesh.vertices.begin()+i,mesh.vertices.begin()+i+3);
-  for(const auto& v:polygon)if(!std::isfinite(v.position.x)||!std::isfinite(v.position.y)
-   ||!std::isfinite(v.position.z)||!std::isfinite(v.u)||!std::isfinite(v.v))return false;
-  for(unsigned pass=0;pass<2&&!polygon.empty();++pass) {
+  Polygon polygon;for(unsigned k=0;k<3;++k)polygon.v[polygon.n++]=mesh.vertices[i+k];
+  for(std::size_t k=0;k<polygon.n;++k){const auto& v=polygon.v[k];if(!std::isfinite(v.position.x)||!std::isfinite(v.position.y)
+   ||!std::isfinite(v.position.z)||!std::isfinite(v.u)||!std::isfinite(v.v))return false;}
+  for(unsigned pass=0;pass<2&&polygon.n;++pass) {
    const float plane=pass?farPlane:nearPlane;
    const auto inside=[&](const remake::Vertex& v){return pass?v.position.z<=plane:v.position.z>=plane;};
-   std::vector<remake::Vertex> next;auto a=polygon.back();bool aInside=inside(a);
-   for(const auto& b:polygon) {
-    const bool bInside=inside(b);
-    if(aInside!=bInside)next.push_back(intersect(a,b,plane));
-    if(bInside)next.push_back(b);
+   Polygon next;auto a=polygon.v[polygon.n-1];bool aInside=inside(a);
+   for(std::size_t k=0;k<polygon.n;++k) {
+    const auto& b=polygon.v[k];const bool bInside=inside(b);
+    if(aInside!=bInside)next.v[next.n++]=intersect(a,b,plane);
+    if(bInside)next.v[next.n++]=b;
     a=b;aInside=bInside;
    }
-   if(next.size()>5)return false;
-   polygon=std::move(next);
+   if(next.n>5)return false;
+   polygon=next;
   }
-  for(std::size_t j=1;j+1<polygon.size();++j) {
+  for(std::size_t j=1;j+1<polygon.n;++j) {
    if(clipped.size()>65536-3)return false;
-   clipped.push_back(polygon[0]);clipped.push_back(polygon[j]);clipped.push_back(polygon[j+1]);
+   clipped.push_back(polygon.v[0]);clipped.push_back(polygon.v[j]);clipped.push_back(polygon.v[j+1]);
   }
  }
  mesh.vertices=std::move(clipped);mesh.indices.clear();
@@ -121,29 +126,33 @@ bool identityPose(const remake::Camera& c) {
 void require(bool yes,const char* why){if(!yes)throw std::runtime_error(why);}
 struct Wire {
  std::istream* input=nullptr;std::ostream* output=nullptr;
+ // Raw in-memory input (live channel): no stream sentry per word.
+ const char* rawInput=nullptr;std::size_t rawLeft=0;
  std::size_t budget=72*1024*1024;
  void bytes(void* data,std::size_t count) {
   require(count<=budget,"view-wire-byte-bound");budget-=count;
-  if(input)require(bool(input->read(static_cast<char*>(data),count)),"view-wire-truncated");
+  if(rawInput){require(count<=rawLeft,"view-wire-truncated");std::memcpy(data,rawInput,count);rawInput+=count;rawLeft-=count;}
+  else if(input)require(bool(input->read(static_cast<char*>(data),count)),"view-wire-truncated");
   else require(bool(output->write(static_cast<const char*>(data),count)),"view-wire-write");
  }
+ bool reading()const{return rawInput||input;}
  void word(std::uint32_t& value) {
-  unsigned char b[4]{};if(output)for(unsigned i=0;i<4;++i)b[i]=static_cast<unsigned char>(value>>(8*i));
-  bytes(b,4);if(input){value=0;for(unsigned i=0;i<4;++i)value|=std::uint32_t(b[i])<<(8*i);}
+  unsigned char b[4]{};if(!reading())for(unsigned i=0;i<4;++i)b[i]=static_cast<unsigned char>(value>>(8*i));
+  bytes(b,4);if(reading()){value=0;for(unsigned i=0;i<4;++i)value|=std::uint32_t(b[i])<<(8*i);}
  }
- void wide(std::uint64_t& value){std::uint32_t lo=std::uint32_t(value),hi=std::uint32_t(value>>32);word(lo);word(hi);if(input)value=lo|(std::uint64_t(hi)<<32);}
- void real(float& value){std::uint32_t bits;std::memcpy(&bits,&value,4);word(bits);if(input)std::memcpy(&value,&bits,4);require(std::isfinite(value),"view-wire-nonfinite");}
+ void wide(std::uint64_t& value){std::uint32_t lo=std::uint32_t(value),hi=std::uint32_t(value>>32);word(lo);word(hi);if(reading())value=lo|(std::uint64_t(hi)<<32);}
+ void real(float& value){std::uint32_t bits;std::memcpy(&bits,&value,4);word(bits);if(reading())std::memcpy(&value,&bits,4);require(std::isfinite(value),"view-wire-nonfinite");}
  void vector(remake::Vec3& v){real(v.x);real(v.y);real(v.z);}
  std::uint32_t count(std::size_t size,std::uint32_t bound){auto n=std::uint32_t(size);require(size<=bound,"view-wire-count");word(n);require(n<=bound,"view-wire-count");return n;}
- void string(std::string& s,unsigned bound){const auto n=count(s.size(),bound);if(input)s.resize(n);if(n)bytes(s.data(),n);}
+ void string(std::string& s,unsigned bound){const auto n=count(s.size(),bound);if(reading())s.resize(n);if(n)bytes(s.data(),n);}
 };
 void packet(Wire& wire,remake::Packet& p) {
  // Preserve byte-identical version1 output for existing opaque-only captures.
  std::uint32_t magic=0x56524346,version=1;
- if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)version=2;
- if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaBlend)version=3;
- if(wire.output&&p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
- if(wire.output)for(const auto& mesh:p.meshes)if(mesh.textureWire!=remake::TextureWire::Carried)version=5;
+ if(!wire.reading())for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)version=2;
+ if(!wire.reading())for(const auto& mesh:p.meshes)if(mesh.sourceAlphaBlend)version=3;
+ if(!wire.reading()&&p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
+ if(!wire.reading())for(const auto& mesh:p.meshes)if(mesh.textureWire!=remake::TextureWire::Carried)version=5;
  wire.word(magic);wire.word(version);
  require(magic==0x56524346&&(version>=1&&version<=5),"view-wire-schema");
  wire.wide(p.frame);wire.wide(p.producer.epoch);wire.wide(p.producer.ordinal);wire.wide(p.producer.cycle);
@@ -157,12 +166,12 @@ void packet(Wire& wire,remake::Packet& p) {
  if(version==4||(version>=5&&p.diagnosticEmbeddingProvenance==anchoredScope)) {
   require(p.diagnosticEmbeddingProvenance==anchoredScope,"view-wire-anchor-scope");
   wire.vector(p.camera.position);wire.vector(p.camera.right);wire.vector(p.camera.up);wire.vector(p.camera.forward);
-  if(wire.input)p.diagnosticOrigin.emplace();
+  if(wire.reading())p.diagnosticOrigin.emplace();
   require(p.diagnosticOrigin.has_value(),"view-wire-origin");wire.vector(*p.diagnosticOrigin);
  }else p.diagnosticOrigin=remake::Vec3{};
- const auto omissions=wire.count(p.omissions.size(),64);if(wire.input)p.omissions.resize(omissions);
+ const auto omissions=wire.count(p.omissions.size(),64);if(wire.reading())p.omissions.resize(omissions);
  for(auto& text:p.omissions)wire.string(text,256);
- const auto meshes=wire.count(p.meshes.size(),128);if(wire.input)p.meshes.resize(meshes);
+ const auto meshes=wire.count(p.meshes.size(),128);if(wire.reading())p.meshes.resize(meshes);
  std::size_t vertexTotal=0,indexTotal=0,textureTotal=0;
  for(auto& mesh:p.meshes) {
   wire.wide(mesh.id);mesh.frame=p.frame;mesh.transform=std::array<float,12>{1,0,0,0,0,1,0,0,0,0,1,0};
@@ -179,19 +188,19 @@ void packet(Wire& wire,remake::Packet& p) {
   std::uint32_t mode=std::uint32_t(mesh.textureWire);
   if(version>=5){wire.word(mode);require(mode<=2&&(mode==0||known),"view-wire-texture-mode");mesh.textureWire=remake::TextureWire(mode);}
   else{require(mode==0,"view-wire-texture-mode");mesh.textureWire=remake::TextureWire::Carried;}
-  if(wire.input){mesh.material.emplace();mesh.material->albedo={1,1,1};mesh.material->sourceColorExperiment=true;if(known)mesh.material->sourceTexture=mesh.texture;}
+  if(wire.reading()){mesh.material.emplace();mesh.material->albedo={1,1,1};mesh.material->sourceColorExperiment=true;if(known)mesh.material->sourceTexture=mesh.texture;}
   require(mesh.material.has_value()&&mesh.material->sourceDds.empty(),"view-wire-owned-texture-required");
   auto& data=mesh.material->sourceDdsBytes;const auto length=wire.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=length;
   require(mode==2?length==0:mode==1?length>0:true,"view-wire-texture-mode");
-  if(wire.input)data.resize(length);if(length)wire.bytes(data.data(),length);
+  if(wire.reading())data.resize(length);if(length)wire.bytes(data.data(),length);
   const auto vertices=wire.count(mesh.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=vertices;
-  if(wire.input)mesh.vertices.resize(vertices);
+  if(wire.reading())mesh.vertices.resize(vertices);
   for(auto& vertex:mesh.vertices) {
-   wire.vector(vertex.position);if(wire.input)vertex.normal.emplace();require(vertex.normal.has_value(),"view-wire-normal-required");
+   wire.vector(vertex.position);if(wire.reading())vertex.normal.emplace();require(vertex.normal.has_value(),"view-wire-normal-required");
    wire.vector(*vertex.normal);wire.real(vertex.u);wire.real(vertex.v);wire.word(vertex.publicColor);
   }
   const auto indices=wire.count(mesh.indices.size(),unsigned(262144-indexTotal));indexTotal+=indices;
-  if(wire.input)mesh.indices.resize(indices);for(auto& index:mesh.indices)wire.word(index);
+  if(wire.reading())mesh.indices.resize(indices);for(auto& index:mesh.indices)wire.word(index);
  }
  require(p.producer.Available()&&p.game=="T1401N"&&p.frame!=0,"view-wire-identity");
  auto checked=remake::ReadyForDiagnosticAdapter(p,p.frame,p.game,true);require(checked.ok,checked.reason.c_str());
@@ -200,16 +209,19 @@ void packet(Wire& wire,remake::Packet& p) {
 // Read-only writer: never duplicate the owned texture payload to serialize it.
 namespace {
 struct ConstWire {
- Wire wire;
- explicit ConstWire(std::ostream& out):wire{nullptr,&out}{}
- void word(std::uint32_t v){wire.word(v);}
- void wide(std::uint64_t v){wire.wide(v);}
- void real(float v){wire.real(v);}
+ // Words are staged in memory and written to the stream once at the end:
+ // the same bytes as the per-word stream writes, without a sentry per word.
+ std::ostream* out;std::vector<char> staged;std::size_t budget=72*1024*1024;
+ explicit ConstWire(std::ostream& output):out(&output){staged.reserve(1u<<20);}
+ void bytes(const void* p,std::size_t n){require(n<=budget,"view-wire-byte-bound");budget-=n;
+  staged.insert(staged.end(),static_cast<const char*>(p),static_cast<const char*>(p)+n);}
+ void word(std::uint32_t v){unsigned char b[4];for(unsigned i=0;i<4;++i)b[i]=static_cast<unsigned char>(v>>(8*i));bytes(b,4);}
+ void wide(std::uint64_t v){word(std::uint32_t(v));word(std::uint32_t(v>>32));}
+ void real(float v){require(std::isfinite(v),"view-wire-nonfinite");std::uint32_t bits;std::memcpy(&bits,&v,4);word(bits);}
  void vector(const remake::Vec3& v){real(v.x);real(v.y);real(v.z);}
- void bytes(const void* p,std::size_t n){require(n<=wire.budget,"view-wire-byte-bound");wire.budget-=n;
-  require(bool(wire.output->write(static_cast<const char*>(p),n)),"view-wire-write");}
- void count(std::size_t n,unsigned bound){wire.count(n,bound);}
+ void count(std::size_t n,unsigned bound){require(n<=bound,"view-wire-count");word(std::uint32_t(n));}
  void string(const std::string& s,unsigned bound){count(s.size(),bound);if(!s.empty())bytes(s.data(),s.size());}
+ void flush(){require(bool(out->write(staged.data(),std::streamsize(staged.size()))),"view-wire-write");staged.clear();}
 };
 void writePacket(ConstWire& w,const remake::Packet& p) {
  unsigned version=1;
@@ -258,7 +270,7 @@ bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,st
    const auto& m=*mesh.material;
    require(m.albedo.x==1&&m.albedo.y==1&&m.albedo.z==1&&m.roughness==.8f,"view-wire-material");
   }
-  ConstWire wire(out);writePacket(wire,source);require(bool(out),"view-wire-write");error.clear();return true;
+  ConstWire wire(out);writePacket(wire,source);wire.flush();require(bool(out),"view-wire-write");error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool VerifyRemakeViewWireParity(const remake::Packet& source,std::string& error) {
@@ -273,6 +285,12 @@ bool DeserializeRemakeViewPacket(std::istream& input,remake::Packet& output,std:
  try {
   Wire wire{&input,nullptr};remake::Packet p;packet(wire,p);
   require(input.peek()==std::char_traits<char>::eof(),"view-wire-trailing-bytes");output=std::move(p);error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+bool DeserializeRemakeViewPacket(const char* data,std::size_t size,remake::Packet& output,std::string& error) {
+ try {
+  Wire wire;wire.rawInput=data;wire.rawLeft=size;remake::Packet p;packet(wire,p);
+  require(wire.rawLeft==0,"view-wire-trailing-bytes");output=std::move(p);error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
 bool WriteRemakeViewPacket(const std::filesystem::path& path,const remake::Packet& source,std::string& error) {

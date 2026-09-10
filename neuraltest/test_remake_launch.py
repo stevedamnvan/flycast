@@ -109,7 +109,14 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertNotIn('FLYCAST_REMAKE_CPU_TIMING', default[2])
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
+        self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])
+        self.args.hook_cycles = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_HOOK_CYCLES'], '1')
+        self.args.hook_cycles = False
         self.args.cpu_timing = False
+        self.args.hook_cycles = True
+        self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])
+        self.args.hook_cycles = False
         self.assertNotIn('FLYCAST_REMAKE_FRAME_BUDGET_MS', default[2])
         self.args.frame_budget_ms = 4.0
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_FRAME_BUDGET_MS'], '4.0')

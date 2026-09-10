@@ -1150,14 +1150,17 @@ int RunSelfTests()
 				RemakeLiveChannel returnConsumer,returnPublisher;RemakeChannelReceipt receipt,first,secondReceipt;
 				const auto returnToken=token+"-credit";
 				bool ready=returnConsumer.CreateConsumer(returnToken,error)&&returnPublisher.OpenPublisher(returnToken,error);
-				auto b=advance(packet),c=advance(b);remake::Packet owned;
+				auto b=advance(packet),c=advance(b),d=advance(c);remake::Packet owned;RemakeChannelReceipt thirdReceipt;
 				ready=ready&&returnPublisher.PublishForReturn(packet,receipt,error)==RemakeChannelResult::Published
 					&&returnConsumer.Receive(owned,first,error)==RemakeChannelResult::Received
 					&&returnPublisher.PublishForReturn(b,receipt,error)==RemakeChannelResult::Published
 					&&returnConsumer.Receive(owned,secondReceipt,error)==RemakeChannelResult::Received;
-				suite.Expect(ready,"return-aware source slots consumed with two replies outstanding");
+				suite.Expect(ready&&returnPublisher.HasReturnCredit(),"return-aware source slots keep credit with two replies outstanding (D-218: three in flight)");
+				ready=ready&&returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Published
+					&&returnConsumer.Receive(owned,thirdReceipt,error)==RemakeChannelResult::Received;
+				suite.Expect(ready,"return-aware source slots consumed with three replies outstanding");
 				suite.Expect(!returnPublisher.HasReturnCredit(),"return credit preflight prevents speculative overlay copies while busy");
-				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Busy
+				suite.Expect(returnPublisher.PublishForReturn(d,receipt,error)==RemakeChannelResult::Busy
 					&&error=="channel-return-credit-busy","delayed replies prevent source ledger overwrite despite free transport slots");
 				RemakeReturnedImage delayed;delayed.source=first;delayed.frame=packet.frame;delayed.producer=packet.producer;
 				delayed.width=640;delayed.height=480;delayed.bgra.assign(640*480*4,73);
@@ -1166,18 +1169,18 @@ int RunSelfTests()
 					&&returnPublisher.ReceiveImage(accepted,error)==RemakeChannelResult::Received
 					&&accepted.frame==packet.frame,"delayed first reply retains original frame after credit rejection");
 				suite.Expect(returnPublisher.HasReturnCredit(),"return credit preflight resumes after retirement");
-				suite.Expect(returnPublisher.PublishForReturn(c,receipt,error)==RemakeChannelResult::Published
-					&&receipt.sequence==3,"returned image releases exactly one source credit without advancing on busy");
-				suite.Expect(returnPublisher.ExpireReturns(c.frame,c.producer,1)==0,"source age at limit remains owned");
-				suite.Expect(returnPublisher.ExpireReturns(c.frame+1,c.producer,1)==1,"source older than age bound expires without waiting");
+				suite.Expect(returnPublisher.PublishForReturn(d,receipt,error)==RemakeChannelResult::Published
+					&&receipt.sequence==4,"returned image releases exactly one source credit without advancing on busy");
+				suite.Expect(returnPublisher.ExpireReturns(d.frame,d.producer,2)==0,"source age at limit remains owned");
+				suite.Expect(returnPublisher.ExpireReturns(d.frame+1,d.producer,2)==1,"source older than age bound expires without waiting");
 				delayed.source=secondReceipt;delayed.frame=b.frame;delayed.producer=b.producer;
 				suite.Expect(returnConsumer.ReturnImage(delayed,error)==RemakeChannelResult::Published
 					&&returnPublisher.ReceiveImage(accepted,error)==RemakeChannelResult::Invalid
 					&&accepted.frame==packet.frame,"expired late reply rejects without changing owned output");
 				auto epoch=c.producer;++epoch.epoch;
-				suite.Expect(returnPublisher.ExpireReturns(c.frame,epoch,10)==1,"epoch reset expires all remaining source ownership");
+				suite.Expect(returnPublisher.ExpireReturns(c.frame,epoch,10)==2,"epoch reset expires all remaining source ownership");
 			}
-			auto second=advance(packet),third=advance(second);
+			auto second=advance(packet),third=advance(second),fourth=advance(third);
 			remake::Packet receivedPacket;receivedPacket.frame=99;
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Empty&&receivedPacket.frame==99,
 				"live channel empty receive preserves caller output");
@@ -1186,7 +1189,9 @@ int RunSelfTests()
 			const auto firstReceipt=sent;
 			suite.Expect(publisher.Publish(second,sent,error)==RemakeChannelResult::Published,
 				"live channel queues second bounded slot");
-			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Busy,
+			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Published,
+				"live channel queues third bounded slot (D-218: three in flight)");
+			suite.Expect(publisher.Publish(fourth,sent,error)==RemakeChannelResult::Busy,
 				"live channel full ring skips instead of waiting");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received
 				&&receivedPacket.frame==packet.frame&&receivedPacket.meshes[0].material->sourceDdsBytes==packet.meshes[0].material->sourceDdsBytes
@@ -1209,10 +1214,11 @@ int RunSelfTests()
 				&&publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.bgra==image.bgra
 				&&returned.frame==image.frame&&returned.source.digest==image.source.digest,"return exact owned pixels and source receipt");
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Invalid,"return rejects duplicate image");
-			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Published&&sent.sequence==3,
+			suite.Expect(publisher.Publish(fourth,sent,error)==RemakeChannelResult::Published&&sent.sequence==4,
 				"live channel busy attempt does not advance publication sequence");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==second.frame
-				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==third.frame,
+				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==third.frame
+				&&consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received&&receivedPacket.frame==fourth.frame,
 				"live channel preserves FIFO after lower-slot reuse");
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
 			image.projectionDepth.assign(640*480,.75f);image.projectionDepth[0]=0;image.projectionDepth[1]=1;
@@ -1243,17 +1249,17 @@ int RunSelfTests()
 				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-range","return rejects out-of-range projection depth");
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return publishes newer source image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
-			auto fourth=advance(third),bad=fourth;bad.meshes[0].vertices[0].normal.reset();
+			auto fifth=advance(fourth),bad=fifth;bad.meshes[0].vertices[0].normal.reset();
 			suite.Expect(publisher.Publish(bad,sent,error)==RemakeChannelResult::Invalid
-				&&publisher.Publish(fourth,sent,error)==RemakeChannelResult::Published&&sent.sequence==4,
+				&&publisher.Publish(fifth,sent,error)==RemakeChannelResult::Published&&sent.sequence==5,
 				"live channel failed serialization releases slot without advancing sequence");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received,"return next source available");
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
 			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"two outstanding sources have independent return slots");
-			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==third.frame
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame
 				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Invalid,"two queued returns preserve oldest-first order and reject duplicates");
 			consumer.Close();
-			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame
+			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fifth.frame
 				&&returned.projectionDepth==image.projectionDepth&&returned.nearPlane==image.nearPlane&&returned.farPlane==image.farPlane,
 				"return completed image survives orderly consumer close");
 			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
@@ -1434,7 +1440,7 @@ int RunSelfTests()
 		 suite.Expect(!FindSourceTransform(serial),"expired transform serial cannot alias replacement ring record");
 		 ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
 		 auto& writer=(*sourceRamWrites)[0x1000/4];
-		 transform.serial=serial;writer.transform=serial;writer.ownedTransform=transform;
+		 transform.serial=serial;writer.transform=serial;SourceRamOwnedTransform(0x1000/4)=transform;
 		 const auto owned=SourceRamTransform(0x8c001000,0x12345678);
 		 ObserveSourceRamWrite(0x8c002000,0x8c003000,4,0x12345678);
 		 suite.Expect(CarrySourceRamTransform(0x8c002000,0x8c003000,0x12345678,owned)

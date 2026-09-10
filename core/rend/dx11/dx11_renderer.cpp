@@ -1779,6 +1779,9 @@ void DX11Renderer::logNeuralConsumerStatus(
 void DX11Renderer::submitNeuralFrame()
 {
 	using namespace flycast::rend::neural;
+	static thread_local unsigned prefixCount=0,middleCount=0;
+	std::optional<RemakeCpuScope> prefixTiming;
+	prefixTiming.emplace("submit-prefix",0,prefixCount);
 	neuralQualityCapturePending = false;
 	currentNeuralSourceFrameId = 0;
 	currentNeuralGuidanceFrameId = 0;
@@ -1799,9 +1802,33 @@ void DX11Renderer::submitNeuralFrame()
 	}
 	const auto contentRect = getNeuralContentRect();
 	neuralInstrumentation.SetOverlayGameId(settings.content.gameId);
+	static thread_local unsigned geometryCount=0,resourcesCount=0,exportsCount=0,retainedCount=0,attachCount=0,classifyCount=0;
+	prefixTiming.reset();
+	std::optional<RemakeCpuScope> stepTiming;
+	stepTiming.emplace("submit-capture-geometry",0,geometryCount);
+	// The remake lane (returned scenes, FLYCAST_REMAKE_ASYNC_NEURAL=1 with a
+	// channel) never submits native guidance: its motion is rasterized from
+	// returned geometry, so native draw correspondence is skipped there.
+	const auto* asyncNeuralOption = std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
+	const auto* asyncChannelOption = std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
+	const bool remakeReplacesGuidance = asyncNeuralOption && std::strcmp(asyncNeuralOption, "1") == 0
+		&& asyncChannelOption && *asyncChannelOption;
 	const auto& capturedFrame = neuralInstrumentation.CaptureGeometry(*rendContext, {}, {}, width, height,
 		static_cast<std::uint32_t>(std::max(0, contentRect.width)),
-		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {});
+		static_cast<std::uint32_t>(std::max(0, contentRect.height)), contentRect, {}, !remakeReplacesGuidance);
+	stepTiming.reset();
+	if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&RemakeFrameTimingActive.load(std::memory_order_relaxed)) {
+		static thread_local unsigned geometryStageCount=0;
+		if(geometryStageCount<600) {
+			++geometryStageCount;
+			static const char* const names[6]={"geometry-append","geometry-classify","geometry-snapshot","geometry-match","geometry-previous","geometry-finalize"};
+			const auto& stages=neuralInstrumentation.GeometryStageMs();
+			for(unsigned i=0;i<6;++i)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)capturedFrame.frameId,names[i],stages[i]);
+		}
+	}
+	stepTiming.emplace("submit-classify",0,classifyCount);
 	const auto mode = static_cast<NeuralMode>(std::clamp(activeNeuralMode, 0, 8));
 	const bool publicTemporalMode = mode == NeuralMode::Dlaa
 		|| mode == NeuralMode::SrQuality || mode == NeuralMode::SrBalanced
@@ -1905,25 +1932,34 @@ void DX11Renderer::submitNeuralFrame()
 			settings.content.gameId.c_str(), overlayActive ? 1 : 0,
 			static_cast<unsigned>(neuralInstrumentation.OverlayDrawCount()));
 	}
+	stepTiming.reset();
+	stepTiming.emplace("submit-ensure-resources",0,resourcesCount);
 	if (!ensureNeuralResources())
 	{
 		publishNeuralStatus(SubmitStatus::RecoverableFailure,
 			"guidance resource allocation failed");
 		return;
 	}
+	stepTiming.reset();
 	neuralExportSlot = NextHistorySafeRingSlot(neuralExportSlot,
 		neuralAcceptedGuidanceSlot, NeuralExportRingSize, hasNeuralAcceptedGuidance);
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceBegin);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
 		CaptureGpuTimingPoint::GuidanceBegin);
+	stepTiming.emplace("submit-render-exports",0,exportsCount);
 	if (!renderNeuralExports(capturedFrame.jitterX, capturedFrame.jitterY))
 	{
 		publishNeuralStatus(SubmitStatus::RecoverableFailure,
 			"guidance export failed");
 		return;
 	}
+	stepTiming.reset();
+	stepTiming.emplace("submit-retained-scene",0,retainedCount);
 	if (!updateNeuralRetainedScene())
 		WARN_LOG(RENDERER, "Neural retained-scene update failed; next retained frame will use zero jitter");
+	stepTiming.reset();
+	std::optional<RemakeCpuScope> middleTiming;
+	middleTiming.emplace("submit-middle",0,middleCount);
 	currentNeuralGuidanceFrameId = capturedFrame.frameId;
 	neuralPerformance.Mark(deviceContext, GpuTimingPoint::GuidanceEnd);
 	neuralQualityCaptureGpuTimer.Mark(deviceContext,
@@ -1950,7 +1986,9 @@ void DX11Renderer::submitNeuralFrame()
 		drawId = getNeuralTexture(neuralDrawId.textures, neuralDrawId.views,
 			neuralDrawId.d3d12Resources, DXGI_FORMAT_R16_UINT);
 	}
+	stepTiming.emplace("submit-attach-textures",0,attachCount);
 	auto frame = neuralInstrumentation.AttachTextures(color, depth, motion, mask, confidence, drawId);
+	stepTiming.reset();
 	neuralQualityCaptureMetadata = {};
 	neuralQualityCaptureMetadata.frameId = frame.frameId;
 	neuralQualityCaptureMetadata.producerIdentity = rendContext->captureProducer;
@@ -1994,6 +2032,7 @@ void DX11Renderer::submitNeuralFrame()
 		qualityProfile.externalRecommendation;
 	if (neuralQualityCapture.CapturesCurrentFrame())
 		neuralQualityCaptureMetadata.overlayDraws = neuralInstrumentation.CaptureOverlayDiagnostics();
+	middleTiming.reset();
 	prepareRemakeAsyncFeed();
 	if(const auto* asyncNeural=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");asyncNeural&&std::strcmp(asyncNeural,"1")==0) {
 		evaluateRemakeAsync(frame);
@@ -2685,7 +2724,8 @@ void DX11Renderer::drainRemakeReturns(std::uint64_t currentFrame,const flycast::
 		if(!accepted)continue;
 		NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
 			(unsigned long long)overlay.identity.frame,(unsigned long long)overlay.identity.receipt.sequence);
-		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeReturnTimingCount<600) {
+		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeReturnTimingCount<600
+			&&RemakeFrameTimingActive.load(std::memory_order_relaxed)) {
 			++remakeReturnTimingCount;
 			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=return-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 				(unsigned long long)returned.frame,prepared.workerMs);
@@ -2703,6 +2743,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 {
 	try {
 	using namespace flycast::rend::neural;
+	static thread_local unsigned feedPrefixCount=0;
+	std::optional<RemakeCpuScope> feedPrefixTiming;
+	feedPrefixTiming.emplace("feed-prefix",neuralQualityCaptureMetadata.frameId,feedPrefixCount);
 	const auto* requested=std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
 	if(!requested||!*requested)return;
 	if(remakeSessionRoot!=requested&&remakeAsyncToken!=requested) {
@@ -2740,13 +2783,23 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	// D-211: apply completed feed-worker results in source order before this
 	// frame's return handling. History retirement and logging stay here.
 	for(auto& fed:remakeFeedWorker.Drain()) {
-		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeFeedTimingCount<600) {
+		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeFeedTimingCount<600
+			&&RemakeFrameTimingActive.load(std::memory_order_relaxed)) {
 			++remakeFeedTimingCount;
 			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 				(unsigned long long)fed.frame,fed.workerMs);
 			if(fed.packetMs>0)
 				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-packet-build elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 					(unsigned long long)fed.frame,fed.packetMs);
+			if(fed.anchorMs>0)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-anchor elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)fed.frame,fed.anchorMs);
+			if(fed.temporalMs>0)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-temporal elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)fed.frame,fed.temporalMs);
+			if(fed.publishMs>0)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-publish elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)fed.frame,fed.publishMs);
 		}
 		if(fed.viewCut) {
 			// A large single-frame basis jump with continuing support is a view cut
@@ -2809,6 +2862,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		char* end=nullptr;const auto ordinal=std::strtoul(start,&end,10);
 		if(*end||ordinal>10000000||producer.ordinal<ordinal)return;
 	}
+	feedPrefixTiming.reset();
 	static thread_local unsigned feedTimingCount=0;
 	RemakeCpuScope feedTiming("scene-feed",metadata.frameId,feedTimingCount);
 	if(remakeAsyncEpoch&&remakeAsyncEpoch!=producer.epoch) {
@@ -3043,8 +3097,12 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	using namespace flycast::rend::neural;
 	// Native input must not enter this stage while it is reserved for returned
 	// scenes. Display uses only an owned accepted snapshot and its original HUD.
+	static thread_local unsigned evaluatePrefixCount=0;
+	std::optional<RemakeCpuScope> evaluatePrefixTiming;
+	evaluatePrefixTiming.emplace("evaluate-prefix",frame.frameId,evaluatePrefixCount);
 	releaseNeuralPresentation();neuralPresentationView.reset();
 	if(!remakeAsyncStopped&&rendContext)drainRemakeReturns(frame.frameId,rendContext->captureProducer);
+	evaluatePrefixTiming.reset();
 	if(!activeNeuralSurface||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
 		||config::NeuralCaptureFrames.get()!=0||remakeAsyncStopped||!remakeAsyncReturned

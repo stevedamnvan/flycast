@@ -1,5 +1,66 @@
 # Neural rendering evidence log
 
+LOG790 D-218: the host present interval reaches the emulated frame period.
+Performance-eligible run fc075-perf-d218-c (no CPU timing, replay, anchored
+light, managed session): present interval p50 16.77 ms, p95 24.98 ms; 1200
+presents, 1037 remake presents, 1025 accepted evaluations, 22 output repeats,
+latency mean 3.11 frames (max 5), no source-frame repeat or gap, no identity
+fault, GPU timestamp span p50 9.34 ms; one `anchor-source-support-changed`
+in-session re-anchor (source about 3099, points 1000, shared with last
+accepted 424; the same source region passed as a view cut in earlier runs, so
+it is cadence-dependent support overlap, not an observation change; not
+attributed further). The preceding run of that build with three sources in
+flight measured the same (fc075-submit-timing-m, CPU timing on: emulation
+period 17.2 ms, render 13.1 ms, gap 3.7 ms, present p50 17.0 ms, 1025 of 1036
+accepted). Controls from LOG789 stand: native 11.1 ms, DLAA 12.6 ms; the
+present interval now sits at the emulated 60 Hz period, not below it.
+Findings in order, all with the CPU timing diagnostic (runs
+fc075-submit-timing-c to -m under D:\Flycast-Evidence). (1) Every remake CPU
+scope now samples only once the lane is active (the sub-stage scopes used to
+sample the first 600 feeds, which start before the first evaluation; the
+LOG789 sub-stage numbers are from that earlier window). With consistent
+windows the unattributed 4.7 ms inside `frame-submit-neural` was
+`submit-capture-geometry`: native draw correspondence (`geometry-match`
+3.9 ms) computed for a lane that never submits native guidance; it is skipped
+when `FLYCAST_REMAKE_ASYNC_NEURAL=1` with a channel (matches empty, previous
+positions untrusted), 4.74 to 0.82 ms. Native paths are unchanged. (2) The
+feed worker's publish (6.6 ms) was the packet serializer writing one word per
+stream call and the consumer reading the same way; the writer now stages the
+identical bytes and writes once, the live channel deserializes from the
+mapped payload directly (files and the parity check keep the stream path),
+and the payload digest hashes eight bytes per step (publisher and consumer
+share the function; no digest is persisted): publish 6.6 to 3.5 ms. Packet
+build without per-triangle heap use: 3.5 to 2.1 ms. The anchor's per-vertex
+embedding runs in chunks on worker threads with order-free reductions and
+the first failing vertex in packet order still deciding the error: 4.5 to
+3.5 ms. Feed worker 15.9 to 10.9 ms. (3) The emulation thread was then the
+limit (period about 21 ms against about 11 native). Per-hook cycle
+accounting (`--hook-cycles`, diagnostic, inflates the period by several ms)
+attributed it: SQ writes 4.5 ms, RAM stores 3.0, block entries 2.5, register
+reads 1.6, arithmetic 1.1, boundaries 0.6, ftrv 0.5. Cuts that keep every
+observation: the SQ observation record (about 600 bytes) is built in place in
+a batch whose storage is retained through a pool instead of being copied
+into a vector reallocated every frame (SQ writes 4.5 to 1.0 ms); the RAM
+store ring keeps a 24-byte hot record with the transform payload in a
+parallel array consulted only on a serial match; per-register live-origin
+bytes let the recompiler skip the register-write boundary call for registers
+holding no live origin (596 000 to 81 000 calls per frame; the skipped call
+only reset dead entries) and let block-entry validation visit live registers
+only. Emulation period 21.8 to 16.5 ms (fc075-submit-timing-k), the emulated
+60 Hz period. (4) With the frame at 16.5 ms the feed-return round trip (feed
+worker about 11, helper turnaround about 13, return worker about 4 ms plus
+queueing) no longer fit two sources in flight: 394 credit skips and 345
+output repeats. The channel now keeps three sources (and image slots) in
+flight (`kInFlight`); credit skips 169, repeats 22, latency +0 frames at the
+mean (3.1 against 3.5 with the repeats). Helper draw time returned to 2.45 ms
+p50 in that run (5.2 to 6.1 while the pipeline starved), consistent with
+CPU contention rather than the packet. Helper `live_return` lines now carry
+`period_ms`, `receive_wait_ms` and `prepare_ms`. Selftest 868/0 (two channel
+expectations added for the third slot) in automation, baseline and no-ngx,
+remake-sdk-contract 260/0, launcher tests 16. Not claimed: quality, the
+600-frame gate, or anything about the consumer's rendering; the anchored
+scene remains `diagnostic-camera-embedded-anchor-not-world-reconstruction`.
+
 LOG789 D-217: whole-frame attribution, persistent evaluation resources, and
 the source-observation hooks. Whole-frame scopes (`frame-process`,
 `frame-render`, `frame-pvr-draw`, `frame-submit-neural`, `frame-display`,

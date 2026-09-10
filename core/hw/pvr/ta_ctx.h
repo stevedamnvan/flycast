@@ -383,7 +383,7 @@ struct TA_context
 	{
 		verify(tad.End() - tad.thd_root <= (ptrdiff_t)TA_DATA_SIZE);
 #ifdef FLYCAST_ENABLE_NEURAL
-		sourceObservations.reset();
+		flycast::rend::neural::SourceObservationBatch::Recycle(std::move(sourceObservations));
 #endif
 		rend.InvalidateCaptureProducer();
 		tad.Clear();

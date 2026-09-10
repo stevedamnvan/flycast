@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include <vector>
+#include <exception>
+#include <thread>
 #include "remake_view_transport.h"
 #include <map>
 #include <set>
@@ -273,7 +276,11 @@ public:
   if(bases.size()>1)embedded.omissions.push_back(std::to_string(movingPoints)+" source points under "+std::to_string(bases.size()-1)
    +" additional rigid bases (moving objects) are embedded by view position only and excluded from anchor support");
   double maximum=0;ProjectionReport projection{};
-  for(auto& mesh:embedded.meshes)for(auto& v:mesh.vertices) {
+  // D-218: vertices embed independently (identical per-vertex arithmetic;
+  // the reductions are order-free maxima and counts, and the first failing
+  // vertex in packet order still decides the error), so chunks run on
+  // worker threads.
+  const auto embedVertex=[&](remake::Vertex& v,double& maximum,ProjectionReport& projection,std::string& error)->bool {
    const auto input=v.position;
    const auto expected=remake::Project(packet.camera,v.position);
    v.position=embedPosition(v.position);
@@ -375,7 +382,7 @@ public:
    const double pixels=(std::max)(std::abs(double(actual.x)-expected.x)*scene.size[0],
     std::abs(double(actual.y)-expected.y)*scene.size[1]);
    const bool depthOk=std::isfinite(actual.z)&&std::abs(double(actual.z)-expected.z)<=(std::max)(1e-5,std::abs(double(expected.z))*1e-5);
-   if(std::isfinite(pixels)&&pixels<=.01&&depthOk){maximum=(std::max)(maximum,pixels);continue;}
+   if(std::isfinite(pixels)&&pixels<=.01&&depthOk){maximum=(std::max)(maximum,pixels);return true;}
    // D-210: a vertex far outside the viewport whose remaining error is radial
    // (near-plane depth rounding scaling the projection about the center) is
    // accepted when its bounded on-screen effect and its tangential component
@@ -390,13 +397,43 @@ public:
     projection.maxEffect=(std::max)(projection.maxEffect,off.effect);
     projection.maxTangential=(std::max)(projection.maxTangential,off.tangential);
     projection.maxDiagonals=(std::max)(projection.maxDiagonals,off.diagonals);
-    continue;
+    return true;
    }
    error="anchor-projection-mismatch pixels="+std::to_string(pixels)+" expected="+std::to_string(expected.x)+","+std::to_string(expected.y)
     +" actual="+std::to_string(actual.x)+","+std::to_string(actual.y)+" diagonals="+std::to_string(off.diagonals)
     +" radial="+std::to_string(off.radial)+" tangential="+std::to_string(off.tangential)+" effect="+std::to_string(off.effect)
     +" depth="+std::to_string(expected.z)+" actual_depth="+std::to_string(actual.z);
    return false;
+
+  };
+  {
+   std::vector<remake::Vertex*> vertexList;
+   for(auto& mesh:embedded.meshes)for(auto& v:mesh.vertices)vertexList.push_back(&v);
+   struct Chunk {double maximum=0;ProjectionReport projection{};std::string error;std::size_t failed=SIZE_MAX;std::exception_ptr thrown;};
+   const std::size_t total=vertexList.size();
+   const unsigned hardware=std::thread::hardware_concurrency();
+   const unsigned workers=total<1024?1u:(std::min)(6u,(std::max)(1u,hardware/2));
+   std::vector<Chunk> chunks(workers);
+   const auto runChunk=[&](unsigned c) {
+    auto& r=chunks[c];const std::size_t begin=total*c/workers,end=total*(c+1)/workers;
+    try {
+     for(std::size_t i=begin;i<end;++i)if(!embedVertex(*vertexList[i],r.maximum,r.projection,r.error)){r.failed=i;return;}
+    }catch(...){r.thrown=std::current_exception();r.failed=begin;}
+   };
+   std::vector<std::thread> threads;
+   for(unsigned c=1;c<workers;++c)threads.emplace_back(runChunk,c);
+   runChunk(0);
+   for(auto& t:threads)t.join();
+   for(const auto& r:chunks) {
+    if(r.thrown)std::rethrow_exception(r.thrown);
+    if(r.failed!=SIZE_MAX){error=r.error;return false;}
+    maximum=(std::max)(maximum,r.maximum);
+    projection.offscreenAccepted+=r.projection.offscreenAccepted;
+    projection.maxPixels=(std::max)(projection.maxPixels,r.projection.maxPixels);
+    projection.maxEffect=(std::max)(projection.maxEffect,r.projection.maxEffect);
+    projection.maxTangential=(std::max)(projection.maxTangential,r.projection.maxTangential);
+    projection.maxDiagonals=(std::max)(projection.maxDiagonals,r.projection.maxDiagonals);
+   }
   }
   if(projection.offscreenAccepted)embedded.omissions.push_back(std::to_string(projection.offscreenAccepted)
    +" vertices at least four viewport diagonals outside the viewport accepted under the on-screen effect bound (raw public-projection error up to "

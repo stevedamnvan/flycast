@@ -1,5 +1,29 @@
 # Neural rendering decisions
 
+## D-218: consistent sampling windows, redundant native work off the lane, cheaper observation records, three sources in flight
+
+LOG790. (a) All remake CPU scopes sample only while the lane is active, so
+stage numbers are comparable with the whole-frame scopes; the LOG789
+sub-stage numbers came from the warmup feeds. (b) Work the remake lane cannot
+use is skipped only under the lane's own condition
+(`FLYCAST_REMAKE_ASYNC_NEURAL=1` with a channel): native draw
+correspondence, which native and DLAA lanes still compute exactly as before.
+(c) The wire, the digest, the anchor's arithmetic and every observation
+record are unchanged in content; what changed is copies, allocations and
+calls that could not alter state (staged serialization, raw mapped input,
+word-wise digest shared by both ends and never persisted, in-place SQ
+records in pooled batches, a compact store ring, per-register live bytes as
+a recompiler gate, chunked anchor embedding with the first failure in packet
+order). The anchor's rejections and the identity checks remain the evidence
+that observation is unchanged. (d) Three sources in flight on the live
+channel is a pipelining decision, taken because the feed-return round trip
+exceeded two frame periods once the host reached the emulated frame period;
+it adds no latency at the mean because it removes the repeats, and it is
+bounded by the same age expiry. (e) `--hook-cycles` is a separate diagnostic
+opt-in because its two time-stamp reads per hook call cost several
+milliseconds per frame. Nothing about acceptance, native fallback, defaults,
+or external configuration changes.
+
 ## D-217: attribute the whole frame before moving work; cut hook cost, not observation
 
 LOG788 showed the consumer was not the limit and LOG789 showed the render

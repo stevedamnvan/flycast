@@ -16,6 +16,7 @@ bool SerializeRemakeViewPacket(std::ostream&,const remake::Packet&,std::string&)
 // Harness-only parity oracle; retains the old copy-based writer, never used by live publication.
 bool VerifyRemakeViewWireParity(const remake::Packet&,std::string&);
 bool DeserializeRemakeViewPacket(std::istream&,remake::Packet&,std::string&);
+bool DeserializeRemakeViewPacket(const char* data,std::size_t size,remake::Packet&,std::string&); // Raw in-memory payload (live channel).
 // Explicit bounded diagnostic transport. Same owned packet can later cross an
 // IPC boundary; reading a saved packet alone is never live integration proof.
 bool WriteRemakeViewPacket(const std::filesystem::path&,const remake::Packet&,std::string&);

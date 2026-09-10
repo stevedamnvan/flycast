@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cstring>
 #include "source_transform.h"
+#include <memory>
+#include <mutex>
 #include <optional>
 
 namespace flycast::rend::neural {
@@ -58,6 +60,37 @@ public:
      record.before!=record.after) {failed_=true;return false;}
   records_.push_back(record);return true;
  }
+ // D-218: in-place variant of Append. Reserve() hands out the next record to
+ // fill; Commit() applies exactly Append's validation to it (and drops it on
+ // failure). Null when the batch cannot accept a record.
+ SourceCopyObservation* Reserve() {
+  if(failed_||sealed_||records_.size()==capacity)return nullptr;
+  if(records_.capacity()<capacity)records_.reserve(capacity);
+  records_.emplace_back();return &records_.back();
+ }
+ bool Commit() {
+  if(records_.empty())return false;
+  const auto& record=records_.back();
+  const bool previous=records_.size()>1;
+  const SourceCopyObservation* last=previous?&records_[records_.size()-2]:nullptr;
+  if(!contextGeneration_||!record.generation||!record.writerPc||
+     (record.taOffset&31)||
+     (last&&(record.cycle<last->cycle||record.taOffset<=last->taOffset))||
+     record.before!=record.after) {records_.pop_back();failed_=true;return false;}
+  return true;
+ }
+ // Pool of batches with their storage retained across frames (any thread).
+ static std::unique_ptr<SourceObservationBatch> Acquire() {
+  auto& pool=Pool();std::lock_guard<std::mutex> lock(pool.mutex);
+  if(pool.free.empty())return std::make_unique<SourceObservationBatch>();
+  auto batch=std::move(pool.free.back());pool.free.pop_back();return batch;
+ }
+ static void Recycle(std::unique_ptr<SourceObservationBatch> batch) {
+  if(!batch)return;
+  batch->BeginContext(0);
+  auto& pool=Pool();std::lock_guard<std::mutex> lock(pool.mutex);
+  if(pool.free.size()<8)pool.free.push_back(std::move(batch));
+ }
  bool Seal(std::size_t expectedCopies) {
   return Seal(identity_,expectedCopies);
  }
@@ -73,6 +106,8 @@ public:
    identity.ordinal==identity_.ordinal&&identity.cycle==identity_.cycle ? &records_ : nullptr;
  }
 private:
+ struct BatchPool {std::mutex mutex;std::vector<std::unique_ptr<SourceObservationBatch>> free;};
+ static BatchPool& Pool(){static BatchPool pool;return pool;}
  ProducerIdentity identity_{};
  std::uint64_t contextGeneration_=0;
  std::vector<SourceCopyObservation> records_;

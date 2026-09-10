@@ -7,17 +7,28 @@
 #include <optional>
 #include "source_transform.h"
 namespace flycast::rend::neural {
-struct SourceRamWrite {std::uint32_t address=0,pc=0,value=0;std::uint64_t transform=0;std::optional<SourceTransform> ownedTransform;};
+struct SourceRamWrite {std::uint32_t address=0,pc=0,value=0;std::uint64_t transform=0;};
 // Bounded direct-mapped observation cache. Aliases normalize to physical RAM;
 // collisions replace records, never establish a match at a different address.
+// D-218: the hot record is 24 bytes (the whole ring fits the second-level
+// cache); the owned transform payload lives in a parallel array and is
+// consulted only when its serial equals record.transform.
 inline thread_local std::unique_ptr<std::array<SourceRamWrite,16384>> sourceRamWrites;
+inline thread_local std::unique_ptr<std::array<std::optional<SourceTransform>,16384>> sourceRamOwnedTransforms;
+inline std::optional<SourceTransform>& SourceRamOwnedTransform(std::size_t index) noexcept {
+ return (*sourceRamOwnedTransforms)[index%sourceRamOwnedTransforms->size()];
+}
 inline void InvalidateSourceRamWrites() noexcept {
  if(sourceRamWrites) for(auto& record:*sourceRamWrites) {record.pc=0;record.transform=0;}
 }
 inline void ObserveSourceRamWrite(std::uint32_t address,std::uint32_t pc,
  std::uint32_t size,std::uint64_t value) noexcept {
  if((address&0x1c000000)!=0x0c000000)return;
- if(!sourceRamWrites)sourceRamWrites.reset(new(std::nothrow) std::array<SourceRamWrite,16384>{});
+ if(!sourceRamWrites) {
+  sourceRamWrites.reset(new(std::nothrow) std::array<SourceRamWrite,16384>{});
+  sourceRamOwnedTransforms.reset(new(std::nothrow) std::array<std::optional<SourceTransform>,16384>{});
+  if(!sourceRamOwnedTransforms)sourceRamWrites.reset();
+ }
  if(!sourceRamWrites)return;
  const auto base=address&0xffffff;
  if((size!=1&&size!=2&&size!=4&&size!=8)||base+size>0x1000000) {InvalidateSourceRamWrites();return;}
@@ -38,14 +49,15 @@ inline std::uint32_t SourceRamWriter(std::uint32_t address,std::uint32_t value) 
 }
 inline std::optional<SourceTransform> SourceRamTransform(std::uint32_t address,std::uint32_t value) noexcept {
  if(!SourceRamWriter(address,value))return std::nullopt;
- const auto& record=(*sourceRamWrites)[((address&0xffffff)/4)%sourceRamWrites->size()];
- return record.ownedTransform&&record.ownedTransform->serial==record.transform?record.ownedTransform:std::nullopt;
+ const auto index=((address&0xffffff)/4)%sourceRamWrites->size();
+ const auto& record=(*sourceRamWrites)[index];const auto& owned=SourceRamOwnedTransform(index);
+ return owned&&owned->serial==record.transform?owned:std::nullopt;
 }
 inline bool CarrySourceRamTransform(std::uint32_t address,std::uint32_t pc,std::uint32_t value,
  const SourceTransform* transform) noexcept {
  if(!transform||!transform->serial||SourceRamWriter(address,value)!=pc||!pc)return false;
- auto& record=(*sourceRamWrites)[((address&0xffffff)/4)%sourceRamWrites->size()];
- record.transform=transform->serial;record.ownedTransform=*transform;return true;
+ const auto index=((address&0xffffff)/4)%sourceRamWrites->size();
+ (*sourceRamWrites)[index].transform=transform->serial;SourceRamOwnedTransform(index)=*transform;return true;
 }
 inline bool CarrySourceRamTransform(std::uint32_t address,std::uint32_t pc,std::uint32_t value,
  const std::optional<SourceTransform>& transform) noexcept {

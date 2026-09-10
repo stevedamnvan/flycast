@@ -101,6 +101,10 @@ def prepare(args):
         # Bounded per-stage CPU scope logging (600 samples per stage) for
         # locating host-side cost; a diagnostic run, never performance evidence.
         env['FLYCAST_REMAKE_CPU_TIMING'] = '1'
+        if getattr(args, 'hook_cycles', False):
+            # Per-hook time-stamp-counter accounting on the emulation thread
+            # (D-218); inflates the emulated frame period by several ms.
+            env['FLYCAST_REMAKE_HOOK_CYCLES'] = '1'
     budget = getattr(args, 'frame_budget_ms', None)
     if budget is not None:
         # Render-thread budget for the remake lane (D-216): the feed skips and
@@ -239,6 +243,8 @@ def main():
                    help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--cpu-timing', action='store_true',
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
+    p.add_argument('--hook-cycles', action='store_true',
+                   help='With --cpu-timing: per-hook cycle accounting on the emulation thread (D-218); diagnostic only')
     p.add_argument('--frame-budget-ms', type=float, default=None,
                    help='Render-thread remake budget per emulated frame in ms (D-216); default unlimited')
     p.add_argument('--consumer-config', type=Path, default=None,
@@ -259,6 +265,7 @@ def main():
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
                   cpu_timing=args.cpu_timing,
+                  hook_cycles=args.cpu_timing and args.hook_cycles,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,
                   consumer_config_sha256=hashlib.sha256(args.consumer_config.read_bytes()).hexdigest()

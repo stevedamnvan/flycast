@@ -14,6 +14,8 @@
 namespace flycast::rend::neural {
 namespace {
 constexpr std::size_t capacity=72*1024*1024;
+// D-218: sources that may be outstanding (published, not yet returned) at once.
+constexpr unsigned kInFlight=3;
 constexpr LONG freeSlot=0,writingSlot=1,readySlot=2,readingSlot=3;
 struct alignas(64) Slot {
  volatile LONG state;std::uint32_t bytes;std::uint64_t sequence,digest;
@@ -29,8 +31,8 @@ struct ImageSlot {
 };
 struct Shared {
  volatile LONG ready,publisherPid;std::uint32_t magic,version,ownerPid;
- Slot slots[2];
- ImageSlot images[2];
+ Slot slots[kInFlight];
+ ImageSlot images[kInFlight];
 };
 bool name(const std::string& token,std::wstring& output) {
  if(token.empty()||token.size()>64)return false;
@@ -38,8 +40,13 @@ bool name(const std::string& token,std::wstring& output) {
  output=L"Local\\FlycastRemake-";output.append(token.begin(),token.end());return true;
 }
 std::uint64_t digest(const char* data,std::size_t size) {
- std::uint64_t hash=14695981039346656037ull;
- for(std::size_t i=0;i<size;++i){hash^=static_cast<unsigned char>(data[i]);hash*=1099511628211ull;}return hash;
+ // D-218: FNV-1a over 8-byte words (tail bytes one at a time). Payload
+ // integrity between this publisher and its consumer only; both sides share
+ // this function, and no digest is persisted or compared across builds.
+ std::uint64_t hash=14695981039346656037ull;std::size_t i=0;
+ for(;i+8<=size;i+=8){std::uint64_t word;std::memcpy(&word,data+i,8);hash^=word;hash*=1099511628211ull;}
+ for(;i<size;++i){hash^=static_cast<unsigned char>(data[i]);hash*=1099511628211ull;}
+ return hash;
 }
 class OutputBuffer:public std::streambuf {
  char* base_;std::size_t used_=0;
@@ -89,7 +96,7 @@ struct RemakeLiveChannel::Impl {
  HANDLE mapping=nullptr,peer=nullptr;Shared* shared=nullptr;bool owner=false,publisherClaimed=false;
  std::uint64_t sequence=0,frame=0;ProducerIdentity producer;
  struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;};
- Source sources[2];std::uint64_t returnedSequence=0;
+ Source sources[kInFlight];std::uint64_t returnedSequence=0;
  ~Impl(){
   if(shared){if(owner||publisherClaimed)InterlockedExchange(&shared->ready,0);UnmapViewOfFile(shared);}
   if(peer)CloseHandle(peer);if(mapping)CloseHandle(mapping);
@@ -131,7 +138,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
 bool RemakeLiveChannel::HasReturnCredit()const noexcept {
  std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||impl_->owner||!impl_->live()||impl_->sequence==UINT64_MAX)return false;
- const auto& pending=impl_->sources[(impl_->sequence+1)%2];
+ const auto& pending=impl_->sources[(impl_->sequence+1)%kInFlight];
  if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence)return false;
  for(auto& slot:impl_->shared->slots)
   if(InterlockedCompareExchange(&slot.state,freeSlot,freeSlot)==freeSlot)return true;
@@ -143,7 +150,7 @@ RemakeChannelResult RemakeLiveChannel::PublishForReturn(const remake::Packet& pa
   if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
   if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
   if(impl_->sequence!=UINT64_MAX) {
-   const auto& pending=impl_->sources[(impl_->sequence+1)%2];
+   const auto& pending=impl_->sources[(impl_->sequence+1)%kInFlight];
    if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence) {
     error="channel-return-credit-busy";return RemakeChannelResult::Busy;
    }
@@ -191,7 +198,7 @@ RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,Rema
   if(!ordered(p)){error="channel-source-order";return RemakeChannelResult::Invalid;}
   slot->bytes=bytes;slot->sequence=p.sequence+1;slot->digest=hash;
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;p.frame=packet.frame;p.producer=packet.producer;
-  p.sources[p.sequence%2]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
+  p.sources[p.sequence%kInFlight]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
   guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);error.clear();return RemakeChannelResult::Published;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
@@ -209,10 +216,10 @@ RemakeChannelResult RemakeLiveChannel::Receive(remake::Packet& output,RemakeChan
   error="channel-payload-integrity-or-sequence";return RemakeChannelResult::Invalid;
  }
  try {
-  InputBuffer buffer(slot->payload,slot->bytes);std::istream input(&buffer);remake::Packet packet;
-  if(!DeserializeRemakeViewPacket(input,packet,error))return RemakeChannelResult::Invalid;
+  remake::Packet packet;
+  if(!DeserializeRemakeViewPacket(slot->payload,slot->bytes,packet,error))return RemakeChannelResult::Invalid;
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;output=std::move(packet);
-  p.sources[p.sequence%2]={receipt,output.frame,output.producer,output.camera.nearPlane,output.camera.farPlane};
+  p.sources[p.sequence%kInFlight]={receipt,output.frame,output.producer,output.camera.nearPlane,output.camera.farPlane};
   error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
@@ -224,9 +231,9 @@ bool sameReceipt(const RemakeChannelReceipt& a,const RemakeChannelReceipt& b) {
 RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& image,std::string& error) {
  std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||!impl_->owner){error="return-consumer-role";return RemakeChannelResult::Invalid;}
- auto& p=*impl_;auto& s=p.shared->images[image.source.sequence%2];
+ auto& p=*impl_;auto& s=p.shared->images[image.source.sequence%kInFlight];
  if(!p.live()){error="return-closed";return RemakeChannelResult::Closed;}
- const auto& source=p.sources[image.source.sequence%2];
+ const auto& source=p.sources[image.source.sequence%kInFlight];
  if(!image.source.sequence||image.source.sequence<=p.returnedSequence||!sameReceipt(image.source,source.receipt)
   ||image.frame!=source.frame||image.producer.epoch!=source.producer.epoch
   ||image.producer.ordinal!=source.producer.ordinal||image.producer.cycle!=source.producer.cycle
@@ -269,7 +276,7 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
   error.clear();return p.live()?RemakeChannelResult::Empty:RemakeChannelResult::Closed;
  }
  struct Release {volatile LONG* state;~Release(){InterlockedExchange(state,freeSlot);}} release{&s.imageState};
- const auto& source=p.sources[s.imageSource.sequence%2];
+ const auto& source=p.sources[s.imageSource.sequence%kInFlight];
  if(!s.imageSource.sequence||s.imageSource.sequence<=p.returnedSequence||!sameReceipt(s.imageSource,source.receipt)
   ||s.imageFrame!=source.frame||s.imageEpoch!=source.producer.epoch||s.imageOrdinal!=source.producer.ordinal
   ||s.imageCycle!=source.producer.cycle||s.imageDigest!=digest(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels))) {

@@ -92,11 +92,24 @@ keys. Such a run is evidence for that configuration only (LOG788). `--cpu-timing
 logs bounded per-stage host CPU scopes (600 samples per stage,
 including the `feed-worker` scope, the whole-frame scopes `frame-process`,
 `frame-render`, `frame-pvr-draw`, `frame-submit-neural`, `frame-display`,
-`frame-present` and `frame-gap`, the emulation-thread probes
+`frame-present` and `frame-gap`, the submit sub-scopes (`submit-prefix`,
+`submit-capture-geometry`, `geometry-append`/`-classify`/`-snapshot`/`-match`/
+`-previous`/`-finalize`, `submit-classify`, `submit-ensure-resources`,
+`submit-render-exports`, `submit-retained-scene`, `submit-middle`,
+`submit-attach-textures`, `feed-prefix`, `evaluate-prefix`), the feed
+worker's stages (`feed-worker-packet-build`, `-anchor`, `-temporal`,
+`-publish`), the emulation-thread probes
 `emu-frame-period`, `emu-wait-frame-finished` and `emu-wait-render-end`, and a
-per-frame `Remake source hook calls` line; the frame scopes sample once the
-lane has evaluated an image) and marks the run diagnostic, never performance
-evidence. The scene feed runs anchor, temporal capture,
+per-frame `Remake source hook calls` line; every remake scope samples once
+the lane has evaluated an image, D-218) and marks the run diagnostic, never
+performance evidence. `--hook-cycles` (with `--cpu-timing`) adds a per-frame
+`Remake source hook cycles` line with the time spent inside each
+source-observation hook on the emulation thread; it costs two time-stamp
+reads per hook call and inflates the emulated frame period by several
+milliseconds, so it is a separate opt-in. The helper's `live_return` lines
+carry `period_ms` (receive to receive), `receive_wait_ms` (idle in receive)
+and `prepare_ms` (receive to draw). The live channel keeps three sources in
+flight (D-218). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and

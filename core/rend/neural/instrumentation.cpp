@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "instrumentation.h"
+#include "remake_cpu_scope.h"
 
 #include "hw/pvr/ta_ctx.h"
 #include "rend/TexCache.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <unordered_map>
 
 namespace flycast::rend::neural {
@@ -964,7 +967,8 @@ void NeuralInstrumentation::BeginSource(FrameSource source) noexcept
 
 const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& context,
 	TextureRef color, TextureRef depth, std::uint32_t renderWidth, std::uint32_t renderHeight,
-	std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect, Point2 jitter) noexcept
+	std::uint32_t outputWidth, std::uint32_t outputHeight, Rect contentRect, Point2 jitter,
+	bool matchDraws) noexcept
 {
 	BeginSource(FrameSource::Geometry);
 	const auto screenWidth = static_cast<std::uint32_t>(context.globClip.x > 0
@@ -974,6 +978,9 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 	auto& current = drawBuffers_[currentBuffer_];
 	drawCounts_[currentBuffer_] = 0;
 	truncated_ = false;
+	// Stage times (steady clock) for the renderer's CPU-timing diagnostic.
+	auto stageStart=std::chrono::steady_clock::now();unsigned stage=0;
+	const auto stageEnd=[&]{const auto now=std::chrono::steady_clock::now();if(stage<geometryStageMs_.size())geometryStageMs_[stage++]=std::chrono::duration<double,std::milli>(now-stageStart).count();stageStart=now;};
 	AppendList(context, context.global_param_op, ListType_Opaque, current,
 		drawCounts_[currentBuffer_], truncated_);
 	AppendList(context, context.global_param_pt, ListType_Punch_Through, current,
@@ -982,12 +989,20 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		drawCounts_[currentBuffer_], truncated_);
 	AppendSortedTranslucent(context, current, drawCounts_[currentBuffer_], truncated_);
 	CaptureNaomi2Transforms(context);
+	stageEnd();
 	ClassifyOverlays(screenWidth, screenHeight);
+	stageEnd();
 	if (!CapturePositionSnapshot(context))
 		truncated_ = true;
 	if (truncated_) Discontinuity();
-	MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
-		{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
+	stageEnd();
+	if (matchDraws)
+		MatchDrawsInto({drawBuffers_[referenceBuffer_].data(), drawCounts_[referenceBuffer_]},
+			{current.data(), drawCounts_[currentBuffer_]}, matchBuffer_.data(), matchBuffer_.size());
+	else
+		std::fill(matchBuffer_.begin(), matchBuffer_.begin()
+			+ std::min(drawCounts_[currentBuffer_], matchBuffer_.size()), DrawMatch{});
+	stageEnd();
 	candidateDrawsBeforePositionValidation_ = 0;
 	candidateTierDraws_[0] = candidateTierDraws_[1] = candidateTierDraws_[2] = 0;
 	candidateAreaBeforePositionValidation_ = 0;
@@ -1004,6 +1019,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		candidateAreaBeforePositionValidation_ += static_cast<std::uint64_t>(width) * height;
 	}
 	BuildPreviousPositions(context);
+	stageEnd();
 	FinalizeConfidence();
 	drawSnapshotHash_ = 1469598103934665603ull;
 	for (std::size_t i = 0; i < drawCounts_[currentBuffer_]; ++i)
@@ -1011,6 +1027,7 @@ const NeuralFrame& NeuralInstrumentation::CaptureGeometry(const rend_context& co
 		drawSnapshotHash_ ^= DrawSignature(current[i]);
 		drawSnapshotHash_ *= 1099511628211ull;
 	}
+	stageEnd();
 	frame_ = {};
 	frame_.color = color;
 	frame_.depth = depth;

@@ -560,29 +560,40 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 		{
 			if (!ta_ctx->sourceObservations)
 			{
-				ta_ctx->sourceObservations = std::make_unique<flycast::rend::neural::SourceObservationBatch>();
+				ta_ctx->sourceObservations = flycast::rend::neural::SourceObservationBatch::Acquire();
 				ta_ctx->sourceObservations->BeginContext(source.serial);
 			}
-			flycast::rend::neural::SourceCopyObservation record;
-			record.generation = source.serial;
-			record.cycle = sh4_sched_now64();
-			record.taOffset = static_cast<u32>(ta_tad.thd_data - ta_tad.thd_root);
-			record.sourceAddress = source.address;
-			record.writerPc = source.pc;
-			memcpy(record.before.data(), data, 32);
-			memcpy(record.after.data(), dst, 32);
-			for(unsigned component=0;component<3;++component)
-				record.xyzTransforms[component]=flycast::rend::neural::sourceSqTransforms[(source.address&32)/4+1+component];
-			const auto* bytes=reinterpret_cast<const u8*>(data);
-			for(unsigned i=0;i<12;++i) {
-				const auto& writer=flycast::rend::neural::sourceSqWriters[(source.address&32)+4+i];
-				if(writer.value==bytes[4+i]) {
-					record.xyzStorePc[i]=writer.pc;record.xyzSourceRam[i]=writer.ram;record.xyzReadPc[i]=writer.readPc;
-					record.xyzRamProducerPc[i]=writer.producerPc;
+			// D-218: the record is built in place in the batch (same fields, same
+			// validation on Commit) instead of being copied into it.
+			if (auto* slot = ta_ctx->sourceObservations->Reserve())
+			{
+				auto& record = *slot;
+				record.generation = source.serial;
+				record.cycle = sh4_sched_now64();
+				record.taOffset = static_cast<u32>(ta_tad.thd_data - ta_tad.thd_root);
+				record.sourceAddress = source.address;
+				record.writerPc = source.pc;
+				memcpy(record.before.data(), data, 32);
+				memcpy(record.after.data(), dst, 32);
+				const auto* bytes=reinterpret_cast<const u8*>(data);
+				for(unsigned i=0;i<12;++i) {
+					const auto& writer=flycast::rend::neural::sourceSqWriters[(source.address&32)+4+i];
+					if(writer.value==bytes[4+i]) {
+						record.xyzStorePc[i]=writer.pc;record.xyzSourceRam[i]=writer.ram;record.xyzReadPc[i]=writer.readPc;
+						record.xyzRamProducerPc[i]=writer.producerPc;
+					}
 				}
+				// Only components whose bytes were all witnessed carry their transform.
+				for(unsigned component=0;component<3;++component) {
+					bool witnessed=true;
+					for(unsigned i=component*4;i<component*4+4;++i)witnessed=witnessed&&record.xyzStorePc[i];
+					if(witnessed)record.xyzTransforms[component]=flycast::rend::neural::sourceSqTransforms[(source.address&32)/4+1+component];
+					else record.xyzTransforms[component].reset();
+				}
+				ta_ctx->sourceObservations->Commit();
 			}
-			for(unsigned i=0;i<12;++i)if(!record.xyzStorePc[i])record.xyzTransforms[i/4].reset();
-			ta_ctx->sourceObservations->Append(record);
+			else
+				ta_ctx->sourceObservations->Append({}); // Capacity or state failure: same discard as before.
 		}
 		catch (const std::bad_alloc&)
 		{

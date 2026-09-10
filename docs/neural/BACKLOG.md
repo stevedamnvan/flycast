@@ -146,15 +146,18 @@ and the serialization of the two threads, not the render-thread remake work;
 persistent evaluation resources and cheaper hooks brought the emulation
 period to 21.7 ms and the host present interval to 21.6 ms p50 (CPU timing
 on), with the lane now render-thread bound (process about 4 ms plus render
-about 17 ms). Next operational action: attribute the about 5.4 ms of the
-native neural export path inside `frame-submit-neural` and the process step
-with scopes, cut what is redundant for the remake lane (the lane replaces
-native guidance with returned scenes), re-measure without CPU timing against
-the measured controls (native11.1, DLAA12.6), and attribute the helper's draw
-time rise (2.5 to 5.4 ms) and the accepted-evaluation drop (818 of 1200) that
-appeared once the emulation thread ran hotter (CPU contention suspected).
-Then pipeline the helper's present and readback. The budget lane stays
-diagnostic.
+about 17 ms). D-218 (LOG790): consistent
+sampling windows found the native draw correspondence (skipped on the lane),
+the serializer, the anchor loop and the SQ/store observation records; the
+present interval reached the emulated frame period (performance-eligible
+fc075-perf-d218-c: p50 16.77 ms, p95 24.98, 1025 of 1037 remake presents
+accepted, 22 repeats) with three sources in flight on the channel. Next
+operational action: run the 600-frame gate on this build and record it;
+then cut the p95 (24.98) by attributing the remaining credit skips (169)
+against the helper's period p90 (21 ms) and the feed worker's p90 (13 ms),
+and re-check the in-session re-anchor at source about 3099 (support overlap
+424 of 1000 with the last accepted set) by logging the frames since the last
+accepted source at the rejection. The budget lane stays diagnostic.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:
