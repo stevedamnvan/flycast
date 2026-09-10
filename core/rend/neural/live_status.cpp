@@ -75,6 +75,14 @@ const char *DlssPresetName(int preset) noexcept
 	return preset == 10 ? "J" : preset == 11 ? "K" : "Auto";
 }
 
+const char *RemakeSessionStatusName(const LiveStatus& status) noexcept
+{
+	if (!status.remakeSessionRequested) return "Remix session not requested";
+	if (status.remakeRestartRequired) return "Remix session stopped - relaunch required";
+	if (!status.remakeChannelOpen) return "Remix session waiting for channel";
+	return "Remix channel open - helper liveness and presentation unverified";
+}
+
 std::string FormatLiveStatusOverlay(const LiveStatus& status, float fps)
 {
 	std::ostringstream text;
@@ -116,6 +124,8 @@ std::string FormatLiveStatusOverlay(const LiveStatus& status, float fps)
 	text << '\n' << "Accepted " << status.stage.submissions << " | Busy "
 		<< status.stage.busySkips << " | Fallback " << status.stage.fallbacks
 		<< " | Drops n/a";
+	if (status.remakeSessionRequested)
+		text << '\n' << RemakeSessionStatusName(status);
 	return text.str();
 }
 

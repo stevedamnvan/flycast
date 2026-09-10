@@ -2386,6 +2386,10 @@ void DX11Renderer::publishNeuralStatus(
 	live.rasterJitterY = neuralQualityCaptureMetadata.jitterY;
 	live.rasterJitterApplied = neuralQualityCaptureMetadata.rasterJitterApplied;
 	live.sourceFrameId = currentNeuralSourceFrameId;
+	live.remakeSessionRequested = !remakeAsyncToken.empty();
+	live.remakeRestartRequired = remakeAsyncStopped;
+	live.remakeChannelOpen = remakeAsyncChannel.IsOpen();
+	live.remakeReturnedFrame = remakeAsyncReturned ? remakeAsyncReturned->frame : 0;
 	live.presentedOutputFrameId = lastPresentedNeuralFrameId;
 	PublishLiveStatus(std::move(live));
 }
@@ -2663,7 +2667,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		WARN_LOG(RENDERER,"Remake async epoch changed: new consumer token required; native presentation retained");return;
 	}
 	remakeAsyncEpoch=producer.epoch;std::string error;
-	if(!remakeAsyncChannel.IsOpen()&&!remakeAsyncChannel.OpenPublisher(token,error))return;
+	if(!remakeAsyncChannel.IsOpen()&&!remakeAsyncChannel.OpenPublisher(token,error)) {
+		if(error=="channel-publisher-already-claimed") {
+			remakeAsyncStopped=true;
+			WARN_LOG(RENDERER,"Remake session token already claimed: relaunch required; native fallback retained");
+		}
+		return;
+	}
 	RemakeReturnedImage returned;
 	const auto received=remakeAsyncChannel.ReceiveImage(returned,error);
 	if(received==RemakeChannelResult::Received) {

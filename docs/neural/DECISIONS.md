@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-202: report stopped sessions without reclaiming their channel
+
+Live UI reports requested/open/stopped separately from external presentation.
+Renderer restart may retire the current single-publisher token; a claimed-token
+open must report relaunch-required rather than silently recycle receipts. The
+next lifecycle integration must negotiate a fresh token and reset both owners'
+history. Current helper source timeout remains failed continuation, even when
+Flycast completes its native-fallback run. Developer JSON markers use the classic
+locale; formatted thousands separators are not valid JSON evidence.
+
 ## D-201: separate authored light lifetime from material rebuilds
 
 The live helper previously selected camera.forward when material resources were

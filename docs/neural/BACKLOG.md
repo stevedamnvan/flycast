@@ -141,6 +141,19 @@ launching, not an unrestricted interactive setting. Next inspect the existing
 Flycast user-facing neural settings and helper lifetime seam for explicit
 interactive integration; preserve native fallback when the helper is absent.
 Do not present bounded replay success as completion of working gameplay.
+LOG703-707 adds manual-input command construction and Remix status fields;
+renderer-restart test stops delivery and helper times out. Preserve this failed
+continuation. Channel publisher ownership is intentionally single-use; do not
+weaken it. Current action: complete restart-status/locale-marker builds and repeat
+the focused restart case, verifying explicit stopped/relaunch state and valid
+marker evidence. Automatic interactive resumption remains unimplemented. A
+stopped session with native fallback is not full working-pipeline acceptance.
+LOG708 completes the focused repeat: host0/clean close/valid restart marker,
+helper1 source timeout and explicit old-token/relaunch log. Stop/reporting scope
+accepted, automatic continuation remains failed. Save this slice; next implement
+an explicit fresh-session handshake/lifetime owner for interactive restart rather
+than reopening an old token or resetting receipt counters. Do not repeat the
+same stop-only experiment as if it were progress toward automatic resumption.
 No lighting winner, general camera recovery or performance acceptance is implied.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU

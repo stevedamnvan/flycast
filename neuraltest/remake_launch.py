@@ -34,11 +34,11 @@ def prepare(args):
     env.update({'FLYCAST_REMAKE_'+key: '1' for key in enabled})
     env.update(FLYCAST_NEURAL_SOURCE_OBSERVATION='1', FLYCAST_REMAKE_COLOR_CONSISTENCY='0',
                FLYCAST_REMAKE_EFFECT_IDENTITY='0', FLYCAST_REMAKE_ASYNC_CHANNEL=channel,
-               FLYCAST_REMAKE_ASYNC_START_PRODUCER='2090')
+               FLYCAST_REMAKE_ASYNC_START_PRODUCER='0' if args.manual_input else '2090')
     host = [str(paths['harness']), 'performance', '--game', str(paths['game']),
             '--flycast', str(paths['flycast']), '--out', str(out/'host'),
             '--frames', '1200', '--warmup', '2100', '--lane', 'dlss5', '--api', 'd3d11on12',
-            '--renderer', 'dx11-oit', '--input-replay', 'yes', '--render-height', '480',
+            '--renderer', 'dx11-oit', '--input-replay', 'no' if args.manual_input else 'yes', '--render-height', '480',
             '--remake-evidence', 'none', '--timeout-ms', '180000']
     helper = [str(paths['helper']), '--runtime', str(paths['runtime']), '--frames', '660',
               '--live-channel-async', channel, '--assets', str(out), '--clips', '0.1', '2501',
@@ -53,11 +53,14 @@ def main():
     for name in ('flycast', 'harness', 'helper', 'runtime', 'game', 'out'):
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--anchored-light', action='store_true')
+    p.add_argument('--manual-input', action='store_true',
+                   help='Use player input instead of scripted replay; still a bounded test session')
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
+                  manual_input=args.manual_input,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,
                   executable_hashes={k: hashlib.sha256(paths[k].read_bytes()).hexdigest()

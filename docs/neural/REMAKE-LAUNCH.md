@@ -16,6 +16,14 @@ Without `--run`, this only validates paths and prints the command plan. Append
 `--run` to execute. `--anchored-light` is optional and fixes the authored light's
 first direction throughout the anchored sequence; it does not recover game light.
 
+Append `--manual-input` to disable scripted input and use your controller during
+this bounded session. This also removes the replay-specific producer start gate;
+the renderer still requires supported3D Soulcalibur content before exporting.
+The same frame/time bounds remain. Menus may stay native, and failing to enter
+supported gameplay before the helper's source timeout is a failed experiment,
+not a reason to force neural processing onto menus. No manual gameplay acceptance
+is claimed by the command's preflight tests.
+
 The bounded run uses D3D11On12, DX11 OIT, 640x480, deterministic input replay,
 2100 warmup frames and1200 measured host samples, with660 helper frames.
 Image capture and synchronous evidence mode are disabled. Timing results do not

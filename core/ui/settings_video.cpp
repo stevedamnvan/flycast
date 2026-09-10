@@ -465,6 +465,13 @@ void gui_settings_video()
 		const auto live = flycast::rend::neural::GetLiveStatus();
 		ImGui::Separator();
 		ImGui::TextUnformatted(T("Live neural status"));
+		if (live.remakeSessionRequested)
+		{
+			ImGui::TextWrapped("%s", flycast::rend::neural::RemakeSessionStatusName(live));
+			ImGui::Text("Remix retained source: %llu (not presentation proof)",
+				static_cast<unsigned long long>(live.remakeReturnedFrame));
+			ImGui::TextWrapped("%s", T("Experimental anchored scene. Relaunch the prepared session after a game or renderer restart; native fallback remains available."));
+		}
 		if (!live.rendererAvailable)
 			ImGui::TextWrapped("%s", T("No live DirectX 11 renderer snapshot is available."));
 		else

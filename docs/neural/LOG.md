@@ -1,5 +1,70 @@
 # Neural rendering evidence log
 
+LOG709 final serial builds pass after duplicate cleanup: automation/baseline/
+no-NGX738/0, feature-off linked. Save session visibility/manual-input and marker
+correction checkpoint with LOG706/708 failed continuation retained. Full live UI
+and manual-player acceptance remain pending. Next fresh-session ownership must
+replace token and reset retained renderer/consumer history together; no receipt
+counter reset or old-channel reclaim permitted.
+
+LOG708 session-restart-b host exits0 with1200 samples, renderer_reinit=pass and
+clean_close=yes. Helper exits1/outcome11 after274 Presents: automatic continuation
+still fails. Marker parses as JSON with main_frame2400; live renderer logs old
+token already claimed/relaunch required. This accepts marker correction and
+explicit stopped-session diagnosis only, not full restart recovery or visually
+verified native fallback. UI screenshot not obtained. Diff review removes two
+duplicate classic-locale calls (savestate/device-removal already had them),
+leaving six newly corrected streams. Six launcher tests pass. Prepare scoped
+checkpoint and continue lifecycle integration without repeating this stop test.
+
+LOG707 restart follow-up source inspection confirms channel publisher claim is
+single-use (atomic publisherPid0->PID). Reusing old token after teardown is not
+a supported reconnect; do not clear ownership/sequence checks to force recovery.
+Post-restart log tail contains0 combined Presents and0 accepted Remix evaluations
+across13252 lines. This supports stopped delivery, not visual native-frame proof.
+Mark channel-publisher-already-claimed as stopped/relaunch-required rather than
+indefinitely waiting. Add classic locale to remaining actual-device-removal JSON
+marker. Prior marker-fix automation build/selftests738/0 passed; current changes
+await full builds and focused runtime repeat. Helper restart remains explicit.
+
+LOG706 session-restart-a is CORRECTIONS_REQUIRED: helper exits1/outcome11 after
+271 Presents with bounded receive timeout following renderer restart. Host
+finishes1200 samples and clean close but exits1 because restart marker contains
+locale-grouped main_frame2,400, invalid JSON and mismatching expected2400.
+Actual log reports reinit requested/completed at2400; this does not waive the
+failed marker or establish automatic session recovery. Add classic locale to
+seven developer transition JSON streams to avoid grouping. This reporting fix
+is not yet rebuilt/retested and does not fix the helper timeout. Preserve both
+failures. Native fallback/no stale neural output still needs scoped inspection.
+
+LOG705 all status builds complete: automation/baseline/no-NGX738/0, feature-off
+links. Launch focused session-restart-a using current binary and existing bounded
+noncapture run, renderer reinit at main frame2400 after source delivery begins.
+1200 samples after2100 warmup; unchanged660 helper/180s host bounds. This tests
+changed-route stop/fallback reporting, not automatic resumption. Preserve any
+helper source-timeout as failed continuation rather than hiding it behind host
+success. No external config edits, no synchronous evidence capture.
+
+LOG704 add mutex-published Remix session fields to existing live neural status:
+requested, stopped/relaunch-required, channel open and retained source frame.
+Settings panel and late overlay distinguish these from helper liveness and
+external presentation proof. No session auto-restart or fallback policy change.
+Four status tests cover default/waiting/open-unverified/stopped precedence.
+Automation selftest738/0; serial configuration build chain launched. Actual UI
+visual exercise and runtime restart transition remain pending; labels alone do
+not prove those behaviors. Manual-input launcher remains separately uncommitted.
+
+LOG703 inspect interactive seams: user neural mode UI is settings_video.cpp;
+Remix channel still comes from environment and renderer requires a new token on
+epoch change. Helper has660-frame and source-wait bounds; do not expose this as
+unrestricted gameplay yet. Add explicit --manual-input to owned launcher: pass
+input-replay=no and remove replay-specific producer2090 start gate, retaining
+renderer title/3D/viewport guards and all runtime bounds. Six launcher tests pass,
+including default scripted behavior and manual command construction. Manual live
+gameplay has not been run; no interactive acceptance claim. Next integrate clear
+session status/unsupported-restart behavior with existing neural UI before any
+ordinary-gameplay promotion. No renderer/binary changes in this slice.
+
 LOG702 repository launcher live-b exits0: host/helper[0,0], no forced children,
 1200 host samples and clean_close=yes,660 helper Presents/outcome0. Existing
 40-object cleanup warning persists. Five preflight tests pass: no writes/default

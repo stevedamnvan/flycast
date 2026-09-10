@@ -1162,6 +1162,19 @@ int RunSelfTests()
 			!= std::string::npos,
 			"live neural status formats the compact late-OSD contract");
 		const auto publishedGeneration = copied.generation;
+		LiveStatus remakeStatus;
+		suite.Expect(std::string(RemakeSessionStatusName(remakeStatus)).find("not requested") != std::string::npos,
+			"Remix status defaults to not requested");
+		remakeStatus.remakeSessionRequested = true;
+		suite.Expect(std::string(RemakeSessionStatusName(remakeStatus)).find("waiting") != std::string::npos,
+			"Remix requested session does not imply connected helper");
+		remakeStatus.remakeChannelOpen = true;
+		remakeStatus.remakeReturnedFrame = 42;
+		suite.Expect(std::string(RemakeSessionStatusName(remakeStatus)).find("unverified") != std::string::npos,
+			"Remix open channel and returned frame do not imply presentation");
+		remakeStatus.remakeRestartRequired = true;
+		suite.Expect(FormatLiveStatusOverlay(remakeStatus, 60).find("relaunch required") != std::string::npos,
+			"Remix stopped status overrides retained channel state in overlay");
 		ResetLiveStatus();
 		const auto reset = GetLiveStatus();
 		suite.Expect(!reset.rendererAvailable && !reset.active

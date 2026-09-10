@@ -15,7 +15,7 @@ class LaunchPreflightTests(unittest.TestCase):
         fixture = Path(__file__).resolve()
         self.args = argparse.Namespace(**{k: fixture for k in
             ('flycast', 'harness', 'helper', 'runtime', 'game')},
-            out=Path(self.temp.name)/'new', anchored_light=False)
+            out=Path(self.temp.name)/'new', anchored_light=False, manual_input=False)
 
     def test_no_writes_and_explicit_opt_in(self):
         _, out, _, host, helper = prepare(self.args)
@@ -46,6 +46,15 @@ class LaunchPreflightTests(unittest.TestCase):
     def test_unique_channels(self):
         self.assertNotEqual(prepare(self.args)[2]['FLYCAST_REMAKE_ASYNC_CHANNEL'],
                             prepare(self.args)[2]['FLYCAST_REMAKE_ASYNC_CHANNEL'])
+
+    def test_manual_input_is_explicit_and_not_replay_gated(self):
+        default = prepare(self.args)
+        self.assertEqual(default[3][default[3].index('--input-replay')+1], 'yes')
+        self.args.manual_input = True
+        _, _, env, host, _ = prepare(self.args)
+        self.assertEqual(host[host.index('--input-replay')+1], 'no')
+        self.assertEqual(env['FLYCAST_REMAKE_ASYNC_START_PRODUCER'], '0')
+        self.assertEqual(host[host.index('--timeout-ms')+1], '180000')
 
 
 if __name__ == '__main__':

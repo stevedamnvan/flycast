@@ -33,6 +33,10 @@ struct LiveStatus {
 	float rasterJitterX = 0.f;
 	float rasterJitterY = 0.f;
 	bool rasterJitterApplied = false;
+	bool remakeSessionRequested = false;
+	bool remakeRestartRequired = false;
+	bool remakeChannelOpen = false;
+	std::uint64_t remakeReturnedFrame = 0;
 	std::uint64_t sourceFrameId = 0;
 	std::uint64_t presentedOutputFrameId = 0;
 	std::uint64_t generation = 0;
@@ -47,5 +51,6 @@ const char *SubmitStatusName(SubmitStatus status) noexcept;
 const char *ApiName(Api api) noexcept;
 const char *DlssPresetName(int preset) noexcept;
 std::string FormatLiveStatusOverlay(const LiveStatus& status, float fps);
+const char *RemakeSessionStatusName(const LiveStatus& status) noexcept;
 
 } // namespace flycast::rend::neural

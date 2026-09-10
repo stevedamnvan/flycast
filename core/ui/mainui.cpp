@@ -89,6 +89,7 @@ static void writeNeuralDeveloperReinitMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "renderer-reinit-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
 		<< MainFrameCount << ",\n  \"renderer\": "
 		<< static_cast<int>(config::RendererType.get())
@@ -103,6 +104,7 @@ static void writeNeuralDeveloperSwitchMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "renderer-switch-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
 		<< MainFrameCount << ",\n  \"renderer_from\": " << neuralDeveloperSwitchFrom
 		<< ",\n  \"renderer_to\": " << neuralDeveloperSwitchTo
@@ -117,6 +119,7 @@ static void writeNeuralDeveloperSurfaceSwitchMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "surface-switch-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": true,\n  \"main_frame\": "
 		<< MainFrameCount << ",\n  \"surface_from\": " << neuralDeveloperSurfaceSwitchFrom
 		<< ",\n  \"surface_to\": " << neuralDeveloperSurfaceSwitchTo
@@ -131,6 +134,7 @@ static void writeNeuralDeveloperGameReloadMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "game-reload-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": "
 		<< (neuralDeveloperGameReloadCompleted ? "true" : "false")
 		<< ",\n  \"main_frame\": " << MainFrameCount
@@ -173,6 +177,7 @@ static void writeNeuralDeveloperPauseMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "pause-roundtrip-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": "
 		<< (neuralDeveloperPauseObserved && neuralDeveloperResumeObserved
 			? "true" : "false")
@@ -192,6 +197,7 @@ static void writeNeuralDeveloperModeRoundtripMarker()
 	std::filesystem::create_directories(root, ec);
 	if (ec) return;
 	std::ofstream marker(root / "neural-mode-roundtrip-complete.json");
+	marker.imbue(std::locale::classic());
 	marker << "{\n  \"schema\": 1,\n  \"completed\": "
 		<< (neuralDeveloperModeRoundtripCompleted ? "true" : "false")
 		<< ",\n  \"original_mode\": " << neuralDeveloperModeRoundtripOriginal
