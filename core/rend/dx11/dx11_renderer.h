@@ -380,6 +380,19 @@ protected:
 		remakeSentTextures.reset();remakeSentTextureBytes=0;
 		retireRemakeHistory();
 	}
+	// D-221: an in-session re-anchor no longer discards the returns in flight
+	// (accepted evaluations of pre-cut sources, presented in source order); the
+	// history reset is deferred to the first return of a post-cut source.
+	bool remakeHistoryResetPending=false;std::uint64_t remakeHistoryResetAfterFrame=0;
+	void retireRemakeHistoryKeepingReturns() {
+		remakePreEffectTexture.reset();remakeCurrentEffects.reset();
+		remakeTemporalHistory.Reset();
+		remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
+		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();
+		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
+		remakeCompositeView.reset();remakeDisplayedView.reset();remakeCompositeFrame=remakeDisplayedFrame=0;
+		remakeCompositeEvaluated=remakeDisplayedEvaluated=false;
+	}
 	// Retire every cross-frame history and presentation carry-over without
 	// touching the anchor, channel or texture cache: used at an in-session
 	// anchor generation change so no pre-cut image is presented after the cut.
@@ -392,6 +405,7 @@ protected:
 	// but keep the current frame's own native effects: used when the anchored
 	// basis jumps inside a continuing arena, so nothing reprojects across a cut.
 	void retireRemakeTemporalHistory() {
+		remakeHistoryResetPending=false;
 		remakeReturnWorker.Discard();remakePreparedReturn.reset();
 		remakeTemporalHistory.Reset();
 		// D-220: the motion raster holds no cross-frame history (its retained

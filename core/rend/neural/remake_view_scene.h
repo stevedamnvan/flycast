@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "pvr_scene_capture.h"
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <vector>
 
 namespace flycast::rend::neural {
 // Deliberately camera-relative diagnostic geometry, not recovered world space.
@@ -21,6 +24,39 @@ struct RemakeViewMesh {
  bool sourceAlphaBlend=false;
  std::vector<RemakeViewVertex> vertices; // Expanded triangle list; flat normals.
 };
+// D-223 (experimental, default off; FLYCAST_REMAKE_SMOOTH_NORMALS=1): the
+// source stream carries pre-lit colors and no normals, so the expansion above
+// assigns flat face normals and the consumer lights every facet as a plane.
+// Smoothing averages, per source vertex, the face normals of the triangles that
+// share it and lie within a 60 degree crease of the facet being shaded; sharp
+// edges keep their own normal. A shading choice on the exported geometry, not
+// recovered source shading or new geometry.
+inline bool RemakeSmoothNormalsEnabled() {
+ static const bool enabled=[]{const char* v=std::getenv("FLYCAST_REMAKE_SMOOTH_NORMALS");return v&&std::strcmp(v,"1")==0;}();
+ return enabled;
+}
+inline void SmoothRemakeViewNormals(RemakeViewMesh& mesh) {
+ constexpr float creaseCosine=0.5f; // 60 degrees.
+ std::vector<std::pair<std::uint32_t,std::uint32_t>> order;order.reserve(mesh.vertices.size());
+ for(std::uint32_t i=0;i<mesh.vertices.size();++i)order.emplace_back(mesh.vertices[i].sourceVertex,i);
+ std::sort(order.begin(),order.end());
+ std::vector<std::array<float,3>> smoothed(mesh.vertices.size());
+ for(std::size_t begin=0;begin<order.size();) {
+  std::size_t end=begin;while(end<order.size()&&order[end].first==order[begin].first)++end;
+  for(std::size_t i=begin;i<end;++i) {
+   const auto& n=mesh.vertices[order[i].second].normal;float sx=0,sy=0,sz=0;
+   for(std::size_t j=begin;j<end;++j) {
+    const auto& m=mesh.vertices[order[j].second].normal;
+    if(n[0]*m[0]+n[1]*m[1]+n[2]*m[2]<creaseCosine)continue;
+    sx+=m[0];sy+=m[1];sz+=m[2];
+   }
+   const float length=std::sqrt(sx*sx+sy*sy+sz*sz);
+   smoothed[order[i].second]=length>1e-12f?std::array<float,3>{sx/length,sy/length,sz/length}:n;
+  }
+  begin=end;
+ }
+ for(std::uint32_t i=0;i<mesh.vertices.size();++i)mesh.vertices[i].normal=smoothed[i];
+}
 struct RemakeViewScene {
  std::uint64_t frame=0;
  ProducerIdentity producer;
@@ -171,6 +207,7 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
    previous[0]=previous[1];previous[1]=vertex;++stripLength;
   }
   if(mesh.vertices.empty()){++result.omittedDraws;continue;}
+  if(RemakeSmoothNormalsEnabled())SmoothRemakeViewNormals(mesh);
   if(result.meshes.size()>=128)return fail("view-mesh-bound");
   result.meshes.push_back(std::move(mesh));
  }

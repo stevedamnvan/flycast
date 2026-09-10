@@ -168,9 +168,17 @@ sessions (36 of 36), the translucent look is attributed to the D-183 promoted
 alpha surfaces by a bounded A/B (composition unchanged), and the re-anchor at
 source 3099 is the remaining gate cost (98.98 and 98.89 percent fresh of
 steady presents; 8 to 9 of the 11 to 12 non-fresh presents at the re-anchor,
-one a 266 ms motion-raster recompile now removed). Performance-eligible fc075-perf-d220-e and -f (raster retained, same helper): present p50 18.14/18.04 ms, p95 23.94/23.47, p99 30.44/32.19; the re-anchor's held-native presents now take 15 to 22 ms (no 266 ms present) but the re-anchor still costs 8 to 10 presents (four to five automatic, three to five held-native), and scattered single repeats vary between runs (16 and 20 repeats against 8 and 10 in -c/-d, several with 9 to 10 ms present intervals: a present before the next evaluation), so the gate reads 98.52 and 97.96 percent fresh of steady presents; not passed. frames_since_last=0 at the rejection: the last accepted source is the previous frame, a genuine one-frame cut (D-207). Next
-operational action: with the user, decide the D-183 promoted alpha
-composition (the source blends those surfaces over the opaque scene; the
+one a 266 ms motion-raster recompile now removed). D-221/D-222/D-223
+(LOG794): the re-anchor keeps its returns in flight; Performance-eligible fc075-perf-d221-a and -b (OIT route, D-221 build, no mod loaded): 99.35 and 99.35 percent fresh of steady presents (99.72 percent of remake presents), 9 output repeats each, latency mean 3.79/3.08 (max 4), no identity fault; the re-anchor now costs four held-native presents and no automatic present; present p50 19.44/19.27 ms, p95 24.39/23.91, p99 27.25/26.51; VRAM growth 945 and 408 MB (the alternating 946/408 MB pattern with 45/39 owned objects stays unattributed). The fresh-output criterion of the 600-frame gate is therefore met on the OIT route in two runs; the normal-renderer half of the gate cannot be measured because the native-effects lane does not activate there (LOG792), and the VRAM/object attribution the gate asks for is still open.
+The Remix Toolkit pipeline (capture, project, AI PBR textures, ingestion, mod
+layer) runs from scripts; at the consumer's 640x480 output the mod makes no
+measurable difference (LOG794). The faceted characters are the export's flat
+normals; `--smooth-normals` exists and is unmeasured. Performance-eligible fc075-perf-d220-e and -f (raster retained, same helper): present p50 18.14/18.04 ms, p95 23.94/23.47, p99 30.44/32.19; the re-anchor's held-native presents now take 15 to 22 ms (no 266 ms present) but the re-anchor still costs 8 to 10 presents (four to five automatic, three to five held-native), and scattered single repeats vary between runs (16 and 20 repeats against 8 and 10 in -c/-d, several with 9 to 10 ms present intervals: a present before the next evaluation), so the gate reads 98.52 and 97.96 percent fresh of steady presents; not passed. frames_since_last=0 at the rejection: the last accepted source is the previous frame, a genuine one-frame cut (D-207). Next
+operational action: with the user, decide (a) whether to raise the consumer's
+render resolution so replacement textures show (return-slot and evaluation
+input contract change, path-tracing cost to measure), (b) the smooth-normals
+look (`--smooth-normals` capture at source 2601 against the flat export), and
+(c) the D-183 promoted alpha composition (the source blends those surfaces over the opaque scene; the
 consumer ray-traces them as translucent materials): candidates are exporting
 them as opaque emissive-free decals, or excluding them from the export and
 keeping them native, each measured by the same source-2601 capture; then

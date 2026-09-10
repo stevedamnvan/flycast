@@ -1,5 +1,31 @@
 # Neural rendering decisions
 
+## D-223: exported normals may be smoothed as a labeled shading option, never as recovered shading
+
+LOG794. The source geometry has no normals; the export's flat face normals are
+one shading choice and per-vertex averaging within a crease is another. Both
+are labeled export shading, default off for smoothing, and neither claims the
+source's lighting. Replacing meshes with higher-polygon assets is Toolkit
+authoring outside the lane.
+
+## D-222: Remix Toolkit assets enter through the runtime's documented switches and the Toolkit's own tools; the lane changes nothing to accommodate them
+
+LOG794. Captures are triggered by the runtime's environment switch, never by
+editing the user's runtime configuration; the helper's linger and startup-wait
+bounds are diagnostic environment options the launcher never sets. Mods are
+authored by the Toolkit's own generators and converters plus a layer generated
+from the capture's material hashes, and must use typed Material/Shader prims.
+The consumer's 640x480 output resolution is a lane contract; raising it to
+make replacement textures visible is a separate decision with a measured cost.
+
+## D-221: an in-session re-anchor keeps the returns in flight and retires history at the first post-cut return
+
+LOG794. Revises the retirement part of D-207: the returns in flight at a
+support rejection are accepted evaluations of pre-cut sources and are presented
+in source order; no pre-cut image is presented for a post-cut source because
+the reset happens when the first post-cut return is drained. The support rule,
+the re-anchor label and the diagnostic embedding are unchanged.
+
 ## D-220: the helper starts its runtime before its first source; history retirement keeps compiled objects; the translucent look is the promoted alpha surfaces
 
 LOG793. The live return-only helper creates its device and warms up before

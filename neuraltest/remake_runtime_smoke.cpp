@@ -471,6 +471,21 @@ int wmain(int argc,wchar_t** argv) {
   // frames instead of sixty; the host holds three sources meanwhile and every
   // warmup frame is a frame of credit skips on its side.
   const long liveStart=(liveChannelAsync&&returnOnly)?9:61;
+  // D-222: bounded startup wait (FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS, at most
+  // 60000) before the first frame so the runtime can finish loading replacement
+  // assets it discovered at device creation. Diagnostic only; never set by the launcher.
+  if(const char* startupWait=std::getenv("FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS");startupWait&&*startupWait) {
+   char* waitEnd=nullptr;const long waitMs=std::strtol(startupWait,&waitEnd,10);
+   if(!*waitEnd&&waitMs>0&&waitMs<=60000) {
+    std::cerr<<"phase=startup-wait begin ms="<<waitMs<<'\n'<<std::flush;
+    const auto waitDeadline=std::chrono::steady_clock::now()+std::chrono::milliseconds(waitMs);
+    while(std::chrono::steady_clock::now()<waitDeadline) {
+     MSG msg{};while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)){TranslateMessage(&msg);DispatchMessageW(&msg);}
+     Sleep(50);
+    }
+    std::cerr<<"phase=startup-wait end\n"<<std::flush;
+   }
+  }
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -788,6 +803,23 @@ int wmain(int argc,wchar_t** argv) {
   }
   std::cerr<<"diagnostic_completion_hresult="<<completed<<" bounded_ms=2000\n"<<std::flush;
   if(completed!=S_OK)outcome=15;
+ }
+ // D-222: an explicit bounded linger (FLYCAST_REMAKE_HELPER_LINGER_MS, at most
+ // 120000) keeps the window and runtime alive after the last frame so a
+ // runtime-side export started during the run (the Remix USD capture,
+ // triggered by the runtime's documented DXVK_RTX_CAPTURE_ENABLE_ON_FRAME)
+ // can finish before shutdown. Diagnostic only; never set by the launcher.
+ if(const char* linger=std::getenv("FLYCAST_REMAKE_HELPER_LINGER_MS");linger&&*linger) {
+  char* lingerEnd=nullptr;const long lingerMs=std::strtol(linger,&lingerEnd,10);
+  if(!*lingerEnd&&lingerMs>0&&lingerMs<=120000) {
+   std::cerr<<"phase=linger begin ms="<<lingerMs<<'\n'<<std::flush;
+   const auto lingerDeadline=std::chrono::steady_clock::now()+std::chrono::milliseconds(lingerMs);
+   while(std::chrono::steady_clock::now()<lingerDeadline) {
+    MSG msg{};while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)){TranslateMessage(&msg);DispatchMessageW(&msg);}
+    Sleep(50);
+   }
+   std::cerr<<"phase=linger end\n"<<std::flush;
+  }
  }
  // Keep the runtime alive until those callbacks can no longer run.
  std::cerr<<"phase=destroy-window begin\n"<<std::flush;

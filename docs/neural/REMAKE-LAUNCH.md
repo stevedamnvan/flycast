@@ -117,7 +117,11 @@ currently activates only on the OIT route (LOG792). `--alpha-combined-off`
 and `--opaque-alpha-one` are the D-220 translucency A/B controls (diagnostic,
 default off). The helper logs `texture_register ... content_digest=` per
 texture registration (D-220) and, in the live return-only mode, receives its
-first source after runtime startup (`live_first_source=deferred-until-runtime-start`). The scene feed runs anchor, temporal capture,
+first source after runtime startup (`live_first_source=deferred-until-runtime-start`).
+`--smooth-normals` (D-223, default off) averages exported face normals per source
+vertex. The helper honours two diagnostic environment bounds the launcher never
+sets: `FLYCAST_REMAKE_HELPER_LINGER_MS` and `FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS`
+(D-222, standalone Remix USD capture and mod-loading renders). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and

@@ -118,6 +118,10 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertEqual(ab['FLYCAST_REMAKE_ALPHA_COMBINED'], '0')
         self.assertEqual(ab['FLYCAST_REMAKE_OPAQUE_ALPHA_ONE'], '1')
         self.args.alpha_combined_off = False; self.args.opaque_alpha_one = False
+        self.assertNotIn('FLYCAST_REMAKE_SMOOTH_NORMALS', prepare(self.args)[2])
+        self.args.smooth_normals = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SMOOTH_NORMALS'], '1')
+        self.args.smooth_normals = False
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
         self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])

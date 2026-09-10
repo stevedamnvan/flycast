@@ -1,5 +1,51 @@
 # Neural rendering evidence log
 
+LOG794 D-221/D-222/D-223: the re-anchor keeps its returns, the Remix Toolkit
+pipeline runs end to end, and the faceted look is attributed. (1) D-221: at
+the source-3099 re-anchor the host no longer discards the three returns in
+flight (accepted evaluations of pre-cut sources 3096 to 3098, presented in
+source order); the temporal/raster history and presentation carry-over are
+retired at the first post-cut return instead (`Remake anchor history
+retired: source=3101 after_source=3099`). Performance-eligible fc075-perf-d221-a and -b (OIT route, D-221 build, no mod loaded): 99.35 and 99.35 percent fresh of steady presents (99.72 percent of remake presents), 9 output repeats each, latency mean 3.79/3.08 (max 4), no identity fault; the re-anchor now costs four held-native presents and no automatic present; present p50 19.44/19.27 ms, p95 24.39/23.91, p99 27.25/26.51; VRAM growth 945 and 408 MB (the alternating 946/408 MB pattern with 45/39 owned objects stays unattributed). The fresh-output criterion of the 600-frame gate is therefore met on the OIT route in two runs; the normal-renderer half of the gate cannot be measured because the native-effects lane does not activate there (LOG792), and the VRAM/object attribution the gate asks for is still open.|fc075-perf-d222-mod-a (mod loaded, 78 replacement DDS): 99.54 percent fresh, helper draw p50 2.67 ms against 2.72 without the mod, present p50 19.33 ms; no measurable cost at 640x480. (2) D-222, Remix
+USD capture without the GUI: the runtime's documented
+`DXVK_RTX_CAPTURE_ENABLE_ON_FRAME=<frame>` triggers a capture, and
+`DXVK_DISABLE_ASSET_REPLACEMENT=1` is required (the capturer refuses while
+replacement assets are enabled, including the helper's API light). The helper
+gained two diagnostic environment bounds, never set by the launcher:
+`FLYCAST_REMAKE_HELPER_LINGER_MS` (keeps the runtime alive after the last frame
+so the export finishes) and `FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS` (lets a mod
+finish loading before the first frame). Running the helper standalone on the
+saved source-2601 packet (`remake-view.bin` from the fc075-abcap-d220-baseline
+capture) produced `rtx-remix/captures/capture_2026-09-10_17-52-53.usd` with 26
+textures (R8G8B8A8, DXGI 28), 48 meshes and 26 materials named by the
+runtime's material hash. Toolkit 1.5.2.0 (user-installed through the NVIDIA
+App; the source clone at tag 2024.5.1 was not built): a project was created
+with the wizard core (junctions, not elevated symlinks; the shipped CLI wrapper
+passes string paths that its own validators reject), the 26 textures went
+through the AI PBR generator (diffuse 4x, normal DX, roughness; PNG, RGB only),
+the source alpha was resampled back into the six diffuse maps whose source
+alpha is not opaque (cutouts and the promoted alpha surfaces), the material
+ingestion converted the 78 maps to BC7 `.rtex.dds` with octahedral normals,
+and `mod.usda` was authored from the material hashes. The runtime's mod loader
+requires typed prims (`def Material` with a child `def Shader` that is a
+UsdShadeShader; untyped `over` prims are skipped silently, verified by a
+wrong-texture control: 294093 of 307200 pixels changed once typed). With the
+real textures the standalone render of the same packet differs from the no-mod
+render by 9469 pixels against a run-to-run noise of about 9000: at the lane's
+640x480 consumer output (the runtime renders the helper's 640x480 backbuffer,
+with its own upscaler below that) the 4x textures and generated PBR maps make
+no measurable difference. The texture work therefore needs a higher consumer
+render resolution, which changes the return image contract (640x480 slots) and
+the host's evaluation input, and costs path-tracing time; a user decision.
+Gameplay cost of the loaded mod: fc075-perf-d222-mod-a (mod loaded, 78 replacement DDS): 99.54 percent fresh, helper draw p50 2.67 ms against 2.72 without the mod, present p50 19.33 ms; no measurable cost at 640x480. (3) D-223: the
+user's observation that the characters look faceted is the flat face normal
+the export assigns (the source stream carries pre-lit colors and no normals),
+lit per facet by the path tracer where the source's baked Gouraud colors hid
+the polygon count. `FLYCAST_REMAKE_SMOOTH_NORMALS=1` (launcher
+`--smooth-normals`, default off) averages face normals per source vertex
+within a 60 degree crease; not yet measured in a session. Selftest 868/0
+(automation, baseline, no-ngx), remake-sdk-contract 260/0, launcher tests 16.
+
 LOG793 D-220: the helper's first-packet startup, the translucent look, texture
 identity across sessions, and the re-anchor stall. (1) First-packet startup:
 the helper received its first live packet before creating its device, so the

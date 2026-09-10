@@ -2722,6 +2722,13 @@ void DX11Renderer::drainRemakeReturns(std::uint64_t currentFrame,const flycast::
 			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
 			(unsigned long long)returned.source.sequence,(unsigned long long)currentFrame,accepted);
 		if(!accepted)continue;
+		if(remakeHistoryResetPending&&returned.frame>remakeHistoryResetAfterFrame) {
+			// D-221: first return of a post-cut source: retire the pre-cut histories
+			// and presentation carry-over now, keeping this return.
+			retireRemakeHistoryKeepingReturns();remakeHistoryResetPending=false;
+			NOTICE_LOG(RENDERER,"Remake anchor history retired: source=%llu after_source=%llu history_reset=true presentation_retired=true",
+				(unsigned long long)returned.frame,(unsigned long long)remakeHistoryResetAfterFrame);
+		}
 		NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
 			(unsigned long long)overlay.identity.frame,(unsigned long long)overlay.identity.receipt.sequence);
 		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeReturnTimingCount<600
@@ -2821,12 +2828,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 					fed.support.rotationFromReferenceDegrees,fed.support.translationFromReference,
 					fed.support.rotationFromLastDegrees,fed.support.translationFromLast,unsigned(fed.support.bases));
 			if(fed.supportChanged) {
-				// Genuine source-view cut: the worker retired its fixed view; retire
-				// temporal/raster history, pending returns and presentation carry-over
-				// here, keeping the channel and helper.
-				retireRemakeHistory();
-				NOTICE_LOG(RENDERER,"Remake anchor support changed: in-session re-anchor generation=%u regenerated=%d history_reset=true presentation_retired=true channel_retained=true",
-					fed.generation,fed.regenerated);
+				// Genuine source-view cut: the worker retired its fixed view. D-221:
+				// the returns in flight are accepted evaluations of pre-cut sources
+				// and are presented in source order; temporal/raster history and the
+				// presentation carry-over are retired at the first post-cut return.
+				remakeHistoryResetPending=true;remakeHistoryResetAfterFrame=fed.frame;
+				NOTICE_LOG(RENDERER,"Remake anchor support changed: in-session re-anchor generation=%u regenerated=%d history_reset=deferred-after-source-%llu presentation_retired=false returns_in_flight_kept=true channel_retained=true",
+					fed.generation,fed.regenerated,(unsigned long long)fed.frame);
 			}
 			continue;
 		}
