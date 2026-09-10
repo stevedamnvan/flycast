@@ -119,13 +119,18 @@ stream, raster, upload, submit and receive/verify; feed11.6 ms with packet build
 4.5). The user approved both follow-ups with the stated goal of native60 fps
 and a good-looking combined image. D-212 (LOG783) put textures by reference on
 the live wire (1.06 MB per packet, archives unchanged): about27 fps, feed
-worker15.5 ms, render thread still about24 ms of feed plus evaluation. Next
-operational action: move the returned-image path (receive, verify, input build,
-motion stream) to a second worker with the consumer submit and raster staying
-on the render thread, and move the packet build to the feed worker by reading
-new textures on the render thread first; then re-measure the600-frame gate
-against the19 ms native control; record the external consumer's return rate as
-the combined-share limit rather than lowering the99 percent criterion.
+worker15.5 ms. D-213 (LOG784) moved the packet build to the feed worker and
+the motion stream and input conversion to a return worker: about32 fps, render
+thread about16 ms (return receive2.6, output ownership3.7, raster2.5, snapshot
+1.6, view scene1.5, submit1.0). The consumer's return rate was host-limited in
+every run (credit-busy skips0 to7), so no consumer limit is established yet.
+Next operational action: move the return receive and well-formed scan to the
+return worker (free-running receive with the render-thread identity gate at
+drain), split and pool the output-ownership copy (wrap versus owned texture
+creation), then re-measure; after that, pipeline the helper's readback so its
+return latency is not serialized with its present; then the600-frame gate
+against the19 ms native control. VRAM growth+928 MB versus+387 MB before
+D-213 with unchanged resource counts remains unattributed (LOG784).
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

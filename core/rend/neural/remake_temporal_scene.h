@@ -70,6 +70,7 @@ class RemakeTemporalHistory {
 public:
  void Reset(){accepted.reset();acceptedDepth.clear();acceptedColor.clear();}
  const RemakeTemporalScene* Last()const{return accepted.get();}
+ std::shared_ptr<const RemakeTemporalScene> Shared()const{return accepted;} // Immutable; safe to hand to a worker.
  const std::vector<float>& Depth()const{return acceptedDepth;}
  const std::vector<unsigned char>& Color()const{return acceptedColor;}
  bool CanReproject(const RemakeTemporalScene& next)const {

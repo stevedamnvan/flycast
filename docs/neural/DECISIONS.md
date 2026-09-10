@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-213: returned-image preparation and packet build off the render thread
+
+After D-211 and D-212 the render thread still carried the packet build and the
+CPU half of the returned-image evaluation (LOG783). Both move to workers with
+explicit, never-waiting fallbacks: the feed worker builds the packet from
+texture bytes the render thread staged by draw (device reads stay on the
+render thread; an unstaged texture is an explicit packet skip), and a return
+worker prepares the motion stream and neural input for each accepted returned
+image. The prepared stream is used only when the history it was built against
+is the accepted history at evaluation time; otherwise the render thread
+rebuilds it. One prepared image is pending at a time so no unevaluated image is
+overwritten; a busy return worker keeps the synchronous path for that image.
+Locked replay and the remix-only comparison lane keep the synchronous path
+because they substitute or bypass the live pixels. Every acceptance check,
+identity gate, log line and archive keeps its meaning; what changed is where
+the CPU work runs and that evaluation may follow receipt by one frame.
+
 ## D-212: textures by reference on the live wire, never in archives
 
 Re-sending every texture with every packet cost12.6 MB per source on both

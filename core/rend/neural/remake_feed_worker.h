@@ -6,7 +6,12 @@
 #include "remake_live_channel.h"
 #include "pvr_scene_capture.h"
 #include "remake_view_scene.h"
+#include "remake_view_transport.h"
+#include "remake_alpha_ownership.h"
+#include <array>
 #include <chrono>
+#include <map>
+#include <set>
 #include <condition_variable>
 #include <deque>
 #include <functional>
@@ -24,10 +29,21 @@ namespace flycast::rend::neural {
 // lane cannot slow emulation. The worker owns the camera anchor so support
 // lineage stays sequential; results are drained on the render thread, which
 // applies history retirement and logging in source order.
+using RemakeSentTextureSet=std::set<std::array<std::uint64_t,4>>;
 struct RemakeFeedJob {
  std::uint64_t frame=0;ProducerIdentity producer;
  PvrDecodedPacket snapshot;RemakeViewScene scene;remake::Packet packet;RemakeOverlaySnapshot overlay;
  bool anchored=false,temporal=false,managed=false,captureScene=false;
+ // Packet build on the worker (D-213): the render thread stages every needed
+ // texture's bytes by draw (list, ordinal) and an immutable snapshot of the
+ // identities the consumer already holds; no device access happens here.
+ bool buildPacket=false,registerMore=true,byReference=false; // byReference: register/reference even while nothing is held yet.
+ std::map<std::pair<std::uint32_t,std::uint32_t>,std::vector<unsigned char>> textures;
+ std::shared_ptr<const RemakeSentTextureSet> sent;
+ // Alpha ownership: the render thread verified the source bindings and staged
+ // the effect identity words of every alpha draw; the selections are taken from
+ // the meshes that survive clipping in the built packet.
+ bool alphaOwnership=false;std::map<std::uint32_t,EffectIdentityPoly> alphaParams;
  std::function<RemakeChannelResult(const remake::Packet&,RemakeChannelReceipt&,std::string&)> publish;
 };
 struct RemakeFeedResult {
@@ -43,7 +59,8 @@ struct RemakeFeedResult {
  // Texture identities the consumer registered from this published packet
  // (D-212); the render thread records them as sent only after Published.
  std::vector<remake::TextureIdentity> registeredTextures;std::size_t registeredBytes=0;
- double workerMs=0;
+ bool alphaOwnership=false;
+ double workerMs=0,packetMs=0;
 };
 class RemakeFeedWorker {
  mutable std::mutex mutex;std::condition_variable wake;std::thread thread;
@@ -55,6 +72,30 @@ class RemakeFeedWorker {
   const auto start=std::chrono::steady_clock::now();
   RemakeFeedResult r;r.frame=job.frame;r.producer=job.producer;r.overlay=std::move(job.overlay);r.anchored=job.anchored;
   std::string error;RemakeCameraAnchor proposed;
+  if(job.buildPacket) {
+   const RemakeTextureReader reader=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) {
+    const auto found=job.textures.find({draw.list,draw.ordinal});
+    if(found==job.textures.end()){why="texture-not-staged";return false;}
+    bytes=found->second;return true;
+   };
+   RemakeTextureSent sent;
+   if(job.byReference){auto held=job.sent;sent=[held](const remake::TextureIdentity& t){return held&&held->count({t.id,t.generation,t.paletteGeneration,t.rttGeneration})!=0;};}
+   if(!BuildRemakeViewPacket(job.scene,reader,job.packet,error,sent)) {
+    r.stage="packet";r.error=error;r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;
+   }
+   if(!job.registerMore)for(auto& mesh:job.packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered)mesh.textureWire=remake::TextureWire::Carried;
+   if(job.alphaOwnership) {
+    r.alphaOwnership=true;
+    for(const auto& mesh:job.packet.meshes)if(mesh.sourceAlphaBlend) {
+     const auto ordinal=std::uint32_t(mesh.id)-1;const auto found=job.alphaParams.find(ordinal);
+     if((mesh.id>>32)!=2||found==job.alphaParams.end()) {
+      r.stage="alpha-ownership";r.error="source-list-range";r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;
+     }
+     r.overlay.alphaEffectSelections.push_back({ordinal,found->second});
+    }
+   }
+   r.packetMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+  }
   if(job.anchored) {
    proposed=anchor;
    if(!proposed.Apply(job.snapshot,job.scene,job.packet,error)) {

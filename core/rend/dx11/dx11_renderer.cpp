@@ -60,12 +60,13 @@ public:
 		enabled=value&&std::strcmp(value,"1")==0&&count<600;
 		if(enabled){++count;start=std::chrono::steady_clock::now();}
 	}
-	~RemakeCpuScope() {
-		if(enabled) {
-			const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
-				(unsigned long long)frame,label,ms);
-		}
+	void End(){if(enabled){report();enabled=false;}}
+	~RemakeCpuScope(){End();}
+private:
+	void report()const {
+		const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+		NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+			(unsigned long long)frame,label,ms);
 	}
 };
 }
@@ -234,7 +235,7 @@ void DX11Renderer::Term()
 {
 	NOTICE_LOG(RENDERER, "DX11 renderer terminating");
 #ifdef FLYCAST_ENABLE_NEURAL
-	remakeFeedWorker.Stop();
+	remakeFeedWorker.Stop();remakeReturnWorker.Stop();
 	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
@@ -2643,6 +2644,32 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 	}
 }
 
+void DX11Renderer::drainRemakeReturns()
+{
+	using namespace flycast::rend::neural;
+	// D-213: prepared returns arrive in order; the image becomes the pending
+	// evaluation exactly as the synchronous path would have made it. Only one
+	// image is pending at a time: an image not yet evaluated is never
+	// overwritten by a later prepared one (it ages out after8 frames instead).
+	for(;;) {
+		if(remakeAsyncReturned&&remakeAsyncReturned->frame>remakeLastEvaluationAttempt)break;
+		auto next=remakeReturnWorker.Next();
+		if(!next)break;
+		auto& prepared=*next;
+		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeReturnTimingCount<600) {
+			++remakeReturnTimingCount;
+			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=return-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+				(unsigned long long)prepared.returned.frame,prepared.workerMs);
+		}
+		RemakePreparedReturn ready;ready.frame=prepared.returned.frame;ready.sequence=prepared.returned.source.sequence;
+		ready.previousFrame=prepared.previousFrame;ready.temporal=prepared.temporal;ready.streamReady=prepared.streamReady;
+		ready.inputReady=prepared.inputReady;ready.streamError=std::move(prepared.streamError);
+		ready.stream=std::move(prepared.stream);ready.input=std::move(prepared.input);
+		remakeAsyncReturned=std::move(prepared.returned);remakeAsyncAcceptedOverlay=std::move(prepared.overlay);
+		remakePreparedReturn=std::move(ready);
+	}
+}
+
 void DX11Renderer::prepareRemakeAsyncFeed()
 {
 	try {
@@ -2688,6 +2715,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			++remakeFeedTimingCount;
 			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 				(unsigned long long)fed.frame,fed.workerMs);
+			if(fed.packetMs>0)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-packet-build elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)fed.frame,fed.packetMs);
 		}
 		if(fed.viewCut) {
 			// A large single-frame basis jump with continuing support is a view cut
@@ -2718,9 +2748,15 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			}
 			continue;
 		}
-		for(const auto& identity:fed.registeredTextures)
-			remakeSentTextures.insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
-		remakeSentTextureBytes+=fed.registeredBytes;
+		if(!fed.registeredTextures.empty()) {
+			auto grown=remakeSentTextures?std::make_shared<RemakeSentTextureSet>(*remakeSentTextures):std::make_shared<RemakeSentTextureSet>();
+			for(const auto& identity:fed.registeredTextures)
+				grown->insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
+			remakeSentTextures=std::move(grown);remakeSentTextureBytes+=fed.registeredBytes;
+		}
+		if(fed.alphaOwnership)
+			NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
+				(unsigned long long)fed.frame,unsigned(fed.overlay.alphaEffectSelections.size()));
 		auto overlay=std::move(fed.overlay);
 		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
 		if(fed.capturedPacket)overlay.captureScene=std::move(fed.capturedPacket);
@@ -2758,22 +2794,51 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		}
 		return;
 	}
+	drainRemakeReturns();
 	RemakeReturnedImage returned;
-	const auto received=remakeAsyncChannel.ReceiveImage(returned,error);
+	RemakeChannelResult received;
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("feed-receive-image",metadata.frameId,count);
+		received=remakeAsyncChannel.ReceiveImage(returned,error);
+	}
 	if(received==RemakeChannelResult::Received) {
-		RemakeNeuralInput validated;
 		auto& overlay=remakeAsyncOverlaySources[returned.source.sequence%2];
 		const bool accepted=returned.frame<=metadata.frameId&&metadata.frameId-returned.frame<=8
 			&&returned.producer.epoch==producer.epoch
 			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,metadata.frameId,producer)
-			&&BuildRemakeNeuralInput(returned,returned.frame,returned.producer,validated);
+			&&RemakeReturnedImageWellFormed(returned);
 		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
 			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
 			(unsigned long long)returned.source.sequence,(unsigned long long)metadata.frameId,accepted);
 		if(accepted) {
-			remakeAsyncReturned=std::move(returned);remakeAsyncAcceptedOverlay=std::move(overlay);overlay={};
 			NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
-				(unsigned long long)remakeAsyncAcceptedOverlay.identity.frame,(unsigned long long)remakeAsyncAcceptedOverlay.identity.receipt.sequence);
+				(unsigned long long)overlay.identity.frame,(unsigned long long)overlay.identity.receipt.sequence);
+			// Locked replay and the remix-only comparison lane substitute or bypass
+			// the live pixels, so they keep the synchronous path.
+			const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
+			const bool workerLane=!(lockedRoot&&*lockedRoot)&&!std::getenv("FLYCAST_REMAKE_COMPARE_REMIX_ONLY");
+			bool dispatched=false;
+			if(workerLane) {
+				remakeReturnWorker.Start();
+				RemakeReturnJob job;job.returned=std::move(returned);job.overlay=std::move(overlay);overlay={};
+				// The history this image will be evaluated against: the image still
+				// pending evaluation if there is one (its scene becomes the history
+				// when accepted; a rejection makes the render thread rebuild), else
+				// the accepted history.
+				const bool pendingEvaluation=remakeAsyncReturned&&remakeAsyncReturned->frame>remakeLastEvaluationAttempt&&remakeAsyncAcceptedOverlay.temporalScene;
+				job.previous=remakeReturnChainScene?remakeReturnChainScene
+					:pendingEvaluation?remakeAsyncAcceptedOverlay.temporalScene:remakeTemporalHistory.Shared();
+				const auto chain=job.overlay.temporalScene;
+				dispatched=remakeReturnWorker.Dispatch(std::move(job));
+				if(dispatched)remakeReturnChainScene=chain;
+				else{returned=std::move(job.returned);overlay=std::move(job.overlay);}
+			}
+			if(!dispatched) {
+				remakeAsyncReturned=std::move(returned);remakeAsyncAcceptedOverlay=std::move(overlay);overlay={};remakePreparedReturn.reset();
+				remakeReturnChainScene=remakeAsyncAcceptedOverlay.temporalScene;
+				if(workerLane)NOTICE_LOG(RENDERER,"Remake return worker busy: source=%llu synchronous=true",(unsigned long long)remakeAsyncReturned->frame);
+			}
 		}
 	}
 	if(received==RemakeChannelResult::Closed) {
@@ -2849,33 +2914,28 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const bool byReference=!(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE")&&*std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE"))
 		&&!(std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT")&&*std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT"));
 	const auto alreadySent=[this](const remake::TextureIdentity& identity) {
-		return remakeSentTextures.count({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration})!=0;
+		return remakeSentTextures&&remakeSentTextures->count({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration})!=0;
 	};
-	const bool registerMore=remakeSentTextures.size()<remake::Limits{}.textureReferences
+	const bool registerMore=(!remakeSentTextures||remakeSentTextures->size()<remake::Limits{}.textureReferences)
 		&&remakeSentTextureBytes<remake::Limits{}.textureReferenceBytes;
 	const RemakeTextureSent sent=byReference?RemakeTextureSent([&](const remake::TextureIdentity& identity){return alreadySent(identity);}):RemakeTextureSent{};
+	// D-213: the render thread stages the texture bytes every unsent draw needs;
+	// the packet itself is built on the feed worker from those bytes.
 	bool ready=true;std::size_t remaining=64*1024*1024;
+	std::map<std::pair<std::uint32_t,std::uint32_t>,std::vector<unsigned char>> staged;
+	static thread_local unsigned stageTimingCount=0;
+	RemakeCpuScope stageTiming("feed-texture-stage",metadata.frameId,stageTimingCount);
 	for(const auto& mesh:scene.meshes) {
 		std::vector<unsigned char> bytes;
 		if(sent&&mesh.sourceDraw.texture&&alreadySent({mesh.sourceDraw.state.tcw.full,mesh.sourceDraw.texture->upload,
 			mesh.sourceDraw.texture->palette.value_or(0),mesh.sourceDraw.texture->rtt,true}))continue;
 		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get())) {
 			if(ready)skip("texture",error);ready=false;
-		}
+		}else staged.emplace(std::make_pair(mesh.sourceDraw.list,mesh.sourceDraw.ordinal),std::move(bytes));
 	}
 	if(!ready)return;
-	const auto reader=[this,remaining=std::size_t(64*1024*1024)](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) mutable {
-		return ReadRemakeViewTexture(device,deviceContext,*rendContext,draw,remaining,bytes,why,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get());
-	};
+	stageTiming.End();
 	remake::Packet packet;
-	bool packetReady;
-	{
-		static thread_local unsigned count=0;
-		RemakeCpuScope timing("packet-build",metadata.frameId,count);
-		packetReady=BuildRemakeViewPacket(scene,reader,packet,error,sent);
-	}
-	if(!packetReady){skip("packet",error);return;}
-	if(!registerMore)for(auto& mesh:packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered)mesh.textureWire=remake::TextureWire::Carried;
 	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
 	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
 	// The camera anchor is applied by the feed worker (D-211), off this thread.
@@ -2894,35 +2954,43 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		}
 		temporalRequested=true; // Captured by the feed worker from the anchored packet.
 	}
-	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
+	if(currentNeuralSourceFrameId!=metadata.frameId||currentNeuralGuidanceFrameId!=metadata.frameId){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
 	if(RemakeNativeEffectsRequested()) {
 		if(!remakeCurrentEffects||!remakeCurrentEffects->Matches(producer)) {
 			skip("native-effects",remakeCurrentEffectsReason);return;
 		}
 	}
-	acquireNeuralInputs();
-	const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],packet.frame,producer,overlay);
-	releaseNeuralInputs();
+	bool copied;
+	{
+		static thread_local unsigned count=0;
+		RemakeCpuScope timing("feed-overlay-copy",metadata.frameId,count);
+		acquireNeuralInputs();
+		copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],metadata.frameId,producer,overlay);
+		releaseNeuralInputs();
+	}
 	if(!copied){skip("overlay","copy-failed");return;}
 	if(RemakeNativeEffectsRequested())overlay.effects=remakeCurrentEffects;
+	std::map<std::uint32_t,EffectIdentityPoly> alphaParams;
 	if(alphaCombined) {
+		// Bindings and list ranges are verified here against the live source;
+		// the selection itself follows the clipped packet on the feed worker.
 		if(!PvrSnapshotTextureBindingsMatch(*rendContext,snapshot)){skip("alpha-ownership","source-bindings-changed");return;}
-		for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaBlend) {
-			const auto ordinal=std::uint32_t(mesh.id)-1;
-			if((mesh.id>>32)!=2||ordinal>=rendContext->global_param_tr.size()){skip("alpha-ownership","source-list-range");return;}
-			const auto& pp=rendContext->global_param_tr[ordinal];
-			overlay.alphaEffectSelections.push_back({ordinal,{(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full}});
+		for(const auto& mesh:scene.meshes)if(mesh.sourceAlphaBlend) {
+			const auto& draw=mesh.sourceDraw;
+			if(draw.list!=2||draw.ordinal>=rendContext->global_param_tr.size()){skip("alpha-ownership","source-list-range");return;}
+			const auto& pp=rendContext->global_param_tr[draw.ordinal];
+			alphaParams[draw.ordinal]={(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full};
 		}
-		NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
-			(unsigned long long)packet.frame,unsigned(overlay.alphaEffectSelections.size()));
 	}
 	// D-211: anchor, temporal capture, serialization and digest run on the feed
 	// worker. A busy worker is an explicit native fallback for this source.
 	remakeFeedWorker.Start();
-	RemakeFeedJob job;job.frame=packet.frame;job.producer=producer;
+	RemakeFeedJob job;job.frame=metadata.frameId;job.producer=producer;
 	job.snapshot=std::move(snapshot);job.scene=std::move(scene);job.packet=std::move(packet);job.overlay=std::move(overlay);
 	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
+	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;
+	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);
 	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
@@ -2968,6 +3036,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	// Native input must not enter this stage while it is reserved for returned
 	// scenes. Display uses only an owned accepted snapshot and its original HUD.
 	releaseNeuralPresentation();neuralPresentationView.reset();
+	if(!remakeAsyncStopped)drainRemakeReturns();
 	if(!activeNeuralSurface||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
 		||config::NeuralCaptureFrames.get()!=0||remakeAsyncStopped||!remakeAsyncReturned
@@ -3066,15 +3135,25 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
 			return;
 		}
+		// D-213: use the worker-prepared stream/input only for this exact source
+		// and only when the accepted history it was built against is unchanged.
+		const bool prepared=!replay&&remakePreparedReturn&&remakePreparedReturn->frame==source.frame
+			&&remakePreparedReturn->sequence==source.source.sequence;
+		const auto* lastAccepted=remakeTemporalHistory.Last();
+		const bool preparedStream=prepared&&remakePreparedReturn->temporal&&bool(temporal)
+			&&remakePreparedReturn->previousFrame==(lastAccepted?lastAccepted->frame:0);
 		if(temporal) {
 			std::string error;
 			const auto* previous=remakeTemporalHistory.CanReproject(*temporal)?remakeTemporalHistory.Last():nullptr;
 			bool streamReady;
-			{
+			if(preparedStream){stream=std::move(remakePreparedReturn->stream);streamReady=remakePreparedReturn->streamReady;error=remakePreparedReturn->streamError;}
+			else {
 				static thread_local unsigned count=0;
 				RemakeCpuScope timing("evaluate-motion-stream",frame.frameId,count);
 				streamReady=BuildRemakeMotionStream(previous,*temporal,stream,error);
 			}
+			NOTICE_LOG(RENDERER,"Remake return preparation: source=%llu stream=%s input=%s",(unsigned long long)source.frame,
+				preparedStream?"worker":prepared?"rebuilt-history-advanced":"render-thread",prepared&&remakePreparedReturn->inputReady?"worker":"render-thread");
 			if(!streamReady) {
 				NOTICE_LOG(RENDERER,"Remake geometry motion rejected: %s",error.c_str());return;
 			}
@@ -3085,7 +3164,10 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		{
 			static thread_local unsigned count=0;
 			RemakeCpuScope timing("evaluate-input-upload",frame.frameId,count);
-			if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)||!uploadRemakeInput(input))return;
+			if(prepared&&remakePreparedReturn->inputReady)input=std::move(remakePreparedReturn->input);
+			else if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input))return;
+			if(prepared)remakePreparedReturn.reset();
+			if(!uploadRemakeInput(input))return;
 		}
 		if(rasterRequested) {
 			std::string error;
@@ -3131,9 +3213,13 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			RemakeCpuScope timing("evaluate-submit",frame.frameId,count);
 			return neuralStage.TrySubmit(frame);
 		}();
-		logNeuralConsumerStatus(status);
-		neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateEnd);
-		neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,frame.resetHistory);
+		{
+			static thread_local unsigned count=0;
+			RemakeCpuScope timing("evaluate-status-marks",frame.frameId,count);
+			logNeuralConsumerStatus(status);
+			neuralPerformance.Mark(deviceContext,GpuTimingPoint::EvaluateEnd);
+			neuralPerformance.RecordEvaluation(source.frame,status==SubmitStatus::Submitted,frame.resetHistory);
+		}
 		NOTICE_LOG(RENDERER,"Remake async neural evaluation: source=%llu current=%llu sequence=%llu accepted=%d reset=%d motion=%s bias=%s displayed=false",
 			(unsigned long long)source.frame,(unsigned long long)currentNeuralSourceFrameId,(unsigned long long)source.source.sequence,status==SubmitStatus::Submitted,
 			frame.resetHistory,rasterRequested?"returned-geometry":"zero",rasterRequested?"returned-depth-consistency":"one");
@@ -3162,6 +3248,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		// This does not authorize presenting or claiming an external neural result.
 		if(activeNeuralMode==static_cast<int>(NeuralMode::Dlss5Experimental)
 			&&neuralStage.GetStats().dlss5Readiness!=Dlss5HookReadiness::ContractEvaluated)return;
+		static thread_local unsigned ownTimingCount=0;
+		RemakeCpuScope ownTiming("evaluate-output-own",frame.frameId,ownTimingCount);
 		const auto output=neuralStage.GetOutput();
 		if(output.api!=TextureApi::D3D12||!output.resource
 			||!wrapNeuralOutput(static_cast<ID3D12Resource*>(output.resource),source.frame))return;

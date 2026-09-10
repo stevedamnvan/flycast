@@ -1,5 +1,50 @@
 # Neural rendering evidence log
 
+LOG784 D-213: returned-image preparation and packet build off the render
+thread. A second worker takes each accepted returned image after the render
+thread's identity gate and prepares the geometry motion stream and the neural
+input conversion; the render thread keeps input upload, motion raster,
+consumer submit and output ownership. The stream is prepared against the
+newest image ahead of it in the chain (or the accepted history when none) and
+is used only when that image became the accepted history by evaluation time;
+otherwise it is rebuilt on the render thread, never guessed. One prepared image
+is taken at a time: an image not yet evaluated is never overwritten by a later
+one (it ages out after8 frames instead). The feed worker now also builds the
+packet from texture bytes the render thread staged by draw; the alpha
+ownership selections follow the clipped packet there after the render thread
+verified the source bindings and list ranges. Intermediate runs recorded the
+two defects this design had to remove: fc067-perf-returnworker-a/timing-a
+(history taken at dispatch, so1099 of1102 streams were rebuilt and the alpha
+lane kept the render-thread packet build), fc067-perf-returnworker-b/timing-b
+(worker build without the by-reference predicate while nothing was held: every
+packet carried all textures again, feed worker31.5 ms,409 busy fallbacks),
+fc067-perf-returnworker-c/timing-c (two prepared results drained in one frame
+overwrote an unevaluated image:860 accepted,245 repeats). Final replay run
+fc067-perf-returnworker-d (same settings as LOG783): present interval p50
+31.0 ms (36.3),1095 of1200 presents combined,1071 accepted evaluations of1076
+returns,1073 worker-prepared streams,0 rebuilt, output-frame repeats33,
+latency mean3.06 frames (max5, within the8-frame bound), no identity,
+repeat or gap fault, resource growth+39 one-time,2 feed-worker busy
+fallbacks,0 return-worker busy fallbacks. Timing run
+fc067-perf-returnworker-timing-e attributes the render thread: scene feed
+6.9 ms p50 (return receive2.6, snapshot1.6, view scene1.5, overlay copy0.6,
+texture staging0.01 once every texture is held), returned evaluation9.5
+(output ownership: wrap plus owned copy3.7, motion raster2.5, submit1.0,
+upload0.7, history accept0.6); feed worker18.7 (packet build4.2), return
+worker4.0. Not passing: about32 fps against the19 ms native control. Two
+things this measured: the render thread still carries about16 ms, most of it
+device-bound (output ownership, raster, submit, snapshot), and the external
+consumer's return rate was host-limited in every run so far (return-credit
+busy skips0 to7 per1200 frames), so the earlier "about20 per second"
+consumer limit (LOG781) is not established; a faster host is needed to find it.
+Also recorded: VRAM growth was+926 to+928 MB in every worker run against+387
+MB before, with the owned resource-object count unchanged; the measure is the
+process-local DXGI segment and the cause is not attributed. Selftest849/0
+(return worker: idle accept, malformed depth not prepared, discard generation,
+ordered single take; worker packet build: registration while nothing is held,
+reference with a held identity, unstaged texture as an explicit skip; returned
+image well-formed gate), remake-sdk-contract260/0, launcher tests16.
+
 LOG783 D-212 texture references on the live packet wire (user approved both
 pending decisions with the goal of native60 fps and a good-looking combined
 image). Packet wire version5 adds one carriage word per mesh: carried (bytes

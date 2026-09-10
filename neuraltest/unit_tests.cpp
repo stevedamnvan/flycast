@@ -11,6 +11,7 @@
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
+#include "rend/neural/remake_return_worker.h"
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -342,6 +343,36 @@ int RunSelfTests()
 			auto corrupt=second;corrupt.meshes[0].material->sourceDdsBytes=dds;
 			std::ostringstream rejected(std::ios::binary);
 			suite.Expect(!SerializeRemakeViewPacket(rejected,corrupt,why),"referenced mesh carrying bytes is refused by the writer");
+			{
+				// Worker-side packet build (D-213): staged bytes by draw, by-reference
+				// registration even while the held set is still empty, and a reference
+				// once the identity is held.
+				RemakeFeedWorker builder;builder.Start();
+				RemakeFeedJob build;build.frame=textured.frame;build.scene=textured;build.buildPacket=true;build.byReference=true;
+				build.textures[{textured.meshes[0].sourceDraw.list,textured.meshes[0].sourceDraw.ordinal}]=dds;
+				build.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};
+				suite.Expect(builder.Dispatch(std::move(build)),"feed worker accepts a packet build job");
+				for(int i=0;i<2000&&builder.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				auto built=builder.Drain();
+				suite.Expect(built.size()==1&&built[0].stage.empty()&&built[0].registeredTextures.size()==1&&built[0].packetMs>0,
+					"worker packet build registers a texture while nothing is held");
+				RemakeFeedJob again;again.frame=textured.frame;again.scene=textured;again.buildPacket=true;again.byReference=true;
+				auto held=std::make_shared<RemakeSentTextureSet>();held->insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
+				again.sent=held;again.captureScene=true;
+				again.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={2,7,9};return RemakeChannelResult::Published;};
+				suite.Expect(builder.Dispatch(std::move(again)),"feed worker accepts a referencing build job");
+				for(int i=0;i<2000&&builder.Completed()<2;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				built=builder.Drain();
+				suite.Expect(built.size()==1&&built[0].stage.empty()&&built[0].registeredTextures.empty()&&built[0].capturedPacket
+					&&built[0].capturedPacket->meshes[0].textureWire==remake::TextureWire::Referenced,
+					"worker packet build references a held texture without staged bytes");
+				RemakeFeedJob missing;missing.frame=textured.frame;missing.scene=textured;missing.buildPacket=true;
+				missing.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string&){return RemakeChannelResult::Published;};
+				suite.Expect(builder.Dispatch(std::move(missing)),"feed worker accepts a build job without staged bytes");
+				for(int i=0;i<2000&&builder.Completed()<3;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				built=builder.Drain();
+				suite.Expect(built.size()==1&&built[0].stage=="packet"&&built[0].error=="texture-not-staged","unstaged texture is an explicit packet skip");
+			}
 			RemakeFeedWorker worker;worker.Start();
 			RemakeFeedJob job;job.frame=first.frame;job.packet=first;
 			job.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};
@@ -544,6 +575,48 @@ int RunSelfTests()
 				suite.Expect(results.size()==2&&results[0].frame==1&&results[1].frame==3&&results[0].stage.empty()
 					&&results[0].receipt.sequence==1&&results[1].receipt.sequence==2&&results[0].overlay.identity.receipt.sequence==1,
 					"feed worker returns published results in source order with receipts");
+				{
+					// D-213 return worker: single pending job, busy keeps the synchronous
+					// path with the job untouched, discarded generations never drain,
+					// and the prepared result records the history it was built against.
+					RemakeReturnWorker returns;returns.Start();
+					const auto makeJob=[&](std::uint64_t frame) {
+						RemakeReturnJob job;job.returned.frame=frame;job.returned.width=640;job.returned.height=480;
+						job.returned.bgra.assign(640*480*4,7);job.returned.projectionDepth.assign(640*480,.5f);
+						job.returned.nearPlane=.1f;job.returned.farPlane=2501;job.returned.source.sequence=frame;
+						return job;
+					};
+					suite.Expect(returns.Dispatch(makeJob(1)),"return worker accepts a job when idle");
+					for(int i=0;i<2000&&returns.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					auto prepared=returns.Drain();
+					suite.Expect(prepared.size()==1&&prepared[0].returned.frame==1&&prepared[0].inputReady&&!prepared[0].temporal
+						&&prepared[0].previousFrame==0&&prepared[0].input.invertedDepth.size()==640*480&&prepared[0].input.invertedDepth[0]==.5f
+						&&prepared[0].input.rgba[0]==7,
+						"return worker converts a well-formed image without temporal history");
+					auto job2=makeJob(2);job2.returned.projectionDepth[0]=2;
+					suite.Expect(returns.Dispatch(std::move(job2)),"return worker accepts a malformed image job");
+					for(int i=0;i<2000&&returns.Completed()<2;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					prepared=returns.Drain();
+					suite.Expect(prepared.size()==1&&!prepared[0].inputReady,"return worker reports an out-of-range depth as not prepared");
+					suite.Expect(returns.Dispatch(makeJob(3)),"return worker accepts a job to discard");
+					returns.Discard();
+					for(int i=0;i<2000&&!returns.Idle();++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					suite.Expect(returns.Drain().empty(),"discarded return generation never drains");
+					suite.Expect(returns.Dispatch(makeJob(4)),"return worker accepts after a discard");
+					for(int i=0;i<2000&&returns.Ready()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					suite.Expect(returns.Dispatch(makeJob(5)),"return worker queues a second prepared result");
+					for(int i=0;i<2000&&returns.Ready()<2;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					auto one=returns.Next();
+					suite.Expect(one&&one->returned.frame==4&&returns.Ready()==1,"prepared results are taken one at a time in order");
+					returns.Discard();
+					suite.Expect(!returns.Next(),"a discard drops queued prepared results");
+					RemakeReturnedImage image;
+					suite.Expect(!RemakeReturnedImageWellFormed(image),"empty returned image is not well formed");
+					image=makeJob(5).returned;
+					suite.Expect(RemakeReturnedImageWellFormed(image),"well-formed image passes the render-thread gate");
+					image.projectionDepth[3]=-1;
+					suite.Expect(!RemakeReturnedImageWellFormed(image),"render-thread gate rejects depth outside the host contract");
+				}
 				RemakeFeedJob failing;failing.frame=4;
 				failing.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string& why){why="channel-busy-native-fallback";return RemakeChannelResult::Busy;};
 				suite.Expect(worker.Dispatch(std::move(failing)),"feed worker accepts a failing job");

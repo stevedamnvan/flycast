@@ -73,7 +73,10 @@ afterwards (packet wire version5, D-212); the helper's `live_receive` line
 reports `registered_textures`, `referenced_textures` and `cached_textures`, and
 a reference it cannot resolve ends the session as a failed live source. Capture
 and locked-archive sessions keep carrying every texture so archives and digests
-are unchanged. `--cpu-timing` logs bounded per-stage host CPU scopes (600 samples per stage,
+are unchanged. The returned-image motion stream and input conversion run on a return worker
+(D-213); `Remake return preparation` lines say whether each evaluation used the
+worker's stream, rebuilt it because the history advanced differently, or ran on
+the render thread. `--cpu-timing` logs bounded per-stage host CPU scopes (600 samples per stage,
 including the `feed-worker` scope) and marks the run diagnostic, never
 performance evidence. The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`

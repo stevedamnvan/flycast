@@ -12,27 +12,33 @@ struct RemakeNeuralInput {
  std::vector<unsigned char> rgba;
  std::vector<float> invertedDepth;
 };
-inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
- std::uint64_t frame, const ProducerIdentity& producer, RemakeNeuralInput& output)
+// Same shape and bound checks as the conversion below, without the conversion
+// (the render thread accepts on this; the worker converts, D-213).
+inline bool RemakeReturnedImageWellFormed(const RemakeReturnedImage& image)
 {
- if(image.frame!=frame || image.producer.epoch!=producer.epoch
-  || image.producer.ordinal!=producer.ordinal || image.producer.cycle!=producer.cycle
-  || image.width!=640 || image.height!=480 || image.bgra.size()!=640*480*4
+ if(image.width!=640 || image.height!=480 || image.bgra.size()!=640*480*4
   || image.projectionDepth.size()!=640*480 || !std::isfinite(image.nearPlane)
   || !std::isfinite(image.farPlane) || !(image.nearPlane>0 && image.farPlane>image.nearPlane)) return false;
  // A wholly zero color/depth readback is an absent-output diagnostic, not a
  // usable near-plane scene. Do not reject legitimately black opaque images.
  if(std::none_of(image.bgra.begin(),image.bgra.end(),[](unsigned char v){return v!=0;})
   &&std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v==0;}))return false;
+ for(float depth:image.projectionDepth)if(!std::isfinite(depth)||depth<0||depth>1)return false;
+ return true;
+}
+inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
+ std::uint64_t frame, const ProducerIdentity& producer, RemakeNeuralInput& output)
+{
+ if(image.frame!=frame || image.producer.epoch!=producer.epoch
+  || image.producer.ordinal!=producer.ordinal || image.producer.cycle!=producer.cycle
+  || !RemakeReturnedImageWellFormed(image)) return false;
  RemakeNeuralInput candidate;
  candidate.rgba=image.bgra;
  candidate.invertedDepth.reserve(image.projectionDepth.size());
- for(float depth:image.projectionDepth) {
-  if(!std::isfinite(depth)||depth<0||depth>1)return false;
-  candidate.invertedDepth.push_back(1.f-depth);
- }
+ for(float depth:image.projectionDepth)candidate.invertedDepth.push_back(1.f-depth);
  for(std::size_t i=0;i<candidate.rgba.size();i+=4)
   std::swap(candidate.rgba[i],candidate.rgba[i+2]);
  output=std::move(candidate);return true;
 }
 }
+
