@@ -1,5 +1,59 @@
 # Neural rendering evidence log
 
+LOG792 D-219: the helper's turnaround, the credit skips, and the gate again.
+Credit-skip states (`no-return-credit` skips now log the channel's sequence,
+returned sequence, sources and slot states): in fc075-submit-timing-o, 157
+of 239 skips found all three transport slots ready and unreceived, so the
+helper, not the host, held the sources. Its receive phase was 4.9 ms p50 of
+receive work (deserialize, byte-serial receipt digest, texture references),
+not idle time, and its turnaround 13.3 ms: draw 2.5, GPU readback lock
+3.4, depth lock 0.5, depth conversion 1.4, return 2.6 (two byte-serial
+digests over 2.4 MB). Changes: (1) the returned image and depth transport
+digests (ImageSlot fields only, never persisted, both ends share the
+function) hash eight bytes per step: return 2.6 to 0.9 ms, host return
+worker unchanged at about 4.2 ms; (2) the helper receives the next packet
+while the GPU completes the current readback (lock wait 3.4 to 0.33 ms);
+the first version waited for the next packet without bound and delayed the
+return (turnaround 21 ms, latency mean 3.78 frames), so the wait is bounded
+at 3 ms and a timeout is not an error; (3) named auto-reset events replace
+the helper's `Sleep(2)` receive poll and back the host's return worker poll,
+so neither wait is timer-resolution bound (small effect measured, kept);
+(4) `--renderer {dx11-oit,dx11}` on the launcher. Skip histogram
+(fc075-submit-timing-q, -r): 143 and 153 of 187 and 160 credit skips fall
+in the first 200 frames after the first feed, the helper's first-packet
+startup (the first packet carries every texture, about 10 MB); steady-state
+skips 7 to 44 per 1000 frames. Performance-eligible fc075-perf-d219-a (OIT
+route): present p50 19.03 ms, p95 27.04, p99 33.55; 1038 remake presents,
+1036 accepted, 12 output repeats, latency mean 3.50 (max 4), no identity
+fault; gate reading (per-present samples, first 120 measured presents as
+warmup, a repeat counted stale): 1029 fresh of 1080 steady presents (95.3
+percent), 99.1 percent of the 1038 remake presents; helper turnaround 20.1
+ms p50 with the bounded prefetch, period 19.2, draw 2.5. The present p50 of
+19.03 against 16.8 to 17.5 in the LOG790/791 runs is a slower emulated frame
+(PVR source-join period 19.0 against 17.0 in fc075-perf-d218-c/-d) and is
+not attributed (no CPU timing in a performance run); VRAM growth 946 MB
+against 408 MB in those runs, not attributed. fc075-perf-d219-b is
+discarded: the host's swap chain `ResizeBuffers failed: 887a0001` at 00:24
+(before the lane started) re-initialized the renderer, advanced the session
+generation twice, and the retired helper did not exit within the launcher's
+8 s, which aborted the launcher; an external display event, and a launcher
+robustness gap (the retired helper's exit is bounded by the runtime, not by
+the launcher). fc075-perf-d219-c (`--renderer dx11`): the lane never
+activated; every source skipped with `native-effects/unsupported-renderer`,
+so the gate's normal-renderer run cannot be made with the native-effects
+lane on this route. The 600-frame gate is therefore still not passed (95.3
+percent of steady presents, one route). User observation recorded for
+the queue: some textures look almost translucent in the combined image; the
+code shows two candidate mechanisms, neither verified against the image:
+the D-183 promoted alpha surfaces (six per frame here) are exported with
+their source alpha and drawn with SRC_ALPHA/INV_SRC_ALPHA and no depth
+writes, which the consumer ray-traces as translucent materials whereas the
+source blends them over the opaque geometry beneath; and opaque-list meshes
+pass the texture alpha through (`ApplyLegacyAlpha`: texture alpha selected
+regardless of the source's ignore-texture-alpha bit) while their blend state
+is off. Selftest 868/0 (automation, baseline, no-ngx), remake-sdk-contract
+260/0, launcher tests 16.
+
 LOG791 correction to LOG790: the live channel's receipt digest is persisted
 in the locked archives and recomputed byte-serially on replay
 (`remake_input_replay.cpp`, LOG780), so the word-wise digest committed with

@@ -105,6 +105,10 @@ class LaunchPreflightTests(unittest.TestCase):
     def test_manual_input_is_explicit_and_not_replay_gated(self):
         default = prepare(self.args)
         self.assertEqual(default[3][default[3].index('--input-replay')+1], 'yes')
+        self.assertEqual(default[3][default[3].index('--renderer')+1], 'dx11-oit')
+        self.args.renderer = 'dx11'
+        self.assertEqual(prepare(self.args)[3][prepare(self.args)[3].index('--renderer')+1], 'dx11')
+        self.args.renderer = 'dx11-oit'
         self.assertEqual(default[3][default[3].index('--timeout-ms')+1], '180000')
         self.assertNotIn('FLYCAST_REMAKE_CPU_TIMING', default[2])
         self.args.cpu_timing = True

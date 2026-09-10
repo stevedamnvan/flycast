@@ -42,7 +42,7 @@ def prepare(args):
     host = [str(paths['harness']), 'performance', '--game', str(paths['game']),
             '--flycast', str(paths['flycast']), '--out', str(out/'host'),
             '--frames', '1200', '--warmup', '2100', '--lane', 'dlss5', '--api', 'd3d11on12',
-            '--renderer', 'dx11-oit', '--input-replay', 'no' if args.manual_input else 'yes', '--render-height', '480',
+            '--renderer', getattr(args, 'renderer', 'dx11-oit'), '--input-replay', 'no' if args.manual_input else 'yes', '--render-height', '480',
             '--remake-evidence', 'none', '--timeout-ms', '180000']
     helper = [str(paths['helper']), '--runtime', str(paths['runtime']), '--frames', '660',
               '--live-channel-async', channel, '--assets', str(out), '--clips', '0.1', '2501',
@@ -243,6 +243,8 @@ def main():
                    help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--cpu-timing', action='store_true',
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
+    p.add_argument('--renderer', choices=['dx11-oit', 'dx11'], default='dx11-oit',
+                   help='Host renderer route for the run (the 600-frame gate asks for both); default dx11-oit')
     p.add_argument('--hook-cycles', action='store_true',
                    help='With --cpu-timing: per-hook cycle accounting on the emulation thread (D-218); diagnostic only')
     p.add_argument('--frame-budget-ms', type=float, default=None,
@@ -266,6 +268,7 @@ def main():
                       if args.effect_identity or args.locked_input_root else None,
                   cpu_timing=args.cpu_timing,
                   hook_cycles=args.cpu_timing and args.hook_cycles,
+                  renderer=args.renderer,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,
                   consumer_config_sha256=hashlib.sha256(args.consumer_config.read_bytes()).hexdigest()

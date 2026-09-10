@@ -39,6 +39,15 @@ bool name(const std::string& token,std::wstring& output) {
  for(unsigned char c:token)if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'))return false;
  output=L"Local\\FlycastRemake-";output.append(token.begin(),token.end());return true;
 }
+// D-219: transport-only digest for the returned image and depth slots (not
+// the packet receipt digest, which the archives persist): FNV-1a over 8-byte
+// words with a byte tail. Both ends of the channel share this function.
+std::uint64_t imageDigest64(const char* data,std::size_t size) {
+ std::uint64_t hash=14695981039346656037ull;std::size_t i=0;
+ for(;i+8<=size;i+=8){std::uint64_t word;std::memcpy(&word,data+i,8);hash^=word;hash*=1099511628211ull;}
+ for(;i<size;++i){hash^=static_cast<unsigned char>(data[i]);hash*=1099511628211ull;}
+ return hash;
+}
 std::uint64_t digest(const char* data,std::size_t size) {
  // Byte-serial FNV-1a: the locked archives persist this receipt digest and
  // the replay recomputes it (LOG780), so the function is not changed.
@@ -94,8 +103,16 @@ struct RemakeLiveChannel::Impl {
  std::uint64_t sequence=0,frame=0;ProducerIdentity producer;
  struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;};
  Source sources[kInFlight];std::uint64_t returnedSequence=0;
+ HANDLE publishedEvent=nullptr,returnedEvent=nullptr; // D-219 wake events (named, auto-reset).
+ void openEvents(const std::wstring& path) {
+  publishedEvent=CreateEventW(nullptr,FALSE,FALSE,(path+L"-published").c_str());
+  returnedEvent=CreateEventW(nullptr,FALSE,FALSE,(path+L"-returned").c_str());
+ }
  ~Impl(){
   if(shared){if(owner||publisherClaimed)InterlockedExchange(&shared->ready,0);UnmapViewOfFile(shared);}
+  // Wake the peer so a wait on a closing channel observes the closed header.
+  if(publishedEvent){SetEvent(publishedEvent);CloseHandle(publishedEvent);}
+  if(returnedEvent){SetEvent(returnedEvent);CloseHandle(returnedEvent);}
   if(peer)CloseHandle(peer);if(mapping)CloseHandle(mapping);
  }
  bool live()const{return shared&&InterlockedCompareExchange(&shared->ready,1,1)==1
@@ -115,6 +132,7 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared){error="channel-map";return false;}
  p->owner=true;p->shared->magic=0x434d5246;p->shared->version=4;p->shared->ownerPid=GetCurrentProcessId();
+ p->openEvents(path);
  // A newly created pagefile-backed mapping is zero-initialized; publish header last.
  InterlockedExchange(&p->shared->ready,1);impl_=std::move(p);error.clear();return true;
 }
@@ -129,8 +147,20 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
- p->publisherClaimed=true;
+ p->publisherClaimed=true;p->openEvents(path);
  impl_=std::move(p);error.clear();return true;
+}
+bool RemakeLiveChannel::WaitForPublished(unsigned milliseconds)const noexcept {
+ HANDLE event=nullptr;
+ {std::lock_guard<std::mutex> lock(mutex_);if(impl_)event=impl_->publishedEvent;}
+ if(!event){Sleep(milliseconds?1:0);return false;}
+ return WaitForSingleObject(event,milliseconds)==WAIT_OBJECT_0;
+}
+bool RemakeLiveChannel::WaitForReturned(unsigned milliseconds)const noexcept {
+ HANDLE event=nullptr;
+ {std::lock_guard<std::mutex> lock(mutex_);if(impl_)event=impl_->returnedEvent;}
+ if(!event){Sleep(milliseconds?1:0);return false;}
+ return WaitForSingleObject(event,milliseconds)==WAIT_OBJECT_0;
 }
 bool RemakeLiveChannel::HasReturnCredit()const noexcept {
  std::lock_guard<std::mutex> lock(mutex_);
@@ -140,6 +170,17 @@ bool RemakeLiveChannel::HasReturnCredit()const noexcept {
  for(auto& slot:impl_->shared->slots)
   if(InterlockedCompareExchange(&slot.state,freeSlot,freeSlot)==freeSlot)return true;
  return false;
+}
+std::string RemakeLiveChannel::DescribeReturnCredit() const {
+ std::lock_guard<std::mutex> lock(mutex_);
+ if(!impl_||!impl_->shared)return "channel=closed";
+ std::string out="sequence="+std::to_string(impl_->sequence)+" returned="+std::to_string(impl_->returnedSequence)+" sources=";
+ for(unsigned i=0;i<kInFlight;++i){const auto& s=impl_->sources[i];out+=std::to_string(s.receipt.sequence)+":"+std::to_string(s.frame)+(i+1<kInFlight?",":"");}
+ out+=" slots=";
+ for(unsigned i=0;i<kInFlight;++i){const auto state=InterlockedCompareExchange(&impl_->shared->slots[i].state,0,0);out+=std::to_string(state)+(i+1<kInFlight?",":"");}
+ out+=" images=";
+ for(unsigned i=0;i<kInFlight;++i){const auto state=InterlockedCompareExchange(&impl_->shared->images[i].imageState,0,0);out+=std::to_string(state)+(i+1<kInFlight?",":"");}
+ return out;
 }
 RemakeChannelResult RemakeLiveChannel::PublishForReturn(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
  {
@@ -196,7 +237,9 @@ RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,Rema
   slot->bytes=bytes;slot->sequence=p.sequence+1;slot->digest=hash;
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;p.frame=packet.frame;p.producer=packet.producer;
   p.sources[p.sequence%kInFlight]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
-  guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);error.clear();return RemakeChannelResult::Published;
+  guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);
+  if(held->publishedEvent)SetEvent(held->publishedEvent);
+  error.clear();return RemakeChannelResult::Published;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
 RemakeChannelResult RemakeLiveChannel::Receive(remake::Packet& output,RemakeChannelReceipt& receipt,std::string& error) {
@@ -250,10 +293,11 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;
  std::memcpy(s.imagePixels,image.bgra.data(),sizeof(s.imagePixels));
- s.imageDigest=digest(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels));
+ s.imageDigest=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels));
 	s.depthCount=hasDepth?640*480:0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
-	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),sizeof(s.depthPixels));s.depthDigest=digest(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels));}
+	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),sizeof(s.depthPixels));s.depthDigest=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels));}
  p.returnedSequence=image.source.sequence;InterlockedExchange(&s.imageState,readySlot);
+ if(p.returnedEvent)SetEvent(p.returnedEvent);
  error.clear();return RemakeChannelResult::Published;
 }
 RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,std::string& error) {
@@ -276,7 +320,7 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
  const auto& source=p.sources[s.imageSource.sequence%kInFlight];
  if(!s.imageSource.sequence||s.imageSource.sequence<=p.returnedSequence||!sameReceipt(s.imageSource,source.receipt)
   ||s.imageFrame!=source.frame||s.imageEpoch!=source.producer.epoch||s.imageOrdinal!=source.producer.ordinal
-  ||s.imageCycle!=source.producer.cycle||s.imageDigest!=digest(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels))) {
+  ||s.imageCycle!=source.producer.cycle||s.imageDigest!=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels))) {
   error="return-stale-source-or-integrity";return RemakeChannelResult::Invalid;
  }
  try {
@@ -284,7 +328,7 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
   image.width=640;image.height=480;image.bgra.assign(s.imagePixels,s.imagePixels+sizeof(s.imagePixels));
 	if(s.depthCount) {
 		if(s.depthCount!=640*480||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
-			||s.depthDigest!=digest(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels))
+			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels))
 			||!std::all_of(s.depthPixels,s.depthPixels+640*480,[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
 			error="return-depth-integrity";return RemakeChannelResult::Invalid;
 		}

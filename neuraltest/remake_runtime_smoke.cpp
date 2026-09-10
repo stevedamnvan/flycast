@@ -165,6 +165,7 @@ int wmain(int argc,wchar_t** argv) {
  // Consumer turnaround per image (diagnostic): receive, present, readback, return.
  std::chrono::steady_clock::time_point receivedAt{},previousReceivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
  double periodMs=0,receiveWaitMs=0,prepareMs=0; // Receive-to-receive period, time idle in receive, receive-to-draw preparation.
+ double colorCopyMs=0,depthConvertMs=0,returnMs=0; // Locked-surface copies and the channel return call.
  const auto msSince=[](std::chrono::steady_clock::time_point since){return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-since).count();};
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
@@ -184,9 +185,34 @@ int wmain(int argc,wchar_t** argv) {
     return;
    }
    if(result!=flycast::rend::neural::RemakeChannelResult::Empty)throw std::runtime_error(error);
-   if(GetTickCount64()>=deadline)throw std::runtime_error("live channel bounded receive timeout");
-   Sleep(2);
+   const auto now=GetTickCount64();
+   if(now>=deadline)throw std::runtime_error("live channel bounded receive timeout");
+   // D-219: block on the publisher's event (bounded), not a timer-resolution sleep.
+   const unsigned long long remaining=deadline-now;
+   channel.WaitForPublished(static_cast<unsigned>(remaining<50?remaining:50));
   }
+ };
+ // D-219: the next packet is received while the GPU completes the current
+ // frame's readback. The received packet, its receipt and its receive timing
+ // are held here and become current at the top of the next iteration, so the
+ // pending return keeps its own receipt and timing.
+ struct PrefetchedPacket {Packet packet;flycast::rend::neural::RemakeChannelReceipt receipt;
+  std::chrono::steady_clock::time_point receivedAt{},previousReceivedAt{};double periodMs=0,receiveWaitMs=0;};
+ std::optional<PrefetchedPacket> prefetched;std::optional<std::string> prefetchError;
+ const auto prefetchNext=[&](unsigned waitMs) {
+  const auto savedReceipt=activeSourceReceipt;const auto savedReceivedAt=receivedAt,savedPrevious=previousReceivedAt;
+  const auto savedPeriod=periodMs,savedWait=receiveWaitMs;
+  PrefetchedPacket next;
+  try{receiveNext(next.packet,waitMs);}
+  catch(const std::exception& e){
+   // A bounded wait without a packet is not an error: the current frame is
+   // returned now and the next packet is received at the top of the loop.
+   if(std::string(e.what())!="live channel bounded receive timeout")prefetchError=e.what();
+   activeSourceReceipt=savedReceipt;receivedAt=savedReceivedAt;previousReceivedAt=savedPrevious;periodMs=savedPeriod;receiveWaitMs=savedWait;return;
+  }
+  next.receipt=activeSourceReceipt;next.receivedAt=receivedAt;next.previousReceivedAt=previousReceivedAt;next.periodMs=periodMs;next.receiveWaitMs=receiveWaitMs;
+  activeSourceReceipt=savedReceipt;receivedAt=savedReceivedAt;previousReceivedAt=savedPrevious;periodMs=savedPeriod;receiveWaitMs=savedWait;
+  prefetched=std::move(next);
  };
  bool reverseOrder=false;
  bool emptyScene=false;
@@ -427,7 +453,13 @@ int wmain(int argc,wchar_t** argv) {
    if(quit) { outcome=10;break; }
    if(liveChannel&&frame>=61) {
     try {
-     Packet next;receiveNext(next,RemakeLiveIdleWaitMs(sessionWorker));
+     Packet next;
+     if(prefetchError)throw std::runtime_error(*prefetchError);
+     if(prefetched) {
+      next=std::move(prefetched->packet);activeSourceReceipt=prefetched->receipt;receivedAt=prefetched->receivedAt;
+      previousReceivedAt=prefetched->previousReceivedAt;periodMs=prefetched->periodMs;receiveWaitMs=prefetched->receiveWaitMs;
+      prefetched.reset();
+     } else receiveNext(next,RemakeLiveIdleWaitMs(sessionWorker));
      const bool regenerated=liveChannelAsync&&AnchorGenerationChange(*snapshot,next);
      if(!regenerated&&!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
      if(regenerated)std::cout<<"live_anchor_generation_change previous="<<snapshot->frame<<" current="<<next.frame
@@ -544,11 +576,15 @@ int wmain(int argc,wchar_t** argv) {
     hr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(gpu,cpu):E_FAIL;
     readbackMs=msSince(readbackStart);
    }
+   // D-219: overlap the next packet's receive with this readback's GPU completion.
+   if(liveChannel&&liveChannelAsync&&returnOnly&&SUCCEEDED(hr)&&frame+1<frames&&frame+1>=61&&!prefetched&&!prefetchError)
+    prefetchNext(3); // Bounded: about the readback's GPU time, never a frame.
    D3DLOCKED_RECT locked{};
    const auto lockStart=std::chrono::steady_clock::now();
    if(SUCCEEDED(hr))hr=cpu->LockRect(&locked,nullptr,D3DLOCK_READONLY);
    lockWaitMs=msSince(lockStart);
    if(SUCCEEDED(hr)) {
+    const auto colorCopyStart=std::chrono::steady_clock::now();
     pixels.resize(640*480*4);
     raw.resize(floatOutput?640*480*16:0);
     for(int y=0;y<480;y++) {
@@ -565,6 +601,7 @@ int wmain(int argc,wchar_t** argv) {
      }
     }
     cpu->UnlockRect();
+    colorCopyMs=msSince(colorCopyStart);
     if(liveChannel&&!floatOutput&&!legacyBackbuffer&&!legacyRaster) {
      auto& returned=returnedFrame;
      returned.source=activeSourceReceipt;returned.frame=packet.frame;returned.producer=packet.producer;
@@ -625,6 +662,7 @@ int wmain(int argc,wchar_t** argv) {
 		if(SUCCEEDED(depthHr))depthHr=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
 		depthLockWaitMs=msSince(depthLockStart);
 		if(SUCCEEDED(depthHr)) {
+			const auto depthConvertStart=std::chrono::steady_clock::now();
 			returnedFrame.projectionDepth.resize(640*480);
 			// Source texels are RGBA32F; only the R channel is the depth value.
 			for(int y=0;y<480;++y) {
@@ -647,6 +685,7 @@ int wmain(int argc,wchar_t** argv) {
 			if(file!=INVALID_HANDLE_VALUE)CloseHandle(file);depthHr=ok?S_OK:E_FAIL;
 			}
 			depthCpu->UnlockRect();
+			depthConvertMs=msSince(depthConvertStart);
 		}
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
 			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr
@@ -655,13 +694,16 @@ int wmain(int argc,wchar_t** argv) {
 			<<" policy=outside-clip-range-is-the-plane\n"<<std::flush;
 		if(FAILED(depthHr)){outcome=14;break;}
 		if(liveChannel) {
+			const auto returnStart=std::chrono::steady_clock::now();
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);
+			returnMs=msSince(returnStart);
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
 				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error
 				<<" draw_ms="<<drawMs<<" present_ms="<<presentMs<<" readback_ms="<<readbackMs<<" lock_wait_ms="<<lockWaitMs
 				<<" depth_readback_ms="<<depthReadbackMs<<" depth_lock_wait_ms="<<depthLockWaitMs<<" turnaround_ms="<<msSince(receivedAt)
 				<<" period_ms="<<periodMs<<" receive_wait_ms="<<receiveWaitMs<<" prepare_ms="<<prepareMs
+				<<" color_copy_ms="<<colorCopyMs<<" depth_convert_ms="<<depthConvertMs<<" return_ms="<<returnMs
 				<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
 			if(result==flycast::rend::neural::RemakeChannelResult::Invalid) {
 				// Per-source rejection: the host keeps native for this source and

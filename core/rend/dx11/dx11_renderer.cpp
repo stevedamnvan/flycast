@@ -2908,7 +2908,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8)) {
 		remakeAsyncReturned.reset();remakeAsyncAcceptedOverlay={};
 	}
-	if(!remakeAsyncChannel.HasReturnCredit()){skip("credit","no-return-credit");return;}
+	if(!remakeAsyncChannel.HasReturnCredit()){skip("credit","no-return-credit "+remakeAsyncChannel.DescribeReturnCredit());return;}
 	// D-216 render-thread budget: an explicit skip, never slower emulation.
 	if(!remakeFrameBudget.AllowFeed()){remakeFrameBudget.CountFeedSkip();skip("feed","frame-budget");return;}
 	struct FeedCost {

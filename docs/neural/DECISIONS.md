@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-219: the helper overlaps the next receive with the GPU readback, bounded; transport-only digests may change, receipt digests may not
+
+LOG792. The helper receives the next packet while the GPU completes the
+current frame's readback, with the wait bounded (3 ms) so a frame's return
+never waits for the next packet; return order and receipts are unchanged.
+The returned image and depth digests are transport integrity only (ImageSlot
+fields, both ends share the function, nothing persists them) and may use a
+faster function; the packet receipt digest is persisted by the locked
+archives and stays byte-serial (LOG791). Waits between the two processes
+use named auto-reset events, never timer-resolution sleeps. The credit
+skip log carries the channel state so a stalled pipeline is attributed to
+the side that holds the sources. The launcher's `--renderer` exists because
+the gate asks for both routes; the native-effects lane does not support
+the normal route today and says so in the skip reason rather than
+activating differently.
+
 ## D-218: consistent sampling windows, redundant native work off the lane, cheaper observation records, three sources in flight
 
 LOG790. (a) All remake CPU scopes sample only while the lane is active, so

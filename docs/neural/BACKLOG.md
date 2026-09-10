@@ -155,16 +155,26 @@ accepted, 22 repeats) with three sources in flight on the channel. The
 600-frame gate is not passed (LOG791: fresh combined output 94.3 and 86.4
 percent of steady presents in two performance-eligible runs of the same
 build against the 99 percent criterion; p99 30.6 and 32.7 ms; OIT route
-only). Next operational action: pipeline the helper (overlap the next
-packet's draw with the previous readback and return, keeping the return
-order and receipts exact) so its per-packet period falls clearly below the
-16.7 ms frame period at p90, then repeat two performance-eligible runs on
-the OIT route and one on the normal renderer route and evaluate the gate
-from the per-present samples (fresh output after 120 warmup presents,
-identity, repeats, latency, P50/P95/P99, owned-object and VRAM growth
-attributed). Re-check the in-session re-anchor at source about 3099 (support
-overlap 424 of 1000) by logging the frames since the last accepted source at
-the rejection. The budget lane stays diagnostic.
+only). D-219 (LOG792): the helper overlaps the next receive with the GPU
+readback (bounded), transport digests are word-wise, waits are event-based;
+performance-eligible fc075-perf-d219-a reads 95.3 percent fresh of steady
+presents (99.1 percent of remake presents, 12 repeats) with the remaining
+credit skips concentrated in the helper's first-packet startup (about 150
+in the first 200 frames after the first feed), and the normal-renderer route
+does not activate the native-effects lane (`unsupported-renderer`). Next
+operational action: attribute and cut the helper's first-packet startup
+(the first packet registers every texture, about 10 MB) so the 120-present
+warmup allowance covers it; attribute the slower emulated frame of
+fc075-perf-d219-a (PVR join period 19.0 against 17.0) and the 946 MB VRAM
+growth with a CPU-timing run of the same build; then repeat two
+performance-eligible OIT runs and evaluate the gate. Decide with the user
+the reported translucent look (LOG792: D-183 promoted alpha surfaces
+ray-traced as translucent, and opaque-list texture alpha passed through):
+verify which mechanism by a bounded A/B (alpha-combined off; opaque alpha
+forced to one) before changing the lane's composition. Re-check the
+in-session re-anchor at source about 3099 (support overlap 424 of 1000) by
+logging the frames since the last accepted source at the rejection. The
+budget lane stays diagnostic.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

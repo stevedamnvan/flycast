@@ -88,6 +88,9 @@ class RemakeReturnWorker {
    if(outcome!=RemakeChannelResult::Received) {
     // A channel not open on this side yet is idle, not an invalid return.
     if(outcome==RemakeChannelResult::Invalid&&error!="return-publisher-role"){std::lock_guard<std::mutex> lock(mutex);++invalidReturns;}
+    // D-219: block on the consumer's returned-image event (bounded) instead
+    // of returning to the 1 ms timed wait, which is timer-resolution bound.
+    if(outcome==RemakeChannelResult::Empty)poll->WaitForReturned(2);
     continue;
    }
    std::shared_ptr<const RemakeTemporalScene> scene,previous;

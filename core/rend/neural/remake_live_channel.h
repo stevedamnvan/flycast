@@ -34,9 +34,17 @@ public:
  // ownership. Busy skips without waiting; legacy one-way Publish is unchanged.
  RemakeChannelResult PublishForReturn(const remake::Packet&,RemakeChannelReceipt&,std::string&);
  bool HasReturnCredit() const noexcept;
+ // Diagnostic: publisher sequence, highest returned sequence, each source's
+ // frame and sequence, and the transport slot states (free/writing/ready/reading).
+ std::string DescribeReturnCredit() const;
  // Retire expired source ownership, not neural history. Late replies reject.
  unsigned ExpireReturns(std::uint64_t currentFrame,const ProducerIdentity&,std::uint64_t maxAge);
  RemakeChannelResult Receive(remake::Packet&,RemakeChannelReceipt&,std::string&);
+ // D-219: named auto-reset events signal a published packet (consumer waits)
+ // and a returned image (publisher waits), so neither side polls with a
+ // timer-resolution sleep. True when signaled; false on timeout or no event.
+ bool WaitForPublished(unsigned milliseconds) const noexcept;
+ bool WaitForReturned(unsigned milliseconds) const noexcept;
  // Diagnostic final-color return only. Does not authorize presentation/history.
  RemakeChannelResult ReturnImage(const RemakeReturnedImage&,std::string&);
  RemakeChannelResult ReceiveImage(RemakeReturnedImage&,std::string&);

@@ -108,8 +108,12 @@ source-observation hook on the emulation thread; it costs two time-stamp
 reads per hook call and inflates the emulated frame period by several
 milliseconds, so it is a separate opt-in. The helper's `live_return` lines
 carry `period_ms` (receive to receive), `receive_wait_ms` (idle in receive)
-and `prepare_ms` (receive to draw). The live channel keeps three sources in
-flight (D-218). The scene feed runs anchor, temporal capture,
+and `prepare_ms` (receive to draw), plus `color_copy_ms`, `depth_convert_ms`
+and `return_ms` (D-219). The live channel keeps three sources in flight
+(D-218); `no-return-credit` skip lines carry the channel state (sequence,
+returned sequence, sources, slot and image states). `--renderer dx11-oit`
+(default) or `dx11` selects the host route; the native-effects lane
+currently activates only on the OIT route (LOG792). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and
