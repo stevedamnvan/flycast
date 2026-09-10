@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG775 manual session fc067-anchor-manual-g (worker budget420, clip-range depth
+policy): the host window was resized at0:44 (raster contract640x480 to
+570x427), the swapchain resize failed (887a0001) and the renderer
+re-initialized, requesting helper generation2 before any source had been
+published. Helper g1, still inside its180 second first-source wait, saw the
+channel close and exited2 as an invalid artifact, so the launcher refused to
+hide it (launcher exit1, flycast forced at0:44, no returns, nothing verified).
+This is the same limitation as g6 in LOG768. A session worker retired before
+its first source now exits as the ordinary channel-closed retirement (11), the
+launcher rule is unchanged, and the first-source wait expiring is still a
+failure. The window must not be resized during a manual session; the resize
+failure itself is recorded, not addressed. Automation selftest801/0,
+remake-sdk-contract260/0, launcher tests16, four configurations built serially.
+D-209 on both sides and the worker budget remain unverified in play.
+
 LOG774 implementation after session f: the session-worker diagnostic runtime
 budget is420 seconds, matching the manual host bound the worker must outlive
 (ordinary helpers keep300/120/30); returned depth before the near plane

@@ -77,7 +77,10 @@ so the worker outlives the manual host bound;300 for ordinary diagnostic
 capture). Ordinary helper commands
 keep their original frame limits. Channel closure still retires the worker.
 The old helper must unwind within its bounded timeout. Unexpected helper errors
-abort supervision rather than being hidden by a restart. Logs are separated as
+abort supervision rather than being hidden by a restart. A session worker whose
+channel closes before its first source (the host re-initialized its renderer,
+for example after a window resize, and requested the next generation) exits as
+an ordinary channel-closed retirement. Logs are separated as
 `consumer-g1.log`, `consumer-g2.log`, etc.; `launch.json` retains superseded exits.
 
 `--renderer-reinit-after 2400` is a developer fault-injection option, not needed

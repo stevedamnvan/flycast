@@ -214,7 +214,16 @@ int wmain(int argc,wchar_t** argv) {
      const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
      if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
      std::cout<<"live_channel_ready=true bounded_source_wait_ms="<<sourceWaitMs<<" live_idle_wait_ms="<<RemakeLiveIdleWaitMs(sessionWorker)<<" saved_packets_read=false\n"<<std::flush;
-     receiveNext(p,sourceWaitMs);
+     try{receiveNext(p,sourceWaitMs);}
+     catch(const std::runtime_error& e) {
+      // A session worker whose channel closes before its first source was
+      // retired by the host (a renderer re-initialization requests the next
+      // generation, LOG775): an ordinary retirement reported like any later
+      // closure, not an invalid artifact. The first-source wait expiring is
+      // still a failed experiment.
+      if(sessionWorker&&std::string(e.what())=="channel-closed"){std::cerr<<"live source failed: channel-closed before first source\n";return 11;}
+      throw;
+     }
     } else if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
     if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
     snapshot=std::move(p);
