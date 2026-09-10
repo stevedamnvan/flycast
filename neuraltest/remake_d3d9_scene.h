@@ -83,9 +83,16 @@ class D3D9PacketScene {
   for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
    if(FAILED(CreateLegacyCutoutShader(device_,&cutoutShader_)))return E_FAIL;
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet)) {
-   if(!allowSkippedSources_||!AsyncSourceContinuation(previous_,packet))return E_INVALIDARG;
-   std::cout<<"async_source_gap previous="<<previous_.frame<<" current="<<packet.frame
-    <<" uploader_resources_reset=true runtime_temporal_reset_proven=false\n";
+   const bool regenerated=allowSkippedSources_&&AnchorGenerationChange(previous_,packet);
+   if(!regenerated&&(!allowSkippedSources_||!AsyncSourceContinuation(previous_,packet)))return E_INVALIDARG;
+   if(regenerated) {
+    const auto o=*packet.diagnosticOrigin;
+    std::cout<<"anchor_generation_change previous="<<previous_.frame<<" current="<<packet.frame
+     <<" origin="<<o.x<<','<<o.y<<','<<o.z<<" uploader_resources_reset=true light_reanchored="<<anchoredLight_
+     <<" runtime_temporal_reset_proven=false\n";
+   } else
+    std::cout<<"async_source_gap previous="<<previous_.frame<<" current="<<packet.frame
+     <<" uploader_resources_reset=true runtime_temporal_reset_proven=false\n";
    ReleaseResources(); // Reset our correspondence only, not an undocumented runtime history API.
   }
   if(ready_ && refreshResources_) {

@@ -2,6 +2,17 @@
 #pragma once
 #include <cstdint>
 namespace flycast::rend::neural {
+inline unsigned RemakeEffectCaptureBound(const char* extended,bool boundedCapture)noexcept {
+ if(!extended)return 30;
+ return boundedCapture&&extended[0]=='1'&&extended[1]=='\0'?300:0;
+}
+inline bool RemakeComparisonBeforeEnd(const char* end,std::uint64_t frame,bool boundedCapture)noexcept {
+ if(!end)return true;
+ if(!boundedCapture||!*end)return false;
+ std::uint64_t value=0;
+ for(;*end;++end){if(*end<'0'||*end>'9')return false;value=value*10+unsigned(*end-'0');if(value>10000000)return false;}
+ return value>0&&frame<=value;
+}
 inline bool RemakeRendererAllowed(bool oit,const char* optIn)noexcept {
  return !oit||(optIn&&optIn[0]=='1'&&optIn[1]=='\0');
 }
@@ -46,13 +57,13 @@ public:
  bool Active()const noexcept{return phase_==Phase::Active;}
  bool Failed()const noexcept{return phase_==Phase::Failed;}
  void Fail()noexcept{phase_=Phase::Failed;}
- RemakeDisplayDecision Choose(std::uint64_t current,std::uint64_t candidate,bool enabled)noexcept {
+ RemakeDisplayDecision Choose(std::uint64_t current,std::uint64_t candidate,bool enabled,bool captureBoundary=false)noexcept {
   if(!enabled){Reset();return {RemakeDisplayKind::Fallback,current};}
   if(!current||current<tick_||candidate>current)Fail();
   tick_=current;
   if(phase_==Phase::Failed)return {RemakeDisplayKind::Fallback,current};
   const bool valid=candidate&&current-candidate<=8;
-  if(phase_==Phase::Idle&&valid){phase_=Phase::Warming;floor_=current;}
+  if(phase_==Phase::Idle&&(valid||captureBoundary)){phase_=Phase::Warming;floor_=current;}
   if(phase_==Phase::Warming) {
    if(valid&&candidate>=floor_){phase_=Phase::Active;last_=candidate;}
    else if(current-floor_<=8)return {RemakeDisplayKind::HoldNative,floor_};

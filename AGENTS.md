@@ -2,6 +2,10 @@
 
 ## One execution authority
 
+Current handoff: [DEVELOPMENT-HANDOFF.md](DEVELOPMENT-HANDOFF.md). The user
+resumed implementation on 2026-09-09; the handoff now records the resumed state
+and the in-session anchor generation result. Preserve unfinished work.
+
 Read the active execution section of [the backlog](docs/neural/BACKLOG.md)
 first, then its current card and [the remake plan](docs/neural/REMAKE-FEASIBILITY-PLAN.md).
 The backlog owns current priority, dependencies, bounded tasks and acceptance.

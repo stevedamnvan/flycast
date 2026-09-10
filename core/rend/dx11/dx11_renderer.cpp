@@ -2607,7 +2607,14 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 			}
 		}
 		const bool wasActive=remakePresentationPolicy.Active(),wasFailed=remakePresentationPolicy.Failed();
-		auto decision=remakePresentationPolicy.Choose(current,candidate,enabled);
+		const auto* compareStart=std::getenv("FLYCAST_REMAKE_COMPARE_START_FRAME");
+		const auto* captureRoot=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+		const bool boundedCapture=captureRoot&&*captureRoot
+			&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"));
+		const bool captureBoundary=compareStart&&current
+			&&RemakeComparisonEligible(compareStart,current,boundedCapture)
+			&&!RemakeComparisonEligible(compareStart,current-1,boundedCapture);
+		auto decision=remakePresentationPolicy.Choose(current,candidate,enabled,captureBoundary);
 		if((wasActive&&!enabled)||(!wasFailed&&remakePresentationPolicy.Failed()))
 			NOTICE_LOG(RENDERER,"Remake presentation stopped: current=%llu candidate=%llu enabled=%d permitted=%d guidance=%llu source=%llu producer=%llu latched=%d",
 				(unsigned long long)current,(unsigned long long)candidate,enabled,permitted,
@@ -2641,6 +2648,15 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	using namespace flycast::rend::neural;
 	const auto* requested=std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
 	if(!requested||!*requested)return;
+	if(remakeSessionRoot!=requested&&remakeAsyncToken!=requested) {
+		if(const auto* root=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");root&&*root) {
+			std::string error;
+			if(!PrepareLockedRemakeInput(root,error)) {
+				WARN_LOG(RENDERER,"Remake archive preparation failed: %s; native fallback",error.c_str());return;
+			}
+			NOTICE_LOG(RENDERER,"Remake archive index prepared before session request; validation remains per input");
+		}
+	}
 	std::string token(requested);
 	const auto* managed=std::getenv("FLYCAST_REMAKE_MANAGED_SESSION");
 	if(managed&&std::strcmp(managed,"1")==0) {
@@ -2797,10 +2813,23 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		RemakeCpuScope timing("camera-anchor",metadata.frameId,count);
 		if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)) {
 			skip("camera-anchor",error);
+			if(const auto& support=proposedAnchor.LastSupportReport();support.rejected&&error=="anchor-source-support-changed")
+				NOTICE_LOG(RENDERER,"Remake anchor support report: source=%llu reference_producer=%llu points=%u reference=%u shared_reference=%u last_accepted=%u shared_last=%u rotation_from_reference_deg=%.6g translation_from_reference=%.6g rotation_from_last_deg=%.6g translation_from_last=%.6g scope=diagnostic-camera-embedded-anchor-not-world-reconstruction",
+					(unsigned long long)metadata.frameId,(unsigned long long)proposedAnchor.ReferenceOrdinal(),
+					unsigned(support.points),unsigned(support.reference),unsigned(support.sharedReference),
+					unsigned(support.lastAccepted),unsigned(support.sharedLast),
+					support.rotationFromReferenceDegrees,support.translationFromReference,
+					support.rotationFromLastDegrees,support.translationFromLast);
 			if(managed&&std::strcmp(managed,"1")==0&&error=="anchor-source-support-changed") {
-				remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();
-				remakeAsyncStopped=true;remakeSessionRenewalRequested=true;
-				NOTICE_LOG(RENDERER,"Remake anchor support changed: retiring session and history before fresh request");
+				// Genuine source-view cut (measured: tens of degrees and units in one
+				// frame). Retire the fixed view, temporal/raster history and pending
+				// returns in-session; keep the channel and helper. The next accepted
+				// source starts a labeled anchor generation with a distinct origin.
+				remakeCameraAnchor=std::move(proposedAnchor);
+				const bool regenerated=remakeCameraAnchor.Reanchor();
+				retireRemakeHistory();
+				NOTICE_LOG(RENDERER,"Remake anchor support changed: in-session re-anchor generation=%u regenerated=%d history_reset=true presentation_retired=true channel_retained=true",
+					remakeCameraAnchor.Generation(),regenerated);
 			}
 			return;
 		}
@@ -2855,9 +2884,13 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(temporalScene){temporalScene->receipt=receipt;overlay.temporalScene=std::move(temporalScene);}
 		if(anchored) {
 			remakeCameraAnchor=std::move(proposedAnchor);
-			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g",
-				(unsigned long long)packet.frame,(unsigned long long)remakeCameraAnchor.ReferenceOrdinal(),
-				packet.camera.position.x,packet.camera.position.y,packet.camera.position.z,remakeCameraAnchor.MaximumProjectionError());
+			const auto& support=remakeCameraAnchor.LastSupportReport();
+			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g",
+				(unsigned long long)packet.frame,(unsigned long long)remakeCameraAnchor.ReferenceOrdinal(),remakeCameraAnchor.Generation(),
+				remakeCameraAnchor.Origin().x,remakeCameraAnchor.Origin().y,remakeCameraAnchor.Origin().z,
+				packet.camera.position.x,packet.camera.position.y,packet.camera.position.z,remakeCameraAnchor.MaximumProjectionError(),
+				unsigned(support.points),unsigned(support.sharedReference),unsigned(support.sharedLast),
+				support.rotationFromLastDegrees,support.translationFromLast);
 		}
 		if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)
 			overlay.captureScene=std::make_shared<remake::Packet>(std::move(packet));
@@ -2920,6 +2953,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
 		&&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0;
 	if(!RemakeComparisonEligible(std::getenv("FLYCAST_REMAKE_COMPARE_START_FRAME"),returned.frame,boundedComparison))return;
+	if(!RemakeComparisonBeforeEnd(std::getenv("FLYCAST_REMAKE_COMPARE_END_FRAME"),returned.frame,boundedComparison))return;
 	if(RemakeNativeEffectsRequested()) {
 		const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
 		const char* rejected=!remakeAsyncAcceptedOverlay.effects?"missing-effects"
@@ -2940,7 +2974,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				NOTICE_LOG(RENDERER,"Remake async locked input rejected: source=%llu reason=%s",(unsigned long long)returned.frame,error.c_str());return;
 			}
 			if(RemakeNativeEffectsRequested()) {
-				if(remakeEffectReplayAttempts>=30) {
+				if(remakeEffectReplayAttempts>=RemakeEffectEvidenceLimit()) {
 					NOTICE_LOG(RENDERER,"Remake effect replay rejected: evidence-attempt-bound");return;
 				}
 				++remakeEffectReplayAttempts;
@@ -3309,7 +3343,7 @@ void DX11Renderer::displayFramebuffer()
 	}
 	if(previewStartAllowed&&remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
 		&&previewSource&&remakeDecision.frame==previewSource->frame
-		&&(!flycast::rend::neural::RemakeEffectEvidenceRequested()||remakePreviewCaptureAttempts<30)
+		&&(!flycast::rend::neural::RemakeEffectEvidenceRequested()||remakePreviewCaptureAttempts<flycast::rend::neural::RemakeEffectEvidenceLimit())
 		&&remakeDecision.frame!=remakePreviewLastCaptured&&remakePreviewCaptureAttempts<
 			flycast::rend::neural::RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),
 				std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))) {

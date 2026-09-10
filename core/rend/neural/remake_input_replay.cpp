@@ -7,8 +7,51 @@
 #include <sstream>
 #include <iomanip>
 #include <locale>
+#include <algorithm>
+#include <vector>
 
 namespace flycast::rend::neural {
+namespace {
+struct ReplayIndexEntry {
+ std::filesystem::path path;
+ std::filesystem::file_time_type modified;
+ std::uintmax_t size=0;
+ std::uint64_t epoch=0,ordinal=0,cycle=0;
+};
+// Only lookup identity is cached, never accepted image/packet contents. This
+// diagnostic index is bounded to one archive per thread. Packet changes or
+// directory additions/removals rebuild it; selected inputs are always reread.
+const std::vector<ReplayIndexEntry>& ReplayIndex(const std::filesystem::path& root) {
+ static thread_local std::filesystem::path cachedRoot;
+ static thread_local std::vector<ReplayIndexEntry> cached;
+ std::vector<ReplayIndexEntry> files;unsigned entries=0;
+ for(const auto& entry:std::filesystem::directory_iterator(root)) {
+  if(++entries>512)throw std::runtime_error("locked-replay-directory-bound");
+  if(!entry.is_directory()||entry.path().filename().string().rfind("frame-",0)!=0)continue;
+  const auto path=entry.path()/"remake-view.bin";
+  files.push_back({entry.path(),std::filesystem::last_write_time(path),std::filesystem::file_size(path)});
+ }
+ std::sort(files.begin(),files.end(),[](const auto& a,const auto& b){return a.path<b.path;});
+ const auto absolute=std::filesystem::absolute(root).lexically_normal();
+ const bool same=absolute==cachedRoot&&files.size()==cached.size()
+  &&std::equal(files.begin(),files.end(),cached.begin(),[](const auto& a,const auto& b){
+   return a.path==b.path&&a.modified==b.modified&&a.size==b.size;
+  });
+ if(!same) {
+  for(auto& file:files) {
+   remake::Packet packet;std::string error;
+   if(!ReadRemakeViewPacket(file.path/"remake-view.bin",packet,error))throw std::runtime_error(error);
+   file.epoch=packet.producer.epoch;file.ordinal=packet.producer.ordinal;file.cycle=packet.producer.cycle;
+  }
+  cached=std::move(files);cachedRoot=absolute;
+ }
+ return cached;
+}
+}
+bool PrepareLockedRemakeInput(const std::filesystem::path& root,std::string& error) {
+ try {ReplayIndex(root);error.clear();return true;}
+ catch(const std::exception& e){error=e.what();return false;}
+}
 bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake::Packet& packet,
  const RemakeReturnedImage& image,std::string& error)
 {
@@ -59,17 +102,16 @@ bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packe
 {
  if(matchedDirectory)matchedDirectory->clear();
  try {
-  std::filesystem::path match;remake::Packet retained;unsigned entries=0;
-  for(const auto& entry:std::filesystem::directory_iterator(root)) {
-   if(++entries>512)throw std::runtime_error("locked-replay-directory-bound");
-   if(!entry.is_directory()||entry.path().filename().string().rfind("frame-",0)!=0)continue;
+  std::filesystem::path match;remake::Packet retained;
+  for(const auto& entry:ReplayIndex(root)) {
+   if(entry.epoch!=current.producer.epoch||entry.ordinal!=current.producer.ordinal||entry.cycle!=current.producer.cycle)continue;
    remake::Packet candidate;
-   if(!ReadRemakeViewPacket(entry.path()/"remake-view.bin",candidate,error))return false;
+   if(!ReadRemakeViewPacket(entry.path/"remake-view.bin",candidate,error))return false;
    if(candidate.producer.epoch!=current.producer.epoch||candidate.producer.ordinal!=current.producer.ordinal
-    ||candidate.producer.cycle!=current.producer.cycle)continue;
+    ||candidate.producer.cycle!=current.producer.cycle)throw std::runtime_error("locked-replay-index-source-changed");
    if(!SameRemakeReplayScene(candidate,current,error))return false;
    if(!match.empty())throw std::runtime_error("locked-replay-ambiguous-source");
-   match=entry.path();retained=std::move(candidate);
+   match=entry.path;retained=std::move(candidate);
   }
   if(match.empty())throw std::runtime_error("locked-replay-producer-not-found");
   auto read=[&](const std::filesystem::path& path,void* data,std::size_t size) {

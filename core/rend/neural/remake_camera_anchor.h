@@ -15,6 +15,49 @@ class RemakeCameraAnchor {
  ProducerIdentity first{},last{};
  std::uint64_t lastFrame=0;
  double projectionError=0;
+public:
+ // Diagnostic counts recorded for every evaluated support set: shared points
+ // with the fixed reference and with the last accepted set, plus the rigid
+ // basis motion from each. It does not decide continuity and asserts no world
+ // semantics; `rejected` marks the shared-support rejection.
+ struct SupportReport {
+  std::size_t points=0,reference=0,sharedReference=0,lastAccepted=0,sharedLast=0;
+  double rotationFromReferenceDegrees=0,translationFromReference=0;
+  double rotationFromLastDegrees=0,translationFromLast=0;
+  bool available=false,rejected=false;
+ };
+private:
+ std::set<Point> lastPoints; // Last accepted support only; bounded like reference.
+ Matrix lastBasis{};
+ SupportReport report{};
+ std::uint32_t generation=0;
+ remake::Vec3 origin{}; // Diagnostic origin label of the current fixed view; generation0 is zero.
+ Matrix priorReference{};bool priorAvailable=false;
+ static std::array<double,3> viewPosition(const Matrix& base,const Matrix& current) {
+  const auto inverse=inverseBasis(base);
+  Matrix delta{};
+  for(unsigned r=0;r<3;++r) {
+   for(unsigned c=0;c<3;++c)for(unsigned k=0;k<3;++k)delta[r*4+c]+=current[r*4+k]*inverse[k*4+c];
+   delta[r*4+3]=current[r*4+3];for(unsigned k=0;k<3;++k)delta[r*4+3]-=delta[r*4+k]*base[k*4+3];
+  }
+  const auto deltaInverse=inverseBasis(delta);
+  std::array<double,3> position{};
+  for(unsigned r=0;r<3;++r)for(unsigned k=0;k<3;++k)position[r]-=deltaInverse[r*4+k]*delta[k*4+3];
+  return position;
+ }
+ static void relative(const Matrix& base,const Matrix& current,double& degrees,double& distance) {
+  const auto inverse=inverseBasis(base);
+  double rotation[9]{},translation[3]{};
+  for(unsigned r=0;r<3;++r)for(unsigned c=0;c<3;++c)
+   for(unsigned k=0;k<3;++k)rotation[r*3+c]+=current[r*4+k]*inverse[k*4+c];
+  for(unsigned r=0;r<3;++r) {
+   translation[r]=current[r*4+3];
+   for(unsigned k=0;k<3;++k)translation[r]-=rotation[r*3+k]*base[k*4+3];
+  }
+  const double trace=rotation[0]+rotation[4]+rotation[8];
+  degrees=std::acos((std::max)(-1.,(std::min)(1.,(trace-1)/2)))*180/3.14159265358979323846;
+  distance=std::sqrt(translation[0]*translation[0]+translation[1]*translation[1]+translation[2]*translation[2]);
+ }
  static bool rigid(const Matrix& m) {
   for(double x:m)if(!std::isfinite(x))return false;
   for(unsigned a=0;a<3;++a)for(unsigned b=0;b<3;++b) {
@@ -33,6 +76,19 @@ class RemakeCameraAnchor {
 public:
  void Reset(){*this={};}
  std::uint64_t ReferenceOrdinal()const{return first.ordinal;}
+ const SupportReport& LastSupportReport()const{return report;}
+ std::uint32_t Generation()const{return generation;}
+ remake::Vec3 Origin()const{return origin;}
+ // Retire the fixed view after a rejected shared-support check. The next accepted
+ // source becomes a new reference whose diagnostic origin is the retired view's
+ // camera-relative position of that source: a distinct label that breaks strict
+ // continuity for every consumer, not a recovered world relation.
+ bool Reanchor() {
+  if(!first.Available()||!report.rejected)return false;
+  priorReference=reference;priorAvailable=true;
+  first={};reference={};referencePoints.clear();lastPoints.clear();lastBasis={};
+  projectionError=0;report={};++generation;return true;
+ }
  double MaximumProjectionError()const{return projectionError;}
  bool Apply(const PvrDecodedPacket& source,const RemakeViewScene& scene,
   remake::Packet& packet,std::string& error) {
@@ -71,10 +127,19 @@ public:
    Point key{};std::memcpy(key.data(),t.input.data(),sizeof(key));points.insert(key);
   }
   if(!have||points.size()<16)return fail("anchor-insufficient-source-support");
+  SupportReport support{};
   if(first.Available()) {
    std::size_t shared=0;for(const auto& v:points)shared+=referencePoints.count(v);
-   if(shared<16||shared*2<(std::min)(points.size(),referencePoints.size()))
+   support.available=true;
+   support.points=points.size();support.reference=referencePoints.size();support.sharedReference=shared;
+   support.lastAccepted=lastPoints.size();
+   for(const auto& v:points)support.sharedLast+=lastPoints.count(v);
+   relative(reference,current,support.rotationFromReferenceDegrees,support.translationFromReference);
+   relative(lastBasis,current,support.rotationFromLastDegrees,support.translationFromLast);
+   if(shared<16||shared*2<(std::min)(points.size(),referencePoints.size())) {
+    support.rejected=true;report=support;
     return fail("anchor-source-support-changed");
+   }
   }
   Matrix delta{1,0,0,0,0,1,0,0,0,0,1,0};
   const auto referenceInverse=first.Available()?inverseBasis(reference):delta;
@@ -103,9 +168,22 @@ public:
   embedded.camera.right={float(delta[0]),float(delta[1]),float(delta[2])};
   embedded.camera.up={float(delta[4]),float(delta[5]),float(delta[6])};
   embedded.camera.forward={float(delta[8]),float(delta[9]),float(delta[10])};
-  embedded.diagnosticOrigin=remake::Vec3{}; // Fixed first accepted source view.
+  // Fixed first accepted source view. A re-anchored generation labels its new
+  // fixed view with the retired view's camera-relative position of this source.
+  remake::Vec3 candidateOrigin=origin;
+  if(!first.Available()&&priorAvailable) {
+   const auto position=viewPosition(priorReference,current);
+   candidateOrigin={float(position[0]),float(position[1]),float(position[2])};
+   if(!std::isfinite(candidateOrigin.x)||!std::isfinite(candidateOrigin.y)||!std::isfinite(candidateOrigin.z))
+    return fail("anchor-generation-origin");
+   if(candidateOrigin.x==origin.x&&candidateOrigin.y==origin.y&&candidateOrigin.z==origin.z)
+    candidateOrigin.x=std::nextafter(candidateOrigin.x,std::numeric_limits<float>::infinity());
+  }
+  embedded.diagnosticOrigin=candidateOrigin;
   embedded.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
   embedded.omissions.push_back("observed common source anchor; static world identity and physical scale unproven");
+  if(generation)embedded.omissions.push_back("re-anchored generation "+std::to_string(generation)
+   +" after rejected source support; origin is the retired view's camera-relative position, not world identity");
   double maximum=0;
   for(auto& mesh:embedded.meshes)for(auto& v:mesh.vertices) {
    const auto input=v.position;
@@ -216,7 +294,8 @@ public:
   }
   const auto checked=remake::ReadyForDiagnosticAdapter(embedded,embedded.frame,embedded.game,true);
   if(!checked.ok){error=checked.reason;return false;}
-  if(!first.Available()){first=p;reference=current;referencePoints=std::move(points);}
+  lastPoints=points;lastBasis=current;report=support;
+  if(!first.Available()){first=p;reference=current;referencePoints=std::move(points);origin=candidateOrigin;}
   last=p;lastFrame=source.frame;projectionError=maximum;packet=std::move(embedded);error.clear();return true;
  }
 };

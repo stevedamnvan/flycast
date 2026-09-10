@@ -44,8 +44,14 @@ camera truth, resource cleanup or presentation provenance. Check those separatel
 ## Experimental managed sessions
 
 `--managed-session` enables a launcher-owned control mapping. Each renderer
-restart or rejected anchor-support change requests a fresh channel generation
-and a fresh helper process; old receipts and temporal history are not reused.
+restart or epoch change requests a fresh channel generation and a fresh helper
+process; old receipts and temporal history are not reused. A rejected anchor-
+support change (a measured source-view cut) no longer replaces the helper: the
+renderer retires its fixed view, histories and presentation carry-over and starts
+a labeled anchor generation on the same channel. The helper logs
+`anchor_generation_change`, resets its correspondence and re-fixes the anchored
+light at the new first view. Expect a few native frames per cut, not a world-
+consistent light across it.
 The run is capped at eight generations and the original whole-run deadline.
 Managed helpers use explicit session-worker mode rather than rotating after600
 returns. The worker has a10000-frame ceiling and retains the120-second runtime
@@ -80,6 +86,13 @@ as `--locked-input-root` at the same start frame. Existing source/effect/tempora
 identity checks remain mandatory; missing or mismatched archives reject the run.
 These synchronous diagnostics retain the30-frame limit and cannot prove the
 full300-frame moving quality or performance gate.
+
+`--extended-effect-capture` explicitly raises the exact-effects diagnostic ceiling
+to300 frames when effect identity or locked replay is selected. Without it the
+30-frame ceiling remains. Source start plus count defines an inclusive end;
+evaluation stops outside that interval before archive reads. Invalid or overflowing
+ranges fail closed. Existing runtime and host watchdogs remain unchanged, and
+missing startup frames still fail a requested complete sequence.
 
 `--returned-dlaa` selects public DLAA on the returned Remix image for bounded
 capture; it is mutually exclusive with `--remix-only`. Use an already prepared

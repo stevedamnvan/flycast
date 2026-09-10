@@ -70,11 +70,19 @@ def prepare(args):
         host[host.index('--lane')+1] = 'dlaa'
     effect_identity = getattr(args, 'effect_identity', False)
     locked = getattr(args, 'locked_input_root', None)
+    extended = getattr(args, 'extended_effect_capture', False)
+    if extended and not (effect_identity or locked):
+        raise ValueError('Extended effects limit requires exact effect capture or replay')
     if effect_identity or locked:
-        if not 1 <= capture_frames <= 30 or capture_start <= 0:
-            raise ValueError('Exact effects comparison requires 1..30 captures and positive source start')
+        if not 1 <= capture_frames <= (300 if extended else 30) or capture_start <= 0:
+            raise ValueError('Exact effects comparison exceeds explicit bound or lacks source start')
+        if capture_start+capture_frames-1 > 10000000:
+            raise ValueError('Comparison end exceeds source bound')
         env['FLYCAST_REMAKE_EFFECT_IDENTITY'] = '1'
         env['FLYCAST_REMAKE_COMPARE_START_FRAME'] = str(capture_start)
+        env['FLYCAST_REMAKE_COMPARE_END_FRAME'] = str(capture_start+capture_frames-1)
+        if extended:
+            env['FLYCAST_REMAKE_EXTENDED_EFFECT_CAPTURE'] = '1'
     if locked:
         locked = Path(locked).resolve(strict=True)
         if not locked.is_dir() or not any(locked.glob('*/native-effect-identity.bin')):
@@ -191,6 +199,8 @@ def main():
                    help='DLAA on returned Remix, not native-PVR DLAA; requires a supplied hooks-disabled host')
     p.add_argument('--effect-identity', action='store_true',
                    help='Synchronous exact-effects archive, at most30 frames; never performance evidence')
+    p.add_argument('--extended-effect-capture', action='store_true',
+                   help='Explicit300-frame exact-effects diagnostic ceiling; watchdogs unchanged')
     p.add_argument('--locked-input-root', type=Path,
                    help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
@@ -203,6 +213,11 @@ def main():
                   comparison_lane='remix-only' if args.remix_only else 'returned-dlaa-requested' if args.returned_dlaa else 'combined-experimental',
                   locked_input_root=str(args.locked_input_root) if args.locked_input_root else None,
                   effect_identity=args.effect_identity or bool(args.locked_input_root),
+                  capture_frames=args.capture_frames,
+                  capture_start_source=args.capture_start_source,
+                  extended_effect_capture=args.extended_effect_capture,
+                  comparison_end_source=(args.capture_start_source+args.capture_frames-1)
+                      if args.effect_identity or args.locked_input_root else None,
                   performance_eligible=args.capture_frames == 0,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,

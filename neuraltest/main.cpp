@@ -3787,9 +3787,16 @@ int main(int argc, char **argv)
 		using namespace flycast::rend::neural;
 		if(Value(args,"--packet").empty()||Value(args,"--root").empty())return 2;
 		remake::Packet packet;RemakeReturnedImage image;std::uint64_t original=0;
-		if(!ReadRemakeViewPacket(Value(args,"--packet"),packet,error)
-			||!ReadLockedRemakeInput(Value(args,"--root"),packet,image,original,error))
+		std::uint32_t repeat=1;
+		if(!Number(args,"--repeat",1,repeat,error)||repeat<1||repeat>5)return 2;
+		if(!ReadRemakeViewPacket(Value(args,"--packet"),packet,error))
 		{std::cerr<<error<<'\n';return 1;}
+		for(unsigned i=0;i<repeat;++i) {
+			const auto begin=std::chrono::steady_clock::now();
+			if(!ReadLockedRemakeInput(Value(args,"--root"),packet,image,original,error)){std::cerr<<error<<'\n';return 1;}
+			std::cout<<"locked_lookup iteration="<<i<<" elapsed_ms="
+				<<std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-begin).count()<<'\n';
+		}
 		std::cout<<"locked-input validated source_frame="<<original<<" producer="<<packet.producer.ordinal
 			<<" color_bytes="<<image.bgra.size()<<" depth_values="<<image.projectionDepth.size()<<" read_only=true live_output=false\n";return 0;
 	}

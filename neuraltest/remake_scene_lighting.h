@@ -11,7 +11,9 @@ class AnchoredSceneLight {
  std::optional<Vec3> direction_,origin_;
  std::uint64_t epoch_=0;
  std::string game_;
+ unsigned reanchors_=0;
 public:
+ unsigned Reanchors()const{return reanchors_;}
  std::optional<Vec3> Select(const Packet& p) {
   if(p.diagnosticEmbeddingProvenance!="diagnostic-camera-embedded-anchor-not-world-reconstruction"
    ||!p.producer.Available()||!p.diagnosticOrigin)return {};
@@ -20,7 +22,12 @@ public:
    ||!std::isfinite(d.x)||!std::isfinite(d.y)||!std::isfinite(d.z)
    ||std::abs(d.x*d.x+d.y*d.y+d.z*d.z-1)>1e-5f)return {};
   if(direction_) {
-   if(p.producer.epoch!=epoch_||p.game!=game_||o.x!=origin_->x||o.y!=origin_->y||o.z!=origin_->z)return {};
+   if(p.producer.epoch!=epoch_||p.game!=game_)return {};
+   if(o.x!=origin_->x||o.y!=origin_->y||o.z!=origin_->z) {
+    // Explicit anchor generation change: fix the new first direction exactly as
+    // a fresh session would. This is not a world-consistent light across a cut.
+    direction_=d;origin_=o;++reanchors_;
+   }
   } else {direction_=d;origin_=o;epoch_=p.producer.epoch;game_=p.game;}
   return direction_;
  }

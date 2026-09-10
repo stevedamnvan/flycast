@@ -1,6 +1,14 @@
 # Flycast DLSS 5 tester and implementor handoff
 
-## Resume from the backlog
+## Current handoff and pause
+
+Use [DEVELOPMENT-HANDOFF.md](DEVELOPMENT-HANDOFF.md) for the current checkpoint,
+uncommitted work, verified evidence and next implementor task. The user paused
+implementation on 2026-09-09 and resumed the same day; the handoff records the
+resumed anchor-generation result (LOG759-764, D-207).
+The material below is historical and must not override the current backlog.
+
+## Historical resume instructions
 
 Read [AGENTS.md](AGENTS.md), then the active queue in
 [docs/neural/BACKLOG.md](docs/neural/BACKLOG.md). Do not copy this handoff into a
@@ -8,7 +16,7 @@ new standing goal or treat old audit stopping language as current authority.
 The user's2026-09-08 authorization permits routine bounded implementation,
 review, checkpoint and automatic advancement without human signoff.
 
-Current card remains FC-067 / M2-camera; follow BACKLOG for the next run, not
+Historical card was FC-067 / M2-camera; follow BACKLOG for the next run, not
 the historical sequence below. LOG315-322 closes exact-expression lineage for
 all3682/2152 vertices/triangles in first remaining batch at frame1782, and920/463
 in second packet batch at frames1782 and1783. Calibrated expression meshes retain

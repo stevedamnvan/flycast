@@ -347,6 +347,12 @@ protected:
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakeCameraAnchor.Reset();
+		retireRemakeHistory();
+	}
+	// Retire every cross-frame history and presentation carry-over without
+	// touching the anchor, channel or texture cache: used at an in-session
+	// anchor generation change so no pre-cut image is presented after the cut.
+	void retireRemakeHistory() {
 		remakeTemporalHistory.Reset();
 		remakeMotionRaster={};remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakePreEffectTexture.reset();

@@ -143,6 +143,18 @@ class LaunchPreflightTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             prepare(self.args)
 
+    def test_extended_effects_are_explicit(self):
+        self.args.effect_identity=True;self.args.capture_frames=300;self.args.capture_start_source=2400
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.extended_effect_capture=True
+        env=prepare(self.args)[2]
+        self.assertEqual(env['FLYCAST_REMAKE_EXTENDED_EFFECT_CAPTURE'],'1')
+        self.assertEqual(env['FLYCAST_REMAKE_COMPARE_END_FRAME'],'2699')
+        self.args.capture_start_source=10000000
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
 
 if __name__ == '__main__':
     unittest.main()

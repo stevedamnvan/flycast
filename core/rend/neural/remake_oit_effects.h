@@ -3,12 +3,18 @@
 #include "pvr_scene_capture.h"
 #include "remake_effect_identity.h"
 #include "remake_alpha_ownership.h"
+#include "remake_presentation.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 #include <cstdlib>
 #include <cstring>
 
 namespace flycast::rend::neural {
+inline unsigned RemakeEffectEvidenceLimit() {
+ const auto* root=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
+ return RemakeEffectCaptureBound(std::getenv("FLYCAST_REMAKE_EXTENDED_EFFECT_CAPTURE"),
+  root&&*root&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE")));
+}
 inline bool RemakeEffectEvidenceRequested() {
  const auto* value=std::getenv("FLYCAST_REMAKE_EFFECT_IDENTITY");
  return value&&std::strcmp(value,"1")==0;

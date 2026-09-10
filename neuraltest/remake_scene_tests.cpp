@@ -3,6 +3,7 @@
 #include "remake_legacy_contract.h"
 #include "remake_scene_lighting.h"
 #include "remake_runtime_budget.h"
+#include "rend/neural/remake_presentation.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -12,6 +13,22 @@ namespace neuraltest::remake {
 TestCounts TestSceneContract() {
  TestCounts counts;
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
+ using flycast::rend::neural::RemakeEffectCaptureBound;
+ using flycast::rend::neural::RemakeComparisonBeforeEnd;
+ using flycast::rend::neural::RemakePresentationPolicy;
+ using flycast::rend::neural::RemakeDisplayKind;
+ RemakePresentationPolicy boundary;
+ expect(boundary.Choose(100,0,true,true).kind==RemakeDisplayKind::HoldNative,"capture boundary holds native before delayed result");
+ const auto first=boundary.Choose(102,100,true);
+ expect(first.kind==RemakeDisplayKind::Remake&&first.frame==100,"capture boundary retains first source without time reversal");
+ boundary.Reset();boundary.Choose(100,0,true,true);
+ expect(boundary.Choose(109,0,true).kind==RemakeDisplayKind::Fallback,"capture boundary keeps eight-frame timeout");
+ expect(RemakeEffectCaptureBound(nullptr,false)==30,"effect capture legacy bound");
+ expect(RemakeEffectCaptureBound("1",true)==300,"effect capture explicit extended bound");
+ expect(RemakeEffectCaptureBound("1",false)==0&&RemakeEffectCaptureBound("10",true)==0,"effect capture unbounded and malformed rejected");
+ expect(RemakeComparisonBeforeEnd("3000",3000,true)&&!RemakeComparisonBeforeEnd("3000",3001,true),"comparison end inclusive");
+ expect(!RemakeComparisonBeforeEnd("3000",2000,false)&&!RemakeComparisonBeforeEnd("10000001",1,true)
+  &&!RemakeComparisonBeforeEnd("x",1,true),"comparison end rejects invalid or unbounded use");
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
  expect(RemakeWorkerFrameLimit(false,true,660)==660,"legacy helper frame bound unchanged");
@@ -28,8 +45,6 @@ TestCounts TestSceneContract() {
   expect(light.Select(q)->z==1,"anchored light ignores later camera rotation");
   auto bad=q;bad.producer.epoch++;
   expect(!light.Select(bad),"anchored light rejects different epoch");
-  bad=q;bad.diagnosticOrigin->x=1;
-  expect(!light.Select(bad),"anchored light rejects changed coordinate origin");
   bad=q;bad.diagnosticEmbeddingProvenance="unknown";
   expect(!light.Select(bad),"anchored light rejects unanchored scope");
   bad=q;bad.game="other";
@@ -37,6 +52,24 @@ TestCounts TestSceneContract() {
   bad=q;bad.camera.forward={0,0,0};
   expect(!light.Select(bad),"anchored light rejects invalid direction");
   expect(light.Select(q)->z==1,"anchored light failures preserve original direction");
+  auto regenerated=q;regenerated.diagnosticOrigin->x=1;regenerated.camera.forward={1,0,0};
+  expect(light.Select(regenerated).has_value()&&light.Select(regenerated)->x==1&&light.Reanchors()==1,
+   "anchored light re-anchors explicitly on a changed coordinate origin");
+  regenerated.camera.forward={0,1,0};
+  expect(light.Select(regenerated)->x==1&&light.Reanchors()==1,"anchored light keeps the re-anchored direction within a generation");
+  bad=regenerated;bad.producer.epoch++;bad.diagnosticOrigin->x=2;
+  expect(!light.Select(bad)&&light.Reanchors()==1,"anchored light still rejects an epoch change with a changed origin");
+  auto a=q;a.frame=10;a.producer={1,10,100};a.game="T1401N";a.sourceGitSha="fixture";
+  auto b=a;b.frame=11;b.producer={1,11,101};
+  expect(!AnchorGenerationChange(a,b)&&DiagnosticContinuation(a,b),"unchanged origin is continuity, not a generation change");
+  b.diagnosticOrigin->x=2;
+  expect(AnchorGenerationChange(a,b)&&!DiagnosticContinuation(a,b)&&!AsyncSourceContinuation(a,b),
+   "changed origin on a continuing producer chain is an explicit generation change");
+  auto c=b;c.producer.epoch++;expect(!AnchorGenerationChange(a,c),"generation change requires the same epoch");
+  c=b;c.producer.ordinal=10;expect(!AnchorGenerationChange(a,c),"generation change requires an advancing producer");
+  c=b;c.diagnosticEmbeddingProvenance="unknown";expect(!AnchorGenerationChange(a,c),"generation change requires anchored scope");
+  c=b;c.diagnosticOrigin->x=std::numeric_limits<float>::quiet_NaN();expect(!AnchorGenerationChange(a,c),"generation change requires a finite origin");
+  c=b;c.sourceGitSha="other";expect(!AnchorGenerationChange(a,c),"generation change requires the same source build");
  }
  expect(RemakeRuntimeBudget(false,false,120)==30u,"ordinary runtime budget unchanged");
  expect(RemakeRuntimeBudget(false,true,120)==30u,"short returned-scene budget unchanged");

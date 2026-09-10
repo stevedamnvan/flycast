@@ -1,5 +1,33 @@
 # Neural rendering decisions
 
+## D-207: genuine source-view cuts re-anchor in-session, never by lowering support
+
+The source3099 boundary is a measured cut: 81 degrees and13.5 anchored units in
+one frame against a smooth-motion maximum of1.62 degrees/0.741, with shared
+support falling to42 percent against a74 percent floor (LOG760). The shared-
+support rule, projection and depth guards stay unchanged. In a managed session a
+support rejection now retires the fixed view, temporal/raster history, pending
+returns and presentation carry-over in-session and keeps the channel and helper.
+The next accepted source starts a labeled anchor generation whose diagnostic
+origin is the retired view's camera-relative position of that source: a distinct
+label that fails strict continuity for every consumer, not a world relation.
+Consumers treat it as an explicit generation change: correspondence resets and
+the anchored light re-fixes exactly as a fresh session would. World-consistent
+continuity across same-arena cuts remains deferred to a supported camera/world
+contract (M2-camera); the diagnostic embedding label is preserved. Fresh helper
+generations remain for renderer restarts and epoch changes.
+
+## D-206: integration priority and explicit user pause
+
+The current300-frame source/combined review closes only its recorded comparison
+scope. Remaining matrix expansion is deferred behind live camera/scene continuity,
+not removed from final acceptance. Investigate the source3099 support boundary;
+preserve reset for genuine cuts and require source evidence before continuity.
+Do not weaken point-support/projection guards merely to avoid session renewal.
+The subsequent user pause takes precedence over autonomous progression. The
+development handoff preserves work and next steps; documentation is not resume
+authorization. Backlog remains the single queue and full goal remains unfinished.
+
 ## D-205: separate returned-scene comparison stages and owned test lifetime
 
 Capture-only Remix-only mode skips neural submit/history advance but reuses owned

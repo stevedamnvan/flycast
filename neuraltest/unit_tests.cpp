@@ -340,6 +340,58 @@ int RunSelfTests()
 					&&trial.ReferenceOrdinal()==p.sourceProducer.ordinal,"observed camera rejects changed identity domain support or scale atomically");
 			}
 			{
+				// Support rejection reports counts against the reference and the last
+				// accepted set separately, without changing the rejection itself.
+				RemakeCameraAnchor trial;auto seed=packet;
+				bool ok=trial.Apply(observed,supported,seed,error)&&!trial.LastSupportReport().available;
+				auto moved=unanchored;
+				ok=ok&&trial.Apply(later,laterView,moved,error)&&Near(moved.camera.position.x,-1);
+				{
+					const auto& accepted=trial.LastSupportReport();
+					suite.Expect(ok&&accepted.available&&!accepted.rejected&&accepted.points==16&&accepted.sharedReference==16
+						&&accepted.sharedLast==16&&Near(accepted.translationFromLast,1)&&accepted.rotationFromLastDegrees<1e-6,
+						"accepted frames report full shared support and per-frame basis motion");
+				}
+				auto churned=later;++churned.frame;++churned.sourceProducer.ordinal;++churned.sourceProducer.cycle;
+				auto churnedView=laterView;churnedView.frame=churned.frame;churnedView.producer=churned.sourceProducer;
+				for(unsigned i=0;i<12;++i)for(auto& t:churned.sourceVertices[i].copy.xyzTransforms)t->input[1]+=50;
+				auto output=unanchored;output.frame=churned.frame;output.producer=churned.sourceProducer;
+				for(auto& mesh:output.meshes)mesh.frame=churned.frame;
+				const bool rejected=ok&&!trial.Apply(churned,churnedView,output,error)&&error=="anchor-source-support-changed";
+				const auto& support=trial.LastSupportReport();
+				suite.Expect(rejected&&support.available&&support.rejected&&support.points==16&&support.reference==16&&support.sharedReference==4
+					&&support.lastAccepted==16&&support.sharedLast==4,
+					"support rejection reports shared counts against reference and last accepted sets");
+				suite.Expect(rejected&&Near(support.translationFromReference,1)&&support.rotationFromReferenceDegrees<1e-6
+					&&support.translationFromLast<1e-9&&support.rotationFromLastDegrees<1e-6,
+					"support report separates basis motion from reference and from last accepted view");
+				suite.Expect(rejected&&trial.ReferenceOrdinal()==p.sourceProducer.ordinal&&output.camera.position.x==0,
+					"support rejection leaves reference and output packet unchanged");
+				// Explicit re-anchor: the rejected view retires the fixed reference; the
+				// next accepted source starts a labeled generation whose distinct origin
+				// breaks strict continuity for every consumer.
+				suite.Expect(rejected&&trial.Reanchor()&&trial.Generation()==1&&!trial.Reanchor(),
+					"re-anchor requires a rejected support report and retires it");
+				auto regenerated=unanchored;regenerated.frame=churned.frame;regenerated.producer=churned.sourceProducer;
+				for(auto& mesh:regenerated.meshes)mesh.frame=churned.frame;
+				const bool accepted=rejected&&trial.Apply(churned,churnedView,regenerated,error);
+				if(rejected&&!accepted)std::cout<<"re-anchor fixture: "<<error<<'\n';
+				if(accepted&&regenerated.diagnosticOrigin)std::cout<<"re-anchor fixture origin="<<regenerated.diagnosticOrigin->x<<','<<regenerated.diagnosticOrigin->y<<','<<regenerated.diagnosticOrigin->z<<" position="<<regenerated.camera.position.x<<" omissions="<<regenerated.omissions.size()<<'/'<<unanchored.omissions.size()<<'\n';
+				suite.Expect(accepted&&trial.ReferenceOrdinal()==churned.sourceProducer.ordinal&&regenerated.diagnosticOrigin
+					&&Near(regenerated.diagnosticOrigin->x,-1)&&Near(regenerated.diagnosticOrigin->y,0)&&Near(regenerated.diagnosticOrigin->z,0)
+					&&Near(regenerated.camera.position.x,0)&&regenerated.omissions.size()==unanchored.omissions.size()+2,
+					"re-anchored generation starts a new fixed view labeled with the retired view's camera-relative origin");
+				suite.Expect(accepted&&!remake::DiagnosticContinuation(moved,regenerated)&&!remake::AsyncSourceContinuation(moved,regenerated)
+					&&remake::AnchorGenerationChange(moved,regenerated),
+					"re-anchored origin breaks strict continuity and is an explicit generation change");
+				{
+					RemakeCameraAnchor fresh;auto seedPacket=packet;
+					suite.Expect(!fresh.Reanchor()&&fresh.Apply(observed,supported,seedPacket,error)&&!fresh.Reanchor()
+						&&seedPacket.diagnosticOrigin&&seedPacket.diagnosticOrigin->x==0&&seedPacket.omissions.size()==packet.omissions.size()+1,
+						"re-anchor is refused without a rejected support report and generation zero keeps the zero origin");
+				}
+			}
+			{
 				// A valid nearly unit source basis must not create motion when unchanged.
 				auto precise=observed;
 				for(auto& s:precise.sourceVertices)for(auto& t:s.copy.xyzTransforms)t->matrix[0]*=1.00000024f;
@@ -654,12 +706,34 @@ int RunSelfTests()
 					{"contract_hashes",{{"color_fnv64",hex(digest(input.rgba.data(),input.rgba.size()))},{"depth_fnv64",hex(digest(input.invertedDepth.data(),input.invertedDepth.size()*4))}}}};
 				{std::ofstream f(folder/"manifest.json");f<<manifest;}
 				RemakeReturnedImage replay;replay.frame=999;std::uint64_t origin=0;
+				suite.Expect(PrepareLockedRemakeInput(root,error),"locked replay prepares index before live delivery");
 				suite.Expect(ReadLockedRemakeInput(root,packet,replay,origin,error)&&replay.bgra==image.bgra&&origin==packet.frame,"locked replay loads exact source-qualified pixels");
 				struct GroupedNumbers:std::numpunct<char>{std::string do_grouping() const override{return "\3";} char do_thousands_sep() const override{return ',';}};
 				const auto priorLocale=std::locale::global(std::locale(std::locale::classic(),new GroupedNumbers));
 				const bool groupedResult=ReadLockedRemakeInput(root,packet,replay,origin,error);
 				std::locale::global(priorLocale);
 				suite.Expect(groupedResult,"locked replay hashes remain portable under grouped user locale");
+				const auto duplicate=root/"frame-duplicate";
+				std::filesystem::create_directory(duplicate);
+				std::filesystem::copy_file(folder/"remake-view.bin",duplicate/"remake-view.bin");
+				suite.Expect(!ReadLockedRemakeInput(root,packet,replay,origin,error)&&error=="locked-replay-ambiguous-source",
+					"cached replay rejects newly added duplicate source");
+				std::filesystem::remove(duplicate/"remake-view.bin");std::filesystem::remove(duplicate);
+				suite.Expect(ReadLockedRemakeInput(root,packet,replay,origin,error),"cached replay rebuilds after duplicate removal");
+				{std::ofstream f(folder/"remake-view.bin",std::ios::binary|std::ios::app);f.put(0);}
+				suite.Expect(!ReadLockedRemakeInput(root,packet,replay,origin,error),"cached replay rejects changed packet extent");
+				{std::ofstream f(folder/"remake-view.bin",std::ios::binary);f.write(bytes.data(),bytes.size());}
+				suite.Expect(ReadLockedRemakeInput(root,packet,replay,origin,error),"cached replay validates restored packet");
+				{
+					auto altered=packet;altered.producer.cycle++;
+					std::ostringstream changedWire(std::ios::binary);SerializeRemakeViewPacket(changedWire,altered,error);
+					const auto changedBytes=changedWire.str();const auto previousTime=std::filesystem::last_write_time(folder/"remake-view.bin");
+					{std::ofstream f(folder/"remake-view.bin",std::ios::binary);f.write(changedBytes.data(),changedBytes.size());}
+					std::filesystem::last_write_time(folder/"remake-view.bin",previousTime+std::chrono::seconds(2));
+					suite.Expect(!ReadLockedRemakeInput(root,packet,replay,origin,error)&&error=="locked-replay-producer-not-found",
+						"cached replay rebuilds changed same-size producer packet");
+					{std::ofstream f(folder/"remake-view.bin",std::ios::binary);f.write(bytes.data(),bytes.size());}
+				}
 				auto changed=packet;changed.producer.cycle++;
 				suite.Expect(!ReadLockedRemakeInput(root,changed,replay,origin,error)&&replay.bgra==image.bgra,"locked replay missing producer preserves caller output");
 				{std::fstream f(folder/"remake-return.bgra",std::ios::binary|std::ios::in|std::ios::out);f.put(42);}

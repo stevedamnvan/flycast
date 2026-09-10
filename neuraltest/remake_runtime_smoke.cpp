@@ -347,7 +347,10 @@ int wmain(int argc,wchar_t** argv) {
    if(liveChannel&&frame>=61) {
     try {
      Packet next;receiveNext(next,5000);
-     if(!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
+     const bool regenerated=liveChannelAsync&&AnchorGenerationChange(*snapshot,next);
+     if(!regenerated&&!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
+     if(regenerated)std::cout<<"live_anchor_generation_change previous="<<snapshot->frame<<" current="<<next.frame
+      <<" origin="<<next.diagnosticOrigin->x<<','<<next.diagnosticOrigin->y<<','<<next.diagnosticOrigin->z<<" session_retained=true\n";
      snapshot=std::move(next);
     }catch(const std::exception& e){std::cerr<<"live source failed: "<<e.what()<<'\n';outcome=11;break;}
    }

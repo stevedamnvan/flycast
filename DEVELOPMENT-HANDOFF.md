@@ -1,0 +1,128 @@
+# Flycast experimental Remix + external DLSS 5 development handoff
+
+## Pause and authority
+
+User requested a pause, then this documentation handoff, then resumed on
+2026-09-09 with "proceed from here". The sections below record the resumed
+result; the standing goal remains unfinished. Follow `AGENTS.md` and
+`docs/neural/BACKLOG.md`. The earlier tracker "blocked" state meant the user
+pause only, not a technical dependency.
+The backlog is the sole execution queue; this handoff is a checkpoint, not a
+replacement roadmap. Requested routing is GPT-6 Astra low/light, no subagents;
+that is user intent, not confirmation of the active model configuration.
+
+## Exact checkout and unfinished changes
+
+Branch: `feat/neural-rendering`.
+Verified HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`.
+Recheck HEAD/status on resume. Never reset, stash, clean or overwrite newer work.
+The following implementation changes are still uncommitted:
+
+- `core/rend/dx11/dx11_renderer.cpp`: bounded capture start/end, first-source
+  presentation boundary, and locked archive preparation before helper request.
+- `core/rend/neural/remake_input_replay.{h,cpp}`: bounded archive identity index,
+  invalidation and selected-packet revalidation, plus explicit preparation API.
+- `core/rend/neural/remake_oit_effects.h` and `remake_presentation.h`: explicit
+  300-frame diagnostic bound (legacy default30), interval and boundary policy.
+- `neuraltest/main.cpp`, `remake_launch.py`, `test_remake_launch.py`,
+  `remake_scene_tests.cpp`, `unit_tests.cpp`: launcher wiring and controls.
+- `docs/neural/REMAKE-LAUNCH.md`, BACKLOG and LOG: accompanying working notes.
+
+Preserve untracked user items `metrics.txt`, `remake-runtime-smoke.dxvk-cache`,
+and `rtx-remix/`. This handoff adds documentation only. It does not commit or
+push the above changes. Review and commit independently proven slices after
+resumption; use explicit staging, never include private artifacts/config/media.
+Push only the user's `fork` remote, not upstream `origin`, and verify remote SHA.
+
+## Verified checkpoint and evidence locations
+
+External evidence directory names below are under the existing second-drive
+`Flycast-Evidence` root; do not move raw evidence into Git.
+
+- `fc067-extended-source-b`:300 consecutive source frames2400..2699.
+- `fc067-extended-combined-b`:300 matching combined captures.
+- `fc067-extended-remix-combined-review-b/comparison.json`:300 frames, no gaps,
+  neither side has unmatched sources, zero HUD mismatch. Comparator checks
+  scene/native/HUD/returned color/depth/effect identity and completed presentation.
+  Its stated scope excludes identical temporal histories/full NGX inputs, fresh
+  external provenance, performance and a quality winner. Moving GIF and midpoint
+  PNG exist; do not claim full moving visual approval from their existence.
+- `fc067-four-lane-review-b`: earlier short28-frame native/public-DLAA/Remix/
+  combined join. The full300-frame public/native matrix is still incomplete.
+- Existing build logs `replay-prewarm-test.log` in automation/baseline/no-NGX
+  record772 passed/0 failed. Feature-off `replay-prewarm-build.log` ends in link.
+  These are incremental working-tree results, NOT fresh exact-SHA builds.
+
+Retain falsifying attempts: extended-source-a lost the first two frames;
+extended-combined-a captured only three before cold archive scanning caused
+helper receive timeout and a subsequent strict replay mismatch. Boundary and
+pre-session index preparation are the subsequent fixes. The earlier intermittent
+returned-DLAA depth rejection was not reproduced and is not declared fixed.
+Detailed history is LOG743-757; do not replace it with an all-green summary.
+
+## Next implementor task: live scene/camera continuity
+
+Prioritize integration over further comparison infrastructure or settings sweeps.
+Inspect `core/rend/neural/remake_camera_anchor.h` and its caller in
+`core/rend/dx11/dx11_renderer.cpp`, plus the existing unit fixtures.
+
+Concrete observed boundary: source frame3099 / producer3098 repeatedly rejects
+with `anchor-source-support-changed`, retires the session/history, then requests
+a fresh session. Example: `fc067-extended-combined-b/previous-flycast.log` around
+that rejection. This log is a preserved prior run, not the current combined-b
+run's live log. Do not confuse their identities.
+
+The current anchor compares source-input point support to the first accepted
+set, requiring at least16 shared points and half the smaller set. It also checks
+source domain, a common rigid basis, producer ordering and projection. It keeps
+the explicit `diagnostic-camera-embedded-anchor-not-world-reconstruction` label.
+Resumed result (LOG759-763, D-207): frame3099 is a measured genuine source-view
+cut (81 degrees /13.5 units in one frame; smooth-motion maximum1.62 degrees /
+0.741;424 of1000 points shared with the last accepted set against a0.739 floor).
+The reset is retained but performed in-session: labeled anchor generation with a
+distinct diagnostic origin, histories and presentation retired, helper
+correspondence and anchored light reset explicitly. Demonstrated in
+`D:\Flycast-Evidence\fc067-anchor-boundary-e`: one helper generation, five
+native frames per cut instead of about120. Runs a (wrong build configuration)
+and d (helper continuity rejection) are retained failures. Staged executables
+must come from `build-neural-automation` (TEST_AUTOMATION input replay).
+The original step list is kept below for its controls; steps1-3 are done in the
+recorded scope, step4 is recorded in LOG.
+
+1. Inspect existing source packets/observations around that boundary. Determine
+   whether source basis/arena identity continues or genuinely changes. If those
+   observations were not retained, capture only the missing bounded boundary
+   evidence after resumption; do not restart a broad tracing campaign.
+2. If continuity is supported, implement source-qualified continuity without
+   merely lowering support thresholds or accumulating unbounded point history.
+   If it is a real cut, retain reset and address the measured fresh-session gap
+   instead. Do not manufacture a camera interpretation to remove a rejection.
+3. Test visibility changes, wrong basis, changed scene, producer discontinuity,
+   rejected publication and accepted-history ownership. Preserve exact projection
+   and depth guards. Demonstrate the relevant boundary in moving gameplay.
+4. Build four configurations serially; run all three enabled selftests and
+   focused fixtures. Never build while gameplay/helper runs. Record failures,
+   review actual output, update the active card and commit proven slices.
+
+Do not reprove generic Gate10 transport or old helper-lifetime gates without a
+changed dependency. Do not replace camera work with repeated vertex counts,
+constant fitting, light tuning, PNG tooling or hardware-blocked investigations.
+
+## Boundaries and remaining acceptance
+
+Native fallback and experimental-off defaults remain mandatory. Public DLAA
+remains separate. Do not inspect/patch/acquire third-party binaries or game media,
+invent NVIDIA keys, or automatically change external configurations. Existing
+explicit user Apply/test-sweep authority is narrow, not blanket permission.
+Preserve RTT/direct-framebuffer bypass, original game effects, protected HUD,
+late OSD/ImGui and history advancement only after accepted evaluation.
+Intentional Soulcalibur weapon trails are source effects, not neural defects.
+Archive index assumes an owned frozen diagnostic directory; selected contents
+are revalidated, but metadata caching is not hostile-filesystem authentication.
+
+Full success still requires the backlog's supported camera/world contract,
+ordinary interactive combined gameplay, synchronized300-frame four-lane moving
+evidence, normal/OIT600-frame noncapture cadence, timing/resource/latency data,
+emulation-cycle/audio checks, transition/failure coverage and applicable visual
+gates/title coverage. Diagnostic anchoring and synchronous replay do not satisfy
+these. Keep the full goal intact; no production-ready or highest-fidelity claim.

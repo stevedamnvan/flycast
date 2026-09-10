@@ -1,5 +1,221 @@
 # Neural rendering evidence log
 
+LOG764 bounded cut capture fc067-anchor-boundary-f-capture (same executable as e,
+--capture-frames40 --capture-start-source3090, managed, anchored light): launcher0,
+host0/helper11 orderly, one helper generation, re-anchor at3099, accepted
+2185..3098 and3100..3302.40 captures: sources3090..3096 and3102..3134; the five
+native-presented sources3097..3101 have no capture, matching LOG763. Reviewed
+images:3096 composited shows the fight view with protected HUD (names, bars, timer,
+counter);3102 composited shows the post-cut round-end camera of the same arena
+(fighters and statue) with returned Remix content matching original-native.png,
+so the cut is the KO/REPLAY transition and the new generation renders the new
+view, not a stale one. Observation retained as a separate gap: the native "REPLAY"
+text at3102 is absent from the composited output and its original-overlay-mask is
+empty, so the round-end overlay is not covered by the current exact T1401N overlay
+protection (FC-055 coverage), unrelated to the anchor change. Synchronous capture
+timing is not performance evidence.
+
+LOG763 in-session re-anchor demonstration fc067-anchor-boundary-e (same automation
+executable class as d, helper fixed): one helper generation for the whole run,
+host0/helper11 channel-closed, orderly shutdown, launcher0. Accepted sources
+2185..3098 then3100..3302; only the cut frame3099 is skipped. Helper logs
+live_anchor_generation_change and anchor_generation_change3098->3100 with origin
+0.173203,0.381436,6.93976, resets correspondence and recreates the anchored light
+at3100 (direction re-fixed at the new first view, exactly as a fresh session did;
+not world-consistent lighting across the cut).1122 receives/1122 returns. The
+pre-cut3098 return is dropped at current3100 (retained=0);3100 returns at3102 and
+every later source through3302 returns. Presentation:3096 evaluated at current
+3098, native3099..3101, held-native3102..3103, remake-evaluated from current3104
+(source3102). Native fallback per cut is five presented frames instead of about
+120 (LOG760). Log-level evidence only at this checkpoint; no quality, temporal or
+performance claim. A bounded40-frame capture3090..3129 (run f) follows.
+
+LOG762 first in-session attempt fc067-anchor-boundary-d: the renderer re-anchored
+(3100 accepted as generation1, origin0.17320329,0.381436348,6.93976116, position
+0) and published3100/3101, but the helper live loop threw "live source continuity
+rejected" at3100 because its own async continuity check still required an
+unchanged origin; the launcher refused to hide the superseded failure (exit1).
+The renderer also kept presenting the pre-cut evaluated image (source3096) at
+current3099..3101 because only pending returns were dropped. Fixes: the helper
+live loop and D3D9PacketScene accept AnchorGenerationChange (logged, correspondence
+reset), and the renderer retires evaluated/composited presentation through the new
+retireRemakeHistory() at the cut. Retained as a failed run.
+
+LOG761 implementation of the measured-cut policy: RemakeCameraAnchor gains
+Reanchor()/Generation()/Origin(). A re-anchored generation labels its fixed view
+with the retired view's camera-relative position of the new reference source (a
+distinct diagnostic label, not a world relation; nudged if it would repeat) and
+adds an explicit omission. New shared predicate remake::AnchorGenerationChange:
+same producer chain and anchored scope, finite differing origin; DiagnosticContinuation
+and AsyncSourceContinuation stay strict and fail across it. Managed renderer path:
+on anchor-source-support-changed retire the fixed view, temporal/raster history,
+pending returns and presentation carry-over in-session and keep channel/helper,
+instead of closing the channel and requesting a fresh helper. Helper AnchoredSceneLight
+re-fixes on origin change (epoch/game/scope/invalid direction still reject) and
+counts re-anchors. Shared-support thresholds, projection and depth guards unchanged.
+Automation selftest789/0 including: support counts against reference and last
+accepted sets; basis motion separated per set; rejection leaves reference/output
+unchanged; re-anchor requires a rejected report and yields origin-1,0,0 with two
+omissions; generation zero keeps the zero origin; predicate epoch/ordinal/scope/
+finite/SHA controls; light re-anchor and unchanged epoch rejection.16 launcher
+tests pass (run from neuraltest/). Non-managed sessions keep the old permanent
+rejection; the diagnostic label is preserved.
+
+LOG760 boundary diagnosis fc067-anchor-boundary-b and -c (automation executable,
+managed session, anchored light, no capture). The new anchor support report at
+source3099/producer3098 is identical in b, c, d and e: points1000, reference903,
+shared_reference154, last_accepted1012, shared_last424, rotation108.139deg and
+translation8.02363 from the reference view, rotation81.1573deg and translation
+13.5101 from the last accepted view (3098). Run c adds the per-accepted-frame
+baseline over908 smooth frames2093..3098: shared_last/points min0.739 p5 0.982
+median1.0; per-frame rotation p95 0.29deg max1.62deg; translation p95 0.078 max
+0.741;3098 itself is0.109deg/0.211. Conclusion: source3099 is a genuine source-
+view cut (about50x the smooth-motion rotation maximum), while424 exact shared
+object-space points show the same arena continues. This is not visibility churn;
+no support threshold is changed. Fresh-session gap measured in b: rejection at
+01:50.285, g2 requested23ms later, first g2 acceptance3123 (24 frames), then93
+no-return-credit skips3125..3218 while the fresh Remix runtime started; about120
+frames of native fallback per cut. The same3099 rejection appears in five prior
+logs (extended source a/b, combined a/b, combined b live), so the boundary is a
+deterministic input-replay event. Raw logs remain under D:\Flycast-Evidence; each
+run directory also holds flycast-live-copy.log for its own host log.
+
+LOG759 resume at995308035f8c320da6c305fc5b06b44f1931703b with all dirty files
+preserved; no running game/helper/build. Baseline build (VsDevCmd x64) with the
+support-report diagnostic passes775/0 (three new fixtures), but the staged baseline
+executable lacks TEST_AUTOMATION input replay: run fc067-anchor-boundary-a never
+entered the fight (no "Input replay opened",0 anchored frames,1171
+estimated-view-missing-observed-anchor skips, helper exit2 channel-closed before
+runtime load). Retained as a failed control. Staged runtime executables must come
+from build-neural-automation (hash of the prior combined-b executable matches it).
+
+LOG758 user paused implementation and requested a development handoff/docs.
+Created DEVELOPMENT-HANDOFF.md and linked pause authority from AGENTS/BACKLOG.
+The repeated source3099/producer3098 support rejection is the next investigation,
+not a diagnosed false rejection or an implemented camera fix. Preserve dirty
+capture/index work and all raw evidence. No runtime/build was launched for this
+documentation task; no completion, new runtime pass or remote push is claimed.
+
+LOG757 resume at995308035f8c320da6c305fc5b06b44f1931703b with owned dirty
+capture/index changes preserved. No running Flycast/helper/build processes were
+observed. Existing extended-remix-combined-review-b report contains300 frames
+2400..2699, no unmatched sources or gaps, and zero HUD mismatch. It explicitly
+does not establish identical temporal histories/NGX inputs, fresh external
+provenance, performance or a winner. NGX and no-NGX replay-prewarm selftest logs
+each report772 passed/0 failed; feature-off log ends with successful linking.
+User priority correction now moves live scene/camera continuity ahead of further
+matrix expansion. Source inspection confirms first-view anchoring and rejection
+on insufficient shared source support; no acceptance threshold was changed.
+Next distinguish visibility churn from actual scene/basis changes using existing
+managed-run evidence, then implement only a source-justified continuity fix.
+
+LOG756 combined b reaches exact300 captured source IDs2400..2699 in original g1
+at this checkpoint. Begin full frozen source/effect/HUD/Present comparison against
+source b, with its original host log preserved in combined a's previous log.
+No full comparison/terminal result yet; count alone does not close acceptance.
+
+LOG755 combined b log confirms index preparation at00:07.796 before g1 request.
+24 captures present and exact locked source acceptance continues through2424,
+past prior three-frame timeout. This verifies startup scheduling only at this
+checkpoint; full300 sequence, composition, termination and comparison remain
+pending. No helper/session renewal observed at this checkpoint; no quality or
+performance acceptance inferred.
+
+LOG754 combined a ultimately exits host0/helper11 orderly, no forced children,
+but only3 captures so failed300 acceptance. Pre-session archive preparation build
+passes772/0 including same-size producer timestamp invalidation and preparation
+tests. Launch combined b with same archive2400..2699 and unchanged timeout rules;
+index now prepares before first session request. Remaining configurations pending
+after live retry. No success inferred from the run merely starting.
+
+LOG753 extended combined a retains only three captures2400..2402 before helper
+receive timeout; g2 then rejects changed anchored scene at offset141. Failed300
+run, not permission to weaken source equality. Cold index construction occurs
+during first evaluation and starves live publication. Move index preparation
+before initial session request (before helper delivery), retaining per-input
+validation and unchanged receive/watchdog bounds. Code not built while run live;
+await terminal exit and repeat only after validation. Prior timing improvement
+does not by itself prove safe pipeline scheduling.
+
+LOG752 replay-index automation build/test completes0:770/0 including duplicate
+addition/removal and packet extent/restoration. Actual300-archive read-only repeat
+timings4050ms cold,62ms and62ms warm; exact first source validation passes. This
+is archive lookup timing, not gameplay performance. Launch extended combined a
+against source b for exact2400..2699, same watchdogs. Cold index cost and all
+frame/provenance/composition requirements remain part of live test; no300-result
+acceptance yet. Remaining build configurations pending after runtime exit.
+
+LOG751 implement bounded one-archive/thread source lookup index. Enumerate at most
+512 entries each call; packet path/size/write-time changes rebuild identities by
+full deserialization. Selected packet, source equality, receipt and color/depth
+hashes are reread/revalidated every call. Frozen diagnostic archives are assumed
+not concurrently edited with forged/restored filesystem metadata; this cache is
+not a hostile-filesystem authenticity boundary. New duplicate/add-remove/extent/
+restoration tests and bounded1..5 lookup timing option added. Automation build
+running; no timing improvement or long replay acceptance claimed yet.
+
+LOG750 source b image review passes all300 sources2400..2699 with nonempty exact
+HUD/composition/backbuffer/Present checks. Midpoint2550 inspected; no quality
+winner. Remaining builds complete0, baseline/no-NGX766/0 and feature-off linked.
+Existing read-only check-locked-remake-input validates first source against300
+archive but takes4093ms for one lookup: reader deserializes every packet each
+call. A300-frame replay would exceed unchanged watchdog; do not run that known
+cost blindly. Next add bounded invalidation-aware archive lookup indexing while
+retaining selected packet/source/pixel/depth validation and ambiguity rejection,
+then benchmark and rerun negative controls before gameplay. This is diagnostic
+archive IO, not production graphics-performance acceptance.
+
+LOG749 extended source b exits launcher0 and captures exact300 sources2400..2699,
+all with effect identity. Boundary first-frame omission corrected in this run;
+full image review underway, so count alone is not composition acceptance. Remaining
+baseline/no-NGX/feature-off builds started after host/helper exit. Next replay
+this exact archive through combined and hooks-disabled returned DLAA, plus native
+PVR baseline, preserving full300 requirement and failed prior source run.
+
+LOG748 live extended source b now captures2400 at current2402. Present log shows
+held-native source2400 at current2400/2401 then returned source2400 at2402,
+followed by2401 and2402. This verifies the boundary transition preserves the
+first source without backwards time in this run.62 captures at checkpoint;
+complete300-frame count/composition and terminal exit still pending. Prior a
+review passes its298 existing images but remains failed300 evidence.
+
+LOG747 capture-boundary automation build/test completes0 with766/0. Retry extended
+source b uses same2400..2699 requested interval and unchanged runtime/settings;
+only bounded boundary hold differs. Image review of prior298 frames still running.
+No accepted300-frame result yet; remaining build configurations pending.
+
+LOG746 extended source a terminates launcher0/host clean close,298 capture records:
+fails requested300 because startup2400/2401 absent. No relabeling. Bounded interval
+now avoids archive work beyond end; source run remains non-performance evidence.
+Build boundary correction and run original image review in parallel after runtime
+termination; no build overlapped gameplay. Common40-object helper warning remains.
+
+LOG745 extended source starts at2402: expected2400/2401 omitted. Logs show those
+outputs owned but held-native presentation until2402. Policy started warming on
+first delayed candidate using current-frame floor, necessarily excluding earlier
+sources. Implement explicit bounded comparison-boundary warmup before first reply;
+hold current native source, accept matching delayed result without backwards time,
+retain eight-frame timeout and unchanged default policy. Three CPU controls added;
+not built while source run is live. Existing incomplete run remains failed300
+evidence; no relabeling or padding. Manifest request-bound fields added for later
+runs;16 launcher tests still pass.
+
+LOG744 extended-effect automation build completes0;763/0 selftests include five
+bound/end controls. Launch explicit300-frame Remix-only exact-effects source
+window2400..2699, existing diagnostic watchdogs and managed worker unchanged.
+Require all300 consecutive sources before acceptance; no padding startup loss.
+This run is synchronous image evidence, never cadence/performance evidence.
+Other build configurations still pending; no longer-matrix result yet.
+
+LOG743 four-lane postcommit builds terminate0 and995308035 pushed. Implement
+explicit extended-effect capture300 ceiling, legacy30 default, invalid/unbounded
+request rejection and inclusive source-end check before locked archive reads.
+Renderer capture and replay share the bound; existing watchdogs unchanged. Five
+CPU boundary assertions added. First launcher unit run fails because test insertion
+split an existing method; corrected method boundary,16 tests pass. Automation
+build underway; longer gameplay not yet run or accepted. A300-frame requested
+window with missing startup frames must remain incomplete, never padded.
+
 LOG742 four native-identity unit tests pass (exact, wrong frame, each producer
 component, unavailable producer); regenerated four-lane artifact b passes all28
 real source joins. Second drive has about68.5GB free before longer experiment.

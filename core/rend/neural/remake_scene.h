@@ -103,6 +103,22 @@ inline bool AsyncSourceContinuation(const Packet& previous,const Packet& next) {
  const auto a=*previous.diagnosticOrigin,b=*next.diagnosticOrigin;
  return std::isfinite(a.x)&&std::isfinite(a.y)&&std::isfinite(a.z)&&a.x==b.x&&a.y==b.y&&a.z==b.z;
 }
+// Explicit anchor generation change: the same producer chain continues in the
+// anchored diagnostic scope, but the labeled origin differs. Consumers must reset
+// correspondence and any anchored state. This is neither temporal continuity
+// nor a dropped-frame gap, and it asserts no world relation between generations.
+inline bool AnchorGenerationChange(const Packet& previous,const Packet& next) {
+ if(!previous.producer.Available()||!next.producer.Available()
+  ||previous.producer.epoch!=next.producer.epoch||next.producer.ordinal<=previous.producer.ordinal
+  ||next.producer.cycle<previous.producer.cycle||next.frame<=previous.frame)return false;
+ if(!previous.diagnosticOrigin||!next.diagnosticOrigin||previous.game.empty()||previous.game!=next.game
+  ||previous.sourceGitSha.empty()||previous.sourceGitSha!=next.sourceGitSha
+  ||next.diagnosticEmbeddingProvenance!="diagnostic-camera-embedded-anchor-not-world-reconstruction"
+  ||previous.diagnosticEmbeddingProvenance!=next.diagnosticEmbeddingProvenance)return false;
+ const auto a=*previous.diagnosticOrigin,b=*next.diagnosticOrigin;
+ return std::isfinite(a.x)&&std::isfinite(a.y)&&std::isfinite(a.z)&&std::isfinite(b.x)&&std::isfinite(b.y)&&std::isfinite(b.z)
+  &&!(a.x==b.x&&a.y==b.y&&a.z==b.z);
+}
 Result Validate(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame,
  const Limits& = {});
 Result ReadyForAdapter(const Packet&, std::uint64_t expectedFrame, const std::string& expectedGame);

@@ -21,6 +21,15 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Current checkpoint
 
+- Resumed 2026-09-09 ("proceed from here"). The frame3099 boundary is a measured
+  genuine source-view cut, not visibility churn (LOG760, D-207). Managed sessions
+  now re-anchor in-session with a labeled generation instead of a fresh helper;
+  demonstrated in fc067-anchor-boundary-e with five native frames per cut instead
+  of about120 (LOG763). Support thresholds and guards unchanged.
+- Handoff HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`; capture/index and
+  anchor-generation changes are committed as separate slices after this resume
+  (see LOG for SHAs). No world-consistent continuity across cuts is claimed.
+
 - Historical provenance checkpoint: `5e68316f0634abc57474f0297f63e96f0a4aea30`; LOG627-632 record launcher synchronization and accepted-history corrections plus completed28-frame changed-guidance provenance. This is not current HEAD. Read actual HEAD/status and fork ref on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
   lineage and native preservation are proven only in their recorded scopes.
@@ -57,7 +66,32 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG651):** save the long-capture/review checkpoint,
+**Operational next action (LOG757, integration priority correction):** advance
+the live camera/scene contract, not another comparison-tooling phase. Inspect
+`RemakeCameraAnchor` support changes against existing managed-session evidence:
+distinguish genuine scene cuts from visibility changes within the same arena.
+Implement continuity only if source lineage and unchanged coordinate relation
+justify it; wrong-basis and changed-scene controls must still reject. Never
+lower the shared-support threshold merely to retain a session. Preserve native
+fallback and the diagnostic label until supported camera semantics are proven.
+The300-frame source/combined comparison is complete in its narrow scope:
+2400..2699, no unmatched sources/gaps, zero HUD mismatch. Remaining long public
+and native lanes stay required for final acceptance, but are not prerequisites
+for this integration correction. Do not launch more captures solely to fill
+that matrix ahead of live scene continuity work.
+
+**Result (LOG759-763, D-207):** the boundary is a genuine cut; reset semantics are
+retained but performed in-session (labeled anchor generation, history/presentation
+retired, helper correspondence and anchored light reset explicitly). Native
+fallback per cut: five presented frames instead of about120. Next operational
+action: exercise repeated cuts (round start, KO and ring-out transitions) in a
+longer bounded or manual-input managed session, verifying one helper generation,
+an anchor_generation_change per cut and continued returns; then resume the
+remaining public-DLAA/native300-frame lanes of the four-lane matrix. World-
+consistent lighting/camera across cuts stays with M2-camera; do not relabel the
+generation origin as world truth.
+
+Historical operational action (LOG651): save the long-capture/review checkpoint,
 then address material delivery causing gameplay source gaps. All300 captures
 2164..2470 have nonempty exact HUD/composition/backbuffer and completed Presents;
 four gaps remain and prevent a continuous300 claim. LOG652 resolves six omitted

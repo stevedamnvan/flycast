@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_live_channel.h"
 namespace flycast::rend::neural {
+bool PrepareLockedRemakeInput(const std::filesystem::path& root,std::string& error);
 bool SameRemakeReplayScene(const remake::Packet& retained,const remake::Packet& current,std::string& error);
 bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake::Packet&,
  const RemakeReturnedImage&,std::string& error);
