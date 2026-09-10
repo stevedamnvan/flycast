@@ -54,6 +54,19 @@ def prepare(args):
         host.extend(['--renderer-reinit-after', str(reinit)])
     if args.anchored_light:
         helper.append('--scene-light-anchor')
+    if args.managed_session:
+        helper.append('--session-worker')
+    capture_frames = getattr(args, 'capture_frames', 0)
+    capture_start = getattr(args, 'capture_start_source', 0)
+    if not 0 <= capture_frames <= 300 or not 0 <= capture_start <= 10000000:
+        raise ValueError('Capture bounds exceeded')
+    if capture_frames:
+        env.update(FLYCAST_REMAKE_MOVING_CAPTURE='1',
+                   FLYCAST_REMAKE_PREVIEW_CAPTURE=str(out/'captures'),
+                   FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES=str(capture_frames),
+                   FLYCAST_REMAKE_PREVIEW_START_SOURCE=str(capture_start))
+        host[host.index('--timeout-ms')+1] = '420000'
+        helper.append('--diagnostic-capture-budget')
     return paths, out, env, host, helper
 
 
@@ -86,7 +99,7 @@ def managed_run(out, env, host, helper, record, children):
                 env=env, stdout=pub, stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW)
             children.append(process)
-            deadline = time.monotonic()+210
+            deadline = time.monotonic()+int(host[host.index('--timeout-ms')+1])/1000+30
             while process.poll() is None:
                 if time.monotonic() >= deadline:
                     raise TimeoutError('Managed session deadline')
@@ -147,6 +160,9 @@ def main():
                    help='Experimental fresh helper/channel on renderer restart; maximum eight generations')
     p.add_argument('--renderer-reinit-after', type=int, default=0,
                    help='Developer-only restart injection at main frame 1..10000')
+    p.add_argument('--capture-frames', type=int, default=0,
+                   help='Developer image capture 1..300; excludes this run from performance evidence')
+    p.add_argument('--capture-start-source', type=int, default=0)
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
@@ -154,6 +170,7 @@ def main():
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   manual_input=args.manual_input,
                   managed_session=args.managed_session,
+                  performance_eligible=args.capture_frames == 0,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,
                   executable_hashes={k: hashlib.sha256(paths[k].read_bytes()).hexdigest()
@@ -173,7 +190,7 @@ def main():
             for command, log in ((host, pub), (helper, con)):
                 children.append(subprocess.Popen(command, cwd=Path(__file__).resolve().parent.parent, env=env,
                     stdout=log, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW))
-            deadline = time.monotonic()+210
+            deadline = time.monotonic()+int(host[host.index('--timeout-ms')+1])/1000+30
             for child in children:
                 child.wait(timeout=max(1, deadline-time.monotonic()))
             record['exit_codes'] = [child.returncode for child in children]

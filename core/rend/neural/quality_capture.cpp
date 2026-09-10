@@ -445,7 +445,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections,const std::string& sessionToken)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -535,8 +535,12 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		if(!WritePng(directory/"returned-remix.png",input,error)||!WritePng(directory/"original-native.png",native,error)
 			||!WritePng(directory/"original-overlay-mask.png",overlay,error)||!WritePng(directory/"composited-remix.png",output,error)
 			||!WritePng(directory/"flycast-pre-osd-backbuffer.png",presented,error))return false;
+		if(sessionToken.size()>64||!std::all_of(sessionToken.begin(),sessionToken.end(),[](unsigned char c){
+			return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-';})) {
+			error="preview session token invalid";return false;
+		}
 		std::ofstream report(directory/"preview.json");report.imbue(std::locale::classic());
-		report<<"{\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
+		report<<"{\"session_token\":\""<<sessionToken<<"\",\"source_frame\":"<<returned.frame<<",\"current_frame\":"<<current
 			<<",\"evaluated_remix\":"<<(evaluated?"true":"false")
 			<<",\"native_effects_applied\":"<<(preEffects?"true":"false")
 			<<",\"native_effect_rgb_changed_pixels\":"<<effectPixels

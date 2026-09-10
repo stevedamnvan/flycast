@@ -51,6 +51,10 @@ int wmain(int argc,wchar_t** argv) {
   diagnosticCaptureBudget=true;--argc;
  }
  std::optional<float> sceneLightRadiance;
+ bool sessionWorker=false;
+ if(argc>=2&&std::wstring(argv[argc-1])==L"--session-worker") {
+  sessionWorker=true;--argc;
+ }
  bool anchoredLight=false;
  if(argc>=2&&std::wstring(argv[argc-1])==L"--scene-light-anchor") {
   anchoredLight=true;--argc;
@@ -64,15 +68,19 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"Usage: remake-runtime-smoke --runtime ABSOLUTE_DLL --frames 1..120 [--artifact ABSOLUTE_JSON --assets ABSOLUTE_DIR --clips NEAR FAR] [--capture|--capture-normals ABSOLUTE_NEW_BMP]\n";return 2;
  }
  wchar_t* end=nullptr;
- const long frames=wcstol(argv[4],&end,10);
+ const long requestedFrames=wcstol(argv[4],&end,10);
  const std::filesystem::path runtime(argv[2]);
  const bool extendedReturn=argc==14&&std::wstring(argv[5])==L"--live-channel-async"
   &&std::wstring(argv[12])==L"--return-d3d9-scene-memory-depth";
- if(!*argv[4] || *end || frames<1 || frames>(extendedReturn?660:120) || !runtime.is_absolute()) {
+ const auto frameLimit=RemakeWorkerFrameLimit(sessionWorker,extendedReturn,requestedFrames);
+ if(!*argv[4] || *end || !frameLimit || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
- const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,frames);
+ const long frames=*frameLimit;
+ const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames);
  if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
+ std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
+  <<" runtime_watchdog_seconds="<<*runtimeBudget<<"\n"<<std::flush;
  std::optional<Packet> snapshot;
  std::vector<Packet> sequence;
  std::filesystem::path capture;

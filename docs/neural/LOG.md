@@ -1,5 +1,64 @@
 # Neural rendering evidence log
 
+LOG725 remaining serial builds terminate0: baseline and no-NGX each758/0;
+feature-off links successfully. Automation session-worker test also758/0.
+These are incremental builds, not fresh exact-SHA builds. Backlog contract
+inspection passes document consistency only. Save the independently tested
+worker/capture slice; complete gameplay, real handover continuity, external
+moving quality and performance remain open rather than narrowed to this pass.
+
+LOG724 worker-continuity capture completes: launch host0, final helper11 with
+orderly channel closure and no forced children. Review verifies120 consecutive
+sources2700..2819, no gaps, zero nonempty-HUD/composition/backbuffer mismatches
+and completed Presents. Independent receipt/packet identity joins verify all120
+belong to g1. Two checker tests and12 launcher tests pass. Final panel2819 was
+visually inspected: HUD retained; returned scene remains substantially brighter
+and combined scene softer than native. No moving perceptual winner or fresh
+external provenance claimed. This closes the artificial600-return discontinuity
+for this interval, not real scene-change recovery (later g2 still exists).
+Prior92-source handover failure remains recorded. Remaining serial baseline,
+no-NGX and feature-off builds started; do not count them passed until terminal.
+Next integration priority is the synchronized native/public-DLAA/Remix/combined
+moving comparison using the existing provenance route, not another repetition
+of helper-lifetime success. Capture evidence remains performance-ineligible.
+
+LOG723 implement explicit --session-worker for managed returned-scene helpers:
+finite10000-frame ceiling, same120s runtime watchdog (300s diagnostic capture),
+same host/controller deadlines and channel-close termination. Legacy frames1..660
+unchanged; worker requires exact extended returned route/request660. Five boundary
+tests added; automation build/test command0. Planned repeat of120 captures from
+2700 checks removal of artificial first600-return handover; it need not span a
+real scene-boundary restart and must not be labeled proof of that remaining gap.
+
+LOG722 image composition review completes120 records with no failed nonempty
+HUD/composition/backbuffer/Present checks; gap2780->2873 retained. Final panel2911
+visually inspected: native game effects and HUD present, transformed scene remains
+bright/soft. No temporal/perceptual winner declared. The92-source capture gap is
+not acceptable as seamless gameplay. Next remove artificial600-return helper
+rotation from managed operation by adding a bounded session-lifetime worker mode;
+retain old diagnostic frame limits for existing tools, whole-run watchdogs,
+explicit channel close and failure reporting. Do not keep paying60-frame startup
+for an arbitrary diagnostic batch boundary in an interactive pipeline.
+
+LOG721 managed-capture-a completes launcher0/host0, orderly final helper11
+channel closure, no forced children.120 captured records span g1=81/g2=39;
+session/receipt/packet identity and completed Present checker passes, first
+accepted evaluation resets history in each captured generation. Source gap
+2780->2873 remains:92 intervening sources without captured combined results.
+This is not seamless recovery or proof of every gap-frame native pixel. Checker
+negative controls reject wrong token/digest/frame/sequence/epoch/producer and
+unpublished return; duplicate receipt rejected. Captured packet byte digest is
+not independently recomputed by this checker; scope is identity joins. Image
+composition review running. Capture excluded from all performance conclusions.
+
+LOG720 add validated session_token to preview metadata and developer-only
+capture-start source gate. Extend owned launcher with bounded1..300 image capture
+using existing420s host/300s helper diagnostic budgets, performance_eligible=false.
+No enlargement of the failed180s noncapture acceptance budget. Planned120-frame
+capture starts at source2700 to span first600-return helper handover. Automation
+build/test launched; source token is renderer-owned and must be independently
+joined to helper command/receipt/frame and completed Present, not trusted alone.
+
 LOG719 remaining serial configurations complete: baseline/no-NGX753/0,
 feature-off linked; automation753/0 already passed.11 launcher tests pass,
 including exact log archive/config preservation and copy-failure retention.

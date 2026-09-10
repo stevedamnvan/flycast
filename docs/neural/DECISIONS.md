@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-204: managed workers outlive diagnostic batches
+
+Managed returned-scene workers use explicit session-worker mode with a finite
+10000-frame ceiling, unchanged watchdogs and channel-close ownership. Ordinary
+diagnostic commands retain their existing limits. Do not restart live rendering
+just because a600-return diagnostic batch ended. Capture session tokens join to
+actual helper receipts; a single-generation continuity check cannot substitute
+for a cross-generation recovery check. Preserve both scopes and failed gaps.
+
 ## D-203: managed sessions allocate fresh ownership, never reclaim receipts
 
 Explicit --managed-session enables a launcher-owned16-byte control mapping.

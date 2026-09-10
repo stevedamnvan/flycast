@@ -164,12 +164,15 @@ Do not raise the time limit, relax anchor checks or hide unexpected helper exits
 LOG718-719 completes bounded managed lifetime:903 returns across three helpers,
 host0/clean close, orderly final channel closure, no forced children. All four
 builds and three753/0 suites pass;11 launcher tests pass. This accepts opt-in
-session ownership/renewal only. Restart-deadline runs remain failed. Next collect
-bounded moving captures spanning a real helper handover, joining each captured
-source to its session generation and completed Present. Check original HUD,
-history reset and no cross-generation stale output before visual acceptance.
-Do not rerun another no-image success loop or claim whole-pipeline completion.
-No lighting winner, general camera recovery or performance acceptance is implied.
+session ownership/renewal only. Restart-deadline runs remain failed. LOG721-722
+joins120 handover captures but retains a92-source gap. LOG723-724 removes the
+artificial600-return rotation:120 consecutive sources2700..2819 in one generation
+pass receipt/packet and exact HUD/composition/Present checks. Real scene-change
+handover gaps remain open. Finish the pending serial build checkpoint, then
+advance the synchronized native/public-DLAA/Remix/combined moving comparison
+through the existing provenance route. Do not repeat helper-lifetime proof or
+misclassify intentional native weapon trails as reconstruction defects. No
+lighting winner, general camera recovery or performance acceptance is implied.
 
 Historical implementation/run LOG653-654: owned decoded upload bytes avoid GPU
 readback only for exact supported complete uploads, within64MiB raw-plus-DDS

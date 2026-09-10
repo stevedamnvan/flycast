@@ -47,6 +47,10 @@ camera truth, resource cleanup or presentation provenance. Check those separatel
 restart or rejected anchor-support change requests a fresh channel generation
 and a fresh helper process; old receipts and temporal history are not reused.
 The run is capped at eight generations and the original whole-run deadline.
+Managed helpers use explicit session-worker mode rather than rotating after600
+returns. The worker has a10000-frame ceiling and retains the120-second runtime
+watchdog (300 seconds for explicit diagnostic capture). Ordinary helper commands
+keep their original frame limits. Channel closure still retires the worker.
 The old helper must unwind within its bounded timeout. Unexpected helper errors
 abort supervision rather than being hidden by a restart. Logs are separated as
 `consumer-g1.log`, `consumer-g2.log`, etc.; `launch.json` retains superseded exits.
@@ -54,3 +58,9 @@ abort supervision rather than being hidden by a restart. Logs are separated as
 `--renderer-reinit-after 2400` is a developer fault-injection option, not needed
 for ordinary launch. Managed recovery is still being validated; do not treat it
 as an unrestricted interactive mode or a completed transition matrix.
+
+For bounded image evidence, `--capture-frames 120 --capture-start-source 2700`
+records at most120 source frames starting at2700. Capture runs use the separate
+diagnostic timeout and are marked ineligible for performance evidence. Preview
+metadata includes session tokens; verify those against helper receipts and
+completed Presents instead of assuming labels prove provenance.

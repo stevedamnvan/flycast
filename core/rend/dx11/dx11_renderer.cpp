@@ -3281,7 +3281,12 @@ void DX11Renderer::displayFramebuffer()
 	}
 	const auto& previewSource=remakeDisplayedEvaluated?remakeEvaluatedSource:remakeAsyncReturned;
 	const auto& previewOverlay=remakeDisplayedEvaluated?remakeEvaluatedOverlay:remakeAsyncAcceptedOverlay;
-	if(remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
+	bool previewStartAllowed=true;
+	if(const auto* start=std::getenv("FLYCAST_REMAKE_PREVIEW_START_SOURCE");start&&*start) {
+		char* end=nullptr;const auto frame=std::strtoul(start,&end,10);
+		previewStartAllowed=!*end&&frame<=10000000&&remakeDecision.frame>=frame;
+	}
+	if(previewStartAllowed&&remakePreviewDraw&&remakeDecision.kind==flycast::rend::neural::RemakeDisplayKind::Remake
 		&&previewSource&&remakeDecision.frame==previewSource->frame
 		&&(!flycast::rend::neural::RemakeEffectEvidenceRequested()||remakePreviewCaptureAttempts<30)
 		&&remakeDecision.frame!=remakePreviewLastCaptured&&remakePreviewCaptureAttempts<
@@ -3310,7 +3315,7 @@ void DX11Renderer::displayFramebuffer()
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
-				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections);
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken);
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
 			if(captured&&remakeDisplayedEvaluated&&remakeAcceptedRasterFrame) {

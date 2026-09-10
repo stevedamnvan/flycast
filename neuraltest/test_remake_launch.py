@@ -76,7 +76,21 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertNotIn('FLYCAST_REMAKE_MANAGED_SESSION', prepare(self.args)[2])
         self.args.managed_session = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_MANAGED_SESSION'], '1')
+        self.assertIn('--session-worker',prepare(self.args)[4])
         self.args.renderer_reinit_after = 10001
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
+    def test_capture_is_bounded_and_separate_from_performance(self):
+        default=prepare(self.args)
+        self.assertNotIn('FLYCAST_REMAKE_MOVING_CAPTURE',default[2])
+        self.args.capture_frames=120;self.args.capture_start_source=2700
+        _,_,env,host,helper=prepare(self.args)
+        self.assertEqual(env['FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES'],'120')
+        self.assertEqual(env['FLYCAST_REMAKE_PREVIEW_START_SOURCE'],'2700')
+        self.assertEqual(host[host.index('--timeout-ms')+1],'420000')
+        self.assertEqual(helper[-1],'--diagnostic-capture-budget')
+        self.args.capture_frames=301
         with self.assertRaises(ValueError):
             prepare(self.args)
 

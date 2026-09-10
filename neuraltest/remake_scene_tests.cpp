@@ -14,6 +14,11 @@ TestCounts TestSceneContract() {
  auto expect=[&](bool ok,const char* name) { ++(ok?counts.passed:counts.failed); std::cout<<(ok?"PASS ":"FAIL ")<<"remake "<<name<<'\n'; };
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ expect(RemakeWorkerFrameLimit(false,true,660)==660,"legacy helper frame bound unchanged");
+ expect(!RemakeWorkerFrameLimit(false,true,661),"legacy oversized helper rejected");
+ expect(RemakeWorkerFrameLimit(true,true,660)==10000,"session worker has explicit finite cap");
+ expect(!RemakeWorkerFrameLimit(true,false,660),"worker requires returned scene route");
+ expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
  {
   auto q=p;q.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
   q.diagnosticOrigin=Vec3{};q.producer={1,1,1};q.camera.forward={0,0,1};
