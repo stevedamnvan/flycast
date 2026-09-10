@@ -162,11 +162,14 @@ static Result ReadyForScene(const Packet& p, std::uint64_t frame, const std::str
   if (!m.material) return {false,"material-unknown"};
   const auto& material=*m.material;
   const bool memoryTexture=!material.sourceDdsBytes.empty();
+  const bool referenced=m.textureWire==TextureWire::Referenced;
+  if(referenced && (!m.texture.known || memoryTexture || !material.sourceDds.empty()))return {false,"source-texture-reference-contract"};
+  if(m.textureWire==TextureWire::Registered && (!m.texture.known || !memoryTexture))return {false,"source-texture-reference-contract"};
   if(memoryTexture && (!material.sourceDds.empty() || !material.sourceColorExperiment
     || !ValidSourceDdsBytes(material.sourceDdsBytes)))return {false,"source-texture-contract"};
   if(material.sourceTexture) {
    const auto& bound=*material.sourceTexture;
-   if(!m.texture.known || !bound.known || !material.sourceColorExperiment || (material.sourceDds.empty()&&!memoryTexture)
+   if(!m.texture.known || !bound.known || !material.sourceColorExperiment || (material.sourceDds.empty()&&!memoryTexture&&!referenced)
     || bound.id!=m.texture.id || bound.generation!=m.texture.generation
     || bound.paletteGeneration!=m.texture.paletteGeneration || bound.rttGeneration!=m.texture.rttGeneration)
     return {false,"source-texture-identity"};

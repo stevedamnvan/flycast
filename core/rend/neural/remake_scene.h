@@ -34,6 +34,13 @@ struct TextureIdentity {
  std::uint64_t id = 0, generation = 0, paletteGeneration = 0, rttGeneration = 0;
  bool known = false;
 };
+// Live-transport texture carriage (packet wire version5, D-212). Carried: the
+// texture bytes travel with the mesh as before. Registered: the bytes travel
+// and the consumer must remember them under the texture identity for this
+// channel session. Referenced: no bytes travel; the consumer resolves the
+// identity from what it registered earlier, failing loud when it cannot.
+// Saved capture archives never use Registered/Referenced.
+enum class TextureWire : std::uint8_t { Carried = 0, Registered = 1, Referenced = 2 };
 struct Mesh {
  struct Material {
   Vec3 albedo{.7f,.7f,.7f}; float roughness=.8f;
@@ -49,6 +56,7 @@ struct Mesh {
  std::uint64_t id = 0, frame = 0;
  Topology topology = Topology::Triangles;
  TextureIdentity texture;
+ TextureWire textureWire = TextureWire::Carried;
  std::optional<std::uint32_t> sourceTsp; // Diagnostic original sampling/state word.
  // Presence enables PVR punch-through; zero is a valid threshold, not opaque.
  std::optional<std::uint8_t> sourceAlphaReference;
@@ -77,6 +85,10 @@ struct Limits {
  // File-backed assets were outside the geometry packet budget. Live payloads
  // have their own aggregate bound, not an unbounded allowance per draw.
  std::size_t textureBytes = 64 * 1024 * 1024;
+ // Per channel session, textures a consumer must remember by identity
+ // (Registered). The host stops registering at this bound; a consumer that
+ // is asked beyond it fails loud instead of evicting.
+ std::size_t textureReferences = 4096, textureReferenceBytes = 512 * 1024 * 1024;
 };
 struct Result { bool ok; std::string reason; };
 inline bool DiagnosticContinuation(const Packet& previous,const Packet& next) {

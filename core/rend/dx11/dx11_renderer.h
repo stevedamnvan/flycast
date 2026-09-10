@@ -43,6 +43,7 @@
 #include "rend/neural/remake_motion_stream.h"
 #include "remake_motion_raster.h"
 #include <array>
+#include <set>
 #endif
 #ifndef LIBRETRO
 #include "dx11_driver.h"
@@ -321,6 +322,9 @@ protected:
 	std::shared_ptr<const flycast::rend::neural::MaterialPaletteSnapshot> remakePaletteUpload;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
 	flycast::rend::neural::RemakeFeedWorker remakeFeedWorker; // Owns the camera anchor (D-211).
+	// Textures the live consumer holds for the open channel session (D-212):
+	// keyed by texture identity, cleared with the channel, bounded like the consumer.
+	std::set<std::array<std::uint64_t,4>> remakeSentTextures;std::size_t remakeSentTextureBytes=0;
 	unsigned remakeFeedTimingCount=0;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;
 	flycast::rend::neural::RemakeMotionRaster remakeMotionRaster;
@@ -349,6 +353,7 @@ protected:
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
 		remakeFeedWorker.ResetAnchor();
+		remakeSentTextures.clear();remakeSentTextureBytes=0;
 		retireRemakeHistory();
 	}
 	// Retire every cross-frame history and presentation carry-over without

@@ -11,6 +11,8 @@
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
 #include <filesystem>
+#include <array>
+#include <map>
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -118,15 +120,43 @@ int wmain(int argc,wchar_t** argv) {
  const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
  flycast::rend::neural::RemakeLiveChannel channel;
  flycast::rend::neural::RemakeChannelReceipt activeSourceReceipt;
+ // D-212 texture references: bytes registered by the host for this channel
+ // session are remembered by identity and restored into referenced meshes so
+ // every later stage sees a carried packet. A missing or over-budget reference
+ // is a failed live source, never a guessed texture.
+ std::map<std::array<std::uint64_t,4>,std::vector<unsigned char>> textureReferences;std::size_t textureReferenceBytes=0;
+ unsigned long long referencedMeshes=0,registeredMeshes=0;
+ const auto resolveTextureReferences=[&](Packet& packet) {
+  for(auto& mesh:packet.meshes) {
+   const std::array<std::uint64_t,4> key{mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration};
+   if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Registered) {
+    if(!mesh.material||mesh.material->sourceDdsBytes.empty())throw std::runtime_error("texture-reference-contract");
+    if(!textureReferences.count(key)) {
+     if(textureReferences.size()>=flycast::rend::neural::remake::Limits{}.textureReferences
+      ||textureReferenceBytes+mesh.material->sourceDdsBytes.size()>flycast::rend::neural::remake::Limits{}.textureReferenceBytes)
+      throw std::runtime_error("texture-reference-cache-bound");
+     textureReferenceBytes+=mesh.material->sourceDdsBytes.size();
+    }
+    textureReferences[key]=mesh.material->sourceDdsBytes;++registeredMeshes;
+   }else if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Referenced) {
+    const auto found=textureReferences.find(key);
+    if(found==textureReferences.end()||!mesh.material)throw std::runtime_error("texture-reference-missing");
+    mesh.material->sourceDdsBytes=found->second;++referencedMeshes;
+   }
+   mesh.textureWire=flycast::rend::neural::remake::TextureWire::Carried;
+  }
+ };
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
   for(;;) {
    std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
    const auto result=channel.Receive(packet,receipt,error);
    if(result==flycast::rend::neural::RemakeChannelResult::Received) {
+    resolveTextureReferences(packet);
     activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
-     <<" bytes="<<receipt.bytes<<" digest="<<receipt.digest<<" saved_packets_read=false\n"<<std::flush;
+     <<" bytes="<<receipt.bytes<<" digest="<<receipt.digest<<" registered_textures="<<registeredMeshes<<" referenced_textures="<<referencedMeshes
+     <<" cached_textures="<<textureReferences.size()<<" saved_packets_read=false\n"<<std::flush;
     return;
    }
    if(result!=flycast::rend::neural::RemakeChannelResult::Empty)throw std::runtime_error(error);

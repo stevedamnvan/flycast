@@ -52,7 +52,7 @@ bool ClipViewMesh(remake::Mesh& mesh,float nearPlane,float farPlane) {
 }
 }
 bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReader& reader,
- remake::Packet& output,std::string& error) {
+ remake::Packet& output,std::string& error,const RemakeTextureSent& sent) {
  const auto fail=[&](const char* why){error=why;return false;};
  if(!scene.producer.Available() || scene.game!="T1401N" || scene.meshes.empty()
   || scene.meshes.size()>128 || !reader)return fail("view-packet-source");
@@ -87,7 +87,11 @@ bool BuildRemakeViewPacket(const RemakeViewScene& scene,const RemakeTextureReade
    mesh.texture={draw.state.tcw.full,draw.texture->upload,draw.texture->palette.value_or(0),draw.texture->rtt,true};
    mesh.material->sourceTexture=mesh.texture;
   }
-  if(!reader(draw,mesh.material->sourceDdsBytes,error))return false;
+  if(sent&&draw.texture&&sent(mesh.texture))mesh.textureWire=remake::TextureWire::Referenced;
+  else {
+   if(!reader(draw,mesh.material->sourceDdsBytes,error))return false;
+   if(sent&&draw.texture&&!mesh.material->sourceDdsBytes.empty())mesh.textureWire=remake::TextureWire::Registered;
+  }
   if(mesh.material->sourceDdsBytes.size()>remake::Limits{}.textureBytes-textureBytes)return fail("view-packet-texture-bound");
   textureBytes+=mesh.material->sourceDdsBytes.size();
   for(const auto& v:source.vertices) {
@@ -139,16 +143,18 @@ void packet(Wire& wire,remake::Packet& p) {
  if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaReference)version=2;
  if(wire.output)for(const auto& mesh:p.meshes)if(mesh.sourceAlphaBlend)version=3;
  if(wire.output&&p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
+ if(wire.output)for(const auto& mesh:p.meshes)if(mesh.textureWire!=remake::TextureWire::Carried)version=5;
  wire.word(magic);wire.word(version);
- require(magic==0x56524346&&(version>=1&&version<=4),"view-wire-schema");
+ require(magic==0x56524346&&(version>=1&&version<=5),"view-wire-schema");
  wire.wide(p.frame);wire.wide(p.producer.epoch);wire.wide(p.producer.ordinal);wire.wide(p.producer.cycle);
  wire.string(p.game,64);wire.string(p.sourceGitSha,64);
  wire.string(p.diagnosticEmbeddingProvenance,128);require(p.diagnosticEmbeddingProvenance==scope
   ||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction"
-  ||(version==4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
+  ||(version>=4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
  wire.real(p.camera.fovY);wire.real(p.camera.aspect);wire.real(p.camera.nearPlane);wire.real(p.camera.farPlane);
  p.space=remake::Space::SampledAnchor;p.camera.provenance=remake::Provenance::Supplied;
- if(version==4) {
+ // Version4 is always anchored; version5 carries the pose only for anchored scope.
+ if(version==4||(version>=5&&p.diagnosticEmbeddingProvenance==anchoredScope)) {
   require(p.diagnosticEmbeddingProvenance==anchoredScope,"view-wire-anchor-scope");
   wire.vector(p.camera.position);wire.vector(p.camera.right);wire.vector(p.camera.up);wire.vector(p.camera.forward);
   if(wire.input)p.diagnosticOrigin.emplace();
@@ -170,9 +176,13 @@ void packet(Wire& wire,remake::Packet& p) {
   else mesh.sourceAlphaBlend=false;
   std::uint32_t known=mesh.texture.known;wire.word(known);require(known<=1,"view-wire-texture-known");mesh.texture.known=known!=0;
   wire.wide(mesh.texture.id);wire.wide(mesh.texture.generation);wire.wide(mesh.texture.paletteGeneration);wire.wide(mesh.texture.rttGeneration);
+  std::uint32_t mode=std::uint32_t(mesh.textureWire);
+  if(version>=5){wire.word(mode);require(mode<=2&&(mode==0||known),"view-wire-texture-mode");mesh.textureWire=remake::TextureWire(mode);}
+  else{require(mode==0,"view-wire-texture-mode");mesh.textureWire=remake::TextureWire::Carried;}
   if(wire.input){mesh.material.emplace();mesh.material->albedo={1,1,1};mesh.material->sourceColorExperiment=true;if(known)mesh.material->sourceTexture=mesh.texture;}
   require(mesh.material.has_value()&&mesh.material->sourceDds.empty(),"view-wire-owned-texture-required");
   auto& data=mesh.material->sourceDdsBytes;const auto length=wire.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=length;
+  require(mode==2?length==0:mode==1?length>0:true,"view-wire-texture-mode");
   if(wire.input)data.resize(length);if(length)wire.bytes(data.data(),length);
   const auto vertices=wire.count(mesh.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=vertices;
   if(wire.input)mesh.vertices.resize(vertices);
@@ -206,13 +216,14 @@ void writePacket(ConstWire& w,const remake::Packet& p) {
  for(const auto& m:p.meshes)if(m.sourceAlphaReference)version=2;
  for(const auto& m:p.meshes)if(m.sourceAlphaBlend)version=3;
  if(p.diagnosticEmbeddingProvenance==anchoredScope)version=4;
+ for(const auto& m:p.meshes)if(m.textureWire!=remake::TextureWire::Carried)version=5;
  w.word(0x56524346);w.word(version);
  w.wide(p.frame);w.wide(p.producer.epoch);w.wide(p.producer.ordinal);w.wide(p.producer.cycle);
  w.string(p.game,64);w.string(p.sourceGitSha,64);w.string(p.diagnosticEmbeddingProvenance,128);
  require(p.diagnosticEmbeddingProvenance==scope||p.diagnosticEmbeddingProvenance=="mixed-observed-and-projected-depth-estimate-not-world-reconstruction"
-  ||(version==4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
+  ||(version>=4&&p.diagnosticEmbeddingProvenance==anchoredScope),"view-wire-scope");
  w.real(p.camera.fovY);w.real(p.camera.aspect);w.real(p.camera.nearPlane);w.real(p.camera.farPlane);
- if(version==4){w.vector(p.camera.position);w.vector(p.camera.right);w.vector(p.camera.up);w.vector(p.camera.forward);
+ if(version==4||(version>=5&&p.diagnosticEmbeddingProvenance==anchoredScope)){w.vector(p.camera.position);w.vector(p.camera.right);w.vector(p.camera.up);w.vector(p.camera.forward);
   require(p.diagnosticOrigin.has_value(),"view-wire-origin");w.vector(*p.diagnosticOrigin);}
  w.count(p.omissions.size(),64);for(const auto& s:p.omissions)w.string(s,256);
  w.count(p.meshes.size(),128);std::size_t vertexTotal=0,indexTotal=0,textureTotal=0;
@@ -221,8 +232,12 @@ void writePacket(ConstWire& w,const remake::Packet& p) {
   if(version>=2)w.word(m.sourceAlphaReference?*m.sourceAlphaReference:256u);
   if(version>=3)w.word(m.sourceAlphaBlend);
   w.word(m.texture.known);w.wide(m.texture.id);w.wide(m.texture.generation);w.wide(m.texture.paletteGeneration);w.wide(m.texture.rttGeneration);
+  const auto mode=std::uint32_t(m.textureWire);require(mode<=2&&(mode==0||m.texture.known),"view-wire-texture-mode");
+  if(version>=5)w.word(mode);
   require(m.material&&m.material->sourceDds.empty(),"view-wire-owned-texture-required");
-  const auto& data=m.material->sourceDdsBytes;w.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=data.size();
+  const auto& data=m.material->sourceDdsBytes;
+  require(mode==2?data.empty():mode==1?!data.empty():true,"view-wire-texture-mode");
+  w.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=data.size();
   if(!data.empty())w.bytes(data.data(),data.size());
   w.count(m.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=m.vertices.size();
   for(const auto& v:m.vertices){w.vector(v.position);require(v.normal.has_value(),"view-wire-normal-required");w.vector(*v.normal);w.real(v.u);w.real(v.v);w.word(v.publicColor);}

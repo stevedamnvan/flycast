@@ -116,14 +116,19 @@ combined lane slowing emulation to about16 fps; D-211 (LOG781) moved the feed
 off the render thread, bringing it to about25 fps with explicit fallbacks. LOG782
 attributes the remaining render-thread cost (evaluation12.8 ms across motion
 stream, raster, upload, submit and receive/verify; feed11.6 ms with packet build
-4.5). Next operational action, needing a user decision first: (a) move the
-returned-image path (receive, verify, input build, motion stream) to a second
-worker with the consumer submit staying on the render thread, and (b) whether a
-lighter packet wire format (texture identity instead of re-sent texture bytes,
-12.6 MB per frame) is acceptable given it starts a new locked-archive lineage
-for the300-frame lanes. Then re-measure the600-frame gate; record the external
-consumer's return rate (about20 per second) as the combined-share limit rather
-than lowering the99 percent criterion. Separate items:
+4.5). The user approved both follow-ups with the stated goal of native60 fps
+and a good-looking combined image. D-212 (LOG783) put textures by reference on
+the live wire (1.06 MB per packet, archives unchanged): about27 fps, feed
+worker15.5 ms, render thread still about24 ms of feed plus evaluation. Next
+operational action: move the returned-image path (receive, verify, input build,
+motion stream) to a second worker with the consumer submit and raster staying
+on the render thread, and move the packet build to the feed worker by reading
+new textures on the render thread first; then re-measure the600-frame gate
+against the19 ms native control; record the external consumer's return rate as
+the combined-share limit rather than lowering the99 percent criterion.
+Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
+texture tools (upscaling and PBR material generation, offline, user-authored
+assets keyed by the texture hashes the helper feeds). Separate items:
 exact double-precision frustum clipping of near-plane vertices far outside the
 viewport (topology change), round-end overlay protection (FC-055).
 World-consistent lighting/camera across cuts stays with M2-camera; do not

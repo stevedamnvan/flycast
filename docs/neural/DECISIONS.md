@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-212: textures by reference on the live wire, never in archives
+
+Re-sending every texture with every packet cost12.6 MB per source on both
+sides of the channel (LOG780..782). Packet wire version5 carries a per-mesh
+texture carriage word: carried, registered (bytes travel, consumer remembers
+them under the texture identity for this channel session) or referenced (no
+bytes). The channel's strict sequence continuity guarantees a consumer never
+misses a registration; a reference it cannot resolve, or a registration beyond
+the shared bound, is a failed live source, not an evicted or guessed texture.
+The host records a registration only after the feed worker reports Published
+and clears the set with the channel. Saved capture archives and locked replay
+never use version5, so existing locked-archive lineages and their digests are
+unchanged and carried-only packets remain byte-identical. Texture bytes seen by
+the external consumer are unchanged, so any hash-keyed replacement it applies
+keeps applying. This changes no acceptance criterion.
+
 ## D-211: scene feed off the render thread with explicit fallback
 
 The600-frame gate requires that a slow lane fall back explicitly rather than

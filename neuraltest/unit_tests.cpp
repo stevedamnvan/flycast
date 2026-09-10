@@ -297,8 +297,61 @@ int RunSelfTests()
 		const RemakeTextureReader reader=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string&){
 			if(draw.ordinal!=18)return false;bytes=dds;return true;};
 		suite.Expect(BuildRemakeViewPacket(view,reader,packet,error)&&packet.meshes.size()==1
-			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal,
+			&&packet.meshes[0].material->sourceDdsBytes==dds&&packet.producer.ordinal==p.sourceProducer.ordinal
+			&&packet.meshes[0].textureWire==remake::TextureWire::Carried,
 			"live geometry and owned texture form the shared Remix packet");
+		{
+			// D-212 texture references: registered once, referenced afterwards,
+			// carried when the consumer holds nothing; archives never see version5.
+			unsigned reads=0;
+			const RemakeTextureReader counting=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why){++reads;return reader(draw,bytes,why);};
+			auto textured=view;textured.meshes[0].sourceDraw.texture.emplace();textured.meshes[0].sourceDraw.texture->upload=5;
+			remake::Packet untextured,first,second;
+			suite.Expect(BuildRemakeViewPacket(view,counting,untextured,error,[](const remake::TextureIdentity&){return true;})
+				&&untextured.meshes[0].textureWire==remake::TextureWire::Carried&&reads==1,
+				"an untextured draw is never registered or referenced");
+			suite.Expect(BuildRemakeViewPacket(textured,counting,first,error,[](const remake::TextureIdentity&){return false;})
+				&&first.meshes[0].textureWire==remake::TextureWire::Registered&&first.meshes[0].material->sourceDdsBytes==dds&&reads==2
+				&&first.meshes[0].texture.known&&first.meshes[0].texture.generation==5,
+				"first use of a texture is registered with its bytes");
+			const auto identity=first.meshes[0].texture;
+			suite.Expect(BuildRemakeViewPacket(textured,counting,second,error,[&](const remake::TextureIdentity& t){return t.id==identity.id&&t.generation==identity.generation;})
+				&&second.meshes[0].textureWire==remake::TextureWire::Referenced&&second.meshes[0].material->sourceDdsBytes.empty()&&reads==2,
+				"a texture the consumer holds is sent by reference without a device read");
+			suite.Expect(remake::ReadyForDiagnosticAdapter(second,second.frame,second.game,true).ok,"adapter accepts a referenced texture without bytes");
+			auto bad=second;bad.meshes[0].textureWire=remake::TextureWire::Carried;
+			suite.Expect(!remake::ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).ok,"carried textured mesh without bytes stays rejected");
+			bad=first;bad.meshes[0].material->sourceDdsBytes.clear();
+			suite.Expect(!remake::ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).ok,"registered mesh without bytes is rejected");
+			std::size_t wireBytes[2]{};unsigned wireIndex=0;
+			for(const remake::Packet* source:{&first,&second}) {
+				std::ostringstream out(std::ios::binary);remake::Packet decoded;std::string why;
+				bool ok=SerializeRemakeViewPacket(out,*source,why);wireBytes[wireIndex++]=out.str().size();
+				suite.Expect(VerifyRemakeViewWireParity(*source,why),"const writer exact version5 reference parity");
+				std::istringstream in(out.str(),std::ios::binary);
+				ok=ok&&DeserializeRemakeViewPacket(in,decoded,why);
+				suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==5&&decoded.meshes[0].textureWire==source->meshes[0].textureWire
+					&&decoded.meshes[0].material->sourceDdsBytes==source->meshes[0].material->sourceDdsBytes
+					&&decoded.meshes[0].texture.id==identity.id&&decoded.meshes[0].texture.generation==identity.generation,
+					"version5 wire retains texture carriage mode, identity and bytes");
+			}
+			suite.Expect(wireBytes[0]==wireBytes[1]+dds.size(),"referenced wire omits exactly the texture bytes");
+			std::ostringstream plain(std::ios::binary);std::string why;
+			suite.Expect(SerializeRemakeViewPacket(plain,packet,why)&&static_cast<unsigned char>(plain.str()[4])==1,
+				"carried textures keep the pre-version5 wire byte-identical");
+			auto corrupt=second;corrupt.meshes[0].material->sourceDdsBytes=dds;
+			std::ostringstream rejected(std::ios::binary);
+			suite.Expect(!SerializeRemakeViewPacket(rejected,corrupt,why),"referenced mesh carrying bytes is refused by the writer");
+			RemakeFeedWorker worker;worker.Start();
+			RemakeFeedJob job;job.frame=first.frame;job.packet=first;
+			job.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};
+			suite.Expect(worker.Dispatch(std::move(job)),"feed worker accepts a registering job");
+			for(int i=0;i<2000&&worker.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			const auto results=worker.Drain();
+			suite.Expect(results.size()==1&&results[0].stage.empty()&&results[0].registeredTextures.size()==1
+				&&results[0].registeredTextures[0].generation==identity.generation&&results[0].registeredBytes==dds.size(),
+				"feed worker reports registered texture identities only after publish");
+		}
 		{
 			// Sixteen distinct observed inputs under one affine source basis.
 			auto observed=p;auto supported=view;observed.sourceVertices.clear();supported.meshes[0].vertices.clear();
@@ -634,6 +687,20 @@ int RunSelfTests()
 			suite.Expect(ok&&static_cast<unsigned char>(out.str()[4])==4
 				&&decoded.camera.position.x==2&&decoded.camera.right.z==-1&&decoded.camera.forward.x==1
 				&&decoded.diagnosticOrigin->y==2000,"live camera wire retains pose and fixed sequence origin");
+			{
+				// D-212 on the anchored wire: version5 keeps the pose and origin.
+				auto referenced=anchored;referenced.meshes[0].texture={17,5,0,0,true};referenced.meshes[0].material->sourceTexture=referenced.meshes[0].texture;
+				referenced.meshes[0].material->sourceDdsBytes.clear();referenced.meshes[0].textureWire=remake::TextureWire::Referenced;
+				std::ostringstream wire5(std::ios::binary);remake::Packet decoded5;std::string why5;
+				bool ok5=SerializeRemakeViewPacket(wire5,referenced,why5);
+				suite.Expect(VerifyRemakeViewWireParity(referenced,why5),"const writer exact anchored version5 reference parity");
+				std::istringstream in5(wire5.str(),std::ios::binary);
+				ok5=ok5&&DeserializeRemakeViewPacket(in5,decoded5,why5);
+				suite.Expect(ok5&&static_cast<unsigned char>(wire5.str()[4])==5&&decoded5.camera.position.x==2&&decoded5.camera.right.z==-1
+					&&decoded5.diagnosticOrigin->y==2000&&decoded5.meshes[0].textureWire==remake::TextureWire::Referenced
+					&&decoded5.diagnosticEmbeddingProvenance==anchored.diagnosticEmbeddingProvenance,
+					"anchored version5 wire retains pose, origin and texture reference");
+			}
 			bool same=ok;
 			if(ok)for(std::size_t i=0;i<packet.meshes[0].vertices.size();++i) {
 				const auto a=remake::Project(packet.camera,packet.meshes[0].vertices[i].position);

@@ -6,7 +6,12 @@
 #include <iosfwd>
 namespace flycast::rend::neural {
 using RemakeTextureReader=std::function<bool(const PvrCapturedDraw&,std::vector<unsigned char>&,std::string&)>;
-bool BuildRemakeViewPacket(const RemakeViewScene&,const RemakeTextureReader&,remake::Packet&,std::string&);
+// True when the consumer already holds this texture for the current channel
+// session: the mesh is sent by reference (D-212). Absent: every texture is
+// carried, the pre-version5 wire.
+using RemakeTextureSent=std::function<bool(const remake::TextureIdentity&)>;
+bool BuildRemakeViewPacket(const RemakeViewScene&,const RemakeTextureReader&,remake::Packet&,std::string&,
+ const RemakeTextureSent& sent={});
 bool SerializeRemakeViewPacket(std::ostream&,const remake::Packet&,std::string&);
 // Harness-only parity oracle; retains the old copy-based writer, never used by live publication.
 bool VerifyRemakeViewWireParity(const remake::Packet&,std::string&);

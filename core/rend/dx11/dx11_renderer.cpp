@@ -2718,6 +2718,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			}
 			continue;
 		}
+		for(const auto& identity:fed.registeredTextures)
+			remakeSentTextures.insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
+		remakeSentTextureBytes+=fed.registeredBytes;
 		auto overlay=std::move(fed.overlay);
 		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
 		if(fed.capturedPacket)overlay.captureScene=std::move(fed.capturedPacket);
@@ -2840,9 +2843,22 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	}
 	// Visit every required draw, even when an earlier texture is pending. Publish
 	// no partial scene; a later frame uses its own geometry and current generations.
+	// D-212: textures the consumer already holds this session travel by
+	// reference. Disabled whenever a capture or locked archive is involved so
+	// saved packets and their digests keep the full-texture lineage.
+	const bool byReference=!(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE")&&*std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE"))
+		&&!(std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT")&&*std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT"));
+	const auto alreadySent=[this](const remake::TextureIdentity& identity) {
+		return remakeSentTextures.count({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration})!=0;
+	};
+	const bool registerMore=remakeSentTextures.size()<remake::Limits{}.textureReferences
+		&&remakeSentTextureBytes<remake::Limits{}.textureReferenceBytes;
+	const RemakeTextureSent sent=byReference?RemakeTextureSent([&](const remake::TextureIdentity& identity){return alreadySent(identity);}):RemakeTextureSent{};
 	bool ready=true;std::size_t remaining=64*1024*1024;
 	for(const auto& mesh:scene.meshes) {
 		std::vector<unsigned char> bytes;
+		if(sent&&mesh.sourceDraw.texture&&alreadySent({mesh.sourceDraw.state.tcw.full,mesh.sourceDraw.texture->upload,
+			mesh.sourceDraw.texture->palette.value_or(0),mesh.sourceDraw.texture->rtt,true}))continue;
 		if(!ReadRemakeViewTexture(device,deviceContext,*rendContext,mesh.sourceDraw,remaining,bytes,error,&remakeAsyncTextures,paletteTexture,remakePaletteUpload.get())) {
 			if(ready)skip("texture",error);ready=false;
 		}
@@ -2856,9 +2872,10 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	{
 		static thread_local unsigned count=0;
 		RemakeCpuScope timing("packet-build",metadata.frameId,count);
-		packetReady=BuildRemakeViewPacket(scene,reader,packet,error);
+		packetReady=BuildRemakeViewPacket(scene,reader,packet,error,sent);
 	}
 	if(!packetReady){skip("packet",error);return;}
+	if(!registerMore)for(auto& mesh:packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered)mesh.textureWire=remake::TextureWire::Carried;
 	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
 	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
 	// The camera anchor is applied by the feed worker (D-211), off this thread.

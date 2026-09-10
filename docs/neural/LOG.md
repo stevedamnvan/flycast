@@ -1,5 +1,35 @@
 # Neural rendering evidence log
 
+LOG783 D-212 texture references on the live packet wire (user approved both
+pending decisions with the goal of native60 fps and a good-looking combined
+image). Packet wire version5 adds one carriage word per mesh: carried (bytes
+as before), registered (bytes travel and the consumer must remember them under
+the texture identity for the channel session) or referenced (no bytes). The
+host keeps a sent-identity set cleared with the channel and bounded like the
+consumer (4096 identities,512 MB); registration is recorded only after the
+feed worker reports Published. The helper restores referenced bytes from its
+cache before any validation, so every later stage sees a carried packet; a
+missing or over-budget reference is a failed live source (`texture-reference-
+missing`, `texture-reference-cache-bound`), never a guessed texture. Archives
+are unaffected: references are disabled whenever a capture or locked-archive
+environment is set, so the300-frame lanes keep their lineage and digests, and
+carried-only packets stay byte-identical (version1..4). Replay run
+fc067-perf-texref-a (same settings as LOG781): packet1.06 MB (12.6 before),
+1113 publishes,63 registered and49276 referenced meshes over36 textures, no
+reference fault; present interval p50 36.3 ms (39.4),1102 of1200 presents
+combined,1106 accepted evaluations (951), output-frame repeats4 (154),
+latency mean2.0 frames (2.48), resource growth+45 one-time, VRAM+387 MB,
+zero identity/repeat/gap faults. Timing run fc067-perf-texref-timing-a
+(`--cpu-timing`, diagnostic): feed worker15.5 ms p50 (25.0 before), scene feed
+11.8 (packet build4.05, snapshot1.6, view scene1.4, about4.7 unscoped:
+readiness loop, overlay copy, return receive/verify), returned evaluation12.5
+(motion stream3.3, raster2.2, upload1.5, submit0.7, history0.5). Still not
+passing: about27 fps against the19 ms native control; the render thread still
+carries about24 ms of feed plus evaluation. Selftest830/0 (registered once,
+referenced afterwards, untextured never registered, adapter and writer
+contracts, anchored version5 pose, feed-worker registration report),
+remake-sdk-contract260/0, launcher tests16.
+
 LOG782 render-thread attribution after D-211 (fc067-perf-feedworker-timing-b,
 `--cpu-timing`, same replay settings; diagnostic, not performance evidence):
 present interval p50 38.8 ms;1200 emulated frames in47.1 s. Scene feed11.6 ms

@@ -40,6 +40,9 @@ struct RemakeFeedResult {
  bool anchored=false,supportChanged=false,regenerated=false,viewCut=false;
  std::uint32_t generation=0;std::uint64_t referenceOrdinal=0;remake::Vec3 origin{};double projectionMaxPixels=0;
  RemakeCameraAnchor::SupportReport support{};RemakeCameraAnchor::ProjectionReport projection{};
+ // Texture identities the consumer registered from this published packet
+ // (D-212); the render thread records them as sent only after Published.
+ std::vector<remake::TextureIdentity> registeredTextures;std::size_t registeredBytes=0;
  double workerMs=0;
 };
 class RemakeFeedWorker {
@@ -85,6 +88,9 @@ class RemakeFeedWorker {
    r.support=anchor.LastSupportReport();r.projection=anchor.LastProjectionReport();r.generation=anchor.Generation();
   }
   r.cameraPosition=job.packet.camera.position;
+  for(const auto& mesh:job.packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered&&mesh.material) {
+   r.registeredTextures.push_back(mesh.texture);r.registeredBytes+=mesh.material->sourceDdsBytes.size();
+  }
   if(job.captureScene)r.capturedPacket=std::make_shared<remake::Packet>(std::move(job.packet));
   r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
   return r;

@@ -68,7 +68,12 @@ eight emulated frames apart at the return cadence (`frames_since_last`); a fast
 dolly can therefore log a view cut, which only retires history. Returned depth
 outside the declared clip range is returned as the plane it lies beyond and
 counted per return (`beyond_far_clamped`, `before_near_clamped`, `max_depth`,
-`min_depth`, D-209); values above the projection limit still reject. `--cpu-timing` logs bounded per-stage host CPU scopes (600 samples per stage,
+`min_depth`, D-209); values above the projection limit still reject. Live packets send each texture once per channel session and reference it
+afterwards (packet wire version5, D-212); the helper's `live_receive` line
+reports `registered_textures`, `referenced_textures` and `cached_textures`, and
+a reference it cannot resolve ends the session as a failed live source. Capture
+and locked-archive sessions keep carrying every texture so archives and digests
+are unchanged. `--cpu-timing` logs bounded per-stage host CPU scopes (600 samples per stage,
 including the `feed-worker` scope) and marks the run diagnostic, never
 performance evidence. The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
