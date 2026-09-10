@@ -41,6 +41,7 @@
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_return_worker.h"
+#include "rend/neural/remake_frame_budget.h"
 #include "rend/neural/remake_motion_stream.h"
 #include "remake_motion_raster.h"
 #include <array>
@@ -336,6 +337,8 @@ protected:
 		std::string streamError;flycast::rend::neural::RemakeMotionStream stream;flycast::rend::neural::RemakeNeuralInput input;
 	};
 	std::optional<RemakePreparedReturn> remakePreparedReturn;
+	flycast::rend::neural::RemakeFrameBudget remakeFrameBudget;bool remakeFrameBudgetConfigured=false; // D-216.
+	std::uint64_t remakeFrameBudgetFrames=0;
 	struct RemakeOwnedOutput { ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11ShaderResourceView> view; };
 	std::array<RemakeOwnedOutput,3> remakeOwnedOutputs;std::size_t remakeOwnedOutputNext=0; // D-215 ring.
 	unsigned remakeReturnTimingCount=0;

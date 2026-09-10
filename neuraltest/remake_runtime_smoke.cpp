@@ -121,30 +121,46 @@ int wmain(int argc,wchar_t** argv) {
  flycast::rend::neural::RemakeLiveChannel channel;
  flycast::rend::neural::RemakeChannelReceipt activeSourceReceipt;
  // D-212 texture references: bytes registered by the host for this channel
- // session are remembered by identity and restored into referenced meshes so
- // every later stage sees a carried packet. A missing or over-budget reference
- // is a failed live source, never a guessed texture.
- std::map<std::array<std::uint64_t,4>,std::vector<unsigned char>> textureReferences;std::size_t textureReferenceBytes=0;
+ // session are remembered by identity in immutable shared storage. Registered
+ // bytes move into that storage and the mesh becomes a Referenced mesh (the
+ // diagnostic adapter contract admits those); the legacy uploader, the only
+ // live consumer, resolves references from here, so no texture bytes are copied
+ // or compared per received image. A missing or over-budget reference is a
+ // failed live source, never a guessed texture.
+ std::map<std::array<std::uint64_t,4>,TextureSourceBytes> textureReferences;std::size_t textureReferenceBytes=0;
  unsigned long long referencedMeshes=0,registeredMeshes=0;
+ const auto textureReferenceKey=[](const Mesh& mesh) {
+  return std::array<std::uint64_t,4>{mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration};
+ };
  const auto resolveTextureReferences=[&](Packet& packet) {
   for(auto& mesh:packet.meshes) {
-   const std::array<std::uint64_t,4> key{mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration};
+   const auto key=textureReferenceKey(mesh);
    if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Registered) {
     if(!mesh.material||mesh.material->sourceDdsBytes.empty())throw std::runtime_error("texture-reference-contract");
-    if(!textureReferences.count(key)) {
+    auto& bytes=mesh.material->sourceDdsBytes;
+    auto found=textureReferences.find(key);
+    if(found==textureReferences.end()) {
      if(textureReferences.size()>=flycast::rend::neural::remake::Limits{}.textureReferences
-      ||textureReferenceBytes+mesh.material->sourceDdsBytes.size()>flycast::rend::neural::remake::Limits{}.textureReferenceBytes)
+      ||textureReferenceBytes+bytes.size()>flycast::rend::neural::remake::Limits{}.textureReferenceBytes)
       throw std::runtime_error("texture-reference-cache-bound");
-     textureReferenceBytes+=mesh.material->sourceDdsBytes.size();
+     textureReferenceBytes+=bytes.size();
+     found=textureReferences.emplace(key,nullptr).first;
     }
-    textureReferences[key]=mesh.material->sourceDdsBytes;++registeredMeshes;
+    // Re-registration of identical bytes keeps the storage an uploaded resource
+    // is bound to; different bytes replace it, so that resource is rebuilt.
+    if(!found->second||*found->second!=bytes)found->second=std::make_shared<const std::vector<unsigned char>>(std::move(bytes));
+    bytes.clear();
+    mesh.textureWire=flycast::rend::neural::remake::TextureWire::Referenced;++registeredMeshes;
    }else if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Referenced) {
     const auto found=textureReferences.find(key);
     if(found==textureReferences.end()||!mesh.material)throw std::runtime_error("texture-reference-missing");
-    mesh.material->sourceDdsBytes=found->second;++referencedMeshes;
+    mesh.material->sourceDdsBytes.clear();++referencedMeshes;
    }
-   mesh.textureWire=flycast::rend::neural::remake::TextureWire::Carried;
   }
+ };
+ const auto resolveTextureReference=[&](const Mesh& mesh)->TextureSourceBytes {
+  const auto found=textureReferences.find(textureReferenceKey(mesh));
+  return found==textureReferences.end()?nullptr:found->second;
  };
  // Consumer turnaround per image (diagnostic): receive, present, readback, return.
  std::chrono::steady_clock::time_point receivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
@@ -344,6 +360,11 @@ int wmain(int argc,wchar_t** argv) {
  startup.combineGuiInFinalColor=0;
  IDirect3D9Ex* ownedD3D=nullptr;
  IDirect3DDevice9Ex* ownedDevice=nullptr;
+ // Readback surfaces and CPU buffers persist across returned images (LOG786):
+ // created lazily once, released with the other device objects at the end.
+ IDirect3DSurface9* captureGpu=nullptr;IDirect3DSurface9* captureCpu=nullptr;D3DFORMAT captureFormat=D3DFMT_UNKNOWN;
+ IDirect3DSurface9* depthGpu=nullptr;IDirect3DSurface9* depthCpu=nullptr;
+ std::vector<unsigned char> pixels,raw;
  std::cerr<<"phase=startup begin\n"<<std::flush;
  if(capture.empty())status=api.Startup(&startup);
  else {
@@ -392,7 +413,7 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"scene_light_radiance="<<sceneLightRadiance.value_or(3)
    <<" scene_light_authored=true recovered_game_lighting=false external_consumer_setting=false\n";
   std::cerr<<"scene_light_anchor="<<anchoredLight<<" first_source_direction_fixed="<<anchoredLight<<'\n';
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight);
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight,resolveTextureReference);
   for(long frame=0;frame<frames;frame++) {
    MSG msg{}; bool quit=false;
    while(PeekMessageW(&msg,nullptr,0,0,PM_REMOVE)) {
@@ -498,9 +519,19 @@ int wmain(int argc,wchar_t** argv) {
    IDirect3DSurface9* gpu=nullptr;IDirect3DSurface9* cpu=nullptr;
    const bool floatOutput=captureType==REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH;
    const auto format=floatOutput?D3DFMT_A32B32G32R32F:D3DFMT_A8R8G8B8;
-   HRESULT hr=legacyBackbuffer?ownedDevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&gpu):
-    ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
-   if(SUCCEEDED(hr))hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&cpu,nullptr);
+   if(captureFormat!=format) {
+    if(captureCpu){captureCpu->Release();captureCpu=nullptr;}
+    if(captureGpu){captureGpu->Release();captureGpu=nullptr;}
+    captureFormat=format;
+   }
+   HRESULT hr=S_OK;
+   if(legacyBackbuffer)hr=ownedDevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&gpu);
+   else {
+    if(!captureGpu)hr=ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&captureGpu,nullptr);
+    gpu=captureGpu;
+   }
+   if(SUCCEEDED(hr)&&!captureCpu)hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&captureCpu,nullptr);
+   cpu=captureCpu;
    if(SUCCEEDED(hr)) {
     // The runtime's output copy waits for its frame; time it with the readback.
     const auto readbackStart=std::chrono::steady_clock::now();
@@ -513,8 +544,8 @@ int wmain(int argc,wchar_t** argv) {
    if(SUCCEEDED(hr))hr=cpu->LockRect(&locked,nullptr,D3DLOCK_READONLY);
    lockWaitMs=msSince(lockStart);
    if(SUCCEEDED(hr)) {
-    std::vector<unsigned char> pixels(640*480*4);
-    std::vector<unsigned char> raw(floatOutput?640*480*16:0);
+    pixels.resize(640*480*4);
+    raw.resize(floatOutput?640*480*16:0);
     for(int y=0;y<480;y++) {
      const auto row=static_cast<unsigned char*>(locked.pBits)+y*locked.Pitch;
      if(floatOutput)memcpy(raw.data()+y*640*16,row,640*16);
@@ -564,7 +595,7 @@ int wmain(int argc,wchar_t** argv) {
     hr=ok&&rawOk?S_OK:E_FAIL;
     }
    }
-   if(cpu)cpu->Release();if(gpu)gpu->Release();
+   if(legacyBackbuffer&&gpu)gpu->Release();
    std::cerr<<"capture_readback_hresult="<<hr<<" source_frame="<<packet.frame<<" image_validation_pending=true backbuffer_only="<<legacyBackbuffer<<" pre_present="<<legacyRaster<<"\n"<<std::flush;
    if(FAILED(hr)){outcome=14;break;}
 	 if(captureReturnedDepth) {
@@ -572,10 +603,10 @@ int wmain(int argc,wchar_t** argv) {
 		// numerical semantics are evidence to measure, not assumed PVR depth.
 		const auto depthPath=capturePath.wstring()+L".depth.rgba32f";
 		RemakeFarPlaneReport farPlane{};
-		IDirect3DSurface9* depthGpu=nullptr;IDirect3DSurface9* depthCpu=nullptr;
-		HRESULT depthHr=ownedDevice->CreateRenderTarget(640,480,D3DFMT_A32B32G32R32F,
+		HRESULT depthHr=S_OK;
+		if(!depthGpu)depthHr=ownedDevice->CreateRenderTarget(640,480,D3DFMT_A32B32G32R32F,
 			D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
-		if(SUCCEEDED(depthHr))depthHr=ownedDevice->CreateOffscreenPlainSurface(640,480,
+		if(SUCCEEDED(depthHr)&&!depthCpu)depthHr=ownedDevice->CreateOffscreenPlainSurface(640,480,
 			D3DFMT_A32B32G32R32F,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
 		if(SUCCEEDED(depthHr)) {
 			const auto depthStart=std::chrono::steady_clock::now();
@@ -590,8 +621,15 @@ int wmain(int argc,wchar_t** argv) {
 		depthLockWaitMs=msSince(depthLockStart);
 		if(SUCCEEDED(depthHr)) {
 			returnedFrame.projectionDepth.resize(640*480);
-			for(int y=0;y<480;++y)for(int x=0;x<640;++x)
-				std::memcpy(&returnedFrame.projectionDepth[y*640+x],static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch+x*16,sizeof(float));
+			// Source texels are RGBA32F; only the R channel is the depth value.
+			for(int y=0;y<480;++y) {
+				const unsigned char* row=static_cast<const unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch;
+				float* out=returnedFrame.projectionDepth.data()+y*640;
+				for(int x=0;x<640;++x,row+=16) {
+					float value;std::memcpy(&value,row,sizeof(float));
+					out[x]=value;
+				}
+			}
 			returnedFrame.nearPlane=packet.camera.nearPlane;returnedFrame.farPlane=packet.camera.farPlane;
 			// Beyond-far-plane values become the far plane (D-209); the raw file
 			// below is written from the locked surface and stays unaltered.
@@ -605,7 +643,6 @@ int wmain(int argc,wchar_t** argv) {
 			}
 			depthCpu->UnlockRect();
 		}
-		if(depthCpu)depthCpu->Release();if(depthGpu)depthGpu->Release();
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
 			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr
 			<<" beyond_far_clamped="<<farPlane.beyondFar<<" before_near_clamped="<<farPlane.beforeNear<<" above_limit="<<farPlane.aboveLimit
@@ -641,6 +678,10 @@ int wmain(int argc,wchar_t** argv) {
  }
  // Window destruction can dispatch callbacks installed by the runtime.
  if(ownedDevice) {
+  if(depthCpu){depthCpu->Release();depthCpu=nullptr;}
+  if(depthGpu){depthGpu->Release();depthGpu=nullptr;}
+  if(captureCpu){captureCpu->Release();captureCpu=nullptr;}
+  if(captureGpu){captureGpu->Release();captureGpu=nullptr;}
   IDirect3DQuery9* completion=nullptr;
   HRESULT completed=ownedDevice->CreateQuery(D3DQUERYTYPE_EVENT,&completion);
   if(SUCCEEDED(completed) && completion) {

@@ -69,6 +69,9 @@ Result OwnDiagnosticTextures(Packet& packet) {
  for(auto& mesh:owned.meshes) {
   if(!mesh.material)return {false,"material-unknown"};
   auto& material=*mesh.material;
+  // A referenced texture (D-212) is owned by the consumer's session cache,
+  // not by this packet; there is nothing to read or copy here.
+  if(mesh.textureWire==TextureWire::Referenced)continue;
   if(!material.sourceDdsBytes.empty()) {
    if(!material.sourceDds.empty()||!ValidSourceDdsBytes(material.sourceDdsBytes))return {false,"source-texture-contract"};
   } else {

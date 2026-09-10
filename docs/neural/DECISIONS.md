@@ -1,5 +1,25 @@
 # Neural rendering decisions
 
+## D-216: a render-thread budget makes the slow lane fall back explicitly
+
+The remaining remake work on the render thread (about13 ms, LOG786) is
+device-bound and cannot be moved to a worker without a different evaluation
+architecture. The600-frame gate's rule is that a slow lane must fall back
+explicitly rather than slow emulation, so the lane now accepts an optional
+budget (`FLYCAST_REMAKE_FRAME_BUDGET_MS`, launcher `--frame-budget-ms`): each
+emulated frame adds that much credit, the scene feed runs whenever the credit
+is not negative, both the feed and the evaluation it leads to are charged their
+measured cost, and credit is clamped to plus or minus two frames' worth so an
+idle stretch cannot flood the lane and a one-time stall (the first consumer
+submit takes about a second) cannot starve it. The scene feed skips
+(`frame-budget`) on the frames in between; a returned image is never deferred,
+since it is the consumer's finished work and throttling the feed already bounds
+how many arrive (gating both stages starved the evaluation, LOG787);
+presentation repeats the last combined output as it already did. Nothing about acceptance, identity or
+archives changes; the default stays unlimited, so every existing lane behaves
+as before. The trade is stated, not hidden: at a budget the combined image
+updates at the duty cycle budget over cost, not every frame.
+
 ## D-215: owned outputs from a ring; the consumer is timed, not assumed
 
 The owned copy of an evaluated output is read by at most the next composite

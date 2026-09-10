@@ -110,6 +110,13 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
         self.args.cpu_timing = False
+        self.assertNotIn('FLYCAST_REMAKE_FRAME_BUDGET_MS', default[2])
+        self.args.frame_budget_ms = 4.0
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_FRAME_BUDGET_MS'], '4.0')
+        self.args.frame_budget_ms = 0.0
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.frame_budget_ms = None
         self.assertNotIn('--source-wait-seconds', default[4])
         self.args.manual_input = True
         _, _, env, host, helper = prepare(self.args)

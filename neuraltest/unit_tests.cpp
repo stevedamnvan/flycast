@@ -12,6 +12,7 @@
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_return_worker.h"
+#include "rend/neural/remake_frame_budget.h"
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -616,6 +617,29 @@ int RunSelfTests()
 					suite.Expect(RemakeReturnedImageWellFormed(image),"well-formed image passes the render-thread gate");
 					image.projectionDepth[3]=-1;
 					suite.Expect(!RemakeReturnedImageWellFormed(image),"render-thread gate rejects depth outside the host contract");
+				}
+				{
+					// D-216 frame budget: unlimited by default; with a budget a stage runs
+					// whenever credit is not negative, is charged its cost, and credit is
+					// clamped to plus or minus two frames so a stall cannot starve the lane.
+					RemakeFrameBudget budget;
+					suite.Expect(!budget.Enabled()&&budget.AllowFeed()&&budget.AllowEvaluate(),"frame budget unlimited by default");
+					budget.RecordFeed(13);budget.RecordEvaluate(9);
+					suite.Expect(budget.AllowFeed()&&budget.AllowEvaluate()&&budget.Credit()==0,"unlimited budget never charges credit");
+					RemakeFrameBudget fresh;fresh.Configure(4);fresh.BeginFrame();
+					suite.Expect(fresh.Enabled()&&fresh.Credit()==4&&fresh.AllowFeed()&&fresh.AllowEvaluate(),"a budgeted frame with credit runs");
+					fresh.RecordFeed(12);
+					suite.Expect(!fresh.AllowFeed()&&fresh.Credit()==-8,"cost is charged and clamped to minus two frames");
+					fresh.BeginFrame();suite.Expect(fresh.Credit()==-4&&!fresh.AllowFeed()&&fresh.AllowEvaluate(),"one frame later the feed still waits but a returned image is evaluated");
+					fresh.BeginFrame();suite.Expect(fresh.Credit()==0&&fresh.AllowFeed(),"credit recovered: the stage runs every third frame at three times the budget");
+					fresh.RecordEvaluate(1200);
+					suite.Expect(fresh.Credit()==-8,"a one-time stall costs at most two frames");
+					for(int i=0;i<6;++i)fresh.BeginFrame();
+					suite.Expect(fresh.Credit()==8&&fresh.AllowFeed(),"credit accrues per frame and caps at two frames");
+					fresh.RecordFeed(4);
+					suite.Expect(fresh.FeedEstimateMs()>10&&fresh.FeedEstimateMs()<11&&fresh.Credit()==4,"cost estimate is a slow moving average");
+					fresh.CountFeedSkip();fresh.CountEvaluateDeferral();
+					suite.Expect(fresh.FeedRuns()==2&&fresh.FeedSkips()==1&&fresh.EvaluateDeferrals()==1&&fresh.EvaluateRuns()==1,"budget counters are explicit");
 				}
 				RemakeFeedJob failing;failing.frame=4;
 				failing.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string& why){why="channel-busy-native-fallback";return RemakeChannelResult::Busy;};

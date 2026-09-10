@@ -132,14 +132,22 @@ GPU13.7 against11.1 alone). D-215 (LOG786) pooled the owned outputs (VRAM growth
 removed), split the ownership scope (2.0 ms is the D3D11on12 acquire wait) and
 timed the consumer: about4 to5 ms GPU per image, about9 ms of its own CPU
 work per image, turnaround19.7 ms. The remaining render-thread remake work
-(about13 ms) is device-bound. Next operational action (D-216 candidate):
-record the returned-image evaluation (input upload, motion raster, consumer
-submit, output acquire and composite) on a deferred context from a worker and
-execute the command list at present, with the same gates and fallbacks; then
-cut the helper's per-image CPU work (reuse its readback surfaces, copy depth
-rows, pipeline present and readback) so its turnaround approaches its GPU
-time; then re-measure the600-frame gate against the measured controls
-(native11.1 ms, DLAA12.6 ms).
+(about13 ms) is device-bound. LOG787 cut the helper's per-image CPU work
+(turnaround15.1 ms, host present p50 28.2) and added the D-216 frame budget
+(feed throttled, evaluation never deferred; at4 ms: every other frame,1109
+of1200 presents combined, p50 26.3). Measured limit: with the consumer
+sharing the GPU the frame GPU span is about19 ms against11.5 alone, so the
+lane is GPU-bound near26 ms and no host-side budget or threading reaches the
+12.6 ms control; the600-frame gate is not passed. Next operational action
+needs a user decision, since the remaining cost is GPU sharing: (a) accept a
+combined-output update rate below the emulation rate (the budget lane, with
+the presentation repeating the last combined image), (b) reduce the host's
+own GPU work in this lane (the OIT renderer's11 ms PVR pass at480p and the
+DLAA evaluate are the host's; a non-OIT lane would need its own effects
+evidence), or (c) reduce the consumer's GPU work per image, which is the
+user's Remix configuration. Until then: keep the unlimited lane as the
+evidence lane, record the budget lane as diagnostic, and pipeline the helper's
+present and readback so its turnaround approaches its GPU time.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

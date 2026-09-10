@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG787 helper CPU cut and D-216 frame budget. Helper: readback surfaces and
+CPU buffers persist across images, the depth copy walks rows instead of
+307200 memcpy calls, and texture bytes registered by the host live in
+immutable shared storage that the legacy uploader references by identity, so
+no texture bytes are copied or compared per image (the diagnostic ownership
+step skips referenced meshes; the re-upload rule is unchanged: different bytes
+for an identity replace the storage and rebuild the resource). Timing run
+fc067-perf-helpercut-timing-c (same settings as LOG786): helper turnaround
+15.1 ms p50 (19.7), draw2.6 (5.9), lock waits4.0 and0.5; host present interval
+p50 28.2 ms (31.4),1107 of1200 presents combined,1108 accepted, repeats7,
+latency mean2.85 (max3), no identity, repeat or gap fault. D-216 budget runs:
+fc067-perf-budget4-a (first design: estimate-gated, credit capped at two
+frames) starved both stages after the first consumer submit's one-second
+warmup set the estimate; fc067-perf-budget4-c (debt model, both stages gated)
+starved the evaluation because the feed spent the credit first (20
+evaluations,1079 deferrals,0 combined presents); fc067-perf-budget4-d (debt
+model, feed throttled, evaluation never deferred): feed553 runs and549
+explicit skips (every other frame),552 accepted evaluations,1109 of1200
+presents combined with561 repeats, no fault, present interval p50 26.3 ms
+against28.2 unlimited. The budget halves the render-thread remake work but
+the frame GPU span stays18.9 ms p50 (11.5 for the DLAA control alone), so
+with the consumer sharing this GPU the lane is GPU-bound near26 ms and no
+host budget reaches the12.6 ms control; the600-frame gate is not passed and
+the budget stays off by default. Selftest866/0, remake-sdk-contract260/0,
+launcher tests16.
+
 LOG786 D-215: owned output ring, output-ownership split, consumer phase
 timing. The owned copy of each evaluated output now comes from a ring of three
 textures instead of a new texture per evaluation. Replay run

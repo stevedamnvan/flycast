@@ -101,6 +101,13 @@ def prepare(args):
         # Bounded per-stage CPU scope logging (600 samples per stage) for
         # locating host-side cost; a diagnostic run, never performance evidence.
         env['FLYCAST_REMAKE_CPU_TIMING'] = '1'
+    budget = getattr(args, 'frame_budget_ms', None)
+    if budget is not None:
+        # Render-thread budget for the remake lane (D-216): the feed skips and
+        # the evaluation defers explicitly when the budget cannot cover them.
+        if not (0 < budget < 1000):
+            raise ValueError('Frame budget must be between 0 and 1000 ms')
+        env['FLYCAST_REMAKE_FRAME_BUDGET_MS'] = repr(float(budget))
     if args.manual_input:
         # A player must boot, reach a fight and play through cuts: 12000 emulated
         # frames (4:50 to over 5:00 observed), a 420 second host bound, the helper's
@@ -220,6 +227,8 @@ def main():
                    help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--cpu-timing', action='store_true',
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
+    p.add_argument('--frame-budget-ms', type=float, default=None,
+                   help='Render-thread remake budget per emulated frame in ms (D-216); default unlimited')
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
@@ -236,6 +245,7 @@ def main():
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
                   cpu_timing=args.cpu_timing,
+                  frame_budget_ms=args.frame_budget_ms,
                   performance_eligible=args.capture_frames == 0 and not args.manual_input and not args.cpu_timing,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,

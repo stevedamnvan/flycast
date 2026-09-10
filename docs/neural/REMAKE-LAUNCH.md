@@ -79,7 +79,12 @@ each image; owned output copies come from a ring of three (D-215); the helper's
 `live_return` lines carry its per-image phase timing (`draw_ms`, `present_ms`,
 `lock_wait_ms`, `depth_lock_wait_ms`, `turnaround_ms`); `Remake return preparation` lines say whether each evaluation used the
 worker's stream, rebuilt it because the history advanced differently, or ran on
-the render thread. `--cpu-timing` logs bounded per-stage host CPU scopes (600 samples per stage,
+the render thread. `--frame-budget-ms N` sets a render-thread budget for the remake lane (D-216):
+the feed skips explicitly when the budget cannot cover the feed and the
+evaluation it leads to (returned images are never deferred), presentation
+repeats the last combined output, and `Remake frame
+budget report` lines carry the counters; default unlimited. `--cpu-timing`
+logs bounded per-stage host CPU scopes (600 samples per stage,
 including the `feed-worker` scope) and marks the run diagnostic, never
 performance evidence. The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`

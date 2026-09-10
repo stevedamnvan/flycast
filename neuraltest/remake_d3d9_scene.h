@@ -10,8 +10,16 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <functional>
+#include <memory>
+#include <vector>
 
 namespace neuraltest::remake {
+// Immutable shared texture source bytes. A Referenced mesh (D-212) carries no
+// bytes; the owner of the channel session resolves its identity to storage that
+// is never mutated, so the same pointer proves the same bytes without a compare.
+using TextureSourceBytes=std::shared_ptr<const std::vector<unsigned char>>;
+using TextureReferenceResolver=std::function<TextureSourceBytes(const Mesh&)>;
 // Bounded opaque diagnostic packet uploader, NOT full PVR shading or a backend.
 class D3D9PacketScene {
  struct Vertex {float x,y,z,nx,ny,nz;DWORD color;float u,v;};
@@ -30,7 +38,8 @@ class D3D9PacketScene {
  float sceneLightRadiance_=3;
  bool anchoredLight_=false;
  AnchoredSceneLight anchoredLightDirection_; // Survives material resource rebuilds.
- std::vector<std::vector<unsigned char>> textureBytes_;
+ TextureReferenceResolver resolveReference_;
+ std::vector<TextureSourceBytes> textureBytes_; // Source bytes uploaded per resource slot.
  void ReleaseResources() {
   if(!resources_.empty()){device_->SetTexture(0,nullptr);device_->SetStreamSource(0,nullptr,0,0);}
   for(auto& r:resources_){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}
@@ -38,12 +47,21 @@ class D3D9PacketScene {
   if(light_){api_.DestroyLight(light_);light_=nullptr;}
   ready_=false;
  }
- static std::vector<unsigned char> ReadTexture(const Mesh::Material& material) {
-  if(!material.sourceDdsBytes.empty()) {
-   if(!material.sourceDds.empty() || !ValidSourceDdsBytes(material.sourceDdsBytes))throw std::runtime_error("owned texture contract");
-   return material.sourceDdsBytes;
-  }
-  const auto& path=material.sourceDds;
+ // Referenced mesh bytes from the session owner; null when the mesh is not a
+ // resolvable reference (missing, ambiguous with owned bytes/path, or invalid).
+ TextureSourceBytes ResolveReference(const Mesh& mesh) const {
+  if(mesh.textureWire!=TextureWire::Referenced||!resolveReference_||!mesh.material
+   ||!mesh.material->sourceDds.empty()||!mesh.material->sourceDdsBytes.empty())return nullptr;
+  auto bytes=resolveReference_(mesh);
+  return bytes&&ValidSourceDdsBytes(*bytes)?bytes:nullptr;
+ }
+ static bool TextureSourceDeclared(const Mesh& mesh) {
+  return mesh.textureWire==TextureWire::Referenced||!mesh.material->sourceDds.empty()||!mesh.material->sourceDdsBytes.empty();
+ }
+ static void CheckOwnedTexture(const Mesh::Material& material) {
+  if(!material.sourceDds.empty() || !ValidSourceDdsBytes(material.sourceDdsBytes))throw std::runtime_error("owned texture contract");
+ }
+ static std::vector<unsigned char> ReadTextureFile(const std::filesystem::path& path) {
   const auto count=std::filesystem::file_size(path);
   if(count<148||count>64*1024*1024)throw std::runtime_error("texture size");
   std::vector<unsigned char> bytes(static_cast<std::size_t>(count));
@@ -51,6 +69,36 @@ class D3D9PacketScene {
   if(!stream.read(reinterpret_cast<char*>(bytes.data()),bytes.size()))throw std::runtime_error("texture read");
   if(!ValidSourceDdsBytes(bytes))throw std::runtime_error("file texture contract");
   return bytes;
+ }
+ // Source bytes to upload for a mesh. Owned bytes are copied once here (upload
+ // only); a reference shares the owner's storage without any copy.
+ TextureSourceBytes ReadTexture(const Mesh& mesh) const {
+  if(mesh.textureWire==TextureWire::Referenced) {
+   auto bytes=ResolveReference(mesh);
+   if(!bytes)throw std::runtime_error("texture reference contract");
+   return bytes;
+  }
+  const auto& material=*mesh.material;
+  if(!material.sourceDdsBytes.empty()) {
+   CheckOwnedTexture(material);
+   return std::make_shared<const std::vector<unsigned char>>(material.sourceDdsBytes);
+  }
+  return std::make_shared<const std::vector<unsigned char>>(ReadTextureFile(material.sourceDds));
+ }
+ // Exact-bytes check against the slot's uploaded source without copying. A
+ // reference compares storage identity first; equal bytes behind a different
+ // storage adopt that storage so later frames stay a pointer compare.
+ bool SameTexture(const Mesh& mesh,TextureSourceBytes& uploaded) const {
+  if(mesh.textureWire==TextureWire::Referenced) {
+   auto bytes=ResolveReference(mesh);
+   if(!bytes)throw std::runtime_error("texture reference contract");
+   if(bytes==uploaded)return true;
+   if(*bytes!=*uploaded)return false;
+   uploaded=std::move(bytes);return true;
+  }
+  const auto& material=*mesh.material;
+  if(!material.sourceDdsBytes.empty()) {CheckOwnedTexture(material);return material.sourceDdsBytes==*uploaded;}
+  return ReadTextureFile(material.sourceDds)==*uploaded;
  }
  static constexpr DWORD fvf=D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_DIFFUSE|D3DFVF_TEX1;
  static DWORD word(const std::vector<unsigned char>& bytes,std::size_t offset){DWORD v;std::memcpy(&v,bytes.data()+offset,4);return v;}
@@ -79,7 +127,8 @@ class D3D9PacketScene {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet):std::optional<Vec3>{};
   if(anchoredLight_&&!fixedDirection)return E_INVALIDARG;
-  for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||(mesh.material->sourceDds.empty()&&mesh.material->sourceDdsBytes.empty()))return E_INVALIDARG;
+  for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||!TextureSourceDeclared(mesh)
+   ||(mesh.textureWire==TextureWire::Referenced&&!ResolveReference(mesh)))return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
    if(FAILED(CreateLegacyCutoutShader(device_,&cutoutShader_)))return E_FAIL;
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet)) {
@@ -98,7 +147,7 @@ class D3D9PacketScene {
   if(ready_ && refreshResources_) {
    bool compatible=packet.game==initial_.game && packet.meshes.size()==resources_.size();
    for(std::size_t i=0;compatible&&i<packet.meshes.size();++i)
-    compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && ReadTexture(*packet.meshes[i].material)==textureBytes_[i];
+    compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && SameTexture(packet.meshes[i],textureBytes_[i]);
    if(!compatible) {
     std::cout<<"live_source_resource_refresh frame="<<packet.frame<<" draws="<<packet.meshes.size()<<" temporal_identity_proven=false\n";
     // Diagnostic policy: discard/recreate incompatible resources, never freeze
@@ -108,11 +157,11 @@ class D3D9PacketScene {
   }
   if(!ready_) {
    initial_=packet;resources_.resize(packet.meshes.size());
-   for(const auto& mesh:packet.meshes)textureBytes_.push_back(ReadTexture(*mesh.material));
+   for(const auto& mesh:packet.meshes)textureBytes_.push_back(ReadTexture(mesh));
    for(std::size_t i=0;i<resources_.size();++i) {
     auto& r=resources_[i];r.indices=Triangles(packet.meshes[i]);if(r.indices.empty())return E_INVALIDARG;
     auto hr=device_->CreateVertexBuffer(UINT(r.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&r.vb,nullptr);
-    if(FAILED(hr))return hr;if(FAILED(hr=Texture(textureBytes_[i],&r.texture)))return hr;
+    if(FAILED(hr))return hr;if(FAILED(hr=Texture(*textureBytes_[i],&r.texture)))return hr;
    }
    remixapi_LightInfoDistantEXT distant{};distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
    // Old prepared artifacts use a reflected anchor. The live-derived packet is
@@ -136,7 +185,7 @@ class D3D9PacketScene {
    const auto& m=packet.meshes[i];const auto& old=initial_.meshes[i];
    if(!LegacyResourceCompatible(m,old))return E_INVALIDARG;
    // Capture directories may differ; resource reuse requires exact source bytes.
-   if(ReadTexture(*m.material)!=textureBytes_[i])return E_INVALIDARG;
+   if(!SameTexture(m,textureBytes_[i]))return E_INVALIDARG;
   }
   const auto& c=packet.camera;
   D3DMATRIX identity{};identity._11=identity._22=identity._33=identity._44=1;
@@ -179,7 +228,7 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight){
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false,TextureReferenceResolver resolveReference={}):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight),resolveReference_(std::move(resolveReference)){
   failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30;
  }
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;

@@ -2811,6 +2811,20 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	// D-214: the return worker receives and prepares returned images itself;
 	// a closed channel is handled here exactly as the synchronous receive did.
 	remakeReturnWorker.Start();remakeReturnWorker.Attach(&remakeAsyncChannel);
+	if(!remakeFrameBudgetConfigured) {
+		remakeFrameBudgetConfigured=true;
+		if(const auto* budget=std::getenv("FLYCAST_REMAKE_FRAME_BUDGET_MS");budget&&*budget) {
+			char* end=nullptr;const double ms=std::strtod(budget,&end);
+			if(!*end&&ms>0&&ms<1000)remakeFrameBudget.Configure(ms);
+		}
+		NOTICE_LOG(RENDERER,"Remake frame budget: budget_ms=%.3f enabled=%d policy=explicit-skip-or-defer-never-slower-emulation",
+			remakeFrameBudget.BudgetMs(),remakeFrameBudget.Enabled());
+	}
+	remakeFrameBudget.BeginFrame();
+	if(remakeFrameBudget.Enabled()&&++remakeFrameBudgetFrames%300==0)
+		NOTICE_LOG(RENDERER,"Remake frame budget report: frame=%llu budget_ms=%.3f credit_ms=%.3f feed_estimate_ms=%.3f evaluate_estimate_ms=%.3f feed_runs=%llu feed_skips=%llu evaluate_runs=%llu evaluate_deferrals=%llu",
+			(unsigned long long)metadata.frameId,remakeFrameBudget.BudgetMs(),remakeFrameBudget.Credit(),remakeFrameBudget.FeedEstimateMs(),remakeFrameBudget.EvaluateEstimateMs(),
+			(unsigned long long)remakeFrameBudget.FeedRuns(),(unsigned long long)remakeFrameBudget.FeedSkips(),(unsigned long long)remakeFrameBudget.EvaluateRuns(),(unsigned long long)remakeFrameBudget.EvaluateDeferrals());
 	drainRemakeReturns(metadata.frameId,producer);
 	const auto received=remakeReturnWorker.ChannelClosed()?RemakeChannelResult::Closed:RemakeChannelResult::Empty;
 	if(received==RemakeChannelResult::Closed) {
@@ -2825,6 +2839,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		remakeAsyncReturned.reset();remakeAsyncAcceptedOverlay={};
 	}
 	if(!remakeAsyncChannel.HasReturnCredit()){skip("credit","no-return-credit");return;}
+	// D-216 render-thread budget: an explicit skip, never slower emulation.
+	if(!remakeFrameBudget.AllowFeed()){remakeFrameBudget.CountFeedSkip();skip("feed","frame-budget");return;}
+	struct FeedCost {
+		RemakeFrameBudget& budget;std::chrono::steady_clock::time_point start=std::chrono::steady_clock::now();
+		~FeedCost(){budget.RecordFeed(std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count());}
+	} feedCost{remakeFrameBudget};
 	remakeAsyncTextures.BeginFrame(metadata.frameId,producer.epoch);
 	std::array<float,16> viewport{};const auto& matrix=matrices.GetNormalMatrix();
 	for(int c=0;c<4;++c)for(int r=0;r<4;++r)viewport[c*4+r]=matrix[c][r];
@@ -3016,6 +3036,14 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
 			&&activeNeuralMode!=static_cast<int>(NeuralMode::Dlss5Experimental)))return;
 	const auto& returned=*remakeAsyncReturned;
+	if(returned.frame<=remakeLastEvaluationAttempt)return; // Already attempted; nothing to budget.
+	// D-216: defer the evaluation to a later frame when the budget cannot
+	// cover its learned cost; the image stays pending until it ages out.
+	if(!remakeFrameBudget.AllowEvaluate()){remakeFrameBudget.CountEvaluateDeferral();return;}
+	struct EvaluateCost {
+		RemakeFrameBudget& budget;std::chrono::steady_clock::time_point start=std::chrono::steady_clock::now();
+		~EvaluateCost(){budget.RecordEvaluate(std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count());}
+	} evaluateCost{remakeFrameBudget};
 	static thread_local unsigned evaluateTimingCount=0;
 	RemakeCpuScope evaluateTiming("returned-evaluate",frame.frameId,evaluateTimingCount);
 	const auto* comparisonCapture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");
