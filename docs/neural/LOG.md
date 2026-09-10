@@ -43,7 +43,7 @@ the export assigns (the source stream carries pre-lit colors and no normals),
 lit per facet by the path tracer where the source's baked Gouraud colors hid
 the polygon count. `FLYCAST_REMAKE_SMOOTH_NORMALS=1` (launcher
 `--smooth-normals`, default off) averages face normals per source vertex
-within a 60 degree crease; not yet measured in a session. Selftest 868/0
+within a 60 degree crease. Measured in the fc075-abcap-d223-smooth-normals capture session (source 2602 against the flat-normal source 2603 of the fc075-abcap-d220-baseline capture): the per-facet shading steps on the legs, torso and arms are gone and surfaces read as curved; the polygon silhouette is unchanged because the geometry is unchanged. Skips in that session: 605 worker-busy native fallback, 11 no-return credit, 1 support change; capture runs are not performance-eligible. Look decision with the user. Selftest 868/0
 (automation, baseline, no-ngx), remake-sdk-contract 260/0, launcher tests 16.
 
 LOG793 D-220: the helper's first-packet startup, the translucent look, texture
