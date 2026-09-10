@@ -10,6 +10,11 @@
 #include "rend/neural/pvr_palette_binding.h"
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
+#include "rend/neural/remake_feed_worker.h"
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include "rend/neural/remake_temporal_scene.h"
 #include "rend/neural/remake_motion_stream.h"
 #include "rend/neural/source_observation.h"
@@ -460,6 +465,41 @@ int RunSelfTests()
 					&&dominant.LastSupportReport().sharedLast==23&&dominant.LastSupportReport().movingPoints==23
 					&&dominant.LastSupportReport().bases==2&&outNext.camera.position.x==0,
 					"an even split with lineage keeps the basis continuing the accepted support");
+			}
+			{
+				// D-211 feed worker: one pending job, explicit busy fallback, results and
+				// receipts in source order, publish failures reported as skips.
+				RemakeFeedWorker worker;worker.Start();
+				std::mutex gate;std::condition_variable release;bool go=false;std::atomic<unsigned> published{0};
+				const auto makeJob=[&](std::uint64_t frame,bool wait) {
+					RemakeFeedJob job;job.frame=frame;
+					job.publish=[&,wait](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&) {
+						if(wait){std::unique_lock<std::mutex> lock(gate);release.wait(lock,[&]{return go;});}
+						receipt={++published,7,9};return RemakeChannelResult::Published;
+					};
+					return job;
+				};
+				suite.Expect(worker.Dispatch(makeJob(1,true)),"feed worker accepts a job when idle");
+				for(int i=0;i<200&&worker.Idle();++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(!worker.Idle()&&!worker.Dispatch(makeJob(2,false))&&worker.BusySkips()==1,
+					"feed worker refuses a job while busy: explicit native fallback");
+				{std::lock_guard<std::mutex> lock(gate);go=true;}release.notify_all();
+				for(int i=0;i<2000&&worker.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(worker.Dispatch(makeJob(3,false)),"feed worker accepts again once idle");
+				for(int i=0;i<2000&&worker.Completed()<2;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				const auto results=worker.Drain();
+				suite.Expect(results.size()==2&&results[0].frame==1&&results[1].frame==3&&results[0].stage.empty()
+					&&results[0].receipt.sequence==1&&results[1].receipt.sequence==2&&results[0].overlay.identity.receipt.sequence==1,
+					"feed worker returns published results in source order with receipts");
+				RemakeFeedJob failing;failing.frame=4;
+				failing.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string& why){why="channel-busy-native-fallback";return RemakeChannelResult::Busy;};
+				suite.Expect(worker.Dispatch(std::move(failing)),"feed worker accepts a failing job");
+				for(int i=0;i<2000&&worker.Completed()<3;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				const auto failed=worker.Drain();
+				suite.Expect(failed.size()==1&&failed[0].stage=="publish"&&failed[0].error=="channel-busy-native-fallback",
+					"feed worker reports a publish failure as a skip");
+				worker.Stop();
+				suite.Expect(!worker.Dispatch(makeJob(5,false))&&worker.Drain().empty(),"stopped feed worker refuses jobs");
 			}
 			{
 				// A valid nearly unit source basis must not create motion when unchanged.

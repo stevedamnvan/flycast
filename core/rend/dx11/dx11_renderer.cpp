@@ -234,6 +234,7 @@ void DX11Renderer::Term()
 {
 	NOTICE_LOG(RENDERER, "DX11 renderer terminating");
 #ifdef FLYCAST_ENABLE_NEURAL
+	remakeFeedWorker.Stop();
 	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
@@ -2680,6 +2681,59 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			NOTICE_LOG(RENDERER,"Remake async skip: frame=%llu producer=%llu stage=%s reason=%s",
 				(unsigned long long)metadata.frameId,(unsigned long long)producer.ordinal,stage,reason.c_str());
 	};
+	// D-211: apply completed feed-worker results in source order before this
+	// frame's return handling. History retirement and logging stay here.
+	for(auto& fed:remakeFeedWorker.Drain()) {
+		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeFeedTimingCount<600) {
+			++remakeFeedTimingCount;
+			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+				(unsigned long long)fed.frame,fed.workerMs);
+		}
+		if(fed.viewCut) {
+			// A large single-frame basis jump with continuing support is a view cut
+			// inside the same arena. Keep the anchor and light; retire histories so
+			// nothing reprojects across the cut.
+			retireRemakeTemporalHistory();
+			NOTICE_LOG(RENDERER,"Remake anchor view cut: source=%llu generation=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu shared_last=%u history_retired=true anchor_retained=true",
+				(unsigned long long)fed.frame,fed.generation,fed.support.rotationFromLastDegrees,fed.support.translationFromLast,(unsigned long long)fed.support.framesSinceLast,unsigned(fed.support.sharedLast));
+		}
+		if(!fed.stage.empty()) {
+			if(const auto* diagnostics=std::getenv("FLYCAST_REMAKE_ASYNC_DIAGNOSTICS");diagnostics&&std::strcmp(diagnostics,"1")==0)
+				NOTICE_LOG(RENDERER,"Remake async skip: frame=%llu producer=%llu stage=%s reason=%s",
+					(unsigned long long)fed.frame,(unsigned long long)fed.producer.ordinal,fed.stage.c_str(),fed.error.c_str());
+			if(fed.stage=="camera-anchor"&&fed.support.rejected&&fed.error=="anchor-source-support-changed")
+				NOTICE_LOG(RENDERER,"Remake anchor support report: source=%llu reference_producer=%llu points=%u reference=%u shared_reference=%u last_accepted=%u shared_last=%u rotation_from_reference_deg=%.6g translation_from_reference=%.6g rotation_from_last_deg=%.6g translation_from_last=%.6g bases=%u",
+					(unsigned long long)fed.frame,(unsigned long long)fed.referenceOrdinal,
+					unsigned(fed.support.points),unsigned(fed.support.reference),unsigned(fed.support.sharedReference),
+					unsigned(fed.support.lastAccepted),unsigned(fed.support.sharedLast),
+					fed.support.rotationFromReferenceDegrees,fed.support.translationFromReference,
+					fed.support.rotationFromLastDegrees,fed.support.translationFromLast,unsigned(fed.support.bases));
+			if(fed.supportChanged) {
+				// Genuine source-view cut: the worker retired its fixed view; retire
+				// temporal/raster history, pending returns and presentation carry-over
+				// here, keeping the channel and helper.
+				retireRemakeHistory();
+				NOTICE_LOG(RENDERER,"Remake anchor support changed: in-session re-anchor generation=%u regenerated=%d history_reset=true presentation_retired=true channel_retained=true",
+					fed.generation,fed.regenerated);
+			}
+			continue;
+		}
+		auto overlay=std::move(fed.overlay);
+		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
+		if(fed.capturedPacket)overlay.captureScene=std::move(fed.capturedPacket);
+		remakeAsyncOverlaySources[fed.receipt.sequence%2]=std::move(overlay);
+		if(fed.anchored)
+			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d offscreen_accepted=%u offscreen_max_pixels=%.6g offscreen_max_effect_pixels=%.6g offscreen_max_tangential_pixels=%.6g offscreen_max_diagonals=%.6g",
+				(unsigned long long)fed.frame,(unsigned long long)fed.referenceOrdinal,fed.generation,
+				fed.origin.x,fed.origin.y,fed.origin.z,fed.cameraPosition.x,fed.cameraPosition.y,fed.cameraPosition.z,fed.projectionMaxPixels,
+				unsigned(fed.support.points),unsigned(fed.support.sharedReference),unsigned(fed.support.sharedLast),
+				fed.support.rotationFromLastDegrees,fed.support.translationFromLast,(unsigned long long)fed.support.framesSinceLast,
+				unsigned(fed.support.bases),unsigned(fed.support.movingPoints),int(fed.support.lineageSelected),
+				unsigned(fed.projection.offscreenAccepted),fed.projection.maxPixels,fed.projection.maxEffect,fed.projection.maxTangential,fed.projection.maxDiagonals);
+		NOTICE_LOG(RENDERER,"Remake async publish: frame=%llu producer=%llu sequence=%llu bytes=%u digest=%llu capture=false wait=false presentation=false",
+			(unsigned long long)fed.frame,(unsigned long long)fed.producer.ordinal,(unsigned long long)fed.receipt.sequence,
+			fed.receipt.bytes,(unsigned long long)fed.receipt.digest);
+	}
 	if(!producer.Available()||metadata.predominantly2D||metadata.gameId!="T1401N"
 		||metadata.renderWidth!=640||metadata.renderHeight!=480)return;
 	if(const auto* start=std::getenv("FLYCAST_REMAKE_ASYNC_START_PRODUCER");start&&*start) {
@@ -2807,46 +2861,8 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(!packetReady){skip("packet",error);return;}
 	const auto* anchorOption=std::getenv("FLYCAST_REMAKE_CAMERA_ANCHOR");
 	const bool anchored=anchorOption&&std::strcmp(anchorOption,"1")==0;
-	auto proposedAnchor=remakeCameraAnchor;
-	{
-		static thread_local unsigned count=0;
-		RemakeCpuScope timing("camera-anchor",metadata.frameId,count);
-		if(anchored&&!proposedAnchor.Apply(snapshot,scene,packet,error)) {
-			skip("camera-anchor",error);
-			if(const auto& support=proposedAnchor.LastSupportReport();support.rejected&&error=="anchor-source-support-changed")
-				NOTICE_LOG(RENDERER,"Remake anchor support report: source=%llu reference_producer=%llu points=%u reference=%u shared_reference=%u last_accepted=%u shared_last=%u rotation_from_reference_deg=%.6g translation_from_reference=%.6g rotation_from_last_deg=%.6g translation_from_last=%.6g scope=diagnostic-camera-embedded-anchor-not-world-reconstruction",
-					(unsigned long long)metadata.frameId,(unsigned long long)proposedAnchor.ReferenceOrdinal(),
-					unsigned(support.points),unsigned(support.reference),unsigned(support.sharedReference),
-					unsigned(support.lastAccepted),unsigned(support.sharedLast),
-					support.rotationFromReferenceDegrees,support.translationFromReference,
-					support.rotationFromLastDegrees,support.translationFromLast);
-			if(managed&&std::strcmp(managed,"1")==0&&error=="anchor-source-support-changed") {
-				// Genuine source-view cut (measured: tens of degrees and units in one
-				// frame). Retire the fixed view, temporal/raster history and pending
-				// returns in-session; keep the channel and helper. The next accepted
-				// source starts a labeled anchor generation with a distinct origin.
-				remakeCameraAnchor=std::move(proposedAnchor);
-				const bool regenerated=remakeCameraAnchor.Reanchor();
-				retireRemakeHistory();
-				NOTICE_LOG(RENDERER,"Remake anchor support changed: in-session re-anchor generation=%u regenerated=%d history_reset=true presentation_retired=true channel_retained=true",
-					remakeCameraAnchor.Generation(),regenerated);
-			}
-			return;
-		}
-		if(anchored) {
-			// A large single-frame basis jump with continuing support is a view cut
-			// inside the same arena (measured cuts: 53..159 degrees; smooth motion
-			// at most 5 degrees / 0.74 units, LOG766). Keep the anchor and light;
-			// retire histories so nothing reprojects across the cut.
-			const auto& support=proposedAnchor.LastSupportReport();
-			if(support.available&&!support.rejected&&(support.rotationFromLastDegrees>20||support.translationFromLast>1)) {
-				retireRemakeTemporalHistory();
-				NOTICE_LOG(RENDERER,"Remake anchor view cut: source=%llu generation=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu shared_last=%u history_retired=true anchor_retained=true",
-					(unsigned long long)metadata.frameId,proposedAnchor.Generation(),support.rotationFromLastDegrees,support.translationFromLast,(unsigned long long)support.framesSinceLast,unsigned(support.sharedLast));
-			}
-		}
-	}
-	std::shared_ptr<RemakeTemporalScene> temporalScene;
+	// The camera anchor is applied by the feed worker (D-211), off this thread.
+	bool temporalRequested=false;
 	const auto* temporalOption=std::getenv("FLYCAST_REMAKE_TEMPORAL_PREPARE");
 	if(temporalOption&&std::strcmp(temporalOption,"1")==0) {
 		const auto* locked=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
@@ -2859,8 +2875,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(!anchored||!neuralOption||std::strcmp(neuralOption,"1")!=0||((locked&&*locked)&&!boundedReplay)) {
 			skip("temporal-source","requires-anchored-live-neural-source");return;
 		}
-		temporalScene=CaptureRemakeTemporalScene(packet,error);
-		if(!temporalScene){skip("temporal-source",error);return;}
+		temporalRequested=true; // Captured by the feed worker from the anchored packet.
 	}
 	if(currentNeuralSourceFrameId!=packet.frame||currentNeuralGuidanceFrameId!=packet.frame){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
@@ -2885,34 +2900,17 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
 			(unsigned long long)packet.frame,unsigned(overlay.alphaEffectSelections.size()));
 	}
-	RemakeChannelReceipt receipt;
-	const auto result=[&] {
-		static thread_local unsigned count=0;
-		RemakeCpuScope timing("channel-publish",metadata.frameId,count);
-		return remakeAsyncChannel.PublishForReturn(packet,receipt,error);
-	}();
-	if(result!=RemakeChannelResult::Published)skip("publish",error);
-	if(result==RemakeChannelResult::Published) {
-		if(temporalScene){temporalScene->receipt=receipt;overlay.temporalScene=std::move(temporalScene);}
-		if(anchored) {
-			remakeCameraAnchor=std::move(proposedAnchor);
-			const auto& support=remakeCameraAnchor.LastSupportReport();
-			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d offscreen_accepted=%u offscreen_max_pixels=%.6g offscreen_max_effect_pixels=%.6g offscreen_max_tangential_pixels=%.6g offscreen_max_diagonals=%.6g",
-				(unsigned long long)packet.frame,(unsigned long long)remakeCameraAnchor.ReferenceOrdinal(),remakeCameraAnchor.Generation(),
-				remakeCameraAnchor.Origin().x,remakeCameraAnchor.Origin().y,remakeCameraAnchor.Origin().z,
-				packet.camera.position.x,packet.camera.position.y,packet.camera.position.z,remakeCameraAnchor.MaximumProjectionError(),
-				unsigned(support.points),unsigned(support.sharedReference),unsigned(support.sharedLast),
-				support.rotationFromLastDegrees,support.translationFromLast,(unsigned long long)support.framesSinceLast,unsigned(support.bases),unsigned(support.movingPoints),int(support.lineageSelected),
-				unsigned(remakeCameraAnchor.LastProjectionReport().offscreenAccepted),remakeCameraAnchor.LastProjectionReport().maxPixels,remakeCameraAnchor.LastProjectionReport().maxEffect,
-				remakeCameraAnchor.LastProjectionReport().maxTangential,remakeCameraAnchor.LastProjectionReport().maxDiagonals);
-		}
-		if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)
-			overlay.captureScene=std::make_shared<remake::Packet>(std::move(packet));
-		overlay.identity.receipt=receipt;remakeAsyncOverlaySources[receipt.sequence%2]=std::move(overlay);
-		NOTICE_LOG(RENDERER,"Remake async publish: frame=%llu producer=%llu sequence=%llu bytes=%u digest=%llu capture=false wait=false presentation=false",
-			(unsigned long long)packet.frame,(unsigned long long)producer.ordinal,(unsigned long long)receipt.sequence,
-			receipt.bytes,(unsigned long long)receipt.digest);
-	}
+	// D-211: anchor, temporal capture, serialization and digest run on the feed
+	// worker. A busy worker is an explicit native fallback for this source.
+	remakeFeedWorker.Start();
+	RemakeFeedJob job;job.frame=packet.frame;job.producer=producer;
+	job.snapshot=std::move(snapshot);job.scene=std::move(scene);job.packet=std::move(packet);job.overlay=std::move(overlay);
+	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
+	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
+	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
+		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
+	};
+	if(!remakeFeedWorker.Dispatch(std::move(job)))skip("feed","worker-busy-native-fallback");
 	} catch(const std::exception& error) {
 		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async feed stopped: %s; existing presentation retained",error.what());

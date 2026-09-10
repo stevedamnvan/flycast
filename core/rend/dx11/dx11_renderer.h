@@ -39,6 +39,7 @@
 #include "rend/neural/remake_presentation.h"
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_camera_anchor.h"
+#include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_motion_stream.h"
 #include "remake_motion_raster.h"
 #include <array>
@@ -319,7 +320,8 @@ protected:
 	flycast::rend::neural::RemakeTextureCache remakeAsyncTextures;
 	std::shared_ptr<const flycast::rend::neural::MaterialPaletteSnapshot> remakePaletteUpload;
 	flycast::rend::neural::RemakeLiveChannel remakeAsyncChannel;
-	flycast::rend::neural::RemakeCameraAnchor remakeCameraAnchor;
+	flycast::rend::neural::RemakeFeedWorker remakeFeedWorker; // Owns the camera anchor (D-211).
+	unsigned remakeFeedTimingCount=0;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;
 	flycast::rend::neural::RemakeMotionRaster remakeMotionRaster;
 	flycast::rend::neural::RemakeRasterOutput remakeAcceptedRaster;
@@ -346,7 +348,7 @@ protected:
 	unsigned remakeEffectReplayAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
-		remakeCameraAnchor.Reset();
+		remakeFeedWorker.ResetAnchor();
 		retireRemakeHistory();
 	}
 	// Retire every cross-frame history and presentation carry-over without

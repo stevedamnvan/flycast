@@ -1,5 +1,21 @@
 # Neural rendering decisions
 
+## D-211: scene feed off the render thread with explicit fallback
+
+The600-frame gate requires that a slow lane fall back explicitly rather than
+slow emulation. The measured combined lane spent about37 ms per frame of
+render-thread CPU in the scene feed (LOG780), mostly serialization, digest and
+anchoring. The feed is therefore split: device-bound stages stay on the render
+thread; anchor, temporal capture, serialization and digest run on one worker
+with a single pending job, and a busy worker is a labeled native fallback for
+that source. The worker owns the camera anchor so support lineage stays
+sequential; results are drained on the render thread in source order and every
+history retirement and log line keeps its previous meaning. The channel's host
+bookkeeping is locked; the long serialization is not. This changes no
+acceptance threshold, no digest contract and no archive; it changes where the
+work runs. Remaining render-thread cost (returned-image evaluation, packet
+build) and the external consumer's return rate are separate, recorded limits.
+
 ## D-210: bounded on-screen effect for vertices far outside the viewport
 
 Sessions d and h left frames rejected by the exact projection guard only for

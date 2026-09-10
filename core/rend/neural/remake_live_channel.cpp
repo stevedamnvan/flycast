@@ -99,12 +99,13 @@ struct RemakeLiveChannel::Impl {
 };
 RemakeLiveChannel::RemakeLiveChannel()=default;
 RemakeLiveChannel::~RemakeLiveChannel()=default;
-void RemakeLiveChannel::Close(){impl_.reset();}
-bool RemakeLiveChannel::IsOpen()const noexcept{return bool(impl_);}
+void RemakeLiveChannel::Close(){std::lock_guard<std::mutex> lock(mutex_);impl_.reset();}
+bool RemakeLiveChannel::IsOpen()const noexcept{std::lock_guard<std::mutex> lock(mutex_);return bool(impl_);}
 bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& error) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(impl_){error="channel-already-open";return false;}
  std::wstring path;if(!name(token,path)){error="channel-token";return false;}
- auto p=std::make_unique<Impl>();SetLastError(ERROR_SUCCESS);
+ auto p=std::make_shared<Impl>();SetLastError(ERROR_SUCCESS);
  p->mapping=CreateFileMappingW(INVALID_HANDLE_VALUE,nullptr,PAGE_READWRITE,0,DWORD(sizeof(Shared)),path.c_str());
  if(!p->mapping||GetLastError()==ERROR_ALREADY_EXISTS){error="channel-create-or-existing";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
@@ -114,9 +115,10 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  InterlockedExchange(&p->shared->ready,1);impl_=std::move(p);error.clear();return true;
 }
 bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& error) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(impl_){error="channel-already-open";return false;}
  std::wstring path;if(!name(token,path)){error="channel-token";return false;}
- auto p=std::make_unique<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
+ auto p=std::make_shared<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
  if(!p->mapping){error="channel-consumer-unavailable";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=4){error="channel-header";return false;}
@@ -127,6 +129,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  impl_=std::move(p);error.clear();return true;
 }
 bool RemakeLiveChannel::HasReturnCredit()const noexcept {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||impl_->owner||!impl_->live()||impl_->sequence==UINT64_MAX)return false;
  const auto& pending=impl_->sources[(impl_->sequence+1)%2];
  if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence)return false;
@@ -135,17 +138,21 @@ bool RemakeLiveChannel::HasReturnCredit()const noexcept {
  return false;
 }
 RemakeChannelResult RemakeLiveChannel::PublishForReturn(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
- if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
- if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
- if(impl_->sequence!=UINT64_MAX) {
-  const auto& pending=impl_->sources[(impl_->sequence+1)%2];
-  if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence) {
-   error="channel-return-credit-busy";return RemakeChannelResult::Busy;
+ {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
+  if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
+  if(impl_->sequence!=UINT64_MAX) {
+   const auto& pending=impl_->sources[(impl_->sequence+1)%2];
+   if(pending.frame&&pending.receipt.sequence>impl_->returnedSequence) {
+    error="channel-return-credit-busy";return RemakeChannelResult::Busy;
+   }
   }
  }
  return Publish(packet,receipt,error);
 }
 unsigned RemakeLiveChannel::ExpireReturns(std::uint64_t currentFrame,const ProducerIdentity& current,std::uint64_t maxAge) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||impl_->owner||!currentFrame||!current.Available())return 0;
  unsigned expired=0;
  for(auto& source:impl_->sources) {
@@ -157,25 +164,39 @@ unsigned RemakeLiveChannel::ExpireReturns(std::uint64_t currentFrame,const Produ
  return expired;
 }
 RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,RemakeChannelReceipt& receipt,std::string& error) {
- if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
- auto& p=*impl_;if(!p.live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
- if(p.sequence==UINT64_MAX || (p.sequence && (packet.frame<=p.frame || packet.producer.epoch!=p.producer.epoch
-  ||packet.producer.ordinal<=p.producer.ordinal||packet.producer.cycle<p.producer.cycle))) {
-  error="channel-source-order";return RemakeChannelResult::Invalid;
+ const auto ordered=[&](const Impl& p) {
+  return p.sequence!=UINT64_MAX && !(p.sequence && (packet.frame<=p.frame || packet.producer.epoch!=p.producer.epoch
+   ||packet.producer.ordinal<=p.producer.ordinal||packet.producer.cycle<p.producer.cycle));
+ };
+ std::shared_ptr<Impl> held;
+ {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if(!impl_||impl_->owner){error="channel-publisher-role";return RemakeChannelResult::Invalid;}
+  if(!impl_->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
+  if(!ordered(*impl_)){error="channel-source-order";return RemakeChannelResult::Invalid;}
+  held=impl_;
  }
- Slot* slot=nullptr;for(auto& candidate:p.shared->slots)if(InterlockedCompareExchange(&candidate.state,writingSlot,freeSlot)==freeSlot){slot=&candidate;break;}
+ Slot* slot=nullptr;for(auto& candidate:held->shared->slots)if(InterlockedCompareExchange(&candidate.state,writingSlot,freeSlot)==freeSlot){slot=&candidate;break;}
  if(!slot){error="channel-busy-native-fallback";return RemakeChannelResult::Busy;}
  SlotGuard guard{slot};
  try {
+  // Serialization and digest run without the lock; the mapping stays alive
+  // through `held` even if the render thread closes the channel meanwhile.
   OutputBuffer buffer(slot->payload);std::ostream output(&buffer);
   if(!SerializeRemakeViewPacket(output,packet,error))return RemakeChannelResult::Invalid;
-  slot->bytes=std::uint32_t(buffer.size());slot->sequence=p.sequence+1;slot->digest=digest(slot->payload,slot->bytes);
+  const auto bytes=std::uint32_t(buffer.size());const auto hash=digest(slot->payload,bytes);
+  std::lock_guard<std::mutex> lock(mutex_);
+  if(impl_!=held||!held->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
+  auto& p=*held;
+  if(!ordered(p)){error="channel-source-order";return RemakeChannelResult::Invalid;}
+  slot->bytes=bytes;slot->sequence=p.sequence+1;slot->digest=hash;
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;p.frame=packet.frame;p.producer=packet.producer;
   p.sources[p.sequence%2]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
   guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);error.clear();return RemakeChannelResult::Published;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }
 RemakeChannelResult RemakeLiveChannel::Receive(remake::Packet& output,RemakeChannelReceipt& receipt,std::string& error) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||!impl_->owner){error="channel-consumer-role";return RemakeChannelResult::Invalid;}
  auto& p=*impl_;if(!p.live()){error="channel-closed";return RemakeChannelResult::Closed;}
  Slot* slot=nullptr;
@@ -201,6 +222,7 @@ bool sameReceipt(const RemakeChannelReceipt& a,const RemakeChannelReceipt& b) {
 }
 }
 RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& image,std::string& error) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||!impl_->owner){error="return-consumer-role";return RemakeChannelResult::Invalid;}
  auto& p=*impl_;auto& s=p.shared->images[image.source.sequence%2];
  if(!p.live()){error="return-closed";return RemakeChannelResult::Closed;}
@@ -231,6 +253,7 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  error.clear();return RemakeChannelResult::Published;
 }
 RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,std::string& error) {
+ std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||impl_->owner){error="return-publisher-role";return RemakeChannelResult::Invalid;}
  auto& p=*impl_;
  // One producer and one receiver. Ready slots are immutable until this receiver

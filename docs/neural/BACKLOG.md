@@ -111,8 +111,15 @@ pixel mismatches; public/combined300 matched frames, HUD mismatch0). The
 still does not establish temporal-history/NGX-input identity, external output
 provenance, performance or a perceptual winner. Next operational action: user
 review of the300-frame moving artifacts (four-lane-review-300-a and
-public-vs-combined-300-a), then the600-frame performance/timing gates on the
-performance-eligible lanes without capture. Separate items:
+public-vs-combined-300-a). The600-frame gate measurement (LOG780) found the
+combined lane slowing emulation to about16 fps; D-211 (LOG781) moved the feed
+off the render thread, bringing it to about25 fps with explicit fallbacks. Next
+operational action: attribute and move the remaining render-thread cost
+(returned-image evaluation11.6 ms p50 including driver waits; packet build and
+texture reads4.6 ms) so emulation matches the native control within1 percent,
+then re-measure the600-frame gate; record the external consumer's return rate
+(about20 per second) as the combined-share limit rather than lowering the99
+percent criterion. Separate items:
 exact double-precision frustum clipping of near-plane vertices far outside the
 viewport (topology change), round-end overlay protection (FC-055).
 World-consistent lighting/camera across cuts stays with M2-camera; do not

@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_scene.h"
 #include <memory>
+#include <mutex>
 namespace flycast::rend::neural {
 // Opt-in launcher-owned control mapping; allocates a new token, never reclaims one.
 bool RequestRemakeSession(const std::string& root,std::string& token,std::string& error);
@@ -15,8 +16,11 @@ struct RemakeReturnedImage {
 };
 // Windows, one producer/consumer, two bounded slots. No waits or file transport
 // on Publish; busy means skip/native fallback. Not a neural acceptance history.
+// Host-side bookkeeping is mutex-protected so a feed worker may publish while
+// the render thread receives, expires and closes; the long serialization and
+// digest run outside the lock on a mapping kept alive by the publisher.
 class RemakeLiveChannel {
- struct Impl;std::unique_ptr<Impl> impl_;
+ struct Impl;std::shared_ptr<Impl> impl_;mutable std::mutex mutex_;
 public:
  RemakeLiveChannel();~RemakeLiveChannel();
  RemakeLiveChannel(const RemakeLiveChannel&)=delete;

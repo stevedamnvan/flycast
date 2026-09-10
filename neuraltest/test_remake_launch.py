@@ -106,6 +106,10 @@ class LaunchPreflightTests(unittest.TestCase):
         default = prepare(self.args)
         self.assertEqual(default[3][default[3].index('--input-replay')+1], 'yes')
         self.assertEqual(default[3][default[3].index('--timeout-ms')+1], '180000')
+        self.assertNotIn('FLYCAST_REMAKE_CPU_TIMING', default[2])
+        self.args.cpu_timing = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
+        self.args.cpu_timing = False
         self.assertNotIn('--source-wait-seconds', default[4])
         self.args.manual_input = True
         _, _, env, host, helper = prepare(self.args)

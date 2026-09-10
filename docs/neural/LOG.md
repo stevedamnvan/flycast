@@ -1,5 +1,43 @@
 # Neural rendering evidence log
 
+LOG781 implementation after the timing measurement: D-211 feed worker. The
+render thread keeps the device-bound stages (snapshot, view scene, texture
+reads, packet build, overlay copy) and hands anchor, temporal capture,
+serialization and digest to one worker thread with a single pending job; a busy
+worker is an explicit `worker-busy-native-fallback` skip, never a wait. The
+worker owns the camera anchor so lineage stays sequential; results are drained
+on the render thread in source order, which applies re-anchor/view-cut history
+retirement and all logging as before. RemakeLiveChannel host bookkeeping is
+mutex-protected with the serialization and digest outside the lock on a mapping
+kept alive by the publisher. Replay run fc067-perf-feedworker-a (same
+settings): present interval p50 39.4 ms (61.6 before),1200 emulated frames in
+48.1 s (74.4 before),957 publishes,958 returns, no rejected return,2
+worker-busy fallbacks,34 return-credit-busy skips,1097 of1200 presents
+combined,0 identity faults, resource objects137 to182 (+45, one-time after the
+first accept), VRAM growth388 MB. Not passing: emulation still runs at about25
+fps against the19 ms native control; the remaining render-thread cost is the
+returned-image evaluation (11.6 ms p50 including driver waits) and packet build
+(4.6 ms). Also recorded: the helper returned about20 images per second, so at
+full emulation speed the combined-presentation share cannot approach99 percent
+with this consumer on this GPU; that limit belongs to the external consumer, not
+to a criterion to lower. Selftest813/0 (feed worker fixtures: idle accept, busy
+fallback, ordered results and receipts, publish failure as skip, stopped worker
+refuses), remake-sdk-contract260/0, launcher tests16 with `--cpu-timing`.
+
+LOG780 first600-frame gate measurement on the combined lane at HEAD:
+fc067-perf-combined-a (replay,2100 warmup,1200 measured, no capture, launcher
+exit0):1101 of1200 presents combined (after the120-frame warmup about99
+percent), zero identity/repeat/gap faults, but present interval p50 61.6 ms and
+1200 emulated frames in74.4 s, about16 fps against the native control's19 ms,
+so the lane slowed emulation instead of falling back. Timing run
+fc067-perf-combined-timing-a with the new launcher `--cpu-timing` option
+(diagnostic, never performance evidence) attributes the render-thread cost per
+frame: scene feed36.8 ms p50 (channel publish16.6 with byte-serial FNV digest
+over12.6 MB, camera anchor5.6, packet build4.6, snapshot1.4, view scene1.3)
+plus returned-image evaluation11.6 ms. The digest algorithm is persisted in the
+locked archives' receipts and verified on replay, so it is not changed; the
+architecture is (LOG781).
+
 LOG779 remaining300-frame lanes of the four-lane matrix, sources2400..2699.
 Native PVR public-DLAA lane attempt a (hooks-disabled host, same replay,
 --start-producer2399) stopped at240 captures2400..2639 although the harness
