@@ -353,10 +353,16 @@ protected:
 	// touching the anchor, channel or texture cache: used at an in-session
 	// anchor generation change so no pre-cut image is presented after the cut.
 	void retireRemakeHistory() {
-		remakeTemporalHistory.Reset();
-		remakeMotionRaster={};remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakePreEffectTexture.reset();
 		remakeCurrentEffects.reset();
+		retireRemakeTemporalHistory();
+	}
+	// Retire temporal/raster history, pending returns and presentation carry-over
+	// but keep the current frame's own native effects: used when the anchored
+	// basis jumps inside a continuing arena, so nothing reprojects across a cut.
+	void retireRemakeTemporalHistory() {
+		remakeTemporalHistory.Reset();
+		remakeMotionRaster={};remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();

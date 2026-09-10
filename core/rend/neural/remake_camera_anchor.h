@@ -24,6 +24,7 @@ public:
   std::size_t points=0,reference=0,sharedReference=0,lastAccepted=0,sharedLast=0;
   double rotationFromReferenceDegrees=0,translationFromReference=0;
   double rotationFromLastDegrees=0,translationFromLast=0;
+  std::size_t bases=0,movingPoints=0; // Distinct rigid bases this frame; points outside the dominant one.
   bool available=false,rejected=false;
  };
 private:
@@ -114,7 +115,11 @@ public:
    if(used.count(t.serial))transforms.emplace(t.serial,&t);
   }
   if(transforms.size()!=used.size())return fail("anchor-observation-missing");
-  Matrix current{};bool have=false;std::set<Point> points;
+  // Group exact input points by rigid basis. The dominant basis supplies the
+  // observed view; other bases are moving objects whose vertices are already
+  // in view space and embed exactly like the rest, but never anchor support.
+  // A split without a clear majority stays ambiguous (LOG767).
+  std::map<Matrix,std::set<Point>> bases;
   for(const auto& entry:transforms) {
    const auto& t=*entry.second;
    if(t.pc!=0x8c03a9ea||t.input[3]!=1)return fail("anchor-source-domain");
@@ -122,12 +127,26 @@ public:
    const double scales[]={scene.focalX,-scene.focalY,1.};
    for(unsigned r=0;r<3;++r)for(unsigned c=0;c<4;++c)m[r*4+c]=double(t.matrix[c*4+r])/scales[r];
    if(!rigid(m))return fail("anchor-nonrigid-source");
-   if(have&&m!=current)return fail("anchor-ambiguous-source-basis");
-   current=m;have=true;
-   Point key{};std::memcpy(key.data(),t.input.data(),sizeof(key));points.insert(key);
+   if(bases.size()>=64&&!bases.count(m))return fail("anchor-ambiguous-source-basis");
+   Point key{};std::memcpy(key.data(),t.input.data(),sizeof(key));bases[m].insert(key);
   }
+  if(bases.empty())return fail("anchor-insufficient-source-support");
+  std::size_t runnerUp=0,total=0;
+  std::map<Matrix,std::set<Point>>::const_iterator dominant=bases.end();
+  for(auto it=bases.begin();it!=bases.end();++it) {
+   total+=it->second.size();
+   if(dominant==bases.end()||it->second.size()>dominant->second.size()) {
+    if(dominant!=bases.end())runnerUp=(std::max)(runnerUp,dominant->second.size());
+    dominant=it;
+   } else runnerUp=(std::max)(runnerUp,it->second.size());
+  }
+  if(bases.size()>1&&dominant->second.size()<2*runnerUp)return fail("anchor-ambiguous-source-basis");
+  const Matrix current=dominant->first;const bool have=true;
+  std::set<Point> points=dominant->second;
+  const std::size_t movingPoints=total-points.size();
   if(!have||points.size()<16)return fail("anchor-insufficient-source-support");
   SupportReport support{};
+  support.bases=bases.size();support.movingPoints=movingPoints;
   if(first.Available()) {
    std::size_t shared=0;for(const auto& v:points)shared+=referencePoints.count(v);
    support.available=true;
@@ -136,7 +155,12 @@ public:
    for(const auto& v:points)support.sharedLast+=lastPoints.count(v);
    relative(reference,current,support.rotationFromReferenceDegrees,support.translationFromReference);
    relative(lastBasis,current,support.rotationFromLastDegrees,support.translationFromLast);
-   if(shared<16||shared*2<(std::min)(points.size(),referencePoints.size())) {
+   // Source-qualified lineage: exact object-space input points shared with the
+   // last accepted set, chained back to the fixed reference. The first-view
+   // snapshot alone rejected ordinary visibility drift inside one arena
+   // (LOG766). Thresholds are unchanged; the basis stays relative to the
+   // reference, so the coordinate relation is still the same rigid chain.
+   if(support.sharedLast<16||support.sharedLast*2<(std::min)(points.size(),lastPoints.size())) {
     support.rejected=true;report=support;
     return fail("anchor-source-support-changed");
    }
@@ -184,6 +208,8 @@ public:
   embedded.omissions.push_back("observed common source anchor; static world identity and physical scale unproven");
   if(generation)embedded.omissions.push_back("re-anchored generation "+std::to_string(generation)
    +" after rejected source support; origin is the retired view's camera-relative position, not world identity");
+  if(bases.size()>1)embedded.omissions.push_back(std::to_string(movingPoints)+" source points under "+std::to_string(bases.size()-1)
+   +" additional rigid bases (moving objects) are embedded by view position only and excluded from anchor support");
   double maximum=0;
   for(auto& mesh:embedded.meshes)for(auto& v:mesh.vertices) {
    const auto input=v.position;
@@ -294,6 +320,7 @@ public:
   }
   const auto checked=remake::ReadyForDiagnosticAdapter(embedded,embedded.frame,embedded.game,true);
   if(!checked.ok){error=checked.reason;return false;}
+  if(!support.available){support.bases=bases.size();support.movingPoints=movingPoints;}
   lastPoints=points;lastBasis=current;report=support;
   if(!first.Available()){first=p;reference=current;referencePoints=std::move(points);origin=candidateOrigin;}
   last=p;lastFrame=source.frame;projectionError=maximum;packet=std::move(embedded);error.clear();return true;

@@ -105,11 +105,18 @@ class LaunchPreflightTests(unittest.TestCase):
     def test_manual_input_is_explicit_and_not_replay_gated(self):
         default = prepare(self.args)
         self.assertEqual(default[3][default[3].index('--input-replay')+1], 'yes')
+        self.assertEqual(default[3][default[3].index('--timeout-ms')+1], '180000')
+        self.assertNotIn('--source-wait-seconds', default[4])
         self.args.manual_input = True
-        _, _, env, host, _ = prepare(self.args)
+        _, _, env, host, helper = prepare(self.args)
         self.assertEqual(host[host.index('--input-replay')+1], 'no')
         self.assertEqual(env['FLYCAST_REMAKE_ASYNC_START_PRODUCER'], '0')
-        self.assertEqual(host[host.index('--timeout-ms')+1], '180000')
+        self.assertEqual(host[host.index('--timeout-ms')+1], '420000')
+        self.assertEqual(host[host.index('--warmup')+1], '3000')
+        self.assertEqual(host[host.index('--frames')+1], '9000')
+        self.assertEqual(helper[-2:], ['--source-wait-seconds', '180'])
+        self.assertEqual(helper.count('--diagnostic-capture-budget'), 1)
+        self.assertLess(helper.index('--diagnostic-capture-budget'), helper.index('--source-wait-seconds'))
 
     def test_remix_only_requires_capture(self):
         self.args.remix_only = True

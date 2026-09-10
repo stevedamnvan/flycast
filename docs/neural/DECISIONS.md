@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-208: lineage-based support, in-place view cuts and resilient sessions
+
+Manual play (LOG766-770) showed that the first-view support snapshot rejects
+ordinary visibility drift inside one arena, that five seconds without a3D
+source is too short for2D screens between rounds, and that one rejected return
+must not end a session. Support lineage is therefore checked against the last
+accepted set with unchanged thresholds, chained back to the fixed reference; a
+large single-frame basis jump with continuing support retires histories only;
+several rigid bases in one frame anchor on the dominant one with the rest labeled
+as moving objects, while an even split stays ambiguous; session workers tolerate
+60 seconds idle and survive a bounded number of rejected returns. None of this
+recovers a world camera, relaxes the exact projection/depth guards, or promotes
+manual sessions to performance evidence. Open: basis selection by point lineage
+on stages with two large rigid groups, float embedding precision on far off-
+screen vertices, returned depth one rounding step above1, and round-end overlay
+protection.
+
 ## D-207: genuine source-view cuts re-anchor in-session, never by lowering support
 
 The source3099 boundary is a measured cut: 81 degrees and13.5 anchored units in

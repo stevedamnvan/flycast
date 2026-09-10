@@ -83,13 +83,17 @@ that matrix ahead of live scene continuity work.
 **Result (LOG759-763, D-207):** the boundary is a genuine cut; reset semantics are
 retained but performed in-session (labeled anchor generation, history/presentation
 retired, helper correspondence and anchored light reset explicitly). Native
-fallback per cut: five presented frames instead of about120. Next operational
-action: exercise repeated cuts (round start, KO and ring-out transitions) in a
-longer bounded or manual-input managed session, verifying one helper generation,
-an anchor_generation_change per cut and continued returns; then resume the
-remaining public-DLAA/native300-frame lanes of the four-lane matrix. World-
-consistent lighting/camera across cuts stays with M2-camera; do not relabel the
-generation origin as world truth.
+fallback per cut: five presented frames instead of about120. Manual sessions
+with the player (LOG766-770, D-208) then drove lineage-based support, in-place
+view cuts, dominant-basis anchoring, idle tolerance and resilient returns; session
+d ran one helper for five minutes with3030 returns. Next operational action:
+select the anchoring basis by exact point lineage with the last accepted set on
+stages with two large rigid groups (666 ambiguous frames in session d), then
+measure the far off-screen projection precision failures (637 frames, p90 0.117
+pixels) without relaxing the guard, and define a labeled policy for returned
+depth one rounding step above1. Then resume the remaining public-DLAA/native
+300-frame lanes. World-consistent lighting/camera across cuts stays with
+M2-camera; do not relabel the generation origin as world truth.
 
 Historical operational action (LOG651): save the long-capture/review checkpoint,
 then address material delivery causing gameplay source gaps. All300 captures

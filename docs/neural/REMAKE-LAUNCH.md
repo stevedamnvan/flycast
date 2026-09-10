@@ -16,13 +16,16 @@ Without `--run`, this only validates paths and prints the command plan. Append
 `--run` to execute. `--anchored-light` is optional and fixes the authored light's
 first direction throughout the anchored sequence; it does not recover game light.
 
-Append `--manual-input` to disable scripted input and use your controller during
-this bounded session. This also removes the replay-specific producer start gate;
-the renderer still requires supported3D Soulcalibur content before exporting.
-The same frame/time bounds remain. Menus may stay native, and failing to enter
-supported gameplay before the helper's source timeout is a failed experiment,
-not a reason to force neural processing onto menus. No manual gameplay acceptance
-is claimed by the command's preflight tests.
+Append `--manual-input` to disable scripted input and use your controller or
+the default keyboard mapping during this bounded session. This also removes the
+replay-specific producer start gate; the renderer still requires supported3D
+Soulcalibur content before exporting. Manual sessions use a larger explicit
+budget:3000 warmup plus9000 measured emulated frames, a420 second host bound,
+the300 second helper budget and a180 second first-source wait
+(`--source-wait-seconds`). They are never performance evidence. Menus may stay
+native, and failing to enter supported gameplay before the helper's source wait
+is a failed experiment, not a reason to force neural processing onto menus. No
+manual gameplay acceptance is claimed by the command's preflight tests.
 
 The bounded run uses D3D11On12, DX11 OIT, 640x480, deterministic input replay,
 2100 warmup frames and1200 measured host samples, with660 helper frames.
@@ -51,7 +54,15 @@ renderer retires its fixed view, histories and presentation carry-over and start
 a labeled anchor generation on the same channel. The helper logs
 `anchor_generation_change`, resets its correspondence and re-fixes the anchored
 light at the new first view. Expect a few native frames per cut, not a world-
-consistent light across it.
+consistent light across it. Support lineage is checked against the last accepted
+set (exact shared object-space points), so ordinary visibility drift inside one
+arena does not re-anchor; a large single-frame basis jump with continuing support
+is logged as `Remake anchor view cut` and only retires histories. When several
+rigid bases appear in one frame, the dominant one anchors and the rest are
+labeled moving objects; an even split stays ambiguous and native. Session
+workers tolerate60 seconds without a3D source (2D screens between rounds) and
+survive a rejected return as one native frame (`live_return_rejected`, bounded
+to64 per session).
 The run is capped at eight generations and the original whole-run deadline.
 Managed helpers use explicit session-worker mode rather than rotating after600
 returns. The worker has a10000-frame ceiling and retains the120-second runtime

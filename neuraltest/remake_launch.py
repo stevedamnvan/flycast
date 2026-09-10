@@ -97,6 +97,17 @@ def prepare(args):
                    FLYCAST_REMAKE_PREVIEW_START_SOURCE=str(capture_start))
         host[host.index('--timeout-ms')+1] = '420000'
         helper.append('--diagnostic-capture-budget')
+    if args.manual_input:
+        # A player must boot, reach a fight and play through cuts: 12000 emulated
+        # frames (4:50 to over 5:00 observed), a 420 second host bound, the explicit
+        # 300 second helper budget and a 180 second first-source wait. Never
+        # performance evidence. Trailing helper option order is fixed.
+        host[host.index('--warmup')+1] = '3000'
+        host[host.index('--frames')+1] = '9000'
+        host[host.index('--timeout-ms')+1] = '420000'
+        if '--diagnostic-capture-budget' not in helper:
+            helper.append('--diagnostic-capture-budget')
+        helper.extend(['--source-wait-seconds', '180'])
     return paths, out, env, host, helper
 
 
@@ -218,7 +229,7 @@ def main():
                   extended_effect_capture=args.extended_effect_capture,
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
-                  performance_eligible=args.capture_frames == 0,
+                  performance_eligible=args.capture_frames == 0 and not args.manual_input,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,
                   executable_hashes={k: hashlib.sha256(paths[k].read_bytes()).hexdigest()

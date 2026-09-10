@@ -392,6 +392,63 @@ int RunSelfTests()
 				}
 			}
 			{
+				// Visibility drift inside one arena: each frame shares most of its exact
+				// object-space points with the previous accepted frame although the
+				// first-view snapshot overlap falls below half. A real scene change
+				// with little overlap still rejects.
+				auto observed40=p;auto supported40=view;observed40.sourceVertices.clear();supported40.meshes[0].vertices.clear();
+				for(unsigned i=0;i<40;++i) {
+					auto witness=p.sourceVertices[0];
+					for(auto& t:witness.copy.xyzTransforms){t->serial=i+1;t->input={float(i%8),float(i/8),10,1};}
+					observed40.sourceVertices.push_back(witness);
+					auto vertex=view.meshes[0].vertices[0];vertex.transformSerial=i+1;supported40.meshes[0].vertices.push_back(vertex);
+				}
+				RemakeCameraAnchor chain;auto seed40=packet;
+				bool ok=chain.Apply(observed40,supported40,seed40,error);
+				const auto advance=[&](PvrDecodedPacket& source,RemakeViewScene& scene,remake::Packet& out) {
+					++source.frame;++source.sourceProducer.ordinal;++source.sourceProducer.cycle;
+					scene.frame=source.frame;scene.producer=source.sourceProducer;
+					out=packet;out.frame=source.frame;out.producer=source.sourceProducer;for(auto& mesh:out.meshes)mesh.frame=source.frame;
+				};
+				auto b=observed40,c=observed40,d=observed40;auto bView=supported40,cView=supported40,dView=supported40;remake::Packet outB,outC,outD;
+				advance(b,bView,outB);
+				for(unsigned i=0;i<8;++i)for(auto& t:b.sourceVertices[i].copy.xyzTransforms)t->input[0]+=100;
+				ok=ok&&chain.Apply(b,bView,outB,error)&&chain.LastSupportReport().sharedLast==32&&chain.LastSupportReport().sharedReference==32;
+				c=b;cView=bView;advance(c,cView,outC);++c.frame;++c.sourceProducer.ordinal;cView.frame=c.frame;cView.producer=c.sourceProducer;outC.frame=c.frame;outC.producer=c.sourceProducer;for(auto& mesh:outC.meshes)mesh.frame=c.frame;
+				for(unsigned i=8;i<24;++i)for(auto& t:c.sourceVertices[i].copy.xyzTransforms)t->input[0]+=200;
+				const bool drift=ok&&chain.Apply(c,cView,outC,error);
+				if(ok&&!drift)std::cout<<"drift fixture: "<<error<<'\n';
+				suite.Expect(drift&&chain.LastSupportReport().sharedLast==24&&chain.LastSupportReport().sharedReference==16
+					&&chain.ReferenceOrdinal()==p.sourceProducer.ordinal&&chain.Generation()==0,
+					"visibility drift chained through exact shared points keeps the reference although first-view overlap fell below half");
+				d=c;dView=cView;advance(d,dView,outD);
+				for(unsigned i=0;i<30;++i)for(auto& t:d.sourceVertices[i].copy.xyzTransforms)t->input[1]+=300;
+				const bool cut=drift&&!chain.Apply(d,dView,outD,error)&&error=="anchor-source-support-changed";
+				suite.Expect(cut&&chain.LastSupportReport().rejected&&chain.LastSupportReport().sharedLast==10,
+					"scene change with little exact overlap against the last accepted set still rejects");
+			}
+			{
+				// A second rigid basis with few points is a moving object: support comes
+				// from the dominant basis only. An even split stays ambiguous.
+				auto observed46=p;auto supported46=view;observed46.sourceVertices.clear();supported46.meshes[0].vertices.clear();
+				for(unsigned i=0;i<46;++i) {
+					auto witness=p.sourceVertices[0];
+					for(auto& t:witness.copy.xyzTransforms){t->serial=i+1;t->input={float(i%8),float(i/8),10,1};if(i>=40)t->matrix[12]+=float(view.focalX);}
+					observed46.sourceVertices.push_back(witness);
+					auto vertex=view.meshes[0].vertices[0];vertex.transformSerial=i+1;supported46.meshes[0].vertices.push_back(vertex);
+				}
+				RemakeCameraAnchor dominant;auto out46=packet;
+				const bool accepted=dominant.Apply(observed46,supported46,out46,error);
+				if(!accepted)std::cout<<"dominant basis fixture: "<<error<<'\n';
+				suite.Expect(accepted&&dominant.LastSupportReport().bases==2&&dominant.LastSupportReport().movingPoints==6
+					&&out46.omissions.size()==packet.omissions.size()+2&&out46.camera.position.x==0,
+					"dominant rigid basis anchors while a small second basis is labeled as moving objects");
+				auto even=observed46;for(unsigned i=23;i<40;++i)for(auto& t:even.sourceVertices[i].copy.xyzTransforms)t->matrix[12]+=float(view.focalX);
+				RemakeCameraAnchor split;auto outEven=packet;
+				suite.Expect(!split.Apply(even,supported46,outEven,error)&&error=="anchor-ambiguous-source-basis",
+					"an even basis split remains ambiguous and rejects");
+			}
+			{
 				// A valid nearly unit source basis must not create motion when unchanged.
 				auto precise=observed;
 				for(auto& s:precise.sourceVertices)for(auto& t:s.copy.xyzTransforms)t->matrix[0]*=1.00000024f;

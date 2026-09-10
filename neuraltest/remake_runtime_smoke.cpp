@@ -10,6 +10,8 @@
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
 #include <filesystem>
+#include <cmath>
+#include <limits>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -46,6 +48,14 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
+ // Explicit bounded wait for the first live source (manual gameplay needs the
+ // player to reach supported content). Not a GPU wait or throughput setting.
+ unsigned sourceWaitMs=90000;
+ if(argc>=3&&std::wstring(argv[argc-2])==L"--source-wait-seconds") {
+  wchar_t* waitEnd=nullptr;const long seconds=wcstol(argv[argc-1],&waitEnd,10);
+  if(!*argv[argc-1]||*waitEnd||seconds<30||seconds>300){std::cerr<<"invalid source wait: integer seconds 30..300 required\n";return 2;}
+  sourceWaitMs=unsigned(seconds)*1000u;argc-=2;
+ }
  bool diagnosticCaptureBudget=false;
  if(argc>=2&&std::wstring(argv[argc-1])==L"--diagnostic-capture-budget") {
   diagnosticCaptureBudget=true;--argc;
@@ -77,6 +87,7 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
  const long frames=*frameLimit;
+ unsigned rejectedReturns=0;
  const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames);
  if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
  std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
@@ -200,8 +211,8 @@ int wmain(int argc,wchar_t** argv) {
      if((liveChannelAsync?frames<61:frames!=63)||argc!=14)throw std::invalid_argument("live channel requires 60 warmup plus bounded source frames");
      const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
      if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
-     std::cout<<"live_channel_ready=true bounded_source_wait_ms=90000 saved_packets_read=false\n"<<std::flush;
-     receiveNext(p,90000);
+     std::cout<<"live_channel_ready=true bounded_source_wait_ms="<<sourceWaitMs<<" live_idle_wait_ms="<<RemakeLiveIdleWaitMs(sessionWorker)<<" saved_packets_read=false\n"<<std::flush;
+     receiveNext(p,sourceWaitMs);
     } else if(!flycast::rend::neural::ReadRemakeViewPacket(argv[6],p,reason))throw std::invalid_argument(reason);
     if(p.camera.nearPlane!=clipNear||p.camera.farPlane!=clipFar)throw std::invalid_argument("live packet clip declaration mismatch");
     snapshot=std::move(p);
@@ -346,7 +357,7 @@ int wmain(int argc,wchar_t** argv) {
    if(quit) { outcome=10;break; }
    if(liveChannel&&frame>=61) {
     try {
-     Packet next;receiveNext(next,5000);
+     Packet next;receiveNext(next,RemakeLiveIdleWaitMs(sessionWorker));
      const bool regenerated=liveChannelAsync&&AnchorGenerationChange(*snapshot,next);
      if(!regenerated&&!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
      if(regenerated)std::cout<<"live_anchor_generation_change previous="<<snapshot->frame<<" current="<<next.frame
@@ -541,7 +552,19 @@ int wmain(int argc,wchar_t** argv) {
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
 				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
-			if(result==flycast::rend::neural::RemakeChannelResult::Invalid){outcome=14;break;}
+			if(result==flycast::rend::neural::RemakeChannelResult::Invalid) {
+				// Per-source rejection: the host keeps native for this source and
+				// expires the receipt. Report the actual depth statistics and keep
+				// serving; a bounded count still fails the session rather than
+				// hiding a systematic return failure.
+				float lo=std::numeric_limits<float>::infinity(),hi=-std::numeric_limits<float>::infinity();std::size_t nonfinite=0;
+				for(float v:returnedFrame.projectionDepth){if(!std::isfinite(v))++nonfinite;else{lo=(std::min)(lo,v);hi=(std::max)(hi,v);}}
+				++rejectedReturns;
+				std::cout<<"live_return_rejected sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame<<" error="<<error
+					<<" depth_min="<<lo<<" depth_max="<<hi<<" nonfinite="<<nonfinite<<" rejected_total="<<rejectedReturns
+					<<" session_retained="<<(rejectedReturns<=64)<<"\n"<<std::flush;
+				if(rejectedReturns>64){outcome=14;break;}
+			}
 		}
 	 }
   }

@@ -36,6 +36,7 @@ TestCounts TestSceneContract() {
  expect(RemakeWorkerFrameLimit(true,true,660)==10000,"session worker has explicit finite cap");
  expect(!RemakeWorkerFrameLimit(true,false,660),"worker requires returned scene route");
  expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
+ expect(RemakeLiveIdleWaitMs(true)==60000u&&RemakeLiveIdleWaitMs(false)==5000u,"session worker idle wait is bounded and explicit");
  {
   auto q=p;q.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
   q.diagnosticOrigin=Vec3{};q.producer={1,1,1};q.camera.forward={0,0,1};

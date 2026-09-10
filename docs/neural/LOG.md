@@ -1,5 +1,63 @@
 # Neural rendering evidence log
 
+LOG770 manual session fc067-anchor-manual-d (dominant basis, idle tolerance, same
+player, moving-props stage requested): one helper for the whole run,3030
+receives/3030 returns,27 returns rejected as return-depth-range (depth_max prints
+as1: values one rounding step above1) and survived as single native frames,3
+generation changes all genuine (shared94..122 points,102..145 degrees),10 view
+cuts in place, launcher tests16, helper ends channel-closed at host end. Host
+timed out at300 seconds before writing its report (12000 frames took longer on
+this stage than session b's4:50): manual host bound raised to420 seconds. Every
+accepted frame had one basis;666 frames stayed ambiguous in bursts (for example
+3868..4167 and8114..8173) because two large rigid groups had no2x majority: next
+select the basis by exact point lineage with the last accepted set, not by size.
+637 frames failed the exact projection guard (pixels p50 0.029, p90 0.117, max
+187.5) on far off-screen vertices (expected coordinates such as-342,109 and
+-1.36,-1497 pixels); the guard is unchanged and this is recorded as a precision
+limitation of float world embedding at large offsets, not relaxed. Launcher exit
+1 reflects the host timeout only.
+
+LOG769 implementation after session c: RemakeCameraAnchor groups exact points by
+rigid basis, anchors on the dominant basis and labels the rest as moving objects
+(new omission; report fields bases/moving_points; an even split or more than64
+bases stays anchor-ambiguous-source-basis). RemakeLiveIdleWaitMs gives session
+workers60 seconds between sources (ordinary helpers keep5). Automation selftest
+794/0 with fixtures: dominant basis with a six-point second basis accepts and
+labels; even split rejects; idle wait explicit. Manual host bound420 seconds.
+
+LOG768 manual session fc067-anchor-manual-c (chain lineage, cut retirement,
+resilient helper): two view cuts (43 and33 degrees,325/427 shared) retired
+history with the anchor and light retained; four re-anchors were all genuine
+(54..173 shared,53..173 degrees); no false re-anchor.7073 frames were rejected as
+anchor-ambiguous-source-basis on a stage whose scenery uses more than one rigid
+transform, a limitation session b never reached. Five helper generations retired
+on the5 second bounded receive timeout during2D screens between rounds (g1..g5
+outcome11, expected retirements); g6 never received a source and exited2 at host
+end, so the launcher reports a non-orderly shutdown. Retained as partial evidence.
+
+LOG767 implementation after session b: support lineage now compares exact
+object-space points with the last accepted set (thresholds unchanged, reference
+basis unchanged); a large single-frame basis jump (>20 degrees or >1 unit) with
+continuing support retires temporal/raster history, pending returns and
+presentation carry-over through retireRemakeTemporalHistory() while keeping the
+anchor, light and the frame's own native effects; the helper survives an Invalid
+return (live_return_rejected with depth min/max/nonfinite, bounded to64 per
+session). Automation selftest791/0 including drift-chain acceptance (24 shared
+with last,16 with reference) and low-overlap rejection. Manual-input launcher
+budget:3000 warmup plus9000 frames,300 second helper budget, helper
+--source-wait-seconds180 (30..300 validated).16 launcher tests.
+
+LOG766 manual sessions with the player present. fc067-anchor-manual-a (old
+budget) ended after57 seconds with no fight reached; retained failure.
+fc067-anchor-manual-b (manual budget): one helper served3442 returns over about
+4:45 with18 in-session re-anchors and near-continuous acceptance3505..7086, but
+only5 re-anchors were genuine cuts (53..159 degrees); the other13 happened in
+smooth motion (at most5 degrees,690..1103 points shared with the previous frame)
+because support was compared with the first-view snapshot, which drifts inside
+one arena. This confirms the visibility-churn case in real play.20 single-frame
+anchor-projection-mismatch skips (0.049..0.073 pixels). The helper died at source
+7085 on return-depth-range (outcome14) and the launcher refused to hide it.
+
 LOG765 commit357a5d6d24fae53b5c743a5eb5c218dc52f76bc2 pushed to fork
 feat/neural-rendering (remote ref verified equal to HEAD). It carries both the
 capture-boundary/archive-index slice (LOG743-756) and the anchor-generation slice
