@@ -24,7 +24,9 @@ public:
   std::size_t points=0,reference=0,sharedReference=0,lastAccepted=0,sharedLast=0;
   double rotationFromReferenceDegrees=0,translationFromReference=0;
   double rotationFromLastDegrees=0,translationFromLast=0;
-  std::size_t bases=0,movingPoints=0; // Distinct rigid bases this frame; points outside the dominant one.
+  std::size_t bases=0,movingPoints=0; // Distinct rigid bases this frame; points outside the chosen one.
+  bool lineageSelected=false; // Basis chosen by exact point lineage with the last accepted set.
+  std::uint64_t framesSinceLast=0; // Source frames between this and the last accepted export: the unit of the from-last motion.
   bool available=false,rejected=false;
  };
 private:
@@ -140,18 +142,34 @@ public:
     dominant=it;
    } else runnerUp=(std::max)(runnerUp,it->second.size());
   }
-  if(bases.size()>1&&dominant->second.size()<2*runnerUp)return fail("anchor-ambiguous-source-basis");
-  const Matrix current=dominant->first;const bool have=true;
-  std::set<Point> points=dominant->second;
+  // Lineage first: with several bases, keep the one whose exact points continue
+  // the last accepted support (same shared-support thresholds). Two large rigid
+  // groups then stay consistently anchored instead of flipping or rejecting.
+  // Without lineage the size majority decides; an even split stays ambiguous.
+  std::map<Matrix,std::set<Point>>::const_iterator chosen=bases.end();
+  std::size_t chosenShared=0;
+  if(bases.size()>1&&!lastPoints.empty())
+   for(auto it=bases.begin();it!=bases.end();++it) {
+    std::size_t shared=0;for(const auto& v:it->second)shared+=lastPoints.count(v);
+    if(shared>=16&&shared*2>=(std::min)(it->second.size(),lastPoints.size())&&shared>chosenShared){chosen=it;chosenShared=shared;}
+   }
+  const bool lineageSelected=chosen!=bases.end();
+  if(!lineageSelected) {
+   if(bases.size()>1&&dominant->second.size()<2*runnerUp)return fail("anchor-ambiguous-source-basis");
+   chosen=dominant;
+  }
+  const Matrix current=chosen->first;const bool have=true;
+  std::set<Point> points=chosen->second;
   const std::size_t movingPoints=total-points.size();
   if(!have||points.size()<16)return fail("anchor-insufficient-source-support");
   SupportReport support{};
-  support.bases=bases.size();support.movingPoints=movingPoints;
+  support.bases=bases.size();support.movingPoints=movingPoints;support.lineageSelected=lineageSelected;
   if(first.Available()) {
    std::size_t shared=0;for(const auto& v:points)shared+=referencePoints.count(v);
    support.available=true;
    support.points=points.size();support.reference=referencePoints.size();support.sharedReference=shared;
    support.lastAccepted=lastPoints.size();
+   support.framesSinceLast=source.frame>lastFrame?source.frame-lastFrame:0;
    for(const auto& v:points)support.sharedLast+=lastPoints.count(v);
    relative(reference,current,support.rotationFromReferenceDegrees,support.translationFromReference);
    relative(lastBasis,current,support.rotationFromLastDegrees,support.translationFromLast);
@@ -320,7 +338,7 @@ public:
   }
   const auto checked=remake::ReadyForDiagnosticAdapter(embedded,embedded.frame,embedded.game,true);
   if(!checked.ok){error=checked.reason;return false;}
-  if(!support.available){support.bases=bases.size();support.movingPoints=movingPoints;}
+  if(!support.available){support.bases=bases.size();support.movingPoints=movingPoints;support.lineageSelected=lineageSelected;}
   lastPoints=points;lastBasis=current;report=support;
   if(!first.Available()){first=p;reference=current;referencePoints=std::move(points);origin=candidateOrigin;}
   last=p;lastFrame=source.frame;projectionError=maximum;packet=std::move(embedded);error.clear();return true;

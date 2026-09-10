@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG771 manual session fc067-anchor-manual-e (lineage basis selection, same
+player, the open stage with two large rigid scenery groups requested): first
+publish at2:30 (source9668, three rigid bases,238 moving points);72 exported
+sources over17 seconds,23 lineage-selected frames (two or three bases),48
+single-basis frames,0 anchor-ambiguous-source-basis (666 in session d), no
+re-anchor,7 view cuts,5 anchor-projection-mismatch skips (0.015..0.94 pixels).
+The two translation-only view cuts (9677 and9766:0.29 and0.10 degrees with
+2.65 and2.85 units,514/487 shared) are a steady dolly of about0.33 units per
+emulated frame measured across the eight-frame export interval, not a cut: the
+from-last motion is per exported interval, now logged as frames_since_last;
+thresholds unchanged, since a false cut only retires history. The helper
+rejected65 of71 returns as return-depth-range (depth_min0.93..0.96, depth_max
+printing as1, no nonfinite values) whatever the basis count, exited14 at the
+64-return bound and the launcher refused to hide it (flycast forced at2:48,
+launcher exit1, no host report). Session d's27 rejections were the same
+phenomenon on a closed stage; this stage shows the far plane in nearly every
+frame. Retained as a failed experiment for returns and partial evidence for basis
+lineage.
+
 LOG770 manual session fc067-anchor-manual-d (dominant basis, idle tolerance, same
 player, moving-props stage requested): one helper for the whole run,3030
 receives/3030 returns,27 returns rejected as return-depth-range (depth_max prints

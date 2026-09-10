@@ -419,6 +419,7 @@ int RunSelfTests()
 				const bool drift=ok&&chain.Apply(c,cView,outC,error);
 				if(ok&&!drift)std::cout<<"drift fixture: "<<error<<'\n';
 				suite.Expect(drift&&chain.LastSupportReport().sharedLast==24&&chain.LastSupportReport().sharedReference==16
+					&&chain.LastSupportReport().framesSinceLast==2
 					&&chain.ReferenceOrdinal()==p.sourceProducer.ordinal&&chain.Generation()==0,
 					"visibility drift chained through exact shared points keeps the reference although first-view overlap fell below half");
 				d=c;dView=cView;advance(d,dView,outD);
@@ -447,6 +448,18 @@ int RunSelfTests()
 				RemakeCameraAnchor split;auto outEven=packet;
 				suite.Expect(!split.Apply(even,supported46,outEven,error)&&error=="anchor-ambiguous-source-basis",
 					"an even basis split remains ambiguous and rejects");
+				// With lineage the same split keeps the basis that continues the
+				// previously accepted points (23 shared beats the other group's 17),
+				// and the projection stays unchanged for that basis.
+				auto next=even;++next.frame;++next.sourceProducer.ordinal;++next.sourceProducer.cycle;
+				auto nextView=supported46;nextView.frame=next.frame;nextView.producer=next.sourceProducer;
+				auto outNext=packet;outNext.frame=next.frame;outNext.producer=next.sourceProducer;for(auto& mesh:outNext.meshes)mesh.frame=next.frame;
+				const bool lineage=accepted&&dominant.Apply(next,nextView,outNext,error);
+				if(accepted&&!lineage)std::cout<<"lineage basis fixture: "<<error<<'\n';
+				suite.Expect(lineage&&dominant.LastSupportReport().lineageSelected&&dominant.LastSupportReport().points==23
+					&&dominant.LastSupportReport().sharedLast==23&&dominant.LastSupportReport().movingPoints==23
+					&&dominant.LastSupportReport().bases==2&&outNext.camera.position.x==0,
+					"an even split with lineage keeps the basis continuing the accepted support");
 			}
 			{
 				// A valid nearly unit source basis must not create motion when unchanged.
