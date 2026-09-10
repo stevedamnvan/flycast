@@ -124,13 +124,18 @@ the motion stream and input conversion to a return worker: about32 fps, render
 thread about16 ms (return receive2.6, output ownership3.7, raster2.5, snapshot
 1.6, view scene1.5, submit1.0). The consumer's return rate was host-limited in
 every run (credit-busy skips0 to7), so no consumer limit is established yet.
-Next operational action: move the return receive and well-formed scan to the
-return worker (free-running receive with the render-thread identity gate at
-drain), split and pool the output-ownership copy (wrap versus owned texture
-creation), then re-measure; after that, pipeline the helper's readback so its
-return latency is not serialized with its present; then the600-frame gate
-against the19 ms native control. VRAM growth+928 MB versus+387 MB before
-D-213 with unchanged resource counts remains unattributed (LOG784).
+D-214 (LOG785) moved the return receive to the worker (render thread about
+13 ms: output ownership3.7, raster2.5, snapshot1.5, view scene1.3, submit1.0)
+and measured the controls: native11.1 ms, DLAA12.6 ms; the combined lane is
+31.3 ms, of which about5.7 ms is GPU sharing with the external consumer (PVR
+GPU13.7 against11.1 alone). Next operational action: split the output
+ownership scope (wrap versus owned copy) and pool the owned textures, move the
+view scene to the feed worker, then re-measure; measure the external consumer's
+GPU time per image so the GPU budget at60 fps is known (the consumer's
+configuration is the user's; the host records, it does not change it); then
+pipeline the helper's readback; then the600-frame gate against the measured
+controls. VRAM growth follows presentation latency (+928 MB near3 frames,
++389 MB near2) and remains unattributed (LOG785).
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

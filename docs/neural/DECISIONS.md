@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-214: the return worker receives; controls are measured, not remembered
+
+The return receive (memcpy and digest of a2.4 MB image) was the largest
+CPU-only cost left in the scene feed (LOG784). The return worker now receives
+from the channel itself and prepares each image; the render thread applies the
+identity gate when it takes the image, one at a time. Because the worker's
+receive releases return credit early, the overlay ring is four slots by channel
+sequence so a publish can never overwrite the overlay of an image not yet taken.
+Every gate, log line and archive keeps its meaning. Separately, the600-frame
+gate's control is now a measured run with the same harness settings on the
+hooks-disabled host (native and DLAA lanes, LOG785); a remembered figure is not
+a control.
+
 ## D-213: returned-image preparation and packet build off the render thread
 
 After D-211 and D-212 the render thread still carried the packet build and the

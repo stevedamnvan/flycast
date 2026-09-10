@@ -155,7 +155,8 @@ protected:
 	void submitNeuralFrame();
 	void prepareRemakeCapture();
 	void prepareRemakeAsyncFeed();
-	void drainRemakeReturns(); // D-213: apply prepared returns in order (feed start and evaluation start).
+	// D-213/D-214: take prepared returns one at a time and apply the identity gate (feed start and evaluation start).
+	void drainRemakeReturns(std::uint64_t currentFrame,const flycast::rend::neural::ProducerIdentity& producer);
 	flycast::rend::neural::RemakeDisplayDecision selectRemakePreview(bool permitted);
 	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
 	bool uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input);
@@ -335,7 +336,6 @@ protected:
 		std::string streamError;flycast::rend::neural::RemakeMotionStream stream;flycast::rend::neural::RemakeNeuralInput input;
 	};
 	std::optional<RemakePreparedReturn> remakePreparedReturn;
-	std::shared_ptr<const flycast::rend::neural::RemakeTemporalScene> remakeReturnChainScene; // Newest dispatched scene: the history the next image is prepared against.
 	unsigned remakeReturnTimingCount=0;
 	unsigned remakeFeedTimingCount=0;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;
@@ -350,7 +350,12 @@ protected:
 	ComPtr<ID3D11ShaderResourceView> remakeEvaluatedView;
 	std::uint64_t remakeLastEvaluationAttempt=0;
 	std::optional<std::uint8_t> remakeSourceAlphaReference;
-	std::array<flycast::rend::neural::RemakeOverlaySnapshot,2> remakeAsyncOverlaySources;
+	// D-214: four slots by channel sequence. The channel keeps two sources in
+	// flight, and the return worker may receive (releasing return credit) before
+	// the render thread has taken the image, so the next publish must not land
+	// on the slot that image still needs.
+	static constexpr std::size_t RemakeOverlaySlots=4;
+	std::array<flycast::rend::neural::RemakeOverlaySnapshot,RemakeOverlaySlots> remakeAsyncOverlaySources;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
 	std::shared_ptr<const flycast::rend::neural::RemakeOitEffects> remakeCurrentEffects;
@@ -364,7 +369,7 @@ protected:
 	unsigned remakeEffectReplayAttempts=0;
 	std::uint64_t remakePreviewLastCaptured=0;
 	void resetRemakeAsyncFrames() {
-		remakeFeedWorker.ResetAnchor();
+		remakeFeedWorker.ResetAnchor();remakeReturnWorker.Attach(nullptr); // Re-attached by the next feed once the channel is open again.
 		remakeSentTextures.reset();remakeSentTextureBytes=0;
 		retireRemakeHistory();
 	}
@@ -380,7 +385,7 @@ protected:
 	// but keep the current frame's own native effects: used when the anchored
 	// basis jumps inside a continuing arena, so nothing reprojects across a cut.
 	void retireRemakeTemporalHistory() {
-		remakeReturnWorker.Discard();remakePreparedReturn.reset();remakeReturnChainScene.reset();
+		remakeReturnWorker.Discard();remakePreparedReturn.reset();
 		remakeTemporalHistory.Reset();
 		remakeMotionRaster={};remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};

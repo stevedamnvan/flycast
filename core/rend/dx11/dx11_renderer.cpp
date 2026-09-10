@@ -2347,8 +2347,9 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 	countArray(neuralOutputD3D12Resources);
 	countArray(neuralOutputWrappedTextures);
 	countArray(neuralOutputWrappedViews);
-	const auto effects=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,5>{
+	const auto effects=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,7>{
 		remakeCurrentEffects.get(),remakeAsyncOverlaySources[0].effects.get(),remakeAsyncOverlaySources[1].effects.get(),
+		remakeAsyncOverlaySources[2].effects.get(),remakeAsyncOverlaySources[3].effects.get(),
 		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
 	count+=effects.objects;
 	count+=remakeMotionRaster.OwnedObjects();
@@ -2644,28 +2645,39 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 	}
 }
 
-void DX11Renderer::drainRemakeReturns()
+void DX11Renderer::drainRemakeReturns(std::uint64_t currentFrame,const flycast::rend::neural::ProducerIdentity& producer)
 {
 	using namespace flycast::rend::neural;
-	// D-213: prepared returns arrive in order; the image becomes the pending
-	// evaluation exactly as the synchronous path would have made it. Only one
+	// D-213/D-214: the return worker received and prepared these in order; the
+	// identity gate here is the one the synchronous path applied. Only one
 	// image is pending at a time: an image not yet evaluated is never
 	// overwritten by a later prepared one (it ages out after8 frames instead).
 	for(;;) {
 		if(remakeAsyncReturned&&remakeAsyncReturned->frame>remakeLastEvaluationAttempt)break;
 		auto next=remakeReturnWorker.Next();
 		if(!next)break;
-		auto& prepared=*next;
+		auto& prepared=*next;const auto& returned=prepared.returned;
+		auto& overlay=remakeAsyncOverlaySources[returned.source.sequence%RemakeOverlaySlots];
+		const bool accepted=returned.frame<=currentFrame&&currentFrame-returned.frame<=8
+			&&returned.producer.epoch==producer.epoch
+			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,currentFrame,producer)
+			&&prepared.wellFormed;
+		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
+			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
+			(unsigned long long)returned.source.sequence,(unsigned long long)currentFrame,accepted);
+		if(!accepted)continue;
+		NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
+			(unsigned long long)overlay.identity.frame,(unsigned long long)overlay.identity.receipt.sequence);
 		if(const auto* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");timing&&std::strcmp(timing,"1")==0&&remakeReturnTimingCount<600) {
 			++remakeReturnTimingCount;
 			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=return-worker elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
-				(unsigned long long)prepared.returned.frame,prepared.workerMs);
+				(unsigned long long)returned.frame,prepared.workerMs);
 		}
-		RemakePreparedReturn ready;ready.frame=prepared.returned.frame;ready.sequence=prepared.returned.source.sequence;
+		RemakePreparedReturn ready;ready.frame=returned.frame;ready.sequence=returned.source.sequence;
 		ready.previousFrame=prepared.previousFrame;ready.temporal=prepared.temporal;ready.streamReady=prepared.streamReady;
 		ready.inputReady=prepared.inputReady;ready.streamError=std::move(prepared.streamError);
 		ready.stream=std::move(prepared.stream);ready.input=std::move(prepared.input);
-		remakeAsyncReturned=std::move(prepared.returned);remakeAsyncAcceptedOverlay=std::move(prepared.overlay);
+		remakeAsyncReturned=std::move(prepared.returned);remakeAsyncAcceptedOverlay=std::move(overlay);overlay={};
 		remakePreparedReturn=std::move(ready);
 	}
 }
@@ -2759,8 +2771,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 				(unsigned long long)fed.frame,unsigned(fed.overlay.alphaEffectSelections.size()));
 		auto overlay=std::move(fed.overlay);
 		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
+		remakeReturnWorker.RegisterScene(fed.receipt.sequence,overlay.temporalScene);
 		if(fed.capturedPacket)overlay.captureScene=std::move(fed.capturedPacket);
-		remakeAsyncOverlaySources[fed.receipt.sequence%2]=std::move(overlay);
+		remakeAsyncOverlaySources[fed.receipt.sequence%RemakeOverlaySlots]=std::move(overlay);
 		if(fed.anchored)
 			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d offscreen_accepted=%u offscreen_max_pixels=%.6g offscreen_max_effect_pixels=%.6g offscreen_max_tangential_pixels=%.6g offscreen_max_diagonals=%.6g",
 				(unsigned long long)fed.frame,(unsigned long long)fed.referenceOrdinal,fed.generation,
@@ -2794,53 +2807,11 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		}
 		return;
 	}
-	drainRemakeReturns();
-	RemakeReturnedImage returned;
-	RemakeChannelResult received;
-	{
-		static thread_local unsigned count=0;
-		RemakeCpuScope timing("feed-receive-image",metadata.frameId,count);
-		received=remakeAsyncChannel.ReceiveImage(returned,error);
-	}
-	if(received==RemakeChannelResult::Received) {
-		auto& overlay=remakeAsyncOverlaySources[returned.source.sequence%2];
-		const bool accepted=returned.frame<=metadata.frameId&&metadata.frameId-returned.frame<=8
-			&&returned.producer.epoch==producer.epoch
-			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,metadata.frameId,producer)
-			&&RemakeReturnedImageWellFormed(returned);
-		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
-			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
-			(unsigned long long)returned.source.sequence,(unsigned long long)metadata.frameId,accepted);
-		if(accepted) {
-			NOTICE_LOG(RENDERER,"Remake async overlay retained: frame=%llu sequence=%llu original_native=true original_mask=true presentation=false",
-				(unsigned long long)overlay.identity.frame,(unsigned long long)overlay.identity.receipt.sequence);
-			// Locked replay and the remix-only comparison lane substitute or bypass
-			// the live pixels, so they keep the synchronous path.
-			const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
-			const bool workerLane=!(lockedRoot&&*lockedRoot)&&!std::getenv("FLYCAST_REMAKE_COMPARE_REMIX_ONLY");
-			bool dispatched=false;
-			if(workerLane) {
-				remakeReturnWorker.Start();
-				RemakeReturnJob job;job.returned=std::move(returned);job.overlay=std::move(overlay);overlay={};
-				// The history this image will be evaluated against: the image still
-				// pending evaluation if there is one (its scene becomes the history
-				// when accepted; a rejection makes the render thread rebuild), else
-				// the accepted history.
-				const bool pendingEvaluation=remakeAsyncReturned&&remakeAsyncReturned->frame>remakeLastEvaluationAttempt&&remakeAsyncAcceptedOverlay.temporalScene;
-				job.previous=remakeReturnChainScene?remakeReturnChainScene
-					:pendingEvaluation?remakeAsyncAcceptedOverlay.temporalScene:remakeTemporalHistory.Shared();
-				const auto chain=job.overlay.temporalScene;
-				dispatched=remakeReturnWorker.Dispatch(std::move(job));
-				if(dispatched)remakeReturnChainScene=chain;
-				else{returned=std::move(job.returned);overlay=std::move(job.overlay);}
-			}
-			if(!dispatched) {
-				remakeAsyncReturned=std::move(returned);remakeAsyncAcceptedOverlay=std::move(overlay);overlay={};remakePreparedReturn.reset();
-				remakeReturnChainScene=remakeAsyncAcceptedOverlay.temporalScene;
-				if(workerLane)NOTICE_LOG(RENDERER,"Remake return worker busy: source=%llu synchronous=true",(unsigned long long)remakeAsyncReturned->frame);
-			}
-		}
-	}
+	// D-214: the return worker receives and prepares returned images itself;
+	// a closed channel is handled here exactly as the synchronous receive did.
+	remakeReturnWorker.Start();remakeReturnWorker.Attach(&remakeAsyncChannel);
+	drainRemakeReturns(metadata.frameId,producer);
+	const auto received=remakeReturnWorker.ChannelClosed()?RemakeChannelResult::Closed:RemakeChannelResult::Empty;
 	if(received==RemakeChannelResult::Closed) {
 		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		if(managed&&std::strcmp(managed,"1")==0)remakeSessionRenewalRequested=true;
@@ -3036,7 +3007,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	// Native input must not enter this stage while it is reserved for returned
 	// scenes. Display uses only an owned accepted snapshot and its original HUD.
 	releaseNeuralPresentation();neuralPresentationView.reset();
-	if(!remakeAsyncStopped)drainRemakeReturns();
+	if(!remakeAsyncStopped&&rendContext)drainRemakeReturns(frame.frameId,rendContext->captureProducer);
 	if(!activeNeuralSurface||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
 		||config::NeuralCaptureFrames.get()!=0||remakeAsyncStopped||!remakeAsyncReturned

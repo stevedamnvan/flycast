@@ -1,5 +1,42 @@
 # Neural rendering evidence log
 
+LOG785 D-214: the return worker receives from the channel itself, and the
+control figure is corrected. The worker polls the host channel (one poll per
+millisecond when empty), checks the image is well formed, prepares the motion
+stream against the newest image ahead of it (temporal scenes are registered by
+channel sequence when the render thread publishes an overlay) and converts the
+input; the render thread takes one prepared image at a time and applies the
+same identity gate as before (age, epoch, original overlay match). A closed
+channel is reported by the worker and handled on the render thread as before.
+First run fc067-perf-receiveworker-a rejected57 of1084 returns at age3: the
+worker's receive releases return credit before the render thread has taken the
+image, so the next publish landed on the two-slot overlay ring entry that image
+still needed; the ring now has four slots by sequence. Run
+fc067-perf-receiveworker-b (same settings as LOG783):1093 accepted evaluations
+of1094 returns,0 rejected,1080 worker-prepared streams,14 rebuilt,1102 of
+1200 presents combined, output-frame repeats17, latency mean2.9 frames (max4),
+no identity, repeat or gap fault,1 feed-worker busy fallback. Timing run
+fc067-perf-receiveworker-timing-b: scene feed3.7 ms p50 (snapshot1.5, view
+scene1.3, overlay copy0.5), returned evaluation9.6 (output ownership3.7,
+raster2.5, submit1.0, history0.7, upload0.6), return worker4.4, feed worker
+19.4 (packet build4.1); the render thread carries about13 ms of remake work.
+Present interval p50 31.3 ms, unchanged from LOG784 although the receive left
+the render thread. Controls measured on this build with the same replay and
+harness settings on the hooks-disabled host, no helper running:
+fc067-perf-control-native-a present interval p50 11.1 ms (p95 11.9),
+fc067-perf-control-dlaa-a 12.6 ms (p95 13.7, PVR GPU 11.1 ms p50). The "19 ms
+native control" cited from LOG780 on is not reproduced by any control run in
+this evidence set and is withdrawn; the600-frame gate compares against these
+controls. Against the DLAA control the combined lane costs18.7 ms per frame:
+about13 ms of render-thread work plus GPU sharing with the external consumer
+(PVR GPU13.7 ms p50 against11.1 alone; frame GPU span17.7 against11.5), so at
+60 fps the GPU budget is already exceeded on this machine before host CPU work
+is counted. Selftest856/0 (worker receive from an in-process channel pair,
+idle on an empty open channel, closed report cleared by discard),
+remake-sdk-contract260/0, launcher tests16. VRAM growth again+928 MB with
+latency near3 frames and+389 MB with latency near2 (fc067-perf-receiveworker-a),
+so the growth follows presentation latency, not the workers; unattributed.
+
 LOG784 D-213: returned-image preparation and packet build off the render
 thread. A second worker takes each accepted returned image after the render
 thread's identity gate and prepares the geometry motion stream and the neural

@@ -1234,6 +1234,32 @@ int RunSelfTests()
 				"return completed image survives orderly consumer close");
 			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
 				"live channel consumer shutdown leaves producer in native fallback");
+			{
+				// D-214: the return worker receives from the host channel itself and
+				// reports (never handles) a closed channel.
+				RemakeLiveChannel c2,p2;const std::string t2=token+"-worker";
+				suite.Expect(c2.CreateConsumer(t2,error)&&p2.OpenPublisher(t2,error),"worker receive channel pair opens");
+				RemakeChannelReceipt s2,r2;remake::Packet got;
+				suite.Expect(p2.Publish(packet,s2,error)==RemakeChannelResult::Published&&c2.Receive(got,r2,error)==RemakeChannelResult::Received,
+					"worker receive channel carries a source");
+				RemakeReturnedImage img;img.source=r2;img.frame=got.frame;img.producer=got.producer;img.width=640;img.height=480;
+				img.bgra.assign(640*480*4,73);img.projectionDepth.assign(640*480,.5f);img.nearPlane=got.camera.nearPlane;img.farPlane=got.camera.farPlane;
+				RemakeReturnWorker receiver;receiver.Start();receiver.Attach(&p2);
+				for(int i=0;i<50;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(receiver.Received()==0&&receiver.InvalidReturns()==0&&!receiver.ChannelClosed(),"return worker idles on an empty open channel");
+				suite.Expect(c2.ReturnImage(img,error)==RemakeChannelResult::Published,"worker receive channel returns an image");
+				for(int i=0;i<2000&&receiver.Ready()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				auto next=receiver.Next();
+				suite.Expect(next&&next->returned.frame==img.frame&&next->returned.source.sequence==r2.sequence&&next->wellFormed&&next->inputReady
+					&&!next->temporal&&next->input.invertedDepth[0]==.5f&&next->input.rgba[0]==73&&receiver.Received()==1,
+					"return worker receives and prepares a returned image itself");
+				c2.Close();
+				for(int i=0;i<2000&&!receiver.ChannelClosed();++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(receiver.ChannelClosed(),"return worker reports the consumer closing");
+				receiver.Discard();
+				suite.Expect(!receiver.ChannelClosed(),"discard clears the closed report for a re-opened channel");
+				receiver.Attach(nullptr);
+			}
 		}
 	}
 	{
