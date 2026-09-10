@@ -46,30 +46,8 @@
 void os_VideoRoutingTermDX();
 
 #ifdef FLYCAST_ENABLE_NEURAL
-namespace {
-// Bounded, opt-in elapsed CPU diagnostics. Includes driver blocking; not GPU time.
-class RemakeCpuScope {
-	const char* label;
-	std::uint64_t frame;
-	bool enabled;
-	std::chrono::steady_clock::time_point start;
-public:
-	RemakeCpuScope(const char* label, std::uint64_t frame, unsigned& count)
-		: label(label), frame(frame), enabled(false) {
-		const char* value=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
-		enabled=value&&std::strcmp(value,"1")==0&&count<600;
-		if(enabled){++count;start=std::chrono::steady_clock::now();}
-	}
-	void End(){if(enabled){report();enabled=false;}}
-	~RemakeCpuScope(){End();}
-private:
-	void report()const {
-		const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-		NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
-			(unsigned long long)frame,label,ms);
-	}
-};
-}
+#include "rend/neural/remake_cpu_scope.h"
+using flycast::rend::neural::RemakeCpuScope;
 #endif
 
 const D3D11_INPUT_ELEMENT_DESC MainLayout[]
@@ -237,6 +215,7 @@ void DX11Renderer::Term()
 #ifdef FLYCAST_ENABLE_NEURAL
 	remakeFeedWorker.Stop();remakeReturnWorker.Stop();
 	for(auto& pooled:remakeOwnedOutputs){pooled.view.reset();pooled.texture.reset();}
+	remakeDepthUpload.reset();
 	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
@@ -598,6 +577,22 @@ bool DX11Renderer::Render()
 #endif
 	resetContextState();
 	bool is_rtt = rendContext->isRTT;
+#ifdef FLYCAST_ENABLE_NEURAL
+	// D-217 diagnostics: the whole render-thread frame and the gap since the
+	// previous frame ended, so time outside the remake scopes is attributed.
+	const bool frameTimed=!is_rtt&&remakeLastEvaluationAttempt!=0;
+	flycast::rend::neural::RemakeFrameTimingActive.store(frameTimed,std::memory_order_relaxed);
+	if(frameTimed&&remakeFrameEndAt.time_since_epoch().count()&&remakeFrameScopeCounts[0]<600) {
+		if(const char* v=std::getenv("FLYCAST_REMAKE_CPU_TIMING");v&&std::strcmp(v,"1")==0) {
+			++remakeFrameScopeCounts[0];
+			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=frame-gap elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+				std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-remakeFrameEndAt).count());
+		}
+	}
+	struct FrameEnd{std::chrono::steady_clock::time_point& at;bool rtt;~FrameEnd(){if(!rtt)at=std::chrono::steady_clock::now();}} frameEnd{remakeFrameEndAt,is_rtt};
+	std::optional<RemakeCpuScope> frameTiming;
+	if(frameTimed)frameTiming.emplace("frame-render",0,remakeFrameScopeCounts[1]);
+#endif
 	if (!is_rtt)
 	{
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -641,7 +636,15 @@ bool DX11Renderer::Render()
 	}
 #endif
 
+#ifdef FLYCAST_ENABLE_NEURAL
+	{
+		std::optional<RemakeCpuScope> timing;
+		if(frameTimed)timing.emplace("frame-pvr-draw",0,remakeFrameScopeCounts[2]);
+		drawStrips();
+	}
+#else
 	drawStrips();
+#endif
 	if (!is_rtt && !config::EmulateFramebuffer)
 		captureNativeParityFrame();
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -661,13 +664,23 @@ bool DX11Renderer::Render()
 	{
 		aspectRatio = getOutputFramebufferAspectRatio();
 #ifdef FLYCAST_ENABLE_NEURAL
-		submitNeuralFrame();
+		{
+			std::optional<RemakeCpuScope> timing;
+			if(frameTimed)timing.emplace("frame-submit-neural",0,remakeFrameScopeCounts[3]);
+			submitNeuralFrame();
+		}
 #endif
 #ifndef LIBRETRO
 		deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
-		displayFramebuffer();
 #ifdef FLYCAST_ENABLE_NEURAL
+		{
+			std::optional<RemakeCpuScope> timing;
+			if(frameTimed)timing.emplace("frame-display",0,remakeFrameScopeCounts[4]);
+			displayFramebuffer();
+		}
 		endNeuralPerformanceFrame();
+#else
+		displayFramebuffer();
 #endif
 		drawOSD();
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -1091,6 +1104,9 @@ void DX11Renderer::releaseNeuralResources() noexcept
 	for (auto& target : neuralDepthTargets) target.reset();
 	for (auto& texture : neuralDepthTextures) texture.reset();
 	for (auto& resource : neuralDepthD3D12Resources) resource.reset();
+#ifdef FLYCAST_ENABLE_NEURAL
+	remakeDepthUpload.reset();
+#endif
 	neuralSceneDepthTarget.reset();
 	neuralSceneDepthTexture.reset();
 	neuralRetainedSceneView.reset();
@@ -3167,8 +3183,16 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			if(prepared&&remakePreparedReturn->inputReady)input=std::move(remakePreparedReturn->input);
 			else if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input))return;
 			if(prepared)remakePreparedReturn.reset();
-			if(!uploadRemakeInput(input))return;
+			// D-217: one D3D11on12 acquire covers the upload, the motion raster
+			// and its copies; the inputs are released before the consumer submit.
+			{
+				static thread_local unsigned acquireCount=0;
+				RemakeCpuScope acquireTiming("evaluate-input-acquire",frame.frameId,acquireCount);
+				acquireNeuralInputs();
+			}
+			if(!uploadRemakeInput(input,false))return;
 		}
+		struct InputBracket{DX11Renderer* renderer;~InputBracket(){renderer->releaseNeuralInputs();}} inputBracket{this};
 		if(rasterRequested) {
 			std::string error;
 			const auto* previous=remakeTemporalHistory.Last();
@@ -3191,14 +3215,17 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				NOTICE_LOG(RENDERER,"Remake GPU guidance rejected: source=%llu reason=%s",
 					(unsigned long long)source.frame,error.c_str());return;
 			}
-			acquireNeuralInputs();
 			deviceContext->CopyResource(neuralMotion.textures[neuralExportSlot],rasterOutput.textures[0].Get());
 			deviceContext->CopyResource(neuralConfidence.textures[neuralExportSlot],rasterOutput.textures[1].Get());
 			deviceContext->CopyResource(neuralDrawId.textures[neuralExportSlot],rasterOutput.textures[2].Get());
 			deviceContext->CopyResource(neuralResolvedMask.textures[neuralExportSlot],rasterOutput.textures[3].Get());
-			releaseNeuralInputs();
 			NOTICE_LOG(RENDERER,"Remake GPU guidance: source=%llu previous=%llu history=%d color_consistency=%d color_threshold_sdr=8/255 scope=projected-depth-experiment",
 				(unsigned long long)source.frame,(unsigned long long)(rasterHistory?previous->frame:0),rasterHistory,colorCheck);
+		}
+		{
+			static thread_local unsigned releaseCount=0;
+			RemakeCpuScope releaseTiming("evaluate-input-release",frame.frameId,releaseCount);
+			releaseNeuralInputs();
 		}
 		frame.frameId=source.frame;frame.jitterX=frame.jitterY=0;
 		frame.historyValid=false;frame.resetHistory=true;frame.historyAge=0;frame.skippedFrameCount=0;
@@ -3328,23 +3355,36 @@ bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& f
 	return true;
 }
 
-bool DX11Renderer::uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input)
+bool DX11Renderer::uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input,bool bracket)
 {
 	if(input.rgba.size()!=640*480*4||input.invertedDepth.size()!=640*480)return false;
-	D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
-	desc.Format=DXGI_FORMAT_R32_FLOAT;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
-	D3D11_SUBRESOURCE_DATA data{};data.pSysMem=input.invertedDepth.data();data.SysMemPitch=640*sizeof(float);
-	ComPtr<ID3D11Texture2D> upload;
-	if(FAILED(device->CreateTexture2D(&desc,&data,&upload.get())))return false;
-	acquireNeuralInputs();
-	deviceContext->UpdateSubresource(neuralColor.textures[neuralExportSlot],0,nullptr,input.rgba.data(),640*4,0);
-	deviceContext->CopyResource(neuralDepthTextures[neuralExportSlot],upload);
-	const float zero[4]{};const float one[4]={1,1,1,1};
-	deviceContext->ClearRenderTargetView(neuralMotion.targets[neuralExportSlot],zero);
-	deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot],zero);
-	deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot],zero);
-	deviceContext->ClearRenderTargetView(neuralResolvedMask.targets[neuralExportSlot],one);
-	releaseNeuralInputs();
+	// D-217: the inverted-depth upload texture persists; a texture created per
+	// evaluation cost the render thread milliseconds on D3D11on12.
+	if(!remakeDepthUpload) {
+		D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
+		desc.Format=DXGI_FORMAT_R32_FLOAT;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
+		if(FAILED(device->CreateTexture2D(&desc,nullptr,&remakeDepthUpload.get())))return false;
+	}
+	static thread_local unsigned acquireCount=0,updateCount=0,releaseCount=0;
+	deviceContext->UpdateSubresource(remakeDepthUpload,0,nullptr,input.invertedDepth.data(),640*sizeof(float),0);
+	{
+		RemakeCpuScope timing("upload-acquire",0,acquireCount);
+		if(bracket)acquireNeuralInputs();
+	}
+	{
+		RemakeCpuScope timing("upload-update",0,updateCount);
+		deviceContext->UpdateSubresource(neuralColor.textures[neuralExportSlot],0,nullptr,input.rgba.data(),640*4,0);
+		deviceContext->CopyResource(neuralDepthTextures[neuralExportSlot],remakeDepthUpload);
+		const float zero[4]{};const float one[4]={1,1,1,1};
+		deviceContext->ClearRenderTargetView(neuralMotion.targets[neuralExportSlot],zero);
+		deviceContext->ClearRenderTargetView(neuralConfidence.targets[neuralExportSlot],zero);
+		deviceContext->ClearRenderTargetView(neuralDrawId.targets[neuralExportSlot],zero);
+		deviceContext->ClearRenderTargetView(neuralResolvedMask.targets[neuralExportSlot],one);
+	}
+	{
+		RemakeCpuScope timing("upload-release",0,releaseCount);
+		if(bracket)releaseNeuralInputs();
+	}
 	return true;
 }
 #endif

@@ -90,8 +90,13 @@ writes, moves or edits a runtime configuration, records the path and digest in
 `launch.json`, and the consumer's log shows "Found config file" with the parsed
 keys. Such a run is evidence for that configuration only (LOG788). `--cpu-timing`
 logs bounded per-stage host CPU scopes (600 samples per stage,
-including the `feed-worker` scope) and marks the run diagnostic, never
-performance evidence. The scene feed runs anchor, temporal capture,
+including the `feed-worker` scope, the whole-frame scopes `frame-process`,
+`frame-render`, `frame-pvr-draw`, `frame-submit-neural`, `frame-display`,
+`frame-present` and `frame-gap`, the emulation-thread probes
+`emu-frame-period`, `emu-wait-frame-finished` and `emu-wait-render-end`, and a
+per-frame `Remake source hook calls` line; the frame scopes sample once the
+lane has evaluated an image) and marks the run diagnostic, never performance
+evidence. The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and

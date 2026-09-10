@@ -8,6 +8,7 @@
 #include <new>
 #include <optional>
 #include "source_transform.h"
+#include "remake_cpu_scope.h"
 namespace flycast::rend::neural {
 struct SourceArithmetic {
  std::uint64_t serial=0;
@@ -30,11 +31,16 @@ struct SourceArithmeticOrigin {std::uint32_t value=0;std::optional<SourceTransfo
 inline thread_local std::array<SourceArithmeticOrigin,256> sourceArithmeticOrigins{};
 inline thread_local std::uint64_t sourceArithmeticEpoch=1;
 inline thread_local unsigned sourceArithmeticLive=0;
+// Non-thread-local mirror of sourceArithmeticLive for the recompiler's inline
+// gate (D-217): only the emulation thread executes recompiled code, and the
+// hooks below are no-ops while no origin is live.
+inline std::uint32_t sourceArithmeticLiveFlag=0;
+inline void MirrorSourceArithmeticLive() noexcept {sourceArithmeticLiveFlag=sourceArithmeticLive;}
 inline thread_local std::optional<SourceTransform> pendingArithmeticOrigin,pendingDerivedStore;
 inline void ClearSourceArithmeticOrigins() noexcept {
  if(sourceArithmeticEpoch==UINT64_MAX) {sourceArithmeticOrigins={};sourceArithmeticEpoch=1;}
  else ++sourceArithmeticEpoch;
- sourceArithmeticLive=0;
+ sourceArithmeticLive=0;MirrorSourceArithmeticLive();
  pendingArithmeticOrigin.reset();pendingDerivedStore.reset();
 }
 inline void KillSourceArithmeticOrigin(std::uint32_t reg,std::uint32_t count) noexcept {
@@ -45,6 +51,7 @@ inline void KillSourceArithmeticOrigin(std::uint32_t reg,std::uint32_t count) no
   // Epoch/value checks and disengagement retain the same lookup semantics.
   origin.transform.reset();origin.epoch=0;origin.value=0;
  }
+ MirrorSourceArithmeticLive();
 }
 inline void SeedSourceArithmeticOrigin(std::uint32_t reg,const SourceTransform& transform) noexcept {
  for(unsigned i=0;i<4&&reg+i<255;++i) {
@@ -52,15 +59,25 @@ inline void SeedSourceArithmeticOrigin(std::uint32_t reg,const SourceTransform& 
   if(origin.epoch!=sourceArithmeticEpoch||!origin.transform)++sourceArithmeticLive;
   std::memcpy(&origin.value,&transform.output[i],4);origin.transform=transform;origin.epoch=sourceArithmeticEpoch;
  }
+ MirrorSourceArithmeticLive();
 }
 inline std::optional<SourceTransform> GetSourceArithmeticOrigin(std::uint32_t reg,std::uint32_t value) noexcept {
  return reg<255&&sourceArithmeticOrigins[reg].epoch==sourceArithmeticEpoch&&sourceArithmeticOrigins[reg].value==value?sourceArithmeticOrigins[reg].transform:std::nullopt;
 }
 inline void CopySourceArithmeticOrigin(std::uint32_t src,std::uint32_t dst,std::uint32_t value) noexcept {
+ if(!sourceArithmeticLive)return; // D-217: nothing to copy or kill.
  const auto transform=GetSourceArithmeticOrigin(src,value);
  if(dst<255) {KillSourceArithmeticOrigin(dst,1);sourceArithmeticOrigins[dst]={value,transform,sourceArithmeticEpoch};if(transform)++sourceArithmeticLive;}
+ MirrorSourceArithmeticLive();
 }
 inline void PrepareDerivedStore(std::uint32_t reg,std::uint32_t value) noexcept {pendingDerivedStore=GetSourceArithmeticOrigin(reg,value);}
+// Same lookup without copying the transform; the pointer is valid until the
+// next origin change on this thread (D-217: one call per observed store).
+inline const SourceTransform* SourceArithmeticOriginPtr(std::uint32_t reg,std::uint32_t value) noexcept {
+ if(reg>=255)return nullptr;
+ const auto& origin=sourceArithmeticOrigins[reg];
+ return origin.epoch==sourceArithmeticEpoch&&origin.value==value&&origin.transform?&*origin.transform:nullptr;
+}
 inline bool ValidateSourceArithmeticRegister(std::uint32_t reg,std::uint32_t value) noexcept {
  if(reg>=255)return false;
  const auto& origin=sourceArithmeticOrigins[reg];
@@ -71,7 +88,9 @@ inline bool ValidateSourceArithmeticRegister(std::uint32_t reg,std::uint32_t val
 inline thread_local std::unique_ptr<std::array<SourceArithmetic,4096>> sourceArithmetic;
 inline thread_local std::uint64_t sourceArithmeticSerial=0,sourceArithmeticRejected=0;
 inline void BeginSourceArithmetic(std::uint32_t pc,std::uint32_t layout,std::uint32_t lhs,std::uint32_t rhs) noexcept {
+ ++SourceHookArithmeticCalls;
  pendingSourceArithmetic={0,pc,layout,lhs,rhs};
+ if(!sourceArithmeticLive){pendingArithmeticOrigin.reset();return;} // D-217: no origin can propagate.
  const auto left=GetSourceArithmeticOrigin((layout>>16)&255,lhs);
  const auto right=GetSourceArithmeticOrigin(layout>>24,rhs);
  pendingArithmeticOrigin=left?left:right;
@@ -87,6 +106,7 @@ inline void EndSourceArithmetic(std::uint32_t result) noexcept {
  const auto dst=(record.layout>>8)&255;
  if(dst<255)sourceArithmeticOrigins[dst]={result,record.exact?pendingArithmeticOrigin:std::nullopt,sourceArithmeticEpoch};
  if(dst<255&&sourceArithmeticOrigins[dst].transform)++sourceArithmeticLive;
+ MirrorSourceArithmeticLive();
  record.serial=++sourceArithmeticSerial;
  (*sourceArithmetic)[record.serial%sourceArithmetic->size()]=record;
 }

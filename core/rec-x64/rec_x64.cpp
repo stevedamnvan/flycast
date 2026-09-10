@@ -26,6 +26,7 @@ using namespace Xbyak::util;
 #include "rend/neural/source_read_link.h"
 #include "rend/neural/source_transform.h"
 #include "rend/neural/source_arithmetic.h"
+#include "rend/neural/remake_cpu_scope.h"
 #include <cstdlib>
 static bool sourceSqObservationEnabled() {
 	static const bool enabled=[](){const char* value=std::getenv("FLYCAST_NEURAL_SOURCE_OBSERVATION");
@@ -33,16 +34,27 @@ static bool sourceSqObservationEnabled() {
 	return enabled;
 }
 static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
+	++flycast::rend::neural::SourceHookSqWriteCalls;
 	flycast::rend::neural::SourceSqScope observation(pc,address);
 	static bool reported=false;
 	if(!reported) {reported=true;NOTICE_LOG(DYNAREC,"Neural source SQ observer invoked: pc=%08x address=%08x diagnostic-only",pc,address);}
 	ctx->doSqWrite(address,ctx);
 }
 static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value) {
+	++flycast::rend::neural::SourceHookStoreCalls;
 	flycast::rend::neural::RefreshSourceSqWriters();
+	// D-217: for 4-byte register stores the storing register (+1) rides in the
+	// upper half of the value; the derived-store origin is looked up here
+	// instead of by a separate call before every store.
+	u32 derivedReg=255;
+	if((size&255)==4) {
+		const u32 packed=static_cast<u32>(value>>32);
+		if(packed&&packed<=255)derivedReg=packed-1;
+		value&=0xffffffffull;
+	}
 	flycast::rend::neural::ObserveSourceRamWrite(address,pc,size&255,value);
-	if((size&255)==4)flycast::rend::neural::CarrySourceRamTransform(address,pc,static_cast<u32>(value),flycast::rend::neural::pendingDerivedStore);
-	flycast::rend::neural::pendingDerivedStore.reset();
+	if((size&255)==4)flycast::rend::neural::CarrySourceRamTransform(address,pc,static_cast<u32>(value),
+		flycast::rend::neural::SourceArithmeticOriginPtr(derivedReg,static_cast<u32>(value)));
 	const u32 readSlot=(size>>8)&511;
 	if(readSlot&&readSlot<=256&&(size&255)==4) {
 		const auto& read=flycast::rend::neural::sourceRegisterReads[readSlot-1];
@@ -62,11 +74,14 @@ static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value
 	flycast::rend::neural::ObserveSourceSqStore(address,pc,size,value);
 }
 static void DYNACALL invalidateSourceSqWriters() {
+	++flycast::rend::neural::SourceHookInvalidateCalls;
 	flycast::rend::neural::ClearSourceArithmeticOrigins();
 	flycast::rend::neural::InvalidateSourceSqWriters();
 }
 static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 	using namespace flycast::rend::neural;
+	++SourceHookBoundaryCalls;
+	if(!sourceArithmeticLive)return; // D-217: no live origin to report or kill.
 	unsigned live=opcode==UINT32_MAX?sourceArithmeticLive:0;
 	if(opcode!=UINT32_MAX)for(unsigned i=0;i<count&&reg+i<255;++i) {
 		const auto& origin=sourceArithmeticOrigins[reg+i];
@@ -83,6 +98,7 @@ static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 }
 static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
 	using namespace flycast::rend::neural;
+	++SourceHookBlockEntryCalls;
 	RefreshSourceSqWriters();
 	if(!sourceArithmeticLive)return;
 	for(u32 reg=0;reg<sh4_reg_count&&reg<255;++reg) {
@@ -106,6 +122,7 @@ static void DYNACALL finishSourceRead(u32 value,u32 slot) {
 }
 static void (*sourceOriginalFtrv)(float*,const float*,const float*);
 static void observedSourceFtrv(float* output,const float* input,const float* matrix,u64 identity) {
+	++flycast::rend::neural::SourceHookFtrvCalls;
 	flycast::rend::neural::KillSourceArithmeticOrigin(static_cast<u32>(identity>>48),4);
 	flycast::rend::neural::SourceTransform observed;
 	observed.pc=static_cast<u32>(identity);
@@ -273,7 +290,12 @@ public:
 #ifdef FLYCAST_ENABLE_NEURAL
 		if(sourceSqObservationEnabled()) {
 			if(mmu_enabled())GenCall(invalidateSourceSqWriters);
-			else {mov(call_regs64[0],reinterpret_cast<uintptr_t>(&sh4ctx));GenCall(validateSourceBlockEntry);}
+			else {
+				Xbyak::Label noLiveOrigin;
+				mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveFlag));cmp(dword[rax],0);je(noLiveOrigin,T_NEAR);
+				mov(call_regs64[0],reinterpret_cast<uintptr_t>(&sh4ctx));GenCall(validateSourceBlockEntry);
+				L(noLiveOrigin);
+			}
 		}
 #endif
 		for (current_opid = 0; current_opid < block->oplist.size(); current_opid++)
@@ -440,12 +462,7 @@ public:
 				}
 #ifdef FLYCAST_ENABLE_NEURAL
 				if(sourceSqObservationEnabled() && !mmu_enabled()) {
-					if(observeTransformArithmetic&&op.rs2.is_r32()&&op.size==4) {
-						shil_param_to_host_reg(op.rs2,call_regs[1]);mov(call_regs[0],static_cast<u32>(op.rs2._reg));
-						GenCall(flycast::rend::neural::PrepareDerivedStore);
-					} else {
-						mov(call_regs[0],255);mov(call_regs[1],0);GenCall(flycast::rend::neural::PrepareDerivedStore);
-					}
+					const bool derivedRegister=observeTransformArithmetic&&op.rs2.is_r32()&&op.size==4&&op.rs2._reg<255;
 					Xbyak::Label notSq;
 					shil_param_to_host_reg(op.rs1,call_regs[0]);
 					if(!op.rs3.is_null()) {shil_param_to_host_reg(op.rs3,call_regs[1]);add(call_regs[0],call_regs[1]);}
@@ -457,6 +474,11 @@ public:
 					if(op.size==8) {mov(rax,(uintptr_t)op.rs2.reg_ptr(sh4ctx));mov(call_regs64[3],qword[rax]);} else
 #endif
 					shil_param_to_host_reg(op.rs2,call_regs64[3]);
+					if(derivedRegister) {
+						// A 32-bit move zero-extends; the register id (+1) goes in the upper half.
+						mov(call_regs64[3].cvt32(),call_regs64[3].cvt32());
+						mov(rax,static_cast<u64>(op.rs2._reg+1)<<32);or_(call_regs64[3],rax);
+					}
 					GenCall(observedSourceSqStore);L(notSq);
 				}
 #endif
@@ -662,11 +684,17 @@ public:
 					GenCall(flycast::rend::neural::ClearSourceArithmeticOrigins);
 				} else
 				if(op.op==shop_mov32&&op.rd.is_r32()&&op.rs1.is_r32()) {
+					Xbyak::Label noLiveOrigin;
+					mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveFlag));cmp(dword[rax],0);je(noLiveOrigin,T_NEAR);
 					shil_param_to_host_reg(op.rd,call_regs[2]);mov(call_regs[0],static_cast<u32>(op.rs1._reg));mov(call_regs[1],static_cast<u32>(op.rd._reg));
 					GenCall(flycast::rend::neural::CopySourceArithmeticOrigin);
+					L(noLiveOrigin);
 				} else for(const auto* dst:{&op.rd,&op.rd2})if(dst->is_reg()) {
+					Xbyak::Label noLiveOrigin;
+					mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveFlag));cmp(dword[rax],0);je(noLiveOrigin,T_NEAR);
 					mov(call_regs[0],sourceCurrentPc);mov(call_regs[1],static_cast<u32>(op.op));
 					mov(call_regs[2],static_cast<u32>(dst->_reg));mov(call_regs[3],dst->count());GenCall(sourceOriginBoundary);
+					L(noLiveOrigin);
 				}
 			}
 #endif

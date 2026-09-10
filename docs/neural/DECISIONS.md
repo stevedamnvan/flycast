@@ -1,5 +1,26 @@
 # Neural rendering decisions
 
+## D-217: attribute the whole frame before moving work; cut hook cost, not observation
+
+LOG788 showed the consumer was not the limit and LOG789 showed the render
+thread's remake scopes were not either: the emulation thread was, because the
+source-observation recompiler hooks the anchored lane depends on cost about
+8 ms per frame, and the two threads serialize on the one queued render. The
+decisions: (a) whole-frame and emulation-thread scopes are part of the CPU
+timing diagnostic, sampled only while the lane is active, so no stage is
+optimized blind again; (b) evaluation resources persist across evaluations
+(depth upload, raster targets in two sets, dynamic buffers) and one D3D11on12
+acquire covers the upload, raster and copies; deferring output ownership was
+measured and rejected (the wait moves, LOG789); (c) the observation hooks keep
+observing exactly the same events with the same records, but skip work that
+cannot change state: scalar-only reset of the store record, the derived-store
+origin looked up in the single store call, early returns when no origin is
+live, and an inline recompiler gate on a plain mirror of the live count so
+those calls are not made at all; the anchor's rejections are the evidence
+that observation is unchanged. Nothing about acceptance, identity, archives
+or the consumer changes. The atomic counters that briefly measured the hooks
+cost more than the hooks and were replaced by thread-local counters.
+
 ## D-216: a render-thread budget makes the slow lane fall back explicitly
 
 The remaining remake work on the render thread (about13 ms, LOG786) is

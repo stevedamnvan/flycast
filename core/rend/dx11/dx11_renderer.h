@@ -160,7 +160,7 @@ protected:
 	void drainRemakeReturns(std::uint64_t currentFrame,const flycast::rend::neural::ProducerIdentity& producer);
 	flycast::rend::neural::RemakeDisplayDecision selectRemakePreview(bool permitted);
 	bool applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& frame);
-	bool uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input);
+	bool uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input,bool bracket=true);
 	void evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame);
 	flycast::rend::neural::MaterialShaderGlobals materialShaderGlobals;
 	void submitNeuralFramebuffer();
@@ -341,6 +341,7 @@ protected:
 	std::uint64_t remakeFrameBudgetFrames=0;
 	struct RemakeOwnedOutput { ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11ShaderResourceView> view; };
 	std::array<RemakeOwnedOutput,3> remakeOwnedOutputs;std::size_t remakeOwnedOutputNext=0; // D-215 ring.
+	ComPtr<ID3D11Texture2D> remakeDepthUpload; // D-217: persistent inverted-depth upload.
 	unsigned remakeReturnTimingCount=0;
 	unsigned remakeFeedTimingCount=0;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;
@@ -354,6 +355,7 @@ protected:
 	ComPtr<ID3D11Texture2D> remakePreEffectTexture; // Explicit preview capture only.
 	ComPtr<ID3D11ShaderResourceView> remakeEvaluatedView;
 	std::uint64_t remakeLastEvaluationAttempt=0;
+	std::chrono::steady_clock::time_point remakeFrameEndAt{};unsigned remakeFrameScopeCounts[8]{}; // Diagnostics only.
 	std::optional<std::uint8_t> remakeSourceAlphaReference;
 	// D-214: four slots by channel sequence. The channel keeps two sources in
 	// flight, and the return worker may receive (releasing return credit) before

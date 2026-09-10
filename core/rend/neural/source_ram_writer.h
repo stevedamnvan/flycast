@@ -23,9 +23,11 @@ inline void ObserveSourceRamWrite(std::uint32_t address,std::uint32_t pc,
  if((size!=1&&size!=2&&size!=4&&size!=8)||base+size>0x1000000) {InvalidateSourceRamWrites();return;}
  for(unsigned offset=base&~3u;offset<base+size;offset+=4) {
   auto& record=(*sourceRamWrites)[(offset/4)%sourceRamWrites->size()];
-  record={};
-  if(offset>=base&&offset+4<=base+size)
-   record={offset,pc,static_cast<std::uint32_t>(value>>((offset-base)*8))};
+  // Scalar reset only (D-217): the owned transform payload is consulted only
+  // when its serial equals record.transform, which this clears.
+  record.transform=0;
+  if(offset>=base&&offset+4<=base+size) {record.address=offset;record.pc=pc;record.value=static_cast<std::uint32_t>(value>>((offset-base)*8));}
+  else {record.address=0;record.pc=0;record.value=0;}
  }
 }
 inline std::uint32_t SourceRamWriter(std::uint32_t address,std::uint32_t value) noexcept {
@@ -40,9 +42,13 @@ inline std::optional<SourceTransform> SourceRamTransform(std::uint32_t address,s
  return record.ownedTransform&&record.ownedTransform->serial==record.transform?record.ownedTransform:std::nullopt;
 }
 inline bool CarrySourceRamTransform(std::uint32_t address,std::uint32_t pc,std::uint32_t value,
- const std::optional<SourceTransform>& transform) noexcept {
+ const SourceTransform* transform) noexcept {
  if(!transform||!transform->serial||SourceRamWriter(address,value)!=pc||!pc)return false;
  auto& record=(*sourceRamWrites)[((address&0xffffff)/4)%sourceRamWrites->size()];
- record.transform=transform->serial;record.ownedTransform=transform;return true;
+ record.transform=transform->serial;record.ownedTransform=*transform;return true;
+}
+inline bool CarrySourceRamTransform(std::uint32_t address,std::uint32_t pc,std::uint32_t value,
+ const std::optional<SourceTransform>& transform) noexcept {
+ return CarrySourceRamTransform(address,pc,value,transform?&*transform:nullptr);
 }
 }

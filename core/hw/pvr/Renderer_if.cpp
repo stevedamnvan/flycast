@@ -10,9 +10,13 @@
 #include "hw/sh4/sh4_core.h"
 #include "hw/sh4/sh4_sched.h"
 #include "profiler/fc_profiler.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/remake_cpu_scope.h"
+#endif
 #include "network/ggpo.h"
 
 #include <mutex>
+#include <optional>
 #include <deque>
 
 #ifdef LIBRETRO
@@ -106,6 +110,10 @@ public:
 				{
 					if (type == Stop)
 						return;
+#ifdef FLYCAST_ENABLE_NEURAL
+					static unsigned count=0;
+					flycast::rend::neural::RemakeCpuScope timing("emu-wait-dequeue",0,count);
+#endif
 					dequeueEvent.Wait();
 				}
 			} while (dupe);
@@ -214,6 +222,12 @@ private:
 #endif
 		{
 			FC_PROFILE_SCOPE_NAMED("Renderer::Process");
+#ifdef FLYCAST_ENABLE_NEURAL
+			static unsigned processCount=0;
+			std::optional<flycast::rend::neural::RemakeCpuScope> processTiming;
+			if(renderToScreen&&flycast::rend::neural::RemakeFrameTimingActive.load(std::memory_order_relaxed))
+				processTiming.emplace("frame-process",0,processCount);
+#endif
 			try {
 				renderer->Process(taContext);
 			} catch (...) {
@@ -594,8 +608,13 @@ int rend_end_render(int tag, int cycles, int jitter, void *arg)
 		asic_RaiseInterrupt(holly_RENDER_DONE_isp);
 		asic_RaiseInterrupt(holly_RENDER_DONE_vd);
 	}
-	if (pend_rend && config::ThreadedRendering)
+	if (pend_rend && config::ThreadedRendering) {
+#ifdef FLYCAST_ENABLE_NEURAL
+		static unsigned count=0;
+		flycast::rend::neural::RemakeCpuScope timing("emu-wait-render-end",0,count);
+#endif
 		renderEnd.Wait();
+	}
 
 	return 0;
 }

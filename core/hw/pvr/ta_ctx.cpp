@@ -1,4 +1,8 @@
 #include "ta_ctx.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/remake_cpu_scope.h"
+#include <chrono>
+#endif
 #include "spg.h"
 #include "cfg/option.h"
 #include "Renderer_if.h"
@@ -52,6 +56,11 @@ void SetCurrentTARC(u32 addr)
 
 static TA_context* rqueue;
 static cResetEvent frame_finished;
+#ifdef FLYCAST_ENABLE_NEURAL
+// D-217 diagnostics: where the emulation thread waits for the renderer.
+static unsigned emuWaitFrameFinishedCount=0,emuFramePeriodCount=0;
+static std::chrono::steady_clock::time_point emuLastQueued{};
+#endif
 static flycast::rend::neural::ProducerIdentityClock captureProducerClock;
 void ResetCaptureProducerIdentity()
 {
@@ -76,7 +85,12 @@ bool QueueRender(TA_context* ctx)
 			// The previous render hasn't completed yet so we wait.
 			// If autoskipframe is enabled (normal level), we only do so if the CPU is running
 			// fast enough over the last frames
+		{
+#ifdef FLYCAST_ENABLE_NEURAL
+			flycast::rend::neural::RemakeCpuScope timing("emu-wait-frame-finished",0,emuWaitFrameFinishedCount);
+#endif
 			frame_finished.Wait();
+		}
 	}
 
 	if (skipFrame || rqueue)
@@ -112,7 +126,26 @@ bool QueueRender(TA_context* ctx)
 	}
 #endif
 	rqueue = ctx;
-
+#ifdef FLYCAST_ENABLE_NEURAL
+	if(flycast::rend::neural::RemakeFrameTimingActive.load(std::memory_order_relaxed)) {
+		const auto now=std::chrono::steady_clock::now();
+		if(emuLastQueued.time_since_epoch().count()&&emuFramePeriodCount<600)
+			if(const char* v=std::getenv("FLYCAST_REMAKE_CPU_TIMING");v&&std::strcmp(v,"1")==0) {
+				++emuFramePeriodCount;
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=emu-frame-period elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+					std::chrono::duration<double,std::milli>(now-emuLastQueued).count());
+				NOTICE_LOG(RENDERER,"Remake source hook calls: stores=%llu sq_writes=%llu arithmetic=%llu ftrv=%llu block_entries=%llu invalidations=%llu boundaries=%llu diagnostic=true",
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookStoreCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookSqWriteCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookArithmeticCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookFtrvCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookBlockEntryCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookInvalidateCalls),
+					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookBoundaryCalls));
+			}
+		emuLastQueued=now;
+	}
+#endif
 
 	return true;
 }

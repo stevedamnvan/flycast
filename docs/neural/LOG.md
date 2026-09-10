@@ -1,5 +1,55 @@
 # Neural rendering evidence log
 
+LOG789 D-217: whole-frame attribution, persistent evaluation resources, and
+the source-observation hooks. Whole-frame scopes (`frame-process`,
+`frame-render`, `frame-pvr-draw`, `frame-submit-neural`, `frame-display`,
+`frame-present`, `frame-gap`) and emulation-thread probes
+(`emu-frame-period`, `emu-wait-frame-finished`, `emu-wait-render-end`) now
+sample once the lane is active; the earlier frame scopes sampled the warmup.
+Findings in order. (1) Deferring output ownership to the next frame
+(fc071-deferown-a/b/c) removed the 1.9 ms acquire wait but moved the same
+wait into the input upload (5.7 ms), present p50 29.7 against 28.2; reverted.
+(2) Per-evaluation resource creation was the cost: the inverted-depth upload
+texture and the motion raster's six targets, depth, upload textures and
+buffers were created every frame. They now persist (two output sets so the
+retained previous draw IDs are never the set being rendered; dynamic buffers
+mapped on the raster's deferred context) and one D3D11on12 acquire covers the
+upload, the raster and its copies (fc072-persist-timing-a): returned-evaluate
+9.0 to 5.0 ms (raster 2.4 to 1.3, ownership 3.4 to 1.4, upload 0.6 to 0.3),
+present interval unchanged at 30 ms. (3) The whole-frame timeline explained
+why: the render thread's frame (17.5) plus a 10.6 ms gap in which it idled,
+while the emulation thread's period was 27.8 ms; the two threads were
+serialized by QueueRender waiting for the previous render and by the
+emulation thread itself taking about 19 ms per frame, against about 11 in
+the native control, because the source-observation recompiler hooks the
+anchored lane depends on (LOG7xx camera anchor: `xyzTransforms` from observed
+ftrv and RAM stores) ran about 250 000 store observations, 2.1 million
+register-write boundary calls and 363 000 block-entry validations per frame.
+(4) Hook cost cut without changing what is observed: the RAM-store observer
+resets only its scalar fields and looks the derived-store origin up in one
+call (the storing register rides in the upper half of a 4-byte value) instead
+of a preparation call before every store; the register-write boundary, the
+mov32 origin copy and the block-entry validation return immediately when no
+origin is live, and the recompiler now skips those calls inline through a
+non-thread-local mirror of the live-origin count (`sourceArithmeticLiveFlag`),
+so 2.1 million boundary calls per frame became 0.6 million and 363 000
+block-entry calls became 82 000 (fc074-storehook-timing-a,
+fc074-liveflag-timing-c): emulation period 28.9 to 21.7 ms, host present
+interval p50 30.8 to 21.6 ms with CPU timing on, no identity, gap or repeat
+fault, anchor rejections one support change in the first run and none in the
+second. Accepted evaluations
+fell to 818 of 1200 with 261 output repeats: the helper's draw time rose from
+2.5 to 5.4 ms while the emulation thread ran hotter, which reads as CPU
+contention between the emulator, the workers and the consumer's own threads;
+not yet attributed. The atomic hook counters themselves cost about 3 ms per
+frame (fc074-fastpath-timing-b, discarded); they are plain thread-local
+counters now. The lane is now bound by the render thread: process about 4 ms
+plus render about 17 ms (submit-neural 13.1 of which feed 3.0, evaluation 4.7
+and about 5.4 in the native neural export path; display 2.0; PVR draw 1.0),
+all with CPU-timing logging inflating each. Next: attribute the 5.4 ms native
+neural export path and the process step, then re-measure without CPU timing.
+Selftest866/0, remake-sdk-contract260/0, launcher tests16.
+
 LOG788 consumer configuration sweep; GPU-sharing attribution withdrawn. The
 launcher gained `--consumer-config PATH`, which hands a user-authored rtx.conf
 to the consumer through its documented `DXVK_RTX_CONFIG_FILE` override (the

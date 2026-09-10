@@ -140,14 +140,21 @@ of1200 presents combined, p50 26.3). LOG788 swept the consumer configuration
 present interval did not move (28.2 to29.5), so the GPU-sharing attribution is
 withdrawn: the lane is bound by the render thread's device-bound remake work
 (about13 ms, LOG786), not by the consumer. The600-frame gate is not passed.
-Next operational action (D-217 candidate): take that work off the render
-thread's frame path: record the returned-image evaluation (input upload, motion
-raster, consumer submit, output acquire, composite) on a deferred context from
-the return worker and execute the command list at present; replace the
-blocking D3D11on12 acquire wait with a fence checked at the next frame; then
-re-measure against the measured controls (native11.1, DLAA12.6). After that,
-pipeline the helper's present and readback (turnaround12.5 at minimum
-settings shows the floor). The budget lane stays diagnostic.
+D-217 (LOG789): whole-frame attribution
+found the emulation thread (source-observation hooks, about 8 ms per frame)
+and the serialization of the two threads, not the render-thread remake work;
+persistent evaluation resources and cheaper hooks brought the emulation
+period to 21.7 ms and the host present interval to 21.6 ms p50 (CPU timing
+on), with the lane now render-thread bound (process about 4 ms plus render
+about 17 ms). Next operational action: attribute the about 5.4 ms of the
+native neural export path inside `frame-submit-neural` and the process step
+with scopes, cut what is redundant for the remake lane (the lane replaces
+native guidance with returned scenes), re-measure without CPU timing against
+the measured controls (native11.1, DLAA12.6), and attribute the helper's draw
+time rise (2.5 to 5.4 ms) and the accepted-evaluation drop (818 of 1200) that
+appeared once the emulation thread ran hotter (CPU contention suspected).
+Then pipeline the helper's present and readback. The budget lane stays
+diagnostic.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

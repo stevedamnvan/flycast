@@ -24,6 +24,51 @@ class RemakeMotionRaster {
  Ptr<ID3D11InputLayout> layout;
  Ptr<ID3D11RasterizerState> raster;
  Ptr<ID3D11DepthStencilState> depthState;
+ // D-217: every per-call resource is created once and reused. Outputs come
+ // from two sets so a retained previous output (its draw IDs feed the next
+ // call) is never the set being rendered.
+ struct Targets {
+  std::array<Ptr<ID3D11Texture2D>,6> textures;
+  std::array<Ptr<ID3D11ShaderResourceView>,6> views;
+  std::array<Ptr<ID3D11RenderTargetView>,6> rtvs;
+ };
+ std::array<Targets,2> sets;unsigned nextSet=0;
+ Ptr<ID3D11Texture2D> depth,current,previous,colorNow,colorBefore;
+ Ptr<ID3D11DepthStencilView> dsv;
+ Ptr<ID3D11ShaderResourceView> currentView,previousView,colorNowView,colorBeforeView;
+ Ptr<ID3D11Buffer> vertices,indices,contract;
+ bool ensureResources(std::string& error) {
+  if(contract)return true;
+  auto texture=[&](DXGI_FORMAT format,UINT flags,Ptr<ID3D11Texture2D>& tex,Ptr<ID3D11ShaderResourceView>* view) {
+   D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
+   d.Format=format;d.BindFlags=flags;d.Usage=D3D11_USAGE_DEFAULT;
+   return SUCCEEDED(device->CreateTexture2D(&d,nullptr,tex.GetAddressOf()))
+    &&(!view||SUCCEEDED(device->CreateShaderResourceView(tex.Get(),nullptr,view->GetAddressOf())));
+  };
+  constexpr DXGI_FORMAT formats[]={DXGI_FORMAT_R16G16_FLOAT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R32_FLOAT};
+  for(auto& set:sets)for(unsigned i=0;i<6;++i)
+   if(!texture(formats[i],D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE,set.textures[i],&set.views[i])
+    ||FAILED(device->CreateRenderTargetView(set.textures[i].Get(),nullptr,set.rtvs[i].GetAddressOf()))){error="remake-raster-target";return false;}
+  if(!texture(DXGI_FORMAT_D32_FLOAT,D3D11_BIND_DEPTH_STENCIL,depth,nullptr)
+   ||FAILED(device->CreateDepthStencilView(depth.Get(),nullptr,dsv.GetAddressOf()))
+   ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,current,&currentView)
+   ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,previous,&previousView)
+   ||!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,colorNow,&colorNowView)
+   ||!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,colorBefore,&colorBeforeView)){error="remake-raster-depth-create";return false;}
+  auto buffer=[&](UINT flags,UINT bytes,Ptr<ID3D11Buffer>& b) {
+   D3D11_BUFFER_DESC d{};d.ByteWidth=bytes;d.Usage=D3D11_USAGE_DYNAMIC;d.BindFlags=flags;d.CPUAccessFlags=D3D11_CPU_ACCESS_WRITE;
+   return SUCCEEDED(device->CreateBuffer(&d,nullptr,b.GetAddressOf()));
+  };
+  if(!buffer(D3D11_BIND_VERTEX_BUFFER,65536*sizeof(RemakeMotionVertex),vertices)
+   ||!buffer(D3D11_BIND_INDEX_BUFFER,262144*4,indices)
+   ||!buffer(D3D11_BIND_CONSTANT_BUFFER,32,contract)){error="remake-raster-buffer";return false;}
+  return true;
+ }
+ bool write(ID3D11Buffer* target,const void* data,std::size_t bytes) {
+  D3D11_MAPPED_SUBRESOURCE mapped{};
+  if(FAILED(context->Map(target,0,D3D11_MAP_WRITE_DISCARD,0,&mapped)))return false;
+  std::memcpy(mapped.pData,data,bytes);context->Unmap(target,0);return true;
+ }
 public:
  unsigned OwnedObjects()const {
   return unsigned(bool(context))+unsigned(bool(vs))+unsigned(bool(ps))
@@ -87,25 +132,12 @@ public:
   for(std::size_t i=0;i<currentDepth.size();++i)
    if(!std::isfinite(currentDepth[i])||currentDepth[i]<0||currentDepth[i]>1
     ||!std::isfinite(previousDepth[i])||previousDepth[i]<0||previousDepth[i]>1)return fail("remake-raster-depth");
-  auto texture=[&](DXGI_FORMAT format,UINT flags,const void* data,UINT pitch,
-   Ptr<ID3D11Texture2D>& tex,Ptr<ID3D11ShaderResourceView>* view) {
-   D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
-   d.Format=format;d.BindFlags=flags;d.Usage=D3D11_USAGE_DEFAULT;
-   D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=data;initial.SysMemPitch=pitch;
-   return SUCCEEDED(device->CreateTexture2D(&d,data?&initial:nullptr,tex.GetAddressOf()))
-    &&(!view||SUCCEEDED(device->CreateShaderResourceView(tex.Get(),nullptr,view->GetAddressOf())));
-  };
-  RemakeRasterOutput result;std::array<Ptr<ID3D11RenderTargetView>,6> targets;
-  constexpr DXGI_FORMAT formats[]={DXGI_FORMAT_R16G16_FLOAT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R8_UNORM,DXGI_FORMAT_R16_UINT,DXGI_FORMAT_R32_FLOAT};
-  for(unsigned i=0;i<6;++i)
-   if(!texture(formats[i],D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE,nullptr,0,result.textures[i],&result.views[i])
-    ||FAILED(device->CreateRenderTargetView(result.textures[i].Get(),nullptr,targets[i].GetAddressOf())))return fail("remake-raster-target");
-  Ptr<ID3D11Texture2D> depth,current,previous;Ptr<ID3D11ShaderResourceView> currentView,previousView;
-  Ptr<ID3D11DepthStencilView> dsv;
-  if(!texture(DXGI_FORMAT_D32_FLOAT,D3D11_BIND_DEPTH_STENCIL,nullptr,0,depth,nullptr)
-   ||FAILED(device->CreateDepthStencilView(depth.Get(),nullptr,dsv.GetAddressOf()))
-   ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,currentDepth.data(),640*4,current,&currentView)
-   ||!texture(DXGI_FORMAT_R32_FLOAT,D3D11_BIND_SHADER_RESOURCE,previousDepth.data(),640*4,previous,&previousView))return fail("remake-raster-depth-create");
+  if(!ensureResources(error))return false;
+  // Never render into the set whose draw IDs the caller retained as previous.
+  unsigned pick=nextSet%2;
+  if(previousDrawIds&&sets[pick].views[2].Get()==previousDrawIds)pick^=1;
+  nextSet=pick+1;
+  auto& set=sets[pick];const auto& targets=set.rtvs;
   if(previousDrawIds) {
    // A host may expose a wrapped creation device while resource GetDevice
    // returns its underlying device. Compare resource-owner identities on both
@@ -117,22 +149,17 @@ public:
     ||FAILED(currentOwner.As(&currentIdentity))||priorIdentity.Get()!=currentIdentity.Get())
     return fail("remake-raster-previous-wrong-device");
   }
-  auto buffer=[&](UINT flags,const void* data,UINT bytes,Ptr<ID3D11Buffer>& b) {
-   D3D11_BUFFER_DESC d{};d.ByteWidth=bytes;d.Usage=D3D11_USAGE_IMMUTABLE;d.BindFlags=flags;
-   D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=data;
-   return SUCCEEDED(device->CreateBuffer(&d,&initial,b.GetAddressOf()));
-  };
-  Ptr<ID3D11Texture2D> colorNow,colorBefore;
-  Ptr<ID3D11ShaderResourceView> colorNowView,colorBeforeView;
-  if(currentColor&&(!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,currentColor->data(),640*4,colorNow,&colorNowView)
-   ||!texture(DXGI_FORMAT_B8G8R8A8_UNORM,D3D11_BIND_SHADER_RESOURCE,previousColor->data(),640*4,colorBefore,&colorBeforeView)))
-   return fail("remake-raster-color-create");
   const float constants[]={640,480,nearPlane,farPlane,absoluteTolerance,relativeTolerance,currentColor?1.f:0.f,8.f/255.f};
-  Ptr<ID3D11Buffer> vertices,indices,contract;
-  if(!buffer(D3D11_BIND_VERTEX_BUFFER,stream.vertices.data(),UINT(stream.vertices.size()*sizeof(RemakeMotionVertex)),vertices)
-   ||!buffer(D3D11_BIND_INDEX_BUFFER,stream.indices.data(),UINT(stream.indices.size()*4),indices)
-   ||!buffer(D3D11_BIND_CONSTANT_BUFFER,constants,sizeof(constants),contract))return fail("remake-raster-buffer");
   context->ClearState();
+  context->UpdateSubresource(current.Get(),0,nullptr,currentDepth.data(),640*4,0);
+  context->UpdateSubresource(previous.Get(),0,nullptr,previousDepth.data(),640*4,0);
+  if(currentColor) {
+   context->UpdateSubresource(colorNow.Get(),0,nullptr,currentColor->data(),640*4,0);
+   context->UpdateSubresource(colorBefore.Get(),0,nullptr,previousColor->data(),640*4,0);
+  }
+  if(!write(vertices.Get(),stream.vertices.data(),stream.vertices.size()*sizeof(RemakeMotionVertex))
+   ||!write(indices.Get(),stream.indices.data(),stream.indices.size()*4)
+   ||!write(contract.Get(),constants,sizeof(constants)))return fail("remake-raster-buffer");
   const float zero[4]{},one[4]={1,1,1,1};
   const float uncovered[4]={7,7,7,7};
   for(unsigned i=0;i<6;++i)context->ClearRenderTargetView(targets[i].Get(),i==4?uncovered:(i==3||i==5)?one:zero);
@@ -145,12 +172,12 @@ public:
   context->IASetInputLayout(layout.Get());context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   context->VSSetShader(vs.Get(),nullptr,0);context->PSSetShader(ps.Get(),nullptr,0);
   ID3D11Buffer* cb=contract.Get();context->VSSetConstantBuffers(0,1,&cb);context->PSSetConstantBuffers(0,1,&cb);
-  ID3D11ShaderResourceView* srvs[]={currentView.Get(),previousView.Get(),previousDrawIds,colorNowView.Get(),colorBeforeView.Get()};context->PSSetShaderResources(0,5,srvs);
+  ID3D11ShaderResourceView* srvs[]={currentView.Get(),previousView.Get(),previousDrawIds,currentColor?colorNowView.Get():nullptr,currentColor?colorBeforeView.Get():nullptr};context->PSSetShaderResources(0,5,srvs);
   context->DrawIndexed(UINT(stream.indices.size()),0,0);
   Ptr<ID3D11CommandList> commands;
   if(FAILED(context->FinishCommandList(FALSE,commands.GetAddressOf())))return fail("remake-raster-command-list");
   immediate->ExecuteCommandList(commands.Get(),TRUE);
-  output=std::move(result);error.clear();return true;
+  output.textures=set.textures;output.views=set.views;error.clear();return true;
  }
 };
 }

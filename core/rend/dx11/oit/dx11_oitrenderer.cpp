@@ -21,6 +21,10 @@
 #include <d3d11.h>
 #include "../dx11context.h"
 #include "../dx11_renderer.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/remake_cpu_scope.h"
+using flycast::rend::neural::RemakeCpuScope;
+#endif
 #include "rend/transform_matrix.h"
 #include "../dx11_texture.h"
 #include "dx11_oitshaders.h"
@@ -956,6 +960,22 @@ struct DX11OITRenderer : public DX11Renderer
 #endif
 		resetContextState();
 		bool is_rtt = rendContext->isRTT;
+#ifdef FLYCAST_ENABLE_NEURAL
+		// D-217 diagnostics: whole render-thread frame and the gap since the
+		// previous frame, sampled once the remake lane is active.
+		const bool frameTimed=!is_rtt&&remakeLastEvaluationAttempt!=0;
+		flycast::rend::neural::RemakeFrameTimingActive.store(frameTimed,std::memory_order_relaxed);
+		if(frameTimed&&remakeFrameEndAt.time_since_epoch().count()&&remakeFrameScopeCounts[0]<600) {
+			if(const char* v=std::getenv("FLYCAST_REMAKE_CPU_TIMING");v&&std::strcmp(v,"1")==0) {
+				++remakeFrameScopeCounts[0];
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=frame-gap elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+					std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-remakeFrameEndAt).count());
+			}
+		}
+		struct FrameEnd{std::chrono::steady_clock::time_point& at;bool rtt;~FrameEnd(){if(!rtt)at=std::chrono::steady_clock::now();}} frameEnd{remakeFrameEndAt,is_rtt};
+		std::optional<RemakeCpuScope> frameTiming;
+		if(frameTimed)frameTiming.emplace("frame-render",0,remakeFrameScopeCounts[1]);
+#endif
 
 		if (!is_rtt)
 		{
@@ -991,7 +1011,15 @@ struct DX11OITRenderer : public DX11Renderer
 
 		setupPixelShaderConstants();
 
+#ifdef FLYCAST_ENABLE_NEURAL
+		{
+			std::optional<RemakeCpuScope> timing;
+			if(frameTimed)timing.emplace("frame-pvr-draw",0,remakeFrameScopeCounts[2]);
+			drawStrips();
+		}
+#else
 		drawStrips();
+#endif
 		if (!is_rtt && !config::EmulateFramebuffer)
 			captureNativeParityFrame();
 #ifdef FLYCAST_ENABLE_NEURAL
@@ -1011,13 +1039,23 @@ struct DX11OITRenderer : public DX11Renderer
 		{
 			aspectRatio = getOutputFramebufferAspectRatio();
 #ifdef FLYCAST_ENABLE_NEURAL
-			submitNeuralFrame();
+			{
+				std::optional<RemakeCpuScope> timing;
+				if(frameTimed)timing.emplace("frame-submit-neural",0,remakeFrameScopeCounts[3]);
+				submitNeuralFrame();
+			}
 #endif
 #ifndef LIBRETRO
 			deviceContext->OMSetRenderTargets(1, &DX11Context::Instance()->getRenderTarget().get(), nullptr);
-			displayFramebuffer();
 #ifdef FLYCAST_ENABLE_NEURAL
+			{
+				std::optional<RemakeCpuScope> timing;
+				if(frameTimed)timing.emplace("frame-display",0,remakeFrameScopeCounts[4]);
+				displayFramebuffer();
+			}
 			endNeuralPerformanceFrame();
+#else
+			displayFramebuffer();
 #endif
 			drawOSD();
 #ifdef FLYCAST_ENABLE_NEURAL

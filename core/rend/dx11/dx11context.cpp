@@ -28,6 +28,10 @@
 #include "rend/neural/evidence_marker.h"
 #include "imgui_impl_dx11.h"
 #include <dxgi1_6.h>
+#include "rend/neural/remake_cpu_scope.h"
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
 #ifdef TARGET_UWP
 #include <windows.h>
 #include <gamingdeviceinformation.h>
@@ -309,12 +313,29 @@ void DX11Context::Present()
 	if (!swapchain) {
 		hr = DXGI_ERROR_DEVICE_RESET;
 	}
-	else if (swapOnVSync) {
-		int swapInterval = std::clamp((int)(settings.display.refreshRate / 60.f * gameSwapInterval), 1, 4);
-		hr = swapchain->Present(swapInterval, 0);
-	}
 	else {
-		hr = swapchain->Present(0, allowTearing ? DXGI_PRESENT_ALLOW_TEARING : DXGI_PRESENT_DO_NOT_WAIT);
+#ifdef FLYCAST_ENABLE_NEURAL
+		// D-217 diagnostics: time spent inside the swap chain present.
+		static thread_local unsigned presentCount=0;
+		const char* timing=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
+		const bool timed=timing&&std::strcmp(timing,"1")==0&&presentCount<600
+			&&flycast::rend::neural::RemakeFrameTimingActive.load(std::memory_order_relaxed);
+		const auto start=std::chrono::steady_clock::now();
+#endif
+		if (swapOnVSync) {
+			int swapInterval = std::clamp((int)(settings.display.refreshRate / 60.f * gameSwapInterval), 1, 4);
+			hr = swapchain->Present(swapInterval, 0);
+		}
+		else {
+			hr = swapchain->Present(0, allowTearing ? DXGI_PRESENT_ALLOW_TEARING : DXGI_PRESENT_DO_NOT_WAIT);
+		}
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(timed) {
+			++presentCount;
+			NOTICE_LOG(RENDERER,"Remake CPU scope: frame=0 stage=frame-present elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+				std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count());
+		}
+#endif
 	}
 	if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
 		WARN_LOG(RENDERER, "Present failed: device removed/reset");
