@@ -1,5 +1,34 @@
 # Neural rendering evidence log
 
+LOG791 correction to LOG790: the live channel's receipt digest is persisted
+in the locked archives and recomputed byte-serially on replay
+(`remake_input_replay.cpp`, LOG780), so the word-wise digest committed with
+D-218 would have made every archive written by that build fail
+`archive-source-receipt-mismatch` on replay. Reverted to the byte-serial
+FNV-1a before any archive was written with it; no evidence run in LOG790 used
+a locked archive. The LOG790 publish figure (3.5 ms) was measured with the
+word-wise digest; the byte-serial digest costs about 1 ms more on the feed
+worker, off the present path. Re-measured with the byte-serial digest,
+performance-eligible fc075-perf-d218-d: present p50 17.05 ms, p95 26.10,
+p99 32.72; 1035 remake presents, 940 accepted, 105 output repeats, latency
+mean 3.49 (max 6), no identity fault; helper period p50 19.3 ms, p90 25.4.
+Against the 600-frame gate (BACKLOG exit criteria: after at most 120 warmup
+presents, at least 99 percent of steady eligible presents show actual
+combined output; no stale fallback, identity fault, unbounded wait or
+growing owned-resource count; latency and P50/P95/P99 reported), computed
+from the per-present samples with the first 120 measured presents as warmup
+and an output repeat counted as stale: fc075-perf-d218-c 1018 fresh of 1080
+steady presents (94.3 percent; 98.2 percent of the 1037 remake presents),
+fc075-perf-d218-d 933 of 1080 (86.4 percent; 90.1 percent of 1035). The gate
+is not passed. Owned GPU objects 143 to 188 (maximum 194) and VRAM growth
+408 MB in both runs, the same in each, reached once the lane starts (not
+attributed to a leak; not yet proven either). The run-to-run spread (22
+against 105 repeats on the same build) follows the helper's period: its
+receive-draw-readback-return sequence takes about 13 ms p50 and 19.5 ms p90
+per packet against a 16.7 ms frame period, so any jitter backs the three
+credits up. Only the OIT renderer route has been measured; the normal
+renderer run the gate also asks for has not been made.
+
 LOG790 D-218: the host present interval reaches the emulated frame period.
 Performance-eligible run fc075-perf-d218-c (no CPU timing, replay, anchored
 light, managed session): present interval p50 16.77 ms, p95 24.98 ms; 1200
@@ -27,9 +56,10 @@ positions untrusted), 4.74 to 0.82 ms. Native paths are unchanged. (2) The
 feed worker's publish (6.6 ms) was the packet serializer writing one word per
 stream call and the consumer reading the same way; the writer now stages the
 identical bytes and writes once, the live channel deserializes from the
-mapped payload directly (files and the parity check keep the stream path),
-and the payload digest hashes eight bytes per step (publisher and consumer
-share the function; no digest is persisted): publish 6.6 to 3.5 ms. Packet
+mapped payload directly (files and the parity check keep the stream path);
+the byte-serial receipt digest is unchanged, because the locked archives
+persist it and the replay recomputes it (LOG780): publish 6.6 to 3.5 ms
+measured with a word-wise digest that was then reverted (LOG791). Packet
 build without per-triangle heap use: 3.5 to 2.1 ms. The anchor's per-vertex
 embedding runs in chunks on worker threads with order-free reductions and
 the first failing vertex in packet order still deciding the error: 4.5 to

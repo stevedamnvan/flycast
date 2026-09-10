@@ -11,7 +11,7 @@ correspondence, which native and DLAA lanes still compute exactly as before.
 (c) The wire, the digest, the anchor's arithmetic and every observation
 record are unchanged in content; what changed is copies, allocations and
 calls that could not alter state (staged serialization, raw mapped input,
-word-wise digest shared by both ends and never persisted, in-place SQ
+in-place SQ
 records in pooled batches, a compact store ring, per-register live bytes as
 a recompiler gate, chunked anchor embedding with the first failure in packet
 order). The anchor's rejections and the identity checks remain the evidence

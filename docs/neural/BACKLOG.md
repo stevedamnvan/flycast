@@ -151,13 +151,20 @@ sampling windows found the native draw correspondence (skipped on the lane),
 the serializer, the anchor loop and the SQ/store observation records; the
 present interval reached the emulated frame period (performance-eligible
 fc075-perf-d218-c: p50 16.77 ms, p95 24.98, 1025 of 1037 remake presents
-accepted, 22 repeats) with three sources in flight on the channel. Next
-operational action: run the 600-frame gate on this build and record it;
-then cut the p95 (24.98) by attributing the remaining credit skips (169)
-against the helper's period p90 (21 ms) and the feed worker's p90 (13 ms),
-and re-check the in-session re-anchor at source about 3099 (support overlap
-424 of 1000 with the last accepted set) by logging the frames since the last
-accepted source at the rejection. The budget lane stays diagnostic.
+accepted, 22 repeats) with three sources in flight on the channel. The
+600-frame gate is not passed (LOG791: fresh combined output 94.3 and 86.4
+percent of steady presents in two performance-eligible runs of the same
+build against the 99 percent criterion; p99 30.6 and 32.7 ms; OIT route
+only). Next operational action: pipeline the helper (overlap the next
+packet's draw with the previous readback and return, keeping the return
+order and receipts exact) so its per-packet period falls clearly below the
+16.7 ms frame period at p90, then repeat two performance-eligible runs on
+the OIT route and one on the normal renderer route and evaluate the gate
+from the per-present samples (fresh output after 120 warmup presents,
+identity, repeats, latency, P50/P95/P99, owned-object and VRAM growth
+attributed). Re-check the in-session re-anchor at source about 3099 (support
+overlap 424 of 1000) by logging the frames since the last accepted source at
+the rejection. The budget lane stays diagnostic.
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

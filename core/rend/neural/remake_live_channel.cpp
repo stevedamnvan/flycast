@@ -40,13 +40,10 @@ bool name(const std::string& token,std::wstring& output) {
  output=L"Local\\FlycastRemake-";output.append(token.begin(),token.end());return true;
 }
 std::uint64_t digest(const char* data,std::size_t size) {
- // D-218: FNV-1a over 8-byte words (tail bytes one at a time). Payload
- // integrity between this publisher and its consumer only; both sides share
- // this function, and no digest is persisted or compared across builds.
- std::uint64_t hash=14695981039346656037ull;std::size_t i=0;
- for(;i+8<=size;i+=8){std::uint64_t word;std::memcpy(&word,data+i,8);hash^=word;hash*=1099511628211ull;}
- for(;i<size;++i){hash^=static_cast<unsigned char>(data[i]);hash*=1099511628211ull;}
- return hash;
+ // Byte-serial FNV-1a: the locked archives persist this receipt digest and
+ // the replay recomputes it (LOG780), so the function is not changed.
+ std::uint64_t hash=14695981039346656037ull;
+ for(std::size_t i=0;i<size;++i){hash^=static_cast<unsigned char>(data[i]);hash*=1099511628211ull;}return hash;
 }
 class OutputBuffer:public std::streambuf {
  char* base_;std::size_t used_=0;
