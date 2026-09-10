@@ -92,13 +92,17 @@ the far plane on an open stage; D-209 makes that projection semantic explicit in
 the helper. Session f (LOG773) on a closed stage accepted4544 returns with
 lineage selection across up to11 bases and five genuine re-anchors, exposed the
 near-side mirror of D-209 and the helper's300 second watchdog ending a healthy
-session before the host's420 second bound; LOG774 addresses both. Next
-operational action: verify D-209 on both sides and the worker budget in a manual
-session on the open stage of session e (one helper generation to host end,
-returns accepted, `beyond_far_clamped`/`before_near_clamped` counts and
-`max_depth`/`min_depth` recorded, `above_limit` zero), then measure the far
-off-screen projection precision failures (637 frames in session d, p90 0.117
-pixels) without relaxing the guard. Then resume the remaining public-DLAA/native 300-frame
+session before the host's420 second bound; LOG774 addresses both. Session g
+(LOG775) was cut short by a window resize and led to the pre-first-source
+retirement fix. Session h (LOG776) on the open stage verified the far side of
+D-209 (1961 of2003 returns clamped, maxima within three float steps of1, none
+above the limit, no rejection), the420 second worker budget (one generation to
+an orderly host end, launcher exit0) and lineage selection (0 ambiguous frames).
+Next operational action: measure the far off-screen projection precision
+failures (637 frames in session d,183 in session h with p90 1.25 and max67.5
+pixels) by logging the expected and embedded pixel coordinates and offsets of
+the failing vertices, without relaxing the guard; then define whether a
+labeled, bounded policy for vertices far outside the viewport is justified. Then resume the remaining public-DLAA/native 300-frame
 lanes. World-consistent lighting/camera across cuts stays with
 M2-camera; do not relabel the generation origin as world truth.
 

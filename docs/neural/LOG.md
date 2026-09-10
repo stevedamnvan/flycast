@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG776 manual session fc067-anchor-manual-h (open stage of session e, worker
+budget420, clip-range depth policy, retirement fix; window untouched): launcher
+exit0 with the host report written (12000 frames complete at4:31, all harness
+transitions pass, performance_eligible false as for every manual session). One
+helper generation for the whole run: first publish at2:29,2003 sources,2003
+accepted returns,0 rejected, orderly channel-closed retirement (11) at host end.
+D-209 far side exercised and verified:1961 of2003 returns carried beyond-far
+values (pixels per return p50 387, p90 2761, max5641), measured maxima
+1.00000012..1.00000036 (one to three float steps above1), `above_limit`0 on
+every return, no near-side value on this stage. Anchor: one re-anchor, genuine
+(102 degrees,145 shared); four view cuts (the round-start dolly pair identical
+to session e at8 and89 source frames,43.6 degrees over2 frames, and12.2 units
+in a single frame with468 shared);0 anchor-ambiguous-source-basis; accepted
+frames had one to three rigid bases with lineage selection on all but two
+multi-basis frames;183 anchor-projection-mismatch skips (p50 0.059, p90 1.25,
+max67.5 pixels), the far off-screen precision limitation of session d on this
+stage, guard unchanged. Retained as verification evidence for D-208 lineage,
+D-209 and the session-worker budget; still diagnostic anchored scene, not a
+recovered world camera.
+
 LOG775 manual session fc067-anchor-manual-g (worker budget420, clip-range depth
 policy): the host window was resized at0:44 (raster contract640x480 to
 570x427), the swapchain resize failed (887a0001) and the renderer

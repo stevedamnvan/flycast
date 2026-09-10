@@ -17,7 +17,8 @@ which no point in front of the camera projects to, are left as measured and
 remain rejected. Depth inside the clip range is never altered and raw depth
 artifacts stay raw. This makes the projection's own semantic explicit; it is not
 a relaxed acceptance, and the returned depth semantics of the runtime remain
-unverified.
+unverified. Verified in play on the open stage (LOG776: measured maxima one to
+three float steps above1, nothing above the limit, no rejected return).
 
 ## D-208: lineage-based support, in-place view cuts and resilient sessions
 
