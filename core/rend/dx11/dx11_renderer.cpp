@@ -1768,7 +1768,7 @@ void DX11Renderer::submitNeuralFrame()
 	if (!syncNeuralMode()) return;
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
-		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 300)),
 		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())),
 		static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartProducer.get())));
 	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId(),rendContext?rendContext->captureProducer.ordinal:0);
@@ -2276,7 +2276,7 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 		&& config::NeuralCaptureFrames.get() > 0;
 	neuralQualityCapture.Configure(config::NeuralCaptureDirectory.get(),
 		static_cast<std::uint32_t>(std::max(0, config::NeuralCaptureSkip.get())),
-		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 240)),
+		static_cast<std::uint32_t>(std::clamp(config::NeuralCaptureFrames.get(), 0, 300)),
 		config::NeuralLateOverlayProof.get(), static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartFrame.get())),
 		static_cast<std::uint64_t>(std::max(0, config::NeuralCaptureStartProducer.get())));
 	neuralQualityCapture.SetSourceFrame(neuralInstrumentation.NextFrameId(),rendContext?rendContext->captureProducer.ordinal:0);

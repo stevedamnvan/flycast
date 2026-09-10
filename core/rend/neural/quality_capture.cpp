@@ -576,7 +576,9 @@ void QualityCaptureWriter::Configure(const std::filesystem::path& root,
 	remakeView_.reset();
 	remakePacket_.reset();remakePacketStatus_="not-requested";
 	skip_ = skip;
-	limit_ = (std::min)(limit, 240u);
+	// Bounded synchronous capture; 300 matches the explicit extended diagnostic
+	// ceiling of the launcher lanes so one native lane covers a 300-source interval.
+	limit_ = (std::min)(limit, 300u);
 	lateOverlayProof_ = lateOverlayProof;
 	seen_ = captured_ = lateOverlayCaptured_ = 0;
 	startFrame_ = startFrame; sourceFrame_ = 0;

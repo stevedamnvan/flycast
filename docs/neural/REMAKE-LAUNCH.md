@@ -68,7 +68,11 @@ eight emulated frames apart at the return cadence (`frames_since_last`); a fast
 dolly can therefore log a view cut, which only retires history. Returned depth
 outside the declared clip range is returned as the plane it lies beyond and
 counted per return (`beyond_far_clamped`, `before_near_clamped`, `max_depth`,
-`min_depth`, D-209); values above the projection limit still reject. Vertices
+`min_depth`, D-209); values above the projection limit still reject. The
+synchronous `neuraltest capture` lane accepts up to300 frames (renderer and
+quality-capture ceilings match), so a native lane can cover the same300-source
+interval as the launcher lanes in one deterministic replay; use
+`--start-producer` for the interval. Vertices
 far outside the viewport whose bounded on-screen effect satisfies the unchanged
 0.01 pixel guard are accepted and counted (`offscreen_accepted`, D-210).
 The run is capped at eight generations and the original whole-run deadline.

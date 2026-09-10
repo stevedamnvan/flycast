@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG779 remaining300-frame lanes of the four-lane matrix, sources2400..2699.
+Native PVR public-DLAA lane attempt a (hooks-disabled host, same replay,
+--start-producer2399) stopped at240 captures2400..2639 although the harness
+accepted and reported300: the renderer and quality capture clamped
+NeuralCaptureFrames at240 while the CLI bound had been raised; retained as a
+failed300 lane. All three ceilings now read300, matching the explicit extended
+diagnostic ceiling of the launcher lanes, and the harness reports
+requested_frames while capture-complete.json keeps the captured count. Attempt b
+captures exactly300 frames2400..2699, clean close, host ReShade log reports
+SAFE MODE/hooks disabled. Returned-DLAA lane a on the same hooks-disabled host
+with the locked source b archive: launcher0, host0, one helper generation with
+1102 receives/1102 published and orderly close(11),300 captures2400..2699.
+Four-lane review300-a (native PVR, native PVR + public DLAA, Remix-only source
+b, combined b):300 frames, no gaps, zero native pixel mismatches, all frozen
+Remix inputs identical. Public/combined comparison300-a:300 matched frames, no
+unmatched frames or gaps, HUD mismatch0, returned RGB MAE0 on every frame
+(identical locked returned pixels). Scope unchanged: exact producer/native
+pixels and frozen Remix inputs; not temporal-history/NGX-input identity, not
+external output provenance, not performance, no winner. Selftest806/0 in
+automation, baseline and no-ngx; remake-sdk-contract260/0; four configurations
+built serially before the lanes ran; no build during any capture.
+
 LOG778 manual session fc067-anchor-manual-i (open stage, D-210): launcher exit0,
 host report complete (12000 frames at4:31), one helper generation to an orderly
 end,1726 sources,1726 accepted returns,0 rejected;1646 returns clamped beyond the

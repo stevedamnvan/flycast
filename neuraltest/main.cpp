@@ -849,7 +849,10 @@ int CaptureCommand(const Args& args)
 	std::uint32_t frames = 0, skip = 0, timeoutMs = 120000, renderHeight = 480,
 		evidenceFrames = 0, evidenceStartFrame = 0, captureStartFrame = 0, captureStartProducer = 0;
 	std::uint32_t captureSaveAfter = 0, captureLoadDelay = 30;
-	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 240
+	// Bounded synchronous capture: 300 matches the explicit extended diagnostic
+	// ceiling of the launcher lanes (REMAKE-LAUNCH), so a native lane can cover the
+	// same 300-source interval in one deterministic replay.
+	if (!Number(args, "--frames", 0, frames, error) || frames == 0 || frames > 300
 		|| !Number(args, "--skip", 0, skip, error)
 		|| !Number(args, "--start-frame", 0, captureStartFrame, error) || captureStartFrame > 10000000
 		|| !Number(args, "--start-producer", 0, captureStartProducer, error) || captureStartProducer > 10000000
@@ -862,7 +865,7 @@ int CaptureCommand(const Args& args)
 		|| !Number(args, "--evidence-start-frame", 0, evidenceStartFrame, error)
 		|| !Number(args, "--timeout-ms", 120000, timeoutMs, error) || timeoutMs < 1000)
 	{
-		std::cerr << (error.empty() ? "--frames must be 1..240, --evidence-frames 0..480, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
+		std::cerr << (error.empty() ? "--frames must be 1..300, --evidence-frames 0..480, --render-height 120..8640, and --timeout-ms at least 1000" : error) << '\n';
 		return 2;
 	}
 	const auto lane = Value(args, "--lane", "dlaa");
@@ -1276,7 +1279,7 @@ int CaptureCommand(const Args& args)
 		<< ",\n  \"savestate_roundtrip_completed\": " << (captureSaveComplete ? "true" : "false")
 		<< ",\n  \"clean_window_close\": " << (forcedTermination ? "false" : "true")
 		<< ",\n  \"media_path_recorded\": false\n}\n";
-	std::cout << "capture complete frames=" << frames << " lane=" << lane
+	std::cout << "capture complete requested_frames=" << frames << " lane=" << lane
 		<< " api=" << api << " renderer=" << renderer
 		<< " injection=" << injection << ':' << injectionCount
 		<< " clean_close=" << (forcedTermination ? "no" : "yes") << '\n';

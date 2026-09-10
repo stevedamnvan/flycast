@@ -104,9 +104,15 @@ accepted, effect at most0.0014 pixel) and left78 tangential rejections as the
 recorded float embedding precision limitation. The live scene/camera continuity
 work that took priority over the matrix (LOG757) is at a stable checkpoint:
 managed manual sessions run one helper generation to an orderly host end with
-no rejected return. Next operational action: resume the remaining public-DLAA
-and native300-frame lanes of the four-lane matrix (sources2400..2699, same
-locked archive and watchdogs as the source/combined lanes). Separate items:
+no rejected return. The remaining public-DLAA and native300-frame lanes are complete in the
+same narrow scope (LOG779: four-lane review300 frames, no gaps, zero native
+pixel mismatches; public/combined300 matched frames, HUD mismatch0). The
+300-frame matrix is therefore complete as source joins and frozen inputs; it
+still does not establish temporal-history/NGX-input identity, external output
+provenance, performance or a perceptual winner. Next operational action: user
+review of the300-frame moving artifacts (four-lane-review-300-a and
+public-vs-combined-300-a), then the600-frame performance/timing gates on the
+performance-eligible lanes without capture. Separate items:
 exact double-precision frustum clipping of near-plane vertices far outside the
 viewport (topology change), round-end overlay protection (FC-055).
 World-consistent lighting/camera across cuts stays with M2-camera; do not
