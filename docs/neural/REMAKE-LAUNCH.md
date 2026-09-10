@@ -83,7 +83,12 @@ the render thread. `--frame-budget-ms N` sets a render-thread budget for the rem
 the feed skips explicitly when the budget cannot cover the feed and the
 evaluation it leads to (returned images are never deferred), presentation
 repeats the last combined output, and `Remake frame
-budget report` lines carry the counters; default unlimited. `--cpu-timing`
+budget report` lines carry the counters; default unlimited.
+`--consumer-config PATH` hands a user-authored consumer rtx.conf to the consumer
+through its documented `DXVK_RTX_CONFIG_FILE` override; the launcher never
+writes, moves or edits a runtime configuration, records the path and digest in
+`launch.json`, and the consumer's log shows "Found config file" with the parsed
+keys. Such a run is evidence for that configuration only (LOG788). `--cpu-timing`
 logs bounded per-stage host CPU scopes (600 samples per stage,
 including the `feed-worker` scope) and marks the run diagnostic, never
 performance evidence. The scene feed runs anchor, temporal capture,

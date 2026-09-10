@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG788 consumer configuration sweep; GPU-sharing attribution withdrawn. The
+launcher gained `--consumer-config PATH`, which hands a user-authored rtx.conf
+to the consumer through its documented `DXVK_RTX_CONFIG_FILE` override (the
+1.5.2 runtime logs "Found config file" and the parsed keys); the launcher
+writes no configuration and records the path and digest. No rtx.conf existed
+before, so every earlier run used the runtime's Auto preset, which resolves to
+Ultra on this GPU. Three variants, same settings as LOG787 (1200 frames,
+replay, unlimited lane), read at the same points: (a) bounce cut (path bounces
+1, ray interactions 2/1/1, PSR bounces 1, combined denoising, DI samples 2/1):
+present p50 28.5 ms, helper draw2.55, turnaround15.8; (b) graphics preset
+Low: 28.6, draw2.50, turnaround15.3; (c) diagnostic minimum (preset Low, ray
+reconstruction, denoiser, volumetrics, bloom and upscaler off, zero bounces;
+not a visual candidate): 29.5, draw2.53, lock wait2.8, turnaround12.5;
+baseline (Ultra) 28.2, turnaround15.1. Frame GPU span stayed17.9 to18.8 and
+the PVR pass13.6 to14.0 in all four. Reading: the consumer's rendering cost
+does not reach the host present interval at all, so the LOG787 statement that
+the lane is GPU-bound by sharing near26 ms is withdrawn. The span above the
+11.5 ms control is the host's own frame with the render thread's device-bound
+remake work inside it (acquire wait2.0, motion raster2.4, composite1.6,
+snapshot1.4, view scene1.3, submit1.0; LOG786), which stretches the timestamp
+span without consuming GPU. Option (c) of the LOG787 decision is closed by
+measurement; the consumer configuration stays the user's and no variant is
+recommended for visuals. Variant runs are diagnostic, not the evidence lane.
+Launcher tests16.
+
 LOG787 helper CPU cut and D-216 frame budget. Helper: readback surfaces and
 CPU buffers persist across images, the depth copy walks rows instead of
 307200 memcpy calls, and texture bytes registered by the host live in

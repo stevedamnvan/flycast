@@ -108,6 +108,18 @@ def prepare(args):
         if not (0 < budget < 1000):
             raise ValueError('Frame budget must be between 0 and 1000 ms')
         env['FLYCAST_REMAKE_FRAME_BUDGET_MS'] = repr(float(budget))
+    consumer = getattr(args, 'consumer_config', None)
+    if consumer is not None:
+        # An explicit, user-authored consumer configuration (an rtx.conf) handed
+        # to the consumer through its documented DXVK_RTX_CONFIG_FILE override.
+        # The launcher never writes, moves or edits a runtime configuration; a
+        # run with this option is evidence for that configuration only.
+        consumer = Path(consumer).resolve(strict=True)
+        if not consumer.is_file() or consumer.suffix != '.conf':
+            raise ValueError('Consumer configuration must be an existing .conf file')
+        if out == consumer.parent or out in consumer.parents:
+            raise ValueError('Output cannot contain an input')
+        env['DXVK_RTX_CONFIG_FILE'] = str(consumer)
     if args.manual_input:
         # A player must boot, reach a fight and play through cuts: 12000 emulated
         # frames (4:50 to over 5:00 observed), a 420 second host bound, the helper's
@@ -229,6 +241,8 @@ def main():
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
     p.add_argument('--frame-budget-ms', type=float, default=None,
                    help='Render-thread remake budget per emulated frame in ms (D-216); default unlimited')
+    p.add_argument('--consumer-config', type=Path, default=None,
+                   help='User-authored consumer rtx.conf passed by DXVK_RTX_CONFIG_FILE; never written by the launcher')
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
@@ -246,6 +260,9 @@ def main():
                       if args.effect_identity or args.locked_input_root else None,
                   cpu_timing=args.cpu_timing,
                   frame_budget_ms=args.frame_budget_ms,
+                  consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,
+                  consumer_config_sha256=hashlib.sha256(args.consumer_config.read_bytes()).hexdigest()
+                      if args.consumer_config else None,
                   performance_eligible=args.capture_frames == 0 and not args.manual_input and not args.cpu_timing,
                   scope='diagnostic anchored scene, not recovered world camera',
                   external_configuration_modified=False, external_provenance_verified=False,

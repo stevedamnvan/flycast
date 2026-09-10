@@ -117,6 +117,19 @@ class LaunchPreflightTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             prepare(self.args)
         self.args.frame_budget_ms = None
+        self.assertNotIn('DXVK_RTX_CONFIG_FILE', default[2])
+        conf = Path(self.temp.name)/'variant.conf'
+        conf.write_text('rtx.pathMaxBounces = 1\n')
+        self.args.consumer_config = conf
+        self.assertEqual(prepare(self.args)[2]['DXVK_RTX_CONFIG_FILE'], str(conf.resolve()))
+        self.assertEqual(conf.read_text(), 'rtx.pathMaxBounces = 1\n')
+        self.args.consumer_config = Path(self.temp.name)/'missing.conf'
+        with self.assertRaises(FileNotFoundError):
+            prepare(self.args)
+        self.args.consumer_config = Path(__file__).resolve()
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.consumer_config = None
         self.assertNotIn('--source-wait-seconds', default[4])
         self.args.manual_input = True
         _, _, env, host, helper = prepare(self.args)
