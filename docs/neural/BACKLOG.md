@@ -178,8 +178,12 @@ startup omissions retained. LOG736-737 adds28 matched returned-DLAA/combined
 captures and clean shutdown. This is not target-native PVR DLAA, which remains
 missing from the current moving comparison. LOG733's intermittent depth failure
 remains open; LOG735 verifies owned-child abort cleanup and adds specific rejection
-diagnostics without changing acceptance. After saving the tested slices, add the
-target-native PVR DLAA lane to the same moving interval. Keep the supplied tuple's
+diagnostics without changing acceptance. LOG741 joins28 native-PVR DLAA frames
+with exact game state and zero native-pixel mismatch, completing the short four-
+lane review. Next implement explicitly bounded300-frame frozen/effect capture
+and replay for the required longer moving matrix; preserve the legacy30-frame
+default, exclude synchronous evidence from performance, and stop unnecessary
+archive scans outside the requested source interval. Keep the supplied tuple's
 worse component metrics and nonreproduced depth failure visible. Do not
 repeat live runs or weaken equality. Do not repeat helper-lifetime proof or
 misclassify intentional native weapon trails as reconstruction defects. No

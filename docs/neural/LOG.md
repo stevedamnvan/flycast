@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG742 four native-identity unit tests pass (exact, wrong frame, each producer
+component, unavailable producer); regenerated four-lane artifact b passes all28
+real source joins. Second drive has about68.5GB free before longer experiment.
+Next scope is explicit300-frame frozen/effect diagnostics with legacy30 default
+and source end bound; this does not raise performance watchdogs or lower full
+matrix acceptance. No third-party configuration or runtime writes authorized by
+this extension. Existing28-frame artifact remains a short comparison only.
+
+LOG741 native-PVR DLAA b completes28 frames2704..2731 and clean close. All28
+producer epoch/ordinal/cycle identities match combined captures; native RGBA
+pixel mismatches are zero. Four-lane review generated for native PVR, native PVR
+public Auto, Remix-only and combined with exact frozen Remix inputs. Midpoint
+inspected and slowed moving artifact exposed for user review; not a moving
+perceptual verdict or fresh external-output proof.28 frames are not the required
+300-frame matrix. New review tool scope is source joins; individual capture/
+Present checks remain separate. Additional negative tests/tool checkpoint pending.
+
+LOG740 d60792aac pushed and fork SHA verified; postcommit four builds terminate0
+with three758/0 suites. Native-PVR DLAA capture attempt a rejected CLI before
+launch because proof-overlay requires late-overlay-proof; retain failure. Retry b
+omits that unrelated option:28 frames at producer2703, target640x480, public Auto,
+OIT On12, same replay, source observation off, no Remix helper. Existing OFF host
+logs archived before launch, external config untouched. Match actual producer
+identity and original source pixels before joining this lane to moving comparison.
+
 LOG739 postcommit83bd8c806 four-build chain terminates0, three758/0 selftests.
 Save the separately tested Remix-only/frozen/returned-DLAA comparison controls
 and retained LOG726-738 evidence. Only owned source/docs are staged; third-party
