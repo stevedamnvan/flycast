@@ -29,6 +29,18 @@ it. The tracker carries the objective; this backlog carries the work plan.
 - Handoff HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`; capture/index and
   anchor-generation changes are committed as separate slices after this resume
   (see LOG for SHAs). No world-consistent continuity across cuts is claimed.
+- 2026-09-10 checkpoint `81654643daeaf0b4333978ee4a99da649dd40a6b` (LOG794,
+  D-221..D-223): the OIT fresh-output criterion of the 600-frame gate is met in
+  two runs (99.35 percent); full speed, VRAM attribution, normal-renderer
+  coverage, world/camera truth and visual acceptance stay open. Toolkit 1.5.2.0
+  is installed and scripted (capture, project, 26 materials, 78 generated maps,
+  typed mod layer loads; wrong-texture control verified). The real-material
+  comparison at 640x480 showed no benefit above run-to-run noise; channel
+  correctness and higher-resolution benefit are separate open questions.
+  `--smooth-normals` exists; its comparison used adjacent source frames.
+  Superseded: "Toolkit unavailable" and any helper 20-image-per-second ceiling.
+- D-224 (2026-09-10) opens the opt-in "Soulcalibur Faithful RTX" pilot as
+  substeps under the existing cards (table below). Bounded material, lighting, and resolution experiments for this one scene may proceed alongside unfinished pipeline hardening. They require their immediate technical dependencies, not completion of every unrelated title/renderer gate. This does not close M2-camera, waive parked failures, or authorize release. Broad asset replacement and title expansion remain later work.
 
 - Historical provenance checkpoint: `5e68316f0634abc57474f0297f63e96f0a4aea30`; LOG627-632 record launcher synchronization and accepted-history corrections plus completed28-frame changed-guidance provenance. This is not current HEAD. Read actual HEAD/status and fork ref on resume; builds are incremental, not fresh exact-SHA evidence.
 - FC-067: scene/material export, public-header mock, selected opaque FTRV-to-TA
@@ -63,6 +75,34 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG564 confirms28 consecutive exact-input external results after native effects/HUD and completed Present, including effect identity and marked/clean/OFF controls. Full moving quality matrix and upstream scene acceptance remain open; do not repeat this regression without a changed dependency |
 | FC-045, FC-054, FC-055, FC-063, FC-064 / combined hardening | todo | M4-DLSS5 | Capture/overlay/transition/failure/cadence checks on the changed route; asynchronous performance and repeatable launch. Satisfy the working-pipeline checklist below. | pending |
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
+
+### Pilot substeps (D-224): Soulcalibur Faithful RTX
+
+Opt-in visual profile for the existing Hoko Temple replay and its two fighters
+(LOG795 inventory: Kilik and Taki; 26 captured materials, all joined to helper
+digests in `soulcalibur-remix-manifest.json`). It does not replace or redefine
+Public Auto, Faithful, Uncanny or any neural activation mode; factory neural-off
+and supported public paths are unchanged. Letters are this prompt's work
+packages, not FC IDs; each row lives under its parent card and inherits that
+card's status. Technical status uses the scoped labels (ACCEPTED,
+CORRECTIONS_REQUIRED, NOT_REVIEWABLE); human visual approval is recorded
+separately and is never inferred from a metric. Execute in dependency order
+(A, B, C, then D/E, then F, G, H); one bounded hypothesis at a time. User
+rule 2026-09-10: the Toolkit MCP server is a required tool whenever it is
+available (discovered: `lightspeed.trex.mcp.core` 1.2.2 serving SSE on
+127.0.0.1:8000 with the REST API mounted as tools while the GUI runs); the
+scripted kit.exe route is only the fallback when MCP is absent.
+
+| Pkg | Parent card / status | Dependencies and bounded change | Expected visible benefit | Falsifying check and required evidence | Rollback / next action | Technical | Human visual |
+|---|---|---|---|---|---|---|---|
+| A inventory and channel proof | FC-067 / M2-scene (doing), M3-relighting (todo) | Saved source-2601 packet, capture_2026-09-10_17-52-53, typed mod layer, standalone helper render. Manifest tool joins runtime hash, helper digest, usage, alpha class and replacement maps. Diagnostic albedo/roughness/normal overrides on one stage and one fighter material under fixed light. | None by itself; proves each channel reaches only its surface so later art is not wasted | Override changes pixels only inside the target material's coverage; unchanged materials stay within repeated-baseline noise (measured, not assumed); wrong binding (normal map in diffuse slot) is caught; missing map falls back to the original; mapping survives helper restart | Overrides are a separate layer, deleted after the proof; on failure inspect ingestion/binding before any art | LOG795: manifest ACCEPTED (26/26 joined). Channel proof: see LOG796 | not applicable |
+| B character shading and opacity | FC-067 / M2-scene (doing), FC-055 for composition | A. Refine `--smooth-normals` with source-qualified vertex identity and material boundaries (skin/cloth/curved armor smoothed; blades, seams, corners kept). D-183 alpha per material: first candidate excludes promoted alpha surfaces from the export and keeps them native | Curved fighters without silhouette change; no glass-like lattice/banner/floor | Same-source flat-versus-smooth capture at 2601 plus moving combat; no pops, seam errors or unstable normals under deformation; no double smoothing; excluded surfaces present natively with unchanged blend order and occlusion; negative control: silhouette pixel mask identical | Flag off restores flat export; composition change reverts to D-183 route | pending | pending |
+| C higher-resolution reference | FC-067 / M3-relighting (standalone); live integration stays M4-presentation | A. Standalone helper render of the saved scene at 960x720, 1280x960, 1440x1080 (4:3 test points, not presets); internal shading resolution recorded separately from helper output, neural I/O and display; bounded reference accumulation on the frozen scene where the installed runtime supports it | Replacement detail and material response visible at a known real resolution | Per-resolution: recorded `rtx.resolutionScale`/upscaler state, actual internal resolution, cost; mod-versus-no-mod difference above noise at the same resolution; if no benefit, investigate binding/sampling/filtering instead of more maps | Non-performance evidence; nothing changes in the live path | pending | pending |
+| D curated material set | FC-067 / M3-relighting; scoped M5 authoring under D-224 | A, C. Raw AI outputs are drafts; reviewed palette for skin/faces, cloth/leather, weapons/armor, stone, wood/paint, banners/lattice using original artwork as reference; masks or scoped overrides for mixed atlases; alpha, seams, colour space, mips verified | Clear, stable material differences at combat distance | Raw and refined layers kept separately; changes not promoted for looking sharper in a zoomed crop; moving stability check | Layer switch; originals immutable | pending | pending |
+| E temple lighting and colour | FC-067 / M3-relighting; M2-camera for live attachment | A..D. Warm directional key, cooler fill, grounded contact shadows, original palette; diagnostic headlight explicitly replaced in an isolated candidate; small set of primitive lights, emission only for luminous details; baked lighting investigated separately (no global vertex-colour whitening); experiments in copied layers and supplied `--consumer-config` profiles | Fighter/background separation, distinct surface response, stable stage light through supported motion | No double lighting, exposure pumping, floating shadows or lost dark detail; light attachment validated through movement and cuts; unsupported cuts reset explicitly; no camera-stuck lights | Profile not supplied means the current diagnostic light; user Apply stays required where policy requires it | pending | pending |
+| F useful resolution in gameplay | FC-067 / M4-presentation, M4-DLSS5, combined hardening | C. Parameterise helper/return/evaluation dimensions behind explicit opt-in; 640x480 stays compatible and default; colour/depth dimensions, pitch, allocation bounds, transport metadata, motion units, viewport/jitter, neural I/O, effects/HUD mapping and presentation handled together; protocol/archive versions deliberate; temporal state invalidated on size or look revision | Moving higher-resolution output at Present with correct effects/HUD | Wrong-size and stale-generation controls rejected; no colour-only resize; no hidden low-resolution stage; source order, history ownership, bounded latency and native fallback preserved | Opt-in off restores 640x480 | pending | not applicable |
+| G temporal quality and neural contribution | FC-067 / M4-DLSS5, FC-065 | F. Compare native, native public DLAA, original-material Remix, curated Remix-only, curated returned-image public DLAA (hooks-disabled host), curated combined external-neural; existing tools only | A justified visual recommendation | Artistic A/B holds source/pose/camera/overlays constant; neural attribution uses identical Remix inputs and matched guidance/history; incomplete matches marked non-comparable; reviewed at normal and slow speed across attacks, crossings, occlusion, pans, cuts, overlays, menus | Cinematic/uncanny interpretation stays separate from the faithful candidate | pending | pending |
+| H performance, resources, delivery | FC-045, FC-054, FC-055, FC-063, FC-064 | F, G. Repeat performance-eligible runs on the final candidate (no captures, accumulation, CPU instrumentation, builds or generation); report speed, cycle/audio timing, present P50/P95/P99, fresh share over all steady eligible presents, repeats/fallbacks, latency, CPU/GPU coverage, VRAM by phase | Repeatable opt-in launch, layered recipe, rollback, comparison media | Existing denominator, 120-frame warmup, 99 percent, latency limits and repetitions unchanged; 300-frame quality and 600-frame acceptance kept; VRAM growth attributed, not excused; normal-renderer coverage open, not waived | Disposition per mode/resolution: visually approved reference, technically accepted live slice, fully accepted pipeline are distinct | pending | pending |
 
 ### Next-card bounds: FC-067 / M2-scene
 
@@ -174,22 +214,14 @@ The Remix Toolkit pipeline (capture, project, AI PBR textures, ingestion, mod
 layer) runs from scripts; at the consumer's 640x480 output the mod makes no
 measurable difference (LOG794). The faceted characters are the export's flat
 normals; `--smooth-normals` removes the per-facet shading steps (LOG794 capture A/B); silhouettes stay polygonal. Performance-eligible fc075-perf-d220-e and -f (raster retained, same helper): present p50 18.14/18.04 ms, p95 23.94/23.47, p99 30.44/32.19; the re-anchor's held-native presents now take 15 to 22 ms (no 266 ms present) but the re-anchor still costs 8 to 10 presents (four to five automatic, three to five held-native), and scattered single repeats vary between runs (16 and 20 repeats against 8 and 10 in -c/-d, several with 9 to 10 ms present intervals: a present before the next evaluation), so the gate reads 98.52 and 97.96 percent fresh of steady presents; not passed. frames_since_last=0 at the rejection: the last accepted source is the previous frame, a genuine one-frame cut (D-207). Next
-operational action: with the user, decide (a) whether to raise the consumer's
-render resolution so replacement textures show (return-slot and evaluation
-input contract change, path-tracing cost to measure), (b) the smooth-normals
-look (`--smooth-normals` capture at source 2601 against the flat export), and
-(c) the D-183 promoted alpha composition (the source blends those surfaces over the opaque scene; the
-consumer ray-traces them as translucent materials): candidates are exporting
-them as opaque emissive-free decals, or excluding them from the export and
-keeping them native, each measured by the same source-2601 capture; then
-re-evaluate the gate on two performance-eligible OIT runs. The 946/948 MB
-VRAM runs (six owned renderer objects not released by run end) remain
-unattributed. The RTX Remix Toolkit route needs the user to permit the source
-clone or install it through the NVIDIA App; the lane's texture digests are
-ready for it. The budget lane stays diagnostic.
-Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
-texture tools (upscaling and PBR material generation, offline, user-authored
-assets keyed by the texture hashes the helper feeds). Separate items:
+operational action (D-224, 2026-09-10): the three open look questions
+(consumer render resolution, smooth-normals look, D-183 promoted alpha
+composition) are now pilot substeps C, B and B in the table above and are
+worked there in order; the gate re-evaluation on two performance-eligible OIT
+runs is substep H. The 946/948 MB VRAM runs (six owned renderer objects not
+released by run end) remain unattributed. The budget lane stays diagnostic.
+Historical: the Toolkit is installed and scripted (D-222); the earlier "needs
+the user to permit the clone" statement is superseded. Separate items:
 exact double-precision frustum clipping of near-plane vertices far outside the
 viewport (topology change), round-end overlay protection (FC-055).
 World-consistent lighting/camera across cuts stays with M2-camera; do not

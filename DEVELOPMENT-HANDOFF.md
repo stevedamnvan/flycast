@@ -1,6 +1,19 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Pause and authority
+## Current state (2026-09-10, D-224)
+
+Verified HEAD on entry `81654643daeaf0b4333978ee4a99da649dd40a6b` (LOG794);
+recheck HEAD/status on resume. The active work is the opt-in "Soulcalibur
+Faithful RTX" pilot recorded as substeps A-H under the existing cards in
+`docs/neural/BACKLOG.md` (D-224). The OIT fresh-output criterion is met in two
+runs; full speed, VRAM attribution, normal-renderer coverage, world/camera
+truth and visual acceptance remain open. Toolkit 1.5.2.0 is installed and
+scripted; the earlier "Toolkit unavailable" and helper 20-image-per-second
+ceiling statements are superseded. The sections below are the 2026-09-09
+checkpoint kept for its controls; the "next implementor task" there is done
+(LOG759-794) and is not a current instruction.
+
+## Pause and authority (historical)
 
 User requested a pause, then this documentation handoff, then resumed on
 2026-09-09 with "proceed from here". The sections below record the resumed
@@ -60,7 +73,7 @@ pre-session index preparation are the subsequent fixes. The earlier intermittent
 returned-DLAA depth rejection was not reproduced and is not declared fixed.
 Detailed history is LOG743-757; do not replace it with an all-green summary.
 
-## Next implementor task: live scene/camera continuity
+## Completed 2026-09-09 task (historical): live scene/camera continuity
 
 Prioritize integration over further comparison infrastructure or settings sweeps.
 Inspect `core/rend/neural/remake_camera_anchor.h` and its caller in

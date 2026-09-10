@@ -135,6 +135,10 @@ with zero ordinary-mode allocations/work. No renderer rewrite in M1.
   one controlled light. Check camera-consistent geometry, moving fighters,
   occlusion, surface stability, missing geometry, and baked-lighting conflicts.
   A camera-relative approximation cannot claim full scene reconstruction.
+  Under D-224 the bounded Soulcalibur pilot (BACKLOG pilot substeps A-E) may
+  run material-channel proof, shading/opacity correction, a standalone
+  higher-resolution reference and an authored temple light on this one scene
+  alongside unfinished hardening; it needs only its immediate dependencies.
 - **M4: integration decision.** Audit resource ownership, synchronization,
   returned image identity, latency, presentation, and possible DLSS 5 chaining.
   Keep standalone Remix proof distinct from existing external neural proof.
@@ -142,8 +146,12 @@ with zero ordinary-mode allocations/work. No renderer rewrite in M1.
   Run relevant normal/OIT cadence and feature-off checks before production use.
 - **M5: artistic investment.** Only after measured moving benefits decide
   whether material overrides, authored lights, textures, or meshes add enough
-  value. No requirement to preserve original colors/materials in this explicit
-  transformative lane, but keep gameplay timing, readable UI, and stable motion.
+  value. The transformative lane may change appearance, but the D-224 pilot's
+  faithful candidate preserves recognizable designs, costume artwork,
+  silhouettes, animation, stage identity, original effects and HUD; its scoped
+  authoring (curated material palette, temple light) is limited to the Hoko
+  Temple scene and two fighters. Keep gameplay timing, readable UI and stable
+  motion. Broad asset replacement and further titles remain later work.
 
 ## Verification and handoff
 

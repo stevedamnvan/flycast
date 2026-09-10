@@ -96,6 +96,43 @@ used for performance measurement.
 | 17 | FC-054, FC-065 | Moving representative-title evidence shows the default preserves style, identity, text, silhouette, and color; losing titles use a safer default or bypass. |
 | 18 | FC-045, FC-063, FC-064 | Transition/failure/performance matrix has no crash, device loss, stale output, unbounded wait, leak, frame-identity error, or silent native/neural alternation. |
 
+## Soulcalibur Faithful RTX pilot visual criteria (D-224)
+
+Applies to the opt-in pilot in BACKLOG's pilot substeps; it extends, and does
+not replace, Gates 11-18. Technical acceptance and human visual approval are
+recorded separately.
+
+- Fidelity: recognizable character designs, costume artwork, silhouettes,
+  animation, stage identity, original effects (weapon trails included) and HUD
+  are preserved. Silhouette pixel masks are unchanged by shading options.
+- Channels: albedo, roughness and normal replacements affect only their
+  intended surfaces; unchanged materials stay within measured repeated-baseline
+  noise; a wrong binding is detected; a missing map falls back to the original.
+- Shading and opacity: curved fighter surfaces without per-facet steps or
+  silhouette change; blade edges, hard seams and architectural corners keep
+  their normals; no glass-like lattice, banner or floor artifacts; blend order,
+  masks and occlusion of native-composed surfaces unchanged.
+- Materials: skin keeps painted features and colour (no pores, waxiness or
+  facial redesign); cloth/leather finishes differ subtly; metallic response only
+  on intended regions; stone dry and restrained; wood/paint/lacquer distinct
+  without replacing decoration; banners/lattice keep artwork and opacity.
+- Lighting: warm directional key, cooler fill, readable faces, controlled
+  highlights, grounded contact shadows, dark recesses and the original palette;
+  no flooded interiors, wet stone, exaggerated bloom, chromatic aberration or
+  motion blur in the faithful candidate; no double lighting, exposure pumping,
+  floating shadows or lost dark detail; light attachment holds through
+  supported motion and resets explicitly across unsupported cuts.
+- Resolution: a real internal shading resolution is recorded separately from
+  helper output, neural input/output and display; enlarging or rescaling a
+  640x480 image is not a resolution result.
+- Motion: reviewed at normal speed and slow motion across attacks, rotating
+  fighters, crossing weapons, occlusion, thin details, stage pans, genuine cuts,
+  round-end overlays, menus and return to gameplay; increased blur is not
+  stability; intentional trails are preserved.
+- Performance: the existing eligibility denominator, 120-frame warmup, 99
+  percent fresh criterion, latency limits and repetitions are unchanged; a
+  passing fresh share is not full 60 fps.
+
 ## Guidance contract rules
 
 - Preserve the renderer's logarithmic PVR depth unless controlled evidence

@@ -41,6 +41,25 @@ Requested execution is gpt-6-astra at low reasoning (Astra light), not Sol/high.
 This records routing intent, not proof of live model settings. No subagents
 by default. The short goal text and last verified tracker state are in BACKLOG.
 
+## Pilot rules (D-224, opt-in "Soulcalibur Faithful RTX")
+
+- Reuse first: the saved source-2601 packet, the existing capture, Toolkit
+  project, generated maps, mod loader, launcher flags and comparison tools.
+  Do not regenerate the texture set or rebuild Toolkit integration as an
+  opening move; no second comparison platform, project or renderer.
+- Visual evidence: same-source A/B for stills, then moving combat; repeated-
+  baseline noise measured before any changed pixel counts as benefit. Pixel
+  equality is for protected invariants and same-input checks, never for
+  judging different artwork. Unreviewed looks are NOT_REVIEWABLE, not beautiful.
+- Toolkit route: when the installed Toolkit's MCP server is available
+  (`lightspeed.trex.mcp.core`, SSE on 127.0.0.1:8000 while the GUI runs, REST
+  mounted as tools), pilot Toolkit operations MUST go through it; the scripted
+  kit.exe route is the fallback only when MCP is absent. Discover before use.
+- Opt-in scope: the profile changes nothing unless explicitly selected; Public
+  Auto, Faithful, Uncanny and neural activation modes keep their meaning.
+  Experiments live in copied layers and explicitly supplied profiles.
+- Bounded material, lighting, and resolution experiments for this one scene may proceed alongside unfinished pipeline hardening. They require their immediate technical dependencies, not completion of every unrelated title/renderer gate. This does not close M2-camera, waive parked failures, or authorize release. Broad asset replacement and title expansion remain later work.
+
 ## Invariants
 
 - Preserve native fallback, neural-off default, separately supported public

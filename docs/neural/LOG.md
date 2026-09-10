@@ -1,5 +1,37 @@
 # Neural rendering evidence log
 
+LOG795 D-224 pilot opened; documents reconciled; scene inventory and material
+manifest. State on entry: HEAD 81654643daeaf0b4333978ee4a99da649dd40a6b equal
+to fork `feat/neural-rendering`; worktree carried only the private untracked
+items (four build logs, `metrics.txt`, `remake-runtime-smoke.dxvk-cache`,
+`rtx-remix/`). Revised in place: BACKLOG (checkpoint, pilot substep table A-H
+under FC-067/M2-scene, M3, M4, hardening cards; superseded next action),
+AGENTS (pilot rules), REMAKE-FEASIBILITY-PLAN (M3/M5 wording), QUALITY-PLAN
+(pilot visual criteria), DECISIONS (D-224), handoff and REMAKE-LAUNCH.
+Inventory (substep A): stage Hoko Temple, fighters Kilik (red/gold costume,
+staff) and Taki (magenta costume, blue/grey armour), identified by eye from
+the captured textures; runtime remix-1.5.2+68edea01 (helper log), Toolkit
+1.5.2.0; capture `capture_2026-09-10_17-52-53.usd` from the saved source-2601
+packet (`fc075-abcap-d220-baseline`), 48 meshes, 26 materials, 26 textures,
+all 256x256 R8G8B8A8; legal media Soulcalibur (USA) CHD only. The new
+`neuraltest/remake_material_manifest.py` joins each captured runtime material
+hash to the helper's texture identity and content digest by identical pixel
+payload (the DDS headers differ, so whole-file digests do not join): 26 of 26
+joined, no unmatched packet texture, no captured material outside the packet;
+the digests equal the helper's `texture_register` lines of
+`fc075-perf-d222-mod-a`. Toolkit MCP discovery: the installed Toolkit ships
+`lightspeed.trex.mcp.core` 1.2.2 (FastMCP, SSE transport on 127.0.0.1:8000,
+the REST API of port 8011 mounted as tools under the `remix` prefix, plus a
+model-replacement prompt); it listens while the GUI (kit.exe) runs. Per the
+user's rule it is the required Toolkit route for the pilot; the scripted
+kit.exe invocations of D-222 stay as the fallback when the GUI is closed. Usage from the packet: 19 opaque materials, 7 alpha-
+blended (D-183 promoted; 4 with binary source alpha, 3 graded), none cutout at
+source 2601; 4 stage materials are shared by 4 meshes each; all 26 have
+diffuse/normal/roughness replacements present. The manifest is committed as
+`docs/neural/soulcalibur-remix-manifest.json` (hashes and relative paths, no
+artwork). Not established here: channel correctness (LOG796), any visual
+benefit, full-title coverage.
+
 LOG794 D-221/D-222/D-223: the re-anchor keeps its returns, the Remix Toolkit
 pipeline runs end to end, and the faceted look is attributed. (1) D-221: at
 the source-3099 re-anchor the host no longer discards the three returns in

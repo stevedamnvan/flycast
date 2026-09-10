@@ -119,7 +119,10 @@ default off). The helper logs `texture_register ... content_digest=` per
 texture registration (D-220) and, in the live return-only mode, receives its
 first source after runtime startup (`live_first_source=deferred-until-runtime-start`).
 `--smooth-normals` (D-223, default off) averages exported face normals per source
-vertex. The helper honours two diagnostic environment bounds the launcher never
+vertex. The D-224 pilot look is opt-in only: it is selected by the mod layer
+present under the runtime's `rtx-remix/mods` directory, an explicitly supplied
+`--consumer-config` profile and the shading flags above; with none of them the
+session renders the original materials under the diagnostic light. The helper honours two diagnostic environment bounds the launcher never
 sets: `FLYCAST_REMAKE_HELPER_LINGER_MS` and `FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS`
 (D-222, standalone Remix USD capture and mod-loading renders). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`

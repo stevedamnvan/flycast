@@ -1,5 +1,23 @@
 # Neural rendering decisions
 
+## D-224: the opt-in Soulcalibur Faithful RTX pilot runs as bounded substeps under the existing cards
+
+LOG795. Bounded material, lighting and resolution experiments for the Hoko
+Temple scene and its two fighters may proceed alongside unfinished pipeline
+hardening; they need their immediate technical dependencies, not every
+unrelated title/renderer gate. This does not close M2-camera, waive parked
+failures or authorize release; broad asset replacement and title expansion
+remain later work. The profile is explicitly opt-in and does not replace or
+redefine Public Auto, Faithful, Uncanny or neural activation modes; factory
+neural-off and supported public paths are unchanged. Authorized: reversible
+prototype code, isolated Toolkit asset authoring, selective shading/opacity
+experiments and an opt-in higher-resolution return/evaluation path. Not
+authorized: replacing live external configurations, changing global defaults,
+acquiring protected dependencies, lowering acceptance thresholds or promoting
+an unreviewed look. Technical acceptance and human visual approval are
+recorded separately in the same queue; the deliverable is a convincing moving
+fight, not a screenshot, texture directory, loaded mod or passing suite.
+
 ## D-223: exported normals may be smoothed as a labeled shading option, never as recovered shading
 
 LOG794. The source geometry has no normals; the export's flat face normals are
