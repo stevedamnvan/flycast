@@ -1,5 +1,33 @@
 # Neural rendering evidence log
 
+LOG786 D-215: owned output ring, output-ownership split, consumer phase
+timing. The owned copy of each evaluated output now comes from a ring of three
+textures instead of a new texture per evaluation. Replay run
+fc067-perf-ownedring-a (same settings as LOG785):1093 accepted evaluations,
+0 rejected, repeats17, present interval p50 31.4 ms, unchanged; VRAM growth
++391 MB against+928 MB in LOG785's run with the same latency, so the growth
+recorded since LOG784 was the per-evaluation owned texture waiting for
+deferred destruction, now attributed and removed. Timing run
+fc067-perf-ownedring-timing-b: output ownership3.6 ms p50 of which the
+D3D11on12 acquire of the consumer output is2.0 (a driver wait, not host
+work) and the source-effects composite the rest; the copy itself is not the
+cost. Helper timing added to every `live_return` line (draw, present,
+readback, lock wait, depth readback, depth lock wait, turnaround): draw5.9 ms
+p50, present0.3, color lock wait3.6 (DXVK performs the readback wait in the
+lock), depth lock wait0.8, turnaround19.7 (p95 26.2). The consumer's GPU work
+per image is therefore about4 to5 ms at640x480; about9 ms of its turnaround is
+its own CPU work (per-image surface creation, per-pixel depth copy, return
+memcpy and digest), which is host-owned helper code. Budget at60 fps on this
+machine, from the measured controls: GPU11.5 ms (DLAA lane alone) plus about
+5 per consumer image fits one image per frame; CPU does not: the render
+thread carries12.6 ms native plus about13 ms of remake work that is now
+almost entirely device-bound (motion raster2.4, output acquire2.0, composite
+and copy1.6, snapshot1.4, view scene1.3, consumer submit1.0, history0.6,
+upload0.6, overlay copy0.5). Reaching the control within1 percent therefore
+needs the returned-image evaluation recorded on a deferred context by a worker
+and executed at present, not more CPU-only moves. Selftest856/0,
+remake-sdk-contract260/0, launcher tests16.
+
 LOG785 D-214: the return worker receives from the channel itself, and the
 control figure is corrected. The worker polls the host channel (one poll per
 millisecond when empty), checks the image is well formed, prepares the motion

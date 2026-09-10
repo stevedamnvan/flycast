@@ -336,6 +336,8 @@ protected:
 		std::string streamError;flycast::rend::neural::RemakeMotionStream stream;flycast::rend::neural::RemakeNeuralInput input;
 	};
 	std::optional<RemakePreparedReturn> remakePreparedReturn;
+	struct RemakeOwnedOutput { ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11ShaderResourceView> view; };
+	std::array<RemakeOwnedOutput,3> remakeOwnedOutputs;std::size_t remakeOwnedOutputNext=0; // D-215 ring.
 	unsigned remakeReturnTimingCount=0;
 	unsigned remakeFeedTimingCount=0;
 	flycast::rend::neural::RemakeTemporalHistory remakeTemporalHistory;

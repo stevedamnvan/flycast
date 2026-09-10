@@ -236,6 +236,7 @@ void DX11Renderer::Term()
 	NOTICE_LOG(RENDERER, "DX11 renderer terminating");
 #ifdef FLYCAST_ENABLE_NEURAL
 	remakeFeedWorker.Stop();remakeReturnWorker.Stop();
+	for(auto& pooled:remakeOwnedOutputs){pooled.view.reset();pooled.texture.reset();}
 	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
 	neuralInstrumentation.SetEnabled(false);
@@ -3219,16 +3220,32 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		// This does not authorize presenting or claiming an external neural result.
 		if(activeNeuralMode==static_cast<int>(NeuralMode::Dlss5Experimental)
 			&&neuralStage.GetStats().dlss5Readiness!=Dlss5HookReadiness::ContractEvaluated)return;
-		static thread_local unsigned ownTimingCount=0;
+		static thread_local unsigned ownTimingCount=0,wrapTimingCount=0;
 		RemakeCpuScope ownTiming("evaluate-output-own",frame.frameId,ownTimingCount);
 		const auto output=neuralStage.GetOutput();
-		if(output.api!=TextureApi::D3D12||!output.resource
-			||!wrapNeuralOutput(static_cast<ID3D12Resource*>(output.resource),source.frame))return;
-		ComPtr<ID3D11Texture2D> owned;ComPtr<ID3D11ShaderResourceView> view;
+		bool wrapped;
+		{
+			RemakeCpuScope wrapTiming("evaluate-output-wrap",frame.frameId,wrapTimingCount);
+			wrapped=output.api==TextureApi::D3D12&&output.resource&&wrapNeuralOutput(static_cast<ID3D12Resource*>(output.resource),source.frame);
+		}
+		if(!wrapped)return;
+		// Owned copies come from a small ring (D-215): an evaluated output is read
+		// by at most the next composite and display, and copies are ordered on the
+		// immediate context, so the slot reused three evaluations later is free.
 		D3D11_TEXTURE2D_DESC desc{};neuralOutputWrappedTextures[neuralPresentationSlot]->GetDesc(&desc);
 		desc.Usage=D3D11_USAGE_DEFAULT;desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;desc.CPUAccessFlags=0;desc.MiscFlags=0;
-		const bool created=SUCCEEDED(device->CreateTexture2D(&desc,nullptr,&owned.get()))
-			&&SUCCEEDED(device->CreateShaderResourceView(owned,nullptr,&view.get()));
+		auto& pooled=remakeOwnedOutputs[remakeOwnedOutputNext%remakeOwnedOutputs.size()];++remakeOwnedOutputNext;
+		bool created=true;
+		if(pooled.texture) {
+			D3D11_TEXTURE2D_DESC have{};pooled.texture->GetDesc(&have);
+			if(have.Width!=desc.Width||have.Height!=desc.Height||have.Format!=desc.Format){pooled.texture.reset();pooled.view.reset();}
+		}
+		if(!pooled.texture) {
+			created=SUCCEEDED(device->CreateTexture2D(&desc,nullptr,&pooled.texture.get()))
+				&&SUCCEEDED(device->CreateShaderResourceView(pooled.texture,nullptr,&pooled.view.get()));
+			if(!created){pooled.texture.reset();pooled.view.reset();}
+		}
+		ComPtr<ID3D11Texture2D> owned=pooled.texture;ComPtr<ID3D11ShaderResourceView> view=pooled.view;
 		if(created)deviceContext->CopyResource(owned,neuralOutputWrappedTextures[neuralPresentationSlot]);
 		releaseNeuralPresentation();neuralPresentationView.reset();
 		if(!created)return;

@@ -128,14 +128,18 @@ D-214 (LOG785) moved the return receive to the worker (render thread about
 13 ms: output ownership3.7, raster2.5, snapshot1.5, view scene1.3, submit1.0)
 and measured the controls: native11.1 ms, DLAA12.6 ms; the combined lane is
 31.3 ms, of which about5.7 ms is GPU sharing with the external consumer (PVR
-GPU13.7 against11.1 alone). Next operational action: split the output
-ownership scope (wrap versus owned copy) and pool the owned textures, move the
-view scene to the feed worker, then re-measure; measure the external consumer's
-GPU time per image so the GPU budget at60 fps is known (the consumer's
-configuration is the user's; the host records, it does not change it); then
-pipeline the helper's readback; then the600-frame gate against the measured
-controls. VRAM growth follows presentation latency (+928 MB near3 frames,
-+389 MB near2) and remains unattributed (LOG785).
+GPU13.7 against11.1 alone). D-215 (LOG786) pooled the owned outputs (VRAM growth attributed and
+removed), split the ownership scope (2.0 ms is the D3D11on12 acquire wait) and
+timed the consumer: about4 to5 ms GPU per image, about9 ms of its own CPU
+work per image, turnaround19.7 ms. The remaining render-thread remake work
+(about13 ms) is device-bound. Next operational action (D-216 candidate):
+record the returned-image evaluation (input upload, motion raster, consumer
+submit, output acquire and composite) on a deferred context from a worker and
+execute the command list at present, with the same gates and fallbacks; then
+cut the helper's per-image CPU work (reuse its readback surfaces, copy depth
+rows, pipeline present and readback) so its turnaround approaches its GPU
+time; then re-measure the600-frame gate against the measured controls
+(native11.1 ms, DLAA12.6 ms).
 Recorded as a later workflow enhancement, not queued: the RTX Remix Toolkit AI
 texture tools (upscaling and PBR material generation, offline, user-authored
 assets keyed by the texture hashes the helper feeds). Separate items:

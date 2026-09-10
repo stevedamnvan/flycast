@@ -146,12 +146,16 @@ int wmain(int argc,wchar_t** argv) {
    mesh.textureWire=flycast::rend::neural::remake::TextureWire::Carried;
   }
  };
+ // Consumer turnaround per image (diagnostic): receive, present, readback, return.
+ std::chrono::steady_clock::time_point receivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
+ const auto msSince=[](std::chrono::steady_clock::time_point since){return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-since).count();};
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
   for(;;) {
    std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
    const auto result=channel.Receive(packet,receipt,error);
    if(result==flycast::rend::neural::RemakeChannelResult::Received) {
+    receivedAt=std::chrono::steady_clock::now();
     resolveTextureReferences(packet);
     activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
@@ -444,6 +448,7 @@ int wmain(int argc,wchar_t** argv) {
    RECT client{};GetClientRect(window,&client);
    if(client.right<=0 || client.bottom<=0) {outcome=10;break;}
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
+   const auto drawStart=std::chrono::steady_clock::now();
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
    if(legacyGame) {
@@ -469,11 +474,14 @@ int wmain(int argc,wchar_t** argv) {
      retained.RedrawSyntheticMaterial(packet.camera,materialReplace,replacementTexture):affine?retained.RedrawSyntheticAffine(packet.camera):skinning?
      retained.RedrawSyntheticSkinning(packet.camera,(wrongSkinning?-1.f:1.f)*float(frame)/float(frames-1)*.5f):retained.Redraw(packet.camera);
    std::cerr<<"phase=submit end frame="<<frame<<" ok="<<submitted.ok<<'\n'<<std::flush;
+   drawMs=msSince(drawStart);
    if(!submitted.ok) { std::cerr<<"submit failed reason="<<submitted.reason<<"\n";outcome=11;break; }
    const auto presentFrame=[&]() {
    remixapi_PresentInfo present{};present.sType=REMIXAPI_STRUCT_TYPE_PRESENT_INFO;
    std::cerr<<"phase=present begin frame="<<frame<<'\n'<<std::flush;
+   const auto presentStart=std::chrono::steady_clock::now();
    status=api.Present(&present);
+   presentMs=msSince(presentStart);
    std::cerr<<"phase=present end frame="<<frame<<" code="<<int(status)<<'\n'<<std::flush;
    if(status!=REMIXAPI_ERROR_CODE_SUCCESS) { std::cerr<<"Present rejected code="<<int(status)<<"\n";outcome=12;return false; }
    accepted++;
@@ -494,11 +502,16 @@ int wmain(int argc,wchar_t** argv) {
     ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&gpu,nullptr);
    if(SUCCEEDED(hr))hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&cpu,nullptr);
    if(SUCCEEDED(hr)) {
+    // The runtime's output copy waits for its frame; time it with the readback.
+    const auto readbackStart=std::chrono::steady_clock::now();
     auto copied=legacyBackbuffer?REMIXAPI_ERROR_CODE_SUCCESS:api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(gpu,captureType):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
     hr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(gpu,cpu):E_FAIL;
+    readbackMs=msSince(readbackStart);
    }
    D3DLOCKED_RECT locked{};
+   const auto lockStart=std::chrono::steady_clock::now();
    if(SUCCEEDED(hr))hr=cpu->LockRect(&locked,nullptr,D3DLOCK_READONLY);
+   lockWaitMs=msSince(lockStart);
    if(SUCCEEDED(hr)) {
     std::vector<unsigned char> pixels(640*480*4);
     std::vector<unsigned char> raw(floatOutput?640*480*16:0);
@@ -524,7 +537,7 @@ int wmain(int argc,wchar_t** argv) {
      std::string returnError;const auto result=channel.ReturnImage(returned,returnError);
      std::cout<<"live_return sequence="<<returned.source.sequence<<" frame="<<returned.frame
       <<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
-      <<" error="<<returnError<<" presentation_proven=false\n"<<std::flush;
+      <<" error="<<returnError<<" present_ms="<<presentMs<<" readback_ms="<<readbackMs<<" turnaround_ms="<<msSince(receivedAt)<<" presentation_proven=false\n"<<std::flush;
      }
     }
     bool rawOk=true;
@@ -565,12 +578,16 @@ int wmain(int argc,wchar_t** argv) {
 		if(SUCCEEDED(depthHr))depthHr=ownedDevice->CreateOffscreenPlainSurface(640,480,
 			D3DFMT_A32B32G32R32F,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
 		if(SUCCEEDED(depthHr)) {
+			const auto depthStart=std::chrono::steady_clock::now();
 			const auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(depthGpu,
 				REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
 			depthHr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(depthGpu,depthCpu):E_FAIL;
+			depthReadbackMs=msSince(depthStart);
 		}
 		D3DLOCKED_RECT depthLocked{};
+		const auto depthLockStart=std::chrono::steady_clock::now();
 		if(SUCCEEDED(depthHr))depthHr=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
+		depthLockWaitMs=msSince(depthLockStart);
 		if(SUCCEEDED(depthHr)) {
 			returnedFrame.projectionDepth.resize(640*480);
 			for(int y=0;y<480;++y)for(int x=0;x<640;++x)
@@ -599,7 +616,10 @@ int wmain(int argc,wchar_t** argv) {
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
-				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
+				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error
+				<<" draw_ms="<<drawMs<<" present_ms="<<presentMs<<" readback_ms="<<readbackMs<<" lock_wait_ms="<<lockWaitMs
+				<<" depth_readback_ms="<<depthReadbackMs<<" depth_lock_wait_ms="<<depthLockWaitMs<<" turnaround_ms="<<msSince(receivedAt)
+				<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
 			if(result==flycast::rend::neural::RemakeChannelResult::Invalid) {
 				// Per-source rejection: the host keeps native for this source and
 				// expires the receipt. Report the actual depth statistics and keep

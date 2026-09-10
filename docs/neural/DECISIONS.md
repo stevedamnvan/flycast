@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-215: owned outputs from a ring; the consumer is timed, not assumed
+
+The owned copy of an evaluated output is read by at most the next composite
+and display, and copies are ordered on the immediate context, so a ring of
+three owned textures replaces a texture per evaluation; the VRAM growth
+recorded since LOG784 was those textures awaiting deferred destruction. The
+helper reports its own per-image phases (draw, present, readback and lock
+waits, turnaround) on every return line so the consumer's cost is measured
+in evidence rather than inferred from the host's publish rate. Neither changes
+any acceptance criterion or archive.
+
 ## D-214: the return worker receives; controls are measured, not remembered
 
 The return receive (memcpy and digest of a2.4 MB image) was the largest
