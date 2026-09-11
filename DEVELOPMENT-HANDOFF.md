@@ -22,9 +22,11 @@ the inline store fast path covered 29 percent of store hooks and gave no
 whole-frame gain (rejected, reverted); the gap is the aggregate of all
 observation hooks (about 5 ms clean), so 60 fps at 1280x960 needs the
 observation scope narrowed, a user decision on the anchor certificate.
-Next, in order: (1) put that decision to the user with the LOG897/LOG898
-numbers; (2) normal-renderer returned-output integration with alpha
-ownership; returned-output
+LOG899 attributes VRAM by phase (no leak; a 512 MB block toggles below the
+owned objects; per-sample VRAM now in every performance report). Next, in
+order: (1) put the 60 fps observation-scope decision to the user with the
+LOG897/LOG898 numbers; (2) normal-renderer returned-output integration
+with alpha ownership; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall

@@ -183,6 +183,7 @@ void PerformanceTracker::ResolveAvailable(ID3D11DeviceContext *context)
 		sample.resetHistory = slot.resetHistory;
 		sample.rendererResourceObjects = slot.rendererResourceObjects;
 		sample.backendResourceObjects = slot.backendResourceObjects;
+		sample.vramUsageBytes = slot.vramUsageBytes;
 		// CPU metadata was recorded at EndFrame even if the query ring later
 		// stalls. Resolve only the timing fields of its original sequence.
 		if(slot.sequence && slot.sequence<=samples_.size()) {
@@ -286,12 +287,13 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 	}
 	auto& current=cpuOnlyActive_?cpuOnlySlot_:ring_[activeSlot_];
 	current.rendererResourceObjects=rendererResourceObjects;current.backendResourceObjects=stats.backendResourceObjects;
+	current.vramUsageBytes=QueryVram(device_).first; // One adapter query per sample; diagnostic attribution, not a wait.
 	if(samples_.size()<targetSamples_) {
 		Sample sample;sample.sequence=current.sequence;sample.sourceFrameId=current.sourceFrameId;
 		sample.acceptedFrameId=current.acceptedFrameId;sample.outputFrameId=current.outputFrameId;
 		sample.presentationKind=current.presentationKind;sample.neuralMode=current.neuralMode;
 		sample.resetHistory=current.resetHistory;sample.rendererResourceObjects=rendererResourceObjects;
-		sample.backendResourceObjects=stats.backendResourceObjects;
+		sample.backendResourceObjects=stats.backendResourceObjects;sample.vramUsageBytes=current.vramUsageBytes;
 		lastEndedSample_=samples_.size();samples_.push_back(sample);
 	}
 	if(cpuOnlyActive_){cpuOnlyActive_=false;lastEndedSlot_=RingSize;return;}
@@ -549,7 +551,9 @@ void PerformanceTracker::WriteReport()
 			<< ", \"output_frame_id\": " << s.outputFrameId
 			<< ", \"presentation_kind\": \"" << (s.presentationKind==PresentationKind::RemakeEvaluated?"remake-evaluated":s.presentationKind==PresentationKind::Remake?"remake":s.presentationKind==PresentationKind::HeldNative?"held-native":"automatic") << "\""
 			<< ", \"neural_mode\": " << s.neuralMode
-			<< ", \"reset_history\": " << (s.resetHistory ? "true" : "false") << '}';
+			<< ", \"reset_history\": " << (s.resetHistory ? "true" : "false")
+			<< ", \"renderer_objects\": " << s.rendererResourceObjects
+			<< ", \"vram_usage_bytes\": " << s.vramUsageBytes << '}';
 	}
 	report << "\n  ]\n}\n";
 	if (!report) return;

@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG899 VRAM by phase (open H item): per-sample VRAM and renderer object
+counts added to the performance report (`performance_tracker`: one
+`QueryVideoMemoryInfo` per sample, fields `vram_usage_bytes` and
+`renderer_objects` on every sample; the summary fields are unchanged). OIT
+route, LOG805 perf-a launch, `pilot-vram-phase-oit` (exit 0, 1179
+accepted, 8 repeats, present p50/p95 19.57/22.61 ms): usage is 3430 MB at
+the first sample (before any evaluation: the external weights and the
+runtime are already resident), rises by 802 MB at the first accepted
+evaluation (sample 19, source 2121), then holds a steady level of 4178 MB
+(the most common 64 MB bin, 512 of 1170 samples) with excursions to 4690
+and 5213 MB and back; the step histogram is dominated by exactly +512 MB
+(186 steps) and -512 MB (188 steps), about one toggle every three samples,
+with a few 1046 MB steps; flycast-owned neural objects stay at 182 to 188
+throughout; the re-anchor at source 3100 coincides with a -1030 MB step.
+Reading: the reported "growth" (607 MB here, 1724 MB in LOG894, 946/408
+MB alternating in LOG794) is the difference of two points in a series
+that toggles a 512 MB block, so it is not a leak and not attributable to
+owned objects; the toggling block lives below the host's objects (backend
+evaluation stage or driver residency of a large heap) and its cost, if
+any, is already inside the measured present interval. Normal route,
+`pilot-vram-phase-normal` (dx11, cpu-timing, normal effects, no captures):
+exit 0, 1200 samples: 301 MB at the first sample, first accepted evaluation at sample 4, steady 1147 MB (range 1006 to 1169 over samples 30 to 1200), step histogram dominated by plus or minus 5 to 6 MB (single 1280x960 textures: the per-frame colour conversion and composition targets) with no 512 MB steps at all; renderer objects 1455 at start, 5181 peak, 2150 to 3166 steady (snapshot copies across overlay slots and the LOG896 pool's held copies), so the 512 MB toggling is specific to the OIT/d3d11on12 route's backend layer. Build matrix for the tracker change: automation, baseline, no-ngx, off serial, 0 errors (vram-build-neural-*.log); selftest 998/0 in automation, baseline and no-ngx; contract 302/0; python OK. The "VRAM by phase" item is closed
+as attributed; whether the 512 MB toggling has a time cost is a backend
+question and is not claimed either way.
+
 LOG898 inline JIT store-hook fast path REJECTED as a performance change;
 source reverted, not committed. Candidate: emitted code wrote the ring
 record for the plain aligned 4-byte RAM store with no read or transform

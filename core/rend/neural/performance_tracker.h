@@ -64,6 +64,7 @@ private:
 		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
+		std::uint64_t vramUsageBytes = 0; // Process local-segment usage at sample end (VRAM by phase, LOG899).
 		double presentIntervalMs = 0.;
 	};
 	struct Sample {
@@ -84,6 +85,7 @@ private:
 		bool resetHistory = false;
 		std::uint32_t rendererResourceObjects = 0;
 		std::uint32_t backendResourceObjects = 0;
+		std::uint64_t vramUsageBytes = 0;
 	};
 	Slot cpuOnlySlot_;
 	bool cpuOnlyActive_ = false;
