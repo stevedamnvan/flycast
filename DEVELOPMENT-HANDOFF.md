@@ -2,6 +2,17 @@
 
 ## Current state (2026-09-10, D-224)
 
+Resume 2026-09-11 (LOG806): host-side attribution done with matched
+640/1280 CPU-timing runs (`pilot-extent640-cpu-a`, `pilot-extent1280-cpu-a`).
+The render thread's returned-image work (validation passes, buffer copies,
+raster depth uploads) triples with pixels and throttles the emulator; the
+helper's conversion and return add the rest. Next steps are ordered in the
+BACKLOG H row and LOG806 (instrument, single validation pass, depth
+ping-pong, copies off the render thread, helper extract/return, re-measure).
+Rules unchanged: four builds serial, 883/0 x3, contract 272/0, python 23/0
+before any source commit; CPU-timing runs are diagnostic only; 60 fps is
+not claimed until a performance-eligible run shows it.
+
 Resume 2026-09-11 (LOG805): F moving review at 1280x960 (40 captures, HUD
 identical to native, no pops) technical ACCEPTED, look NOT_REVIEWABLE; H
 performance-eligible runs at 1280x960 give present p50 26.5 ms (about 38

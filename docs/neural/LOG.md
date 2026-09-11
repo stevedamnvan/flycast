@@ -1,5 +1,40 @@
 # Neural rendering evidence log
 
+LOG806 substep H host-side cost attribution at 1280x960 (diagnostic
+CPU-timing runs, never performance evidence). Two matched runs with the
+LOG805 perf-a launch plus `--cpu-timing`: `pilot-extent1280-cpu-a` and the
+control `pilot-extent640-cpu-a` (same temple rig, native alpha, welded
+normals, exposure profile A; only the output size differs). Host stage
+medians in ms, 640 then 1280 (600 samples each): emulated frame period
+19.0 then 30.8; frame-render 15.6 then 26.9; frame-submit-neural 12.2 then
+22.3; returned-evaluate 4.5 then 12.2 (evaluate-raster 1.3 then 5.0,
+view-scene 4.2 then 5.1, evaluate-history-accept 0.6 then 2.4,
+evaluate-output-own 1.5 then 1.8, evaluate-input-upload 1.0 at 1280);
+scene-feed 6.1 then 8.1; emulation thread waiting for the render thread
+2.4 then 11.1; off the render thread, return-worker 3.8 then 9.4 and
+feed-worker 11.0 then 12.4 (unchanged by extent). Reading: the render
+thread executes the returned-image work serially inside the frame and that
+work grows with pixels: repeated full-image depth validation (channel
+receive, well-formed check, history accept, motion raster on current and
+previous depth), four to five full copies of the 4.9 MB colour and depth
+buffers per frame (channel receive assign, neural input build, history
+accept, raster UpdateSubresource of current and previous depth), and the
+helper's own conversion and return (LOG805). The emulator is throttled to
+that render thread (wait 11.1 ms), so the 60 fps goal at 1280x960 is a
+host CPU pipeline problem, not a path-tracing or upscaler problem. Next
+(H, source work, four builds and three selftests before commit): (1)
+finer scopes inside evaluate-raster, return-worker and history-accept
+(validate, upload, copy, draw) so each fix is measured; (2) single
+vectorizable range validation per image instead of repeated passes, with
+the validation semantics unchanged; (3) ping-pong the raster's depth
+textures so the previous depth is not re-uploaded; (4) move the copies
+into the return worker or share buffers by reference, keeping the
+ownership rules; (5) helper: fused depth extract and clamp, R32F depth
+target if the runtime accepts it, and split colour and depth return work
+across two threads; (6) re-measure with performance-eligible runs at the
+same denominator. No source change in this entry; no external
+configuration touched.
+
 LOG805 substep F moving review and substep H first cost attribution at
 1280x960. (1) Moving capture `pilot-extent1280-v11-moving` (same launch as
 LOG804, 40 captures from source 2560): 40 consecutive sources 2560..2599
