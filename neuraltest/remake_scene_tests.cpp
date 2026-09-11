@@ -32,6 +32,25 @@ TestCounts TestSceneContract() {
   &&!RemakeComparisonBeforeEnd("x",1,true),"comparison end rejects invalid or unbounded use");
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ {
+  auto q=p;q.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
+  q.diagnosticOrigin=Vec3{};q.producer={1,1,1};
+  q.camera.right={1,0,0};q.camera.up={0,1,0};q.camera.forward={0,0,1};
+  AnchoredSceneLight key,fill;
+  const auto a=key.Select(q,TempleLightDirection(q.camera,false));
+  const auto b=fill.Select(q,TempleLightDirection(q.camera,true));
+  expect(a&&b&&a->x>0&&b->x<0&&a->y<0&&b->y<0,"temple key and fill have distinct normalized authored directions");
+  q.camera.right={0,0,-1};q.camera.forward={1,0,0};
+  const auto held=key.Select(q,TempleLightDirection(q.camera,false));
+  expect(held&&near(held->x,a->x)&&near(held->z,a->z),"temple key does not follow a later camera rotation");
+  q.diagnosticOrigin->x=1;
+  const auto cut=key.Select(q,TempleLightDirection(q.camera,false));
+  expect(cut&&key.Reanchors()==1&&!near(cut->x,a->x),"temple key explicitly reanchors on a view cut");
+  q.producer.epoch++;
+  expect(!fill.Select(q,TempleLightDirection(q.camera,true)),"temple fill rejects changed source epoch");
+  q.camera.right=q.camera.up=q.camera.forward={0,0,0};
+  expect(TempleLightDirection(q.camera,false).x==0,"degenerate temple basis is rejected by anchored light");
+ }
  expect(RemakeWorkerFrameLimit(false,true,660)==660,"legacy helper frame bound unchanged");
  expect(!RemakeWorkerFrameLimit(false,true,661),"legacy oversized helper rejected");
  expect(RemakeWorkerFrameLimit(true,true,660)==10000,"session worker has explicit finite cap");

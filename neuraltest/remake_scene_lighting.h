@@ -14,10 +14,10 @@ class AnchoredSceneLight {
  unsigned reanchors_=0;
 public:
  unsigned Reanchors()const{return reanchors_;}
- std::optional<Vec3> Select(const Packet& p) {
+ std::optional<Vec3> Select(const Packet& p,std::optional<Vec3> authoredDirection={}) {
   if(p.diagnosticEmbeddingProvenance!="diagnostic-camera-embedded-anchor-not-world-reconstruction"
    ||!p.producer.Available()||!p.diagnosticOrigin)return {};
-  const auto o=*p.diagnosticOrigin,d=p.camera.forward;
+  const auto o=*p.diagnosticOrigin,d=authoredDirection.value_or(p.camera.forward);
   if(!std::isfinite(o.x)||!std::isfinite(o.y)||!std::isfinite(o.z)
    ||!std::isfinite(d.x)||!std::isfinite(d.y)||!std::isfinite(d.z)
    ||std::abs(d.x*d.x+d.y*d.y+d.z*d.z-1)>1e-5f)return {};
@@ -32,6 +32,16 @@ public:
   return direction_;
  }
 };
+// Authored pilot direction in the first accepted view basis, not recovered sun.
+inline Vec3 TempleLightDirection(const Camera& camera,bool fill) {
+ const float x=fill?-.65f:.45f,y=fill?-.15f:-.75f,z=1.f;
+ Vec3 d{camera.right.x*x+camera.up.x*y+camera.forward.x*z,
+        camera.right.y*x+camera.up.y*y+camera.forward.y*z,
+        camera.right.z*x+camera.up.z*y+camera.forward.z*z};
+ const float length=std::sqrt(d.x*d.x+d.y*d.y+d.z*d.z);
+ if(!std::isfinite(length)||length<1e-6f)return {};
+ return {d.x/length,d.y/length,d.z/length};
+}
 // Harness-authored bounds, not a recovered game light or NVIDIA intensity scale.
 inline std::optional<float> ParseSceneLightRadiance(std::wstring_view text) {
  if(text.empty() || text.size()>12)return {};

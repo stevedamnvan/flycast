@@ -33,6 +33,15 @@ class LaunchPreflightTests(unittest.TestCase):
             self.assertNotIn('FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT', env)
             self.assertEqual(os.environ['FLYCAST_REMAKE_CPU_TIMING'], '1')
 
+    def test_temple_rig_requires_anchor_and_preserves_argument_order(self):
+        self.assertNotIn('--temple-light-rig', prepare(self.args)[4])
+        self.args.temple_light_rig = True
+        with self.assertRaisesRegex(ValueError, 'requires anchored'):
+            prepare(self.args)
+        self.args.anchored_light = True
+        helper = prepare(self.args)[4]
+        self.assertEqual(helper[-4:], ['--scene-light-radiance', '1', '--temple-light-rig', '--scene-light-anchor'])
+
     def test_existing_output_rejected(self):
         self.args.out = Path(self.temp.name)
         with self.assertRaises(ValueError):

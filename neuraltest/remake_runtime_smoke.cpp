@@ -65,6 +65,7 @@ int wmain(int argc,wchar_t** argv) {
   diagnosticCaptureBudget=true;--argc;
  }
  std::optional<float> sceneLightRadiance;
+ bool templeLightRig=false;
  bool sessionWorker=false;
  if(argc>=2&&std::wstring(argv[argc-1])==L"--session-worker") {
   sessionWorker=true;--argc;
@@ -72,6 +73,10 @@ int wmain(int argc,wchar_t** argv) {
  bool anchoredLight=false;
  if(argc>=2&&std::wstring(argv[argc-1])==L"--scene-light-anchor") {
   anchoredLight=true;--argc;
+ }
+ if(argc>=2&&std::wstring(argv[argc-1])==L"--temple-light-rig") {
+  templeLightRig=true;--argc;
+  if(!anchoredLight){std::cerr<<"temple light rig requires anchored light\n";return 2;}
  }
  if(argc>=3&&std::wstring(argv[argc-2])==L"--scene-light-radiance") {
   sceneLightRadiance=ParseSceneLightRadiance(argv[argc-1]);
@@ -478,7 +483,7 @@ int wmain(int argc,wchar_t** argv) {
   std::cerr<<"scene_light_radiance="<<sceneLightRadiance.value_or(3)
    <<" scene_light_authored=true recovered_game_lighting=false external_consumer_setting=false\n";
   std::cerr<<"scene_light_anchor="<<anchoredLight<<" first_source_direction_fixed="<<anchoredLight<<'\n';
-  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight,resolveTextureReference);
+  D3D9PacketScene legacyScene(ownedDevice,api,liveArtifact,liveChannelAsync,omitCutoutsControl,sceneLightRadiance.value_or(3),anchoredLight,resolveTextureReference,templeLightRig);
   // D-220: the live return-only session warms the retained scene for eight
   // frames instead of sixty; the host holds three sources meanwhile and every
   // warmup frame is a frame of credit skips on its side.

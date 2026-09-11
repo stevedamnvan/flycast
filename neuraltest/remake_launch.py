@@ -63,6 +63,10 @@ def prepare(args):
         raise ValueError('Renderer restart frame must be 0..10000')
     if reinit:
         host.extend(['--renderer-reinit-after', str(reinit)])
+    if getattr(args, 'temple_light_rig', False):
+        if not args.anchored_light:
+            raise ValueError('Temple light rig requires anchored light')
+        helper.extend(['--scene-light-radiance', '1', '--temple-light-rig'])
     if args.anchored_light:
         helper.append('--scene-light-anchor')
     if args.managed_session:
@@ -233,6 +237,7 @@ def main():
     for name in ('flycast', 'harness', 'helper', 'runtime', 'game', 'out'):
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--anchored-light', action='store_true')
+    p.add_argument('--temple-light-rig', action='store_true', help='Opt-in authored warm key/cool fill, requires --anchored-light')
     p.add_argument('--manual-input', action='store_true',
                    help='Use player input instead of scripted replay; still a bounded test session')
     p.add_argument('--managed-session', action='store_true',
@@ -275,6 +280,7 @@ def main():
     paths, out, env, host, helper = prepare(args)
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
+                  temple_light_rig=args.temple_light_rig,
                   manual_input=args.manual_input,
                   managed_session=args.managed_session,
                   comparison_lane='remix-only' if args.remix_only else 'returned-dlaa-requested' if args.returned_dlaa else 'combined-experimental',

@@ -30,6 +30,7 @@ class D3D9PacketScene {
  Packet initial_;
  Packet previous_;
  remixapi_LightHandle light_=nullptr;
+ remixapi_LightHandle fillLight_=nullptr;
  IDirect3DPixelShader9* cutoutShader_=nullptr;
  // D-220 diagnostic A/B: opaque meshes emit alpha one (env FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1).
  const bool opaqueAlphaOne_=[]{wchar_t v[2]{};return GetEnvironmentVariableW(L"FLYCAST_REMAKE_OPAQUE_ALPHA_ONE",v,2)==1&&v[0]==L'1';}();
@@ -39,7 +40,9 @@ class D3D9PacketScene {
  bool omitCutoutsControl_=false;
  float sceneLightRadiance_=3;
  bool anchoredLight_=false;
+ bool templeLightRig_=false;
  AnchoredSceneLight anchoredLightDirection_; // Survives material resource rebuilds.
+ AnchoredSceneLight anchoredFillDirection_;
  TextureReferenceResolver resolveReference_;
  std::vector<TextureSourceBytes> textureBytes_; // Source bytes uploaded per resource slot.
  void ReleaseResources() {
@@ -47,6 +50,7 @@ class D3D9PacketScene {
   for(auto& r:resources_){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}
   resources_.clear();textureBytes_.clear();
   if(light_){api_.DestroyLight(light_);light_=nullptr;}
+  if(fillLight_){api_.DestroyLight(fillLight_);fillLight_=nullptr;}
   ready_=false;
  }
  // Referenced mesh bytes from the session owner; null when the mesh is not a
@@ -127,8 +131,11 @@ class D3D9PacketScene {
  }
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
-  const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet):std::optional<Vec3>{};
+  const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet,
+   templeLightRig_?std::optional<Vec3>{TempleLightDirection(packet.camera,false)}:std::optional<Vec3>{}):std::optional<Vec3>{};
   if(anchoredLight_&&!fixedDirection)return E_INVALIDARG;
+  const auto fillDirection=templeLightRig_?anchoredFillDirection_.Select(packet,TempleLightDirection(packet.camera,true)):std::optional<Vec3>{};
+  if(templeLightRig_&&!fillDirection)return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(!LegacySamplingSupported(mesh)||!TextureSourceDeclared(mesh)
    ||(mesh.textureWire==TextureWire::Referenced&&!ResolveReference(mesh)))return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
@@ -179,7 +186,20 @@ class D3D9PacketScene {
    distant.angularDiameterDegrees=.5f;distant.volumetricRadianceScale=1;
    remixapi_LightInfo light{};light.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO;light.pNext=&distant;
    light.hash=0xfc067d40;light.radiance={sceneLightRadiance_,sceneLightRadiance_,sceneLightRadiance_};
+   if(templeLightRig_) {
+    light.radiance={sceneLightRadiance_,sceneLightRadiance_*.88f,sceneLightRadiance_*.72f};
+    distant.angularDiameterDegrees=3.f;
+   }
    if(api_.CreateLight(&light,&light_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
+   if(templeLightRig_) {
+    distant.direction={fillDirection->x,fillDirection->y,fillDirection->z};
+    distant.angularDiameterDegrees=12.f;
+    light.hash=0xfc067d41;
+    light.radiance={sceneLightRadiance_*.20f,sceneLightRadiance_*.26f,sceneLightRadiance_*.35f};
+    if(api_.CreateLight(&light,&fillLight_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
+    std::cout<<"temple_light_rig=v1 authored=true world_lighting_proven=false fill_direction="
+     <<fillDirection->x<<','<<fillDirection->y<<','<<fillDirection->z<<'\n';
+   }
    ready_=true;
   }
   if(packet.game!=initial_.game||packet.meshes.size()!=resources_.size())return E_INVALIDARG;
@@ -226,12 +246,13 @@ class D3D9PacketScene {
   }
   const auto ended=device_->EndScene();if(FAILED(hr))return hr;if(FAILED(ended))return ended;
   if(api_.DrawLightInstance(light_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
+  if(fillLight_&&api_.DrawLightInstance(fillLight_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
   previous_=packet; // Diagnostic draw only; harness aborts if the following Present fails.
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false,TextureReferenceResolver resolveReference={}):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight),resolveReference_(std::move(resolveReference)){
-  failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30;
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false,TextureReferenceResolver resolveReference={},bool templeLightRig=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight),templeLightRig_(templeLightRig),resolveReference_(std::move(resolveReference)){
+  failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30||(templeLightRig_&&!anchoredLight_);
  }
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
  ~D3D9PacketScene(){ReleaseResources();if(device_)device_->SetPixelShader(nullptr);if(cutoutShader_)cutoutShader_->Release();}
