@@ -1,5 +1,47 @@
 # Neural rendering evidence log
 
+LOG838 H21 speed repeats but freshness acceptance fails. Clean performance
+pilot-h21-live-groups-perf1280 / -b both terminal0/11,orderly,eligible,
+1200 samples/2100 warmup,1280 OIT,native alpha,welded normals,exposure A,
+no scopes/captures/builds/generation. p50/p95/p99 respectively
+17.9908/21.138/24.0821 and18.0693/21.4421/23.521ms. Fresh after120:
+1072/1080=99.259259%,1069/1080=98.981481%;max latency4/5,zero identity
+errors. Raw repeats11/13,native22/25. The repeat is below unchanged99% gate;
+source CORRECTIONS_REQUIRED/uncommitted,not accepted on speed alone.
+Second steady-window misses:6 repeated outputs at current2249,2286,2620,
+2689,3029,3239 plus5 held-native at3103..3107. Preserve protective transition;
+accepted old-source images there do not authorize display against a new scene.
+Raw JSON/logs,summary,freshness-misses.json and candidate-source.patch archived.
+VRAM growth1,726,009,344/1,724,174,336;objects143->200 in both;no new owned
+GPU allocations introduced. Full resource/60fps/quality gates remain open.
+Next inspect the six late-delivery points and existing feed/helper/return work
+before another change. No lucky-repeat acceptance,denominator change or relaxed
+native fallback. No active jobs; all scoped build/unit/geometry checks retained.
+
+LOG837 H20 current hook diagnostic terminal0/11,log/hook-summary archived
+under pilot-h20-hooks-cpu1280.600 reports,first calibration excluded;medians
+stores3.423ms,block entries2.861,reads1.563,arithmetic1.290,SQ1.241,
+boundaries0.639,FTRV0.557,copies0.290. Instrumented timing overhead included,
+not clean CPU cost/FPS. JIT already gates block validation on live-origin flag;
+initial suggestion to add that gate withdrawn after call-site inspection.
+H21 bounded candidate skips empty eight-byte live-register groups in existing
+block-entry validation. Live bytes remain authority,ascending register order,
+255 bound and per-register recheck preserved; reset/epoch/observation semantics
+unchanged. Differential test covers257 limits,16 patterns and callback invalidation.
+Require four serial builds,three selftests,SDK/Python,hook diagnostic then exact
+moving source/HUD proof and clean timing if worthwhile. Four serial
+builds/selftests pass983/0 x3;SDK302/0,Python24 pass. Candidate diagnostic
+pilot-h21-live-groups-cpu1280 terminal0/11,log/hook-summary/cpu-summary
+archived:block-entry2.861->1.331ms,instrumented emu22.2421->20.625999ms.
+Moving pilot-h21-live-groups-moving terminal0/11,12 completed joins,zero
+world/backbuffer mismatches but0 protected pixels and0 matched reference
+sources. Actual3106/current3111 intro PNG reviewed;HUD/geometry unproven.
+Repeat moving-b terminal0/11,12 completed joins,72537..74349 HUD pixels,
+zero HUD/world/backbuffer mismatches.10 matched sources with239334 full
+vertex records+indices byte-identical to accepted h17;actual2561/current2567
+PNG reviewed. Logs/capture-summary archived. Clean performance session58060
+at pilot-h21-live-groups-perf1280 active; no acceptance yet.
+
 LOG836 H19 attribution before another local optimization. Existing h17/h18
 scopes:render14.44085->13.08465ms,gap5.2262->6.1121,process2.0337->1.9184,
 emu period20.1372->19.580249,frame-finished wait1.4199->1.3234. Medians are
