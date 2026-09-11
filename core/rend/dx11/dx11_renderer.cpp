@@ -224,6 +224,8 @@ void DX11Renderer::Term()
 #ifdef FLYCAST_ENABLE_NEURAL
 	remakeFeedWorker.Stop();remakeReturnWorker.Stop();
 	for(auto& pooled:remakeOwnedOutputs){pooled.view.reset();pooled.texture.reset();}
+	remakeCurrentNormalEffects.reset();nativeEffectProof.reset();
+	if(remakeNativeResourcePool){remakeNativeResourcePool->Clear();remakeNativeResourcePool.reset();}
 	remakeDisplayQuad.reset();remakeDisplayContext.reset();
 	remakeDepthUpload.reset();
 	remakePaletteUpload.reset();
@@ -2430,6 +2432,7 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 		bool duplicate=false;for(std::size_t j=0;j<i;++j)duplicate|=normalOwners[j]==normalOwners[i];
 		if(!duplicate)count+=normalOwners[i]->OwnedObjects();
 	}
+	if(remakeNativeResourcePool)count+=static_cast<std::uint32_t>(remakeNativeResourcePool->Statistics().held); // Retired copies held for reuse.
 
 	count+=remakeDisplayContext?1u:0u;
 	if(remakeDisplayQuad)count+=remakeDisplayQuad->ownedResourceObjects();
@@ -4298,8 +4301,10 @@ void DX11Renderer::drawStrips()
 			std::vector<flycast::rend::neural::EffectIdentityPoly> nativeParameters;
 			for(const auto& pp:rendContext->global_param_tr)
 				nativeParameters.push_back({(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full});
+			if(!remakeNativeResourcePool||!remakeNativeResourcePool->Serves(device))
+				remakeNativeResourcePool=std::make_shared<flycast::rend::neural::NativeResourcePool>(device);
 			nativeEffectProof=flycast::rend::neural::NativeEffectSnapshot::Begin(device,deviceContext,
-				rendContext->captureProducer,target,depthTarget,nativeParameters,true,true);
+				rendContext->captureProducer,target,depthTarget,nativeParameters,true,true,remakeNativeResourcePool);
 			if(!nativeEffectProof)NOTICE_LOG(RENDERER,"Normal effects proof: capture-begin-failed source=%llu",
 				(unsigned long long)rendContext->captureProducer.ordinal);
 		}
@@ -4321,10 +4326,14 @@ void DX11Renderer::drawStrips()
 		if(nativeEffectProof){
 			if(normalLive){
 				if(nativeEffectProof->Seal(nativeEffectProofDraws)){
-					if(nativeEffectProofAttempts<=3||nativeEffectProofAttempts%120==0)
-						NOTICE_LOG(RENDERER,"Normal effects capture cost: source=%llu draws=%u objects=%u capture_ms=%.3f diagnostic-only=true",
+					if(nativeEffectProofAttempts<=3||nativeEffectProofAttempts%120==0) {
+						const auto pool=remakeNativeResourcePool?remakeNativeResourcePool->Statistics():flycast::rend::neural::NativeResourcePool::Counters{};
+						NOTICE_LOG(RENDERER,"Normal effects capture cost: source=%llu draws=%u objects=%u capture_ms=%.3f pool_created=%llu pool_reused=%llu pool_retired=%llu pool_dropped=%llu pool_held=%llu diagnostic-only=true",
 							(unsigned long long)rendContext->captureProducer.ordinal,nativeEffectProofDraws,
-							nativeEffectProof->OwnedObjects(),nativeEffectProof->CaptureMilliseconds());
+							nativeEffectProof->OwnedObjects(),nativeEffectProof->CaptureMilliseconds(),
+							(unsigned long long)pool.created,(unsigned long long)pool.reused,(unsigned long long)pool.retired,
+							(unsigned long long)pool.dropped,(unsigned long long)pool.held);
+					}
 					remakeCurrentNormalEffects=std::move(nativeEffectProof);
 				}
 				nativeEffectProof.reset();

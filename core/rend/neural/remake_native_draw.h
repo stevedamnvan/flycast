@@ -41,6 +41,20 @@ struct NativeEffectDraw {
  std::array<ComPtr<ID3D11Buffer>,14> psConstants;
  std::array<ComPtr<ID3D11ShaderResourceView>,128> psViews;
  std::array<ComPtr<ID3D11SamplerState>,16> psSamplers;
+ // LOG895: owned copies came from this pool (when set) and go back to it
+ // only here, when this draw's exclusive ownership ends. Shared geometry and
+ // views are retired by their per-pass caches, not by the draw.
+ std::shared_ptr<NativeResourcePool> pool;
+ NativeEffectDraw()=default;
+ NativeEffectDraw(const NativeEffectDraw&)=delete;
+ NativeEffectDraw& operator=(const NativeEffectDraw&)=delete;
+ ~NativeEffectDraw(){
+  if(!pool)return;
+  if(!sharedGeometry){pool->Retire(indices.get());for(auto& item:vertices)pool->Retire(item.get());}
+  for(auto& item:vsConstants)pool->Retire(item.get());
+  for(auto& item:psConstants)pool->Retire(item.get());
+  if(!sharedViews){for(auto& item:vsViews)pool->Retire(item.get());for(auto& item:psViews)pool->Retire(item.get());}
+ }
  // Newly allocated snapshot resources only. Shared shader/state/sampler
  // references are owned by the renderer and must not be counted twice.
  std::uint32_t OwnedObjects()const noexcept {
@@ -53,8 +67,10 @@ struct NativeEffectDraw {
   return count;
  }
  static std::unique_ptr<NativeEffectDraw> Capture(ID3D11Device* device,
-  ID3D11DeviceContext* context,UINT count,UINT start,INT base,NativeGeometryCopies* geometry=nullptr,NativeViewCopies* views=nullptr) {
+  ID3D11DeviceContext* context,UINT count,UINT start,INT base,NativeGeometryCopies* geometry=nullptr,NativeViewCopies* views=nullptr,
+  std::shared_ptr<NativeResourcePool> pool={}) {
   if(!device||!context||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return {};
+  if(pool&&!pool->Serves(device))pool.reset(); // Wrong device: plain allocation, never a foreign resource.
   ComPtr<ID3D11Device> contextOwner;context->GetDevice(&contextOwner.get());
   if(contextOwner.get()!=device)return {};
   // Native DX11 draw path has no tessellation/geometry shaders, predication
@@ -77,7 +93,7 @@ struct NativeEffectDraw {
   ComPtr<ID3D11DeviceContext1> context1;
   context->QueryInterface(__uuidof(ID3D11DeviceContext1),reinterpret_cast<void**>(&context1.get()));
   auto result=std::make_unique<NativeEffectDraw>();auto& r=*result;
-  r.sharedGeometry=geometry!=nullptr;r.sharedViews=views!=nullptr;r.owner=contextOwner;r.count=count;r.start=start;r.base=base;
+  r.sharedGeometry=geometry!=nullptr;r.sharedViews=views!=nullptr;r.owner=contextOwner;r.count=count;r.start=start;r.base=base;r.pool=pool;
   UINT vsInstances=0,psInstances=0;
   context->VSGetShader(&r.vs.get(),nullptr,&vsInstances);
   context->PSGetShader(&r.ps.get(),nullptr,&psInstances);
@@ -86,11 +102,11 @@ struct NativeEffectDraw {
   context->IAGetPrimitiveTopology(&r.topology);
   ComPtr<ID3D11Buffer> index;
   context->IAGetIndexBuffer(&index.get(),&r.indexFormat,&r.indexOffset);
-  r.indices=geometry?geometry->Get(device,context,index):CopyNativeEffectBuffer(device,context,index);if(!r.indices)return {};
+  r.indices=geometry?geometry->Get(device,context,index):CopyNativeEffectBuffer(device,context,index,pool.get());if(!r.indices)return {};
   for(UINT i=0;i<32;++i){
    ComPtr<ID3D11Buffer> source;
    context->IAGetVertexBuffers(i,1,&source.get(),&r.strides[i],&r.offsets[i]);
-   if(source){r.vertices[i]=geometry?geometry->Get(device,context,source):CopyNativeEffectBuffer(device,context,source);if(!r.vertices[i])return {};}
+   if(source){r.vertices[i]=geometry?geometry->Get(device,context,source):CopyNativeEffectBuffer(device,context,source,pool.get());if(!r.vertices[i])return {};}
   }
   for(UINT i=0;i<14;++i){
    ComPtr<ID3D11Buffer> source;context->VSGetConstantBuffers(i,1,&source.get());
@@ -101,14 +117,14 @@ struct NativeEffectDraw {
      D3D11_BUFFER_DESC desc{};source->GetDesc(&desc);
      if(first||num<desc.ByteWidth/16)return {};
     }
-    r.vsConstants[i]=CopyNativeEffectBuffer(device,context,source);if(!r.vsConstants[i])return {};
+    r.vsConstants[i]=CopyNativeEffectBuffer(device,context,source,pool.get());if(!r.vsConstants[i])return {};
    }
   }
   NativeBindingReferences<ID3D11ShaderResourceView,128> capturedVsViews;
   context->VSGetShaderResources(0,128,capturedVsViews.slots.data());
   for(UINT i=0;i<128;++i){
    auto* source=capturedVsViews.slots[i];
-   if(source){r.vsViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.vsViews[i])return {};}
+   if(source){r.vsViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source,pool.get());if(!r.vsViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->VSGetSamplers(i,1,&r.vsSamplers[i].get());
   for(UINT i=0;i<14;++i){
@@ -120,14 +136,14 @@ struct NativeEffectDraw {
      D3D11_BUFFER_DESC desc{};source->GetDesc(&desc);
      if(first||num<desc.ByteWidth/16)return {};
     }
-    r.psConstants[i]=CopyNativeEffectBuffer(device,context,source);if(!r.psConstants[i])return {};
+    r.psConstants[i]=CopyNativeEffectBuffer(device,context,source,pool.get());if(!r.psConstants[i])return {};
    }
   }
   NativeBindingReferences<ID3D11ShaderResourceView,128> capturedPsViews;
   context->PSGetShaderResources(0,128,capturedPsViews.slots.data());
   for(UINT i=0;i<128;++i){
    auto* source=capturedPsViews.slots[i];
-   if(source){r.psViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.psViews[i])return {};}
+   if(source){r.psViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source,pool.get());if(!r.psViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->PSGetSamplers(i,1,&r.psSamplers[i].get());
   context->OMGetBlendState(&r.blend.get(),r.blendFactor,&r.sampleMask);

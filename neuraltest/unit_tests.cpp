@@ -15,6 +15,8 @@
 #include "rend/neural/remake_return_worker.h"
 #include "rend/neural/remake_frame_budget.h"
 #include "rend/neural/remake_depth_upload.h"
+#include "rend/neural/remake_native_effects.h"
+#include <d3d11.h>
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -117,6 +119,62 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		// LOG895: retired native-effect copies of an identical shape are reused
+		// across captures on the same device; a live snapshot keeps exclusive
+		// ownership and only its destruction retires copies. WARP, no hardware.
+		ComPtr<ID3D11Device> device;ComPtr<ID3D11DeviceContext> context;
+		const bool warp=SUCCEEDED(D3D11CreateDevice(nullptr,D3D_DRIVER_TYPE_WARP,nullptr,0,nullptr,0,D3D11_SDK_VERSION,&device.get(),nullptr,&context.get()));
+		suite.Expect(warp,"native resource pool: WARP device available for the pool test");
+		if(warp) {
+			auto pool=std::make_shared<NativeResourcePool>(device.get());
+			D3D11_BUFFER_DESC desc{};desc.ByteWidth=64;desc.BindFlags=D3D11_BIND_CONSTANT_BUFFER;desc.Usage=D3D11_USAGE_DEFAULT;
+			float payload[16]{1,2,3,4};D3D11_SUBRESOURCE_DATA init{payload,0,0};
+			ComPtr<ID3D11Buffer> source;
+			suite.Expect(SUCCEEDED(device->CreateBuffer(&desc,&init,&source.get())),"native resource pool: source buffer created");
+			auto first=CopyNativeEffectBuffer(device.get(),context.get(),source.get(),pool.get());
+			auto second=CopyNativeEffectBuffer(device.get(),context.get(),source.get(),pool.get());
+			suite.Expect(first&&second&&first.get()!=second.get(),"native resource pool: live copies are distinct allocations");
+			auto stats=pool->Statistics();
+			suite.Expect(stats.created==2&&stats.reused==0&&stats.held==0,"native resource pool: nothing is reused while both copies are owned");
+			ID3D11Buffer* retiredAddress=first.get();
+			pool->Retire(first.get());first.reset();
+			stats=pool->Statistics();
+			suite.Expect(stats.retired==1&&stats.held==1,"native resource pool: a retired copy is held for reuse");
+			auto third=CopyNativeEffectBuffer(device.get(),context.get(),source.get(),pool.get());
+			stats=pool->Statistics();
+			suite.Expect(third&&third.get()==retiredAddress&&stats.reused==1&&stats.held==0,"native resource pool: an identical shape reuses the retired copy");
+			desc.ByteWidth=128;ComPtr<ID3D11Buffer> wider;
+			suite.Expect(SUCCEEDED(device->CreateBuffer(&desc,nullptr,&wider.get())),"native resource pool: wider source buffer created");
+			pool->Retire(second.get());second.reset();
+			auto fourth=CopyNativeEffectBuffer(device.get(),context.get(),wider.get(),pool.get());
+			stats=pool->Statistics();
+			suite.Expect(fourth&&fourth.get()!=retiredAddress&&stats.held==1&&stats.created==3,"native resource pool: a different shape never reuses a held copy");
+			ComPtr<ID3D11Device> other;ComPtr<ID3D11DeviceContext> otherContext;
+			if(SUCCEEDED(D3D11CreateDevice(nullptr,D3D_DRIVER_TYPE_WARP,nullptr,0,nullptr,0,D3D11_SDK_VERSION,&other.get(),nullptr,&otherContext.get()))) {
+				ComPtr<ID3D11Buffer> foreign;desc.ByteWidth=64;
+				other->CreateBuffer(&desc,nullptr,&foreign.get());
+				const auto before=pool->Statistics();
+				pool->Retire(foreign.get());
+				auto foreignCopy=CopyNativeEffectBuffer(other.get(),otherContext.get(),foreign.get(),pool.get());
+				const auto after=pool->Statistics();
+				suite.Expect(foreignCopy&&after.held==before.held&&after.reused==before.reused&&after.created==before.created,
+					"native resource pool: a foreign device neither retires into nor reuses from the pool");
+			}
+			// A snapshot's copies retire only when the snapshot itself dies.
+			{
+				NativeGeometryCopies cache;cache.pool=pool;
+				desc.ByteWidth=64;desc.BindFlags=D3D11_BIND_VERTEX_BUFFER;ComPtr<ID3D11Buffer> geometry;
+				device->CreateBuffer(&desc,nullptr,&geometry.get());
+				auto a=cache.Get(device.get(),context.get(),geometry.get());auto b=cache.Get(device.get(),context.get(),geometry.get());
+				suite.Expect(a&&a.get()==b.get(),"native resource pool: per-pass geometry cache still shares within a pass");
+				const auto held=pool->Statistics().held;
+				a.reset();b.reset();
+				suite.Expect(pool->Statistics().held==held,"native resource pool: releasing a borrowed reference does not retire the cache's copy");
+			}
+			suite.Expect(pool->Statistics().held==2,"native resource pool: the cache retires its copy at destruction");
+		}
+	}
 	{
 		RemakeDepthBuffer depth;depth.assign(32,.5f);auto shared=depth;
 		suite.Expect(std::as_const(depth).data()==std::as_const(shared).data(),

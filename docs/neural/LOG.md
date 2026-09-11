@@ -1,5 +1,49 @@
 # Neural rendering evidence log
 
+LOG896 / D-237 normal-renderer native-effects resource pool ACCEPTED as a
+render-thread cost change on the normal route; not visual, not 60 fps.
+Change (`remake_native_resource.h`, `remake_native_draw.h`,
+`remake_native_effects.h`, renderer wiring): `NativeResourcePool`, one per
+D3D11 device, keeps retired owned copies keyed by exact shape (buffer byte
+width and bind flags; full Texture2D description) and hands one back to the
+next capture of the same shape instead of creating a new resource. Ownership
+is unchanged: a snapshot exclusively owns its copies while it lives; a copy
+is retired only by the destructor of its owner (draw copies first, then the
+per-pass geometry and view caches, then the background and depth; the
+composition's working depth retires on every exit); the pool never serves
+another device (a foreign device neither retires into nor reuses from it)
+and never holds more than 256 copies per shape (older overflow is dropped).
+Retired copies held for reuse count in the renderer's owned-object total.
+Selftest 998/0 in the automation build with 12 new WARP cases (distinct
+live copies, no reuse while owned, reuse of a retired identical shape, no
+reuse across shapes, foreign device isolation, per-pass cache retirement
+only at destruction); contract 302/0. Native equality proof
+`pilot-normal-pool-proof` (dx11, cpu-timing, proof only): sources
+2560..2562, 62/61/64 draws, 0 mismatches; independent decoded-PNG check:
+replay equals native and native equals the LOG887 reference byte-exact.
+Moving `pilot-normal-pool-moving` (profile A, temple rig, normal effects,
+12 captures from 2560, exit 0): every captured frame is an exact
+protected-native plus evaluated-scene composition with exact backbuffer RGB
+and a completed present join, but the captured set is 2560, 2561, 2563,
+2564, 2566..2573 rather than twelve consecutive sources: sources 2562 and
+2565 were feed skips (`worker-busy-native-fallback`, 347 in the run against
+1 before) because the render thread no longer hides the feed worker. In
+that capture run the feed worker is 30.0 ms (publish 19.3 ms; captures
+disable by-reference textures, the no-capture run publishes in 3.6 ms), so
+accepted evaluations are 841 of 1200 with 347 output repeats and present
+p50/p95 20.5/45.6 ms against 65.0/142.5 ms before. Render-thread stages,
+before then after: frame period 76.6 then 21.2; frame-render 37.2 then
+16.1; frame-pvr-draw 18.0 then 0.74; frame-gap 38.0 then 4.9; emulator
+wait 33.8 then 4.0; capture cost log at source 3261: 128 draws, 415 owned
+objects, 0.67 ms, pool created 19037, reused 577174, retired 577446,
+dropped 15990, held 272. Matched no-capture cost run
+`pilot-normal-pool-cost`: exit 0 (the LOG886/LOG888 helper watchdog failure no longer occurs at this speed), 1200 host samples, 1191 accepted evaluations, 1187 remake presents, 11 output repeats (99.1 percent fresh), latency mean 3.94 (max 4), present p50/p95 18.24/33.42 ms by the summarize_run measure against the OIT route's 19.86/23.07 in LOG894; frame period 18.9 ms, frame-render 14.1, frame-pvr-draw 0.58 (14.71 in LOG893), frame-gap 4.1 (39.3), returned-evaluate 5.5, feed-worker 12.7 (publish 4.4), return-worker 6.0; helper period p50 18.2, turnaround 20.2; capture cost at source 3261: 128 draws, 415 objects, 0.60 ms, pool created 15899, reused 580650, retired 580934, dropped 12840, held 284. Build matrix: automation, baseline, no-ngx, off serial, 0 errors (pool-build-neural-*.log); selftest 998/0 in automation, baseline and no-ngx; contract 302/0; python OK. Freshness on
+the normal route is now limited by the feed worker and the helper (period
+31.7 ms in the capture run), the same shape as the OIT route before H17;
+the check-normal-moving contiguity assumption is a run property, not a
+certificate, and the twelve captured frames were verified individually.
+No performance-eligible claim on this route yet; visual approval open.
+
 LOG895 normal-renderer route cost attribution (diagnostic, from the LOG893
 matched cost run `pilot-normal-capture-batch-cost`, 600 host samples, and
 the LOG806 OIT run as control). Render-thread stages, normal route then

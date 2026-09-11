@@ -19,23 +19,34 @@ class NativeEffectSnapshot {
  std::vector<EffectIdentityPoly> nativeParameters;
  NativeGeometryCopies geometryCopies;bool stableGeometry=false;
  NativeViewCopies viewCopies;bool stableViews=false;
+ std::shared_ptr<NativeResourcePool> pool; // LOG895: owned copies return here when the snapshot dies.
  double captureMs=0;
  bool valid=false,sealed=false;
 public:
+ NativeEffectSnapshot()=default;
+ NativeEffectSnapshot(const NativeEffectSnapshot&)=delete;
+ NativeEffectSnapshot& operator=(const NativeEffectSnapshot&)=delete;
+ ~NativeEffectSnapshot(){
+  draws.clear(); // Draw copies retire first, then the shared per-pass caches, then the background.
+  if(pool){pool->Retire(background.get());pool->Retire(depth.get());}
+ }
  static std::unique_ptr<NativeEffectSnapshot> Begin(ID3D11Device* device,
   ID3D11DeviceContext* context,const ProducerIdentity& source,
   ID3D11RenderTargetView* color,ID3D11DepthStencilView* depthTarget,
-  const std::vector<EffectIdentityPoly>& parameters={},bool geometryStableForPass=false,bool viewsStableForPass=false) {
+  const std::vector<EffectIdentityPoly>& parameters={},bool geometryStableForPass=false,bool viewsStableForPass=false,
+  std::shared_ptr<NativeResourcePool> pool={}) {
   if(!source.Available()||!color||!depthTarget)return {};
+  if(pool&&!pool->Serves(device))pool.reset();
   const auto started=std::chrono::steady_clock::now();
   auto result=std::make_unique<NativeEffectSnapshot>();
+  result->pool=pool;result->geometryCopies.pool=pool;result->viewCopies.pool=pool;
   ComPtr<ID3D11Resource> colorResource,depthResource;
   color->GetResource(&colorResource.get());depthTarget->GetResource(&depthResource.get());
   ComPtr<ID3D11Texture2D> colorTexture,depthTexture;
   if(FAILED(colorResource->QueryInterface(__uuidof(ID3D11Texture2D),reinterpret_cast<void**>(&colorTexture.get())))
    ||FAILED(depthResource->QueryInterface(__uuidof(ID3D11Texture2D),reinterpret_cast<void**>(&depthTexture.get()))))return {};
-  result->background=CopyNativeEffectTexture(device,context,colorTexture);
-  result->depth=CopyNativeEffectTexture(device,context,depthTexture);
+  result->background=CopyNativeEffectTexture(device,context,colorTexture,pool.get());
+  result->depth=CopyNativeEffectTexture(device,context,depthTexture,pool.get());
   if(!result->background||!result->depth)return {};
   color->GetDesc(&result->colorView);depthTarget->GetDesc(&result->depthView);
   context->GetDevice(&result->owner.get());result->producer=source;result->stableGeometry=geometryStableForPass;result->stableViews=viewsStableForPass;result->nativeParameters=parameters;result->valid=true;
@@ -49,7 +60,7 @@ public:
  bool Append(ID3D11DeviceContext* context,UINT count,UINT start,INT base,std::uint32_t ordinal=UINT32_MAX){
   if(!valid||sealed)return false;
   const auto started=std::chrono::steady_clock::now();
-  auto draw=NativeEffectDraw::Capture(owner,context,count,start,base,stableGeometry?&geometryCopies:nullptr,stableViews?&viewCopies:nullptr);
+  auto draw=NativeEffectDraw::Capture(owner,context,count,start,base,stableGeometry?&geometryCopies:nullptr,stableViews?&viewCopies:nullptr,pool);
   captureMs+=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
   if(!draw){valid=false;draws.clear();return false;}
   draws.push_back(std::move(draw));drawOrdinals.push_back(ordinal);return true;
@@ -91,8 +102,10 @@ public:
   ComPtr<ID3D11Texture2D> color;
   if(FAILED(owner->CreateTexture2D(&expected,nullptr,&color.get())))return {};
   context->CopyResource(color,input);
-  auto workingDepth=CopyNativeEffectTexture(owner,context,depth);
+  auto workingDepth=CopyNativeEffectTexture(owner,context,depth,pool.get());
   if(!color||!workingDepth)return {};
+  // The working depth is private to this composition; retire it on every exit.
+  struct RetireDepth{NativeResourcePool* pool;ID3D11Texture2D* texture;~RetireDepth(){if(pool)pool->Retire(texture);}} retireDepth{pool.get(),workingDepth.get()};
   ComPtr<ID3D11RenderTargetView> target;ComPtr<ID3D11DepthStencilView> depthTarget;
   if(FAILED(owner->CreateRenderTargetView(color,&colorView,&target.get()))
    ||FAILED(owner->CreateDepthStencilView(workingDepth,&depthView,&depthTarget.get())))return {};

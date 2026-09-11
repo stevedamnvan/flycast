@@ -10,9 +10,13 @@ to H24, about 18.3 ms median at 1280x960). HEAD re-measure on the OIT route
 recorded in LOG894. LOG895 attributes the normal route's 71 ms frame
 period to per-frame D3D11 resource creation and copy traffic in the native
 effects capture (about 126 owned objects per frame, 11.3 ms median capture,
-39 ms driver gap). Next, in order: (1) normal-renderer route: pool owned
-destination resources across frames by shape (ownership and producer
-qualification unchanged), then cut copy traffic; returned-output
+39 ms driver gap). LOG896/D-237: the pool is committed; render-thread
+frame period on the normal route 76.6 to 21.2 ms, native draw 18.0 to
+0.74 ms, equality proof and per-frame composition exact. The route's
+freshness is now feed-worker and helper bound (347 worker-busy skips in
+the capture run). Next, in order: (1) normal-renderer route: measure the
+no-capture pipeline freshness and the feed worker on this route, then the
+returned-output integration with alpha ownership; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall

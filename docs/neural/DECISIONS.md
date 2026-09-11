@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-237: native-effects owned copies are pooled by shape across frames; ownership and retirement stay with the snapshot
+
+LOG896. A native-effects snapshot still exclusively owns every copy it
+holds; only its destruction retires copies, into a per-device pool keyed by
+exact shape, and the next capture reuses a retired copy of the same shape
+instead of creating one. The pool never crosses devices, is bounded per
+shape, and its held copies count as owned renderer objects. Reuse is an
+allocation policy, not a sharing of live resources, so producer
+qualification, source-view retention and replay exactness are unchanged
+and are re-proven by the equality proof and the moving composition checks.
+
 ## D-236: prove normal effects over native background before returned output
 
 LOG846-859. Own mutable draw resources and pre-effect depth/color;retain exact

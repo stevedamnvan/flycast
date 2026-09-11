@@ -374,6 +374,9 @@ protected:
 	unsigned nativeEffectProofAttempts=0,nativeEffectProofDraws=0;
 	bool nativeEffectCapturePass=false;
 	std::shared_ptr<const flycast::rend::neural::NativeEffectSnapshot> remakeCurrentNormalEffects;
+	// LOG895: retired native-effect copies of identical shape are reused across
+	// frames on this device; snapshots keep exclusive ownership while alive.
+	std::shared_ptr<flycast::rend::neural::NativeResourcePool> remakeNativeResourcePool;
 	void finishNativeEffectProof();
 
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
