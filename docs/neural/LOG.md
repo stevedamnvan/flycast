@@ -1,5 +1,37 @@
 # Neural rendering evidence log
 
+LOG895 normal-renderer route cost attribution (diagnostic, from the LOG893
+matched cost run `pilot-normal-capture-batch-cost`, 600 host samples, and
+the LOG806 OIT run as control). Render-thread stages, normal route then
+OIT: emulated frame period 71.5 then 30.8 ms; frame-gap (time between
+render-thread frames, includes driver wait) 39.3 then 3.7; frame-render
+31.5 then 26.9; frame-pvr-draw 14.7 then 1.3; frame-submit-neural 12.8
+then 22.3; returned-evaluate 7.5 then 12.2. The route's neural work is
+cheaper than OIT's (the H17 to H24 copies and validation changes apply to
+both), so the whole excess is in the native draw and in the gap: the
+bounded `Normal effects capture cost` samples (25, sources 2 to 2661) show
+a median 35 draws and 126 owned objects per source frame, capture 11.3 ms
+median and 77.7 ms maximum, about 0.13 ms per owned object. Each object is
+a fresh D3D11 resource created and CopyResource'd on the immediate context
+every frame (`CopyNativeEffectBuffer`, `CopyNativeEffectTexture`; the
+per-pass geometry and view caches are enabled but live only for one
+frame by design), plus the full 1280x960 colour and depth background copy.
+Reading: the normal route is bound by per-frame resource creation and
+copy traffic on the driver, which also explains the 39 ms gap (the driver
+retires the previous frame's allocations and copies before the next frame
+can start) and the earlier observation that the route runs at 25 to 35
+percent of the OIT route's frame rate. Recommendation for the next source
+step on this route, without changing ownership semantics: pool the owned
+destination resources across frames keyed by description (byte width or
+texture desc), so a frame reuses a retired copy of identical shape instead
+of creating one, while the source views are still held per frame and the
+snapshot remains source-qualified by producer identity; then reduce copy
+traffic by copying constants once per distinct buffer content per frame
+and by copying the background at the pre-translucent point only. Measure
+with the same matched profile before and after; keep the helper watchdog
+failure retained until the lifecycle contract review. No source change in
+this entry.
+
 LOG894 handoff correction and HEAD 7def2eb91 performance check on the OIT
 route. The LOG893 handoff line naming the CODEX-GOAL items as next was
 stale: those items were completed and accepted in LOG807 to LOG845 (H17 to

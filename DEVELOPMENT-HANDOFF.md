@@ -7,9 +7,14 @@ capture-cost gain claimed (native-draw 14.71 ms inside the earlier spread).
 Four builds and three selftests pass; committed. Correction (LOG894): the
 CODEX-GOAL OIT items are already done and accepted (LOG807 to LOG845, H17
 to H24, about 18.3 ms median at 1280x960). HEAD re-measure on the OIT route
-recorded in LOG894. Next, in order: (1) normal-renderer route: returned-
-output integration with alpha ownership and resource accounting (LOG859
-next item), lifecycle/budget contract review for the 120 s helper watchdog
+recorded in LOG894. LOG895 attributes the normal route's 71 ms frame
+period to per-frame D3D11 resource creation and copy traffic in the native
+effects capture (about 126 owned objects per frame, 11.3 ms median capture,
+39 ms driver gap). Next, in order: (1) normal-renderer route: pool owned
+destination resources across frames by shape (ownership and producer
+qualification unchanged), then cut copy traffic; returned-output
+integration with alpha ownership and resource accounting (LOG859 next
+item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall
 measurement rather than raw growth rejection; (3) 60 fps remains open on
 both routes; do not repeat micro-optimizations without renewed evidence of
