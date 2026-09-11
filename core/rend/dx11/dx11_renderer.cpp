@@ -3420,6 +3420,34 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		ComPtr<ID3D11Texture2D> preEffects;
 		if(RemakeNativeEffectsRequested()) {
 			if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)preEffects=owned;
+			if(remakeAsyncAcceptedOverlay.normalEffects){
+				const auto nativeDesc=remakeAsyncAcceptedOverlay.normalEffects->RasterDescription();
+				D3D11_TEXTURE2D_DESC inputDesc{};owned->GetDesc(&inputDesc);
+				// Typed sampling preserves logical RGBA while the target writes BGRA
+				// storage. Never reinterpret CopyResource bytes or resize the source.
+				if(inputDesc.Format==DXGI_FORMAT_R8G8B8A8_UNORM&&nativeDesc.Format==DXGI_FORMAT_B8G8R8A8_UNORM){
+					if(inputDesc.Width!=nativeDesc.Width||inputDesc.Height!=nativeDesc.Height
+						||inputDesc.MipLevels!=1||nativeDesc.MipLevels!=1
+						||inputDesc.ArraySize!=1||nativeDesc.ArraySize!=1
+						||inputDesc.SampleDesc.Count!=1||nativeDesc.SampleDesc.Count!=1)return;
+					auto convertedDesc=inputDesc;convertedDesc.Format=nativeDesc.Format;
+					convertedDesc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
+					ComPtr<ID3D11Texture2D> converted;ComPtr<ID3D11RenderTargetView> target;
+					ComPtr<ID3D11ShaderResourceView> convertedView;
+					if(!quad||FAILED(device->CreateTexture2D(&convertedDesc,nullptr,&converted.get()))
+						||FAILED(device->CreateRenderTargetView(converted,nullptr,&target.get()))
+						||FAILED(device->CreateShaderResourceView(converted,nullptr,&convertedView.get())))return;
+					{
+						auto scope=flycast::rend::neural::NativeEffectContextScope::Enter(deviceContext);if(!scope)return;
+						deviceContext->OMSetRenderTargets(1,&target.get(),nullptr);
+						deviceContext->OMSetBlendState(nullptr,nullptr,0xffffffff);
+						D3D11_VIEWPORT viewport{0,0,(float)inputDesc.Width,(float)inputDesc.Height,0,1};
+						deviceContext->RSSetViewports(1,&viewport);
+						quad->draw(view,samplers->getSampler(false));
+					}
+					owned=std::move(converted);view=std::move(convertedView);
+				}
+			}
 			ComPtr<ID3D11Texture2D> composed;ComPtr<ID3D11ShaderResourceView> composedView;
 			if(!remakeAsyncAcceptedOverlay.ComposeEffects(device,deviceContext,source.producer,owned,composed,composedView)){
 				if(remakeAsyncAcceptedOverlay.normalEffects){

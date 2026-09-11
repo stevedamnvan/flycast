@@ -1,53 +1,46 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current checkpoint: normal-effects diagnostic prototype (LOG877)
+## Current checkpoint: normal-effects color conversion (LOG882)
 
-This commit checkpoints unfinished FC-067 normal-renderer work, not acceptance
-of the live remaster. Its parent is ca184ea70c9554d9c4332acc6952b863ba150275.
-The broad goal remains ACTIVE; the user requested a commit and handoff.
+The RGBA8 external-output / BGRA8 native-raster mismatch is corrected using
+the existing Quad typed-sampling shader, point sampling, no blending and a
+saved/restored context. No source resize, raw-byte reinterpretation or relaxed
+source/layout guard. The opt-in normal path remains diagnostic-only.
 
-Implemented: source-qualified normal effects snapshots, exact draw ordinals and
-alpha selection, depth-preserving color exclusion, retained overlay ownership,
-resource accounting, and within-pass geometry/texture copy sharing. Constants
-remain per draw. Capture is armed only for the original native pass, never its
-neural-color replay. The launcher requires explicit dx11 plus diagnostic CPU
-timing for --normal-effects; ordinary performance use remains excluded.
+Scoped technical acceptance: typed conversion WARP checks65536 pixels with
+asymmetric RGB and all256 alpha values. pilot-normal-color-moving captures
+2560..2571 all join completed Present and mark native effects applied.
+Independent decoded-image checks prove exact native-overlay/evaluated-scene
+composition and pre-OSD backbuffer RGB in all12 frames; report is
+D:/Flycast-Evidence/pilot-normal-color-moving/independent-composition-check.json.
+Run76850 terminal0, host0/helper11 orderly=true, no forced children, host log
+archived. Four serial builds pass (automation no-op recheck, baseline, no-NGX,
+off);986/0 selftests each enabled configuration, SDK302/0, Python26. Logs
+D:/Flycast-Evidence/color-final-*.log. No jobs active.
 
-Proven scope: WARP mutation, depth/alpha, identity/layout, ownership and shared
-resource controls pass. pilot-normal-view-proof sources2560..2562 (62/61/64 draws)
-are byte-identical at1280x960 to native and the previous native reference;
-source2560 was visually inspected. Python26 pass. Four serial builds pass (automation, baseline, no-NGX, off);986/0 selftests in all three enabled configurations; SDK302/0; backlog contract and diff whitespace checks pass.
+Visual acceptance remains OPEN: viewed source2562/current2565 is overexposed
+and shows hair/edge artifacts. The diagnostic used default lighting, not the
+existing supplied exposure-A/temple profile. External neural provenance is
+explicitly false/unproven in these captures. No60fps or broad normal-renderer
+acceptance. Native alpha/HUD protection and smooth-normal requirements persist.
 
-Failed live evidence: pilot-normal-view-cost published645 replies through
-source2738, but logged no successful normal effects composition. Managed helper
-retirement timed out124; launcher forced child25980 and exited1. All game/helper
-processes are terminal and host logs archived. Source1941 capture cost decreased
-from283.518ms/1283objects to29.534ms/457objects; these are diagnostic samples,
-not a performance-eligible result or a60fps claim.
+Next: compare the new normal composition under the existing supplied pilot
+lighting/exposure profile, then attribute remaining capture/composition CPU
+cost with existing scopes. Do not run generation during timing. Preserve
+same-source/moving evidence and diagnose hair/edge defects before visual claims.
+Normal external-neural provenance and lifecycle/retirement coverage remain
+separate gates; prior helper124 failures remain retained in LOG876/878.
 
-Exact next action: use the newly built automation executable containing the
-first-three composition rejection diagnostics, stage it under a new filename,
-and run the existing --renderer dx11 --cpu-timing --normal-effects diagnostic
-with a NEW output directory. Inspect identity and native/input dimensions,
-formats and sample counts at rejection. No returned composition success is
-proven; format mismatch is a hypothesis only. Preserve strict guards. After a
-fix, rerun same-source native equality, returned effects/HUD provenance and
-moving combat before performance-eligible measurement. Do not extend helper
-timeouts to hide its failed retirement; diagnose that separately.
+Baseline checkpoint parent04bd92db322088d182dac1b7dd3c398458954898. Source
+changes in this slice are only the explicit renderer color conversion; earlier
+capture/ownership/alpha/resource-sharing prototype is in that parent commit.
+Private evidence, assets and untracked logs remain outside Git. Broad goal ACTIVE.
 
-Evidence: D:/Flycast-Evidence/pilot-normal-view-proof (native/replay PNGs and
-archived host log), pilot-normal-view-cost (failed launch and645 returns),
-normal-effect-view-cache-test.cpp/.exe (private WARP fixture), and
-normal-compose-rejection-build.log. Existing staged flycast-pilot-normal-view.exe
-predates the rejection diagnostic; do not accidentally rerun it for that check.
-Private assets and existing untracked build logs remain outside this commit.
+Package D: retain PBRify normals/height. PBRFusion4 review found depth/normal
+outputs only; no install or generation performed. Full material scope and
+approved numeric paid-budget gate remain unchanged.
 
-Package D: PBRFusion4 read-only recheck complete; depth/normal only, no missing
-albedo/roughness/metallic solution. BACKLOG corrects weight size to4.32GB, distinct
-from the author's8GB minimum VRAM. No new installation/generation performed.
-Retain PBRify normal/height, full material-set scope and numeric paid-budget gate.
-
-All historical notes below are chronology, not active process status or routing.
+Historical notes below are chronology, not live job state or next assignments.
 
 ## Historical CPU scheduling checkpoint (LOG841 / D-233)
 

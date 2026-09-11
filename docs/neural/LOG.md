@@ -1,4 +1,50 @@
 # Neural rendering evidence log
+
+LOG882 color conversion scoped technical acceptance. Moving76850 terminal0,
+host0/helper11 orderly=true, no forced children. Independent decoded PNG check
+of12 sources2560..2571 proves native-overlay/evaluated-scene composition and
+backbuffer RGB exact;12 completed Present joins. Report archived with run.
+Four serial builds pass,986/0 selftests x3, SDK302/0, Python26. Build/test
+logs color-final-*.log. Handoff consolidated in place. Visual quality, external
+neural provenance, full normal coverage and performance acceptance stay OPEN.
+
+
+LOG881 moving normal composition now reaches Present. Active run76850
+pilot-normal-color-moving has12/12 saved captures joined to completed-Present
+log entries; all12 mark native_effects_applied, with zero reported HUD/world/
+backbuffer mismatches. Source2562/current2565 composite visually inspected:
+still overexposed with hair/edge artifacts, not visual acceptance. This run
+uses diagnostic/default lighting and no supplied exposure profile. External
+neural provenance remains false in preview metadata; do not infer it from
+successful composition. Run still active; poll76850 and archive host log at
+terminal before build/relaunch. Color conversion remains uncommitted.
+
+LOG880 typed RGBA8-to-BGRA8 conversion WARP control passes65536 pixels:
+asymmetric RGB13/79/231, all256 alpha values, blending off and typed sampling.
+Private normal-color-conversion-test.cpp uses equivalent sampling arithmetic;
+it does not exercise the full Quad/presentation path. Automation61673 passed.
+Moving diagnostic pilot-normal-color-moving launched with12 captures from2560,
+same normal-effects/CPU diagnostic flags and staged flycast-normal-color.exe.
+Full composition/HUD evidence pending; not performance eligible.
+
+LOG879 rejection diagnostic83075 terminal1 with superseded-helper failure;
+no game/helper process remains and host log archived in pilot-normal-rejection.
+RGBA8-to-BGRA8 conversion candidate added before normal effects composition,
+using existing Quad shader and point sampler, typed SRV/RTV, blending disabled,
+full viewport and saved/restored D3D11 context. Source remains untouched; strict
+native composition guards remain. Only exact-size single-mip/array/sample RGBA8
+to native BGRA8 is converted. No scaling or raw-byte reinterpretation.
+Automation build normal-color-conversion-build.log started. Channel/alpha
+controls and live composition proof still pending; uncommitted candidate.
+
+LOG878 returned normal composition blocker identified by committed diagnostic.
+pilot-normal-rejection session83075 remains active. Sources2091/2092/2093
+all log identity=1,1280x960,single sample, input format28 (RGBA8 UNORM),
+native format87 (BGRA8 UNORM). Strict format rejection is correct. Next use
+an explicit GPU color conversion into the retained native raster format before
+normal composition; preserve dimensions/samples/source/alpha checks and prove
+channel/alpha correctness with asymmetric color controls. No conversion yet.
+Poll same run to terminal and archive stage flycast.log before relaunch/build.
 LOG877 user-requested diagnostic checkpoint and handoff. Four serial builds
 pass: automation95393 and baseline/no-NGX/off chain1067; all three enabled
 selftests986/0, SDK302/0, Python26, backlog contract and diff checks pass.
