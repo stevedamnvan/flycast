@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-235: resolve writer and transform from one matching RAM observation
+
+LOG844-845. Preserve physical address, observed value, nonzero writer and owned
+transform serial checks in one lookup. Clear stale output first; copy only a
+valid transform without exposing cache pointers. Repeated clean delivery and
+source/composition checks pass; p95 is slightly better,median roughly unchanged.
+Accept the bounded cleanup without claiming a material throughput gain. Move
+on to the existing normal-renderer integration gap and wider acceptance.
+
 ## D-234: reset semantic read fields without copying inactive payload
 
 LOG842-843. Explicit read initialization clears value, validity, producer and

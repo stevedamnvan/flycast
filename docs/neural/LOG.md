@@ -1,5 +1,47 @@
 # Neural rendering evidence log
 
+LOG845 / D-235 H24 ACCEPTED for tested1280 OIT scope. Combined read lookup
+removes redundant identity/value tests and inactive optional copying,while
+retaining owned serial-qualified transform state. Four serial builds,986/0 x3,
+SDK302/0,Python24/0. Two clean runs18.2321/18.4037 median,
+21.3038/21.1179 p95,24.1011/24.2386 p99;fresh1074/1080 and1073/1080,
+max latency4,zero identity errors. Median effectively unchanged fromH23;
+small p95 improvement supports cleanup,not a material FPS claim. Both VRAM
+runs grow1,723,256,832 bytes,objects143->200;phase/pressure audit still open.
+Moving pilot-h24-read-observation-moving terminal0/11/orderly:12 exact
+completed Present joins,nonempty HUD,zero HUD/world/backbuffer mismatches.
+Ten matching source frames preserve239,334 complete vertices and indices
+against accepted H23;validation-summary.json archived. Actual2560/current2566
+image inspected,combat and native HUD visible. Human visual approval remains
+open. No active processes. Next address existing normal-renderer native-effects
+integration gap (LOG792),starting with source diagnosis;do not repeat micro
+optimizations without renewed evidence of a meaningful bottleneck. Full60fps,
+quality,resource lifecycle and neural-contribution acceptance remain open.
+
+LOG844 H24 candidate: finishSourceRead emitted code repeats physical-address/
+value lookup and copies120-byte inactive optional payload. Source evidence:
+h23-read-reset-disassembly.txt finishSourceRead offsets0083..0235. Combine
+writer/transform lookup into ReadSourceRamObservation; reset output authority
+first and copy only serial-matched owned transform. Cache identity, observed
+value, PC and serial guards unchanged; no pointer escapes and no observation
+skipped. Four serial builds and required tests, then emitted-code check and
+clean/moving proof before acceptance. Candidate unaccepted;H23 remains baseline.
+H24 emitted-code check confirms one lookup and no inactive payload copy;
+stack scratch176->32 bytes. Own object disassembly archived as
+D:/Flycast-Evidence/h24-read-observation-disassembly.txt. Four serial builds
+terminal0;selftests986/0 in all3 enabled configurations,SDK302/0,Python24/0.
+Clean pilot-h24-read-observation-perf1280 terminal0/11;staged automation
+host flycast-pilot-h24-read-observation.exe,unchanged H22 helper/exposureA.
+No instrumentation,captures,builds or generation during measurement.
+
+H24 first clean run66914 terminal0/11/orderly/eligible,host log and summary
+archived:18.2321/21.3038/24.1011ms p50/p95/p99,1074/1080 fresh,max4,
+zero identity errors. Repeat pilot-h24-read-observation-perf1280-b session75713 terminal0/11,
+orderly/eligible,log/summary archived:18.4037/21.1179/24.2386ms,1073/1080
+fresh,max4,zero identity errors. Median roughly unchanged vsH23;p95 improves
+slightly in both runs. No active jobs;moving/source proof next. Unaccepted.
+
+
 LOG843 / D-234 H23 ACCEPTED for tested1280 OIT pilot. H23 read reset
 preserves all observations and clears stale semantic fields without copying
 inactive optional storage. Two clean eligible runs pilot-h23-read-reset-perf1280

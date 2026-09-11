@@ -1589,6 +1589,34 @@ int RunSelfTests()
 		 suite.Expect(read.address==0xac003000&&read.pc==0x8c004000&&!read.valid&&!read.transform,
 		  "disengaged register read can be reused without reviving transform");
 		}
+		{
+		 SourceTransform seed;seed.serial=17;seed.pc=0x8c003000;
+		 seed.input={1,2,3,4};seed.output={5,6,7,8};seed.matrix[9]=9;
+		 bool equivalent=true;
+		 for(unsigned state=0;state<7;++state) {
+		  InvalidateSourceRamWrites();
+		  ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
+		  auto& record=(*sourceRamWrites)[0x1000/4];
+		  SourceRamOwnedTransform(0x1000/4)=seed;record.transform=seed.serial;
+		  if(state==1)record.transform=0;
+		  if(state==2)SourceRamOwnedTransform(0x1000/4).reset();
+		  if(state==3)record.pc=0;
+		  if(state==4)ObserveSourceRamWrite(0x8c011000,0x8c002004,4,0x12345678);
+		  if(state==5)ObserveSourceRamWrite(0x8c001001,0x8c002004,1,0x12);
+		  if(state==6)InvalidateSourceRamWrites();
+		  for(auto address:{0x8c001000u,0xac001000u,0x8c001001u,0x80001000u,0x8c011000u})
+		   for(auto value:{0x12345678u,0x12345679u}) {
+		    const auto expected=SourceRamTransform(address,value);
+		    std::optional<SourceTransform> actual=seed;
+		    const auto pc=ReadSourceRamObservation(address,value,actual);
+		    equivalent&=pc==SourceRamWriter(address,value)&&bool(actual)==bool(expected);
+		    if(actual&&expected)equivalent&=actual->serial==expected->serial&&actual->pc==expected->pc
+		     &&actual->input==expected->input&&actual->output==expected->output&&actual->matrix==expected->matrix;
+		   }
+		 }
+		 suite.Expect(equivalent,"combined RAM read matches separate writer and transform under aliases collisions invalidation and stale output");
+		 InvalidateSourceRamWrites();
+		}
 		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
 		suite.Expect(SourceRamWriter(0xac001000,0x12345678)==0x8c002000,
 			"RAM writer physical alias retains exact observed value");

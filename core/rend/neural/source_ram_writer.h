@@ -53,6 +53,20 @@ inline std::optional<SourceTransform> SourceRamTransform(std::uint32_t address,s
  const auto& record=(*sourceRamWrites)[index];const auto& owned=SourceRamOwnedTransform(index);
  return owned&&owned->serial==record.transform?owned:std::nullopt;
 }
+// Read writer and optional transform from one matching observation. The output
+// owns its transform; no pointer into the mutable direct-mapped cache escapes.
+inline std::uint32_t ReadSourceRamObservation(std::uint32_t address,std::uint32_t value,
+ std::optional<SourceTransform>& transform) noexcept {
+ transform.reset();
+ if(!sourceRamWrites||(address&3)||(address&0x1c000000)!=0x0c000000)return 0;
+ const auto physical=address&0xffffff;
+ const auto index=(physical/4)%sourceRamWrites->size();
+ const auto& record=(*sourceRamWrites)[index];
+ if(record.address!=physical||record.value!=value||!record.pc)return 0;
+ const auto& owned=SourceRamOwnedTransform(index);
+ if(owned&&owned->serial==record.transform)transform=*owned;
+ return record.pc;
+}
 inline bool CarrySourceRamTransform(std::uint32_t address,std::uint32_t pc,std::uint32_t value,
  const SourceTransform* transform) noexcept {
  if(!transform||!transform->serial||SourceRamWriter(address,value)!=pc||!pc)return false;

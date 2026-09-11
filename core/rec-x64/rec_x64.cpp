@@ -124,8 +124,7 @@ static void DYNACALL finishSourceRead(u32 value,u32 slot) {
 	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookReadCycles);
 	auto& read=flycast::rend::neural::sourceRegisterReads[slot];
 	read.value=value;
-	read.producerPc=flycast::rend::neural::SourceRamWriter(read.address,value);
-	read.transform=flycast::rend::neural::SourceRamTransform(read.address,value);
+	read.producerPc=flycast::rend::neural::ReadSourceRamObservation(read.address,value,read.transform);
 	read.valid=(read.address&0x1c000000)==0x0c000000 && !(read.address&3);
 }
 static void (*sourceOriginalFtrv)(float*,const float*,const float*);

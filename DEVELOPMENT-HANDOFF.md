@@ -134,6 +134,16 @@ plus indices exactly. Evidence pilot-h23-read-reset-{perf1280,perf1280-b,moving}
 Staged host flycast-pilot-h23-read-reset.exe plus accepted H22 helper is tested.
 No active jobs. Next inspect finishSourceRead repeated writer lookup/optional
 copies before choosing another bounded CPU change. Full acceptance stays open.
+LOG845 H24 accepted: combined RAM observation lookup;four serial builds986/0
+x3,SDK302/0,Python24/0. Clean medians18.2321/18.4037ms,p95 21.3038/21.1179,
+fresh1074/1080 and1073/1080,max4,zero identity errors. Median roughly unchanged,
+p95 slightly improved. Moving12 completed joins/nonempty HUD,zero composition
+mismatches;10 matching sources239,334 vertices plus indices exact versusH23.
+Evidence pilot-h24-read-observation-{perf1280,perf1280-b,moving};logs archived.
+Staged automation host flycast-pilot-h24-read-observation.exe with unchanged
+H22 helper. No active jobs. Next diagnose normal-renderer native-effects gap
+LOG792 in source,then bounded integration/proof;avoid more low-yield micro work.
+Full60fps,quality,resource and human visual gates remain open.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
 intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
 No installation/download/GPU runs. Review with proposed HTTP graph:
