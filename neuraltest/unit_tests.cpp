@@ -18,6 +18,7 @@
 #include "rend/neural/remake_native_effects.h"
 #include <d3d11.h>
 #include <atomic>
+#include <functional>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -348,6 +349,65 @@ int RunSelfTests()
 			suite.Expect(!PlanAlphaEffectExclusion(owner,source,p,s,out)&&out.size()==previous.size()
 				&&out[0].expected.primary==previous[0].expected.primary,"alpha ownership rejects source/state/duplicate/range/additive/secondary mutation");
 		}
+	}
+	{
+		// D-240 hair option 1: cutout promotion of promoted alpha meshes.
+		const auto plane=[](unsigned w,unsigned h,const std::function<std::uint8_t(unsigned,unsigned)>& alpha){
+			MaterialPixels pixels;pixels.format=DXGI_FORMAT_B8G8R8A8_UNORM;MaterialMip mip;mip.width=w;mip.height=h;
+			for(unsigned y=0;y<h;++y)for(unsigned x=0;x<w;++x){mip.bytes.push_back(1);mip.bytes.push_back(2);mip.bytes.push_back(3);mip.bytes.push_back(alpha(x,y));}
+			pixels.mips.push_back(mip);std::vector<unsigned char> dds;std::string why;
+			if(!EncodeRemakeMaterialDds(pixels,dds,why))dds.clear();return dds;};
+		// Left half: hard strands (opaque/clear), right half: a smooth gradient.
+		const auto atlas=plane(16,8,[](unsigned x,unsigned y){return std::uint8_t(x<8?((x+y)&1?255:0):std::uint8_t(32+x*12));});
+		RemakeAlphaPlane decoded;
+		suite.Expect(DecodeRemakeDdsAlphaPlane(atlas,decoded)&&decoded.width==16&&decoded.height==8&&decoded.alpha.size()==128
+			&&decoded.alpha[0]==0&&decoded.alpha[1]==255&&decoded.alpha[15]==212,"alpha cutout decodes the owned DDS alpha plane");
+		auto truncated=atlas;truncated.resize(200);auto wrongMagic=atlas;wrongMagic[0]^=1;
+		suite.Expect(!DecodeRemakeDdsAlphaPlane(truncated,decoded)&&!DecodeRemakeDdsAlphaPlane(wrongMagic,decoded)&&!DecodeRemakeDdsAlphaPlane({},decoded),
+			"alpha cutout rejects truncated, foreign or empty texture bytes");
+		const auto quad=[](float u0,float u1,float v0,float v1,std::uint64_t id,bool blend){
+			remake::Mesh m;m.id=id;m.sourceAlphaBlend=blend;m.sourceTsp=(4u<<29)|(5u<<26)|(3u<<6);m.texture={7,1,0,0,true};
+			m.material.emplace();m.material->sourceTexture=m.texture;
+			for(auto [u,v]:{std::pair{u0,v0},std::pair{u1,v0},std::pair{u1,v1}}){remake::Vertex x;x.position={u,v,1};x.normal=remake::Vec3{0,0,1};x.u=u;x.v=v;x.publicColor=0xffffffffu;m.vertices.push_back(x);}
+			m.indices={0,1,2};return m;};
+		const auto strands=quad(0,.5f,0,1,(2ull<<32)|1,true),gradient=quad(.5f,1,0,1,(2ull<<32)|2,true),wrapped=quad(-1,2,0,1,(2ull<<32)|3,true);
+		auto sStrands=MeasureRemakeAlphaCutout(decoded,strands),sGradient=MeasureRemakeAlphaCutout(decoded,gradient),sWrapped=MeasureRemakeAlphaCutout(decoded,wrapped);
+		suite.Expect(sStrands.decoded&&!sStrands.wholeTexture&&sStrands.texels==64&&sStrands.mid==0&&sStrands.opaque==32&&sStrands.clear==32
+			&&RemakeAlphaCutoutQualifies(sStrands),"alpha cutout measures the draw's texture footprint and accepts hard strands");
+		suite.Expect(sGradient.decoded&&sGradient.texels==64&&sGradient.mid>sGradient.opaque+sGradient.clear&&!RemakeAlphaCutoutQualifies(sGradient),
+			"alpha cutout keeps a gradient native");
+		suite.Expect(sWrapped.wholeTexture&&sWrapped.texels==128&&sWrapped.mid==64&&sWrapped.opaque==32&&sWrapped.clear==32,"alpha cutout measures the whole texture for a wrapping footprint");
+		RemakeAlphaCutoutStatistics uniform;uniform.decoded=true;uniform.texels=100;uniform.opaque=100;
+		suite.Expect(!RemakeAlphaCutoutQualifies(uniform)&&!RemakeAlphaCutoutQualifies({}),"alpha cutout needs both opaque and clear texels");
+		RemakeAlphaPlaneCache cache;remake::Packet packet;packet.frame=9;
+		auto opaque=quad(0,.5f,0,1,(0ull<<32)|1,false);
+		auto carried=strands;carried.material->sourceDdsBytes=atlas;
+		auto referenced=quad(0,.5f,0,1,(2ull<<32)|4,true);referenced.textureWire=remake::TextureWire::Referenced;
+		auto unknown=quad(0,.5f,0,1,(2ull<<32)|5,true);unknown.texture.known=false;unknown.material->sourceTexture.reset();
+		auto shaded=gradient;shaded.material->sourceDdsBytes=atlas;
+		packet.meshes={opaque,carried,shaded,referenced,unknown};
+		auto promotion=PromoteRemakeAlphaCutouts(packet,cache);
+		suite.Expect(promotion.promoted==2&&promotion.keptNative==2&&promotion.undecoded==1&&packet.meshes.size()==3&&cache.Size()==1
+			&&packet.meshes[0].id==opaque.id&&!packet.meshes[0].sourceAlphaReference
+			&&packet.meshes[1].id==carried.id&&!packet.meshes[1].sourceAlphaBlend&&packet.meshes[1].sourceAlphaReference==RemakeAlphaCutoutReference
+			&&packet.meshes[2].id==referenced.id&&packet.meshes[2].sourceAlphaReference==RemakeAlphaCutoutReference
+			&&promotion.promotedIds==std::vector<std::uint64_t>{carried.id,referenced.id},
+			"alpha cutout promotes carried and held-reference strands, removes the gradient and the unknown texture, leaves opaque meshes");
+		RemakeAlphaPlaneCache empty;remake::Packet later;later.meshes={referenced};
+		auto miss=PromoteRemakeAlphaCutouts(later,empty);
+		suite.Expect(miss.promoted==0&&miss.undecoded==1&&later.meshes.empty(),"alpha cutout keeps a by-reference draw native when its plane was never seen");
+		auto sheet=strands;sheet.id=(2ull<<32)|6;sheet.sourceTsp=*sheet.sourceTsp|(1u<<20);sheet.material->sourceDdsBytes=atlas;
+		for(auto& v:sheet.vertices)v.publicColor=0x80ffffffu;
+		auto opaqueVertex=sheet;opaqueVertex.id=(2ull<<32)|7;for(auto& v:opaqueVertex.vertices)v.publicColor=0xffffffffu;
+		auto ignoredVertex=sheet;ignoredVertex.id=(2ull<<32)|8;ignoredVertex.sourceTsp=*ignoredVertex.sourceTsp&~(1u<<20);
+		remake::Packet vertexAlpha;vertexAlpha.meshes={sheet,opaqueVertex,ignoredVertex};
+		auto sheets=PromoteRemakeAlphaCutouts(vertexAlpha,cache);
+		suite.Expect(sheets.promoted==2&&sheets.keptNative==1&&vertexAlpha.meshes.size()==2&&vertexAlpha.meshes[0].id==opaqueVertex.id
+			&&vertexAlpha.meshes[1].id==ignoredVertex.id,"alpha cutout keeps a vertex-alpha translucent sheet native");
+		remake::Packet cutoutAlready;auto pt=strands;pt.sourceAlphaBlend=false;pt.sourceAlphaReference=200;cutoutAlready.meshes={pt};
+		auto untouched=PromoteRemakeAlphaCutouts(cutoutAlready,cache);
+		suite.Expect(untouched.promoted==0&&untouched.keptNative==0&&cutoutAlready.meshes.size()==1&&cutoutAlready.meshes[0].sourceAlphaReference==200,
+			"alpha cutout never rewrites an existing punch-through mesh");
 	}
 	{
 		TCW resource{};resource.PixelFmt=PixelPal4;resource.TexAddr=42;resource.PalSelect=1;

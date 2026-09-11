@@ -1,5 +1,53 @@
 # Neural rendering evidence log
 
+LOG904 hair option 1 implemented: alpha cutout promotion (D-240,
+experimental, opt-in `--alpha-cutout` = FLYCAST_REMAKE_ALPHA_CUTOUT=1,
+requires alpha ownership; not a default). `remake_alpha_cutout.h`: the
+feed worker, after the packet build, measures each promoted alpha mesh's
+texture alpha inside its own texture-coordinate footprint (mip 0 of the
+owned RGBA8 DDS; a footprint leaving one tile measures the whole texture;
+planes cached by texture identity for by-reference draws, 256 bound, a
+miss keeps the draw native). A draw qualifies when at least 2 percent of
+the footprint is fully opaque, at least 2 percent fully clear, at most
+half is in between, and, when the source uses vertex alpha (TSP bit 20),
+every vertex alpha is 250 or more. Qualifying meshes travel as alpha-
+tested cutouts (blend off, reference 128; the helper's existing legacy
+cutout shader path, depth write on) and are excluded from native effect
+replay through the D-183 ownership selections; the rest are removed from
+the packet so their native composition is untouched. Notice per source:
+`Remake alpha cutout promotion: source= promoted= kept_native=
+undecoded= reference=128 max_mid=0.5`. Evidence (captures from source
+2560, 12 frames, pilot launch otherwise as `pilot-g-combined` but with
+`--alpha-cutout` instead of `--alpha-combined-off`; evidence root moved
+to `C:\Flycast-Evidence` because D: is full of the user's media, not of
+evidence): `pilot-hair-cutout-a` (before the vertex-alpha rule) promoted
+10 of 11 promoted draws including the staff-swing sheet, whose texture
+alpha is a cutout but whose vertex alpha is translucent, so it rendered as
+an opaque white sheet; the rule was added with a unit case and
+`pilot-hair-cutout-b` keeps that sheet native (8 promoted, 3 native at
+2570, 0 undecoded across 759 sources, HUD/world mismatches 0). At 2570
+Kilik's fringe and Xianghua's bangs are drawn by Remix with the replaced
+lighting and no longer appear as dark native strands over the neural
+image; edges are alpha-test hard (no anti-aliasing in the consumer
+profile, `rtx.upscalerType = 0`). Both runs landed on the water stage
+against Xianghua rather than Hoko Temple against Taki: the arcade
+opponent is not fixed by the input replay, so cross-run comparisons must
+match the stage; within-run native/Remix/composited comparisons stand.
+Cost: present p50 23.0 ms (pilot-g-combined 22.2 on the other stage),
+helper draw 12.1 ms against 8.9 (more geometry on this stage), 424
+worker-busy fallbacks; capture runs, not performance-eligible. The user's
+question on square edges (jaw line): the Remix stage is path traced at
+1280x960 with no upscaler or temporal anti-aliasing in the consumer
+profile, so geometric edges alias and the denoiser leaves two-pixel
+steps; the native image has one-pixel steps softened by texture
+filtering. Enabling the runtime's own DLSS/TAA-U in an owned consumer
+profile is the candidate fix, not tried here. Builds: automation,
+baseline, no-ngx, off exit 0; selftest 1014/0 three times (nine new
+cutout cases); remake-sdk-contract 302/0; launcher tests 26 OK (flag
+plumbing, refusal with `--alpha-combined-off`). Translucent-look A/B for
+the faithful candidate (D-240 acceptance) still to be repeated on the
+Hoko stage.
+
 LOG903 texture and geometry quality audit of the combined pilot look
 (diagnostic, read-only; evidence in `D:\Flycast-Evidence/audit-g\`, no
 code, mod or configuration change). Inputs: frame 2570 of

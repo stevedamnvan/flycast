@@ -2898,6 +2898,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(fed.alphaOwnership)
 			NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
 				(unsigned long long)fed.frame,unsigned(fed.overlay.alphaEffectSelections.size()));
+		if(fed.alphaCutout)
+			NOTICE_LOG(RENDERER,"Remake alpha cutout promotion: source=%llu promoted=%u kept_native=%u undecoded=%u reference=%u max_mid=0.5 scope=experimental",
+				(unsigned long long)fed.frame,fed.cutout.promoted,fed.cutout.keptNative,fed.cutout.undecoded,unsigned(flycast::rend::neural::RemakeAlphaCutoutReference));
 		auto overlay=std::move(fed.overlay);
 		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
 		remakeReturnWorker.RegisterScene(fed.receipt.sequence,overlay.temporalScene);
@@ -3002,6 +3005,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const bool alphaPreview=alphaOption&&std::strcmp(alphaOption,"1")==0;
 	const auto* alphaCombinedOption=std::getenv("FLYCAST_REMAKE_ALPHA_COMBINED");
 	const bool alphaCombined=alphaCombinedOption&&std::strcmp(alphaCombinedOption,"1")==0;
+	const auto* alphaCutoutOption=std::getenv("FLYCAST_REMAKE_ALPHA_CUTOUT");
+	const bool alphaCutout=alphaCutoutOption&&std::strcmp(alphaCutoutOption,"1")==0;
+	if(alphaCutout&&!alphaCombined){skip("alpha-cutout","requires-alpha-combined");return;}
 	const auto* neuralOption=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
 	if(alphaCombined&&(alphaPreview||!RemakeNativeEffectsRequested()||!neuralOption||std::strcmp(neuralOption,"1")!=0)) {
 		skip("alpha-combined","requires-owned-effects-and-evaluation");return;
@@ -3113,7 +3119,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	job.smoothNormals=RemakeSmoothNormalsEnabled();
 	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
 	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;
-	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);
+	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);job.alphaCutout=alphaCombined&&alphaCutout;
 	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);

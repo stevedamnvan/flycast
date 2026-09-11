@@ -115,7 +115,10 @@ returned sequence, sources, slot and image states). `--renderer dx11-oit`
 (default) or `dx11` selects the host route; the native-effects lane
 currently activates only on the OIT route (LOG792). `--alpha-combined-off`
 and `--opaque-alpha-one` are the D-220 translucency A/B controls (diagnostic,
-default off). The helper logs `texture_register ... content_digest=` per
+default off). `--alpha-cutout` (D-240, LOG904, experimental, default off,
+refused with `--alpha-combined-off`) sends promoted alpha draws whose texture
+alpha is a cutout (and whose vertex alpha is opaque) to the consumer as
+alpha-tested cutouts; the others stay native. The helper logs `texture_register ... content_digest=` per
 texture registration (D-220) and, in the live return-only mode, receives its
 first source after runtime startup (`live_first_source=deferred-until-runtime-start`).
 `--smooth-normals` (D-223, default off) averages exported face normals per source

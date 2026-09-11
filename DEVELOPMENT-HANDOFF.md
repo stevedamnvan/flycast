@@ -29,7 +29,10 @@ now recovers after 60 fresh ticks. LOG901: the substep G comparison matrix is bu
 sources, `pilot-g-matrix`). LOG902/D-239: the user chose the combined
 experimental variant as the faithful look (characters good, hair too
 polygonal; LOG903 audit: the strands are native-composited alpha draws, not mod
-content; options a/b/c await the user). Next,
+content). D-240/LOG904: the user chose 60 fps (narrowed observation
+scope authorised) and hair option 1; `--alpha-cutout` is implemented and
+evidenced on the water stage (`C:\Flycast-Evidence\pilot-hair-cutout-b`;
+D: is full). Next,
 in order: (1) the 60 fps observation-scope decision (LOG897/LOG898); (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next

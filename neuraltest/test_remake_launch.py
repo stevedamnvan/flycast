@@ -181,6 +181,15 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertEqual(ab['FLYCAST_REMAKE_ALPHA_COMBINED'], '0')
         self.assertEqual(ab['FLYCAST_REMAKE_OPAQUE_ALPHA_ONE'], '1')
         self.args.alpha_combined_off = False; self.args.opaque_alpha_one = False
+        self.assertNotIn('FLYCAST_REMAKE_ALPHA_CUTOUT', prepare(self.args)[2])
+        self.args.alpha_cutout = True
+        cut = prepare(self.args)[2]
+        self.assertEqual(cut['FLYCAST_REMAKE_ALPHA_CUTOUT'], '1')
+        self.assertEqual(cut['FLYCAST_REMAKE_ALPHA_COMBINED'], '1')
+        self.args.alpha_combined_off = True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.alpha_combined_off = False; self.args.alpha_cutout = False
         self.assertNotIn('FLYCAST_REMAKE_SMOOTH_NORMALS', prepare(self.args)[2])
         self.args.smooth_normals = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SMOOTH_NORMALS'], '1')
