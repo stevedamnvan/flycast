@@ -1,5 +1,48 @@
 # Neural rendering evidence log
 
+LOG797 pilot substep B: same-source smooth-normal comparison (D-225 weld) and
+the per-material alpha candidate; technical ACCEPTED for both as reversible
+options, look NOT_REVIEWABLE pending the user. (1) Same-source normals: live
+capture sessions cannot pin a source parity (the feed alternates sources, so
+`--capture-start-source 2601` yielded 2602/2604/2606 in
+fc075-abcap-d224-smooth-2601 and 2600/2602/2604 in the LOG794 session), so
+the same-source A/B uses the saved source-2601 packet: the new
+`neuraltest/remake_packet_normals.py` rewrites only the normals of a flat
+packet with the D-225 level-2 rule (refusing a packet that is not flat, which
+also prevents smoothing twice) and the standalone helper renders both under
+identical lighting (`pilot-normals/`: flat-1, flat-2, smooth2-1, smooth2-2;
+48 meshes, 8946 triangles, 8078 welded vertex groups of 26838 expanded
+vertices). Result: flat versus smooth 14648 to 15310 pixels changed (mean
+58) against repeat noise 76 and 541; the returned depth images agree in
+coverage on all 307200 pixels (38 pixels differ in value by more than 1e-6,
+float noise), so silhouettes are unchanged; crops `normals-same-kilik.png`
+and `normals-same-taki.png`: the per-facet steps on legs, torso, arms and
+Taki's suit are gone, belts, armour plates and the blade keep their edges,
+no seam artefacts visible at 3x. D-225 level 2 (`FLYCAST_REMAKE_SMOOTH_NORMALS=2`,
+launcher `--smooth-normals-weld`) is implemented in the exporter: within one
+source draw, vertices whose source position, texture coordinate and base
+colour are bit-identical (the same logical vertex the game resubmits for a
+neighbouring strip) share a smoothing group; coincident positions with
+different attributes are never welded; the 60 degree crease is unchanged;
+level 1 (index-keyed) remains available. Toolkit smoothing capability: the
+installed Toolkit has no mesh-normal smoothing tool (its material/texture
+tools and the MCP tool list were inspected); the runtime lights the normals
+it receives. Moving evidence with level 2 live: fc075-abcap-d225-weld-moving captured 40 frames (sources 2561 to 2603) through an attack, a cross and hit effects; the eight-frame review strip (moving-strip.png) shows curved fighters with no visible shading pops or seam errors, silhouettes and native effects unchanged; consecutive returned-image changes rise monotonically with the motion (3078 to 98947 pixels) with no isolated spike. Performance-eligible fc075-perf-d225-weld-a (OIT route, level 2 on): 99.35 percent fresh of steady presents (99.72 of remake presents), 9 output repeats, latency mean 3.71 (max 4), present p50 20.01 ms, p95 24.59, p99 27.28, GPU span p50 12.43; VRAM growth 946 MB with 45 owned-object growth (the LOG794 alternating pattern, still unattributed): the weld costs nothing measurable at the gate. (2) Alpha candidate: `--alpha-combined-off`
+(promoted alpha surfaces kept native, not exported) captured the same sources
+2601/2603/2605 as the baseline (fc075-abcap-d224-alphaoff-2601; the log has 0
+alpha-ownership lines against 595 in the baseline session; original-native
+images identical, 0 pixels). Composited images differ by 86406, 89371 and
+87648 pixels (mean 57): the lattice, banners and rail balusters render as the
+original native surfaces composited over the Remix scene instead of bright
+translucent panels (`alphaoff-lattice.png`), and the floor shows the native
+shadow blobs instead of glass shadows (`alphaoff-floor.png`); returned
+image 119428 pixels. Native blend order and masks are the original's by
+construction (the surfaces are not exported); occlusion of native surfaces
+by Remix geometry is not handled on this route (they composite over), which
+the review must weigh. The decal/opaque treatments are not started: they
+need per-material source semantics that the D-183 route does not carry yet.
+Builds: four configurations serial, 0 errors. Selftest 868/0 in automation, baseline and no-ngx; remake-sdk-contract 260/0; launcher, manifest, packet-normals and backlog python suites pass (18, 2, 3, 6 tests).
+
 LOG796 pilot substep A, material-channel proof through the Toolkit MCP server:
 ACCEPTED for albedo, roughness and normal on one stage and one fighter
 material; two Toolkit limitations recorded. Route: the new

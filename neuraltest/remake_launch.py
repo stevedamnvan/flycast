@@ -47,6 +47,9 @@ def prepare(args):
     # D-223 experimental shading option (default off): smoothed export normals.
     if getattr(args, 'smooth_normals', False):
         env['FLYCAST_REMAKE_SMOOTH_NORMALS'] = '1'
+    # D-225 level 2: also weld bit-identical resubmitted vertices within a draw.
+    if getattr(args, 'smooth_normals_weld', False):
+        env['FLYCAST_REMAKE_SMOOTH_NORMALS'] = '2'
     host = [str(paths['harness']), 'performance', '--game', str(paths['game']),
             '--flycast', str(paths['flycast']), '--out', str(out/'host'),
             '--frames', '1200', '--warmup', '2100', '--lane', 'dlss5', '--api', 'd3d11on12',
@@ -257,6 +260,8 @@ def main():
                    help='A/B control: disable the promoted alpha surfaces (FLYCAST_REMAKE_ALPHA_COMBINED=0)')
     p.add_argument('--opaque-alpha-one', action='store_true',
                    help='A/B control: the helper draws opaque meshes with alpha one (FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1)')
+    p.add_argument('--smooth-normals-weld', action='store_true',
+                   help='Experimental: --smooth-normals plus welding of bit-identical resubmitted vertices within a draw (level 2)')
     p.add_argument('--smooth-normals', action='store_true',
                    help='Experimental: average exported face normals per source vertex (60 degree crease); default off')
     p.add_argument('--hook-cycles', action='store_true',
@@ -284,7 +289,7 @@ def main():
                   hook_cycles=args.cpu_timing and args.hook_cycles,
                   renderer=args.renderer,
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
-                  smooth_normals=args.smooth_normals,
+                  smooth_normals=args.smooth_normals, smooth_normals_weld=args.smooth_normals_weld,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,
                   consumer_config_sha256=hashlib.sha256(args.consumer_config.read_bytes()).hexdigest()

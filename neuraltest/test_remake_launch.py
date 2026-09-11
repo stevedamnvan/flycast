@@ -122,6 +122,9 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.smooth_normals = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SMOOTH_NORMALS'], '1')
         self.args.smooth_normals = False
+        self.args.smooth_normals_weld = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SMOOTH_NORMALS'], '2')
+        self.args.smooth_normals_weld = False
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CPU_TIMING'], '1')
         self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])

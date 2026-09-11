@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-225: smoothing groups are source-qualified; a weld needs identical source attributes, never a coincident position alone
+
+LOG797. Level 2 of the D-223 shading option welds, within one source draw,
+vertices whose source position, texture coordinate and base colour are
+bit-identical; these are one logical vertex resubmitted for a neighbouring
+strip. Vertices that merely share a position (a seam between two surfaces)
+keep separate groups, the crease keeps hard edges, silhouettes never change,
+and material boundaries follow draw boundaries. Both levels stay labeled
+export shading, default off; same-source evidence comes from the saved
+packet rewritten offline, which refuses a packet that is not flat.
+
 ## D-224: the opt-in Soulcalibur Faithful RTX pilot runs as bounded substeps under the existing cards
 
 LOG795. Bounded material, lighting and resolution experiments for the Hoko

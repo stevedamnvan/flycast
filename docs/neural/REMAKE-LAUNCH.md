@@ -119,7 +119,8 @@ default off). The helper logs `texture_register ... content_digest=` per
 texture registration (D-220) and, in the live return-only mode, receives its
 first source after runtime startup (`live_first_source=deferred-until-runtime-start`).
 `--smooth-normals` (D-223, default off) averages exported face normals per source
-vertex. The D-224 pilot look is opt-in only: it is selected by the mod layer
+vertex; `--smooth-normals-weld` (D-225) also welds bit-identical resubmitted
+vertices within a draw. The D-224 pilot look is opt-in only: it is selected by the mod layer
 present under the runtime's `rtx-remix/mods` directory, an explicitly supplied
 `--consumer-config` profile and the shading flags above; with none of them the
 session renders the original materials under the diagnostic light. The mod is
