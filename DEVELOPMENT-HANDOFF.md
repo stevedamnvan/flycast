@@ -4,10 +4,16 @@
 
 Proof, moving and matched cost runs pass their exactness checks; no
 capture-cost gain claimed (native-draw 14.71 ms inside the earlier spread).
-Four builds and three selftests pass; committed. Next: the H items in
-`docs/neural/CODEX-GOAL.md` on the OIT route (finer scopes, single
-validation pass, raster depth ping-pong, copies off the render thread),
-since the OIT route at 30.8 ms is the faster of the two.
+Four builds and three selftests pass; committed. Correction (LOG894): the
+CODEX-GOAL OIT items are already done and accepted (LOG807 to LOG845, H17
+to H24, about 18.3 ms median at 1280x960). HEAD re-measure on the OIT route
+recorded in LOG894. Next, in order: (1) normal-renderer route: returned-
+output integration with alpha ownership and resource accounting (LOG859
+next item), lifecycle/budget contract review for the 120 s helper watchdog
+without captures (retain failures); (2) VRAM by phase and pressure/stall
+measurement rather than raw growth rejection; (3) 60 fps remains open on
+both routes; do not repeat micro-optimizations without renewed evidence of
+a meaningful bottleneck (LOG845).
 
 ## Previous checkpoint: capture texture-query batching (LOG892)
 

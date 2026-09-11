@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG894 handoff correction and HEAD 7def2eb91 performance check on the OIT
+route. The LOG893 handoff line naming the CODEX-GOAL items as next was
+stale: those items were completed and accepted in LOG807 to LOG845 (H17 to
+H24, 1280x960 OIT two clean runs 18.23/18.40 ms median, 99.44/99.35 percent
+fresh, max latency 4). Performance-eligible re-measure at HEAD with the
+LOG805 perf-a launch (1280x960, temple rig, native alpha, welded normals,
+exposure profile A, OIT, no captures, no CPU instrumentation),
+`pilot-extent1280-perf-d`: exit 0, 1200 host samples, 1183 accepted evaluations, 1176 remake presents, 8 output repeats (99.3 percent fresh), no source gaps, latency mean 3.98 frames (max 4), present p50/p95 19.86/23.07 ms by the summarize_run measure (LOG805 perf-a on the same measure: 26.48/29.68), helper period p50 19.65 ms, turnaround 20.40; note that the H24 figures in LOG845 use the other session's summary and are not the same denominator. No regression against the H24 state is indicated; 60 fps not reached (about 50 fps). The capture batching (LOG893)
+is on the normal-renderer route only, so this run checks for regression on
+the OIT route rather than measuring the change. 60 fps and full H
+acceptance remain open; human visual approval remains open.
+
 LOG893 capture texture-query batching (LOG892 candidate) verified and
 committed as a narrow change. Automation build with the candidate: selftest
 986/0, remake-sdk-contract 302/0, python suites OK. Native equality proof

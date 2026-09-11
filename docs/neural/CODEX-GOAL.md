@@ -3,6 +3,14 @@
 Read first: `AGENTS.md`, `DEVELOPMENT-HANDOFF.md`, the H row of
 `docs/neural/BACKLOG.md`, and LOG805/LOG806 in `docs/neural/LOG.md`.
 
+## Status (2026-09-11, LOG894)
+
+Items 1 to 6 below are done and accepted on the OIT route (LOG807 to
+LOG845): 1280x960 median about 18.3 ms, 99.4 percent fresh, max latency 4.
+Remaining work is listed in the handoff: normal-renderer returned-output
+integration, helper lifecycle budget review, VRAM by phase, and the open
+60 fps goal. Keep this file's rules; treat the ordered list as history.
+
 ## Goal
 
 Reduce the per-frame CPU work on the returned image so the combined
