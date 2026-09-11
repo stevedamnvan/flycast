@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG839 late-delivery inspection narrows next correction. H21 repeat's missing
+next-source packets2246,2617,2686,3026,3236 appear in helper live_return:
+depth_lock_wait_ms respectively0.4582,4.2188,3.3929,3.3959,3.6634;
+turnaround19.4732,24.9099,28.2616,29.6396,26.3892ms. Expected2282 has no
+exact helper return line; do not conflate all six misses into one proven cause.
+Host accepts these delayed returns in following frames. Logs lack shared
+publication timestamps sufficient for exact worker-vs-GPU causal attribution.
+Source remake_runtime_smoke.cpp currently queues color readback,does bounded
+prefetch,locks/copies color,then queues/locks depth. Four observed depth stalls
+justify a bounded H22 candidate: enqueue same-completed-frame depth copy after
+color enqueue and before prefetch/locks,then consume depth at its existing
+point. Restrict to live return-only color+depth route; preserve same-frame
+receipt,public APIs,R32F fallback,error propagation and all other paths.
+No extra frame waiting,buffer depth,protocol or external binary/config edits.
+Require four serial builds/three selftests/SDK/Python,paired color/depth and
+nonempty HUD/source evidence,then repeated clean99%/latency checks. H21 stays
+unaccepted with its three source edits preserved. No H22 code yet,no jobs.
+
 LOG838 H21 speed repeats but freshness acceptance fails. Clean performance
 pilot-h21-live-groups-perf1280 / -b both terminal0/11,orderly,eligible,
 1200 samples/2100 warmup,1280 OIT,native alpha,welded normals,exposure A,

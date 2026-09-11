@@ -134,6 +134,12 @@ No jobs active. Next inspect delivery timing for those6 repeat points (2249,
 until lucky or lower99%/change denominator/disable native safeguards. Need a
 bounded pipeline correction or disposition before source acceptance. All four
 builds983/0 x3,SDK302/0,Python24 and geometry/HUD checks already passed.
+LOG839 next bounded H22 correction: helper currently queues depth only after
+color lock/copy. Four late packets show3.4..4.2ms depth-lock stalls;not all six
+misses attributed. Test enqueueing same-frame color/depth before either lock
+in live return-only path,keeping R32F fallback/errors/provenance unchanged.
+No H22 edits yet. Validate exact pairing/source/HUD and two clean freshness
+runs; never waive H21's98.981% failed run. No active jobs.
 Build output/staged h21 contains current unaccepted candidate; staged h17-reuse
 is accepted fallback (source10a7ad2e2). Preserve the three owned source edits.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
