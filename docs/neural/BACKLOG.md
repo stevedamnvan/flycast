@@ -82,6 +82,12 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Pilot substeps (D-224): Soulcalibur Faithful RTX
 
+LOG814 performance follow-up: helper depth batching3.64 to0.80ms verified,
+but whole-frame p50/p95=22.25/25.80ms shows no robust improvement. Current
+next H action: profile render-thread view-scene conversion/smoothing
+(4.66ms inside6.92ms scene-feed), preserving exact geometry certificates.
+937/0 x3, SDK302/0, Python24;60fps remains open.
+
 H items1-6 complete (LOG807/808/810/811/812/813) for the CODEX-GOAL CPU-cost slice: scopes, depth validation reuse, texture ping-pong and shared owned buffers
 measured in pilot-extent1280-h1-scopes / h2-depth after required builds/tests.
 Returned evaluation median10.82 to7.33ms is diagnostic, not a60fps claim.

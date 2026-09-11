@@ -63,6 +63,30 @@ TestCounts TestSceneContract() {
  expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
  expect(RemakeLiveIdleWaitMs(true)==60000u&&RemakeLiveIdleWaitMs(false)==5000u,"session worker idle wait is bounded and explicit");
  {
+  // Exercise vector groups, exceptional groups and every scalar tail length.
+  for(std::size_t width:{1u,2u,3u,4u,5u,6u,7u,8u,9u,33u,4097u}) {
+   const auto pitch=width*4+13;
+   std::vector<unsigned char> raw(pitch*3+1,0xcd);
+   std::vector<float> reference(width*3),output(width*3);
+   std::uint32_t seed=0x76543210u;
+   for(std::size_t i=0;i<reference.size();++i) {
+    seed=seed*1664525u+1013904223u;
+    std::uint32_t bits=i%31==0?seed:0x3f000000u|(seed&0x7fffffu);
+    if(i%37==0)bits=0x80000000u;
+    if(i%41==0)bits=0x7fa12345u;
+    std::memcpy(&reference[i],&bits,4);
+    std::memcpy(raw.data()+1+(i/width)*pitch+(i%width)*4,&bits,4);
+   }
+   const auto a=RemakeClampBeyondFarPlane(reference,.1f,2501.f);
+   const auto b=RemakeExtractClampedDepth(raw.data()+1,pitch,4,width,3,output.data(),.1f,2501.f);
+   expect(std::memcmp(reference.data(),output.data(),output.size()*4)==0,
+    "batched depth preserves bits for unaligned padded rows, exceptions and scalar tails");
+   expect(a.beyondFar==b.beyondFar&&a.beforeNear==b.beforeNear&&a.aboveLimit==b.aboveLimit
+    &&a.maxDepth==b.maxDepth&&a.minDepth==b.minDepth&&a.limit==b.limit,
+    "batched depth preserves scalar counters and extrema");
+  }
+ }
+ {
   // Compare against the existing separate pass, including padded rows and
   // nonfinite bit patterns. Channel siblings must never become depth.
   const std::vector<float> input{0.f,-0.f,.5f,1.f,std::nextafter(1.f,2.f),

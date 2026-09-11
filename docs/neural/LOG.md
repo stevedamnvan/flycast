@@ -1,5 +1,38 @@
 # Neural rendering evidence log
 
+LOG814 user-requested web-informed performance follow-up. Primary guidance:
+NVIDIA Expected Workflow says determine CPU/GPU bottleneck first
+(https://docs.nvidia.com/nsight-graphics/UserGuide/expected-workflow.html);
+Microsoft readback guidance explains synchronization when mapping before GPU
+copy completion (https://learn.microsoft.com/en-us/windows/uwp/graphics-concepts/copying-and-accessing-resource-data);
+Microsoft vectorization guidance describes processing loop work in SIMD
+batches (https://learn.microsoft.com/en-us/cpp/parallel/auto-parallelization-and-auto-vectorization?view=msvc-170).
+Applied to measured remaining helper depth conversion3.6393ms: SSE2 common
+valid R32F groups copy four unchanged floats and reduce maxima, with scalar
+exceptional groups, other formats and tails. No relaxed floating-point flags,
+range policy, data ownership or GPU scheduling.22 added controls compare
+bits/counters/extrema at11 widths including unaligned padded rows and NaNs.
+Four serial builds pass;937/0 x3, SDK302/0, Python24. Real diagnostic
+pilot-h7-depth-verify: eight same-frame full1228800-value comparisons match
+scalar RGBA32F bit-for-bit. Conversion median0.79905ms after120 published
+returns (1072 samples), down78 percent. This reduces CPU cost, not proof of
+an overall cadence gain. Performance-only pilot-h7-perf1280 (1200 samples,
+original exposure/denominator): present22.246/25.8046/28.3089ms p50/p95/p99,
+versus22.6025/25.0958/27.5288. Median gain1.6 percent with worse tails: no
+robust overall speed-up claim.1200 Presents,1185 accepts,1179 evaluated
+Remix,7 repeats,0 missing/identity errors; latency3.8170 mean/4 max, VRAM
+627601408-byte growth unchanged. Overall performance remains unresolved.
+pilot-h7-moving:12 captures,12 completed Presents,0 HUD mismatches; reviewed
+source2574, no new visible composite artifact. All three runs terminal;
+logs and JSON archived. Existing40-object teardown warning remains open.
+Next critical-path target: render-thread scene-feed median6.9239ms, including
+view-scene4.6593 and snapshot1.3154 (600 samples). Motion rebuild2.628ms
+occurs only19 times versus1166 worker reuses, so it is not the dominant
+steady cost. Investigate view-scene conversion/smoothing before moving work;
+preserve source certificates and exact per-vertex output. Do not add nested
+scope times or extrapolate helper savings directly into frame rate.
+
+
 LOG813 CODEX-GOAL item6 and completion audit. Performance-eligible runs
 pilot-h6-perf1280-a and pilot-h6-perf640-a,1200 samples each after2100-frame
 warmup; original exposure A, native helper shading, same rig/flags as LOG805

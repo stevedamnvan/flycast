@@ -2,6 +2,17 @@
 
 ## Current state (2026-09-10, D-224)
 
+Performance follow-up LOG814: batched R32F conversion reduces helper cost
+3.6393 to0.79905ms;937/0 x3, SDK302/0, Python24, four builds pass. Eight
+full-image same-frame scalar comparisons bit-identical; moving12 captures
+and completed Presents,0 HUD mismatches, source2574 reviewed. Performance
+run pilot-h7-perf1280 is22.246/25.8046ms p50/p95 versus22.6025/25.0958:
+no robust overall speed-up;60fps remains unresolved. All runs terminal,
+logs archived. Next investigate view-scene conversion/smoothing on render
+thread (4.6593ms of6.9239 scene-feed). Motion rebuild is only19 samples,
+not a steady bottleneck. Preserve exact certificates/output and original
+exposure denominator. See LOG814 for web sources and rejected extrapolation.
+
 CODEX-GOAL six-item CPU-cost optimization is complete (LOG813).
 Items1-5 committed through45f6ffba3; final performance evidence is
 pilot-h6-perf1280-a and pilot-h6-perf640-a. Original exposure A,1200 samples,

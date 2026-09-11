@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <cstring>
 #include <vector>
+#if defined(_M_X64) || defined(__SSE2__)
+#include <emmintrin.h>
+#endif
 namespace neuraltest::remake {
 // Returned projection depth outside the declared clip range.
 //
@@ -31,7 +34,7 @@ inline RemakeFarPlaneReport RemakeExtractClampedDepth(const void* source,std::si
  if(clip)r.limit=farPlane/(farPlane-nearPlane);
  for(std::size_t y=0;y<height;++y) {
   const auto* row=static_cast<const unsigned char*>(source)+y*pitch;
-  for(std::size_t x=0;x<width;++x) {
+  const auto scalar=[&](std::size_t x) {
    float v;std::memcpy(&v,row+x*texelBytes,sizeof(v));
    if(clip&&std::isfinite(v)) {
     r.maxDepth=(std::max)(r.maxDepth,v);r.minDepth=(std::min)(r.minDepth,v);
@@ -39,7 +42,26 @@ inline RemakeFarPlaneReport RemakeExtractClampedDepth(const void* source,std::si
     else if(v<0){v=0;++r.beforeNear;}
    }
    output[y*width+x]=v;
+  };
+  std::size_t x=0;
+#if defined(_M_X64) || defined(__SSE2__)
+  if(clip&&texelBytes==sizeof(float)) {
+   const auto zero=_mm_setzero_ps(),one=_mm_set1_ps(1.f);
+   auto maximum=zero;
+   for(;width-x>=4;x+=4) {
+    const auto v=_mm_loadu_ps(reinterpret_cast<const float*>(row+x*sizeof(float)));
+    // Ordered comparisons exclude every NaN/infinity. The common [0,1]
+    // path needs no clipping or counters; copy original bits, including -0.
+    const auto valid=_mm_and_ps(_mm_cmpge_ps(v,zero),_mm_cmple_ps(v,one));
+    if(_mm_movemask_ps(valid)==15) {
+     _mm_storeu_ps(output+y*width+x,v);maximum=_mm_max_ps(maximum,v);
+    } else for(std::size_t lane=0;lane<4;++lane)scalar(x+lane);
+   }
+   float lanes[4];_mm_storeu_ps(lanes,maximum);
+   for(float v:lanes)r.maxDepth=(std::max)(r.maxDepth,v);
   }
+#endif
+  for(;x<width;++x)scalar(x);
  }
  return r;
 }
