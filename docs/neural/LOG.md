@@ -1,5 +1,48 @@
 # Neural rendering evidence log
 
+LOG843 / D-234 H23 ACCEPTED for tested1280 OIT pilot. H23 read reset
+preserves all observations and clears stale semantic fields without copying
+inactive optional storage. Two clean eligible runs pilot-h23-read-reset-perf1280
+and -b both terminal0/11/orderly: p50/p95/p99 18.2998/21.4133/23.8904 and
+18.3807/21.3866/25.1564ms; fresh1074/1080 and1075/1080 after unchanged120
+warmup, max latency4, zero identity errors. Accepted H22 comparison medians
+18.4732/18.9916,p95 21.9197/22.0984ms: modest repeatable benefit.
+Raw repeats9/8,native26/27. VRAM grows1,726,009,344/1,724,174,336 bytes;
+objects143->200; pressure/phase/lifecycle acceptance remains open.
+Moving pilot-h23-read-reset-moving terminal0/11/orderly,12 exact completed
+Present joins,72,629..78,153 protected pixels,zero HUD/world/backbuffer errors.
+Ten same-source matches against accepted H21 moving-b preserve239,322 complete
+vertices plus indices byte-for-byte; validation-summary.json archived. Actual
+source2560/current2567 composite inspected: combat and native HUD present;
+this is invariant evidence,not human visual approval or neural contribution.
+Four serial builds,985/0 selftests in all3 enabled configurations,SDK302/0,
+Python24/0. Existing H22 helper unchanged. Source checkpoint contains this entry.
+Next inspect finishSourceRead repeated writer lookup and optional transform
+copies against compiled code; preserve address/value/epoch matching and source
+observations. No active jobs. Full60fps/normal-renderer/quality gates open.
+
+LOG842 H23 register-read initialization candidate. Read-only dumpbin of our
+accepted rec_x64.cpp.obj confirms beginSourceRead constructs/copies a144-byte
+stack temporary (nine vector stores) for sourceRegisterReads[slot]={address,
+pc,0,false}; full inactive transform payload is copied. Own-code disassembly
+D:/Flycast-Evidence/h23-rec-x64-disassembly.txt;no private runtime inspection.
+Replace aggregate assignment with scalar field reset plus optional.reset().
+All semantic fields match original initialized state;dead payload has no authority.
+Two regression assertions cover live stale writer/value/transform and repeated
+inactive reuse. No sampling/skipping of observations,epoch or JIT change.
+Four serial builds/three selftests/SDK/Python,emitted-code and hook diagnostic,
+then moving/clean proof if beneficial. Four serial builds985/0 x3,SDK302/0.
+Diagnostic pilot-h23-read-reset-cpu1280 terminal0/11,log/hook-summary archived;
+reads1.519ms vs older1.556ms,not convincing on its own. Clean
+pilot-h23-read-reset-perf1280 terminal0/11,eligible,log/summary archived:
+p50/p95/p99 18.2998/21.4133/23.8904ms,fresh1074/1080,max4,zero identity
+errors. Repeat -b session12524 active. Uses accepted H22
+helper (older H21 hook diagnostic predates that helper,not a matched full-pipeline
+control). Clean timing must establish any gameplay benefit.
+Candidate disassembly confirms six scalar field stores and no full-record
+vector copy;stack scratch176->32 bytes. Evidence h23-read-reset-disassembly.txt.
+Source unaccepted;no new GPU allocation.
+
 LOG841 / D-233 H21+H22 ACCEPTED together for tested1280 OIT pilot.
 Standalone H21 freshness failure LOG838 remains failed; paired-copy correction
 restores two clean passing runs. pilot-h22-paired-copy-perf1280 / -b both

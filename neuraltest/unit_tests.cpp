@@ -1578,6 +1578,17 @@ int RunSelfTests()
 		 suite.Expect(equivalent,"grouped live-origin scan preserves scalar order bounds and invalidation");
 		 ClearSourceArithmeticOrigins();
 		}
+		{
+		 SourceRegisterRead read;SourceTransform stale;stale.serial=456;
+		 read.address=1;read.pc=2;read.value=3;read.valid=true;read.producerPc=4;read.transform=stale;
+		 read.Begin(0x8c001000,0x8c002000);
+		 suite.Expect(read.address==0x8c001000&&read.pc==0x8c002000&&read.value==0
+		  &&!read.valid&&read.producerPc==0&&!read.transform,
+		  "new register read clears stale value writer and transform authority");
+		 read.Begin(0xac003000,0x8c004000);
+		 suite.Expect(read.address==0xac003000&&read.pc==0x8c004000&&!read.valid&&!read.transform,
+		  "disengaged register read can be reused without reviving transform");
+		}
 		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
 		suite.Expect(SourceRamWriter(0xac001000,0x12345678)==0x8c002000,
 			"RAM writer physical alias retains exact observed value");

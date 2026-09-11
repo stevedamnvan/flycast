@@ -125,6 +125,15 @@ pair. Source checkpoint is commit containing LOG841. Prior candidate patches
 and failed captures remain private. Next inspect emitted RAM-store/register-read
 hook work for repeated lookups/temporary initialization; preserve all witness
 semantics. Phase/resource/normal-renderer/full-quality/human gates stay open.
+LOG843 H23 accepted: six scalar stores replace inactive144-byte read temporary.
+Four serial builds,selftests985/0 x3,SDK302/0,Python24/0. Two clean runs
+18.2998/18.3807ms median,21.4133/21.3866 p95,99.444/99.537% fresh,max4,
+zero identity errors. Moving12 completed joins/nonempty protected HUD,zero
+HUD/world/backbuffer errors;10 same-source meshes preserve239,322 vertices
+plus indices exactly. Evidence pilot-h23-read-reset-{perf1280,perf1280-b,moving}.
+Staged host flycast-pilot-h23-read-reset.exe plus accepted H22 helper is tested.
+No active jobs. Next inspect finishSourceRead repeated writer lookup/optional
+copies before choosing another bounded CPU change. Full acceptance stays open.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
 intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
 No installation/download/GPU runs. Review with proposed HTTP graph:

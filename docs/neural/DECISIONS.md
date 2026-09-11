@@ -1,5 +1,14 @@
 # Neural rendering decisions
 
+## D-234: reset semantic read fields without copying inactive payload
+
+LOG842-843. Explicit read initialization clears value, validity, producer and
+optional transform authority while retaining the same address/PC observation.
+Inactive optional bytes are not observable state. Emitted code removes the
+144-byte temporary copy. Repeated clean timing and byte-exact source geometry
+plus protected composition support scoped1280 OIT acceptance. Keep all delivery
+thresholds and the broader performance/visual gates unchanged.
+
 ## D-233: accept emulator acceleration only with passing delivery
 
 LOG837-841. Grouped live-byte scanning preserves ascending register validation,

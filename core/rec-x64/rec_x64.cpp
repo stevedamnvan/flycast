@@ -118,7 +118,7 @@ static void DYNACALL beginSourceRead(u32 address,u32 pc,u32 slot) {
 	using namespace flycast::rend::neural;
 	SourceHookCycles cycles(SourceHookReadCycles);
 	RefreshSourceSqWriters();
-	sourceRegisterReads[slot]={address,pc,0,false};
+	sourceRegisterReads[slot].Begin(address,pc);
 }
 static void DYNACALL finishSourceRead(u32 value,u32 slot) {
 	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookReadCycles);

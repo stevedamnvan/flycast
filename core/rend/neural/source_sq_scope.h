@@ -8,7 +8,14 @@
 #include "source_arithmetic.h"
 namespace flycast::rend::neural {
 struct SourceSqByteWriter {std::uint32_t pc=0;std::uint8_t value=0;std::uint32_t ram=0,readPc=0,producerPc=0;};
-struct SourceRegisterRead {std::uint32_t address=0,pc=0,value=0;bool valid=false;std::uint32_t producerPc=0;std::optional<SourceTransform> transform;};
+struct SourceRegisterRead {
+ std::uint32_t address=0,pc=0,value=0;bool valid=false;std::uint32_t producerPc=0;
+ std::optional<SourceTransform> transform;
+ void Begin(std::uint32_t nextAddress,std::uint32_t nextPc) noexcept {
+  address=nextAddress;pc=nextPc;value=0;valid=false;producerPc=0;
+  transform.reset(); // Inactive matrix storage carries no authority and need not be copied.
+ }
+};
 inline thread_local std::array<std::optional<SourceTransform>,16> sourceSqTransforms{};
 inline thread_local std::array<SourceRegisterRead,256> sourceRegisterReads{};
 inline thread_local std::array<SourceSqByteWriter,64> sourceSqWriters{};
