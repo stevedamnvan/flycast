@@ -2,6 +2,39 @@
 
 ## Current state (2026-09-10, D-224)
 
+H item5 implementation is uncommitted after5c2fc4e2a. Helper now extracts
+and clamps R depth in one traversal. Memory-only returns try R32F, falling
+back to RGBA32F on creation/copy/readback/lock failure; raw exports remain
+RGBA32F. Use launcher --depth-rgba32f to force the reference path for checks.
+RemakeReturnTasks owns one reusable CPU worker; opted-in ReturnImage copies
+and hashes color/depth on two threads, joins before publication, and retains
+all existing validation. No D3D calls move threads. New fused tests compare
+bits/counters to the old pass for padded R32F/RGBA32F, exceptional values and
+invalid planes; existing channel tests exercise worker reuse, closure and
+invalid depth. New header core/rend/neural/remake_return_tasks.h is owned.
+Four builds pass after same-frame diagnostic (h5-build-d.log),915/0 x3
+(h5-selftest-c.log), SDK280/0. Python24 now passes including explicit depth
+control propagation. Corrected diagnostic pilot-extent1280-h5-helper-b
+finished0, host0/helper11 orderly. After120 published returns (1073 samples):
+depth_convert3.6393ms, return1.3453, depth_lock0.5926 versus item4 baseline
+4.8745/1.8524/1.6741. Scope returned-evaluate5.452ms. Logs/summaries archived.
+Moving pilot-h5-r32-moving and pilot-h5-rgba-moving each have12 captures,
+12 completed-Present joins and zero HUD mismatch. Reviewed R32 source2573.
+IMPORTANT: the latter was NOT RGBA32F: launcher scrubs inherited FLYCAST
+controls, so both used R32F. Packet/native inputs also differ; their A/B
+comparison is rejected. First pilot-h5-depth-format-exact ran no checks for
+the same reason. Neither establishes format equivalence. All runs terminal.
+Launcher now has --depth-rgba32f and --verify-depth-format, tested explicit
+propagation and requiring CPU timing for verification. Helper verifies eight
+same-completed-frame pairs from source2560, bit comparison across all pixels,
+and fails on mismatch. This diagnostic is additionally CPU-timing gated.
+Corrected pilot-h5-depth-format-exact-b finished0 (process61436): eight
+checks actually executed, each1228800 values bit-identical, hresult0.
+Host log archived; no game/helper running. Item5 verified, ready to commit
+with LOG812. Next item6 performance-eligible640/1280 with original exposure A,
+no capture/CPU timing/format verification. No60fps claim. Keep first failed
+measurement and rejected comparisons in evidence; never treat them as proof.
+
 H item4 verified (LOG811): shared owned color/depth snapshots, detach before
 writes, independent copies after writable aliases. Four final serial builds
 pass,906/0 x3, SDK272/0, Python23. Matched diagnostic history acceptance

@@ -125,6 +125,12 @@ def prepare(args):
             # Per-hook time-stamp-counter accounting on the emulation thread
             # (D-218); inflates the emulated frame period by several ms.
             env['FLYCAST_REMAKE_HOOK_CYCLES'] = '1'
+    if getattr(args, 'depth_rgba32f', False):
+        env['FLYCAST_REMAKE_DEPTH_RGBA32F'] = '1'
+    if getattr(args, 'verify_depth_format', False):
+        if not getattr(args, 'cpu_timing', False) or getattr(args, 'depth_rgba32f', False):
+            raise ValueError('Depth format verification requires CPU timing and R32F selection')
+        env['FLYCAST_REMAKE_VERIFY_DEPTH_FORMAT'] = '1'
     budget = getattr(args, 'frame_budget_ms', None)
     if budget is not None:
         # Render-thread budget for the remake lane (D-216): the feed skips and
@@ -265,6 +271,10 @@ def main():
                    help='Replay existing source-qualified returned pixels; exact effect identity required')
     p.add_argument('--cpu-timing', action='store_true',
                    help='Log bounded per-stage host CPU timing; diagnostic, never performance evidence')
+    p.add_argument('--depth-rgba32f', action='store_true',
+                   help='Force the helper RGBA32F depth reference path')
+    p.add_argument('--verify-depth-format', action='store_true',
+                   help='With CPU timing, compare both depth formats from eight identical completed frames')
     p.add_argument('--renderer', choices=['dx11-oit', 'dx11'], default='dx11-oit',
                    help='Host renderer route for the run (the 600-frame gate asks for both); default dx11-oit')
     p.add_argument('--alpha-combined-off', action='store_true',
@@ -299,6 +309,8 @@ def main():
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
                   cpu_timing=args.cpu_timing,
+                  depth_rgba32f=args.depth_rgba32f,
+                  verify_depth_format=args.verify_depth_format,
                   hook_cycles=args.cpu_timing and args.hook_cycles,
                   renderer=args.renderer,
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,

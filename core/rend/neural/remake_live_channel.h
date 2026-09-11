@@ -48,7 +48,7 @@ public:
  bool WaitForPublished(unsigned milliseconds) const noexcept;
  bool WaitForReturned(unsigned milliseconds) const noexcept;
  // Diagnostic final-color return only. Does not authorize presentation/history.
- RemakeChannelResult ReturnImage(const RemakeReturnedImage&,std::string&);
+ RemakeChannelResult ReturnImage(const RemakeReturnedImage&,std::string&,bool parallelReturn=false);
  RemakeChannelResult ReceiveImage(RemakeReturnedImage&,std::string&);
 };
 }

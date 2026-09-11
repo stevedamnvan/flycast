@@ -2,6 +2,7 @@
 #include "remake_live_channel.h"
 #include "remake_cpu_scope.h"
 #include "remake_depth_validation.h"
+#include "remake_return_tasks.h"
 #include "remake_view_transport.h"
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -274,7 +275,7 @@ bool sameReceipt(const RemakeChannelReceipt& a,const RemakeChannelReceipt& b) {
  return a.sequence==b.sequence&&a.digest==b.digest&&a.bytes==b.bytes;
 }
 }
-RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& image,std::string& error) {
+RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& image,std::string& error,bool parallelReturn) {
  std::lock_guard<std::mutex> lock(mutex_);
  if(!impl_||!impl_->owner){error="return-consumer-role";return RemakeChannelResult::Invalid;}
  auto& p=*impl_;auto& s=p.shared->images[image.source.sequence%kInFlight];
@@ -298,13 +299,29 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
 		}
 	} else if(image.nearPlane!=0||image.farPlane!=0)depthError="return-depth-missing";
 	if(depthError){error=depthError;return RemakeChannelResult::Invalid;}
+ // Construct before claiming the slot: thread creation failure cannot strand
+ // it in writing state. Only the opted-in helper creates this CPU worker.
+ RemakeReturnTasks* tasks=nullptr;
+ if(parallelReturn&&hasDepth){static thread_local RemakeReturnTasks worker;tasks=&worker;}
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;
- std::memcpy(s.imagePixels,image.bgra.data(),RemakePixels()*4);
- s.imageDigest=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),RemakePixels()*4);
 	s.depthCount=hasDepth?RemakePixels():0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
-	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),RemakePixels()*sizeof(float));s.depthDigest=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float));}
+ struct Copy {ImageSlot& slot;const RemakeReturnedImage& image;std::size_t pixels;};
+ Copy copy{s,image,RemakePixels()};
+ const auto color=[](void* ptr)noexcept {
+  auto& c=*static_cast<Copy*>(ptr);
+  std::memcpy(c.slot.imagePixels,c.image.bgra.data(),c.pixels*4);
+  c.slot.imageDigest=imageDigest64(reinterpret_cast<const char*>(c.slot.imagePixels),c.pixels*4);
+ };
+ const auto depth=[](void* ptr)noexcept {
+  auto& c=*static_cast<Copy*>(ptr);
+  std::memcpy(c.slot.depthPixels,c.image.projectionDepth.data(),c.pixels*sizeof(float));
+  c.slot.depthDigest=imageDigest64(reinterpret_cast<const char*>(c.slot.depthPixels),c.pixels*sizeof(float));
+ };
+ if(tasks)tasks->Run(color,&copy,depth,&copy);
+ else {color(&copy);if(hasDepth)depth(&copy);}
+ // Release publication follows both copies and both integrity digests.
  p.returnedSequence=image.source.sequence;InterlockedExchange(&s.imageState,readySlot);
  if(p.returnedEvent)SetEvent(p.returnedEvent);
  error.clear();return RemakeChannelResult::Published;

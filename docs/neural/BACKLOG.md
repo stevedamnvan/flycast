@@ -88,8 +88,10 @@ Returned evaluation median10.82 to7.33ms is diagnostic, not a60fps claim.
 Item3 raster upload1.01 to0.56ms is verified with GPU controls and moving captures.
 Item4 history acceptance0.7702 to0.0144ms; returned evaluation6.7586 to5.3897,
 with four builds,906/0 x3, SDK272/0, Python23 and12 moving Present joins.
-Continue item5 helper extraction/clamp, R32F fallback and two-thread return,
-then performance-eligible measurements. User reports the
+Item5 complete (LOG812): fused extraction, R32F fallback and two-thread
+return;915/0 x3, SDK280/0, Python24; eight exact-frame format pairs match
+every depth bit. Helper conversion4.87 to3.64ms, return1.85 to1.35ms.
+Continue item6 performance-eligible640/1280 measurements. User reports the
 composite is overexposed; LOG809 now records a matched0.30 exposure candidate
 with native HUD preserved. Human look approval stays open. Performance
 comparisons retain exposure A.

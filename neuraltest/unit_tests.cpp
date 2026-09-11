@@ -1339,8 +1339,9 @@ int RunSelfTests()
 			wrong=image;wrong.projectionDepth[0]=std::numeric_limits<float>::quiet_NaN();
 				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-nonfinite","return rejects nonfinite depth");
 			wrong=image;wrong.projectionDepth[0]=1.01f;
+			suite.Expect(consumer.ReturnImage(wrong,error,true)==RemakeChannelResult::Invalid&&error=="return-depth-range","parallel return rejects invalid depth before publishing either buffer");
 				suite.Expect(consumer.ReturnImage(wrong,error)==RemakeChannelResult::Invalid&&error=="return-depth-range","return rejects out-of-range projection depth");
-			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"return publishes newer source image");
+			suite.Expect(consumer.ReturnImage(image,error,true)==RemakeChannelResult::Published,"parallel return publishes newer source image");
 			suite.Expect(publisher.Publish(third,sent,error)==RemakeChannelResult::Invalid,"live channel rejects duplicate source frame");
 			auto fifth=advance(fourth),bad=fifth;bad.meshes[0].vertices[0].normal.reset();
 			suite.Expect(publisher.Publish(bad,sent,error)==RemakeChannelResult::Invalid
@@ -1348,12 +1349,12 @@ int RunSelfTests()
 				"live channel failed serialization releases slot without advancing sequence");
 			suite.Expect(consumer.Receive(receivedPacket,received,error)==RemakeChannelResult::Received,"return next source available");
 			image.source=received;image.frame=receivedPacket.frame;image.producer=receivedPacket.producer;
-			suite.Expect(consumer.ReturnImage(image,error)==RemakeChannelResult::Published,"two outstanding sources have independent return slots");
+			suite.Expect(consumer.ReturnImage(image,error,true)==RemakeChannelResult::Published,"parallel return reuses worker with independent outstanding slots");
 			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fourth.frame
 				&&consumer.ReturnImage(image,error)==RemakeChannelResult::Invalid,"two queued returns preserve oldest-first order and reject duplicates");
 			consumer.Close();
 			suite.Expect(publisher.ReceiveImage(returned,error)==RemakeChannelResult::Received&&returned.frame==fifth.frame
-				&&returned.projectionDepth==image.projectionDepth&&returned.nearPlane==image.nearPlane&&returned.farPlane==image.farPlane,
+				&&returned.bgra==image.bgra&&returned.projectionDepth==image.projectionDepth&&returned.nearPlane==image.nearPlane&&returned.farPlane==image.farPlane,
 				"return completed image survives orderly consumer close");
 			suite.Expect(publisher.Publish(advance(fourth),sent,error)==RemakeChannelResult::Closed,
 				"live channel consumer shutdown leaves producer in native fallback");

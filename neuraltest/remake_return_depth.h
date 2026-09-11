@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstring>
 #include <vector>
 namespace neuraltest::remake {
 // Returned projection depth outside the declared clip range.
@@ -20,6 +21,28 @@ namespace neuraltest::remake {
 // semantic made explicit (D-209), not a relaxed acceptance. The report carries
 // the measured extremes so the actual excess stays visible in the helper log.
 struct RemakeFarPlaneReport { std::size_t beyondFar=0,beforeNear=0,aboveLimit=0; float maxDepth=0,minDepth=0,limit=0; };
+// Extract the R component and apply the same clip policy in one traversal.
+// Pitch includes row padding; texelBytes is 4 for R32F or 16 for RGBA32F.
+inline RemakeFarPlaneReport RemakeExtractClampedDepth(const void* source,std::size_t pitch,
+ std::size_t texelBytes,std::size_t width,std::size_t height,float* output,
+ float nearPlane,float farPlane) noexcept {
+ RemakeFarPlaneReport r{};
+ const bool clip=nearPlane>0&&farPlane>nearPlane&&std::isfinite(farPlane);
+ if(clip)r.limit=farPlane/(farPlane-nearPlane);
+ for(std::size_t y=0;y<height;++y) {
+  const auto* row=static_cast<const unsigned char*>(source)+y*pitch;
+  for(std::size_t x=0;x<width;++x) {
+   float v;std::memcpy(&v,row+x*texelBytes,sizeof(v));
+   if(clip&&std::isfinite(v)) {
+    r.maxDepth=(std::max)(r.maxDepth,v);r.minDepth=(std::min)(r.minDepth,v);
+    if(v>1){if(v<=r.limit){v=1;++r.beyondFar;}else ++r.aboveLimit;}
+    else if(v<0){v=0;++r.beforeNear;}
+   }
+   output[y*width+x]=v;
+  }
+ }
+ return r;
+}
 template<class DepthBuffer>
 inline RemakeFarPlaneReport RemakeClampBeyondFarPlane(DepthBuffer& depth,float nearPlane,float farPlane) noexcept {
  RemakeFarPlaneReport r{};

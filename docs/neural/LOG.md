@@ -1,5 +1,34 @@
 # Neural rendering evidence log
 
+LOG812 CODEX-GOAL item5: fused R extraction/clip clamp, R32F memory-return
+surfaces with RGBA32F failure fallback, and one reusable CPU worker to copy
+and hash color alongside depth before slot publication. GPU calls stay on
+one thread; source/depth validation remains before publication. Raw exports
+keep RGBA32F. Four serial builds pass (h5-build-d);915/0 x3 (h5-selftest-c),
+SDK280/0, Python24. Eight fused extraction tests cover padded formats,
+nonfinite values, signed zero and invalid planes; channel tests cover
+parallel invalid-depth rejection, repeated use and buffers after close.
+Corrected diagnostic pilot-extent1280-h5-helper-b versus h4-copies, after120
+published returns: depth-convert4.8745 to3.6393ms, return1.8524 to1.3453,
+depth-lock1.6741 to0.5926 (1063/1073 samples). Returned-evaluate5.452ms
+(600 scopes). CPU diagnostics are not performance-eligible.
+Direct format proof pilot-h5-depth-format-exact-b: eight same-completed-frame
+R32F/RGBA32F pairs at sources2560,2561,2562,2564,2565,2566,2568,2569;
+all1228800 depth values bit-identical in every pair, HRESULT0. Explicit
+--verify-depth-format requires CPU timing and is recorded in launch.json.
+Moving pilot-h5-r32-moving:12 captures/12 completed Presents, zero protected
+HUD mismatches; reviewed source2573 without a new compositing artifact.
+Limitations retained: first h5-helper readback timers accumulated; corrected
+before helper-b. Supposed rgba-moving and first depth-format-exact inherited
+controls were scrubbed by launcher, so both used default R32F and the first
+exact run checked nothing. Cross-run inputs also differ. Those comparisons
+are rejected, superseded by explicit tested launcher controls and exact-b.
+All completed runs orderly host0/helper11, no forced children;40-object
+teardown warning remains. Evidence/logs/JSON under named D:/Flycast-Evidence
+folders. Item5 accepted in this scope; next item6 performance-eligible
+640/1280 measurements. No60fps or full-pipeline claim.
+
+
 LOG811 CODEX-GOAL item4: const-only color/depth buffers share owned storage;
 writes detach, and copies after writable alias escape take independent bytes.
 Accepted history retains references, with existing worker conversion and

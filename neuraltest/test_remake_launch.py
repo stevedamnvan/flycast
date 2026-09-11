@@ -25,6 +25,23 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertIn('--scene-light-anchor', prepare(self.args)[4])
         self.assertEqual(host[host.index('--remake-evidence')+1], 'none')
 
+    def test_depth_format_controls_require_explicit_diagnostic_selection(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_VERIFY_DEPTH_FORMAT': '1',
+                                    'FLYCAST_REMAKE_DEPTH_RGBA32F': '1'}):
+            env = prepare(self.args)[2]
+            self.assertNotIn('FLYCAST_REMAKE_VERIFY_DEPTH_FORMAT', env)
+            self.assertNotIn('FLYCAST_REMAKE_DEPTH_RGBA32F', env)
+        self.args.verify_depth_format = True
+        with self.assertRaisesRegex(ValueError, 'requires CPU timing'):
+            prepare(self.args)
+        self.args.cpu_timing = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_VERIFY_DEPTH_FORMAT'], '1')
+        self.args.depth_rgba32f = True
+        with self.assertRaisesRegex(ValueError, 'R32F selection'):
+            prepare(self.args)
+        self.args.verify_depth_format = False
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_DEPTH_RGBA32F'], '1')
+
     def test_inherited_controls_scrubbed_without_parent_mutation(self):
         with patch.dict(os.environ, {'FLYCAST_REMAKE_CPU_TIMING': '1',
                                     'FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT': 'stale'}):

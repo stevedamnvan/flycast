@@ -63,6 +63,29 @@ TestCounts TestSceneContract() {
  expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
  expect(RemakeLiveIdleWaitMs(true)==60000u&&RemakeLiveIdleWaitMs(false)==5000u,"session worker idle wait is bounded and explicit");
  {
+  // Compare against the existing separate pass, including padded rows and
+  // nonfinite bit patterns. Channel siblings must never become depth.
+  const std::vector<float> input{0.f,-0.f,.5f,1.f,std::nextafter(1.f,2.f),
+   1.00003f,1.001f,-.25f,std::numeric_limits<float>::infinity(),
+   -std::numeric_limits<float>::infinity(),std::numeric_limits<float>::quiet_NaN(),.9f};
+  for(const std::size_t stride:{std::size_t(4),std::size_t(16)}) {
+   const std::size_t width=4,height=3,pitch=width*stride+12;
+   std::vector<unsigned char> raw(pitch*height,0xcd);
+   for(std::size_t i=0;i<input.size();++i)std::memcpy(raw.data()+(i/width)*pitch+(i%width)*stride,&input[i],4);
+   for(const bool valid:{true,false}) {
+    auto reference=input;std::vector<float> output(input.size());
+    const float nearPlane=valid?.1f:2501.f,farPlane=valid?2501.f:.1f;
+    const auto a=RemakeClampBeyondFarPlane(reference,nearPlane,farPlane);
+    const auto b=RemakeExtractClampedDepth(raw.data(),pitch,stride,width,height,output.data(),nearPlane,farPlane);
+    expect(std::memcmp(reference.data(),output.data(),output.size()*sizeof(float))==0,
+     "fused R32F/RGBA32F extraction preserves separate-pass depth bits and invalid planes");
+    expect(a.beyondFar==b.beyondFar&&a.beforeNear==b.beforeNear&&a.aboveLimit==b.aboveLimit
+     &&a.maxDepth==b.maxDepth&&a.minDepth==b.minDepth&&a.limit==b.limit,
+     "fused depth extraction preserves clamp counters and raw extrema");
+   }
+  }
+ }
+ {
   std::vector<float> depth{0.f,0.5f,1.f,std::nextafter(1.f,2.f),1.00003f,1.001f,std::numeric_limits<float>::quiet_NaN(),-0.0004f};
   const auto far=RemakeClampBeyondFarPlane(depth,0.1f,2501.f);
   expect(far.beyondFar==2&&far.aboveLimit==1&&depth[3]==1&&depth[4]==1&&depth[5]==1.001f&&depth[1]==0.5f&&depth[2]==1

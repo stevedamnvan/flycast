@@ -435,6 +435,13 @@ int wmain(int argc,wchar_t** argv) {
  // created lazily once, released with the other device objects at the end.
  IDirect3DSurface9* captureGpu=nullptr;IDirect3DSurface9* captureCpu=nullptr;D3DFORMAT captureFormat=D3DFMT_UNKNOWN;
  IDirect3DSurface9* depthGpu=nullptr;IDirect3DSurface9* depthCpu=nullptr;
+ const char* forceDepthRgba=std::getenv("FLYCAST_REMAKE_DEPTH_RGBA32F");
+ D3DFORMAT depthFormat=returnOnly&&!(forceDepthRgba&&std::strcmp(forceDepthRgba,"1")==0)?D3DFMT_R32F:D3DFMT_A32B32G32R32F;
+ const char* verifyDepthSetting=std::getenv("FLYCAST_REMAKE_VERIFY_DEPTH_FORMAT");
+ const char* cpuTimingSetting=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
+ const bool verifyDepthFormat=verifyDepthSetting&&std::strcmp(verifyDepthSetting,"1")==0
+  &&cpuTimingSetting&&std::strcmp(cpuTimingSetting,"1")==0;
+ unsigned depthFormatChecks=0;
  std::vector<unsigned char> pixels,raw;
  std::cerr<<"phase=startup begin\n"<<std::flush;
  if(capture.empty())status=api.Startup(&startup);
@@ -720,38 +727,41 @@ int wmain(int argc,wchar_t** argv) {
 		// numerical semantics are evidence to measure, not assumed PVR depth.
 		const auto depthPath=capturePath.wstring()+L".depth.rgba32f";
 		RemakeFarPlaneReport farPlane{};
-		HRESULT depthHr=S_OK;
-		if(!depthGpu)depthHr=ownedDevice->CreateRenderTarget(renderW,renderH,D3DFMT_A32B32G32R32F,
-			D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
-		if(SUCCEEDED(depthHr)&&!depthCpu)depthHr=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
-			D3DFMT_A32B32G32R32F,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
-		if(SUCCEEDED(depthHr)) {
-			const auto depthStart=std::chrono::steady_clock::now();
-			const auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(depthGpu,
-				REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
-			depthHr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(depthGpu,depthCpu):E_FAIL;
-			depthReadbackMs=msSince(depthStart);
-		}
 		D3DLOCKED_RECT depthLocked{};
-		const auto depthLockStart=std::chrono::steady_clock::now();
-		if(SUCCEEDED(depthHr))depthHr=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
-		depthLockWaitMs=msSince(depthLockStart);
+		depthReadbackMs=0;depthLockWaitMs=0;
+		const auto readDepth=[&]() {
+			HRESULT result=S_OK;
+			if(!depthGpu)result=ownedDevice->CreateRenderTarget(renderW,renderH,depthFormat,
+				D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
+			if(SUCCEEDED(result)&&!depthCpu)result=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
+				depthFormat,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
+			if(SUCCEEDED(result)) {
+				const auto depthStart=std::chrono::steady_clock::now();
+				const auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(depthGpu,
+					REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+				result=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(depthGpu,depthCpu):E_FAIL;
+				depthReadbackMs+=msSince(depthStart);
+			}
+			const auto start=std::chrono::steady_clock::now();
+			if(SUCCEEDED(result))result=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
+			depthLockWaitMs+=msSince(start);
+			return result;
+		};
+		HRESULT depthHr=readDepth();
+		if(FAILED(depthHr)&&depthFormat==D3DFMT_R32F) {
+			std::cout<<"returned_depth R32F rejected hresult="<<depthHr<<" fallback=RGBA32F\n";
+			if(depthCpu){depthCpu->Release();depthCpu=nullptr;}
+			if(depthGpu){depthGpu->Release();depthGpu=nullptr;}
+			depthFormat=D3DFMT_A32B32G32R32F;depthHr=readDepth();
+		}
 		if(SUCCEEDED(depthHr)) {
 			const auto depthConvertStart=std::chrono::steady_clock::now();
 			returnedFrame.projectionDepth.resize(std::size_t(renderW)*renderH);
-			// Source texels are RGBA32F; only the R channel is the depth value.
-			for(int y=0;y<renderH;++y) {
-				const unsigned char* row=static_cast<const unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch;
-				float* out=returnedFrame.projectionDepth.data()+std::size_t(y)*renderW;
-				for(int x=0;x<renderW;++x,row+=16) {
-					float value;std::memcpy(&value,row,sizeof(float));
-					out[x]=value;
-				}
-			}
 			returnedFrame.nearPlane=packet.camera.nearPlane;returnedFrame.farPlane=packet.camera.farPlane;
 			// Beyond-far-plane values become the far plane (D-209); the raw file
 			// below is written from the locked surface and stays unaltered.
-			farPlane=RemakeClampBeyondFarPlane(returnedFrame.projectionDepth,returnedFrame.nearPlane,returnedFrame.farPlane);
+			farPlane=RemakeExtractClampedDepth(depthLocked.pBits,depthLocked.Pitch,depthFormat==D3DFMT_R32F?4:16,renderW,renderH,
+				returnedFrame.projectionDepth.data(),returnedFrame.nearPlane,returnedFrame.farPlane);
 			if(!returnOnly) {
 			HANDLE file=CreateFileW(depthPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
 			bool ok=file!=INVALID_HANDLE_VALUE;
@@ -761,16 +771,47 @@ int wmain(int argc,wchar_t** argv) {
 			}
 			depthCpu->UnlockRect();
 			depthConvertMs=msSince(depthConvertStart);
+			if(verifyDepthFormat&&depthFormat==D3DFMT_R32F&&packet.frame>=2560&&depthFormatChecks<8) {
+				// Diagnostic only: both formats read the very same completed frame.
+				// This extra synchronous readback is not performance evidence.
+				IDirect3DSurface9* checkGpu=nullptr;IDirect3DSurface9* checkCpu=nullptr;
+				HRESULT check=ownedDevice->CreateRenderTarget(renderW,renderH,D3DFMT_A32B32G32R32F,
+					D3DMULTISAMPLE_NONE,0,FALSE,&checkGpu,nullptr);
+				if(SUCCEEDED(check))check=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
+					D3DFMT_A32B32G32R32F,D3DPOOL_SYSTEMMEM,&checkCpu,nullptr);
+				if(SUCCEEDED(check))check=api.dxvk_CopyRenderingOutput(checkGpu,
+					REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH)==REMIXAPI_ERROR_CODE_SUCCESS
+					?ownedDevice->GetRenderTargetData(checkGpu,checkCpu):E_FAIL;
+				D3DLOCKED_RECT lockedCheck{};
+				if(SUCCEEDED(check))check=checkCpu->LockRect(&lockedCheck,nullptr,D3DLOCK_READONLY);
+				std::size_t different=0;
+				if(SUCCEEDED(check)) {
+					std::vector<float> reference(std::size_t(renderW)*renderH);
+					RemakeExtractClampedDepth(lockedCheck.pBits,lockedCheck.Pitch,16,renderW,renderH,
+						reference.data(),returnedFrame.nearPlane,returnedFrame.farPlane);
+					checkCpu->UnlockRect();
+					const auto& actual=std::as_const(returnedFrame.projectionDepth);
+					for(std::size_t i=0;i<reference.size();++i)
+						different+=std::memcmp(&reference[i],&actual[i],sizeof(float))!=0;
+					if(different)check=E_FAIL;
+				}
+				if(checkCpu)checkCpu->Release();if(checkGpu)checkGpu->Release();
+				++depthFormatChecks;
+				std::cout<<"depth_format_check source_frame="<<packet.frame<<" same_completed_frame=1"
+					<<" pixels="<<std::size_t(renderW)*renderH<<" different_bits="<<different
+					<<" hresult="<<check<<" performance_eligible=false\n"<<std::flush;
+				if(FAILED(check))depthHr=check;
+			}
 		}
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
-			<<" width="<<renderW<<" height="<<renderH<<" format=RGBA32F semantics=unverified hresult="<<depthHr
+			<<" width="<<renderW<<" height="<<renderH<<" format="<<(depthFormat==D3DFMT_R32F?"R32F":"RGBA32F")<<" semantics=unverified hresult="<<depthHr
 			<<" beyond_far_clamped="<<farPlane.beyondFar<<" before_near_clamped="<<farPlane.beforeNear<<" above_limit="<<farPlane.aboveLimit
 			<<" max_depth="<<std::setprecision(9)<<farPlane.maxDepth<<" min_depth="<<farPlane.minDepth<<" far_limit="<<farPlane.limit<<std::setprecision(6)
 			<<" policy=outside-clip-range-is-the-plane\n"<<std::flush;
 		if(FAILED(depthHr)){outcome=14;break;}
 		if(liveChannel) {
 			const auto returnStart=std::chrono::steady_clock::now();
-			std::string error;const auto result=channel.ReturnImage(returnedFrame,error);
+			std::string error;const auto result=channel.ReturnImage(returnedFrame,error,true);
 			returnMs=msSince(returnStart);
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
