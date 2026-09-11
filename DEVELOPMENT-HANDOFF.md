@@ -97,9 +97,18 @@ zero HUD/world/backbuffer mismatches,actual2561/current2566 reviewed. Clean
 runs18.8951/19.6139ms medians,p95 26.7405/25.9939,p99 29.6601/29.6387:
 no robust benefit versus h17 18.9847/19.2234,p95 24.1773/25.2614.
 Fresh1075/1080 and1076/1080,max4,no identity errors,all terminal0/11.
-All logs/summaries archived,no jobs active. Next use existing whole-frame
-CPU scopes to locate downstream waiting after local display savings before
-another optimization; retain useful memory and phase/plateau attribution.
+LOG836 H19 thread CPU sampling complete on accepted staged h17. Both runs
+terminal0/11,logs/raw snapshots/summaries archived. First lost names due to
+HRESULT==0 bug; own-process control proved nonzero success,repeat fixed>=0.
+Corrected -b after sampler20s has25 named intervals:Flycast-emu mean90.68%,
+median95.78% of one core;Flycast-rend66.97/71.02%;helper geometry-processing
+threads97.40/98.47 and97.63/98.47%. Names identify roles,not call stacks or
+useful versus spin work. Diagnostic observer means no clean FPS claim.
+No jobs active,no source changes. Existing frame-gap includes queue/Process/
+present/cleanup,not a measured driver stall. Next refresh existing bounded
+--hook-cycles diagnostic on accepted h17 for remaining emulator hot paths;
+LOG790 reductions are already implemented,do not repeat that setup. The helper
+geometry CPU saturation may be work/spin; do not infer or change private runtime.
 Built executables currently contain rejected h18: use staged h17-reuse.exe
 for accepted-baseline playback; rebuild current source before new candidates.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/

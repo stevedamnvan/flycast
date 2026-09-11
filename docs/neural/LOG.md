@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG836 H19 attribution before another local optimization. Existing h17/h18
+scopes:render14.44085->13.08465ms,gap5.2262->6.1121,process2.0337->1.9184,
+emu period20.1372->19.580249,frame-finished wait1.4199->1.3234. Medians are
+not additive and scope windows are independent. Source confirms frame-gap
+spans return from Render until next Render,including queue wait,Process and
+possible Present/cleanup; it is not a driver-wait measurement. WPR available
+and idle,CPU/GPU profiles available,but WPA/exporter not found. No ETW session
+started. Next bounded read-only per-thread CPU sampling of accepted staged h17
+at1Hz during one replay to distinguish emulator saturation from render waiting.
+No production edits,priority/affinity changes,stack injection or new packages.
+This observed run is diagnostic,not performance acceptance evidence.
+First launch rejected precreated output before execution; -a terminal0/11,
+log archived. Read-only1Hz sampler91 snapshots:two unnamed helper threads
+~98% of one core; busy host thread~89% mean,94% median. Roles unproven:
+name reader wrongly required HRESULT==0; own-process control returns success
+0x10000000 and valid name. Correct to >=0,record HRESULT/open errors. Private
+script pilot-h19-thread-cpu1280/sample-threads.py; repeat -b launcher75917,
+sampler50714 completed;both runs terminal0/11,host logs archived. Corrected
+-b raw90 snapshots;after20s,25 named intervals show Flycast-emu mean90.68%,
+median95.78% of one core;Flycast-rend66.97/71.02%;runtime geometry-processing
+(0)97.40/98.47 and(1)97.63/98.47%. Name/type recovered,not call-stack or
+useful-work/spin attribution. Reports thread-cpu.json/thread-cpu-summary.json
+under each run. No source/scheduling changes; observer excludes FPS acceptance.
+Existing LOG790 already optimized SQ writes,store hot records and live-register
+boundaries. Next refresh existing hook-cycle diagnostic for current remaining
+emulator costs; do not repeat completed setup or assume old timings still hold.
+
 LOG835 H18 upload omission REJECTED for promotion. Second clean run -b
 terminal0/11,orderly,eligible;1200 samples,2100warmup,exposure A,no captures/
 scopes/builds/generation. p50/p95/p99 19.6139/25.9939/29.6387ms,fresh
