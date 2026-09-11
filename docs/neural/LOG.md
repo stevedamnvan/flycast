@@ -1,5 +1,61 @@
 # Neural rendering evidence log
 
+LOG799 pilot substep D, curated material set: candidate "route C" built and
+rendered; technical ACCEPTED as a reversible layer, look NOT_REVIEWABLE
+pending the user; two corrections to earlier evidence. (1) Control
+correction: the runtime registers every subdirectory of `rtx-remix/mods/`
+as a mod, the renamed `soulcalibur.off` junction included (helper log:
+"Adding asset search path: ...mods\soulcalibur.off\"), so every earlier
+"no-mod" render made by renaming the junction (LOG796 35 px, LOG798 398,
+1375 and 332 px) was a mod-on repeat and measured only repeat noise. The
+true control moves the junction out of `mods/` (`rtx-remix/mods-hidden/`,
+driver fixed, `pilot-curated/pilot_render.py`). Measured against a true
+legacy render of the welded source-2601 packet at 1280x960 native shading:
+the AI draft layer differs by 753546 pixels, so the draft was never inert
+against legacy; LOG796's channel proofs (override versus override inside
+the mod) stand, LOG798's "draft maps are inert at every resolution" is
+withdrawn and replaced by (3) below. (2) Inventory and classes: contact
+sheet of the 26 captured originals (`pilot-curated/originals-sheet.png`);
+reviewed classes skin (3), cloth (4), armour mix (1), weapon (1), lacquer
+(1), wood floor (1), temple wood/paint (5), stone/bronze (2), gold and
+silver grilles (2), alpha atlases (6), recorded in
+`pilot-curated/curated_layer.py` (`MATERIALS`, `CLASSES`) with the
+per-class roughness/metal constants. The 26 originals were ingested
+unchanged (256x256, BC7, mip 0 at 46.2 and 38.6 dB against the capture)
+through the MCP ingestion queue, one item per call, into
+`assets/ingested/orig/`; the curated layer `layers/curated_pbr.usda` was
+created and bound through the MCP (create_layer, override_textures,
+save_layer) as the strongest sublayer of `mod.usda`, and the constants were
+authored into that owned layer text (the MCP has no attribute-set tool);
+the AI draft layer is untouched underneath. (3) Albedo routes, same frame,
+edge energy (FIND_EDGES mean) on floor / frieze / trousers: legacy 7.00 /
+13.36 / 18.31; route B (256 originals bound as replacements) 5.29 / 6.49 /
+10.78, visibly smeared, the frieze pattern collapses to blobs; a 600-frame
+render hit the 30 s watchdog, and profiles with
+`rtx.neverDowngradeTextures`, `rtx.alwaysWaitForAsyncTextures`,
+`rtx.nativeMipBias = -1` and `-2` (all confirmed in the log) change nothing
+(5.26 to 5.34 / 6.48 / 10.8), so the replacement path samples a
+256-texel map far below its top mip for reasons not identified here; route
+D (originals upsampled 4x Lanczos, three materials) restores what it
+touches (floor 6.29, trousers 15.90; frieze unchanged because that atlas was
+not included); route C (the Toolkit AI tool's 1024 albedo, curated constants,
+no AI normal or roughness maps) 6.63 / 15.08 / 16.06, sharp everywhere
+(`albedo-routes-kilik.png`, `albedo-routes-frieze.png`). Stored values
+are not the cause: mean colour of the floor map is 123.7/91.4/49.5
+captured, 123.8/91.3/49.4 ingested original, 124.4/92.5/50.6 AI; all
+albedo rtex files are BC7_UNORM (DXGI 98). Route C keeps the alpha
+atlases on a 4x Lanczos upsample of the original with alpha (the AI output
+is RGB). Constants take effect: route C constants against legacy-like
+constants (0.7/0.1) differ by 123196 pixels, concentrated on the floor and
+Taki. Candidate render `curated-routeC-1280x960-native` (crops
+`routeC-kilik.png`, `routeC-taki.png`, `routeC-temple-right.png`). Tone:
+trousers HSV saturation 124 legacy, 135 draft, 128 curated; the
+"washed-out" impression from half-scale sheets was not supported by the
+numbers. Not done: per-region masks for the mixed atlases, moving-stability
+check (needs the live path, substep F), human look decision. Profiles used
+only through `DXVK_RTX_CONFIG_FILE` (`pilot-curated/profiles/`); no
+external configuration edited. Docs-only change; no source touched, builds and selftests unchanged since LOG798 (868/0 x3, contract 260/0).
+
 LOG798 pilot substep C, higher-resolution visual reference (standalone,
 non-performance evidence): resolution benefit demonstrated at a known real
 shading resolution; the AI draft maps are inert at every resolution, so the

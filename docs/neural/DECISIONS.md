@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-227: a no-mod control must remove the mod tree from the runtime's mod root; the curated layer stays separate from the raw AI layer
+
+LOG799. The runtime treats every subdirectory of `rtx-remix/mods/` as a
+mod, so hiding a mod by renaming inside that directory is not a control;
+the junction moves out of the directory instead, and every earlier
+"no-mod" number produced by renaming is a repeat, not a control. The
+curated material set is its own layer (`layers/curated_pbr.usda`, created
+and bound through the MCP, constants authored in the owned layer text),
+stacked above the untouched AI draft layer; its albedo base is the AI
+tool's 1024 output because 256-texel originals bound as replacements render
+smeared on this runtime, while the AI normal and roughness maps stay out.
+Originals stay immutable; alpha atlases keep their alpha through a
+deterministic 4x upsample.
+
 ## D-226: a standalone render size is a diagnostic helper option; the live return contract stays 640x480 until the opt-in higher-resolution path exists
 
 LOG798. The helper accepts `FLYCAST_REMAKE_HELPER_RENDER_SIZE` for standalone
