@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG902 substep G visual recommendation decided by the user: the combined
+experimental variant (`pilot-g-combined`: curated Remix materials, temple
+light rig, native alpha composition, welded normals, returned image through
+the external neural lane) is the faithful look to carry forward, with one
+reservation: the characters look good but the hair reads as too polygonal
+and should be remastered. The decision was taken on the LOG901 matrix
+strips (`pilot-g-matrix`, eight common sources 2562, 2565, 2567..2572)
+against Remix-only, returned public DLAA, original-material combined and
+the resampled native public DLAA lane. Metrics were context only (combined
+41.9 / 10.76 / 84.6 mean absolute difference / edge / luma versus native;
+the native DLAA row is a 640x480 resolution-limited reference, not a
+candidate). The hair item is Remix mod content (character hair mesh/
+material replacement through the Toolkit route), not a Flycast code change;
+it is recorded as the open G follow-up and is not started here. No code,
+run or configuration changed; the cinematic interpretation stays separate,
+the native fallback and experimental-off defaults are untouched, and this
+is a look choice, not a performance or production claim. Recorded as D-239.
+Remaining decisions: the 60 fps observation-scope question (LOG897/LOG898)
+and the E exposure/key-fill and D mask choices.
+
 LOG901 substep G comparison matrix built with existing tools; the visual
 recommendation stays with the user. Four matched capture runs at HEAD
 564848aca, pilot launch (1280x960, temple rig, native alpha, welded

@@ -26,8 +26,10 @@ LOG899 attributes VRAM by phase (no leak; a 512 MB block toggles below the
 owned objects; per-sample VRAM now in every performance report). LOG900/D-238: alpha ownership on the normal route exercised live (0
 exclusions in this scene, composition exact) and the presentation latch
 now recovers after 60 fresh ticks. LOG901: the substep G comparison matrix is built (five columns, nine
-sources, `pilot-g-matrix`). Next, in order: (1) user review of the G strips
-and the 60 fps observation-scope decision (LOG897/LOG898); (2) human
+sources, `pilot-g-matrix`). LOG902/D-239: the user chose the combined
+experimental variant as the faithful look (characters good, hair too
+polygonal: remaster as Remix mod content via the Toolkit route, open). Next,
+in order: (1) the 60 fps observation-scope decision (LOG897/LOG898); (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog

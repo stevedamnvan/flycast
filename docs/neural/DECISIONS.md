@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-239: the combined experimental variant is the faithful pilot look
+
+The user chose the combined experimental variant (curated Remix materials,
+temple light rig, native alpha composition, welded normals, returned image
+through the external neural lane) from the LOG901 substep G matrix as the
+faithful look for the Soulcalibur pilot. Remix-only, returned public DLAA
+and original-material combined remain comparison lanes, not candidates; the
+native public DLAA lane is a resolution-limited reference. The one noted
+shortfall is character hair, which reads as too polygonal and is to be
+remastered as Remix mod content through the Toolkit route, on user
+direction; it is not a Flycast renderer change. This is a visual
+recommendation only: it changes no defaults, certificates, acceptance bars or
+performance claims, and the cinematic/uncanny interpretation stays separate.
+
 ## D-238: a latched presentation fallback recovers after sustained fresh delivery, never silently
 
 LOG900. D-167's eight-frame expiry still latches native output, but the
