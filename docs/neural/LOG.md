@@ -1,5 +1,41 @@
 # Neural rendering evidence log
 
+LOG813 CODEX-GOAL item6 and completion audit. Performance-eligible runs
+pilot-h6-perf1280-a and pilot-h6-perf640-a,1200 samples each after2100-frame
+warmup; original exposure A, native helper shading, same rig/flags as LOG805
+perf-a. No captures, CPU scopes, format verification or concurrent builds.
+Both launch manifests confirm eligibility, host0/helper11 orderly shutdown,
+no forced children. Logs and h6-summary.json archived under each evidence
+folder; executable hashes recorded in launch.json. Incremental validated
+binaries, not a fresh exact-SHA build claim.
+Present p50/p95/p99 milliseconds:1280x960 =22.6025/25.0958/27.5288 versus
+LOG805 perf-a26.4818/29.6755/32.2495. Median interval improves14.65 percent,
+about37.8 to44.2fps;60fps remains unmet.640x480 =19.6594/23.4325/25.8842,
+about50.9fps. Helper period median after120 published returns:1280=22.13185
+(1072 samples),640=19.69855 (1076); original perf-a with this same helper
+selection=26.67525 (1070). This explicitly replaces any differently trimmed
+helper summary, not the host's unchanged1200-sample denominator.
+1280:1200 observed Presents,1183 accepted evaluations,1178 evaluated Remix
+Presents,22 native,7 output repeats,0 missing Presents/identity mismatches;
+latency mean2.9907/max4 frames.640:1200 observed,1186 accepted,1180 evaluated
+Remix,20 native,7 repeats,0 missing/identity errors; latency3.8180/max4.
+Resource limits stay open:1280 local-VRAM growth627601408 bytes (same as
+baseline), owned objects149 to188;640 growth403533824, objects143 to188.
+40-object helper teardown warning persists. Do not infer resource acceptance,
+normal-renderer coverage, neural provenance, visual approval or full60fps.
+Completion audit against CODEX-GOAL's six explicit items:1 scopes5a5f94938
+(LOG807);2 validation6a42a2c0a (LOG808, exceptional-value/mutation controls);
+3 depth texture reusef1ad9d6bd (LOG810, exact sampled GPU controls);
+4 shared buffers5c2fc4e2a (LOG811, ownership/moving checks);
+5 helper45f6ffba3 (LOG812, fused reference tests, eight full-image same-frame
+format pairs and parallel-return checks);6 performance results above.
+Final four serial builds pass (h5-build-d), enabled selftests915/0 x3
+(h5-selftest-c), SDK280/0 and Python24. LOG/BACKLOG/handoff updated. Thus the
+specific CODEX-GOAL done-when condition (measured1280 improvement with same
+denominator and passing tests) is met. The broader remaster backlog and
+60fps target remain unfinished; this is not full-pipeline acceptance.
+
+
 LOG812 CODEX-GOAL item5: fused R extraction/clip clamp, R32F memory-return
 surfaces with RGBA32F failure fallback, and one reusable CPU worker to copy
 and hash color alongside depth before slot publication. GPU calls stay on
