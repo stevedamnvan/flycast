@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-233: accept emulator acceleration only with passing delivery
+
+LOG837-841. Grouped live-byte scanning preserves ascending register validation,
+limits and invalidation. Its standalone speedup missed99% freshness; retain
+that failed result. Queue helper color and depth copies from the same completed
+frame before locking,with existing R32F fallback and no intervening Present.
+Only the combined candidate passes repeated clean delivery and scoped source/
+HUD/depth proof. No queue enlargement,lower threshold or skipped observations.
+Accept this1280 OIT slice; broader performance,quality and visual gates remain.
+
 ## D-232: reuse display recording resources with explicit renderer lifetime
 
 LOG828/832/833. Retain the deferred context and Quad after successful command

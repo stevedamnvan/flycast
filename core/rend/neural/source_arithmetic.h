@@ -40,6 +40,17 @@ inline void MirrorSourceArithmeticLive() noexcept {sourceArithmeticLiveFlag=sour
 // origin (epoch current and transform present); maintained wherever the
 // live count changes so the recompiler can skip boundary calls per register.
 inline std::uint8_t sourceArithmeticLiveBytes[256]{};
+// Scan empty groups without changing ascending register order or live-byte authority.
+template<class Visitor>
+inline void VisitLiveSourceArithmeticRegisters(std::uint32_t limit,Visitor&& visit) {
+ if(limit>255)limit=255;
+ for(std::uint32_t base=0;base<limit;base+=8) {
+  std::uint64_t liveBytes;std::memcpy(&liveBytes,sourceArithmeticLiveBytes+base,sizeof(liveBytes));
+  if(!liveBytes)continue;
+  for(std::uint32_t reg=base;reg<base+8&&reg<limit;++reg)
+   if(sourceArithmeticLiveBytes[reg])visit(reg);
+ }
+}
 inline void MirrorSourceArithmeticLiveByte(std::uint32_t reg) noexcept {
  if(reg<256)sourceArithmeticLiveBytes[reg]=sourceArithmeticOrigins[reg].epoch==sourceArithmeticEpoch&&sourceArithmeticOrigins[reg].transform.has_value();
 }

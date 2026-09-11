@@ -658,6 +658,29 @@ int wmain(int argc,wchar_t** argv) {
     hr=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(gpu,cpu):E_FAIL;
     readbackMs=msSince(readbackStart);
    }
+   // Queue paired outputs from this completed frame before waiting for either.
+   // The next Present still occurs only after both copies have been consumed.
+   depthReadbackMs=0;depthLockWaitMs=0;
+   const auto enqueueDepthReadback=[&]() {
+			HRESULT result=S_OK;
+			if(!depthGpu)result=ownedDevice->CreateRenderTarget(renderW,renderH,depthFormat,
+				D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
+			if(SUCCEEDED(result)&&!depthCpu)result=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
+				depthFormat,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
+			if(SUCCEEDED(result)) {
+				const auto depthStart=std::chrono::steady_clock::now();
+				const auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(depthGpu,
+					REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
+				result=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(depthGpu,depthCpu):E_FAIL;
+				depthReadbackMs+=msSince(depthStart);
+			}
+    return result;
+   };
+   bool depthReadbackQueued=false;HRESULT queuedDepthResult=S_OK;
+   if(SUCCEEDED(hr)&&captureReturnedDepth&&liveChannel&&liveChannelAsync&&returnOnly
+      &&!floatOutput&&!legacyBackbuffer&&!legacyRaster) {
+    queuedDepthResult=enqueueDepthReadback();depthReadbackQueued=true;
+   }
    // D-219: overlap the next packet's receive with this readback's GPU completion.
    if(liveChannel&&liveChannelAsync&&returnOnly&&SUCCEEDED(hr)&&frame+1<frames&&frame+1>=liveStart&&!prefetched&&!prefetchError)
     prefetchNext(3); // Bounded: about the readback's GPU time, never a frame.
@@ -728,20 +751,9 @@ int wmain(int argc,wchar_t** argv) {
 		const auto depthPath=capturePath.wstring()+L".depth.rgba32f";
 		RemakeFarPlaneReport farPlane{};
 		D3DLOCKED_RECT depthLocked{};
-		depthReadbackMs=0;depthLockWaitMs=0;
 		const auto readDepth=[&]() {
-			HRESULT result=S_OK;
-			if(!depthGpu)result=ownedDevice->CreateRenderTarget(renderW,renderH,depthFormat,
-				D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
-			if(SUCCEEDED(result)&&!depthCpu)result=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
-				depthFormat,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
-			if(SUCCEEDED(result)) {
-				const auto depthStart=std::chrono::steady_clock::now();
-				const auto copied=api.dxvk_CopyRenderingOutput?api.dxvk_CopyRenderingOutput(depthGpu,
-					REMIXAPI_DXVK_COPY_RENDERING_OUTPUT_TYPE_DEPTH):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
-				result=copied==REMIXAPI_ERROR_CODE_SUCCESS?ownedDevice->GetRenderTargetData(depthGpu,depthCpu):E_FAIL;
-				depthReadbackMs+=msSince(depthStart);
-			}
+			HRESULT result=depthReadbackQueued?queuedDepthResult:enqueueDepthReadback();
+			depthReadbackQueued=false; // R32F failure fallback must enqueue its new surface.
 			const auto start=std::chrono::steady_clock::now();
 			if(SUCCEEDED(result))result=depthCpu->LockRect(&depthLocked,nullptr,D3DLOCK_READONLY);
 			depthLockWaitMs+=msSince(start);

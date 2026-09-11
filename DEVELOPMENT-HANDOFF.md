@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG833 / D-232)
+## Current state (2026-09-11, LOG841 / D-233)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
 The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
@@ -109,39 +109,22 @@ present/cleanup,not a measured driver stall. Next refresh existing bounded
 --hook-cycles diagnostic on accepted h17 for remaining emulator hot paths;
 LOG790 reductions are already implemented,do not repeat that setup. The helper
 geometry CPU saturation may be work/spin; do not infer or change private runtime.
-LOG837 H20 hooks complete:stores3.423ms,block2.861,reads1.563 instrumented.
-H21 candidate groups empty live-register bytes; JIT no-live gate already exists.
-Owned changes source_arithmetic.h,rec_x64.cpp,unit_tests.cpp. Four serial
-builds/selftests pass983/0 x3,SDK302/0,Python24. Candidate diagnostic
-pilot-h21-live-groups-cpu1280 terminal0/11,log/summaries archived. Block-entry
-2.861->1.331ms,instrumented emu22.2421->20.626ms. Moving run
-pilot-h21-live-groups-moving terminal0/11,12 completed joins,zero world/
-backbuffer mismatches but0 protected pixels and0 matched reference sources;
-actual3106/current3111 intro PNG reviewed. Insufficient HUD/geometry evidence.
-Repeat moving-b terminal0/11,12 completed joins,72537..74349 HUD pixels,
-zero HUD/world/backbuffer mismatches;10 matched sources/239334 vertex records
-and indices byte-identical to h17. Actual2561/current2567 image reviewed.
-Logs/capture summaries archived. LOG838 clean H21 runs terminal0/11:
-p50/p95/p99 17.9908/21.138/24.0821 and18.0693/21.4421/23.521ms.
-First fresh1072/1080=99.259%,max4;repeat1069/1080=98.981%,max5.
-Both zero identity errors;repeat fails99% gate by one frame. H21 remains
-CORRECTIONS_REQUIRED/uncommitted despite repeated speed gain. Second run's
-11 misses:6 repeated returned frames and5 held-native Presents at current
-3103..3107;preserve that protective transition. Raw samples and misses JSON
-under pilot-h21-live-groups-perf1280-b;candidate-source.patch retained there.
-No jobs active. Next inspect delivery timing for those6 repeat points (2249,
-2286,2620,2689,3029,3239) and existing feed/helper/return work; do not rerun
-until lucky or lower99%/change denominator/disable native safeguards. Need a
-bounded pipeline correction or disposition before source acceptance. All four
-builds983/0 x3,SDK302/0,Python24 and geometry/HUD checks already passed.
-LOG839 next bounded H22 correction: helper currently queues depth only after
-color lock/copy. Four late packets show3.4..4.2ms depth-lock stalls;not all six
-misses attributed. Test enqueueing same-frame color/depth before either lock
-in live return-only path,keeping R32F fallback/errors/provenance unchanged.
-No H22 edits yet. Validate exact pairing/source/HUD and two clean freshness
-runs; never waive H21's98.981% failed run. No active jobs.
-Build output/staged h21 contains current unaccepted candidate; staged h17-reuse
-is accepted fallback (source10a7ad2e2). Preserve the three owned source edits.
+LOG841 / D-233 H21 grouped live-register scan plus H22 paired helper copy
+ACCEPTED together for1280 OIT pilot. Standalone H21 LOG838 freshness failure
+remains failed. Combined two clean medians18.4732/18.9916ms,p95 21.9197/
+22.0984,p99 24.7582/25.74;both1074/1080=99.444444% fresh,max4,zero identity
+errors,8raw repeats,22native,orderly0/11. Median benefit varies;tails improve
+versus h17. No60fps or broad acceptance claim. Logs/summaries archived.
+Four serial builds983/0 x3,SDK302/0,Python24. H21 scalar scan equivalence
+and10 same-source packets/239334 vertices+indices exact;H22 eight depth checks
+x1,228,800 pixels exact,12 moving completed joins,72629..78153 HUD pixels,
+zero HUD/world/backbuffer errors. Actual2560/current2567 image reviewed.
+No active jobs. Host staged flycast-pilot-h21-live-groups.exe plus current
+build-neural-automation/neuraltest/remake-runtime-smoke.exe is tested combined
+pair. Source checkpoint is commit containing LOG841. Prior candidate patches
+and failed captures remain private. Next inspect emitted RAM-store/register-read
+hook work for repeated lookups/temporary initialization; preserve all witness
+semantics. Phase/resource/normal-renderer/full-quality/human gates stay open.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
 intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
 No installation/download/GPU runs. Review with proposed HTTP graph:

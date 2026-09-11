@@ -107,12 +107,11 @@ static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
 	RefreshSourceSqWriters();
 	if(!sourceArithmeticLive)return;
 	// D-218: the per-register live bytes mirror the origins' liveness exactly.
-	for(u32 reg=0;reg<sh4_reg_count&&reg<255;++reg) {
-		if(!sourceArithmeticLiveBytes[reg])continue;
+	VisitLiveSourceArithmeticRegisters(sh4_reg_count,[&](u32 reg) {
 		const auto& origin=sourceArithmeticOrigins[reg];
 		if(origin.epoch==sourceArithmeticEpoch&&origin.transform)
 			ValidateSourceArithmeticRegister(reg,*GetRegPtr(*ctx,static_cast<Sh4RegType>(reg)));
-	}
+	});
 	pendingArithmeticOrigin.reset();pendingDerivedStore.reset();
 }
 static void DYNACALL beginSourceRead(u32 address,u32 pc,u32 slot) {

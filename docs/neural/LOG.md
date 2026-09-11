@@ -1,5 +1,52 @@
 # Neural rendering evidence log
 
+LOG841 / D-233 H21+H22 ACCEPTED together for tested1280 OIT pilot.
+Standalone H21 freshness failure LOG838 remains failed; paired-copy correction
+restores two clean passing runs. pilot-h22-paired-copy-perf1280 / -b both
+terminal0/11,orderly,eligible;1200 samples/2100warmup,original exposure A,
+native alpha,welded normals,no captures/scopes/builds/generation. p50/p95/p99
+18.4732/21.9197/24.7582 and18.9916/22.0984/25.7400ms. Both1074/1080
+fresh=99.444444%,max4,zero identity errors,8raw repeats,22native. Compared to
+h17 medians18.9847/19.2234,p95 24.1773/25.2614:median gain varies,p95 improves
+in both;no60fps claim. VRAM growth1,175,887,872/1,724,174,336;objects143->194/
+200,range131..200. No new GPU object allocation/lifetime in these changes;
+phase attribution and existing40-object external teardown warning remain open.
+Four serial builds983/0 x3,SDK302/0,Python24,backlog/diff checks pass.
+H21 scalar-equivalence test covers257limits x16patterns with invalidation;
+moving10 same-source packets have239334 full vertex records+indices byte-exact.
+H22 actual depth8x1,228,800 pixels bit-identical to same-completed-frame RGBA
+reference;moving12 completed joins,72629..78153 protected pixels,zero HUD/
+world/backbuffer mismatches;actual2560/current2567 PNG reviewed. H21 first
+moving run without HUD remains insufficient,not erased. H22 source restricts
+early depth enqueue to async live return-only path;no intervening Present;
+existing fallback consumes failed queued status then enqueues new format.
+All logs/summaries under named D:/Flycast-Evidence folders;no active jobs.
+Next inspect emitted RAM-store/register-read hook work for avoidable repeated
+lookups/temporary initialization using existing diagnostics; preserve all source
+observations,not observation sampling. Full normal-renderer/300 quality/600
+acceptance,neural contribution,resource lifecycle,human visual approval open.
+
+LOG840 H22 paired-copy candidate implemented on top of unaccepted H21.
+Helper queues same-frame depth after color enqueue and before bounded prefetch/
+color lock in async live return-only path. Existing depth lock/convert point
+consumes queued result once; R32F failure fallback re-enqueues the replacement
+surface. Other paths enqueue at their prior depth point. No new surfaces,frame
+slots,Present,source identity or runtime/config change. Hypothesis: overlap
+measured depth-lock stalls,improve H21 delivery without sacrificing speed.
+Four serial builds/selftests and actual depth-format/source/HUD checks required,
+then two clean runs at unchanged99% denominator/latency. Serial build matrix
+session63561 terminal0,four builds983/0 x3,SDK302/0. Live same-completed-frame
+depth-format diagnostic pilot-h22-paired-copy-depthcheck terminal0/11;8 checks
+x1,228,800 pixels all different_bits0,hresult0. Log/depth-summary archived.
+Median color-lock1.019ms/depth-lock0.0017ms in this diagnostic;extra copy
+means no performance claim. Moving pilot-h22-paired-copy-moving terminal0/11,
+12 completed joins,72629..78153 HUD pixels,zero HUD/world/backbuffer errors.
+Actual2560/current2567 image reviewed,logs/summary archived. Clean
+pilot-h22-paired-copy-perf1280 terminal0/11,eligible,log/summary archived:
+p50/p95/p99 18.4732/21.9197/24.7582ms,fresh1074/1080=99.444444%,max4,
+zero identity errors,repeats8,native22. Repeat -b session41525 active.
+No acceptance yet.
+
 LOG839 late-delivery inspection narrows next correction. H21 repeat's missing
 next-source packets2246,2617,2686,3026,3236 appear in helper live_return:
 depth_lock_wait_ms respectively0.4582,4.2188,3.3929,3.3959,3.6634;

@@ -1557,6 +1557,27 @@ int RunSelfTests()
 			&&sourceArithmeticOrigins[5].value==0,"origin invalidation clears authority without retaining an engaged payload");
 		 ClearSourceArithmeticOrigins();
 		}
+		{
+		 bool equivalent=true;
+		 for(unsigned limit=0;limit<=256;++limit)for(unsigned pattern=0;pattern<16;++pattern) {
+		  std::array<std::uint8_t,256> initial{};
+		  for(unsigned i=0;i<256;++i)initial[i]=((i*13+pattern*7)%31)<pattern;
+		  std::vector<unsigned> expected,actual;
+		  auto reference=initial;
+		  for(unsigned reg=0;reg<limit&&reg<255;++reg)if(reference[reg]) {
+		   expected.push_back(reg);
+		   // Visiting a register can invalidate an upcoming origin.
+		   if(reg+1<256)reference[reg+1]=0;
+		  }
+		  std::copy(initial.begin(),initial.end(),sourceArithmeticLiveBytes);
+		  VisitLiveSourceArithmeticRegisters(limit,[&](unsigned reg) {
+		   actual.push_back(reg);if(reg+1<256)sourceArithmeticLiveBytes[reg+1]=0;
+		  });
+		  equivalent&=actual==expected;
+		 }
+		 suite.Expect(equivalent,"grouped live-origin scan preserves scalar order bounds and invalidation");
+		 ClearSourceArithmeticOrigins();
+		}
 		ObserveSourceRamWrite(0x8c001000,0x8c002000,4,0x12345678);
 		suite.Expect(SourceRamWriter(0xac001000,0x12345678)==0x8c002000,
 			"RAM writer physical alias retains exact observed value");
