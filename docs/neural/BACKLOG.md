@@ -261,6 +261,13 @@ is now explicitly authorized for this trial; API/proxy numeric budget remains
 unapproved. No gameplay/benchmarks during generation. Technical and human
 visual acceptance stay separate.
 
+Built-in trial disposition (LOG831):4/4 outputs returned,4/4 technically
+rejected;2/2 materials reuse baseline. Do not scale this direct atlas route:
+baked-light contamination,roughness semantics and unsafe fine-map/seam agreement
+remain,besides1254 instead of1024 output size. No retries,variants or integration.
+Evidence/images: D:/Flycast-Evidence/package-d-builtin-trial-20260912/REVIEW.md.
+Full-set D deliverable remains open; no further generation authorized by trial.
+
 ### Next-card bounds: FC-067 / M2-scene
 
 **Operational next action (LOG757, integration priority correction):** advance

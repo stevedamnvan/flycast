@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG831 built-in trial complete:4 calls,4 outputs,no retries/variants. Agent
+and parent reviewed two albedo/two roughness maps. All1254x1254 RGB versus
+requested1024; opaque source alpha retained effectively,not alpha-atlas proof.
+Albedos retain directional/relief shading and altered detail; roughness shows
+shaded appearance,wrong cloth/metal response and RGB spread11/7. Floor midline
+amplified; retained height already has faint boundary,not wholly invented seam.
+All4 technically REJECTED for ingestion;2 materials remain reused baseline.
+No scaling,no Toolkit mutation,no API/proxy spend or new models. Full D open;
+visual approval separate. Report/images/ledger/parent review under
+D:/Flycast-Evidence/package-d-builtin-trial-20260912 (directory label only;
+current session date2026-09-11). Existing PBRify/conditioning hashes unchanged.
+Generation terminal; H17 clean performance now running session6970 at
+pilot-h17-reuse-perf1280. Poll same handle,archive host log after terminal.
+
 LOG830 independent composition-check review while built-in trial runs.
 CaptureRemakePreview quality_capture.cpp compares output to exact native RGBA
 on protected mask pixels and exact evaluated-world RGBA elsewhere,then RGB

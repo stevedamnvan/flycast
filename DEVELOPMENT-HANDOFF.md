@@ -67,13 +67,14 @@ x3,SDK302/0,Python24. Candidate diagnostic pilot-h17-reuse-cpu1280 terminal
 0/11,log/summary archived:setup1.7295 to0.0005ms,total selection2.877 to
 0.9844ms,frame-display1.07845ms,render14.44085ms,emu20.137199ms. Clean
 performance,moving/restart checks pending; no source acceptance yet.
-User now authorized built-in imagegen trial before full-set scaling. Subagent
-/root/package_d_preflight is cleared to generate TWO materials (62BCD7B9D1AEBDB5
-character atlas,78918ECF7600A708 floor),one albedo+roughness each=4 calls, no
-retries/variants. Benchmark is terminal; do not launch further gameplay until
-agent generation completes. Built-in route only,no API/proxy/no install.
-Review results and retain baselines before deciding scale. PBRFusion4 checked:
-normal/depth model,additional pack/model not installed; not added for this trial.
+LOG831 built-in trial complete:4/4 outputs returned,all4 rejected for technical
+integration. Two materials retain baseline. Agent+parent reviewed all images;
+baked lighting,roughness semantics and detail/seam agreement fail,all1254square
+instead of1024. Floor midline was amplified,not proven newly invented (retained
+height has faint seam). No scaling/retries/integration. Report/images/ledger:
+D:/Flycast-Evidence/package-d-builtin-trial-20260912/REVIEW.md. Generation done.
+H17 clean pilot-h17-reuse-perf1280 now running session6970; poll same handle,
+archive host log at terminal,then repeat/moving/restart as warranted. No builds.
 Package D authorized subagent completed offline accounting additions in the
 existing external pbrify_run.py. Parent independently reran12 tests:pass.
 Production dispatch always disabled. Backup/diff/test evidence in
@@ -376,5 +377,4 @@ LOG830 review while trial runs: CaptureRemakePreview compares each output
 pixel against native where mask>=128 and evaluated-world elsewhere; it also
 compares RGB against pre-OSD backbuffer. H17 moving acceptance requires all
 three mismatch counts zero,not only HUD. This isolates composition correctness
-from upstream neural color variation. Agent reports call1 returned and saved;
-call2 roughness next. Do not benchmark until all generation calls terminal.
+from upstream neural color variation. All generation calls now terminal; final disposition in LOG831.
