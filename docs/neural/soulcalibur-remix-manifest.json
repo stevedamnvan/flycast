@@ -1,0 +1,1189 @@
+{
+ "capture": "capture_2026-09-10_17-52-53.usd",
+ "captured_materials": 26,
+ "captured_not_in_packet": [],
+ "identity_note": "runtime_material_hash is the Remix runtime hash from the capture; helper_content_digest is FNV-1a over the helper DDS bytes as logged by texture_register; they are joined by identical pixel payload only",
+ "matched_materials": 26,
+ "materials": {
+  "145398E2FC5B2FEA": {
+   "helper_content_digest": "b064ad18f0f89e12",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403587584,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/145398E2FC5B2FEA_diffuse.a.rtex.dds",
+     "sha256": "134129977548f1c6c531591597ba3790fe07db42121b07b691a8e849c9301bec",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/145398E2FC5B2FEA_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "938140c932b550c550ce60fd9a61ff4ad28f27670b03e27a2bf74cf449579966",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/145398E2FC5B2FEA_roughness.r.rtex.dds",
+     "sha256": "3a457673b713d907c6ef6868fe497e7231397533235bb6ef21ba449ad6e93db3",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "145398E2FC5B2FEA",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 357
+   }
+  },
+  "259014235DE60F8A": {
+   "helper_content_digest": "f92d7d12aff11c88",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403013296,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/259014235DE60F8A_diffuse.a.rtex.dds",
+     "sha256": "e6c73b4b9b5cefafbffa58512e91ace6e01199b0c9e58534853b4015ed2f28f4",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/259014235DE60F8A_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "56069b66751640343f60b383d64ef9283ec7cabbd74ccd62725ead3489bfd56d",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/259014235DE60F8A_roughness.r.rtex.dds",
+     "sha256": "aa977237e385b297b8c9e687196d0ddb4d62f745cd4d186480583105573b9665",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "259014235DE60F8A",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 192
+   }
+  },
+  "26F0F098F66BA515": {
+   "helper_content_digest": "4d9ef5531df143fe",
+   "helper_texture": {
+    "generation": 1,
+    "id": 268861104,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/26F0F098F66BA515_diffuse.a.rtex.dds",
+     "sha256": "94779673aeedd7255f4ba5be22f0309b22d03bdd4c829fde145c1badc221c21c",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/26F0F098F66BA515_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "7363b98e87a18ce9f1cf5c2890d6059dabf418b6ec47d1a443dc0e73a1299b43",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/26F0F098F66BA515_roughness.r.rtex.dds",
+     "sha256": "f683e3791599455ce207625ff9e705fc5cdcf79747579f30562b76329f329f50",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "26F0F098F66BA515",
+   "source": {
+    "alpha": "graded",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 2,
+    "tsp": [
+     543696109,
+     2490377453
+    ],
+    "vertices": 429
+   }
+  },
+  "2B0271DC930143C5": {
+   "helper_content_digest": "8b0563886319aa39",
+   "helper_texture": {
+    "generation": 1,
+    "id": 425648,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/2B0271DC930143C5_diffuse.a.rtex.dds",
+     "sha256": "024364e285c01bc6704fdd6e9fc63ea260b60beb00f542a198c6e8afbfa7bd2f",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/2B0271DC930143C5_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "11e1eede10dcb82463ef8270f38684a35339fd9f1b8fa4684474e937500b3b1b",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/2B0271DC930143C5_roughness.r.rtex.dds",
+     "sha256": "938baf79bcf669c31c61638e9f73af8cfc4ebe3ef29892e6255755acf62fd100",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "2B0271DC930143C5",
+   "source": {
+    "alpha": "binary",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 2,
+    "tsp": [
+     543696109,
+     2490377453
+    ],
+    "vertices": 702
+   }
+  },
+  "2F49B33516DFD5F9": {
+   "helper_content_digest": "c01dddab87481d5c",
+   "helper_texture": {
+    "generation": 1,
+    "id": 269386240,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/2F49B33516DFD5F9_diffuse.a.rtex.dds",
+     "sha256": "e6afd856ad3df8ef29875ef3ec9dfcc07e30c2cd90e823c66202efe9fb8ad122",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/2F49B33516DFD5F9_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "7444fa43799b5f3e5ffbcf3c0a72aaca4f25afb1e53df3821f87792f9f87bf32",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/2F49B33516DFD5F9_roughness.r.rtex.dds",
+     "sha256": "a18a75f172a202b48fc2bc2c0c3f518f2f735539c6e049b077f621d965f5f62c",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "2F49B33516DFD5F9",
+   "source": {
+    "alpha": "graded",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     2490377453
+    ],
+    "vertices": 1536
+   }
+  },
+  "3D62046ADCBFE6E7": {
+   "helper_content_digest": "f7a029b7b6191cf2",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134988288,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/3D62046ADCBFE6E7_diffuse.a.rtex.dds",
+     "sha256": "9c52b5e0650205f990ef67722e9fcdc0ef27760196b3d8f512fff86a6d9fb25f",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/3D62046ADCBFE6E7_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "905ee8b0ae1845020486bc8252b38abf1f54e5da2a978a990a861fe0e53b31dd",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/3D62046ADCBFE6E7_roughness.r.rtex.dds",
+     "sha256": "4c78f4a304011155a79c85a9963a1724030d93dec01f78abacc51fd9c568d74d",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "3D62046ADCBFE6E7",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 4,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 219
+   }
+  },
+  "4E5D782850010BD6": {
+   "helper_content_digest": "2564d11e3619de12",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134939136,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/4E5D782850010BD6_diffuse.a.rtex.dds",
+     "sha256": "fb6f1b7af567befed9246940849c23e0560f3af1501def645654dd51f4c22f66",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/4E5D782850010BD6_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "3428b92d185d35d52725aa7b257d020a154d7baaf385f47d6c80fe3893378ab5",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/4E5D782850010BD6_roughness.r.rtex.dds",
+     "sha256": "25471cef3cf62babc7eafb65ca438799d2b36699833dae12e852615d910a28de",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "4E5D782850010BD6",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 4,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 453
+   }
+  },
+  "503E88B7E5108669": {
+   "helper_content_digest": "ab5c23c4a3d80e29",
+   "helper_texture": {
+    "generation": 1,
+    "id": 392880,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/503E88B7E5108669_diffuse.a.rtex.dds",
+     "sha256": "7fbfe4287f3c78ab0ab7fec005e25929d8933f23e6769b06864272358379d78d",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/503E88B7E5108669_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "ad0ada0cdf939533fd8b9cf982b36f4b932f28837b8a0385b4e3e0c5293b8d1e",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/503E88B7E5108669_roughness.r.rtex.dds",
+     "sha256": "5aa808b089152ce30a56c17a215fed4674bfbad995a94bb36ac87a3ddaf95f76",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "503E88B7E5108669",
+   "source": {
+    "alpha": "binary",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 2,
+    "tsp": [
+     543696109,
+     2490377453
+    ],
+    "vertices": 288
+   }
+  },
+  "58579698987A9AE1": {
+   "helper_content_digest": "d79b8feba87a28f7",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403571200,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/58579698987A9AE1_diffuse.a.rtex.dds",
+     "sha256": "f679a21b8953dac78d4326eca5e71c92921a4f7cdf49e6774daa20bdca44d628",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/58579698987A9AE1_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "80f88abe0baf30360a7957c6af5c4e5936814aeb733e07d0d4d94c4d2c4be2b8",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/58579698987A9AE1_roughness.r.rtex.dds",
+     "sha256": "02692fc4c0ad655c9d4342f58a36bf4df5f3747f0f6cd620bf61566cd5a0535e",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "58579698987A9AE1",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 792
+   }
+  },
+  "62BCD7B9D1AEBDB5": {
+   "helper_content_digest": "1b32d649a72f24ff",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403603968,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/62BCD7B9D1AEBDB5_diffuse.a.rtex.dds",
+     "sha256": "801162bc146651132a2902f63b138a861173375b327a764d8f17dac414ac8be5",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/62BCD7B9D1AEBDB5_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "d4d7211f07fa4c31894d958d68c629edfd5f23df8f22d60775f148fedd6d17e6",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/62BCD7B9D1AEBDB5_roughness.r.rtex.dds",
+     "sha256": "55bb1be8c11e10ffdce0ecfbe5069e2541f23e8cc5735f56be5adf5870fcefb7",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "62BCD7B9D1AEBDB5",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 1956
+   }
+  },
+  "74ABF4DABB9AF6EE": {
+   "helper_content_digest": "1ad436a4c42ac0bd",
+   "helper_texture": {
+    "generation": 1,
+    "id": 672256,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/74ABF4DABB9AF6EE_diffuse.a.rtex.dds",
+     "sha256": "5a395a8365245090d2a84dba1ddf2a6f3957f1fb6267f976653b607421e68927",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/74ABF4DABB9AF6EE_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "4b8f09d5b5040e73df63c2941b4bf8ae9ac861b1ad6a5cc0bd4e97c96ad20705",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/74ABF4DABB9AF6EE_roughness.r.rtex.dds",
+     "sha256": "3ccbddcdf04011d872bb573c76f43cd96e64610cea080817af67545ea2a236bb",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "74ABF4DABB9AF6EE",
+   "source": {
+    "alpha": "binary",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 2,
+    "tsp": [
+     543696109,
+     2490377453
+    ],
+    "vertices": 540
+   }
+  },
+  "78918ECF7600A708": {
+   "helper_content_digest": "f3bfd23c3a5d0b02",
+   "helper_texture": {
+    "generation": 1,
+    "id": 2282001408,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/78918ECF7600A708_diffuse.a.rtex.dds",
+     "sha256": "989fb2a46a8f342a106a56c442f0ac82644cb89fbdb1e13e07ce4182c2e63092",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/78918ECF7600A708_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "f3ad2cc2ddca43c9c8d51558dd9837f87c12926a9c761c208b605e607c7077c4",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/78918ECF7600A708_roughness.r.rtex.dds",
+     "sha256": "4f80c7947952e463c67b616d0e0ec92993aeaa3e8a43cde5c9bf6096a3b1fdcb",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "78918ECF7600A708",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 603
+   }
+  },
+  "940953E6DC0A196B": {
+   "helper_content_digest": "ad25d5b4949c0534",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403636736,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/940953E6DC0A196B_diffuse.a.rtex.dds",
+     "sha256": "9d2e76bf255afbc24de51dca452d787e44931c4036c9b1a0e9f9f9748ca8f047",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/940953E6DC0A196B_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "ce4d77125c2008aff607a90f00e4edd77140b8d978d410b09d55adad22570a60",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/940953E6DC0A196B_roughness.r.rtex.dds",
+     "sha256": "a7563cfae8a0ec8a07bde2b7196a15c8f18b87e7fb0e9c875d97df2b47205c75",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "940953E6DC0A196B",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 2643
+   }
+  },
+  "98BAA87877E1587B": {
+   "helper_content_digest": "e0e5bcf3623e0fae",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403620352,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/98BAA87877E1587B_diffuse.a.rtex.dds",
+     "sha256": "f44f04b2c7a461d6cd7a8c8b2beb457e2457254870e1bc257f81c129b81378c7",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/98BAA87877E1587B_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "119ad7f05951eb1d8cacf9d0a42d5377f39221a689e99be6d7b7b5acc525853f",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/98BAA87877E1587B_roughness.r.rtex.dds",
+     "sha256": "f1e84a34044dd704b7e6e3cb36ba05bc2a62fab8279a76ddf8cfa8063157b7a1",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "98BAA87877E1587B",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 4236
+   }
+  },
+  "9B77ABF12EC53A38": {
+   "helper_content_digest": "a0f1ecd236dddb6d",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403062448,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/9B77ABF12EC53A38_diffuse.a.rtex.dds",
+     "sha256": "600256b6998664e699e6aed7797c02a0b8a085391fdeeef7465ffa2daf0db5fa",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/9B77ABF12EC53A38_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "1c7e3b871beebb79d5d8b711f757d49f2dc24f4537b22398ebb986f5c9efb32d",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/9B77ABF12EC53A38_roughness.r.rtex.dds",
+     "sha256": "bfbeb9ada5f6621ee9de15703b484d33d845e4960dc8a550014ab15ebfcd0c70",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "9B77ABF12EC53A38",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 4773
+   }
+  },
+  "A9FE1461748274D9": {
+   "helper_content_digest": "28931fcb3dd4d188",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403046064,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/A9FE1461748274D9_diffuse.a.rtex.dds",
+     "sha256": "e88d143f3fd1d550ba5795c9887abd713bfa728485db2d399054ebe8b68b4989",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/A9FE1461748274D9_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "976c08e6f627a77412404e14d50e11985557aa4cb03cb33c8cae9be9fcafbf12",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/A9FE1461748274D9_roughness.r.rtex.dds",
+     "sha256": "8f1ed3b1fb9e4c5c539b0a737b96cc13a7d77a6e7931c7be75b6b3633d842012",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "A9FE1461748274D9",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 1095
+   }
+  },
+  "AB164DB458C5FE21": {
+   "helper_content_digest": "cd9a8daec52b08e6",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134955520,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/AB164DB458C5FE21_diffuse.a.rtex.dds",
+     "sha256": "41e95717195e29604e11e660754ce519540e7f2b90f4076d4b69830987cef0d9",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/AB164DB458C5FE21_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "b94c0099722bf7e3b3c29e67d5f615f47df916688cd8088cace324a77c1a583c",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/AB164DB458C5FE21_roughness.r.rtex.dds",
+     "sha256": "d5b579dd629181e1025ab2a1d2df32628aa161db1ab918fc1c8783e73e4bcb5f",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "AB164DB458C5FE21",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 4,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 378
+   }
+  },
+  "B4C0873CCE71AF73": {
+   "helper_content_digest": "47d43eb7d5570e2e",
+   "helper_texture": {
+    "generation": 1,
+    "id": 2282023256,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/B4C0873CCE71AF73_diffuse.a.rtex.dds",
+     "sha256": "fb0fa88761df1be7b92adfc8accfd5e97e2773d6a57e902c3905279a3f1eadf4",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/B4C0873CCE71AF73_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "4124592166e9d1b9cc9a7d832d6171c37df523d381b32c446f700118c01079b8",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/B4C0873CCE71AF73_roughness.r.rtex.dds",
+     "sha256": "eba3b0471273c4da0cc44d3da05aa0c961e9b9602d5cb238328c7e58eb221324",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "B4C0873CCE71AF73",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 2,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 492
+   }
+  },
+  "B71B5C0583490061": {
+   "helper_content_digest": "403f8591d17afc73",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134971904,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/B71B5C0583490061_diffuse.a.rtex.dds",
+     "sha256": "972aa7d2ff4a92aa9c571044f6222d194e9adeaf431bf2c6f25082582548a3b6",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/B71B5C0583490061_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "ebb8164888ce7e055b76efc6db1734e8ff022c6de5f2121f30fdcd8869ff9d21",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/B71B5C0583490061_roughness.r.rtex.dds",
+     "sha256": "68b44b5384b45280b63460326e084c372ca8ffb8060977b96c83698ac527c878",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "B71B5C0583490061",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 4,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 138
+   }
+  },
+  "BCBC713835472B28": {
+   "helper_content_digest": "eb25c25bc604b499",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403554816,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/BCBC713835472B28_diffuse.a.rtex.dds",
+     "sha256": "f70baff24a59ee157b0b72f62bc7fae394b3a830dfe4ab808c85b6a678082089",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/BCBC713835472B28_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "5f25a2333c634c828c6efac567e1c9caeee4604a7bf1445cba4acc10317081fb",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/BCBC713835472B28_roughness.r.rtex.dds",
+     "sha256": "4a24fb3227e23a0732808657b5cac52baf93ccb7f06c58b1fe0b8b5ac7019b56",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "BCBC713835472B28",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 108
+   }
+  },
+  "C0FE1816E4150070": {
+   "helper_content_digest": "7f2c260cf1596961",
+   "helper_texture": {
+    "generation": 1,
+    "id": 402996912,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/C0FE1816E4150070_diffuse.a.rtex.dds",
+     "sha256": "21cf275f6d8ed50e40dc41c66cba27a2e9181897f4a345e436c9efa797789c03",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/C0FE1816E4150070_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "7d030dccad9908cfda801fe13f1f3e8132ee60b784c4c4885e7df6e4bcda9171",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/C0FE1816E4150070_roughness.r.rtex.dds",
+     "sha256": "8c2b1c48b66bcfab98adf2ce8af20b53807450c0eec42aeddb8898b78f57d06e",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "C0FE1816E4150070",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 816
+   }
+  },
+  "C3E6F2C8125D44D7": {
+   "helper_content_digest": "cdc27d5986211acf",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134922752,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/C3E6F2C8125D44D7_diffuse.a.rtex.dds",
+     "sha256": "be84e5ab10f4beec29ecf5858d4490eca43ff09f779f69d14a3e2a2b459f8b88",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/C3E6F2C8125D44D7_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "af8e7458bf28017d731357c53f4d07310c0c2c03170f2cc6dd383ee59f2b6735",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/C3E6F2C8125D44D7_roughness.r.rtex.dds",
+     "sha256": "aca4e05b5af648a27b133f05df9ff3793610ff9df7434d6358d865829067a8b0",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "C3E6F2C8125D44D7",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 336
+   }
+  },
+  "D8C38119A5E41BD1": {
+   "helper_content_digest": "e845a5f57882c520",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403078832,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/D8C38119A5E41BD1_diffuse.a.rtex.dds",
+     "sha256": "d8944c1031246400a09e1f170a94bf43adbacefb12c21a129972f74b40c5a69b",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/D8C38119A5E41BD1_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "c8bc2cea382faab6a4e7371130c02c9033370fb421c05f0757c965f63cb9d0c8",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/D8C38119A5E41BD1_roughness.r.rtex.dds",
+     "sha256": "a2891d2308f69ef6380584dad74eb0394802c5a25a2d6feb37a6190973ff94ee",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "D8C38119A5E41BD1",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 1791
+   }
+  },
+  "E15BF621EA10A9D4": {
+   "helper_content_digest": "dd4d51e75499b4df",
+   "helper_texture": {
+    "generation": 1,
+    "id": 770560,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/E15BF621EA10A9D4_diffuse.a.rtex.dds",
+     "sha256": "fac033e15a19f6118736b514fcbfe7e114193d4f156af98c28dde09b4f55abdd",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/E15BF621EA10A9D4_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "964505e373f0ca501c3a4fd54161c2279c02f5e4cc84ca31267de7d47d0de5ad",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/E15BF621EA10A9D4_roughness.r.rtex.dds",
+     "sha256": "9bee8a926c2dedf5a939ac4a017432babbfa5fd161100cafe475cf4464448b0e",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "E15BF621EA10A9D4",
+   "source": {
+    "alpha": "binary",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": true,
+    "cutout": false,
+    "meshes": 3,
+    "tsp": [
+     543696109,
+     2490377453
+    ],
+    "vertices": 351
+   }
+  },
+  "E8D142522D2CC784": {
+   "helper_content_digest": "d10f2e8a86a3fb67",
+   "helper_texture": {
+    "generation": 1,
+    "id": 134906368,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/E8D142522D2CC784_diffuse.a.rtex.dds",
+     "sha256": "3ebfecd50fe9b73d0b1e7eb8f0ee4f3f8900eedbfa05c47559663f48a01dfe39",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/E8D142522D2CC784_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "8c2f98c71f732b828d249eb18355e0c463b6440bd7b2a32e55d480285e956287",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/E8D142522D2CC784_roughness.r.rtex.dds",
+     "sha256": "cf2bfab519ba6856ca08eaf47a7793f88c6bd631676385bae9cd641065c43d8a",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "E8D142522D2CC784",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 4,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 774
+   }
+  },
+  "F8CC33F333E700CD": {
+   "helper_content_digest": "ecf2e1f7663a31a9",
+   "helper_texture": {
+    "generation": 1,
+    "id": 403029680,
+    "palette": 0,
+    "rtt": 0
+   },
+   "replacement": {
+    "diffuse_texture": {
+     "exists": true,
+     "path": "assets/ingested/F8CC33F333E700CD_diffuse.a.rtex.dds",
+     "sha256": "4b9c95bfc9da034662fe2ca15ff39dc4c421a480b7409dd2845c5caadd0e8380",
+     "slot_type_ok": true
+    },
+    "normalmap_texture": {
+     "exists": true,
+     "path": "assets/ingested/F8CC33F333E700CD_normal_dx_OTH_Normal.n.rtex.dds",
+     "sha256": "021f0c6b3e349c413b8a4f612ff654a77493f7daf065c6d49f80b282494360ed",
+     "slot_type_ok": true
+    },
+    "reflectionroughness_texture": {
+     "exists": true,
+     "path": "assets/ingested/F8CC33F333E700CD_roughness.r.rtex.dds",
+     "sha256": "8a0848a815b876428bc26193269731380ca326885dc815e1e089be3fcb6688a7",
+     "slot_type_ok": true
+    }
+   },
+   "runtime_material_hash": "F8CC33F333E700CD",
+   "source": {
+    "alpha": "opaque",
+    "dxgi": 28,
+    "height": 256,
+    "width": 256
+   },
+   "usage": {
+    "alpha_blend": false,
+    "cutout": false,
+    "meshes": 1,
+    "tsp": [
+     543696109
+    ],
+    "vertices": 840
+   }
+  }
+ },
+ "missing_replacements": [],
+ "schema": "flycast-remix-material-manifest-v1",
+ "source_frame": 2601,
+ "unmatched_packet_textures": [],
+ "wrong_slot_bindings": []
+}

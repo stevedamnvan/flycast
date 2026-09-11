@@ -1,5 +1,63 @@
 # Neural rendering evidence log
 
+LOG796 pilot substep A, material-channel proof through the Toolkit MCP server:
+ACCEPTED for albedo, roughness and normal on one stage and one fighter
+material; two Toolkit limitations recorded. Route: the new
+`neuraltest/remix_mcp_client.py` (standard-library SSE/JSON-RPC client) drove
+`lightspeed.trex.mcp.core` 1.2.2 on 127.0.0.1:8000: open project, create the
+diagnostic sublayer, ingest the diagnostic maps, override textures, save,
+restore, remove the layer. Renders: standalone helper (build-neural-automation
+`remake-runtime-smoke.exe` sha256 7b8abbf9...) on the saved source-2601 packet,
+120 frames, anchored light, 640x480, evidence `pilot-channel-proof/` with
+`run.json` per render (all exit 0; not performance evidence). Repeated-baseline
+noise (max per-channel difference above 24 of 307200 pixels): with-mod repeats
+9 to 976 pixels (mean magnitude about 32), no-mod repeats 314 to 627. Mod versus
+no-mod with the mod junction hidden: 35 and 36 pixels, i.e. the AI draft is
+invisible at 640x480 as LOG794 found. `DXVK_DISABLE_ASSET_REPLACEMENT=1` is not
+a valid no-mod control: it also drops the helper's API light (about 115000
+pixels changed). Two Toolkit findings: (1) a sublayer of mod.usda is weaker
+than mod.usda's own opinions, so an override layer only works when mod.usda is
+a thin root whose material opinions live in a sublayer; the project was
+restructured to `mod.usda` (root) plus `layers/ai_pbr_draft.usda` (the D-222
+typed defs, unchanged content) and the diagnostic layer was inserted first
+(strongest). The runtime composes the sublayers (renders identical to the
+single-file mod: 21 pixels against base-mod-1). (2) The REST/MCP texture
+override drops its `force` flag before reaching the core
+(`replace_texture_with_data_models` calls `replace_textures(body.textures)`),
+so non-ingested maps are silently skipped with "OK"; the diagnostic maps were
+therefore ingested through the MCP ingestion queue (a six-item batch converted
+only the even items; the three others succeeded one at a time), and the MCP
+`create_layer` schema's LayerType enum reference does not resolve (layer type
+omitted). Diagnostic maps (uncompressed DX10 DDS, ingested to BC7 `.rtex.dds`):
+flat green and magenta albedo, roughness 0 and 1, a 45 degree 8x8 checker
+normal and a flat normal. Results against base-mod-8, coverage mask = pixels
+where the green and magenta renders differ by more than 80 in R and G:
+floor `78918ECF7600A708` (mask 75144 px): green 75144 inside (mean 93) plus
+153522 outside (mean 36, the green floor's bounce over the whole scene, visibly
+a tint); roughness 0: 61089 inside (temple reflected in a mirror floor) and
+46103 outside; roughness 1: 2224 inside (the draft roughness is already near
+matte); normal checker: 51414 inside (tilted tiles, visible) and 193318 outside
+(shadow and bounce changes plus floor area the albedo mask misses in shadow);
+flat normal: 419 inside, 67 outside, so the AI draft normal map is visually
+inert. Taki mask/top/shoes material `940953E6DC0A196B` (mask 1625 px): green
+1625 inside (mean 153) and 2703 outside (mean 38, bounce and edges);
+roughness 0: 589 inside; roughness 1: 625 inside; normal checker: 722 inside;
+flat normal: 4 inside. Controls: a missing replacement (ingested green map
+bound, file hidden) renders within noise of the baseline inside the floor
+mask (44675 pixels at mean 34, the same low-magnitude tint band as repeats
+over the floor) and the runtime logs "asset data cannot be found or
+corrupted", i.e. the original is used; a wrong binding is caught by the
+manifest tool's slot-suffix check (unit-tested) and the earlier normal-in-
+diffuse control (LOG794) remains the runtime evidence; mapping survives
+restart: base-mod-1/8/9 are three helper starts, 21 to 976 pixels apart. The
+manifest tool now reads mod sublayers and reports wrong-slot and missing
+bindings (none in the draft). Review sheets `floor-sheet.png`,
+`taki-sheet.png`, `albedo-sheet.png` are in the evidence directory. Not
+established: any visual benefit of the draft maps (none at 640x480), mip or
+tangent behaviour beyond "DX normal convention renders with the expected
+tilt direction", and anything about motion. Next: substep B (same-source
+smooth-normal comparison and the per-material alpha candidate).
+
 LOG795 D-224 pilot opened; documents reconciled; scene inventory and material
 manifest. State on entry: HEAD 81654643daeaf0b4333978ee4a99da649dd40a6b equal
 to fork `feat/neural-rendering`; worktree carried only the private untracked

@@ -122,7 +122,11 @@ first source after runtime startup (`live_first_source=deferred-until-runtime-st
 vertex. The D-224 pilot look is opt-in only: it is selected by the mod layer
 present under the runtime's `rtx-remix/mods` directory, an explicitly supplied
 `--consumer-config` profile and the shading flags above; with none of them the
-session renders the original materials under the diagnostic light. The helper honours two diagnostic environment bounds the launcher never
+session renders the original materials under the diagnostic light. The mod is
+a thin `mod.usda` root with its material opinions in `layers/ai_pbr_draft.usda`
+so that stronger experiment layers can be inserted first (LOG796);
+`neuraltest/remix_mcp_client.py` drives the Toolkit MCP server and
+`neuraltest/remake_material_manifest.py` writes the material manifest. The helper honours two diagnostic environment bounds the launcher never
 sets: `FLYCAST_REMAKE_HELPER_LINGER_MS` and `FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS`
 (D-222, standalone Remix USD capture and mod-loading renders). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
