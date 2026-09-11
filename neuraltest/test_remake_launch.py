@@ -190,6 +190,13 @@ class LaunchPreflightTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             prepare(self.args)
         self.args.alpha_combined_off = False; self.args.alpha_cutout = False
+        self.assertNotIn('FLYCAST_REMAKE_CURVED_EXPORT', prepare(self.args)[2])
+        self.args.curved_export = True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.smooth_normals_weld = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CURVED_EXPORT'], '1')
+        self.args.curved_export = False; self.args.smooth_normals_weld = False
         self.assertNotIn('FLYCAST_REMAKE_SMOOTH_NORMALS', prepare(self.args)[2])
         self.args.smooth_normals = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SMOOTH_NORMALS'], '1')

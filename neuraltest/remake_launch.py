@@ -64,6 +64,11 @@ def prepare(args):
         if getattr(args, 'alpha_combined_off', False):
             raise ValueError('--alpha-cutout requires the promoted alpha surfaces (not --alpha-combined-off)')
         env['FLYCAST_REMAKE_ALPHA_CUTOUT'] = '1'
+    # D-241 candidate (experimental, default off): curved PN-triangle export; needs smoothed normals.
+    if getattr(args, 'curved_export', False):
+        if not (getattr(args, 'smooth_normals', False) or getattr(args, 'smooth_normals_weld', False)):
+            raise ValueError('--curved-export requires --smooth-normals or --smooth-normals-weld')
+        env['FLYCAST_REMAKE_CURVED_EXPORT'] = '1'
     # D-223 experimental shading option (default off): smoothed export normals.
     if getattr(args, 'smooth_normals', False):
         env['FLYCAST_REMAKE_SMOOTH_NORMALS'] = '1'
@@ -299,6 +304,8 @@ def main():
                    help='A/B control: disable the promoted alpha surfaces (FLYCAST_REMAKE_ALPHA_COMBINED=0)')
     p.add_argument('--opaque-alpha-one', action='store_true',
                    help='A/B control: the helper draws opaque meshes with alpha one (FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1)')
+    p.add_argument('--curved-export', action='store_true',
+                   help='Experimental (D-241): curved PN-triangle export of the smoothed geometry (FLYCAST_REMAKE_CURVED_EXPORT=1); requires smoothed normals')
     p.add_argument('--alpha-cutout', action='store_true',
                    help='Experimental (D-240): promoted alpha draws with cutout texture alpha travel as alpha-tested cutouts (FLYCAST_REMAKE_ALPHA_CUTOUT=1); the rest stay native')
     p.add_argument('--smooth-normals-weld', action='store_true',
@@ -334,7 +341,7 @@ def main():
                   hook_cycles=args.cpu_timing and args.hook_cycles,
                   renderer=args.renderer,
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
-                  alpha_cutout=args.alpha_cutout,
+                  alpha_cutout=args.alpha_cutout, curved_export=args.curved_export,
                   smooth_normals=args.smooth_normals, smooth_normals_weld=args.smooth_normals_weld,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,

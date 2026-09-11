@@ -43,7 +43,7 @@ def materials(path, exact_geometry=False):
         require(len(dds) >= 148 and dds[:4] == b'DDS ', 'material DDS missing')
         require(mesh not in result, 'duplicate mesh')
         result[mesh] = (state, identity, hashlib.sha256(dds).hexdigest())
-        n = count(65536-vertices);vertices += n;vertex_data = take(n*36)
+        n = count(196608-vertices);vertices += n;vertex_data = take(n*36)
         n = count(262144-indices);indices += n;index_data = take(n*4)
         if exact_geometry:
             lengths = struct.pack('<II', len(vertex_data), len(index_data))

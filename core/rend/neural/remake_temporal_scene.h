@@ -43,7 +43,7 @@ inline std::shared_ptr<RemakeTemporalScene> CaptureRemakeTemporalScene(const rem
  if(!std::isfinite(origin.x)||!std::isfinite(origin.y)||!std::isfinite(origin.z))return fail("temporal-source-origin");
  std::size_t vertices=0,indices=0;
  for(const auto& mesh:packet.meshes) {
-  if(!mesh.sourceTsp||mesh.topology!=remake::Topology::Triangles||mesh.vertices.size()>65536-vertices
+  if(!mesh.sourceTsp||mesh.topology!=remake::Topology::Triangles||mesh.vertices.size()>remake::Limits{}.vertices-vertices
    ||mesh.indices.size()>262144-indices)return fail("temporal-source-bound-or-topology");
   vertices+=mesh.vertices.size();indices+=mesh.indices.size();
  }

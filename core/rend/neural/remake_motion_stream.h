@@ -39,7 +39,7 @@ inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& ou
  std::size_t vertices=0,indices=0;
  for(std::size_t ordinal=0;ordinal<scene.meshes.size();++ordinal) {
   const auto& mesh=scene.meshes[ordinal];
-  if(mesh.vertices.size()<3||mesh.vertices.size()>65536-vertices||mesh.indices.size()<3
+  if(mesh.vertices.size()<3||mesh.vertices.size()>remake::Limits{}.vertices-vertices||mesh.indices.size()<3
    ||mesh.indices.size()>262144-indices||mesh.indices.size()%3||(mesh.id>>32)>65535)return false;
   vertices+=mesh.vertices.size();indices+=mesh.indices.size();
   DrawRecord d;d.ordinal=std::uint16_t(ordinal);d.list=std::uint16_t(mesh.id>>32);d.stripCount=1;

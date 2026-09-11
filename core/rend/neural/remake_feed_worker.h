@@ -9,6 +9,7 @@
 #include "remake_view_transport.h"
 #include "remake_alpha_ownership.h"
 #include "remake_alpha_cutout.h"
+#include "remake_curved_export.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -52,6 +53,8 @@ struct RemakeFeedJob {
  // D-240 hair option 1: promoted alpha meshes with cutout texture alpha travel
  // as alpha-tested cutouts; the rest are removed from the packet and stay native.
  bool alphaCutout=false;
+ // D-241 candidate: curved PN-triangle export of the smoothed geometry.
+ bool curvedExport=false;
  std::function<RemakeChannelResult(const remake::Packet&,RemakeChannelReceipt&,std::string&)> publish;
 };
 struct RemakeFeedResult {
@@ -67,8 +70,8 @@ struct RemakeFeedResult {
  // Texture identities the consumer registered from this published packet
  // (D-212); the render thread records them as sent only after Published.
  std::vector<remake::TextureIdentity> registeredTextures;std::size_t registeredBytes=0;
- bool alphaOwnership=false,alphaCutout=false;RemakeAlphaCutoutPromotion cutout;
- double workerMs=0,packetMs=0,anchorMs=0,temporalMs=0,publishMs=0; // Diagnostic stage times inside the worker.
+ bool alphaOwnership=false,alphaCutout=false,curvedExport=false;RemakeAlphaCutoutPromotion cutout;RemakeCurvedExportReport curved;
+ double workerMs=0,packetMs=0,anchorMs=0,temporalMs=0,publishMs=0,curvedMs=0; // Diagnostic stage times inside the worker.
 };
 class RemakeFeedWorker {
  mutable std::mutex mutex;std::condition_variable wake;std::thread thread;
@@ -128,16 +131,26 @@ class RemakeFeedWorker {
    r.generation=proposed.Generation();r.support=proposed.LastSupportReport();
    if(r.support.available&&!r.support.rejected&&(r.support.rotationFromLastDegrees>20||r.support.translationFromLast>1))r.viewCut=true;
   }
-  if(job.temporal) {
+  if(job.curvedExport){const auto curvedStart=elapsed();r.curvedExport=true;r.curved=CurveRemakePacket(job.packet,remake::Limits{}.vertices,&chunkWorkers);r.curvedMs=elapsed()-curvedStart;}
+  // Temporal capture and publish both only read the finished packet, so they
+  // run side by side on the chunk workers; the temporal outcome is still
+  // judged first, exactly as when they ran in sequence.
+  RemakeChannelReceipt receipt;std::string temporalError,publishError;
+  RemakeChannelResult result=RemakeChannelResult::Invalid;
+  const auto captureTemporal=[&]{
    const auto temporalStart=elapsed();
-   r.temporalScene=CaptureRemakeTemporalScene(job.packet,error);
+   r.temporalScene=CaptureRemakeTemporalScene(job.packet,temporalError);
    r.temporalMs=elapsed()-temporalStart;
-   if(!r.temporalScene){r.stage="temporal-source";r.error=error;r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;}
-  }
-  RemakeChannelReceipt receipt;
-  const auto publishStart=elapsed();
-  const auto result=job.publish?job.publish(job.packet,receipt,error):RemakeChannelResult::Invalid;
-  r.publishMs=elapsed()-publishStart;
+  };
+  const auto publishPacket=[&]{
+   const auto publishStart=elapsed();
+   result=job.publish?job.publish(job.packet,receipt,publishError):RemakeChannelResult::Invalid;
+   r.publishMs=elapsed()-publishStart;
+  };
+  if(job.temporal)chunkWorkers.Run(2,[&](unsigned index){if(index==0)publishPacket();else captureTemporal();});
+  else publishPacket();
+  if(job.temporal&&!r.temporalScene){r.stage="temporal-source";r.error=temporalError;r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;}
+  error=publishError;
   if(result!=RemakeChannelResult::Published) {
    r.stage="publish";r.error=error.empty()?"feed-publisher-missing":error;
    r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;

@@ -11,6 +11,7 @@
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
+#include "rend/neural/remake_curved_export.h"
 #include "remake_smoothing_reference.h"
 #include "rend/neural/remake_return_worker.h"
 #include "rend/neural/remake_frame_budget.h"
@@ -368,7 +369,7 @@ int RunSelfTests()
 		const auto quad=[](float u0,float u1,float v0,float v1,std::uint64_t id,bool blend){
 			remake::Mesh m;m.id=id;m.sourceAlphaBlend=blend;m.sourceTsp=(4u<<29)|(5u<<26)|(3u<<6);m.texture={7,1,0,0,true};
 			m.material.emplace();m.material->sourceTexture=m.texture;
-			for(auto [u,v]:{std::pair{u0,v0},std::pair{u1,v0},std::pair{u1,v1}}){remake::Vertex x;x.position={u,v,1};x.normal=remake::Vec3{0,0,1};x.u=u;x.v=v;x.publicColor=0xffffffffu;m.vertices.push_back(x);}
+			for(auto [u,v]:{std::pair{u0,v0},std::pair{u1,v0},std::pair{u1,v1}}){remake::Vertex x;x.position={u,v,1+v};x.normal=remake::Vec3{0,0,1};x.u=u;x.v=v;x.publicColor=0xffffffffu;m.vertices.push_back(x);}
 			m.indices={0,1,2};return m;};
 		const auto strands=quad(0,.5f,0,1,(2ull<<32)|1,true),gradient=quad(.5f,1,0,1,(2ull<<32)|2,true),wrapped=quad(-1,2,0,1,(2ull<<32)|3,true);
 		auto sStrands=MeasureRemakeAlphaCutout(decoded,strands),sGradient=MeasureRemakeAlphaCutout(decoded,gradient),sWrapped=MeasureRemakeAlphaCutout(decoded,wrapped);
@@ -404,6 +405,47 @@ int RunSelfTests()
 		auto sheets=PromoteRemakeAlphaCutouts(vertexAlpha,cache);
 		suite.Expect(sheets.promoted==2&&sheets.keptNative==1&&vertexAlpha.meshes.size()==2&&vertexAlpha.meshes[0].id==opaqueVertex.id
 			&&vertexAlpha.meshes[1].id==ignoredVertex.id,"alpha cutout keeps a vertex-alpha translucent sheet native");
+		auto message=strands;message.id=(2ull<<32)|9;message.material->sourceDdsBytes=atlas;
+		for(auto& v:message.vertices)v.position.z=1.f;
+		auto tilted=message;tilted.id=(2ull<<32)|10;tilted.vertices[2].position.z=1.01f;
+		remake::Packet flat;flat.meshes={message,tilted};
+		auto flats=PromoteRemakeAlphaCutouts(flat,cache);
+		suite.Expect(flats.promoted==1&&flats.keptNative==1&&flat.meshes.size()==1&&flat.meshes[0].id==tilted.id,
+			"alpha cutout keeps a constant-depth screen message native");
+		{
+			// D-241 candidate: curved PN-triangle export.
+			const auto tri=[](remake::Vec3 n0,remake::Vec3 n1,remake::Vec3 n2,bool blend=false){
+				remake::Mesh m;m.id=(0ull<<32)|1;m.sourceAlphaBlend=blend;m.sourceTsp=3u<<6;m.texture={7,1,0,0,true};m.material.emplace();
+				const remake::Vec3 p[3]={{0,0,2},{1,0,2},{0,1,2}};const remake::Vec3 n[3]={n0,n1,n2};
+				for(int i=0;i<3;++i){remake::Vertex v;v.position=p[i];v.normal=n[i];v.u=i==1;v.v=i==2;v.publicColor=i==0?0xff0000ffu:0xffffffffu;m.vertices.push_back(v);m.indices.push_back(i);}
+				return m;};
+			// Corner normals tilted 128 degrees apart and within 60 degrees of grazing to the camera ray.
+			const float s=.9f,t=.436f;
+			remake::Packet flat;flat.meshes={tri({0,0,-1},{0,0,-1},{0,0,-1})};
+			auto flatReport=CurveRemakePacket(flat);
+			suite.Expect(!flatReport.applied&&flatReport.flatTriangles==1&&flatReport.curvedTriangles==0&&flat.meshes[0].vertices.size()==3
+				&&std::string(flatReport.reason)=="no-curved-triangles","curved export leaves coplanar facets untouched");
+			remake::Packet curved;curved.meshes={tri({-s,0,-t},{s,0,-t},{-s,0,-t})};
+			const auto before=curved;auto report=CurveRemakePacket(curved);
+			const auto& out=curved.meshes[0].vertices;
+			bool corners=out.size()==12&&curved.meshes[0].indices.size()==12&&curved.meshes[0].indices[11]==11
+				&&out[0].position.x==0&&out[0].position.y==0&&out[4].position.x==1&&out[8].position.y==1;
+			// Edge midpoint between the two outward-tilted corners bulges toward the camera (smaller z).
+			const auto& ab=out[1];
+			suite.Expect(report.applied&&report.curvedTriangles==1&&report.meshes==1&&report.verticesAfter==12&&corners
+				&&ab.position.z<2-.05f&&std::abs(ab.position.x-.5f)<1e-5f&&std::abs(ab.u-.5f)<1e-6f&&ab.normal&&std::abs(ab.normal->x)<1e-4f
+				&&(ab.publicColor&255)==255&&((ab.publicColor>>8)&255)==128,"curved export bulges a curved facet along its normals with interpolated attributes");
+			auto again=before;auto second=CurveRemakePacket(again);
+			bool same=second.applied&&again.meshes[0].vertices.size()==out.size();
+			for(std::size_t i=0;same&&i<out.size();++i)same=again.meshes[0].vertices[i].position.z==out[i].position.z&&again.meshes[0].vertices[i].publicColor==out[i].publicColor;
+			suite.Expect(same,"curved export is deterministic");
+			auto bounded=before;auto boundReport=CurveRemakePacket(bounded,11);
+			suite.Expect(!boundReport.applied&&std::string(boundReport.reason)=="vertex-bound"&&bounded.meshes[0].vertices.size()==3,
+				"curved export applies nothing when the vertex bound would be exceeded");
+			remake::Packet blended;blended.meshes={tri({-s,0,-t},{s,0,-t},{-s,0,-t},true)};
+			auto blendReport=CurveRemakePacket(blended);
+			suite.Expect(!blendReport.applied&&blended.meshes[0].vertices.size()==3,"curved export never touches blended meshes");
+		}
 		remake::Packet cutoutAlready;auto pt=strands;pt.sourceAlphaBlend=false;pt.sourceAlphaReference=200;cutoutAlready.meshes={pt};
 		auto untouched=PromoteRemakeAlphaCutouts(cutoutAlready,cache);
 		suite.Expect(untouched.promoted==0&&untouched.keptNative==0&&cutoutAlready.meshes.size()==1&&cutoutAlready.meshes[0].sourceAlphaReference==200,

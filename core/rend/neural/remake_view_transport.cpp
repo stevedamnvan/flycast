@@ -2,6 +2,7 @@
 #include "remake_view_transport.h"
 #include <array>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 namespace flycast::rend::neural {
@@ -193,7 +194,7 @@ void packet(Wire& wire,remake::Packet& p) {
   auto& data=mesh.material->sourceDdsBytes;const auto length=wire.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=length;
   require(mode==2?length==0:mode==1?length>0:true,"view-wire-texture-mode");
   if(wire.reading())data.resize(length);if(length)wire.bytes(data.data(),length);
-  const auto vertices=wire.count(mesh.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=vertices;
+  const auto vertices=wire.count(mesh.vertices.size(),unsigned(remake::Limits{}.vertices-vertexTotal));vertexTotal+=vertices;
   if(wire.reading())mesh.vertices.resize(vertices);
   for(auto& vertex:mesh.vertices) {
    wire.vector(vertex.position);if(wire.reading())vertex.normal.emplace();require(vertex.normal.has_value(),"view-wire-normal-required");
@@ -219,6 +220,19 @@ struct ConstWire {
  void wide(std::uint64_t v){word(std::uint32_t(v));word(std::uint32_t(v>>32));}
  void real(float v){require(std::isfinite(v),"view-wire-nonfinite");std::uint32_t bits;std::memcpy(&bits,&v,4);word(bits);}
  void vector(const remake::Vec3& v){real(v.x);real(v.y);real(v.z);}
+ // One 36-byte record per vertex: the same little-endian words as nine
+ // real/word calls (verified byte-identical by the round-trip tests), staged
+ // with one append instead of nine. Finite checks are unchanged.
+ void vertex(const remake::Vertex& v) {
+  require(v.normal.has_value(),"view-wire-normal-required");
+  const float reals[8]={v.position.x,v.position.y,v.position.z,v.normal->x,v.normal->y,v.normal->z,v.u,v.v};
+  for(float r:reals)require(std::isfinite(r),"view-wire-nonfinite");
+  static_assert(std::numeric_limits<float>::is_iec559&&sizeof(float)==4,"vertex record");
+  unsigned char record[36];std::memcpy(record,reals,32);
+  for(unsigned i=0;i<4;++i)record[32+i]=static_cast<unsigned char>(v.publicColor>>(8*i));
+  bytes(record,36);
+ }
+ void reserve(std::size_t n){staged.reserve(staged.size()+n);}
  void count(std::size_t n,unsigned bound){require(n<=bound,"view-wire-count");word(std::uint32_t(n));}
  void string(const std::string& s,unsigned bound){count(s.size(),bound);if(!s.empty())bytes(s.data(),s.size());}
  void flush(){require(bool(out->write(staged.data(),std::streamsize(staged.size()))),"view-wire-write");staged.clear();}
@@ -251,9 +265,14 @@ void writePacket(ConstWire& w,const remake::Packet& p) {
   require(mode==2?data.empty():mode==1?!data.empty():true,"view-wire-texture-mode");
   w.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=data.size();
   if(!data.empty())w.bytes(data.data(),data.size());
-  w.count(m.vertices.size(),unsigned(65536-vertexTotal));vertexTotal+=m.vertices.size();
-  for(const auto& v:m.vertices){w.vector(v.position);require(v.normal.has_value(),"view-wire-normal-required");w.vector(*v.normal);w.real(v.u);w.real(v.v);w.word(v.publicColor);}
-  w.count(m.indices.size(),unsigned(262144-indexTotal));indexTotal+=m.indices.size();for(auto i:m.indices)w.word(i);
+  w.count(m.vertices.size(),unsigned(remake::Limits{}.vertices-vertexTotal));vertexTotal+=m.vertices.size();
+  w.reserve(m.vertices.size()*36+m.indices.size()*4);
+  for(const auto& v:m.vertices)w.vertex(v);
+  w.count(m.indices.size(),unsigned(262144-indexTotal));indexTotal+=m.indices.size();
+  static_assert(sizeof(std::uint32_t)==4,"index word");
+  {std::vector<unsigned char> words(m.indices.size()*4);
+   for(std::size_t i=0;i<m.indices.size();++i)for(unsigned b=0;b<4;++b)words[i*4+b]=static_cast<unsigned char>(m.indices[i]>>(8*b));
+   if(!words.empty())w.bytes(words.data(),words.size());}
  }
  require(p.producer.Available()&&p.game=="T1401N"&&p.frame,"view-wire-identity");
 }

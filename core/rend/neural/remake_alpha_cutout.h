@@ -93,6 +93,15 @@ inline bool RemakeVertexAlphaOpaque(const remake::Mesh& mesh) {
  for(const auto& v:mesh.vertices)if((v.publicColor>>24)<250)return false;
  return true;
 }
+// A draw whose every vertex sits at one camera depth is a screen-aligned
+// sprite or message (ring-out text, flashes), not scene geometry: it stays
+// native. Relative spread below one part in ten thousand counts as constant.
+inline bool RemakeDrawHasDepthExtent(const remake::Mesh& mesh) {
+ if(mesh.vertices.empty())return false;
+ float lo=mesh.vertices[0].position.z,hi=lo;
+ for(const auto& v:mesh.vertices){if(!std::isfinite(v.position.z))return false;lo=std::min(lo,v.position.z);hi=std::max(hi,v.position.z);}
+ return hi-lo>1e-4f*std::max(std::abs(hi),1e-6f);
+}
 struct RemakeAlphaCutoutPromotion {
  unsigned promoted=0,keptNative=0,undecoded=0; // Per packet; keptNative meshes are removed from the packet.
  std::vector<std::uint64_t> promotedIds;
@@ -109,7 +118,7 @@ inline RemakeAlphaCutoutPromotion PromoteRemakeAlphaCutouts(remake::Packet& pack
   else if(mesh.texture.known)plane=cache.Find(mesh.texture);
   if(!plane){++result.undecoded;++result.keptNative;continue;}
   const auto stats=MeasureRemakeAlphaCutout(*plane,mesh);
-  if(!RemakeAlphaCutoutQualifies(stats)||!RemakeVertexAlphaOpaque(mesh)){++result.keptNative;continue;}
+  if(!RemakeAlphaCutoutQualifies(stats)||!RemakeVertexAlphaOpaque(mesh)||!RemakeDrawHasDepthExtent(mesh)){++result.keptNative;continue;}
   mesh.sourceAlphaBlend=false;mesh.sourceAlphaReference=RemakeAlphaCutoutReference;
   ++result.promoted;result.promotedIds.push_back(mesh.id);kept.push_back(std::move(mesh));
  }

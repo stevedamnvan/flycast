@@ -81,7 +81,8 @@ struct Packet {
  std::vector<Mesh> meshes;
 };
 struct Limits {
- std::size_t meshes = 128, vertices = 65536, indices = 262144, bytes = 8 * 1024 * 1024;
+ // Vertices: three times the source expansion bound so the curved export (D-241) fits; indices bound unchanged.
+ std::size_t meshes = 128, vertices = 196608, indices = 262144, bytes = 8 * 1024 * 1024;
  // File-backed assets were outside the geometry packet budget. Live payloads
  // have their own aggregate bound, not an unbounded allowance per draw.
  std::size_t textureBytes = 64 * 1024 * 1024;

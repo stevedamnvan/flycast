@@ -1,5 +1,58 @@
 # Neural rendering evidence log
 
+LOG905 curved export (D-241 candidate) and the smoothing pass: the user
+judged the characters "blocks" after LOG904; the block look is the
+polygon silhouette of the source meshes (about 1.4k triangles per
+fighter), which no anti-aliasing changes. Three changes, all
+experimental and opt-in. (1) Runtime anti-aliasing: the owned consumer
+profile `exposure-probe-a-dlss.conf` (substep H, runtime default DLSS)
+replaces the native-shading profile for the pilot runs; pixel edges are
+smoothed (`pilot-hair-cutout-dlss`, `-dlss-b`), the silhouette is not.
+(2) `--curved-export` (FLYCAST_REMAKE_CURVED_EXPORT=1, requires smoothed
+normals; `remake_curved_export.h`): after the anchor, each opaque or
+cutout triangle whose smoothed vertex normals disagree by more than 20
+degrees and which has at least one vertex normal within 60 degrees of
+grazing to its camera ray (a silhouette facet; interior facets already
+shade smoothly) is replaced by four sub-triangles on its cubic
+point-normal patch (Vlachos et al. 2001); corners keep their exact
+source attributes, edge midpoints interpolate texture coordinates and
+colour linearly; blended meshes are never touched; the packet vertex
+bound was raised from 65536 to 196608 (Limits, wire, temporal, motion
+stream; the source expansion bound stays 65536) and a packet that would
+exceed it is left uncurved with reason `vertex-bound`. Typical fight
+frame: 3.1k of 8.6k triangles curved, 25.7k to 53.7k vertices. Notice
+per source: `Remake curved export: source= applied= reason= meshes=
+curved_triangles= flat_triangles= vertices=A->B`. (3) Feed worker cost,
+measured with `--cpu-timing` (p50 ms, `pilot-curved-cost` a to f): the
+first curved run took the worker from 12.4 (LOG806 baseline) to 30.9 ms
+(publish 15.9, temporal 5.2) and the presentation latched on every third
+source; the worker now runs 14.1 ms with curved 1.0, packet 3.0, anchor
+3.1, temporal 1.8 beside publish 6.6 (serialize 4.6, digest 1.7). Changes
+that produced this, each justified by these stage timings: the packet
+writer stages one 36-byte record per vertex and one block per index list
+(same bytes; round-trip and byte-identical tests unchanged); temporal
+capture runs on a chunk worker beside publish (both read the finished
+packet; the temporal outcome is still judged first); the curved meshes
+are split across four chunk workers; and the scene readiness check
+validates the camera and computes the lens tangent once per mesh instead
+of once per vertex (same checks and exception order). Publish is now the
+largest stage and is serialization-bound. (4) Rules learned on the way:
+the cutout promotion keeps native any draw whose vertex alpha is
+translucent (LOG904) and any draw whose vertices share one camera depth
+(screen messages); the ring-out message is nevertheless dark in the
+Remix stage because its opaque letter meshes sit 3.6 units from the
+camera and are lit as geometry, an open item. Evidence: `pilot-curved-b`
+(first look, `xianghua-legs-2710.png`), `pilot-curved-d` (tuned; frames
+2756..2770 are the round-two intro on the water stage, both fighters
+rounded, HUD/world mismatches 0), cost runs a to f. Capture runs still
+show worker-busy fallbacks (267) and late capture windows because the
+capture path itself adds worker and render-thread work; the no-capture
+cost run has 2 fallbacks in 600 sources. Builds: automation, baseline,
+no-ngx, off exit 0; selftest 1020/0 three times (six new curved cases,
+one new cutout case); remake-sdk-contract 302/0; launcher tests 26 OK.
+Not performance-eligible; not a default; the faithful candidate is
+unchanged until the Hoko-stage A/B.
+
 LOG904 hair option 1 implemented: alpha cutout promotion (D-240,
 experimental, opt-in `--alpha-cutout` = FLYCAST_REMAKE_ALPHA_CUTOUT=1,
 requires alpha ownership; not a default). `remake_alpha_cutout.h`: the

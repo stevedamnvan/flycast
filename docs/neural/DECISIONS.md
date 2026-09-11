@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-241: curved point-normal export is an opt-in shaping of exported geometry, not source geometry
+
+LOG905. `--curved-export` replaces silhouette facets of the exported opaque
+and cutout meshes with cubic point-normal patches built only from the
+draw's own positions and the smoothed export normals (D-223/D-225); corner
+vertices keep their exact source attributes and the source stream, the
+certificate and native composition are untouched. It is a look option on
+the consumer's copy of the geometry, default off, never a claim about the
+game's geometry. The packet vertex bound rises to 196608 for it; a packet
+that would exceed the bound is sent uncurved and says so. Feed-worker
+stage timings justify the accompanying serialization, validation and
+parallelism changes; they change no bytes on the wire and no check.
+
 ## D-240: the user authorises a narrowed observation scope for 60 fps and hair option 1
 
 After LOG897/LOG898/LOG903 the user chose 60 fps at 1280x960 over the full

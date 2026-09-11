@@ -2852,6 +2852,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			if(fed.anchorMs>0)
 				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-anchor elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 					(unsigned long long)fed.frame,fed.anchorMs);
+			if(fed.curvedMs>0)
+				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-curved elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
+					(unsigned long long)fed.frame,fed.curvedMs);
 			if(fed.temporalMs>0)
 				NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=feed-worker-temporal elapsed_ms=%.6f includes_driver_wait=false diagnostic=true",
 					(unsigned long long)fed.frame,fed.temporalMs);
@@ -2898,6 +2901,10 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(fed.alphaOwnership)
 			NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
 				(unsigned long long)fed.frame,unsigned(fed.overlay.alphaEffectSelections.size()));
+		if(fed.curvedExport)
+			NOTICE_LOG(RENDERER,"Remake curved export: source=%llu applied=%d reason=%s meshes=%u curved_triangles=%u flat_triangles=%u vertices=%u->%u scope=experimental",
+				(unsigned long long)fed.frame,fed.curved.applied,fed.curved.reason,unsigned(fed.curved.meshes),unsigned(fed.curved.curvedTriangles),
+				unsigned(fed.curved.flatTriangles),unsigned(fed.curved.verticesBefore),unsigned(fed.curved.verticesAfter));
 		if(fed.alphaCutout)
 			NOTICE_LOG(RENDERER,"Remake alpha cutout promotion: source=%llu promoted=%u kept_native=%u undecoded=%u reference=%u max_mid=0.5 scope=experimental",
 				(unsigned long long)fed.frame,fed.cutout.promoted,fed.cutout.keptNative,fed.cutout.undecoded,unsigned(flycast::rend::neural::RemakeAlphaCutoutReference));
@@ -3008,6 +3015,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	const auto* alphaCutoutOption=std::getenv("FLYCAST_REMAKE_ALPHA_CUTOUT");
 	const bool alphaCutout=alphaCutoutOption&&std::strcmp(alphaCutoutOption,"1")==0;
 	if(alphaCutout&&!alphaCombined){skip("alpha-cutout","requires-alpha-combined");return;}
+	const auto* curvedOption=std::getenv("FLYCAST_REMAKE_CURVED_EXPORT");
+	const bool curvedExport=curvedOption&&std::strcmp(curvedOption,"1")==0;
+	if(curvedExport&&!RemakeSmoothNormalsEnabled()){skip("curved-export","requires-smooth-normals");return;}
 	const auto* neuralOption=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
 	if(alphaCombined&&(alphaPreview||!RemakeNativeEffectsRequested()||!neuralOption||std::strcmp(neuralOption,"1")!=0)) {
 		skip("alpha-combined","requires-owned-effects-and-evaluation");return;
@@ -3119,7 +3129,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	job.smoothNormals=RemakeSmoothNormalsEnabled();
 	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
 	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;
-	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);job.alphaCutout=alphaCombined&&alphaCutout;
+	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);job.alphaCutout=alphaCombined&&alphaCutout;job.curvedExport=curvedExport;
 	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);

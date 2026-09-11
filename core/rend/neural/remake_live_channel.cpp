@@ -235,8 +235,13 @@ RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,Rema
   // Serialization and digest run without the lock; the mapping stays alive
   // through `held` even if the render thread closes the channel meanwhile.
   OutputBuffer buffer(slot->payload);std::ostream output(&buffer);
-  if(!SerializeRemakeViewPacket(output,packet,error))return RemakeChannelResult::Invalid;
-  const auto bytes=std::uint32_t(buffer.size());const auto hash=digest(slot->payload,bytes);
+  static thread_local unsigned serializeCount=0,digestCount=0;
+  {
+   RemakeCpuScope serializeTiming("feed-publish-serialize",packet.frame,serializeCount);
+   if(!SerializeRemakeViewPacket(output,packet,error))return RemakeChannelResult::Invalid;
+  }
+  const auto bytes=std::uint32_t(buffer.size());std::uint64_t hash=0;
+  {RemakeCpuScope digestTiming("feed-publish-digest",packet.frame,digestCount);hash=digest(slot->payload,bytes);}
   std::lock_guard<std::mutex> lock(mutex_);
   if(impl_!=held||!held->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
   auto& p=*held;

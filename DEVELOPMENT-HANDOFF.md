@@ -32,7 +32,9 @@ polygonal; LOG903 audit: the strands are native-composited alpha draws, not mod
 content). D-240/LOG904: the user chose 60 fps (narrowed observation
 scope authorised) and hair option 1; `--alpha-cutout` is implemented and
 evidenced on the water stage (`C:\Flycast-Evidence\pilot-hair-cutout-b`;
-D: is full). Next,
+D: is full). LOG905/D-241: `--curved-export` rounds the fighters'
+silhouettes (feed worker 14.1 ms with it) and the DLSS consumer profile
+smooths edges; `pilot-curved-d`. Next,
 in order: (1) the 60 fps observation-scope decision (LOG897/LOG898); (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next

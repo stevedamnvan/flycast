@@ -183,13 +183,23 @@ static Result ReadyForScene(const Packet& p, std::uint64_t frame, const std::str
    || material.albedo.y<0 || material.albedo.y>1 || material.albedo.z<0 || material.albedo.z>1
    || !std::isfinite(material.roughness) || material.roughness<0 || material.roughness>1)
    return {false,"material-parameters"};
+  // Same checks as projecting every vertex through Project(): the camera is
+  // validated once and the lens tangent computed once instead of per vertex.
+  if (p.camera.provenance == Provenance::Unknown || !validCamera(p.camera)) throw std::invalid_argument("projection");
+  const double t=std::tan(double(p.camera.fovY)*3.14159265358979323846/360.0);
+  const auto& c=p.camera;
   for (const auto& v : m.vertices) {
    if (!v.normal) return {false, "normal-unknown"};
    auto world = WorldPosition(m, v);
-   const Vec3 delta{world.x-p.camera.position.x,world.y-p.camera.position.y,world.z-p.camera.position.z};
-   if (!finite(world) || dot(delta,p.camera.forward) <= 0) return {false, "clip-unsupported"};
-   auto s = Project(p.camera, world);
-   if (!finite(s) || s.z < p.camera.nearPlane || s.z > p.camera.farPlane) return {false, "clip-unsupported"};
+   if (!finite(world)) return {false, "clip-unsupported"};
+   const double dx=double(world.x)-c.position.x,dy=double(world.y)-c.position.y,dz=double(world.z)-c.position.z;
+   const double z=dx*c.forward.x+dy*c.forward.y+dz*c.forward.z;
+   const Vec3 delta{world.x-c.position.x,world.y-c.position.y,world.z-c.position.z};
+   if (dot(delta,c.forward) <= 0) return {false, "clip-unsupported"};
+   if (z <= 0) throw std::invalid_argument("behind camera");
+   const double x=dx*c.right.x+dy*c.right.y+dz*c.right.z,y=dx*c.up.x+dy*c.up.y+dz*c.up.z;
+   const Vec3 s{float(0.5+x/(2*z*t*c.aspect)),float(0.5-y/(2*z*t)),float(z)};
+   if (!finite(s) || s.z < c.nearPlane || s.z > c.farPlane) return {false, "clip-unsupported"};
   }
  }
  return {true, diagnostic?"diagnostic-only-ready":"synthetic-untextured-adapter-ready"};

@@ -118,7 +118,10 @@ and `--opaque-alpha-one` are the D-220 translucency A/B controls (diagnostic,
 default off). `--alpha-cutout` (D-240, LOG904, experimental, default off,
 refused with `--alpha-combined-off`) sends promoted alpha draws whose texture
 alpha is a cutout (and whose vertex alpha is opaque) to the consumer as
-alpha-tested cutouts; the others stay native. The helper logs `texture_register ... content_digest=` per
+alpha-tested cutouts; the others stay native. `--curved-export` (D-241,
+LOG905, experimental, default off, requires `--smooth-normals` or
+`--smooth-normals-weld`) rounds silhouette facets of the exported opaque and
+cutout meshes with point-normal patches. The helper logs `texture_register ... content_digest=` per
 texture registration (D-220) and, in the live return-only mode, receives its
 first source after runtime startup (`live_first_source=deferred-until-runtime-start`).
 `--smooth-normals` (D-223, default off) averages exported face normals per source
