@@ -224,6 +224,7 @@ void DX11Renderer::Term()
 #ifdef FLYCAST_ENABLE_NEURAL
 	remakeFeedWorker.Stop();remakeReturnWorker.Stop();
 	for(auto& pooled:remakeOwnedOutputs){pooled.view.reset();pooled.texture.reset();}
+	remakeDisplayQuad.reset();remakeDisplayContext.reset();
 	remakeDepthUpload.reset();
 	remakePaletteUpload.reset();
 	neuralStage.Shutdown();
@@ -2417,6 +2418,8 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 		remakeAsyncOverlaySources[2].effects.get(),remakeAsyncOverlaySources[3].effects.get(),
 		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
 	count+=effects.objects;
+	count+=remakeDisplayContext?1u:0u;
+	if(remakeDisplayQuad)count+=remakeDisplayQuad->ownedResourceObjects();
 	count+=remakeMotionRaster.OwnedObjects();
 	countArray(remakeAcceptedRaster.textures);
 	countArray(remakeAcceptedRaster.views);
@@ -2631,6 +2634,8 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 {
 	using namespace flycast::rend::neural;
 	const auto current=currentNeuralSourceFrameId;
+ static thread_local unsigned totalCount=0,targetCount=0,setupCount=0,recordCount=0,executeCount=0;
+ RemakeCpuScope totalTiming("display-select-composite",current,totalCount);
 	const auto* preview=std::getenv("FLYCAST_REMAKE_ASYNC_PRESENT");
 	const auto* asyncNeural=std::getenv("FLYCAST_REMAKE_ASYNC_NEURAL");
 	const bool evaluatedRequested=asyncNeural&&std::strcmp(asyncNeural,"1")==0;
@@ -2656,20 +2661,37 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 				D3D11_SUBRESOURCE_DATA initial{image.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0};
 				ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;
 				ComPtr<ID3D11ShaderResourceView> view;ComPtr<ID3D11DeviceContext> deferred;
-				if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
+				RemakeCpuScope targetTiming("display-create-target",current,targetCount);
+    if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
 					||FAILED(device->CreateRenderTargetView(target,nullptr,&rtv.get()))
-					||FAILED(device->CreateShaderResourceView(target,nullptr,&view.get()))
-					||FAILED(device->CreateDeferredContext(0,&deferred.get())))throw std::runtime_error("composite resources unavailable");
-				Quad composite;composite.init(device,deferred,shaders);
+					||FAILED(device->CreateShaderResourceView(target,nullptr,&view.get())))throw std::runtime_error("composite resources unavailable");
+    targetTiming.End();
+    RemakeCpuScope setupTiming("display-create-context-quad",current,setupCount);
+    // Take the cached recording resources out while recording. A failure
+    // destroys its partial stream instead of returning it for the next frame.
+    deferred=std::move(remakeDisplayContext);
+    auto composite=std::move(remakeDisplayQuad);
+    if(deferred) {
+     ComPtr<ID3D11Device> owner;deferred->GetDevice(&owner.get());
+     if(owner.get()!=device.get()){composite.reset();deferred.reset();}
+    }
+    if(!deferred&&FAILED(device->CreateDeferredContext(0,&deferred.get())))throw std::runtime_error("composite resources unavailable");
+    if(!composite){composite=std::make_unique<Quad>();composite->init(device,deferred,shaders);}
+    setupTiming.End();
+    RemakeCpuScope recordTiming("display-record-composite",current,recordCount);
 				D3D11_VIEWPORT viewport{0,0,float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),0,1};deferred->RSSetViewports(1,&viewport);
 				deferred->OMSetRenderTargets(1,&rtv.get(),nullptr);
 				deferred->OMSetBlendState(blendStates.getState(false),nullptr,0xffffffff);
-				if(evaluatedRequested)composite.draw(remakeEvaluatedView,samplers->getSampler(false),nullptr);
+				if(evaluatedRequested)composite->draw(remakeEvaluatedView,samplers->getSampler(false),nullptr);
 				ID3D11ShaderResourceView* views[]={overlay.colorView,overlay.maskView};
-				composite.drawCustom(shader,views,2,samplers->getSampler(false));
+				composite->drawCustom(shader,views,2,samplers->getSampler(false));
 				ComPtr<ID3D11CommandList> commands;
 				if(FAILED(deferred->FinishCommandList(FALSE,&commands.get())))throw std::runtime_error("composite command list failed");
-				deviceContext->ExecuteCommandList(commands,TRUE);
+				recordTiming.End();
+    RemakeCpuScope executeTiming("display-execute-composite",current,executeCount);
+    deviceContext->ExecuteCommandList(commands,TRUE);
+    // FinishCommandList(FALSE) leaves default context state for fresh recording.
+    remakeDisplayContext=std::move(deferred);remakeDisplayQuad=std::move(composite);
 				remakeCompositeTexture=std::move(target);remakeCompositeView=std::move(view);remakeCompositeFrame=candidate;
 				remakeCompositeEvaluated=evaluatedRequested;
 			}

@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG828-830 / D-231)
+## Current state (2026-09-11, LOG833 / D-232)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
 The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
@@ -73,8 +73,22 @@ baked lighting,roughness semantics and detail/seam agreement fail,all1254square
 instead of1024. Floor midline was amplified,not proven newly invented (retained
 height has faint seam). No scaling/retries/integration. Report/images/ledger:
 D:/Flycast-Evidence/package-d-builtin-trial-20260912/REVIEW.md. Generation done.
-H17 clean pilot-h17-reuse-perf1280 now running session6970; poll same handle,
-archive host log at terminal,then repeat/moving/restart as warranted. No builds.
+LOG833 / D-232 H17 display context/Quad reuse ACCEPTED for1280 OIT pilot.
+Clean runs pilot-h17-reuse-perf1280 / -b terminal0/11,orderly,eligible;
+p50 18.9847/19.2234,p95 24.1773/25.2614,p99 26.9177/28.6518ms;
+fresh1074/1080 and1073/1080,max4,zero identity errors. Logs archived.
+Moving first run has no HUD coverage; moving-b proves12 exact completed joins
+with72537..74349 protected pixels andzero HUD/world/backbuffer mismatches.
+Actual2561/current2567 PNG reviewed. Restart at main2400 recovers g2,
+terminal0/11,1200 returned post-warmup Presents,one repeat,max4,no identity errors.
+Post-restart objects200->200 andVRAM4,772,089,856->same; full resource audit
+remains open. Clean final object difference12 versus control only partly
+explained by six retained objects; do not invent remaining attribution.
+All current jobs terminal,logs/summaries archived. Four serial builds982/0 x3,
+SDK302/0,Python24 and backlog checks pass. Next inspect target/initial upload
+(~0.824ms) for redundant full-screen overwrite; preserve raw-return fallback,
+exact HUD/world/backbuffer equality and performance denominators. Full gates
+and visual approval open. Source checkpoint is commit containing LOG833.
 Package D authorized subagent completed offline accounting additions in the
 existing external pbrify_run.py. Parent independently reran12 tests:pass.
 Production dispatch always disabled. Backup/diff/test evidence in

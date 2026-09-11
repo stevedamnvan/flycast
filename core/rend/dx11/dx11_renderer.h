@@ -341,6 +341,8 @@ protected:
 	std::uint64_t remakeFrameBudgetFrames=0;
 	struct RemakeOwnedOutput { ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11ShaderResourceView> view; };
 	std::array<RemakeOwnedOutput,3> remakeOwnedOutputs;std::size_t remakeOwnedOutputNext=0; // D-215 ring.
+	ComPtr<ID3D11DeviceContext> remakeDisplayContext;
+	std::unique_ptr<Quad> remakeDisplayQuad;
 	ComPtr<ID3D11Texture2D> remakeDepthUpload; // D-217: persistent inverted-depth upload.
 	unsigned remakeReturnTimingCount=0;
 	unsigned remakeFeedTimingCount=0;

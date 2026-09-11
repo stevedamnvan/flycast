@@ -164,6 +164,12 @@ public:
 		deviceContext->PSSetShaderResources(0, viewCount, nullViews);
 	}
 
+ // Per-Quad resources; shaders are shared by the shader cache.
+ unsigned ownedResourceObjects() const noexcept {
+  return (inputLayout?1u:0u)+(vertexBuffer?1u:0u)+(constantBuffer?1u:0u)
+   +(rasterizerState?1u:0u)+(depthStencilState?1u:0u);
+ }
+
 private:
 	struct Vertex {
 		float x, y, u, v;

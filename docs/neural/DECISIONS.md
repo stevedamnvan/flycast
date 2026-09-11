@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-232: reuse display recording resources with explicit renderer lifetime
+
+LOG828/832/833. Retain the deferred context and Quad after successful command
+completion, checking device identity before reuse. Move them out during recording
+so failed partial streams are destroyed; Term clears them before device teardown.
+Per-frame target ownership and initial pixels are unchanged. Six owned resources
+are explicitly counted. Clean timing, nonempty HUD/world equality and renderer
+restart support scoped1280 OIT acceptance. They do not close normal-renderer,
+whole-game quality, all-phase memory attribution or human visual approval.
+
 ## D-231: exact weld equivalence and summation order survive faster grouping
 
 LOG821. An open-addressed table compares all six attribute words; hash collisions

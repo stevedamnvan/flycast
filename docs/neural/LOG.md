@@ -1,5 +1,50 @@
 # Neural rendering evidence log
 
+LOG833 / D-232 H17 display context/Quad reuse ACCEPTED for tested1280 OIT
+pilot. Four serial builds pass;982/0 x3,SDK302/0,Python24. Staged automation
+binary SHA256 F6578D5F61E25C0D933203D9D62DDDEF01883D0501C0CE83A3C5710E4ED1EEEB
+matches build output. LOG828 diagnostic selection2.877 to0.9844ms;
+LOG832 two clean medians18.9847/19.2234ms versus recent accepted control
+20.5975ms; tails24.1773/25.2614 and26.9177/28.6518ms remain variable.
+Moving-b terminal0/11,12 completed joins,protected72537..74349 pixels,
+zero HUD RGBA/world RGBA/backbuffer RGB mismatches. Actual2561/current2567
+combat PNG reviewed. First moving run without HUD remains insufficient for
+that invariant,not erased. All moving evidence is performance-excluded.
+Restart at main2400 requested40.018s/completed41.166s,session g1->g2;
+terminal0/11,orderly,no forced children. After recorder's existing restarted
+warmup,1200/1200 returned Presents,one repeat,zero identity errors,max latency4.
+Owned objects200->200,range188..200;VRAM4,772,089,856->same. This proves one
+post-restart plateau,not all-phase or full lifecycle cleanup. Clean control
+object final188 versus candidate200 is not fully explained by six new cache
+objects; remaining dynamic resource difference stays unattributed. Existing
+external cleanup warning and broader resource audit remain open.
+Evidence: D:/Flycast-Evidence/pilot-h17-reuse-moving-b and
+pilot-h17-reuse-restart (logs,capture-summary/summary,launch,host reports).
+No game/helper/build active. Accept reuse only: per-frame textures/initial
+upload unchanged,context device-checked,failed recordings discarded,Term clears
+cache before device teardown. Next measured cost is display target+initial
+upload (~0.824ms); inspect whether evaluated full-screen overwrite permits
+omitting redundant initial upload,with exact composition proof before promotion.
+Full60fps,normal-renderer,300 quality/600 full acceptance,neural contribution
+and human visual approval remain open. No visual default or factory change.
+
+LOG832 H17 display context/Quad reuse clean performance repeated. Runs
+pilot-h17-reuse-perf1280 and -b both terminal0/11,orderly,performance-eligible,
+1200 samples/2100 warmup,1280x960,OIT,native alpha,welded normals,exposure A,
+no captures/scopes/builds/generation. Present p50/p95/p99 respectively
+18.9847/24.1773/26.9177 and19.2234/25.2614/28.6518ms. Fresh after existing
+120 exclusion1074/1080 and1073/1080; repeats8/9,native22/21,max latency4,
+zero identity errors. Both VRAM3,054,149,632 to4,778,323,968 bytes against
+32,945,209,344 budget; b owned objects143 to200,range131..200,not a lifecycle
+plateau claim. Logs and summary.json archived in each private evidence folder.
+Median improvement warrants moving/restart validation; source not yet accepted.
+Moving pilot-h17-reuse-moving terminal0/11,12 captures at3107..3119 with
+12 exact completed-Present joins,zero world/backbuffer mismatches. Every
+protected_pixels=0: zero HUD mismatches is vacuous,HUD gate remains open.
+Source3107/current3112 actual image reviewed; intro fighter/temple composition,
+no HUD. Log and capture-summary.json archived. Repeat moving-b session67543
+started to obtain missing coverage; no overlap. Renderer restart still pending.
+
 LOG831 built-in trial complete:4 calls,4 outputs,no retries/variants. Agent
 and parent reviewed two albedo/two roughness maps. All1254x1254 RGB versus
 requested1024; opaque source alpha retained effectively,not alpha-atlas proof.
