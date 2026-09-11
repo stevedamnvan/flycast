@@ -1,5 +1,48 @@
 # Neural rendering evidence log
 
+LOG830 independent composition-check review while built-in trial runs.
+CaptureRemakePreview quality_capture.cpp compares output to exact native RGBA
+on protected mask pixels and exact evaluated-world RGBA elsewhere,then RGB
+against pre-OSD backbuffer. Require hud/world/backbuffer mismatch counts all0
+in H17 moving capture; same-source color differences across runs alone cannot
+attribute a composition defect when evaluated inputs differ. No lowering of
+full visual/temporal gates. Agent call1 returned,remaining trial in progress.
+No game/build active; source H17 still unaccepted pending clean/moving/restart.
+
+LOG829 user authorizes built-in imagegen trial on a few textures,then inspect
+before scaling. Delegated2 materials,albedo+roughness each,4 calls total,one
+candidate/map,no retries/variants. Existing normal/height and baseline kept.
+Agent cleared after h17 diagnostic terminal0/11; no gameplay during generation.
+No API/proxy calls,model identity not falsely labeled Sunburst. PBRFusion4
+primary docs describe normals/depth,needs additional model/node pack; no install.
+https://github.com/Night1099/COMFYUI-PBRFusion4
+H17 all4 builds982/0 x3,SDK302/0,Python24. Diagnostic setup1.7295 to0.0005ms,
+total selection2.877 to0.9844ms,display1.07845ms,render14.44085ms,emu20.137199ms.
+Logs/summary archived under pilot-h17-reuse-cpu1280. Clean performance and
+moving/restart remain pending. No source promotion or full-goal acceptance.
+
+LOG828 whole-frame reassessment afterbd9ccd39a. Existing diagnostic h16
+baseline/candidate: frame-submit11.8518 to10.8031ms,display2.8486 to3.4612ms,
+render16.8148 to16.2223ms,gap3.8142 to4.6256ms,emu20.8752 to21.324ms.
+Nested medians are not additive or paired-frame proof. Savings may shift wait;
+no GPU-stall diagnosis from these CPU scopes. GPU valid native-span samples
+only15/1200 in clean runs,so cannot generalize GPU medians to steady window.
+Source review finds display composition recreates target with full raw-image
+initial upload,views,deferred context and Quad every fresh image,including
+evaluated lane that then draws the full evaluated image over that initial data.
+Instrument display target creation,context/Quad,record and execute separately.
+No render behavior change; bounded diagnostic before selecting implementation.
+Automation build/selftest982/0,terminal0. Diagnostic pilot-h17-display-cpu1280
+terminal0/11,host log/summary archived.600 medians:target0.8589ms,context/
+Quad1.7295ms,record0.03725ms,execute0.0343ms,total selection2.877ms.
+Candidate retains renderer-owned context/Quad,checks device,returns only
+successfully finished streams,discards failed local recording,clears at Term
+and counts context plus5 per-Quad resources. Per-frame targets/initial upload
+remain unchanged. Automation982/0,terminal0; remaining serial matrix+SDK
+running session84916. Diagnostic/performance/moving/restart checks pending.
+Python24 pass after correcting invocation from repo root (3 module-import
+errors) to neuraltest directory; no source failure. No H/60fps acceptance.
+
 LOG827 h16 retained native-effect context candidate REJECTED for promotion.
 Local composition1.1255 to0.45365ms is real diagnostic CPU saving; clean
 whole-frame benefit is not established. Candidate a:20.5034/28.7879/36.2328ms;

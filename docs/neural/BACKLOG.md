@@ -252,6 +252,15 @@ and retry blockers must not be described as universal generation blockers.
 No generation or implicit route switch; existing full-set/acceptance rules stay.
 Source: https://learn.chatgpt.com/docs/image-generation (2026-09-11).
 
+User trial authorization (LOG829): test built-in imagegen on two representative
+materials (character atlas and wood floor),one albedo and roughness each,
+then inspect before deciding scale. Four calls,no retries/variants,no baseline
+integration. This is a validation checkpoint toward the entire captured set,
+not a reduction of Package D scope. Retain PBRify normal/height. Built-in route
+is now explicitly authorized for this trial; API/proxy numeric budget remains
+unapproved. No gameplay/benchmarks during generation. Technical and human
+visual acceptance stay separate.
+
 ### Next-card bounds: FC-067 / M2-scene
 
 **Operational next action (LOG757, integration priority correction):** advance

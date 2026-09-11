@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG824-825 / D-231)
+## Current state (2026-09-11, LOG828-830 / D-231)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
 The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
@@ -57,10 +57,23 @@ Moving12 completed joins/0HUD mismatches; brightness difference from older
 h14 capture remains unattributed,not visually accepted. Four corrected builds
 982/0 x3,SDK302/0,Python24 passed. Owned source removed; patch preserved under
 pilot-h16-replay-perf1280-b. Accepted source3264e2b1b remains baseline.
-Next H: reassess existing whole-frame CPU/worker/GPU coverage and critical
-path before another micro-optimization. No build/game/helper active. Do not
-repeat h15/h16 or mistake diagnostic savings for delivered FPS. Full60fps,
-normal-renderer,resource lifecycle and visual acceptance remain open.
+LOG828 h17 display diagnostic terminal0/11,log/summary archived under
+pilot-h17-display-cpu1280.600 medians:target+upload0.8589ms,context/Quad
+1.7295ms,record0.03725ms,execute0.0343ms,total2.877ms. Candidate retains
+renderer context/Quad,checks device,returns only successful finished streams,
+discards failed partial recording,clears at Term,counts6 owned resources.
+Per-frame targets/initial upload remain unchanged. All4 builds pass,982/0
+x3,SDK302/0,Python24. Candidate diagnostic pilot-h17-reuse-cpu1280 terminal
+0/11,log/summary archived:setup1.7295 to0.0005ms,total selection2.877 to
+0.9844ms,frame-display1.07845ms,render14.44085ms,emu20.137199ms. Clean
+performance,moving/restart checks pending; no source acceptance yet.
+User now authorized built-in imagegen trial before full-set scaling. Subagent
+/root/package_d_preflight is cleared to generate TWO materials (62BCD7B9D1AEBDB5
+character atlas,78918ECF7600A708 floor),one albedo+roughness each=4 calls, no
+retries/variants. Benchmark is terminal; do not launch further gameplay until
+agent generation completes. Built-in route only,no API/proxy/no install.
+Review results and retain baselines before deciding scale. PBRFusion4 checked:
+normal/depth model,additional pack/model not installed; not added for this trial.
 Package D authorized subagent completed offline accounting additions in the
 existing external pbrify_run.py. Parent independently reran12 tests:pass.
 Production dispatch always disabled. Backup/diff/test evidence in
@@ -358,3 +371,10 @@ Package D correction: built-in imagegen available to parent/subagent without
 API key; official docs name gpt-image-2,not verified Sunburst. No exposed model
 selector. Proxy cost/retry blockers do not describe built-in availability.
 Preflight and BACKLOG corrected; no generation or route change authorized.
+
+LOG830 review while trial runs: CaptureRemakePreview compares each output
+pixel against native where mask>=128 and evaluated-world elsewhere; it also
+compares RGB against pre-OSD backbuffer. H17 moving acceptance requires all
+three mismatch counts zero,not only HUD. This isolates composition correctness
+from upstream neural color variation. Agent reports call1 returned and saved;
+call2 roughness next. Do not benchmark until all generation calls terminal.
