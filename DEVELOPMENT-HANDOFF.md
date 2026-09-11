@@ -30,11 +30,20 @@ All runs/builds terminal and host logs archived; no game/helper/build active.
 Source checkpoint is the commit containing LOG818; verify HEAD/fork live.
 Private evidence lives under D:/Flycast-Evidence and is not staged.
 
+h13 exact-input smoothing cache REJECTED and its owned source changes removed.
+Automation1006/0 but only600/24106 mesh hits (2.49%) in600-frame diagnostic;
+packet/smoothing6.26935ms versus h12 5.87695, feed15.4397 versus15.31.
+No performance-eligible run warranted. Run terminal0/11, host log archived;
+patch/header retained privately under pilot-h13-cache-cpu1280. No active jobs.
+Next investigate within-frame hash grouping for weld mode, preserving exact
+attribute equivalence and ascending vertex summation order. Full mesh inputs
+change too frequently for simple previous-result reuse. Reuse memory where
+measured beneficial; do not retain caches merely to raise allocation.
 Next: remaining measured performance improvements under BACKLOG H. Feed packet
 build/smoothing~5.88ms,publish~4.25ms and return input work remain material.
-Investigate exact-input reuse for unchanged mesh smoothing before more
-threading or deeper queues; measure cache hit rate/cost and preserve seams,
-crease/normal arithmetic and same-packet output. Reuse existing pipeline.
+Investigate within-frame exact-key weld grouping to replace comparison sort;
+preserve seams, crease/normal arithmetic and ascending per-group accumulation.
+Avoid more threading or deeper queues. Reuse the existing pipeline.
 User priority: spend memory on useful retained work; judge pressure, evictions,
 stalls, bounded lifetime and cleanup rather than minimum allocation. Current
 VRAM growth1,724,174,336 bytes is reproducible, not a proven leak; phase/plateau

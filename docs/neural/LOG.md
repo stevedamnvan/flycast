@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG819 exact-input smoothing cache REJECTED. Worker-owned candidate compared
+all smoothing input words and mode, retained128 entries/64MiB plus scratch;
+1006/0 automation selftests included input mutations and mode switching.
+Diagnostic pilot-h13-cache-cpu1280:600 cache reports,24106 meshes,600 hits
+(2.489%);packet+smoothing median6.26935ms vs h12 5.87695;feed15.4397 vs15.31.
+Cache lookup/storage did not pay for itself; no performance-eligible run or
+full build matrix warranted for this rejected candidate. Original exposure A,
+run terminal0/11,host log archived. Owned source/test changes reverted to
+75695f15d, new cache header removed; rejected patch/header preserved in the
+private run directory. No user/untracked assets discarded. Compiled h13 binary
+is rejected and must not be promoted or used as baseline.
+Next: within-frame weld grouping using exact attribute keys, avoiding comparison
+sort while preserving ascending source-index accumulation within every group.
+Pure performance hypothesis; measure before retaining. No cache-based pipeline
+or additional queue. Standing goal and complete quality/resource gates remain.
+
 LOG818 CPU scheduling checkpoint ACCEPTED within the1280x960 OIT pilot.
 Final h12 matrix:four serial builds,982/0 x3,SDK302/0,Python24. Corrected
 repeat pilot-h12-workers-perf1280-c:20.7264/25.6128/28.5602ms,1183 evaluations,
