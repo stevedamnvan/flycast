@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG821 / D-231)
+## Current state (2026-09-11, LOG823 / D-231)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
 The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
@@ -42,15 +42,22 @@ fresh1071/1080 and1073/1080 after existing120 exclusion,max4,zero identity
 errors,orderly0/11. Moving12 completed joins,0 HUD mismatches;10 matched
 sources against h12 have239322 vertex records+indices byte-identical. Source
 2573/current2577 reviewed. All runs/builds terminal,host logs archived.
-No game/helper/build active. Next returned-image depth/color conversion;
-individual push_back and copy-then-swap still cost measurable CPU time.
-Preserve validation,ownership and bit-exact float/alpha results. Package D
-full texture-set amendment remains intact; no paid work without numeric cap.
-Next: remaining measured performance improvements under BACKLOG H. Feed packet
-build/smoothing~5.88ms,publish~4.25ms and return input work remain material.
-Weld grouping is complete (LOG821); next fuse/vectorize returned-image input
-conversion with exact scalar-result controls. Avoid more threading or deeper
-queues. Reuse the existing pipeline.
+LOG822 h15 returned-input conversion rejected: local input-build CPU fell
+3.01725 to2.0701ms, but clean gameplay medians20.0565/21.8636/20.0642ms
+versus fresh accepted h14 control19.1361ms. Four builds1012/0 x3,SDK302/0,
+Python24 and moving12 joins/0 HUD mismatches passed. Owned candidate source
+removed; patch/header retained under pilot-h15-input-perf1280-c. All jobs
+terminal,logs archived. Accepted source3264e2b1b remains the baseline.
+Next H: instrument native-effect composition resource creation versus command
+execution inside evaluate-output-own (~1.72ms diagnostic), then consider
+renderer-owned resource reuse with device/extent/lifetime guards. Do not
+assume more off-thread conversion savings improve whole-game throughput.
+LOG823 Package D authorized subagent preflight complete:26 materials,104
+retained maps,67 proposed outputs. Evidence in package-d-preflight-20260911.
+USD10.43 provisional estimate;USD20 proposed only,no approved budget. Next D
+slice: fix existing route's retry/reservation/cache controls and establish
+charge bounds/account availability. ComfyUI HTTP was unavailable. No paid
+requests or GPU generation performed. H remains active engineering priority.
 User priority: spend memory on useful retained work; judge pressure, evictions,
 stalls, bounded lifetime and cleanup rather than minimum allocation. Current
 VRAM growth1,724,174,336 bytes is reproducible, not a proven leak; phase/plateau

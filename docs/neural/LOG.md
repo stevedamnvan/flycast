@@ -1,5 +1,41 @@
 # Neural rendering evidence log
 
+LOG823 Package D full-set preflight completed by explicitly authorized subagent.
+26 captured materials reconcile;104 PBRify maps hashed/dimension checked.
+67 proposed outputs (26 albedo,26 roughness,15 metallic); zero paid attempts.
+Official model/pricing links, full per-material inventory, shared prompts,
+conditioning/cache identities and provisional USD10.43 proxy estimate are in
+D:/Flycast-Evidence/package-d-preflight-20260911/PREFLIGHT.md and companion JSON.
+USD20 is proposed only,not approved nor a proven bound. ComfyUI HTTP unavailable,
+account access unknown,proxy estimate approximate; stock transport3 general/16
+rate-limit retries violates no-retry contract. Correct existing integration's
+reservation/cache/retry controls and verify request bounds before seeking
+execution approval. No downloads,GPU generation,Toolkit mutations or config
+changes. Baselines remain reused; neither technical nor human acceptance closed.
+
+LOG822 batched returned-input conversion REJECTED as a performance change.
+Candidate after3264e2b1b fused BGRA reorder and1.f-depth in SSE2 groups of4,
+with scalar tails and exact byte/float controls. Four serial builds passed;
+1012/0 selftests x3,SDK302/0,Python24. Initial test macro collision was fixed;
+failed build log retained. Diagnostic input-build3.01725 to2.0701ms and
+return-worker5.99695 to5.02415ms show local savings, not gameplay improvement.
+Clean pilot-h15-input-perf1280 / -b / -c p50/p95/p99 milliseconds:
+20.0565/24.2772/26.5429,21.8636/26.5391/29.2668,20.0642/24.8588/28.2695.
+Fresh accepted h14 control pilot-h15-control-h14-perf1280:
+19.1361/22.9401/27.1353ms. Same1280x960 original exposure A,1200 samples,
+2100 warmup,no captures/scopes; h15 has no repeatable whole-frame benefit.
+All runs orderly0/11,zero frame identity errors,max latency4. Raw reports
+and per-run summaries retain freshness,repeat/native counts and VRAM.
+Moving pilot-h15-input-moving:12 captures,12 exact completed-Present joins,
+zero protected HUD mismatches; source2573/current2577 composite reviewed.
+This is focused regression evidence,not full G or neural contribution proof.
+All jobs terminal and host logs archived. Owned source changes removed;
+patch and new header preserved in pilot-h15-input-perf1280-c outside Git.
+Accepted source remains3264e2b1b. Next measure native-effect composition's
+per-frame resource creation inside evaluate-output-own before pooling those
+resources; resource creation is observed in source,not yet timed attribution.
+Package D preflight delegated at user request; no paid generation authorized.
+
 LOG821 within-frame exact-key welded grouping ACCEPTED for the tested pilot.
 Final four serial builds pass,982/0 x3,SDK302/0,Python24. Existing differential
 controls match frozen sort arithmetic. Repeat pilot-h14-group-perf1280-b:
