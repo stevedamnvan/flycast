@@ -1,5 +1,36 @@
 # Neural rendering evidence log
 
+LOG897 emulator-thread floor and the remaining gap to 60 fps (diagnostic).
+Native-lane baseline `pilot-native-baseline-1280` (same host harness,
+same game and input replay, lane native, d3d11, dx11, 1280 height, no
+remake pipeline, no hooks; 1200 samples, exit 0): present interval p50/p95
+11.34/12.09 ms, GPU span 11.07, VRAM growth 0. Against it, the pooled
+normal route (LOG896) presents at 18.24 ms and the OIT route (LOG894) at
+19.86, with the emulated frame period 18.9 ms and the emulator thread
+waiting only 2.9 ms per frame, so the emulator thread itself is busy about
+16 ms per frame against an 11.3 ms floor: the remake pipeline adds about
+5 to 7 ms on the emulator thread's critical path, and that thread, not the
+render thread or the helper, now sets the frame rate on both routes.
+Attribution on that thread from the LOG837 hook diagnostic (instrumented,
+overhead included): per frame about 250k observed RAM stores, 85k block
+entries, 82k boundaries, 62k arithmetic, 21k FTRV, 16k SQ writes; hook
+time 3.4 (stores), 1.6 (reads), 1.3 (block entries), 1.2 (arithmetic),
+1.1 (SQ), 0.6 (boundaries), 0.5 (FTRV), 0.3 (copies) ms, about 13.5 ns per
+store hook including the cycle counter. The JIT already limits the store
+hook to RAM and store-queue addresses; the hook body refreshes the SQ
+epoch, records the word in a 16384-entry ring, carries a transform when a
+read slot matches, and returns. Reading: reaching 60 fps needs about 2.5
+ms off the emulator thread, and the only items of that size are the
+source-observation hooks. Candidate for the next source step, in order of
+risk: (1) an inline JIT fast path for the plain 4-byte RAM store with no
+read or transform slot (the ring record written by emitted code, the call
+kept for every other case), which removes the call and argument marshalling
+from the common case without changing what is observed; (2) a cheaper ring
+record layout. Both require the differential hook tests (LOG837), the
+exact moving source/HUD proof and clean performance-eligible runs before
+acceptance; observation semantics (live bytes are the authority, epoch and
+invalidation) must be unchanged. No source change in this entry.
+
 LOG896 / D-237 normal-renderer native-effects resource pool ACCEPTED as a
 render-thread cost change on the normal route; not visual, not 60 fps.
 Change (`remake_native_resource.h`, `remake_native_draw.h`,

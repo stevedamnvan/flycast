@@ -14,9 +14,13 @@ effects capture (about 126 owned objects per frame, 11.3 ms median capture,
 frame period on the normal route 76.6 to 21.2 ms, native draw 18.0 to
 0.74 ms, equality proof and per-frame composition exact. The route's
 freshness is now feed-worker and helper bound (347 worker-busy skips in
-the capture run). Next, in order: (1) normal-renderer route: measure the
-no-capture pipeline freshness and the feed worker on this route, then the
-returned-output integration with alpha ownership; returned-output
+the capture run; the no-capture run is 99.1 percent fresh at 18.2 ms).
+LOG897: the native-lane floor is 11.3 ms and the emulator thread is busy
+about 16 ms per frame, so the source-observation hooks (about 250k store
+hooks per frame) are the remaining 60 fps item on both routes. Next, in
+order: (1) inline JIT fast path for the plain 4-byte RAM store hook, then
+differential hook tests, moving proof and clean performance runs; (2)
+normal-renderer returned-output integration with alpha ownership; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall
