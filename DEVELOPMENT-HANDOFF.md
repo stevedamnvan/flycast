@@ -88,7 +88,24 @@ All current jobs terminal,logs/summaries archived. Four serial builds982/0 x3,
 SDK302/0,Python24 and backlog checks pass. Next inspect target/initial upload
 (~0.824ms) for redundant full-screen overwrite; preserve raw-return fallback,
 exact HUD/world/backbuffer equality and performance denominators. Full gates
-and visual approval open. Source checkpoint is commit containing LOG833.
+and visual approval open. Source checkpoint10a7ad2e2 (fork verified) remains accepted. LOG834 H18
+redundant-upload candidate REJECTED for promotion; only owned source removed,
+patch preserved in pilot-h18-upload-perf1280-b/rejected-source.patch.
+Four serial builds982/0 x3,SDK302/0,Python24. Diagnostic target0.8241->0.2979ms,
+selection0.9844->0.44705; moving12 completed joins,72537..72769 HUD pixels,
+zero HUD/world/backbuffer mismatches,actual2561/current2566 reviewed. Clean
+runs18.8951/19.6139ms medians,p95 26.7405/25.9939,p99 29.6601/29.6387:
+no robust benefit versus h17 18.9847/19.2234,p95 24.1773/25.2614.
+Fresh1075/1080 and1076/1080,max4,no identity errors,all terminal0/11.
+All logs/summaries archived,no jobs active. Next use existing whole-frame
+CPU scopes to locate downstream waiting after local display savings before
+another optimization; retain useful memory and phase/plateau attribution.
+Built executables currently contain rejected h18: use staged h17-reuse.exe
+for accepted-baseline playback; rebuild current source before new candidates.
+PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
+intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
+No installation/download/GPU runs. Review with proposed HTTP graph:
+D:/Flycast-Evidence/package-d-pbrfusion4-review-20260911/REVIEW.md.
 Package D authorized subagent completed offline accounting additions in the
 existing external pbrify_run.py. Parent independently reran12 tests:pass.
 Production dispatch always disabled. Backup/diff/test evidence in

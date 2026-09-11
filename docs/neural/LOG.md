@@ -1,5 +1,52 @@
 # Neural rendering evidence log
 
+LOG835 H18 upload omission REJECTED for promotion. Second clean run -b
+terminal0/11,orderly,eligible;1200 samples,2100warmup,exposure A,no captures/
+scopes/builds/generation. p50/p95/p99 19.6139/25.9939/29.6387ms,fresh
+1076/1080,max4,zero identity errors,7repeats,21native. First18.8951ms median
+is not repeated; both tails worse than accepted h17. Local target savings and
+12 nonempty HUD/world exact captures do not establish whole-frame gain.
+Owned source restored to10a7ad2e2; rejected-source.patch and complete logs/
+summaries remain under pilot-h18-upload-perf1280-b. No builds/jobs active;
+build output contains rejected candidate,staged h17-reuse.exe is accepted.
+Next inspect existing whole-frame timing for displaced waiting; do not repeat
+local optimization without identifying the critical path. Broader H stays open.
+
+User-requested PBRFusion4 subagent review complete; parent read report.
+Upstream70274b6 generates depth,filtered depth,Sobel/Scharr normals,intensity;
+no albedo/delighting/roughness/metallic. No retained-map constraint or seamless
+mode; only first batch image. 4.32GB weight,author8GB minimum,Apache2; absent
+locally with missing diffusers/OpenCV. Normal/depth comparison is optional,
+not a fix for rejected albedo/roughness or permission to replace PBRify maps.
+No install/download/generation/Toolkit mutation. Proposed schema-based ComfyUI
+HTTP graph,primary links,local versions and unverified compatibility:
+D:/Flycast-Evidence/package-d-pbrfusion4-review-20260911/REVIEW.md.
+
+LOG834 H18 candidate: omit initial BGRA upload only for evaluated display.
+Existing full-screen Quad writes all channels with blending/depth/scissor off,
+no shader discard; raw-return branch keeps initial image. Target ownership,
+HUD overlay,retained context and lifetime unchanged. Hypothesis: reduce measured
+~0.824ms target+upload cost and whole-frame latency without changing output.
+Falsify by nonempty HUD/world/backbuffer mismatch or lack of repeated clean
+performance gain. Four serial builds and enabled selftests before promotion;
+diagnostic first,then moving and clean timing if warranted. No acceptance yet.
+All four serial builds pass,982/0 x3,SDK302/0,Python24. Diagnostic
+pilot-h18-upload-cpu1280 terminal0/11,log/cpu-summary archived:600 medians
+target0.2979ms (h17 0.8241),selection0.44705 (h17 0.9844),frame-display
+0.52745,render13.08465,emu19.580249. Diagnostic only. Moving run
+pilot-h18-upload-moving terminal0/11,12 exact completed joins,protected
+72537..72769 pixels,zero HUD/world/backbuffer mismatches;actual2561/current2566
+PNG reviewed. Initial view used wrong current-frame path and was corrected.
+Logs/capture-summary archived. Clean pilot-h18-upload-perf1280 session11262
+terminal0/11,eligible,log/summary archived:p50/p95/p99
+18.8951/26.7405/29.6601ms,fresh1075/1080,max4,zero identity errors.
+Repeats8,native21,VRAM growth1,724,174,336,objects143->200. Small median
+gain with worse tails is inconclusive;repeat -b session13254 now active.
+No source acceptance. User requests PBRFusion4 pipeline review by
+existing Package D subagent; read-only assigned, no GPU/generation overlap.
+Initial edit assertion rejected ambiguous text before writing; narrowed to the
+display-create-target scope. No other creation call changed.
+
 LOG833 / D-232 H17 display context/Quad reuse ACCEPTED for tested1280 OIT
 pilot. Four serial builds pass;982/0 x3,SDK302/0,Python24. Staged automation
 binary SHA256 F6578D5F61E25C0D933203D9D62DDDEF01883D0501C0CE83A3C5710E4ED1EEEB
