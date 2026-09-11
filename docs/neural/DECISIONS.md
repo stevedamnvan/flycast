@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-240: the user authorises a narrowed observation scope for 60 fps and hair option 1
+
+After LOG897/LOG898/LOG903 the user chose 60 fps at 1280x960 over the full
+observation certificate, understanding that narrowing the source observation
+(hooks confined to the code regions that produce the anchor's transforms
+rather than every RAM store, read and arithmetic result) changes the scope of
+the source-owned anchor certificate and its robustness in untested situations,
+not any rendered imagery. Acceptance for any narrowed design: the differential
+hook tests, the exact moving source/HUD proof, identical acceptance counts on
+the matched scene, and a clean performance-eligible run; the label
+`diagnostic-camera-embedded-anchor-not-world-reconstruction` and the native
+fallback are unchanged. For the hair, the user chose option 1 of LOG903:
+export the hair strand alpha draws to Remix as cutout surfaces instead of
+native composition, a bounded change under D-183 whose translucent-look A/B
+must be repeated before it joins the faithful candidate. Neither is a default
+or a production claim.
+
 ## D-239: the combined experimental variant is the faithful pilot look
 
 The user chose the combined experimental variant (curated Remix materials,
