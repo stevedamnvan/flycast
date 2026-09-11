@@ -1,5 +1,37 @@
 # Neural rendering evidence log
 
+LOG893 capture texture-query batching (LOG892 candidate) verified and
+committed as a narrow change. Automation build with the candidate: selftest
+986/0, remake-sdk-contract 302/0, python suites OK. Native equality proof
+`pilot-normal-capture-batch-proof` (dx11, cpu-timing, proof only, no light
+rig or profile, exit 1 as in LOG887): sources 2560..2562, 62/61/64 draws,
+1228800 pixels each, 0 mismatches; independent decoded-PNG check
+(`check-normal-proof.py`): replay equals native byte-exact on all three and
+native equals the LOG887 reference natives byte-exact. Moving verification
+`pilot-normal-capture-batch-moving` (profile A, temple rig, normal effects,
+12 captures from 2560, exit 0): `check-normal-moving.py` passes, all 12
+sources exact protected-native plus evaluated-scene composition, backbuffer
+RGB exact, 12 completed present joins. Matched no-capture cost run
+`pilot-normal-capture-batch-cost` (exit 1, superseded helper failure
+retained as in LOG886/LOG888, 600 host samples): frame-pvr-draw median
+14.71 ms against 18.40 (LOG888 batch-cost) and 14.07 (LOG886), effects
+compose 0.47, colour conversion 0.20, returned-evaluate 7.54, frame period
+71.5 ms. The native-draw figure sits inside the spread of the two earlier
+runs, so no capture-cost gain is claimed from this change; it is kept for
+the call-count reduction and the reference-release correctness. The normal
+renderer route remains a slow diagnostic path (frame period 71 to 88 ms
+against 30.8 on the OIT route, LOG806). Build matrix: automation, baseline, no-ngx, off serial, 0 errors (capture-batch-build-neural-*.log); selftest 986/0 in automation, baseline and no-ngx; contract 302/0; python OK. Source and docs
+committed; no external configuration touched; private evidence preserved.
+
+LOG892 capture-side texture binding query candidate after29b056f21. VS/PS
+texture queries batched from256 calls to2, all128 slots retained per stage.
+RAII returned-reference arrays release every Get reference on success or early
+failure; texture copies/cache semantics and per-draw constants unchanged.
+Existing WARP replay/mutation/alpha/depth/source/layout controls pass with new
+header (normal-capture-batch-test.exe). Automation build started,
+normal-capture-batch-build.log. No gameplay/performance acceptance yet; next
+native equality and same-profile matched capture-cost run. Source uncommitted.
+
 LOG891 batched replay scoped checkpoint: four serial builds2633 pass,
 986/0 selftests x3, SDK302/0, Python26; batch-final-*.log. Moving62846
 terminal0, host0/helper11 orderly=true, no forced children, host log archived.

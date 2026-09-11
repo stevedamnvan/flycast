@@ -5,6 +5,15 @@
 #include <d3d11_1.h>
 #include <memory>
 namespace flycast::rend::neural {
+// D3D11 Get calls return owning references. Release every returned slot even
+// when copying one of the resources fails and capture returns early.
+template<typename T,std::size_t N> struct NativeBindingReferences {
+ std::array<T*,N> slots{};
+ NativeBindingReferences()=default;
+ NativeBindingReferences(const NativeBindingReferences&)=delete;
+ NativeBindingReferences& operator=(const NativeBindingReferences&)=delete;
+ ~NativeBindingReferences(){for(auto* value:slots)if(value)value->Release();}
+};
 // Source-owned DrawIndexed state. Caller owns producer qualification, output
 // color/depth snapshots and state restoration. Capture is not publication.
 struct NativeEffectDraw {
@@ -95,8 +104,10 @@ struct NativeEffectDraw {
     r.vsConstants[i]=CopyNativeEffectBuffer(device,context,source);if(!r.vsConstants[i])return {};
    }
   }
+  NativeBindingReferences<ID3D11ShaderResourceView,128> capturedVsViews;
+  context->VSGetShaderResources(0,128,capturedVsViews.slots.data());
   for(UINT i=0;i<128;++i){
-   ComPtr<ID3D11ShaderResourceView> source;context->VSGetShaderResources(i,1,&source.get());
+   auto* source=capturedVsViews.slots[i];
    if(source){r.vsViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.vsViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->VSGetSamplers(i,1,&r.vsSamplers[i].get());
@@ -112,8 +123,10 @@ struct NativeEffectDraw {
     r.psConstants[i]=CopyNativeEffectBuffer(device,context,source);if(!r.psConstants[i])return {};
    }
   }
+  NativeBindingReferences<ID3D11ShaderResourceView,128> capturedPsViews;
+  context->PSGetShaderResources(0,128,capturedPsViews.slots.data());
   for(UINT i=0;i<128;++i){
-   ComPtr<ID3D11ShaderResourceView> source;context->PSGetShaderResources(i,1,&source.get());
+   auto* source=capturedPsViews.slots[i];
    if(source){r.psViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.psViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->PSGetSamplers(i,1,&r.psSamplers[i].get());

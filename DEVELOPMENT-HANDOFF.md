@@ -1,6 +1,23 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current checkpoint: batched normal-effects replay (LOG891)
+## Current checkpoint: capture texture-query batching committed (LOG893)
+
+Proof, moving and matched cost runs pass their exactness checks; no
+capture-cost gain claimed (native-draw 14.71 ms inside the earlier spread).
+Four builds and three selftests pass; committed. Next: the H items in
+`docs/neural/CODEX-GOAL.md` on the OIT route (finer scopes, single
+validation pass, raster depth ping-pong, copies off the render thread),
+since the OIT route at 30.8 ms is the faster of the two.
+
+## Previous checkpoint: capture texture-query batching (LOG892)
+
+HEAD29b056f21 verified. New uncommitted candidate batches256 VS/PS texture
+Get calls into2, retaining all slots and releasing returned references with
+RAII on early failure. Existing WARP controls pass. Automation build38316 active:
+normal-capture-batch-build.log. Next poll recorded session, native equality,
+then same-profile capture cost. No game/helper running at build start.
+
+## Accepted replay checkpoint (LOG891)
 
 Parent3371b7b1b4548c0b3d9f40eacd56374ea1489ee2. Replay submits all348
 vertex/constant/view/sampler bindings in7 calls, including null slots. Snapshot
