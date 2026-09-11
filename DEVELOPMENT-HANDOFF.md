@@ -28,7 +28,8 @@ exclusions in this scene, composition exact) and the presentation latch
 now recovers after 60 fresh ticks. LOG901: the substep G comparison matrix is built (five columns, nine
 sources, `pilot-g-matrix`). LOG902/D-239: the user chose the combined
 experimental variant as the faithful look (characters good, hair too
-polygonal: remaster as Remix mod content via the Toolkit route, open). Next,
+polygonal; LOG903 audit: the strands are native-composited alpha draws, not mod
+content; options a/b/c await the user). Next,
 in order: (1) the 60 fps observation-scope decision (LOG897/LOG898); (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next

@@ -1,5 +1,53 @@
 # Neural rendering evidence log
 
+LOG903 texture and geometry quality audit of the combined pilot look
+(diagnostic, read-only; evidence in `D:\Flycast-Evidenceudit-g\`, no
+code, mod or configuration change). Inputs: frame 2570 of
+`pilot-g-combined` at every stage (original native, returned Remix,
+neural, composited, native-effects difference, overlay mask), the USD
+capture `capture_2026-09-10_17-52-53.usd` read with usd-core (96 mesh
+prims, 48 unique, 9.6k triangles, 26 materials), the 26 captured source
+textures (all 256x256 atlases; sub-tiles for faces and hair are about
+64 to 95 px on a side), the PBRify outputs and the four mod layers.
+Findings. (1) The polygonal hair is mostly not mod content: the hair
+strand draws (Kilik's fringe, Taki's bangs and ponytail edge) are
+promoted alpha surfaces that the faithful candidate keeps native
+(`--alpha-combined-off`, D-183/D-220), so they are drawn by the native
+renderer with native lighting and no material replacement and composited
+over the neural image; the native-effects difference image at both heads
+shows exactly these strands, and the returned Remix image underneath has
+smooth hair. The neural lane cannot repair this because the strands are
+composited after it; DLSS or any neural pass is not the lever. (2) The
+hair textures themselves are fine: Kilik's hair tile (26F0F098, u 0.50 to
+0.75, v 0.25 to 0.50, atlas rows flipped relative to UV) and Taki's
+(2F49B335, u 0.38 to 0.62, v 0.00 to 0.25) upscale to clean strand albedo,
+normal and roughness at 4x; both bind as class cutout, roughness 0.7,
+metallic 0. (3) Geometry: Kilik's hair cap is 143 triangles (77 + 66),
+Taki's bangs 512, Kilik's body 1591, Taki's suit 1412 + 881, faces 280
+and 119; the whole capture is 9.6k triangles. Silhouette faceting on the
+hair cap is geometry and no texture or neural pass changes it; a mesh
+replacement would need a stable mesh identity per draw (the helper hashes
+`list<<32 | ordinal+1`, the capture hashes vertex data), which is untested
+across frames for CPU-animated characters and is a separate feasibility
+step. (4) Other textures: the wall medallion/tapestry (4E5D78), ceiling
+frieze (74ABF4, C3E6F2) and pillar wood (E8D142, AB164D) remain soft
+because they are 4x upscales of 64 px tiles stretched over large UV
+ranges; the floor (78918E) reads well; Taki's suit (98BAA8) reads as
+latex rather than the native matte cloth (roughness 0.7 from the map;
+a look choice); Kilik's hair cap shows a light blue-grey sheen in the
+Remix stage from the PBRify normal/roughness under the key light. The
+noise regions in atlases 26F0F098, 2F49B335, 503E88B7 and E15BF621 are
+unsampled tiles (UV footprint checked per mesh), not a decode fault.
+Height maps are bound only for the floor by design (LOG800). Options
+recorded for the user's decision: (a) export the hair strand draws to
+Remix as cutout (alpha test) rather than blended surfaces so they take
+the replaced material and Remix lighting, which is a bounded packet
+change under D-183 and needs the translucent-look A/B repeated; (b) raise
+the hair tiles to 8x and hand-paint or diffusion-reimagine them (texture
+only, no silhouette change); (c) hair mesh replacement after a mesh
+identity stability check. Recommendation: (a) first, since it removes
+the native composition that causes the dark jagged strands, then (b).
+
 LOG902 substep G visual recommendation decided by the user: the combined
 experimental variant (`pilot-g-combined`: curated Remix materials, temple
 light rig, native alpha composition, welded normals, returned image through
