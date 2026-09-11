@@ -17,10 +17,14 @@ freshness is now feed-worker and helper bound (347 worker-busy skips in
 the capture run; the no-capture run is 99.1 percent fresh at 18.2 ms).
 LOG897: the native-lane floor is 11.3 ms and the emulator thread is busy
 about 16 ms per frame, so the source-observation hooks (about 250k store
-hooks per frame) are the remaining 60 fps item on both routes. Next, in
-order: (1) inline JIT fast path for the plain 4-byte RAM store hook, then
-differential hook tests, moving proof and clean performance runs; (2)
-normal-renderer returned-output integration with alpha ownership; returned-output
+hooks per frame) are the remaining 60 fps item on both routes. LOG898:
+the inline store fast path covered 29 percent of store hooks and gave no
+whole-frame gain (rejected, reverted); the gap is the aggregate of all
+observation hooks (about 5 ms clean), so 60 fps at 1280x960 needs the
+observation scope narrowed, a user decision on the anchor certificate.
+Next, in order: (1) put that decision to the user with the LOG897/LOG898
+numbers; (2) normal-renderer returned-output integration with alpha
+ownership; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall

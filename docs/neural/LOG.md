@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG898 inline JIT store-hook fast path REJECTED as a performance change;
+source reverted, not committed. Candidate: emitted code wrote the ring
+record for the plain aligned 4-byte RAM store with no read or transform
+slot, no live derived-register origin, equal SQ epochs, allocated ring and
+cycle diagnostics off; every other case kept the call. Automation build,
+selftest 998/0. Matched no-capture normal-route runs against the LOG896
+pool run: per-frame hook counts identical (stores 250.9k, SQ 16.7k,
+arithmetic 65.5k, FTRV 21.1k, block entries 85.9k, boundaries 82.3k) and
+acceptance identical (1181 to 1185 accepted, 1 anchor support change);
+only 73.9k of the 250.9k store hooks per frame took the fast path (the
+rest carry read or transform slots, are not 4-byte, or store a register
+with a live origin); emulated frame period 18.88 then 18.50 ms, present
+p50 18.21 then 18.02, both within run-to-run spread, no whole-frame gain.
+Reading (with LOG897): the emulator thread's excess over the 11.3 ms
+native floor is the aggregate of all observation hooks, not the store
+hook alone; correcting the LOG837 instrumented figures for the cycle
+counter's own cost (about 590k hook calls per frame) leaves roughly 5 ms
+of clean hook time spread over reads, arithmetic, SQ, block-entry
+validation and boundaries. Reaching 60 fps at 1280x960 therefore needs
+the observation design narrowed (for example, hooks confined to the code
+regions that produce the anchor's transforms rather than every RAM store,
+read and arithmetic result), which changes the scope of the source-owned
+anchor certificate and is the user's decision, not a micro-optimization.
+Diagnostic artifacts: `pilot-fastpath-cost`, `pilot-fastpath-cost-b`,
+`hook-calls-compare.py` (private). No committed source change.
+
 LOG897 emulator-thread floor and the remaining gap to 60 fps (diagnostic).
 Native-lane baseline `pilot-native-baseline-1280` (same host harness,
 same game and input replay, lane native, d3d11, dx11, 1280 height, no
