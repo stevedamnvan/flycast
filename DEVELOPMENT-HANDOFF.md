@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG823 / D-231)
+## Current state (2026-09-11, LOG824-825 / D-231)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
 The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
@@ -48,16 +48,27 @@ versus fresh accepted h14 control19.1361ms. Four builds1012/0 x3,SDK302/0,
 Python24 and moving12 joins/0 HUD mismatches passed. Owned candidate source
 removed; patch/header retained under pilot-h15-input-perf1280-c. All jobs
 terminal,logs archived. Accepted source3264e2b1b remains the baseline.
-Next H: instrument native-effect composition resource creation versus command
-execution inside evaluate-output-own (~1.72ms diagnostic), then consider
-renderer-owned resource reuse with device/extent/lifetime guards. Do not
-assume more off-thread conversion savings improve whole-game throughput.
-LOG823 Package D authorized subagent preflight complete:26 materials,104
-retained maps,67 proposed outputs. Evidence in package-d-preflight-20260911.
-USD10.43 provisional estimate;USD20 proposed only,no approved budget. Next D
-slice: fix existing route's retry/reservation/cache controls and establish
-charge bounds/account availability. ComfyUI HTTP was unavailable. No paid
-requests or GPU generation performed. H remains active engineering priority.
+LOG827 h16 retained-effect-context candidate rejected for promotion. Local
+composition1.1255 to0.45365ms, but clean candidate20.50/20.36ms versus fresh
+h14 control20.60ms is not robust whole-frame gain; p95 candidate28.79/25.98
+versus control25.04ms. Control/candidate b both1076/1080 fresh,zero identity
+errors,max latency3/4. All runs terminal0/11,logs/summaries archived.
+Moving12 completed joins/0HUD mismatches; brightness difference from older
+h14 capture remains unattributed,not visually accepted. Four corrected builds
+982/0 x3,SDK302/0,Python24 passed. Owned source removed; patch preserved under
+pilot-h16-replay-perf1280-b. Accepted source3264e2b1b remains baseline.
+Next H: reassess existing whole-frame CPU/worker/GPU coverage and critical
+path before another micro-optimization. No build/game/helper active. Do not
+repeat h15/h16 or mistake diagnostic savings for delivered FPS. Full60fps,
+normal-renderer,resource lifecycle and visual acceptance remain open.
+Package D authorized subagent completed offline accounting additions in the
+existing external pbrify_run.py. Parent independently reran12 tests:pass.
+Production dispatch always disabled. Backup/diff/test evidence in
+package-d-preflight-20260911/BUDGET-CONTROLS.md. Inventory membership/source
+revalidation and actual no-retry bounded transport remain unfinished. No real
+budget approved; no paid requests. Original functions AST unchanged by agent
+check. Full-set preflight:26 materials,104 retained maps,67 proposed outputs;
+USD10.43 provisional,USD20 proposed only. H engineering remains first.
 User priority: spend memory on useful retained work; judge pressure, evictions,
 stalls, bounded lifetime and cleanup rather than minimum allocation. Current
 VRAM growth1,724,174,336 bytes is reproducible, not a proven leak; phase/plateau
@@ -342,3 +353,8 @@ evidence, normal/OIT600-frame noncapture cadence, timing/resource/latency data,
 emulation-cycle/audio checks, transition/failure coverage and applicable visual
 gates/title coverage. Diagnostic anchoring and synchronous replay do not satisfy
 these. Keep the full goal intact; no production-ready or highest-fidelity claim.
+
+Package D correction: built-in imagegen available to parent/subagent without
+API key; official docs name gpt-image-2,not verified Sunburst. No exposed model
+selector. Proxy cost/retry blockers do not describe built-in availability.
+Preflight and BACKLOG corrected; no generation or route change authorized.

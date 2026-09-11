@@ -1,5 +1,69 @@
 # Neural rendering evidence log
 
+LOG827 h16 retained native-effect context candidate REJECTED for promotion.
+Local composition1.1255 to0.45365ms is real diagnostic CPU saving; clean
+whole-frame benefit is not established. Candidate a:20.5034/28.7879/36.2328ms;
+fresh h14 control:20.5975/25.0419/28.674ms; immediately following candidate b:
+20.3646/25.9797/29.7249ms. Same1280x960 exposure A,1200/2100 sample/warmup,
+no scopes/captures. After120 exclusion control and candidate b both1076/1080
+fresh (99.629630%); candidate a1073/1080. Max latency3 control,4 candidates;
+zero identity errors,orderly0/11,logs/summaries archived. Candidate b raw7
+repeats/20 native versus control6/36; no denominator change. Both latter runs
+VRAM growth1,175,887,872 bytes; raw growth does not explain the comparison.
+Moving12 captures/12 completed joins/0HUD mismatches retained, but candidate
+brightness difference against older h14 capture remains unattributed. No
+visual approval or full G claim. Restart run unnecessary after non-promotion.
+Owned source changes removed; patch retained in pilot-h16-replay-perf1280-b.
+All builds/runs terminal. Four corrected builds982/0 x3,SDK302/0,Python24 were
+run; no source candidate committed. Accepted source3264e2b1b remains baseline.
+Next reassess whole-frame critical path using existing CPU timing evidence;
+return-worker and context micro-optimizations have not delivered robust FPS.
+Avoid repeating these candidates or claiming CPU/GPU optimality or60fps.
+
+LOG826 user-requested built-in image route correction: imagegen is callable
+by Codex parent/subagent without API key. Official docs currently identify
+gpt-image-2 and general Codex usage limits,not confirmed Sunburst; tool has
+no model selector. Proxy USD10.43 and Comfy retries/account blockers are
+route-specific. Preflight/BACKLOG corrected,no generation or route switch.
+https://learn.chatgpt.com/docs/image-generation
+H16 first clean20.5034/28.7879/36.2328ms,1073/1080 fresh,max4,0identity errors,
+orderly0/11; no whole-game gain yet. Moving12 captures/12 completed joins,
+0HUD mismatch,native effects applied. Source2561/current2567 visually compared
+with h14; brighter/saturated candidate remains unaccepted. Both logs archived.
+Fresh h14 control completed; final disposition and repeat in LOG827.
+
+LOG824 native-effect composition attribution started after36a43393b.
+Bounded diagnostic scopes separate validation, texture/view creation,
+deferred-context/state creation, command recording/finish and execution.
+Initial instrumentation changed no render behavior. Hypothesis: per-frame
+resource/context creation contributes material render-thread time. Reject
+pooling priority if measured setup cost is negligible. Timing is diagnostic,
+not performance evidence. Automation982/0 passes. Diagnostic terminal0/11,
+log archived: effects-compose1.1255ms,create-context-states0.6454ms,
+create-resources0.28205ms,record0.0283ms,execute0.0205ms (600 samples each).
+Candidate now retains only deferred context/sampler/raster in the renderer;
+checks device ownership, returns context only after successful finish/execute,
+destroys failed partial recording, resets at termination and counts3 objects.
+Per-frame effect/color textures remain independent. Candidate automation982/0;
+initial remaining matrix+SDK terminal0,982/0 x3,SDK302/0. Review caught
+retained context wired only to fallback composition; corrected active neural
+call site before any candidate run. Corrected four serial builds pass,982/0 x3,SDK302/0,Python24.
+Candidate diagnostic pilot-h16-replay-cpu1280 terminal0/11,log archived.
+600-sample medians:context/state0.01045ms,composition0.45365ms,output-own
+1.0179ms. Clean/moving runs completed; final rejection recorded in LOG827. Deferred-context reset
+semantics checked against Microsoft FinishCommandList documentation:
+https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-finishcommandlist
+
+LOG825 Package D offline accounting slice: existing external pbrify_run.py
+has durable SQLite approval/reservation/attempt/cache accounting.12 mock tests
+pass independently rerun by parent, covering caps,restart/uncertain retention,
+cache corruption/reuse,failures,overcharges and no second dispatch. Production
+dispatch always fails closed. No real approval or paid request. Backup,diff,
+tests and limitations: package-d-preflight-20260911/BUDGET-CONTROLS.md.
+Inventory membership/source revalidation and proven no-retry bounded route
+remain necessary before production wiring. External tool is not a Git source
+commit; existing PBRify functions unchanged per agent AST comparison.
+
 LOG823 Package D full-set preflight completed by explicitly authorized subagent.
 26 captured materials reconcile;104 PBRify maps hashed/dimension checked.
 67 proposed outputs (26 albedo,26 roughness,15 metallic); zero paid attempts.
