@@ -1,5 +1,141 @@
 # Neural rendering evidence log
 
+LOG803 F implementation in progress after46fc20eb0: output-size1280x960
+is an immutable launcher environment contract shared by host/helper. Channel
+ABI5 negotiates width/height and reserves bounded maximum image/depth slots;
+only active extent bytes are copied/hashed. Neural conversion, temporal
+extent identity, motion units, OIT effects, preview/guidance metadata and
+archive receiptv2 dimensions are parameterized. Old dimensionless receipts
+retain640x480 semantics. Default extent remains640x480. Three enabled suites
+883/0 and disabled build passed at the first build checkpoint. CPU transport
+tests pass at640x480 and1280x960; wrong-size, truncated-depth, wrong-receipt
+and stale-return controls reject; unsupported1280x480 rejects at channel
+creation. These are not GPU or live presentation acceptance.
+
+First live attempt pilot-extent1280-v1 failed before gameplay (SH4 exception
+when blocked) and exposed host matching a640x480 window despite the960
+render setting. Second attempt uses explicit transient1280x960 window
+settings (SDL now preserves stored window state for transient dimensions),
+and scaled title-specific HUD atlas bounds. It runs host1200 samples to
+completion but publishes no source: view-title-or-viewport-unsupported.
+F correction now permits exactly the selected doubled backing framebuffer
+while retaining the original native640x480 viewport/lens certificate and
+source-coordinate checks. Builds pass, but v3/v4 publish no scene because
+the observed-anchor check fails. v4 diagnostics show zero initial copy
+matches despite5724 decoded observations at producer2090. A same-build
+640x480 control (pilot-extent640-v4-control) reproduces the same failure,
+so it is not established as resolution-specific. v5 confirms5724 unique,
+unchanged copies but no XYZ links at2090. Later3300 has862 valid XYZ/lens
+matches and first projection residual0.000146 yet no accepted anchor;
+the early missing links therefore do not explain the entire run. Added
+observed/predicted depth diagnostics for the next build/run to distinguish
+the remaining depth certificate from projection rejection. Do not weaken
+anchor checks or change lens constants.
+No high-resolution live pass claimed. Failed runs and logs retained under
+D:\Flycast-Evidence.
+
+LOG802 D/E candidate committed as46fc20eb0. Two reviewed Kilik red-cloth
+regions now use PBRify roughness variation raised from about.334 to.720;
+unselected texels, albedo and normal remain unchanged. Separate
+pbrify_cloth_refined_v2 layer ingested/bound through Toolkit MCP. v1 selector
+rejected for leather contamination; v2 narrower red/atlas selection reviewed.
+The temple rig is opt-in, warm key plus cool fill with fixed directions per
+anchor generation; default light unchanged. All three enabled selftests
+873/0, disabled build successful, launcher17/0. Same-source1280x960 still
+shows less plastic-like red cloth and directional form/contact shadows.
+pilot-temple-moving-v1 has40 captures2908..2948 (one gap), host0/helper11 at
+orderly end, four anchor generations, no forced processes. Reviewed recovery
+motion, not the requested earlier combat; no protected HUD pixels in the
+sample, so HUD acceptance stays open. Existing40-object teardown warning
+remains. See PILOT-TEMPLE-LIGHTING.md for scope. User subsequently requested
+continued polished/playable remaster goal; active in this task, no stop at
+handoff. Broader material masks, delighting and full working-pipeline gates
+remain open.
+
+LOG801 resume comparison (2026-09-10): verified HEAD
+485b7fe07293ad48eba64c3a2850b4a170670d32; preserved existing dirty docs and
+private artifacts. The quoted installation checkpoint was superseded by
+LOG800: 26 texture directories and 104 ingested DDS maps exist. Live Toolkit
+MCP remix_get_layers confirms pbrify_reimagined above curated and draft.
+Reviewed final-full, final-kilik and final-temple: floor grain, carving and
+costume detail are clearer; trousers are overly glossy and bright skin/trim
+still lose detail. PBRify is enhancement/map inference, not proven delighting.
+
+Resumed E with the existing helper's explicit light-radiance option, exposed
+in pilot-curated/pilot_render.py as --radiance (default unchanged). Added
+command, packet/config hashes and radiance to its run receipt. Saved two
+120-frame 1280x960 still renders of the same welded source-2601 packet and
+exposure-A profile: resume-pbrify-light3-exposureA-repeat and
+resume-pbrify-light1-exposureA, both exit0. Helper SHA256
+78f567b23c10a7529aa04cb73096e633c24742c0044586413d7e3a4bd6c6a872,
+packet SHA256 907940fdbbc04cd099956f2d7e19e5ace16fd4720a18ec08439780b163ea8958.
+Logs confirm radiance3/1 and anchored light. Existing shutdown warning
+(40 common device objects not disposed) remains; no resource acceptance.
+No live configuration, materials, factory light or production source changed.
+
+pilot-curated/resume-light-comparison.json/png retain evidence: old-vs-fresh
+radiance3 repeat mean absolute channel difference1.127/255; fresh3-vs-1
+20.033/255, so the lighting change exceeds observed repeat noise. Changed
+pixel counts alone are unsuitable (992621 repeat pixels). Mean luminance
+111.35 to90.96; luminance>=250 share0.1302% to0.0017%; below16 share10.10%
+to10.72%. Visual review: bright detail improves, floor darkens, glossy cloth
+persists. This is a candidate, not final lighting or user visual acceptance.
+Scoped comparison ACCEPTED; E remains CORRECTIONS_REQUIRED: warm key/cool
+fill and movement attachment still pending. D retains roughness/metal-mask
+and baked-shadow work; F live resolution is unchanged. No performance,
+temporal or full-pipeline claim. Installation/generation need not be repeated.
+
+LOG800 pilot substep D, reimagined route: PBRify material set generated,
+ingested and bound; technical ACCEPTED as a reversible layer, look
+NOT_REVIEWABLE pending the user; exposure probes for E. Direction: the
+user wants the materials AI-reimagined and RTX-favorable (delit albedo,
+real normal/height/roughness, metal masks, 4x). Web review (NVIDIA
+relighting and material guides, ComfyUI-RTX-Remix, PBRify_Remix): path
+tracing wants baked shading stripped from albedo, strong normal and height
+maps, roughness variation, emissive masks only for luminous details, and
+light from primitive lights at radiance about 1 tuned with the tonemapper.
+Installation (user go-ahead "Let's do this"): ComfyUI 0.35.0 at
+`C:\Game Dev\Emulators\comfyui\ComfyUI` with its own venv (torch
+2.11.0+cu128, RTX 5090 seen), NVIDIA ComfyUI-RTX-Remix nodes (V3 API) in
+`custom_nodes/comfyui-rtx_remix`, PBRify_Remix 1.7.2 ComfyUI pack (CC0,
+trained on ambientCG: `4x-PBRify-UpscalerV4.safetensors`,
+`4x-PBRify_UpscalerSPANV4.pth`, `1x-PBRify_{Height,NormalV3,RoughnessV2}.pth`)
+in `models/upscale_models`; headless on 127.0.0.1:7860, the port the
+Toolkit's own `lightspeed.trex.comfyui.core` 1.1.2 expects (that extension
+has no REST endpoint, so ComfyUI is driven by its HTTP `/prompt` and
+`/history` API and every ingestion, layer and binding step goes through the
+Toolkit MCP). Driver `pilot-curated/pbrify_run.py` (generate, ingest, bind,
+check): the shipped `integration_pbrify.json` with its download nodes
+replaced by the local models, one prompt per captured 256x256 original (RGBA
+PNG, alpha preserved), 4 maps at 1024 in about 4 s each, 26 materials in
+under 2 minutes; 104 maps ingested one item per MCP call into
+`assets/ingested/pbrify/` (ingestion renames normals to
+`<name>_OTH_Normal.n.rtex.dds`, octahedral, `inputs:encoding = 0`); layer
+`layers/pbrify_reimagined.usda` created through the MCP as the strongest
+sublayer above the curated and draft layers; metal constants from the
+reviewed classes authored in the layer text. Results at 1280x960 native
+shading, welded packet, edge energy floor / frieze / trousers: legacy 7.00 /
+13.36 / 18.31; route C 6.59 / 15.04 / 15.92; reimagined 9.20 / 30.99 / 24.71
+(`pbrify-kilik.png`, `pbrify-temple-right.png`, `pbrify-floor.png`): wood
+grain, frieze carving and costume detail read at combat distance. Defect
+and fix: with height maps on every material, parallax pulls neighbouring
+atlas texels at silhouettes (green and red fringes on Kilik's costume,
+`fringe-zoom.png`); without height 533791 pixels change and the fringes
+vanish, so height stays only on the tiling floor material (final render
+`pbrify-final-1280x960-native`, 8.93 / 31.33 / 21.79, `final-*.png`).
+Exposure (user: "all of these look over exposed"): probes as supplied
+profiles only (`pilot-curated/profiles/exposure-probe-a.conf`:
+`rtx.localtonemap.exposure` 0.45, shadows 1.0, highlights 6.0,
+`rtx.autoExposure.evMaxValue` 3, bloom off; probe B adds
+`rtx.ignoreAllVertexColorBakedLighting`), clipped pixels 1.1% to 0.0% and
+0.9% to 0.1% on the reimagined set, mean luminance 139 to 114; the
+diagnostic radiance-3 headlight remains the main cause and is substep E's
+first item. Not done: per-region metal masks for the mixed atlases,
+delighting of painted shadows in the temple atlases (PBRify does not delight;
+PBRFusion4 needs about 15 GB of extra models and a separate go-ahead),
+moving-stability check (live path, F). Runtime option names verified in the
+1.5.2 binary before use. Docs-only change; builds and selftests unchanged since LOG798 (868/0 x3, contract 260/0).
+
 LOG799 pilot substep D, curated material set: candidate "route C" built and
 rendered; technical ACCEPTED as a reversible layer, look NOT_REVIEWABLE
 pending the user; two corrections to earlier evidence. (1) Control

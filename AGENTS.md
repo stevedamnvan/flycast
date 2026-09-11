@@ -55,6 +55,12 @@ by default. The short goal text and last verified tracker state are in BACKLOG.
   (`lightspeed.trex.mcp.core`, SSE on 127.0.0.1:8000 while the GUI runs, REST
   mounted as tools), pilot Toolkit operations MUST go through it; the scripted
   kit.exe route is the fallback only when MCP is absent. Discover before use.
+- ComfyUI route (installed 2026-09-10 with the user's permission, see
+  BACKLOG): the local ComfyUI instance (127.0.0.1:7860) is driven through its
+  own HTTP API for generation only; every ingestion, layer and binding step
+  still goes through the Toolkit MCP. Do not add further model downloads or
+  node packs without a separate go-ahead; record model names, versions and
+  licences in the LOG.
 - Opt-in scope: the profile changes nothing unless explicitly selected; Public
   Auto, Faithful, Uncanny and neural activation modes keep their meaning.
   Experiments live in copied layers and explicitly supplied profiles.

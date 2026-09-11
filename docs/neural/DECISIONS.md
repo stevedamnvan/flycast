@@ -1,5 +1,19 @@
 # Neural rendering decisions
 
+## D-228: the reimagined material set is generated locally and bound through the MCP; height maps only on tiling surfaces
+
+LOG800. The pilot's refined material layer is produced by the PBRify chain
+in a local ComfyUI (driven through its own HTTP API) from the captured
+originals, ingested and bound through the Toolkit MCP into its own layer
+above the curated and raw AI layers; originals and the draft layers stay
+untouched, and the layer switch is the rollback. Height (parallax) maps
+are bound only on tiling surfaces because on packed character atlases
+parallax samples neighbouring islands at silhouettes. Model names,
+versions and licences are recorded in the LOG; further model downloads or
+node packs need a separate go-ahead. Exposure and lighting are handled by
+supplied profiles and authored lights (substep E), never by the live
+configuration.
+
 ## D-227: a no-mod control must remove the mod tree from the runtime's mod root; the curated layer stays separate from the raw AI layer
 
 LOG799. The runtime treats every subdirectory of `rtx-remix/mods/` as a

@@ -2,6 +2,41 @@
 
 ## Current state (2026-09-10, D-224)
 
+PAUSED by user request ("puse here"). No builds, launches or implementation
+until explicit resume. The v6 depth diagnostic was launched, then its owned
+process tree was forcibly stopped on request; it is incomplete evidence.
+Resume from pilot-extent1280-v6-depth and its launch log under
+D:\Flycast-Evidence. Baseline diagnostic build finished successfully;
+prepared executable is flycast-pilot-extent-v6.exe. Preserve all dirty work.
+
+Active continuation: user withdrew stopping and requested a polished playable
+remaster goal. Goal registered in this task; BACKLOG.md remains authority.
+PBRify D and temple E are documented in PILOT-TEMPLE-LIGHTING.md, source
+commit46fc20eb0. F1280x960 integration is in progress in the working tree:
+extent/channel/temporal/effects/motion/preview plus transient window handling.
+Read LOG803 for failed live attempts. The framebuffer guard now passes;
+v4 fails observed-anchor matching at both1280x960 and640x480. Inspect
+pilot-extent1280-v5-diagnose:2090 has no XYZ links, but3300 has862 valid
+lens matches and still rejects. Observed/predicted depth counters are added
+for the next run; baseline build was started. This is not yet a
+resolution-specific diagnosis. Do not weaken certificates to obtain output.
+Do not call F accepted from CPU transport tests or883/0 selftests. Continue
+the actual live capture, then combat/HUD and temporal quality checks. Preserve
+all preexisting dirty documentation and private evidence; no reset/clean.
+
+Latest resume (LOG801): HEAD485b7fe07293ad48eba64c3a2850b4a170670d32.
+PBRify setup, driver, 26 generated materials and104 ingested maps are already
+complete (LOG800); do not restart installation. Toolkit MCP confirms the
+reimagined layer is strongest. Corrected height stays on the floor only.
+Reviewed existing outputs and ran a same-source radiance3/1 comparison with
+exposure A at1280x960 using the existing helper. Light1 preserves bright
+detail but darkens the floor; glossy costume material persists. Comparison:
+`D:\Flycast-Evidence\pilot-curated\resume-light-comparison.png` and JSON.
+This is a lighting candidate, not final visual or moving acceptance. Continue
+pilot D/E: mixed-atlas roughness/metal masks and warm-key/cool-fill lighting;
+then F's opt-in live resolution work. Keep native alpha and welded normals.
+All older sections below retain their historical scope; read live backlog.
+
 Verified HEAD on entry `81654643daeaf0b4333978ee4a99da649dd40a6b` (LOG794);
 recheck HEAD/status on resume. The active work is the opt-in "Soulcalibur
 Faithful RTX" pilot recorded as substeps A-H under the existing cards in

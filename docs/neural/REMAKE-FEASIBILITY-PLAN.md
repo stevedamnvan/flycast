@@ -150,7 +150,10 @@ with zero ordinary-mode allocations/work. No renderer rewrite in M1.
   faithful candidate preserves recognizable designs, costume artwork,
   silhouettes, animation, stage identity, original effects and HUD; its scoped
   authoring (curated material palette, temple light) is limited to the Hoko
-  Temple scene and two fighters. Keep gameplay timing, readable UI and stable
+  Temple scene and two fighters. User direction 2026-09-10: the pilot's
+  material set is AI-reimagined (local ComfyUI, ComfyUI-RTX-Remix nodes,
+  PBRify models; results ingested through the Toolkit MCP) while designs,
+  silhouettes, animation, effects and HUD stay original. Keep gameplay timing, readable UI and stable
   motion. Broad asset replacement and further titles remain later work.
 
 ## Verification and handoff
