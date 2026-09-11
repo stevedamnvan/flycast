@@ -1,7 +1,7 @@
 # Neural rendering evidence log
 
 LOG903 texture and geometry quality audit of the combined pilot look
-(diagnostic, read-only; evidence in `D:\Flycast-Evidenceudit-g\`, no
+(diagnostic, read-only; evidence in `D:\Flycast-Evidence/audit-g\`, no
 code, mod or configuration change). Inputs: frame 2570 of
 `pilot-g-combined` at every stage (original native, returned Remix,
 neural, composited, native-effects difference, overlay mask), the USD
