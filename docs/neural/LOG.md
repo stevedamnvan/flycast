@@ -1,5 +1,47 @@
 # Neural rendering evidence log
 
+LOG804 substep F: first live 1280x960 combined presentation with captures;
+technical ACCEPTED for the extent path as a diagnostic result, not
+performance, temporal-quality or visual acceptance. Resume state: the v6
+diagnostic had been prepared from a baseline-configuration executable
+(input replay not compiled in; the memory rule "prepared executables come
+from build-neural-automation" applies) and the automation build predated
+the observed/predicted depth diagnostics, so v6 is void. Rebuilt the
+automation configuration and reran the same launch as v5 (1280x960, temple
+rig, radiance 1, native alpha, welded normals, exposure profile A, 12
+captures from source 2560). v7: the scene stage now passes at 1280x960 with
+no anchor rejection at all (v5's rejections came from the stale binary);
+every frame then skipped at stage native-effects with
+`passes=1 autosort=1 extent=1280x960` because the OIT effects capture in
+`dx11_oitrenderer.cpp` still gated on `width == 640 && height == 480`.
+v8 with that gate on the selected extent: effects captured
+(541786752 logical bytes per snapshot at 1280x960, backing 1280x960), 598
+publishes, 590 returns, but no evaluation, guidance or presentation and
+no captures; the return path was leaving silently. v9 added the
+`Remake neural input rejected` diagnostic (never fired) and exposed
+`Remake GPU guidance rejected: remake-raster-input-bound` on all 587
+returns: `remake_motion_raster.h` was hard-wired to 640x480 (textures,
+input bounds, constants, row pitches, viewport). v10 with the raster on
+the selected extent (`pilot-extent1280-v10-raster`): 1200 host samples,
+762 publishes, 754 returns, 752 accepted evaluations, 752 GPU guidance,
+752 source-effect composites, 1173 preview presents (1163 remake presents,
+425 output repeats, mean latency 4.6 frames), 12 captures at
+1280x960 (`captures/frame-2560-present-2564` and following: native
+backbuffer, evaluated Remix output, composite with native effects and HUD;
+`live1280-sheet.png`). HUD, health bars, timer and weapon trail composite
+correctly; one anchor support change at source 3100 re-anchors in session
+as before. Present p50/p95 29.4/35.8 ms against 20.0/27.3 at 640x480 in
+the LOG797 performance run; helper turnaround p50 41.9 ms; 428 feed
+skips (worker busy, native fallback) on the alternate frames. This is a
+capture run (performance_eligible=false) and the 60 fps goal is not met
+at this extent yet; the cost attribution belongs to H. Controls retained
+from LOG803 (wrong-size, truncated depth, wrong receipt, stale return,
+unsupported extent). Builds: four configurations serial, 0 errors;
+selftest 883/0 in automation, baseline and no-ngx; remake-sdk-contract
+272/0; python suites 23/0. Source committed with the other session's F
+implementation (extent contract, channel ABI 5, temporal, motion units,
+effects, preview, transient window) after this build and test pass.
+
 LOG803 F implementation in progress after46fc20eb0: output-size1280x960
 is an immutable launcher environment contract shared by host/helper. Channel
 ABI5 negotiates width/height and reserves bounded maximum image/depth slots;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include "remake_extent.h"
 #include "pvr_scene_capture.h"
 #include "remake_effect_identity.h"
 #include "remake_alpha_ownership.h"
@@ -63,13 +64,13 @@ public:
    ||(!SameDevice(inputOwner,device)&&!SameDevice(inputOwner,contextOwner))
    ||(!SameDevice(pixelOwner,device)&&!SameDevice(pixelOwner,contextOwner)))return false;
   D3D11_TEXTURE2D_DESC desc{};input->GetDesc(&desc);
-  if(desc.Width<640||desc.Height<480||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
+  if(desc.Width<RemakeWidth()||desc.Height<RemakeHeight()||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
    ||(desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM&&desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM))return false;
-  desc.Width=640;desc.Height=480;desc.Usage=D3D11_USAGE_DEFAULT;desc.CPUAccessFlags=desc.MiscFlags=0;
+  desc.Width=RemakeWidth();desc.Height=RemakeHeight();desc.Usage=D3D11_USAGE_DEFAULT;desc.CPUAccessFlags=desc.MiscFlags=0;
   desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
   if(FAILED(device->CreateTexture2D(&desc,nullptr,&evidenceNativeBackground.get())))return false;
-  const D3D11_BOX box{0,0,0,640,480,1};context->CopySubresourceRegion(evidenceNativeBackground,0,0,0,0,input,0,&box);
-  logicalBytes+=640u*480*4;return true;
+  const D3D11_BOX box{0,0,0,RemakeWidth(),RemakeHeight(),1};context->CopySubresourceRegion(evidenceNativeBackground,0,0,0,0,input,0,&box);
+  logicalBytes+=RemakeWidth()*RemakeHeight()*4;return true;
  }
  ID3D11Texture2D* NativeBackgroundForEvidence(const ProducerIdentity& source)const {
   return Matches(source)?static_cast<ID3D11Texture2D*>(evidenceNativeBackground):nullptr;
@@ -113,7 +114,7 @@ public:
   D3D11_TEXTURE2D_DESC pointerDesc{};pointers->GetDesc(&pointerDesc);
   if(!pd.ByteWidth||pd.ByteWidth>512u*1024*1024||pd.StructureByteStride!=16
    ||!td.ByteWidth||td.ByteWidth>8192*8||!cd.ByteWidth||cd.ByteWidth>4096
-   ||pointerDesc.Width<640||pointerDesc.Height<480||pointerDesc.Width>4096||pointerDesc.Height>4096
+   ||pointerDesc.Width<RemakeWidth()||pointerDesc.Height<RemakeHeight()||pointerDesc.Width>4096||pointerDesc.Height>4096
    ||pointerDesc.Format!=DXGI_FORMAT_R32_UINT||pointerDesc.MipLevels!=1
    ||pointerDesc.ArraySize!=1||pointerDesc.SampleDesc.Count!=1)
    return fail("resource-bound pixels="+std::to_string(pd.ByteWidth)+" stride="+std::to_string(pd.StructureByteStride)
@@ -128,8 +129,8 @@ public:
   pd.CPUAccessFlags=td.CPUAccessFlags=cd.CPUAccessFlags=0;
   // Native OIT allocation grows for RTTs and never shrinks. Retain only the
   // exact main content rectangle, not the larger backing allocation.
-  pointerDesc.Width=640;pointerDesc.Height=480;
-  owned->logicalBytes=std::uint64_t(pd.ByteWidth)+td.ByteWidth+cd.ByteWidth+640u*480*4;
+  pointerDesc.Width=RemakeWidth();pointerDesc.Height=RemakeHeight();
+  owned->logicalBytes=std::uint64_t(pd.ByteWidth)+td.ByteWidth+cd.ByteWidth+RemakeWidth()*RemakeHeight()*4;
   HRESULT hr=device->CreateBuffer(&pd,nullptr,&owned->pixels.get());
   if(FAILED(hr))return fail("create-pixels hr="+std::to_string(hr));
   hr=device->CreateBuffer(&td,nullptr,&owned->parameters.get());
@@ -146,7 +147,7 @@ public:
   if(FAILED(hr))return fail("create-parameter-view hr="+std::to_string(hr));
   context->CopyResource(owned->pixels,pixels);context->CopyResource(owned->parameters,parameters);
   context->CopyResource(owned->constants,constants);
-  const D3D11_BOX content{0,0,0,640,480,1};
+  const D3D11_BOX content{0,0,0,RemakeWidth(),RemakeHeight(),1};
   context->CopySubresourceRegion(owned->pointers,0,0,0,0,pointers,0,&content);
   return owned;
  }
@@ -179,7 +180,7 @@ public:
    return fail("effect-evidence-buffer-layout");
   std::vector<EffectIdentityPixel> px(pd.ByteWidth/sizeof(EffectIdentityPixel));
   std::vector<EffectIdentityPoly> pp(td.ByteWidth/sizeof(EffectIdentityPoly));
-  std::vector<std::uint32_t> state(cd.ByteWidth/4),heads(640*480);
+  std::vector<std::uint32_t> state(cd.ByteWidth/4),heads(RemakeWidth()*RemakeHeight());
   if(!readBuffer(pixels,px.data(),pd.ByteWidth)||!readBuffer(parameters,pp.data(),td.ByteWidth)
    ||!readBuffer(constants,state.data(),cd.ByteWidth))return fail("effect-evidence-buffer-read");
   D3D11_TEXTURE2D_DESC desc{};pointers->GetDesc(&desc);desc.Usage=D3D11_USAGE_STAGING;
@@ -188,8 +189,8 @@ public:
   if(FAILED(device->CreateTexture2D(&desc,nullptr,&staging.get())))return fail("effect-evidence-pointer-create");
   context->CopyResource(staging,pointers);D3D11_MAPPED_SUBRESOURCE map{};
   if(FAILED(context->Map(staging,0,D3D11_MAP_READ,0,&map)))return fail("effect-evidence-pointer-read");
-  for(unsigned y=0;y<480;++y)std::memcpy(heads.data()+y*640,
-   static_cast<const unsigned char*>(map.pData)+y*map.RowPitch,640*4);
+  for(unsigned y=0;y<RemakeHeight();++y)std::memcpy(heads.data()+y*RemakeWidth(),
+   static_cast<const unsigned char*>(map.pData)+y*map.RowPitch,RemakeWidth()*4);
   context->Unmap(staging,0);
   // Version of Flycast's resolver contract plus the selected dithering variant.
   state.insert(state.begin(),{1,resolverVariant});
@@ -214,7 +215,7 @@ public:
    if(!SameDevice(owner,device)&&!SameDevice(owner,contextOwner))return false;
   }
   D3D11_TEXTURE2D_DESC desc{};background->GetDesc(&desc);
-  if(desc.Width!=640||desc.Height!=480||desc.MipLevels!=1||desc.ArraySize!=1
+  if(desc.Width!=RemakeWidth()||desc.Height!=RemakeHeight()||desc.MipLevels!=1||desc.ArraySize!=1
    ||desc.SampleDesc.Count!=1||(desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM
     &&desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM))return false;
   ComPtr<ID3D11Texture2D> color,workingPointers;
@@ -265,7 +266,7 @@ public:
   commands->PSSetSamplers(0,1,&sampler.get());
   commands->PSSetShader(resolve,nullptr,0);commands->VSSetShader(vertex,nullptr,0);
   commands->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-  D3D11_VIEWPORT viewport{0,0,640,480,0,1};commands->RSSetViewports(1,&viewport);
+  D3D11_VIEWPORT viewport{0,0,float(RemakeWidth()),float(RemakeHeight()),0,1};commands->RSSetViewports(1,&viewport);
   commands->RSSetState(raster);
   commands->Draw(4,0);
   if(FAILED(commands->FinishCommandList(FALSE,&list.get())))return false;

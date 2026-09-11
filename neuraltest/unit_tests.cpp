@@ -136,6 +136,16 @@ int RunSelfTests()
 		for(const auto& v:stream.vertices)truth=truth&&std::abs(v.previousScreen.x-v.currentScreen.x+4)<.0001f
 			&&v.previousScreen.y==v.currentScreen.y;
 		suite.Expect(truth,"returned geometry positive X translation exports current-to-previous negative four pixels");
+		{
+			auto hiBefore=previous,hiAfter=translated;hiBefore.extent=hiAfter.extent={1280,960};
+			RemakeMotionStream hi;
+			bool scaled=BuildRemakeMotionStream(&hiBefore,hiAfter,hi,error)&&hi.trustedVertices==3;
+			for(const auto& v:hi.vertices)scaled=scaled&&std::abs(v.previousScreen.x-v.currentScreen.x+8)<.0002f;
+			suite.Expect(scaled,"high resolution motion uses eight pixels for the same four-pixel source translation");
+			suite.Expect(!CompatibleRemakeTemporalReference(previous,hiAfter),"different output extent rejects old temporal history");
+			hiAfter.extent={1280,480};
+			suite.Expect(!BuildRemakeMotionStream(nullptr,hiAfter,hi,error),"mixed output dimensions reject motion generation");
+		}
 		if(ok&&!stream.vertices.empty()) {
 			const auto& v=stream.vertices[0];const float motion=v.previousScreen.x-v.currentScreen.x;
 			suite.Expect(std::abs(motion-4)>1&&std::abs(motion*2+4)>1,"returned motion reversed-sign and doubled-scale controls fail analytic truth");

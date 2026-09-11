@@ -594,7 +594,7 @@ struct DX11OITRenderer : public DX11Renderer
 				+" extent="+std::to_string(width)+"x"+std::to_string(height);
 		if (lastPass && !neuralSceneReplayTarget && !rendContext->isRTT
 			&& !config::EmulateFramebuffer && flycast::rend::neural::RemakeNativeEffectsRequested()
-			&& width == 640 && height == 480 && rendContext->render_passes.size() == 1
+			&& width == flycast::rend::neural::RemakeWidth() && height == flycast::rend::neural::RemakeHeight() && rendContext->render_passes.size() == 1
 			&& rendContext->render_passes[0].autosort && !rendContext->global_param_tr.empty())
 		{
 			ComPtr<ID3D11Buffer> effectConstants;

@@ -7,6 +7,7 @@
 #include <cstring>
 #include "remake_motion_shader.h"
 #include "rend/neural/remake_motion_stream.h"
+#include "rend/neural/remake_extent.h"
 
 namespace flycast::rend::neural {
 // Isolated deferred-context work preserves the caller's graphics state. Output
@@ -40,7 +41,7 @@ class RemakeMotionRaster {
  bool ensureResources(std::string& error) {
   if(contract)return true;
   auto texture=[&](DXGI_FORMAT format,UINT flags,Ptr<ID3D11Texture2D>& tex,Ptr<ID3D11ShaderResourceView>* view) {
-   D3D11_TEXTURE2D_DESC d{};d.Width=640;d.Height=480;d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
+   D3D11_TEXTURE2D_DESC d{};d.Width=flycast::rend::neural::RemakeWidth();d.Height=flycast::rend::neural::RemakeHeight();d.MipLevels=d.ArraySize=d.SampleDesc.Count=1;
    d.Format=format;d.BindFlags=flags;d.Usage=D3D11_USAGE_DEFAULT;
    return SUCCEEDED(device->CreateTexture2D(&d,nullptr,tex.GetAddressOf()))
     &&(!view||SUCCEEDED(device->CreateShaderResourceView(tex.Get(),nullptr,view->GetAddressOf())));
@@ -113,11 +114,11 @@ public:
   const std::vector<unsigned char>* currentColor=nullptr,const std::vector<unsigned char>* previousColor=nullptr) {
   auto fail=[&](const char* why){error=why;return false;};
   if(bool(currentColor)!=bool(previousColor)||(currentColor
-   &&(currentColor->size()!=640*480*4||previousColor->size()!=640*480*4)))
+   &&(currentColor->size()!=flycast::rend::neural::RemakePixels()*4||previousColor->size()!=flycast::rend::neural::RemakePixels()*4)))
    return fail("remake-raster-color-bound");
   if(!device||!immediate||stream.vertices.empty()||stream.vertices.size()>65536
    ||stream.indices.empty()||stream.indices.size()>262144||stream.indices.size()%3
-   ||currentDepth.size()!=640*480||previousDepth.size()!=640*480
+   ||currentDepth.size()!=flycast::rend::neural::RemakePixels()||previousDepth.size()!=flycast::rend::neural::RemakePixels()
    ||!std::isfinite(nearPlane)||!std::isfinite(farPlane)||nearPlane<=0||farPlane<=nearPlane
    ||!std::isfinite(absoluteTolerance)||!std::isfinite(relativeTolerance)
    ||absoluteTolerance<0||relativeTolerance<0)return fail("remake-raster-input-bound");
@@ -149,13 +150,13 @@ public:
     ||FAILED(currentOwner.As(&currentIdentity))||priorIdentity.Get()!=currentIdentity.Get())
     return fail("remake-raster-previous-wrong-device");
   }
-  const float constants[]={640,480,nearPlane,farPlane,absoluteTolerance,relativeTolerance,currentColor?1.f:0.f,8.f/255.f};
+  const float constants[]={float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),nearPlane,farPlane,absoluteTolerance,relativeTolerance,currentColor?1.f:0.f,8.f/255.f};
   context->ClearState();
-  context->UpdateSubresource(current.Get(),0,nullptr,currentDepth.data(),640*4,0);
-  context->UpdateSubresource(previous.Get(),0,nullptr,previousDepth.data(),640*4,0);
+  context->UpdateSubresource(current.Get(),0,nullptr,currentDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
+  context->UpdateSubresource(previous.Get(),0,nullptr,previousDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
   if(currentColor) {
-   context->UpdateSubresource(colorNow.Get(),0,nullptr,currentColor->data(),640*4,0);
-   context->UpdateSubresource(colorBefore.Get(),0,nullptr,previousColor->data(),640*4,0);
+   context->UpdateSubresource(colorNow.Get(),0,nullptr,currentColor->data(),flycast::rend::neural::RemakeWidth()*4,0);
+   context->UpdateSubresource(colorBefore.Get(),0,nullptr,previousColor->data(),flycast::rend::neural::RemakeWidth()*4,0);
   }
   if(!write(vertices.Get(),stream.vertices.data(),stream.vertices.size()*sizeof(RemakeMotionVertex))
    ||!write(indices.Get(),stream.indices.data(),stream.indices.size()*4)
@@ -166,7 +167,7 @@ public:
   context->ClearDepthStencilView(dsv.Get(),D3D11_CLEAR_DEPTH,1,0);
   ID3D11RenderTargetView* rt[]={targets[0].Get(),targets[1].Get(),targets[2].Get(),targets[3].Get(),targets[4].Get(),targets[5].Get()};
   context->OMSetRenderTargets(6,rt,dsv.Get());context->OMSetDepthStencilState(depthState.Get(),0);
-  context->RSSetState(raster.Get());const D3D11_VIEWPORT viewport={0,0,640,480,0,1};context->RSSetViewports(1,&viewport);
+  context->RSSetState(raster.Get());const D3D11_VIEWPORT viewport={0,0,float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),0,1};context->RSSetViewports(1,&viewport);
   ID3D11Buffer* vb=vertices.Get();UINT stride=sizeof(RemakeMotionVertex),offset=0;
   context->IASetVertexBuffers(0,1,&vb,&stride,&offset);context->IASetIndexBuffer(indices.Get(),DXGI_FORMAT_R32_UINT,0);
   context->IASetInputLayout(layout.Get());context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

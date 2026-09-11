@@ -1,5 +1,17 @@
 # Neural rendering decisions
 
+## D-229: every fixed 640x480 site on the returned-image path is an extent bug, and silent early returns on that path are not allowed
+
+LOG804. The live extent is the launch contract from `remake_extent.h`; the
+OIT effects capture gate, the motion raster (textures, bounds, constants,
+pitches, viewport) and the neural input upload all take the selected
+extent, and the default stays 640x480. A returned image that is dropped
+must say why in the log (`Remake neural input rejected`, `Remake GPU
+guidance rejected`), because two silent returns cost three diagnostic
+runs. Prepared executables for live runs come from the automation build
+only; a baseline-configuration executable produces a void run. None of
+this weakens the anchor, lens or depth certificates.
+
 ## D-228: the reimagined material set is generated locally and bound through the MCP; height maps only on tiling surfaces
 
 LOG800. The pilot's refined material layer is produced by the PBRify chain

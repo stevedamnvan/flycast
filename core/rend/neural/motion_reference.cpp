@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "motion_reference.h"
+#include "remake_extent.h"
 
 #include <algorithm>
 #include <array>
@@ -261,7 +262,8 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 	// Captured T1401N HUD atlases, not a generic top-of-screen rectangle rule.
 	// Palette animation and the timer's changing glyph topology must not make
 	// already identified UI dependent on neural accepted-history continuity.
-	if (profile == OverlayProfile::SoulcaliburT1401nHudV1 && screenWidth == 640 && screenHeight == 480
+	const int hudScale=(screenWidth==1280&&screenHeight==960&&RemakeWidth()==1280)?2:1;
+	if (profile == OverlayProfile::SoulcaliburT1401nHudV1 && screenWidth == 640u*hudScale && screenHeight == 480u*hudScale
 		&& drawCount != 0 && draw.indexCount != 0 && draw.blend == 37
 		&& (draw.flags & (DrawRtt | DrawNaomi2 | DrawDegenerate)) == 0
 		&& std::isfinite(draw.zMin) && std::isfinite(draw.zMax)
@@ -274,6 +276,7 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 		&& draw.zMin >= ((draw.texId == 686272176u || draw.texId == 801607344u) ? .128f : .142f)
 		&& draw.zMax <= .24f) {
 		const auto inside = [&](int left,int top,int right,int bottom) {
+			left*=hudScale;top*=hudScale;right*=hudScale;bottom*=hudScale;
 			return draw.bboxMin[0]>=left && draw.bboxMin[1]>=top && draw.bboxMax[0]<=right
 				&& draw.bboxMax[1]<=bottom && draw.bboxMax[0]>draw.bboxMin[0] && draw.bboxMax[1]>draw.bboxMin[1];
 		};
@@ -320,7 +323,8 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 float TitleOverlayDepthScale(ArrayView<DrawRecord> draws, std::uint32_t width,
 	std::uint32_t height, OverlayProfile profile) noexcept
 {
-	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || width != 640 || height != 480)
+	const int hudScale=(width==1280&&height==960&&RemakeWidth()==1280)?2:1;
+	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || width != 640u*hudScale || height != 480u*hudScale)
 		return 0.f;
 	float minimum = std::numeric_limits<float>::infinity(), maximum = 0.f;
 	unsigned roles = 0;
@@ -329,7 +333,7 @@ float TitleOverlayDepthScale(ArrayView<DrawRecord> draws, std::uint32_t width,
 		if (draw.texId == 671530672u) role = 1;
 		else if (draw.texId == 696696496u) role = 2;
 		else if (draw.texId == 795315888u || draw.texId == 801607344u)
-			role = draw.bboxMax[0] <= 272 ? 4 : draw.bboxMin[0] >= 368 ? 8 : 0;
+			role = draw.bboxMax[0] <= 272*hudScale ? 4 : draw.bboxMin[0] >= 368*hudScale ? 8 : 0;
 		if (!role || !std::isfinite(draw.zMin) || !std::isfinite(draw.zMax)
 			|| draw.zMin <= 0.f || draw.zMax < draw.zMin) continue;
 		// Captured plate layer is 0.9 of the foreground HUD layer. Validate

@@ -984,7 +984,10 @@ void sdl_window_create()
 void sdl_window_destroy()
 {
 #ifndef __SWITCH__
-	if (!settings.naomi.slave && settings.naomi.drivingSimSlave == 0)
+	// Explicit launch dimensions are temporary, including the derived position
+	// and maximized state; do not persist a diagnostic window into user settings.
+	if (!settings.naomi.slave && settings.naomi.drivingSimSlave == 0
+		&& !config::isTransient("window", "width") && !config::isTransient("window", "height"))
 	{
 		get_window_state();
 		config::saveInt("window", "left", windowPos.x);

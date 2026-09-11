@@ -2,6 +2,15 @@
 
 ## Current state (2026-09-10, D-224)
 
+Resume 2026-09-10 (LOG804): user said "resume". The paused v6 run was void
+(baseline-configuration executable). Three extent fixes (OIT effects gate,
+motion raster, neural-input diagnostic) gave the first live 1280x960
+combined presentation with captures (`pilot-extent1280-v10-raster`). Four
+builds, 883/0 x3, contract 272/0, python 23/0; source and docs committed.
+Next: F moving combat/HUD and temporal review at 1280x960, then H cost
+attribution (present p50 29.4 ms at 1280 against 20.0 at 640); E key/fill
+tuning and D masks remain open; look decisions remain the user's.
+
 PAUSED by user request ("puse here"). No builds, launches or implementation
 until explicit resume. The v6 depth diagnostic was launched, then its owned
 process tree was forcibly stopped on request; it is incomplete evidence.

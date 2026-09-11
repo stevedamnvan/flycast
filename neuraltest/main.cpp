@@ -6,6 +6,7 @@
 #include "rend/neural/neural_stage.h"
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/remake_input_replay.h"
+#include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_view_transport.h"
 #include "json/json.hpp"
 #include "capture_transition.h"
@@ -1622,6 +1623,10 @@ int PerformanceCommand(const Args& args)
 		+ L",config:rend.NeuralDlssPreset=" + std::to_wstring(presetValue)
 		+ L",record:replay_input=" + (inputReplay == "yes" ? L"yes" : L"no")
 		+ L",log:LogToFile=yes";
+	if(const auto* remakeSize=std::getenv("FLYCAST_REMAKE_OUTPUT_SIZE");remakeSize&&std::strcmp(remakeSize,"1280x960")==0) {
+		if(renderHeight!=960){std::cerr<<"remake host render extent mismatch\n";return 2;}
+		config+=L",window:width=1280,window:height=960,window:fullscreen=no,window:maximized=no";
+	}
 	std::wstring commandLine = QuoteWindowsArg(flycast.wstring()) + L" -config "
 		+ QuoteWindowsArg(config) + L" " + QuoteWindowsArg(game.wstring());
 
@@ -3723,6 +3728,35 @@ int main(int argc, char **argv)
 	}
 	const std::string command = argv[1];
 	if (command == "selftest") return neuraltest::RunSelfTests();
+	if (command == "remake-extent-test") {
+		using namespace flycast::rend::neural;
+		remake::Packet packet;
+		if(args.size()!=1||!ReadRemakeViewPacket(Value(args,"--packet"),packet,error))return 2;
+		const auto token="extent-test-"+std::to_string(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+		RemakeLiveChannel consumer,publisher;RemakeChannelReceipt sent,received;
+		if(!consumer.CreateConsumer(token,error)||!publisher.OpenPublisher(token,error))return 3;
+		remake::Packet owned;
+		if(publisher.PublishForReturn(packet,sent,error)!=RemakeChannelResult::Published
+		 ||consumer.Receive(owned,received,error)!=RemakeChannelResult::Received)return 4;
+		RemakeReturnedImage image;image.source=received;image.frame=owned.frame;image.producer=owned.producer;
+		image.width=RemakeWidth();image.height=RemakeHeight();image.bgra.assign(RemakePixels()*4,73);
+		image.projectionDepth.assign(RemakePixels(),.5f);image.nearPlane=owned.camera.nearPlane;image.farPlane=owned.camera.farPlane;
+		auto wrong=image;wrong.width/=2;
+		if(consumer.ReturnImage(wrong,error)!=RemakeChannelResult::Invalid)return 5;
+		wrong=image;wrong.projectionDepth.pop_back();
+		if(consumer.ReturnImage(wrong,error)!=RemakeChannelResult::Invalid)return 6;
+		wrong=image;++wrong.source.digest;
+		if(consumer.ReturnImage(wrong,error)!=RemakeChannelResult::Invalid)return 7;
+		RemakeReturnedImage actual;RemakeNeuralInput converted;
+		if(consumer.ReturnImage(image,error)!=RemakeChannelResult::Published
+		 ||publisher.ReceiveImage(actual,error)!=RemakeChannelResult::Received
+		 ||actual.width!=image.width||actual.height!=image.height||actual.bgra!=image.bgra||actual.projectionDepth!=image.projectionDepth
+		 ||!BuildRemakeNeuralInput(actual,packet.frame,packet.producer,converted))return 8;
+		if(consumer.ReturnImage(image,error)!=RemakeChannelResult::Invalid)return 9;
+		std::cout<<"extent_transport_pass width="<<actual.width<<" height="<<actual.height<<" pixels="<<actual.projectionDepth.size()
+		 <<" wrong-size=rejected wrong-depth=rejected wrong-receipt=rejected stale=rejected gpu=false\n";
+		return 0;
+	}
 	if (command == "wire-parity") {
 		const auto path=Value(args,"--packet");
 		if(args.size()!=1||path.empty())return 2;

@@ -2184,25 +2184,25 @@ void DX11Renderer::captureNeuralQualityFrame()
 				||image.producer.epoch!=neuralQualityCaptureMetadata.producerIdentity.epoch
 				||image.producer.ordinal!=neuralQualityCaptureMetadata.producerIdentity.ordinal
 				||image.producer.cycle!=neuralQualityCaptureMetadata.producerIdentity.cycle
-				||image.width!=640||image.height!=480||image.bgra.size()!=640*480*4
+				||image.width!=flycast::rend::neural::RemakeWidth()||image.height!=flycast::rend::neural::RemakeHeight()||image.bgra.size()!=flycast::rend::neural::RemakeWidth()*flycast::rend::neural::RemakeHeight()*4
 				||!fbTextureView||!neuralOverlayMask.views[neuralExportSlot]) {
 				error="return-composite-frame-or-input";return false;
 			}
 			D3D11_TEXTURE2D_DESC nativeDesc{};fbTex->GetDesc(&nativeDesc);
-			if(nativeDesc.Width!=640||nativeDesc.Height!=480) {error="return-composite-native-size";return false;}
+			if(nativeDesc.Width!=flycast::rend::neural::RemakeWidth()||nativeDesc.Height!=flycast::rend::neural::RemakeHeight()) {error="return-composite-native-size";return false;}
 			const auto& shader=shaders->getNeuralOverlayCompositePixelShader();
 			if(!shader){error="return-composite-shader";return false;}
-			D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
+			D3D11_TEXTURE2D_DESC desc{};desc.Width=flycast::rend::neural::RemakeWidth();desc.Height=flycast::rend::neural::RemakeHeight();desc.MipLevels=1;desc.ArraySize=1;
 			desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
 			desc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
-			D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=image.bgra.data();initial.SysMemPitch=640*4;
+			D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=image.bgra.data();initial.SysMemPitch=flycast::rend::neural::RemakeWidth()*4;
 			ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;ComPtr<ID3D11DeviceContext> deferred;
 			if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
 				||FAILED(device->CreateRenderTargetView(target,nullptr,&rtv.get()))
 				||FAILED(device->CreateDeferredContext(0,&deferred.get()))) {error="return-composite-resources";return false;}
 			// Isolated command list preserves the native target and all immediate state.
 			Quad diagnosticQuad;diagnosticQuad.init(device,deferred,shaders);
-			D3D11_VIEWPORT viewport{0,0,640,480,0,1};deferred->RSSetViewports(1,&viewport);
+			D3D11_VIEWPORT viewport{0,0,float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),0,1};deferred->RSSetViewports(1,&viewport);
 			deferred->OMSetRenderTargets(1,&rtv.get(),nullptr);
 			deferred->OMSetBlendState(blendStates.getState(false),nullptr,0xffffffff);
 			ID3D11ShaderResourceView* views[]={fbTextureView.get(),neuralOverlayMask.views[neuralExportSlot].get()};
@@ -2629,8 +2629,8 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 		&&rendContext&&!rendContext->isRTT&&!config::EmulateFramebuffer.get()
 		&&RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		&&current&&currentNeuralGuidanceFrameId==current&&config::NeuralCaptureFrames.get()==0
-		&&neuralQualityCaptureMetadata.renderWidth==640&&neuralQualityCaptureMetadata.renderHeight==480
-		&&neuralQualityCaptureMetadata.outputWidth==640&&neuralQualityCaptureMetadata.outputHeight==480;
+		&&neuralQualityCaptureMetadata.renderWidth==flycast::rend::neural::RemakeWidth()&&neuralQualityCaptureMetadata.renderHeight==flycast::rend::neural::RemakeHeight()
+		&&neuralQualityCaptureMetadata.outputWidth==flycast::rend::neural::RemakeWidth()&&neuralQualityCaptureMetadata.outputHeight==flycast::rend::neural::RemakeHeight();
 	try {
 		std::uint64_t candidate=0;
 		const auto& source=evaluatedRequested?remakeEvaluatedSource:remakeAsyncReturned;
@@ -2641,10 +2641,10 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 			if(remakeCompositeFrame!=candidate||remakeCompositeEvaluated!=evaluatedRequested) {
 				const auto& shader=shaders->getNeuralOverlayCompositePixelShader();
 				if(!shader)throw std::runtime_error("overlay shader unavailable");
-				D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=desc.ArraySize=1;
+				D3D11_TEXTURE2D_DESC desc{};desc.Width=flycast::rend::neural::RemakeWidth();desc.Height=flycast::rend::neural::RemakeHeight();desc.MipLevels=desc.ArraySize=1;
 				desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;desc.SampleDesc.Count=1;
 				desc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
-				D3D11_SUBRESOURCE_DATA initial{image.bgra.data(),640*4,0};
+				D3D11_SUBRESOURCE_DATA initial{image.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0};
 				ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;
 				ComPtr<ID3D11ShaderResourceView> view;ComPtr<ID3D11DeviceContext> deferred;
 				if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
@@ -2652,7 +2652,7 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 					||FAILED(device->CreateShaderResourceView(target,nullptr,&view.get()))
 					||FAILED(device->CreateDeferredContext(0,&deferred.get())))throw std::runtime_error("composite resources unavailable");
 				Quad composite;composite.init(device,deferred,shaders);
-				D3D11_VIEWPORT viewport{0,0,640,480,0,1};deferred->RSSetViewports(1,&viewport);
+				D3D11_VIEWPORT viewport{0,0,float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),0,1};deferred->RSSetViewports(1,&viewport);
 				deferred->OMSetRenderTargets(1,&rtv.get(),nullptr);
 				deferred->OMSetBlendState(blendStates.getState(false),nullptr,0xffffffff);
 				if(evaluatedRequested)composite.draw(remakeEvaluatedView,samplers->getSampler(false),nullptr);
@@ -2865,7 +2865,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			fed.receipt.bytes,(unsigned long long)fed.receipt.digest);
 	}
 	if(!producer.Available()||metadata.predominantly2D||metadata.gameId!="T1401N"
-		||metadata.renderWidth!=640||metadata.renderHeight!=480)return;
+		||metadata.renderWidth!=flycast::rend::neural::RemakeWidth()||metadata.renderHeight!=flycast::rend::neural::RemakeHeight())return;
 	if(const auto* start=std::getenv("FLYCAST_REMAKE_ASYNC_START_PRODUCER");start&&*start) {
 		char* end=nullptr;const auto ordinal=std::strtoul(start,&end,10);
 		if(*end||ordinal>10000000||producer.ordinal<ordinal)return;
@@ -3114,7 +3114,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	if(!activeNeuralSurface||!RemakeRendererAllowed(IsOitRenderer(),std::getenv("FLYCAST_REMAKE_ASYNC_OIT"))
 		||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
 		||config::NeuralCaptureFrames.get()!=0||remakeAsyncStopped||!remakeAsyncReturned
-		||frame.renderWidth!=640||frame.renderHeight!=480||frame.outputWidth!=640||frame.outputHeight!=480
+		||frame.renderWidth!=flycast::rend::neural::RemakeWidth()||frame.renderHeight!=flycast::rend::neural::RemakeHeight()||frame.outputWidth!=flycast::rend::neural::RemakeWidth()||frame.outputHeight!=flycast::rend::neural::RemakeHeight()
 		||(activeNeuralMode!=static_cast<int>(NeuralMode::Dlaa)
 			&&activeNeuralMode!=static_cast<int>(NeuralMode::Dlss5Experimental)))return;
 	const auto& returned=*remakeAsyncReturned;
@@ -3200,11 +3200,11 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			// Explicit diagnostic lane. Never submit or advance accepted neural
 			// history; retain the same source effects and late overlay ownership.
 			if(std::strcmp(comparison,"1")!=0||!boundedComparison||!RemakeNativeEffectsRequested())return;
-			if(source.bgra.size()!=640*480*4)return;
-			D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;
+			if(source.bgra.size()!=flycast::rend::neural::RemakeWidth()*flycast::rend::neural::RemakeHeight()*4)return;
+			D3D11_TEXTURE2D_DESC desc{};desc.Width=flycast::rend::neural::RemakeWidth();desc.Height=flycast::rend::neural::RemakeHeight();
 			desc.MipLevels=desc.ArraySize=1;desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
 			desc.SampleDesc.Count=1;desc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
-			D3D11_SUBRESOURCE_DATA data{source.bgra.data(),640*4,0};
+			D3D11_SUBRESOURCE_DATA data{source.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0};
 			ComPtr<ID3D11Texture2D> raw,composed;ComPtr<ID3D11ShaderResourceView> composedView;
 			if(FAILED(device->CreateTexture2D(&desc,&data,&raw.get()))
 				||!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,raw,composed,composedView,
@@ -3247,7 +3247,9 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			static thread_local unsigned count=0;
 			RemakeCpuScope timing("evaluate-input-upload",frame.frameId,count);
 			if(prepared&&remakePreparedReturn->inputReady)input=std::move(remakePreparedReturn->input);
-			else if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input))return;
+			else if(!BuildRemakeNeuralInput(source,source.frame,source.producer,input)) {
+				NOTICE_LOG(RENDERER,"Remake neural input rejected: %s",flycast::rend::neural::DescribeRemakeReturnedImage(source,source.frame,source.producer).c_str());return;
+			}
 			if(prepared)remakePreparedReturn.reset();
 			// D-217: one D3D11on12 acquire covers the upload, the motion raster
 			// and its copies; the inputs are released before the consumer submit.
@@ -3399,7 +3401,7 @@ bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& f
 	if(!request||std::strcmp(request,"1")!=0||!neuralQualityCapture.CapturesCurrentFrame())return false;
 	neuralQualityCaptureMetadata.remakeInput="requested-native-fallback";
 	if(IsOitRenderer()||!rendContext||rendContext->isRTT||config::EmulateFramebuffer.get()
-		||frame.renderWidth!=640||frame.renderHeight!=480||frame.outputWidth!=640||frame.outputHeight!=480
+		||frame.renderWidth!=flycast::rend::neural::RemakeWidth()||frame.renderHeight!=flycast::rend::neural::RemakeHeight()||frame.outputWidth!=flycast::rend::neural::RemakeWidth()||frame.outputHeight!=flycast::rend::neural::RemakeHeight()
 		||frame.jitterX!=0||frame.jitterY!=0)return false;
 	const auto* returned=neuralQualityCapture.ReturnedRemakeFrame(frame.frameId);
 	RemakeNeuralInput input;
@@ -3423,23 +3425,23 @@ bool DX11Renderer::applyRemakeCaptureInput(flycast::rend::neural::NeuralFrame& f
 
 bool DX11Renderer::uploadRemakeInput(const flycast::rend::neural::RemakeNeuralInput& input,bool bracket)
 {
-	if(input.rgba.size()!=640*480*4||input.invertedDepth.size()!=640*480)return false;
+	if(input.rgba.size()!=flycast::rend::neural::RemakeWidth()*flycast::rend::neural::RemakeHeight()*4||input.invertedDepth.size()!=flycast::rend::neural::RemakeWidth()*flycast::rend::neural::RemakeHeight())return false;
 	// D-217: the inverted-depth upload texture persists; a texture created per
 	// evaluation cost the render thread milliseconds on D3D11on12.
 	if(!remakeDepthUpload) {
-		D3D11_TEXTURE2D_DESC desc{};desc.Width=640;desc.Height=480;desc.MipLevels=1;desc.ArraySize=1;
+		D3D11_TEXTURE2D_DESC desc{};desc.Width=flycast::rend::neural::RemakeWidth();desc.Height=flycast::rend::neural::RemakeHeight();desc.MipLevels=1;desc.ArraySize=1;
 		desc.Format=DXGI_FORMAT_R32_FLOAT;desc.SampleDesc.Count=1;desc.Usage=D3D11_USAGE_DEFAULT;
 		if(FAILED(device->CreateTexture2D(&desc,nullptr,&remakeDepthUpload.get())))return false;
 	}
 	static thread_local unsigned acquireCount=0,updateCount=0,releaseCount=0;
-	deviceContext->UpdateSubresource(remakeDepthUpload,0,nullptr,input.invertedDepth.data(),640*sizeof(float),0);
+	deviceContext->UpdateSubresource(remakeDepthUpload,0,nullptr,input.invertedDepth.data(),flycast::rend::neural::RemakeWidth()*sizeof(float),0);
 	{
 		RemakeCpuScope timing("upload-acquire",0,acquireCount);
 		if(bracket)acquireNeuralInputs();
 	}
 	{
 		RemakeCpuScope timing("upload-update",0,updateCount);
-		deviceContext->UpdateSubresource(neuralColor.textures[neuralExportSlot],0,nullptr,input.rgba.data(),640*4,0);
+		deviceContext->UpdateSubresource(neuralColor.textures[neuralExportSlot],0,nullptr,input.rgba.data(),flycast::rend::neural::RemakeWidth()*4,0);
 		deviceContext->CopyResource(neuralDepthTextures[neuralExportSlot],remakeDepthUpload);
 		const float zero[4]{};const float one[4]={1,1,1,1};
 		deviceContext->ClearRenderTargetView(neuralMotion.targets[neuralExportSlot],zero);

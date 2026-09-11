@@ -71,7 +71,7 @@ bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake:
    out.write(static_cast<const char*>(bytes),count);if(!out)throw std::runtime_error("archive-write-failed");};
   write(names[0],serialized.data(),serialized.size());write(names[1],image.bgra.data(),image.bgra.size());
   write(names[2],image.projectionDepth.data(),image.projectionDepth.size()*sizeof(float));
-  nlohmann::json receipt={{"frame",packet.frame},{"source_digest",hash},{"sequence",image.source.sequence},
+  nlohmann::json receipt={{"version",2},{"width",image.width},{"height",image.height},{"frame",packet.frame},{"source_digest",hash},{"sequence",image.source.sequence},
    {"depth_values",image.projectionDepth.size()},{"pixel_bytes",image.bgra.size()}};
   auto hex=[](std::uint64_t value){std::ostringstream out;out.imbue(std::locale::classic());out<<std::uppercase<<std::hex<<std::setw(16)<<std::setfill('0')<<value;return out.str();};
   nlohmann::json manifest={{"frame_id",packet.frame},{"git_sha",packet.sourceGitSha},
@@ -125,15 +125,19 @@ bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packe
   std::ostringstream wire(std::ios::binary);if(!SerializeRemakeViewPacket(wire,retained,error))return false;
   std::uint64_t hash=14695981039346656037ull;
   for(unsigned char c:wire.str()){hash^=c;hash*=1099511628211ull;}
-  if(receipt.at("frame").get<std::uint64_t>()!=retained.frame
+  const auto receiptVersion=receipt.value("version",1u);
+  if((receiptVersion!=1&&receiptVersion!=2)
+   ||receipt.value("width",640u)!=RemakeWidth()||receipt.value("height",480u)!=RemakeHeight()
+   ||(receiptVersion==2&&(!receipt.contains("width")||!receipt.contains("height")))
+   ||receipt.at("frame").get<std::uint64_t>()!=retained.frame
    ||receipt.at("source_digest").get<std::uint64_t>()!=hash
-   ||receipt.at("depth_values").get<unsigned>()!=640*480
-   ||receipt.at("pixel_bytes").get<unsigned>()!=640*480*4)
+   ||receipt.at("depth_values").get<unsigned>()!=RemakePixels()
+   ||receipt.at("pixel_bytes").get<unsigned>()!=RemakePixels()*4)
     throw std::runtime_error("locked-replay-receipt-mismatch");
   RemakeReturnedImage image;image.frame=current.frame;image.producer=current.producer;
-  image.width=640;image.height=480;image.nearPlane=retained.camera.nearPlane;image.farPlane=retained.camera.farPlane;
+  image.width=RemakeWidth();image.height=RemakeHeight();image.nearPlane=retained.camera.nearPlane;image.farPlane=retained.camera.farPlane;
   image.source={receipt.at("sequence").get<std::uint64_t>(),hash,static_cast<std::uint32_t>(wire.str().size())};
-  image.bgra.resize(640*480*4);image.projectionDepth.resize(640*480);
+  image.bgra.resize(RemakePixels()*4);image.projectionDepth.resize(RemakePixels());
   read(match/"remake-return.bgra",image.bgra.data(),image.bgra.size());
   read(match/"remake-return-depth.f32",image.projectionDepth.data(),image.projectionDepth.size()*sizeof(float));
   RemakeNeuralInput validated;

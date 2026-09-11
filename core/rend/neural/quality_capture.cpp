@@ -410,12 +410,12 @@ bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device* devic
   for(unsigned i=0;i<6;++i) {
    if(!textures[i]){error="guidance capture missing surface";return false;}
    D3D11_TEXTURE2D_DESC desc{};textures[i]->GetDesc(&desc);
-   if(desc.Width!=640||desc.Height!=480||desc.Format!=formats[i]){error="guidance capture format";return false;}
+   if(desc.Width!=RemakeWidth()||desc.Height!=RemakeHeight()||desc.Format!=formats[i]){error="guidance capture format";return false;}
    if(std::filesystem::exists(directory/(std::string(names[i])+".bin"))){error="guidance capture exists";return false;}
    if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
   }
   std::size_t trusted=0,geometry=0,nonzero=0,invalid=0;float maximum=0;
-  for(std::size_t i=0;i<640*480;++i) {
+  for(std::size_t i=0;i<RemakeWidth()*RemakeHeight();++i) {
    std::uint16_t h[2],id;std::memcpy(h,raw[0].bytes.data()+i*4,4);std::memcpy(&id,raw[2].bytes.data()+i*2,2);
    const float x=HalfToFloat(h[0]),y=HalfToFloat(h[1]);
    const bool finite=std::isfinite(x)&&std::isfinite(y);
@@ -430,7 +430,7 @@ bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device* devic
   std::ofstream report(directory/"guidance.json");report.imbue(std::locale::classic());
   report<<"{\"source_frame\":"<<source.frame<<",\"current_frame\":"<<current
    <<",\"sequence\":"<<source.source.sequence<<",\"source_digest\":"<<source.source.digest
-   <<",\"width\":640,\"height\":480,\"trusted_pixels\":"<<trusted<<",\"geometry_pixels\":"<<geometry
+   <<",\"width\":"<<RemakeWidth()<<",\"height\":"<<RemakeHeight()<<",\"trusted_pixels\":"<<trusted<<",\"geometry_pixels\":"<<geometry
    <<",\"nonzero_motion_pixels\":"<<nonzero<<",\"invalid_motion_pixels\":"<<invalid
    <<",\"maximum_motion_pixels\":"<<maximum
    <<",\"binary_layout\":\"row-major little-endian: motion float16x2, confidence uint8 UNORM, draw-id uint16, bias uint8 UNORM, reason uint16, raster-depth float32\""
@@ -449,12 +449,12 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
-			||returned.bgra.size()!=640*480*4) {error="preview identity or extent";return false;}
+			||returned.bgra.size()!=RemakeWidth()*RemakeHeight()*4) {error="preview identity or extent";return false;}
 		ID3D11Texture2D* textures[]={original,mask,composite,backbuffer};
 		for(unsigned i=0;i<4;++i) {
 			if(!textures[i]) {error="preview missing texture";return false;}
 			D3D11_TEXTURE2D_DESC desc{};textures[i]->GetDesc(&desc);
-			if(desc.Width!=640||desc.Height!=480||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
+			if(desc.Width!=RemakeWidth()||desc.Height!=RemakeHeight()||desc.MipLevels!=1||desc.ArraySize!=1||desc.SampleDesc.Count!=1
 				||(i==1?desc.Format!=DXGI_FORMAT_R8_UNORM:
 				(desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM&&desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM))) {
 				error="preview requires exact unscaled SDR extent";return false;
@@ -474,7 +474,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		}
 		RawTexture raw[4];
 		for(unsigned i=0;i<4;++i)if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
-		RawTexture source;source.width=640;source.height=480;source.format=DXGI_FORMAT_B8G8R8A8_UNORM;
+		RawTexture source;source.width=RemakeWidth();source.height=RemakeHeight();source.format=DXGI_FORMAT_B8G8R8A8_UNORM;
 		source.bytesPerPixel=4;source.bytes=returned.bgra;
 		const auto input=ToRgba(source),native=ToRgba(raw[0]),overlay=ToRgba(raw[1]),output=ToRgba(raw[2]),presented=ToRgba(raw[3]);
 		auto world=input;
@@ -482,7 +482,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		if(evaluated) {
 			RawTexture evaluatedRaw;
 			if(!ReadTexture(device,context,evaluated,evaluatedRaw,error))return false;
-			if(evaluatedRaw.width!=640||evaluatedRaw.height!=480
+			if(evaluatedRaw.width!=RemakeWidth()||evaluatedRaw.height!=RemakeHeight()
 				||(evaluatedRaw.format!=DXGI_FORMAT_R8G8B8A8_UNORM&&evaluatedRaw.format!=DXGI_FORMAT_B8G8R8A8_UNORM)) {
 				error="evaluated preview extent or format";return false;
 			}
@@ -498,12 +498,12 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		if(preEffects) {
 			RawTexture beforeRaw;
 			if(!ReadTexture(device,context,preEffects,beforeRaw,error))return false;
-			if(beforeRaw.width!=640||beforeRaw.height!=480
+			if(beforeRaw.width!=RemakeWidth()||beforeRaw.height!=RemakeHeight()
 				||(beforeRaw.format!=DXGI_FORMAT_R8G8B8A8_UNORM&&beforeRaw.format!=DXGI_FORMAT_B8G8R8A8_UNORM)) {
 				error="pre-effect preview extent or format";return false;
 			}
 			const auto before=ToRgba(beforeRaw);auto difference=world;
-			for(std::size_t p=0;p<640*480;++p) {
+			for(std::size_t p=0;p<RemakeWidth()*RemakeHeight();++p) {
 				bool changed=false;
 				for(unsigned c=0;c<3;++c) {
 					const int delta=int(world.pixels[p*4+c])-int(before.pixels[p*4+c]);
@@ -525,7 +525,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 			if(!WritePng(directory/"native-opaque-resolver-input.png",ToRgba(baseRaw),error)
 				||!WritePng(directory/"native-effects-replayed-native.png",ToRgba(replayRaw),error))return false;
 		}
-		for(std::size_t p=0;p<640*480;++p) {
+		for(std::size_t p=0;p<RemakeWidth()*RemakeHeight();++p) {
 			const bool protectedPixel=raw[1].bytes[p]>=128;protectedPixels+=protectedPixel;
 			const auto* expected=(protectedPixel?native.pixels.data():world.pixels.data())+p*4;
 			const bool changed=std::memcmp(expected,output.pixels.data()+p*4,4)!=0;
@@ -1194,7 +1194,7 @@ bool QualityCaptureWriter::Capture(ID3D11Device *device, ID3D11DeviceContext *co
 					const auto& returned=*remakeReturnedImage_;
 					std::ofstream receiptFile(frameRoot/"remake-return.json");
 					receiptFile.imbue(std::locale::classic());
-					receiptFile<<"{\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
+						receiptFile<<"{\"version\":2,\"width\":"<<returned.width<<",\"height\":"<<returned.height<<",\"frame\":"<<returned.frame<<",\"sequence\":"<<returned.source.sequence
 						<<",\"source_digest\":"<<returned.source.digest<<",\"pixel_bytes\":"<<returned.bgra.size()
 						<<",\"prepared_before_composite\":"<<(remakePreparedBeforeComposite_?"true":"false")
 						<<",\"input_origin\":\""<<(remakeInputReplayed_?"locked-replay":"live-channel")<<"\""

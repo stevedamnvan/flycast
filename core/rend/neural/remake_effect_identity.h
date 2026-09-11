@@ -49,7 +49,7 @@ inline bool CanonicalEffectIdentity(const EffectIdentitySource& source,
 {
  output.clear();
  const auto fail=[&](const char* why){error=why;return false;};
- if(!source.epoch||!source.ordinal||!source.cycle||heads.empty()||heads.size()>640u*480
+ if(!source.epoch||!source.ordinal||!source.cycle||heads.empty()||heads.size()>1280u*960
   ||pixels.size()>512u*1024*1024/16||polygons.empty()||polygons.size()>8192
   ||resolverState.empty()||resolverState.size()>1024||!maxLayers||maxLayers>256)
   return fail("effect-identity-input-bound");

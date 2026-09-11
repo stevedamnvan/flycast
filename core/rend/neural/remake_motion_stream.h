@@ -35,7 +35,7 @@ inline bool exact(const RemakeTemporalMesh& a,const RemakeTemporalMesh& b) {
 }
 inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& out,
  std::vector<std::vector<remake::Vec3>>& screens) {
- if(scene.meshes.empty()||scene.meshes.size()>128)return false;
+ if(!scene.extent.Valid()||scene.meshes.empty()||scene.meshes.size()>128)return false;
  std::size_t vertices=0,indices=0;
  for(std::size_t ordinal=0;ordinal<scene.meshes.size();++ordinal) {
   const auto& mesh=scene.meshes[ordinal];
@@ -55,11 +55,11 @@ inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& ou
   std::vector<remake::Vec3> projected;projected.reserve(mesh.vertices.size());
   for(const auto& v:mesh.vertices) {
    if(!std::isfinite(v.u)||!std::isfinite(v.v))return false;
-   auto p=remake::Project(scene.camera,v.position);p.x*=640;p.y*=480;
+   auto p=remake::Project(scene.camera,v.position);p.x*=scene.extent.width;p.y*=scene.extent.height;
    if(!std::isfinite(p.x)||!std::isfinite(p.y)||!std::isfinite(p.z))return false;
    projected.push_back(p);hash(d.uvSig,bits(v.u));hash(d.uvSig,bits(v.v));
    // Assignment pose hints cover the content rectangle; actual positions stay unclamped.
-   const float xy[]={std::clamp(p.x,0.f,640.f),std::clamp(p.y,0.f,480.f)};
+   const float xy[]={std::clamp(p.x,0.f,float(scene.extent.width)),std::clamp(p.y,0.f,float(scene.extent.height))};
    for(unsigned k=0;k<2;++k){lo[k]=(std::min)(lo[k],xy[k]);hi[k]=(std::max)(hi[k],xy[k]);sum[k]+=xy[k];}
    const float n=scene.camera.nearPlane,f=scene.camera.farPlane;
    const float z=1-(f/(f-n)-n*f/((f-n)*p.z));d.zMin=(std::min)(d.zMin,z);d.zMax=(std::max)(d.zMax,z);

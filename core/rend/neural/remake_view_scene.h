@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include "remake_extent.h"
 #include "pvr_scene_capture.h"
 #include <algorithm>
 #include <cmath>
@@ -104,7 +105,11 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   || packet.sourceProducer.epoch!=expectedProducer.epoch
   || packet.sourceProducer.ordinal!=expectedProducer.ordinal
   || packet.sourceProducer.cycle!=expectedProducer.cycle)return fail("view-source-identity");
- if(packet.game!="T1401N" || packet.framebufferSize!=std::array<std::uint32_t,2>{640,480})
+ // The backing render target can be the explicit doubled output extent;
+ // source PVR vertices/lens remain in native pixels. The exact native viewport
+ // certificate below must still pass: output scaling is not a new camera.
+ if(packet.game!="T1401N" || (packet.framebufferSize!=std::array<std::uint32_t,2>{640,480}
+  &&(!SelectedRemakeExtent().Valid()||packet.framebufferSize!=std::array<std::uint32_t,2>{RemakeWidth(),RemakeHeight()})))
   return fail("view-title-or-viewport-unsupported");
  const std::array<float,16> expectedViewport{2.f/640,0,0,0,0,-2.f/480,0,0,0,0,1,0,-1,1,0,1};
  for(unsigned i=0;i<16;++i)if(!std::isfinite(packet.viewport[i])
@@ -113,6 +118,9 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   || packet.sourceVertices.size()>SourceObservationBatch::capacity)return fail("view-input-bound");
  RemakeViewScene result;result.frame=packet.frame;result.producer=packet.sourceProducer;
  result.game=packet.game;result.gitSha=packet.gitSha;
+ std::size_t copyMatches=0,transformMatches=0,lensMatches=0;
+ std::size_t uniqueCopies=0,unchangedCopies=0,xyzCopies=0;
+ double firstFx=0,firstFy=0,firstResidual=0,firstDepth=0,firstPredictedDepth=0;
  std::vector<std::optional<RemakeViewVertex>> converted(packet.vertices.size());
  std::vector<unsigned char> seen(packet.vertices.size(),0);
  for(const auto& observation:packet.sourceVertices) {
@@ -123,10 +131,14 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  for(const auto& observation:packet.sourceVertices) {
   const auto& copy=observation.copy;const auto index=copy.decodedVertex;
   const auto& v=packet.vertices[index];const auto& xyz=copy.xyzTransforms;
+  uniqueCopies+=seen[index]==1;
+  unchangedCopies+=copy.before==copy.after;
+  xyzCopies+=bool(xyz[0]&&xyz[1]&&xyz[2]);
   bool valid=seen[index]==1 && copy.before==copy.after
    && std::memcmp(copy.after.data()+1,&v.x,3*sizeof(float))==0;
   valid=valid&&xyz[0]&&xyz[1]&&xyz[2];
   if(!valid){++result.rejectedVertices;continue;}
+  ++copyMatches;
   const auto& t=*xyz[0];
   const auto same=[&](const SourceTransform& other){return t.serial==other.serial && t.pc==other.pc
    && t.input==other.input && t.matrix==other.matrix && t.output==other.output;};
@@ -142,6 +154,8 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
    norms[r]=std::sqrt(norms[r]);valid=valid&&norms[r]>0&&std::isfinite(norms[r]);
   }
   if(valid) {
+   ++transformMatches;
+   if(!firstFx){firstFx=norms[0]/norms[2];firstFy=norms[1]/norms[2];}
    valid=std::abs(norms[2]-1)<1e-4 && std::abs(norms[0]/norms[2]-result.focalX)<.001
     && std::abs(norms[1]/norms[2]-result.focalY)<.001;
    for(unsigned a=0;a<3;++a)for(unsigned b=a+1;b<3;++b) {
@@ -151,9 +165,11 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
   }
   double residual=0;
   if(valid) {
+   ++lensMatches;
    residual=(std::max)(std::abs(double(t.output[0])/t.output[2]+320-v.x),
     std::abs(double(t.output[1])/t.output[2]+240-v.y));
    const double predictedDepth=.95/double(t.output[2]);
+   if(lensMatches==1){firstResidual=residual;firstDepth=v.z;firstPredictedDepth=predictedDepth;}
    valid=residual<=.01 && std::abs(predictedDepth-v.z)<=(std::max)(1e-7,std::abs(predictedDepth)*1e-5);
   }
   if(!valid){++result.rejectedVertices;continue;}
@@ -166,7 +182,17 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
 		// Explicit alternative camera-relative embedding, not recovered transforms.
 		// Retain a current observed anchor before applying its measured lens/scale.
 		std::size_t anchors=0;for(const auto& v:converted)if(v)++anchors;
-		if(anchors<3)return fail("estimated-view-missing-observed-anchor");
+		if(anchors<3) {
+			error="estimated-view-missing-observed-anchor copies="+std::to_string(copyMatches)
+			 +" observations="+std::to_string(packet.sourceVertices.size())
+			 +" unique="+std::to_string(uniqueCopies)+" unchanged="+std::to_string(unchangedCopies)
+			 +" xyz="+std::to_string(xyzCopies)
+			 +" transforms="+std::to_string(transformMatches)+" lens="+std::to_string(lensMatches)
+			 +" first_fx="+std::to_string(firstFx)+" first_fy="+std::to_string(firstFy)
+			 +" first_residual="+std::to_string(firstResidual)
+			 +" first_depth="+std::to_string(firstDepth)
+			 +" predicted_depth="+std::to_string(firstPredictedDepth);return false;
+		}
 		result.scope="mixed-observed-and-projected-depth-estimate-not-world-reconstruction";
 		for(std::size_t i=0;i<packet.vertices.size();++i)if(!converted[i]) {
 			const auto& v=packet.vertices[i];

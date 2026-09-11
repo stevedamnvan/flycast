@@ -2,6 +2,7 @@
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
 #include "remake_scene_lighting.h"
+#include "rend/neural/remake_extent.h"
 #include "remake_runtime_budget.h"
 #include "remake_return_depth.h"
 #include "rend/neural/remake_presentation.h"
@@ -32,6 +33,10 @@ TestCounts TestSceneContract() {
   &&!RemakeComparisonBeforeEnd("x",1,true),"comparison end rejects invalid or unbounded use");
  auto near=[](float a,float b) {return std::abs(a-b)<1e-6f;};
  auto p=Synthetic();
+ using flycast::rend::neural::ParseRemakeExtent;
+ expect(ParseRemakeExtent("").width==640&&ParseRemakeExtent("1280x960").Pixels()==1228800,"remake output extent has bounded explicit presets");
+ for(const auto* value:{"1280x480","640x960","0x0","2560x1920","1280x960junk"," 1280x960"})
+  expect(!ParseRemakeExtent(value).Valid(),"malformed or unsupported output extent rejects");
  {
   auto q=p;q.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
   q.diagnosticOrigin=Vec3{};q.producer={1,1,1};

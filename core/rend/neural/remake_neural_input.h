@@ -3,6 +3,7 @@
 #include "remake_live_channel.h"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace flycast::rend::neural {
 // Bounded submission experiment only. No temporal correspondence is asserted.
@@ -16,8 +17,8 @@ struct RemakeNeuralInput {
 // (the render thread accepts on this; the worker converts, D-213).
 inline bool RemakeReturnedImageWellFormed(const RemakeReturnedImage& image)
 {
- if(image.width!=640 || image.height!=480 || image.bgra.size()!=640*480*4
-  || image.projectionDepth.size()!=640*480 || !std::isfinite(image.nearPlane)
+ if(!SelectedRemakeExtent().Valid() || image.width!=RemakeWidth() || image.height!=RemakeHeight() || image.bgra.size()!=RemakePixels()*4
+  || image.projectionDepth.size()!=RemakePixels() || !std::isfinite(image.nearPlane)
   || !std::isfinite(image.farPlane) || !(image.nearPlane>0 && image.farPlane>image.nearPlane)) return false;
  // A wholly zero color/depth readback is an absent-output diagnostic, not a
  // usable near-plane scene. Do not reject legitimately black opaque images.
@@ -25,6 +26,23 @@ inline bool RemakeReturnedImageWellFormed(const RemakeReturnedImage& image)
   &&std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v==0;}))return false;
  for(float depth:image.projectionDepth)if(!std::isfinite(depth)||depth<0||depth>1)return false;
  return true;
+}
+// Diagnostic only: why a returned image is not accepted as neural input.
+inline std::string DescribeRemakeReturnedImage(const RemakeReturnedImage& image,
+ std::uint64_t frame, const ProducerIdentity& producer)
+{
+ std::string out="frame="+std::to_string(image.frame)+"/"+std::to_string(frame)
+  +" producer="+std::to_string(image.producer.epoch)+":"+std::to_string(image.producer.ordinal)+":"+std::to_string(image.producer.cycle)
+  +"/"+std::to_string(producer.epoch)+":"+std::to_string(producer.ordinal)+":"+std::to_string(producer.cycle)
+  +" extent="+std::to_string(image.width)+"x"+std::to_string(image.height)
+  +"/"+std::to_string(RemakeWidth())+"x"+std::to_string(RemakeHeight())
+  +" bgra="+std::to_string(image.bgra.size())+" depth="+std::to_string(image.projectionDepth.size())
+  +" near="+std::to_string(image.nearPlane)+" far="+std::to_string(image.farPlane);
+ const bool zeroColor=std::none_of(image.bgra.begin(),image.bgra.end(),[](unsigned char v){return v!=0;});
+ const bool zeroDepth=std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v==0;});
+ std::size_t badDepth=0;for(float d:image.projectionDepth)badDepth+=!std::isfinite(d)||d<0||d>1;
+ out+=" zero_color="+std::to_string(zeroColor)+" zero_depth="+std::to_string(zeroDepth)+" bad_depth="+std::to_string(badDepth);
+ return out;
 }
 inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
  std::uint64_t frame, const ProducerIdentity& producer, RemakeNeuralInput& output)

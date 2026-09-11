@@ -25,11 +25,15 @@ def prepare(args):
     if any(out == p.parent or out in p.parents for p in paths.values()):
         raise ValueError('Output cannot contain an input')
     channel = 'fc067-launch-' + uuid.uuid4().hex[:16]
+    output_size = getattr(args, 'output_size', '640x480')
+    if output_size not in ('640x480', '1280x960'):
+        raise ValueError('Unsupported remake output size')
     env = os.environ.copy()
     # Avoid accidentally inheriting capture, stale-input or negative controls.
     for key in list(env):
         if key.startswith('FLYCAST_REMAKE_'):
             del env[key]
+    env['FLYCAST_REMAKE_OUTPUT_SIZE'] = output_size
     enabled = ('TEMPORAL_RASTER', 'TEMPORAL_PREPARE', 'CAMERA_ANCHOR',
                'ALPHA_COMBINED', 'PUNCH_THROUGH', 'ASYNC_OIT', 'ASYNC_DIAGNOSTICS',
                'ESTIMATE_UNTRACED', 'ASYNC_PRESENT', 'ASYNC_NEURAL', 'NATIVE_EFFECTS')
@@ -58,6 +62,7 @@ def prepare(args):
     helper = [str(paths['helper']), '--runtime', str(paths['runtime']), '--frames', '660',
               '--live-channel-async', channel, '--assets', str(out), '--clips', '0.1', '2501',
               '--return-d3d9-scene-memory-depth', str(out/'unused-return.bmp')]
+    host[host.index('--render-height')+1] = output_size.split('x')[1]
     reinit = getattr(args, 'renderer_reinit_after', 0)
     if not 0 <= reinit <= 10000:
         raise ValueError('Renderer restart frame must be 0..10000')
@@ -238,6 +243,7 @@ def main():
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--temple-light-rig', action='store_true', help='Opt-in authored warm key/cool fill, requires --anchored-light')
+    p.add_argument('--output-size', choices=['640x480','1280x960'], default='640x480', help='Opt-in matching host/helper/neural extent; fresh session required')
     p.add_argument('--manual-input', action='store_true',
                    help='Use player input instead of scripted replay; still a bounded test session')
     p.add_argument('--managed-session', action='store_true',
@@ -281,6 +287,7 @@ def main():
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   temple_light_rig=args.temple_light_rig,
+                  output_size=args.output_size,
                   manual_input=args.manual_input,
                   managed_session=args.managed_session,
                   comparison_lane='remix-only' if args.remix_only else 'returned-dlaa-requested' if args.returned_dlaa else 'combined-experimental',

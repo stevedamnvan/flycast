@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "remake_scene.h"
+#include "remake_extent.h"
 #include <memory>
 #include <mutex>
 namespace flycast::rend::neural {

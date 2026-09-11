@@ -25,12 +25,13 @@ struct ImageSlot {
  volatile LONG imageState;
  RemakeChannelReceipt imageSource;
  std::uint64_t imageFrame,imageEpoch,imageOrdinal,imageCycle,imageDigest;
- unsigned char imagePixels[640*480*4];
+ unsigned char imagePixels[1280*960*4];
 	std::uint32_t depthCount;float nearPlane,farPlane;
-	std::uint64_t depthDigest;float depthPixels[640*480];
+	std::uint64_t depthDigest;float depthPixels[1280*960];
 };
 struct Shared {
  volatile LONG ready,publisherPid;std::uint32_t magic,version,ownerPid;
+ std::uint32_t width,height;
  Slot slots[kInFlight];
  ImageSlot images[kInFlight];
 };
@@ -124,6 +125,7 @@ void RemakeLiveChannel::Close(){std::lock_guard<std::mutex> lock(mutex_);impl_.r
 bool RemakeLiveChannel::IsOpen()const noexcept{std::lock_guard<std::mutex> lock(mutex_);return bool(impl_);}
 bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& error) {
  std::lock_guard<std::mutex> lock(mutex_);
+ if(!SelectedRemakeExtent().Valid()){error="channel-extent";return false;}
  if(impl_){error="channel-already-open";return false;}
  std::wstring path;if(!name(token,path)){error="channel-token";return false;}
  auto p=std::make_shared<Impl>();SetLastError(ERROR_SUCCESS);
@@ -131,7 +133,8 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  if(!p->mapping||GetLastError()==ERROR_ALREADY_EXISTS){error="channel-create-or-existing";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared){error="channel-map";return false;}
- p->owner=true;p->shared->magic=0x434d5246;p->shared->version=4;p->shared->ownerPid=GetCurrentProcessId();
+ p->owner=true;p->shared->magic=0x434d5246;p->shared->version=5;p->shared->ownerPid=GetCurrentProcessId();
+ p->shared->width=RemakeWidth();p->shared->height=RemakeHeight();
  p->openEvents(path);
  // A newly created pagefile-backed mapping is zero-initialized; publish header last.
  InterlockedExchange(&p->shared->ready,1);impl_=std::move(p);error.clear();return true;
@@ -143,7 +146,8 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  auto p=std::make_shared<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
  if(!p->mapping){error="channel-consumer-unavailable";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
- if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=4){error="channel-header";return false;}
+ if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=5){error="channel-header";return false;}
+ if(!SelectedRemakeExtent().Valid()||p->shared->width!=RemakeWidth()||p->shared->height!=RemakeHeight()){error="channel-extent";return false;}
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
  if(InterlockedCompareExchange(&p->shared->publisherPid,LONG(GetCurrentProcessId()),0)!=0){error="channel-publisher-already-claimed";return false;}
@@ -277,13 +281,13 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  if(!image.source.sequence||image.source.sequence<=p.returnedSequence||!sameReceipt(image.source,source.receipt)
   ||image.frame!=source.frame||image.producer.epoch!=source.producer.epoch
   ||image.producer.ordinal!=source.producer.ordinal||image.producer.cycle!=source.producer.cycle
-  ||image.width!=640||image.height!=480||image.bgra.size()!=sizeof(s.imagePixels)) {
+  ||image.width!=RemakeWidth()||image.height!=RemakeHeight()||image.bgra.size()!=RemakePixels()*4) {
   error="return-source-or-format";return RemakeChannelResult::Invalid;
  }
 	const bool hasDepth=!image.projectionDepth.empty();
 	const char* depthError=nullptr;
 	if(hasDepth) {
-		if(image.projectionDepth.size()!=640*480)depthError="return-depth-extent";
+		if(image.projectionDepth.size()!=RemakePixels())depthError="return-depth-extent";
 		else if(image.nearPlane!=source.nearPlane||image.farPlane!=source.farPlane)depthError="return-depth-projection";
 		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return std::isfinite(v);}))depthError="return-depth-nonfinite";
 		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v>=0&&v<=1;}))depthError="return-depth-range";
@@ -292,10 +296,10 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;
- std::memcpy(s.imagePixels,image.bgra.data(),sizeof(s.imagePixels));
- s.imageDigest=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels));
-	s.depthCount=hasDepth?640*480:0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
-	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),sizeof(s.depthPixels));s.depthDigest=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels));}
+ std::memcpy(s.imagePixels,image.bgra.data(),RemakePixels()*4);
+ s.imageDigest=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),RemakePixels()*4);
+	s.depthCount=hasDepth?RemakePixels():0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
+	if(hasDepth){std::memcpy(s.depthPixels,image.projectionDepth.data(),RemakePixels()*sizeof(float));s.depthDigest=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float));}
  p.returnedSequence=image.source.sequence;InterlockedExchange(&s.imageState,readySlot);
  if(p.returnedEvent)SetEvent(p.returnedEvent);
  error.clear();return RemakeChannelResult::Published;
@@ -320,19 +324,19 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
  const auto& source=p.sources[s.imageSource.sequence%kInFlight];
  if(!s.imageSource.sequence||s.imageSource.sequence<=p.returnedSequence||!sameReceipt(s.imageSource,source.receipt)
   ||s.imageFrame!=source.frame||s.imageEpoch!=source.producer.epoch||s.imageOrdinal!=source.producer.ordinal
-  ||s.imageCycle!=source.producer.cycle||s.imageDigest!=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),sizeof(s.imagePixels))) {
+  ||s.imageCycle!=source.producer.cycle||s.imageDigest!=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),RemakePixels()*4)) {
   error="return-stale-source-or-integrity";return RemakeChannelResult::Invalid;
  }
  try {
   RemakeReturnedImage image;image.source=s.imageSource;image.frame=s.imageFrame;image.producer=source.producer;
-  image.width=640;image.height=480;image.bgra.assign(s.imagePixels,s.imagePixels+sizeof(s.imagePixels));
+  image.width=RemakeWidth();image.height=RemakeHeight();image.bgra.assign(s.imagePixels,s.imagePixels+RemakePixels()*4);
 	if(s.depthCount) {
-		if(s.depthCount!=640*480||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
-			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),sizeof(s.depthPixels))
-			||!std::all_of(s.depthPixels,s.depthPixels+640*480,[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
+		if(s.depthCount!=RemakePixels()||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
+			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float))
+			||!std::all_of(s.depthPixels,s.depthPixels+RemakePixels(),[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
 			error="return-depth-integrity";return RemakeChannelResult::Invalid;
 		}
-		image.projectionDepth.assign(s.depthPixels,s.depthPixels+640*480);image.nearPlane=s.nearPlane;image.farPlane=s.farPlane;
+		image.projectionDepth.assign(s.depthPixels,s.depthPixels+RemakePixels());image.nearPlane=s.nearPlane;image.farPlane=s.farPlane;
 	}else if(s.nearPlane!=0||s.farPlane!=0||s.depthDigest!=0){error="return-depth-empty-header";return RemakeChannelResult::Invalid;}
   output=std::move(image);p.returnedSequence=s.imageSource.sequence;error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}

@@ -42,6 +42,17 @@ class LaunchPreflightTests(unittest.TestCase):
         helper = prepare(self.args)[4]
         self.assertEqual(helper[-4:], ['--scene-light-radiance', '1', '--temple-light-rig', '--scene-light-anchor'])
 
+    def test_extent_is_explicit_and_shared_with_native_rendering(self):
+        _, _, env, host, _ = prepare(self.args)
+        self.assertEqual(env['FLYCAST_REMAKE_OUTPUT_SIZE'], '640x480')
+        self.args.output_size = '1280x960'
+        _, _, env, host, _ = prepare(self.args)
+        self.assertEqual(env['FLYCAST_REMAKE_OUTPUT_SIZE'], '1280x960')
+        self.assertEqual(host[host.index('--render-height')+1], '960')
+        self.args.output_size = '1280x480'
+        with self.assertRaisesRegex(ValueError, 'Unsupported'):
+            prepare(self.args)
+
     def test_existing_output_rejected(self):
         self.args.out = Path(self.temp.name)
         with self.assertRaises(ValueError):

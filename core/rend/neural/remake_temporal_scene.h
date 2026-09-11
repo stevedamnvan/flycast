@@ -17,12 +17,13 @@ struct RemakeTemporalScene {
  RemakeChannelReceipt receipt;
  ProducerIdentity producer;
  std::uint64_t frame=0;
+ RemakeExtent extent=SelectedRemakeExtent();
  std::string game,sourceSha;
  remake::Camera camera;
  remake::Vec3 fixedOrigin;
  std::vector<RemakeTemporalMesh> meshes;
  bool Matches(const RemakeReturnedImage& image)const {
-  return frame&&frame==image.frame&&producer.Available()
+  return extent.Valid()&&extent.width==image.width&&extent.height==image.height&&frame&&frame==image.frame&&producer.Available()
    &&producer.epoch==image.producer.epoch&&producer.ordinal==image.producer.ordinal&&producer.cycle==image.producer.cycle
    &&receipt.sequence&&receipt.digest&&receipt.bytes&&receipt.sequence==image.source.sequence
    &&receipt.digest==image.source.digest&&receipt.bytes==image.source.bytes
@@ -56,7 +57,8 @@ inline std::shared_ptr<RemakeTemporalScene> CaptureRemakeTemporalScene(const rem
 }
 // Reference data for subsequent correspondence. This does not enable NGX history.
 inline bool CompatibleRemakeTemporalReference(const RemakeTemporalScene& previous,const RemakeTemporalScene& next) {
- return previous.producer.epoch==next.producer.epoch&&next.producer.ordinal>previous.producer.ordinal
+ return previous.extent.Valid()&&previous.extent.width==next.extent.width&&previous.extent.height==next.extent.height
+  &&previous.producer.epoch==next.producer.epoch&&next.producer.ordinal>previous.producer.ordinal
   &&next.producer.cycle>=previous.producer.cycle&&next.frame>previous.frame&&next.frame-previous.frame<=8
   &&next.game==previous.game&&next.sourceSha==previous.sourceSha
   &&next.fixedOrigin.x==previous.fixedOrigin.x&&next.fixedOrigin.y==previous.fixedOrigin.y&&next.fixedOrigin.z==previous.fixedOrigin.z
@@ -77,8 +79,8 @@ public:
   return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
  }
  bool Accept(std::shared_ptr<const RemakeTemporalScene> scene,const RemakeReturnedImage& image,bool evaluated,bool retainColor=true) {
-  if(!evaluated||!scene||!scene->Matches(image)||image.width!=640||image.height!=480
-   ||image.projectionDepth.size()!=640*480)return false;
+  if(!evaluated||!scene||!scene->Matches(image)||image.width!=scene->extent.width||image.height!=scene->extent.height
+   ||image.projectionDepth.size()!=scene->extent.Pixels())return false;
   for(float z:image.projectionDepth)if(!std::isfinite(z)||z<0||z>1)return false;
   if(accepted&&(scene->producer.epoch!=accepted->producer.epoch||scene->frame<=accepted->frame
    ||scene->producer.ordinal<=accepted->producer.ordinal||scene->producer.cycle<accepted->producer.cycle

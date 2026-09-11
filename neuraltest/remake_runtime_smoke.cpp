@@ -410,13 +410,14 @@ int wmain(int argc,wchar_t** argv) {
  WNDCLASSW cls{};cls.lpfnWndProc=windowProc;cls.hInstance=GetModuleHandleW(nullptr);cls.lpszClassName=L"FlycastRemixSmoke";
  if(!RegisterClassW(&cls)) { api.Shutdown();FreeLibrary(module);return 8; }
  // D-226: standalone render size (FLYCAST_REMAKE_HELPER_RENDER_SIZE=WxH, 4:3,
- // at most 2560x1920). Refused when a live channel is active: return slots
- // are 640x480 by contract. Diagnostic only; never set by the launcher.
- int renderW=640,renderH=480;
+ // at most 2560x1920). The standalone override cannot change live slots.
+ const auto liveExtent=flycast::rend::neural::SelectedRemakeExtent();
+ if(!liveExtent.Valid()){std::cerr<<"invalid live output extent\n";return 2;}
+ int renderW=int(liveExtent.width),renderH=int(liveExtent.height);
  if(const char* size=std::getenv("FLYCAST_REMAKE_HELPER_RENDER_SIZE");size&&*size) {
   char* sizeEnd=nullptr;const long w=std::strtol(size,&sizeEnd,10);
   const long h=(*sizeEnd=='x')?std::strtol(sizeEnd+1,&sizeEnd,10):0;
-  if(liveChannel){std::cerr<<"render_size ignored=true reason=live-channel-return-slots-640x480\n";}
+  if(liveChannel){std::cerr<<"render_size ignored=true reason=live-channel-negotiated-extent\n";}
   else if(!*sizeEnd&&w>=640&&w<=2560&&h*4==w*3){renderW=int(w);renderH=int(h);
    std::cerr<<"render_size width="<<renderW<<" height="<<renderH<<" standalone_only=true\n";}
   else{std::cerr<<"invalid render size (WxH, 4:3, 640..2560 wide)\n";return 2;}
