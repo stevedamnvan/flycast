@@ -1,5 +1,48 @@
 # Neural rendering evidence log
 
+LOG805 substep F moving review and substep H first cost attribution at
+1280x960. (1) Moving capture `pilot-extent1280-v11-moving` (same launch as
+LOG804, 40 captures from source 2560): 40 consecutive sources 2560..2599
+with no gaps; the HUD band (top 110 rows) of every composite is identical
+to the native backbuffer (0 pixels above 25/255 in all 40 frames); the mean
+absolute frame-to-frame change of the composites rises smoothly from 1.3
+to 15.0/255 as Kilik's attack and the camera move, with no isolated spike
+(no pop, no history reset inside the strip); weapon trails, hit sparks and
+the flash are the original effects composited over the Remix scene
+(`moving-strip-kilik.png`, `moving-strip-taki.png`, sent for review).
+Observation for the look review, not a defect claim: green patches on
+Kilik's trousers in frames 2585..2595 during the hit flash. Technical
+ACCEPTED for the moving path at this extent; look NOT_REVIEWABLE. Run
+stats: 823 accepted evaluations, 1173 presents, capture run
+(performance_eligible=false). (2) Performance-eligible runs at 1280x960
+(no captures, no accumulation, no CPU instrumentation, 1200 samples each,
+exit 0, orderly shutdown): perf-a native shading profile (exposure A plus
+`rtx.upscalerType 0`, `rtx.resolutionScale 1.0`): 1181 accepted, 1176
+presents, 6 output repeats (99.5 percent fresh over the steady presents),
+present p50/p95 26.48/29.68 ms, helper period p50 26.75; perf-b exposure A
+with the runtime's default upscaler (DLSS, graphics preset Auto): 1184
+accepted, 6 repeats, present 29.22/33.02, helper period 29.89; perf-c
+DLSS forced to MaxPerf (`rtx.dlssPreset 2`, `rtx.upscalerType 1`,
+`rtx.qualityDLSS 1`, all three confirmed in the effective config): 1181
+accepted, 8 repeats, present 29.46/32.83, helper period 30.11. Reference
+at 640x480 (LOG797 weld-a): present 20.01/24.59, helper period 20.05. The
+60 fps goal is therefore not met at 1280x960 (about 34 to 38 fps), and
+the shading resolution is not the cost: forcing DLSS performance mode
+changes nothing and native shading is the fastest of the three.
+Attribution from the helper's per-image timing (medians over the steady
+images, in ms, 640 then 1280 native): draw 2.7 then 2.1, present 0.2 then
+0.2, depth lock wait 0.6 then 1.6, depth convert 1.2 then 4.5, return 1.0
+then 4.1, receive wait 8.3 then 9.3, prepare 3.6 then 12.1, turnaround
+20.9 then 33.5. The growth is in the helper's CPU-side per-pixel work on
+the returned image (depth conversion, return copy, prepare: about 5.8 ms
+at 640 against 20.7 ms at 1280, four times the pixels), not in the path
+tracer's draw. Substep H next item: move or parallelize those conversions
+(the user has stated that more CPU threads are welcome) and re-measure with
+the same denominator; VRAM by phase and normal-renderer coverage remain
+open. Profiles used only through `DXVK_RTX_CONFIG_FILE`
+(`pilot-curated/profiles/exposure-probe-a{,-dlss,-dlssperf}.conf`); no
+external configuration edited. No source change in this entry.
+
 LOG804 substep F: first live 1280x960 combined presentation with captures;
 technical ACCEPTED for the extent path as a diagnostic result, not
 performance, temporal-quality or visual acceptance. Resume state: the v6

@@ -2,6 +2,16 @@
 
 ## Current state (2026-09-10, D-224)
 
+Resume 2026-09-11 (LOG805): F moving review at 1280x960 (40 captures, HUD
+identical to native, no pops) technical ACCEPTED, look NOT_REVIEWABLE; H
+performance-eligible runs at 1280x960 give present p50 26.5 ms (about 38
+fps); DLSS modes do not help; the growth over 640x480 is the helper's CPU
+per-pixel work (depth convert, return, prepare). Next: parallelize those in
+the helper, re-measure with the same denominator; E/D and look decisions
+open. The composited image (Remix scene plus native effects, native alpha
+surfaces and HUD) is the delivered target image; the Remix-only capture is
+a diagnostic intermediate.
+
 Resume 2026-09-10 (LOG804): user said "resume". The paused v6 run was void
 (baseline-configuration executable). Three extent fixes (OIT effects gate,
 motion raster, neural-input diagnostic) gave the first live 1280x960
