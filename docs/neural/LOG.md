@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG901 substep G comparison matrix built with existing tools; the visual
+recommendation stays with the user. Four matched capture runs at HEAD
+564848aca, pilot launch (1280x960, temple rig, native alpha, welded
+normals, exposure profile A, OIT, 12 captures from source 2560, all exit
+0): `pilot-g-combined` (combined experimental, reimagined materials),
+`pilot-g-remix-only` (`--remix-only`, no neural evaluation),
+`pilot-g-returned-dlaa` (`--returned-dlaa`, the returned image through the
+public DLAA lane) and `pilot-g-nomod-combined` (combined pipeline with the
+mod junction moved out of `mods/` per D-227, so the original captured
+materials; restored after the run and verified). Eight sources are common
+to all four (2560, 2562, 2565, 2567..2572; the others are feed skips in
+one run or another), and every capture also carries the same-source
+native backbuffer, so native is the fifth column. Per-source strips and
+metrics in `pilot-g-matrix/` (`g-strip-<source>.png`, `g-metrics.json`),
+one strip sent to the user. Metrics over the nine sources (mean absolute
+RGB difference from native, edge energy, mean luma; native edge 
+energy is the reference in the JSON): combined 41.8 / 10.80 / 84.6;
+Remix-only 43.7 / 11.66 / 88.2; returned DLAA 44.9 / 10.37 / 89.5; original
+materials combined 44.3 / 9.45 / 89.2. Read only as descriptors: the
+reimagined materials raise edge energy over the originals at the same
+lighting (10.8 against 9.45), the neural pass lowers it against Remix-only
+(10.8 against 11.7, expected of a denoiser or antialiaser), and every
+Remix variant is darker than native in mean luma with profile A. Native lanes from the harness's own capture command (`neuraltest capture --lane native|dlaa --start-producer 2560 --frames 12`, d3d11on12, dx11-oit, 960 height, input replay; `pilot-g-lane-native`, `pilot-g-lane-dlaa`, both clean close): harness frame-00NNNN carries producer ordinal NNNN-1 and equals the launcher's source NNNN (its native colour for 2562 matches the launcher's original-native byte-for-byte, mean difference 0.0, while neighbours differ by 1.2 to 1.4), so the lanes join the matrix by frame number; the public DLAA output is 640x480 and is resampled to 1280x960 for the strip and metrics (mean absolute difference from native 9.95, edge 4.68, luma 47.3, the last two not comparable at that resolution). With the DLAA lane the common set is eight sources (2560 is absent from that lane): combined 41.9 / 10.76 / 84.6; Remix-only 43.8 / 11.63 / 88.3; returned DLAA 44.9 / 10.36 / 89.6; original materials combined 44.5 / 9.41 / 89.3.
+Not claimed: any visual verdict, temporal quality across attacks and
+cuts (needs the slow-speed review), or neural provenance beyond the
+existing preview metadata. Next for G is the user's review of the strips.
+
 LOG900 / D-238 normal-route alpha ownership exercised live, and the
 presentation latch given a bounded recovery. (1) `pilot-normal-alpha-on-moving`
 (pilot flags with alpha promotion left on, dx11, cpu-timing, normal

@@ -25,9 +25,10 @@ observation scope narrowed, a user decision on the anchor certificate.
 LOG899 attributes VRAM by phase (no leak; a 512 MB block toggles below the
 owned objects; per-sample VRAM now in every performance report). LOG900/D-238: alpha ownership on the normal route exercised live (0
 exclusions in this scene, composition exact) and the presentation latch
-now recovers after 60 fresh ticks. Next, in order: (1) put the 60 fps
-observation-scope decision to the user with the LOG897/LOG898 numbers;
-(2) human visual review of the composited pilot output; returned-output
+now recovers after 60 fresh ticks. LOG901: the substep G comparison matrix is built (five columns, nine
+sources, `pilot-g-matrix`). Next, in order: (1) user review of the G strips
+and the 60 fps observation-scope decision (LOG897/LOG898); (2) human
+visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog
 without captures (retain failures); (2) VRAM by phase and pressure/stall
