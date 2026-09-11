@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG809 user-reported composite overexposure: matched current/low captures
+pilot-h2-exposure-current and pilot-h2-exposure-low,1280x960, same prepared
+h2 binary/rig/native-alpha/welded normals,12 captures each. New opt-in
+exposure-probe-h2-low.conf changes only local exposure0.45 to0.30; effective
+runtime config confirms0.3. Both runs host0/helper11, orderly shutdown,
+no forced children.12 matched sources2561,2563,2565..2574: packet digests
+equal, native pixels identical, protected HUD mismatches0 and backbuffer
+mismatches0. First source2561 has72537 protected pixels; world mean luma
+below row180 drops89.22 to73.27 (17.9 percent), RGB MAE14.27/255.
+Reviewed full composites2561 and2574 against current/native: lower profile
+reduces washed-out floor/skin while retaining detail. Lower profile is a
+visual candidate, not human approval; broader hit-flash/baked-light issues
+remain. No live external configuration changed. Full captures, logs and
+first-source-comparison.json/sequence-comparison.json retained. These are
+synchronous captures, not performance or external-neural provenance proof.
+Return to CODEX-GOAL item3; performance comparisons retain exposure A.
+
 LOG808 CODEX-GOAL item2: owned depth range validation reuse. Binary32 integer
 reduction preserves signed zeros, finite range and all NaN/infinity classes;
 nonfinite errors retain priority. RemakeDepthBuffer caches only while no

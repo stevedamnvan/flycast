@@ -86,8 +86,9 @@ H items1/2 complete (LOG807/808): scopes and owned-depth validation reuse
 measured in pilot-extent1280-h1-scopes / h2-depth after required builds/tests.
 Returned evaluation median10.82 to7.33ms is diagnostic, not a60fps claim.
 Continue item3 depth-texture ping-pong, then the remaining order. User reports the
-composite is overexposed; D/E now needs a same-source composite exposure
-comparison before look approval. Native HUD/effects stay protected.
+composite is overexposed; LOG809 now records a matched0.30 exposure candidate
+with native HUD preserved. Human look approval stays open. Performance
+comparisons retain exposure A.
 
 PBRify status under D: generation and104-map ingestion complete (LOG800);
 corrected height stays on tiling floor only. Two Kilik cloth-atlas roughness

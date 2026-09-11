@@ -7,12 +7,14 @@ Matched diagnostic pilot-extent1280-h2-depth: returned-evaluate median
 10.82 to7.33ms; raster validation3.08 to0.26ms and cached history/input
 checks near zero. No identity/acceptance checks removed. No60fps claim.
 Next CODEX-GOAL item3: ping-pong depth textures with previous-source identity.
-Before further source work, finish the user's exposure comparison: current
-profile capture pilot-h2-exposure-current is running (session68044),12
-frames from2560,1280x960, native alpha and temple rig. Archive its flycast.log
-before next launch. Then same run with exposure-probe-h2-low.conf (0.30
-instead of0.45) and a new evidence directory; review delivered composites
-and native HUD/effects. No builds while game/helper runs.
+Exposure comparison complete (LOG809): pilot-h2-exposure-current/low have12
+matched captures, identical native inputs/source digests, zero protected HUD
+mismatches and12 completed-Present joins. Reviewed lower profile0.30 as a
+less washed-out candidate; human visual approval remains open. Profile lives
+in D:/Flycast-Evidence/pilot-curated/profiles/exposure-probe-h2-low.conf.
+No live external configuration changed. Both runs finished; no game/helper
+left running. Resume item3 depth-texture ping-pong. Retain original exposure
+A for performance comparisons so the denominator remains unchanged.
 
 CODEX-GOAL item1 verified (LOG807): finer diagnostic scopes and matched
 pilot-extent1280-h1-scopes run complete; four builds,883/0 x3, SDK272/0,
