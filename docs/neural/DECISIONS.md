@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-238: a latched presentation fallback recovers after sustained fresh delivery, never silently
+
+LOG900. D-167's eight-frame expiry still latches native output, but the
+latch now releases after 60 consecutive ticks that each carry a candidate
+within eight frames, re-entering through the same native hold as a first
+entry with the displayed source time never rewinding; any stale tick
+restarts the count, explicit reset and disable behave as before, and every
+resume is counted and logged. A transient stall therefore costs about one
+second of native output instead of the rest of the session; nothing about
+what may be presented (source-qualified, fresh, non-rewinding) changes.
+
 ## D-237: native-effects owned copies are pooled by shape across frames; ownership and retirement stay with the snapshot
 
 LOG896. A native-effects snapshot still exclusively owns every copy it

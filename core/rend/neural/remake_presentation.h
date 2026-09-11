@@ -47,21 +47,32 @@ inline bool RemakeTemporalReplayFrameMatches(bool temporal,std::uint64_t origina
 enum class RemakeDisplayKind { Fallback, HoldNative, Remake };
 struct RemakeDisplayDecision {RemakeDisplayKind kind;std::uint64_t frame;};
 // Align entry with a short original-native hold; never move displayed scene
-// time backward. Timeout latches fallback until explicit reset/disable.
+// time backward. Timeout latches fallback; the latch releases only by explicit
+// reset/disable or, D-238 (LOG900), after RecoveryTicks consecutive ticks with
+// a fresh candidate (never silently on the next fresh frame), re-entering
+// through the same native hold as a first entry. Resumes are counted so the
+// host can log every recovery.
 class RemakePresentationPolicy {
  enum class Phase { Idle, Warming, Active, Failed };
  Phase phase_=Phase::Idle;
- std::uint64_t floor_=0,last_=0,tick_=0;
+ std::uint64_t floor_=0,last_=0,tick_=0,recovery_=0,resumes_=0;
 public:
+ static constexpr std::uint64_t RecoveryTicks=60;
  void Reset()noexcept{*this={};}
  bool Active()const noexcept{return phase_==Phase::Active;}
  bool Failed()const noexcept{return phase_==Phase::Failed;}
- void Fail()noexcept{phase_=Phase::Failed;}
+ std::uint64_t Resumes()const noexcept{return resumes_;}
+ void Fail()noexcept{phase_=Phase::Failed;recovery_=0;}
  RemakeDisplayDecision Choose(std::uint64_t current,std::uint64_t candidate,bool enabled,bool captureBoundary=false)noexcept {
   if(!enabled){Reset();return {RemakeDisplayKind::Fallback,current};}
   if(!current||current<tick_||candidate>current)Fail();
   tick_=current;
-  if(phase_==Phase::Failed)return {RemakeDisplayKind::Fallback,current};
+  if(phase_==Phase::Failed) {
+   const bool fresh=candidate&&current-candidate<=8;
+   recovery_=fresh?recovery_+1:0;
+   if(recovery_<RecoveryTicks)return {RemakeDisplayKind::Fallback,current};
+   phase_=Phase::Idle;recovery_=0;++resumes_; // Re-enter below exactly like a first entry.
+  }
   const bool valid=candidate&&current-candidate<=8;
   if(phase_==Phase::Idle&&(valid||captureBoundary)){phase_=Phase::Warming;floor_=current;}
   if(phase_==Phase::Warming) {

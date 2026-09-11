@@ -1271,6 +1271,25 @@ int RunSelfTests()
 			suite.Expect(decision.kind==RemakeDisplayKind::Remake&&decision.frame==101,"preview rejects backwards returned time");
 			suite.Expect(policy.Choose(110,0,true).kind==RemakeDisplayKind::Fallback,"preview expires held result after eight frames");
 			suite.Expect(policy.Choose(111,111,true).kind==RemakeDisplayKind::Fallback,"preview timeout cannot silently reenter");
+			{
+				// D-238: the latch releases only after RecoveryTicks consecutive fresh ticks, through the native hold.
+				RemakePresentationPolicy latched;latched.Choose(100,0,true);latched.Choose(101,99,true);latched.Choose(103,101,true);
+				suite.Expect(latched.Choose(112,0,true).kind==RemakeDisplayKind::Fallback&&latched.Failed(),"latched preview stays failed on expiry");
+				bool fallback=true;std::uint64_t tick=113;
+				for(unsigned i=0;i+1<RemakePresentationPolicy::RecoveryTicks;++i,++tick)fallback&=latched.Choose(tick,tick,true).kind==RemakeDisplayKind::Fallback;
+				suite.Expect(fallback&&latched.Failed()&&latched.Resumes()==0,"latched preview keeps native for one tick short of the recovery window");
+				latched.Choose(tick,0,true);++tick; // A stale tick restarts the window.
+				fallback=true;
+				for(unsigned i=0;i+1<RemakePresentationPolicy::RecoveryTicks;++i,++tick)fallback&=latched.Choose(tick,tick,true).kind==RemakeDisplayKind::Fallback;
+				suite.Expect(fallback&&latched.Failed(),"a stale candidate restarts the recovery window");
+				auto resumed=latched.Choose(tick,tick-2,true); // Fresh but behind the entry floor: hold native first, as on first entry.
+				suite.Expect(resumed.kind==RemakeDisplayKind::HoldNative&&resumed.frame==tick&&!latched.Failed()&&latched.Resumes()==1,
+					"recovery re-enters through the native hold at the current frame");
+				const auto entry=tick;++tick;
+				resumed=latched.Choose(tick,entry,true);
+				suite.Expect(resumed.kind==RemakeDisplayKind::Remake&&resumed.frame==entry,"resumed preview switches at aligned source time");
+				suite.Expect(latched.Choose(tick+9,0,true).kind==RemakeDisplayKind::Fallback&&latched.Failed(),"a resumed preview expires and latches again after eight frames");
+			}
 			policy.Choose(112,0,false);
 			suite.Expect(policy.Choose(113,113,true).kind==RemakeDisplayKind::Remake,"explicit disable resets preview latch");
 			policy.Reset();

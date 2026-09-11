@@ -1,5 +1,33 @@
 # Neural rendering evidence log
 
+LOG900 / D-238 normal-route alpha ownership exercised live, and the
+presentation latch given a bounded recovery. (1) `pilot-normal-alpha-on-moving`
+(pilot flags with alpha promotion left on, dx11, cpu-timing, normal
+effects, 12 captures from 2560, exit 0): the alpha-ownership stage ran on
+851 fed sources with excluded_native_draws=0 on every one (no native
+translucent draw met the source-qualified exclusion contract in this
+scene), 844 source-effect composites, 0 composition rejections, and all
+12 captured frames (3106..3119) exact protected-native plus evaluated-scene
+composition with exact backbuffer RGB and completed present joins. (2) The
+same run presented only 370 remake frames of 843 accepted: at current
+2295 the presentation policy latched (candidate 0 while the feed worker,
+30 ms in capture mode because captures disable by-reference textures,
+skipped 335 sources) and stayed native until the re-anchor reset at 3100;
+the LOG896 capture run latched the same way at 3075. No-capture runs never
+latch (LOG896/LOG898: 1181 to 1191 presents). D-167 made the latch release
+only on explicit reset or disable, which turns one transient stall into
+native output for the rest of the session. Change (`remake_presentation.h`,
+renderer log): a failed policy counts consecutive ticks with a fresh
+candidate (within eight frames) and, after 60 of them, re-enters through
+the same native hold as a first entry; a stale tick restarts the count;
+displayed source time still never rewinds; each resume is counted and
+logged (`Remake presentation resumed`). The D-167 test "timeout cannot
+silently reenter" is kept; five new cases cover the window, the restart,
+the hold re-entry and a second expiry. Verification `pilot-normal-resume-moving` (same capture-mode launch as LOG896, exit 0): the policy latched at current 3056 (reset by the 3100 re-anchor) and again at 3202, then logged `Remake presentation resumed: current=3262 candidate=3257 resumes=1 after_ticks=60`; 1065 remake presents of 1200 samples against 370 in the run that stayed latched, 854 accepted evaluations, 308 output repeats (capture mode), present p50/p95 21.26/43.52 ms; all 12 captured frames exact protected-native plus evaluated-scene composition with exact backbuffer RGB and completed present joins. Build matrix: automation, baseline, no-ngx, off serial, 0 errors (resume-build-neural-*.log); selftest 1004/0 in automation, baseline and no-ngx (six new policy cases); contract 302/0; python OK.
+Alpha promotion itself remains off in the pilot (native alpha composition,
+LOG798 direction); this entry records that the normal route honours the
+selection contract when it is on. Visual approval open.
+
 LOG899 VRAM by phase (open H item): per-sample VRAM and renderer object
 counts added to the performance report (`performance_tracker`: one
 `QueryVideoMemoryInfo` per sample, fields `vram_usage_bytes` and

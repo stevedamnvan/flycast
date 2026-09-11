@@ -2721,6 +2721,10 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 			&&RemakeComparisonEligible(compareStart,current,boundedCapture)
 			&&!RemakeComparisonEligible(compareStart,current-1,boundedCapture);
 		auto decision=remakePresentationPolicy.Choose(current,candidate,enabled,captureBoundary);
+		if(wasFailed&&!remakePresentationPolicy.Failed())
+			NOTICE_LOG(RENDERER,"Remake presentation resumed: current=%llu candidate=%llu resumes=%llu after_ticks=%llu policy=native-hold-reentry",
+				(unsigned long long)current,(unsigned long long)candidate,(unsigned long long)remakePresentationPolicy.Resumes(),
+				(unsigned long long)flycast::rend::neural::RemakePresentationPolicy::RecoveryTicks);
 		if((wasActive&&!enabled)||(!wasFailed&&remakePresentationPolicy.Failed()))
 			NOTICE_LOG(RENDERER,"Remake presentation stopped: current=%llu candidate=%llu enabled=%d permitted=%d guidance=%llu source=%llu producer=%llu latched=%d",
 				(unsigned long long)current,(unsigned long long)candidate,enabled,permitted,
