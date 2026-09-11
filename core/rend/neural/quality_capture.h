@@ -22,6 +22,8 @@ struct rend_context;
 namespace flycast::rend::neural {
 class RemakeOitEffects;
 // Only called inside the existing bounded synchronous preview capture.
+bool CaptureNativeEffectProof(const std::filesystem::path& root,ID3D11Device*,ID3D11DeviceContext*,
+ std::uint64_t source,ID3D11Texture2D* native,ID3D11Texture2D* replay,std::string& error);
 bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device*,ID3D11DeviceContext*,
  const RemakeReturnedImage&,std::uint64_t current,std::uint64_t guidanceFrame,
  const std::array<ID3D11Texture2D*,6>&,std::string& error);

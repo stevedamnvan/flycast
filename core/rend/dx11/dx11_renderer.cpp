@@ -4001,6 +4001,11 @@ void DX11Renderer::drawList(const std::vector<PolyParam>& gply, int first, int c
 				continue;
 			}
 			setRenderState<Type, SortingEnabled>(params);
+#ifdef FLYCAST_ENABLE_NEURAL
+			if constexpr(Type == ListType_Translucent)if(nativeEffectProof){
+				++nativeEffectProofDraws;nativeEffectProof->Append(deviceContext,params->count,params->first,0);
+			}
+#endif
 			deviceContext->DrawIndexed(params->count, params->first, 0);
 		}
 
@@ -4022,6 +4027,10 @@ void DX11Renderer::drawSorted(int first, int count, bool multipass)
 		const auto ordinal = static_cast<u32>(rendContext->global_param_op.size()
 			+ rendContext->global_param_pt.size() + rendContext->global_param_tr.size() + p);
 		setRenderState<ListType_Translucent, true>(params, ordinal);
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(nativeEffectProof){++nativeEffectProofDraws;nativeEffectProof->Append(deviceContext,
+			rendContext->sortedTriangles[p].count,rendContext->sortedTriangles[p].first,0);}
+#endif
 		deviceContext->DrawIndexed(rendContext->sortedTriangles[p].count, rendContext->sortedTriangles[p].first, 0);
 	}
 	if (multipass && config::TranslucentPolygonDepthMask)
@@ -4150,6 +4159,46 @@ void DX11Renderer::drawModVols(int first, int count)
 	deviceContext->DrawIndexed(4, 0, 0);
 }
 
+#ifdef FLYCAST_ENABLE_NEURAL
+void DX11Renderer::finishNativeEffectProof()
+{
+ auto snapshot=std::move(nativeEffectProof); // Replay cannot recapture itself.
+ const auto source=rendContext->captureProducer;
+ if(!snapshot->Seal(nativeEffectProofDraws)){
+  NOTICE_LOG(RENDERER,"Normal effects proof: seal-failed source=%llu draws=%u",
+   (unsigned long long)source.ordinal,nativeEffectProofDraws);return;
+ }
+ auto replay=snapshot->ReplayNative(deviceContext,source);
+ if(!replay){NOTICE_LOG(RENDERER,"Normal effects proof: replay-failed source=%llu",(unsigned long long)source.ordinal);return;}
+ ComPtr<ID3D11RenderTargetView> target;deviceContext->OMGetRenderTargets(1,&target.get(),nullptr);
+ if(!target)return;
+ ComPtr<ID3D11Resource> resource;target->GetResource(&resource.get());
+ ComPtr<ID3D11Texture2D> native;
+ if(FAILED(resource->QueryInterface(__uuidof(ID3D11Texture2D),reinterpret_cast<void**>(&native.get()))))return;
+ D3D11_TEXTURE2D_DESC desc{};native->GetDesc(&desc);
+ if(desc.SampleDesc.Count!=1||(desc.Format!=DXGI_FORMAT_R8G8B8A8_UNORM&&desc.Format!=DXGI_FORMAT_B8G8R8A8_UNORM))return;
+ desc.Usage=D3D11_USAGE_STAGING;desc.BindFlags=0;desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;desc.MiscFlags=0;
+ ComPtr<ID3D11Texture2D> a,b;
+ if(FAILED(device->CreateTexture2D(&desc,nullptr,&a.get()))||FAILED(device->CreateTexture2D(&desc,nullptr,&b.get())))return;
+ deviceContext->CopyResource(a,native);deviceContext->CopyResource(b,replay);
+ D3D11_MAPPED_SUBRESOURCE ma{},mb{};
+ if(FAILED(deviceContext->Map(a,0,D3D11_MAP_READ,0,&ma)))return;
+ if(FAILED(deviceContext->Map(b,0,D3D11_MAP_READ,0,&mb))){deviceContext->Unmap(a,0);return;}
+ std::uint64_t mismatches=0;
+ for(UINT y=0;y<desc.Height;++y)for(UINT x=0;x<desc.Width;++x)
+  mismatches+=std::memcmp(static_cast<const char*>(ma.pData)+y*ma.RowPitch+x*4,
+   static_cast<const char*>(mb.pData)+y*mb.RowPitch+x*4,4)!=0;
+ deviceContext->Unmap(b,0);deviceContext->Unmap(a,0);
+ if(const auto* root=std::getenv("FLYCAST_REMAKE_NORMAL_EFFECT_PROOF_ROOT");root&&*root){
+  std::string error;const bool saved=flycast::rend::neural::CaptureNativeEffectProof(root,device,deviceContext,source.ordinal,native,replay,error);
+  NOTICE_LOG(RENDERER,"Normal effects proof images: source=%llu saved=%s error=%s",(unsigned long long)source.ordinal,saved?"true":"false",error.c_str());
+ }
+
+ NOTICE_LOG(RENDERER,"Normal effects proof: source=%llu draws=%u pixels=%llu mismatches=%llu diagnostic-only=true",
+  (unsigned long long)source.ordinal,nativeEffectProofDraws,(unsigned long long)desc.Width*desc.Height,(unsigned long long)mismatches);
+}
+#endif
+
 void DX11Renderer::drawStrips()
 {
 	RenderPass previous_pass {};
@@ -4168,6 +4217,22 @@ void DX11Renderer::drawStrips()
 		drawList<ListType_Punch_Through, false>(rendContext->global_param_pt, previous_pass.pt_count, pt_count);
 
 		drawModVols(previous_pass.mvo_count, mvo_count);
+#ifdef FLYCAST_ENABLE_NEURAL
+		const char* nativeProof=std::getenv("FLYCAST_REMAKE_NORMAL_EFFECT_PROOF");
+		if(nativeProof&&std::strcmp(nativeProof,"1")==0&&!IsOitRenderer()
+			&&!neuralExportActive&&!rendContext->isRTT&&!config::EmulateFramebuffer
+			&&rendContext->render_passes.size()==1&&rendContext->captureProducer.ordinal>=2560
+			&&nativeEffectProofAttempts<3&&tr_count){
+			++nativeEffectProofAttempts;nativeEffectProofDraws=0;
+			ComPtr<ID3D11RenderTargetView> target;ComPtr<ID3D11DepthStencilView> depthTarget;
+			deviceContext->OMGetRenderTargets(1,&target.get(),&depthTarget.get());
+			nativeEffectProof=flycast::rend::neural::NativeEffectSnapshot::Begin(device,deviceContext,
+				rendContext->captureProducer,target,depthTarget);
+			if(!nativeEffectProof)NOTICE_LOG(RENDERER,"Normal effects proof: capture-begin-failed source=%llu",
+				(unsigned long long)rendContext->captureProducer.ordinal);
+		}
+#endif
+
 
 		if (current_pass.autosort)
 		{
@@ -4180,6 +4245,9 @@ void DX11Renderer::drawStrips()
 		{
 			drawList<ListType_Translucent, false>(rendContext->global_param_tr, previous_pass.tr_count, tr_count);
 		}
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(nativeEffectProof)finishNativeEffectProof();
+#endif
 		previous_pass = current_pass;
     }
 }

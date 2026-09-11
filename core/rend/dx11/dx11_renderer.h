@@ -36,6 +36,7 @@
 #include "rend/neural/quality_capture.h"
 #include "rend/neural/pvr_material_capture.h"
 #include "rend/neural/remake_overlay_snapshot.h"
+#include "rend/neural/remake_native_effects.h"
 #include "rend/neural/remake_presentation.h"
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_camera_anchor.h"
@@ -369,6 +370,10 @@ protected:
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
 	std::shared_ptr<const flycast::rend::neural::RemakeOitEffects> remakeCurrentEffects;
 	std::string remakeCurrentEffectsReason="unsupported-renderer";
+	std::unique_ptr<flycast::rend::neural::NativeEffectSnapshot> nativeEffectProof;
+	unsigned nativeEffectProofAttempts=0,nativeEffectProofDraws=0;
+	void finishNativeEffectProof();
+
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
 	ComPtr<ID3D11Texture2D> remakeCompositeTexture;
 	ComPtr<ID3D11ShaderResourceView> remakeCompositeView,remakeDisplayedView;

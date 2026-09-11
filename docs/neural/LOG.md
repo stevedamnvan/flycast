@@ -1,5 +1,175 @@
 # Neural rendering evidence log
 
+LOG859 / D-236 normal-renderer native-effects diagnostic ACCEPTED only as
+native replay mechanism. Four serial builds terminal0,selftests986/0 in all3
+enabled trees,SDK302/0,Python25/0. Three consecutive1280x960 native frames
+replay exactly (LOG856/858),saved PNGs independently compared and actual combat
+images reviewed. WARP ownership/mutation/identity/state tests LOG848-854 remain
+scoped software fixtures. Prototype owns copies per draw;no performance claim.
+Explicit launcher diagnostic is required;gameplay remaster output unchanged.
+Helper-no-source failure retained;normal returned-output/lifecycle gate OPEN.
+Next integrate separate source-qualified normal snapshot into existing overlay
+slots and Compose path,including alpha ownership and object accounting;avoid
+per-draw duplicate immutable resources before clean performance evaluation.
+No active jobs. Checkpoint is commit containing this entry.
+
+LOG858 run-c terminal launcher1,host0/helper11 before first source as LOG857.
+Host log archived. Three saved native/replay PNG pairs independently read:
+1280x960,all RGBA bytes equal;hashes in image-validation.json. Actual source2560
+native and replay visually inspected: combat/HUD present,matching native look.
+No remaster quality approval implied. Four serial build/selftest chain active
+88697,normal-proof-final-* and normal-proof-selftest-* logs. Python25 tests
+pass including new explicit normal diagnostic selection/rejection regression.
+Next finish matrix,review diagnostic diff and commit only proven slice,then
+normal returned-output composition. No gameplay/helper active during builds.
+
+LOG857 normal proof image capture added using existing quality_capture
+ReadTexture/ToRgba/WritePng. Explicit launcher diagnostic sets new output root;
+existing source directories reject overwrite. Initial automation build51476
+failed wrong ReadTexture argument count;corrected,normal-effects-images-build-b
+terminal0. Diagnostic run-c now launched with flycast-pilot-normal-effects-images.exe.
+Run-b helper says channel-closed before first source: normal route still blocks
+publication;launcher requires published=1 for orderly success. Retain failure,
+not a resource shutdown pass. Next poll run-c,archive host log,inspect saved
+native/replay images. Full build matrix/source commit still pending.
+
+LOG856 real normal-renderer native replay comparison. Run-a terminal0/11,
+orderly_host_shutdown=false,proof NOT EXERCISED: launcher removes inherited
+FLYCAST_REMAKE_* variables. Explicit --normal-effect-proof added,requires dx11
+and cpu-timing;existing24 Python tests pass. Run-b active proof produces
+sources2560/2561/2562,62/61/64 DrawIndexed records,each1280x960=1,228,800
+pixels with zero RGBA mismatches versus native framebuffer. Three consecutive
+source-native comparisons,not whole-game/returned-output acceptance. Host0,
+helper11,launcher1,orderly_host_shutdown=false;preserve lifecycle issue rather
+than relabel clean. Both host logs archived in pilot-normal-effects-proof-a/-b.
+No active jobs. Next save/review actual native/replay images using existing
+image writer and investigate helper-no-source termination attribution;then
+integrate source-owned snapshot into normal returned-effects route. No60fps
+or performance claim from diagnostic copying. Source uncommitted;four-build
+and enabled selftest gates remain before any source commit.
+
+LOG855 diagnostic normal-renderer integration in progress. Opt-in env
+FLYCAST_REMAKE_NORMAL_EFFECT_PROOF=1 captures up to3 single-pass sources
+ordinal>=2560 before native translucency. Exact native DrawIndexed seams append
+sorted/strip commands. Seal/replay onto owned native background/depth,then
+staging comparison logs RGBA mismatch count;does not publish/replace output.
+RTT/framebuffer/OIT/neural export excluded. Automation build28017 terminal0,
+log D:/Flycast-Evidence/normal-effects-proof-build-automation.log. No game run
+yet;poll build then inspect failures before staging. Diagnostic copies are
+not performance evidence. Four serial builds/tests and actual image evidence
+remain required. Headers and renderer changes uncommitted.
+
+LOG854 NativeEffectSnapshot prototype owns native background/depth and ordered
+draw snapshots,requires sealing with expected draw count,and matches exact
+producer epoch/ordinal/cycle. Failed draw capture invalidates whole snapshot.
+Replay uses fresh owned color/depth copies plus scoped context restoration.
+Private normal-effect-snapshot-test.cpp/.exe passes WARP: retained replay exact
+after live resources/color/depth overwrite;wrong epoch,ordinal and cycle reject.
+Existing combined depth/texture/blend and unsupported-state controls pass.
+No normal renderer hook yet. Next diagnostic-only single-pass capture before
+normal translucency,Append at exact DrawIndexed seams,seal and compare replay
+to native framebuffer;do not publish external output before that proof.
+Four owned untracked headers,uncommitted;no active jobs. Full source builds and
+hardware/game validation remain pending.
+
+LOG853 scoped native replay context prototype implemented in
+remake_native_context.h. D3D11.1 context-state swap isolates pipeline bindings
+and RAII restores previous state. Creation failure rejects replay. Resource
+writes are not undone;owned output/depth still required. Private
+normal-effect-context-test.cpp/.exe WARP fixture exits0: exact combined
+texture/blend/depth replay after live mutation,then original vertex/constant
+buffer identity,stride/offset,render target and depth view restored. Existing
+UAV/ranged-CB rejection controls pass. No game integration,hardware or full
+build proof. Next source-qualified effects snapshot with owned background/
+depth and draw sequence,then normal-renderer native-background comparison.
+Three new headers owned/untracked;preserve. No active jobs.
+
+LOG852 combined native draw proof passes WARP. Private
+normal-effect-draw-combined-test.cpp/.exe under D:/Flycast-Evidence uses
+sampled Texture2D,point sampler,SRC_ALPHA/INV_SRC_ALPHA blending and GEQ depth
+without depth writes. Replay after live texture,vertex and constant mutation
+and ClearState matches every original output pixel. Raising depth clear from0
+to1 changes output (negative control);UAV/ranged-constant rejection still passes.
+Nonzero256 includes cleared background;do not call256 triangle coverage.
+Software-D3D11 only;not game/physical-device evidence. Next caller-state
+restoration and owned color/depth snapshot wrapper with producer validation,
+then native-game background equality. Headers remain unintegrated/uncommitted.
+
+LOG851 prototype capture now rejects bound pixel UAVs and nonzero/short
+constant-buffer ranges;otherwise Replay would silently lose side effects or
+read wrong constants. WARP fixture verifies both rejection controls and retains
+120-pixel native/replay equality after live mutation. First fixture invocation
+returned1;rerun crashed0xc0000005 after adding GetConstantBuffers1 with null
+buffer output. Supplying an owned buffer-output argument corrected the crash;
+final compile/run exits0. No broad runtime inference from this isolated failure.
+Next texture sampling,blend/depth and caller-context restoration coverage.
+No gameplay wiring or acceptance;headers remain owned/untracked.
+
+LOG850 basic native draw replay fixture passed on WARP. Private source/exe
+D:/Flycast-Evidence/normal-effect-draw-test.* compiled with MSVC,d3d11 and
+public d3dcompiler. Triangle produces120 nonzero pixels. Capture then overwrite
+live vertex buffer and pixel constant buffer: ordinary draw changes,retained
+Replay after ClearState exactly reproduces all256 original RGBA pixels.
+Exit0. This exercises actual DrawIndexed and binding restoration within the
+snapshot,not just resource copies. It does not prove restoration of caller
+state,texture sampling,depth/blend interaction,producer qualification or game
+output. Next close unsupported UAV/ranged-constant capture cases,then extend
+fixture to blend/depth/texture and integrate native background comparison.
+Headers unintegrated/uncommitted;no active jobs or gameplay change.
+
+LOG849 unintegrated NativeEffectDraw prototype added in remake_native_draw.h.
+Capture owns vertex/index buffers,VS/PS constants and Texture2D SRVs;retains
+shader/input-layout/sampler/blend/depth/raster objects and exact draw offsets,
+viewport/scissor state. Replay restores those bindings and issues DrawIndexed
+on same-device immediate context. Caller must own producer validation,output/
+depth resources and context restoration. Unsupported GS/HS/DS,predication,
+stream output and dynamic shader linkage reject. Initial implementation copies
+per draw without deduplication;not a performance candidate. MSVC compile and
+existing WARP resource-isolation fixture pass,but Capture/Replay draw execution
+is NOT tested. Next offscreen exact native/replay and mutation fixture;also
+review output-UAV and constant-buffer range handling before gameplay wiring.
+No production call site,build matrix or acceptance. Both new headers remain
+owned/untracked;preserve them. No active jobs.
+
+LOG848 normal effects owned resource foundation,unaccepted/unintegrated.
+New remake_native_resource.h copies vertex/index/constant buffers and complete
+Texture2D resources on matching immediate device/context;rejects null/deferred
+and unsupported miscellaneous resource flags. No pointer-key caching because
+per-draw constants mutate. Full texture descriptor extents/mips/arrays/samples
+preserved,source shared/generate-mips ownership not inherited. Private focused
+C++ fixture normal-effect-resource-test.cpp/.exe under D:/Flycast-Evidence
+compiled MSVC and exited0 on WARP: first/second constant snapshots preserve
+before/after values,texture snapshot preserves pixels after live overwrite,
+null/deferred inputs rejected. This is software-D3D11 resource-copy proof only,
+not native effects replay,hardware,all-format or gameplay acceptance. Texture-view capture added: recreate exact SRV descriptor on the copied
+Texture2D;reject non-Texture2D resources. Extended private WARP fixture passes
+nondefault mip1/array slice1 descriptor and pixel preservation after overwrite,
+as well as previous buffer/texture isolation. No call
+site added and no production behavior changed. Next native draw-state capture
+and replay plus source-native image proof;four builds required before commit.
+
+LOG847 normal effects resource-ownership audit. Existing replayPvrPacket
+1149-1306 is explicitly same-frame: it reconstructs geometry/order but assigns
+saved PolyParam.texture from live pointers,uses shared palette/fog SRVs and
+mutable constants. Texture.cpp118 updates existing texture contents in place;
+renderer4426 updates palette in place. COM references alone therefore cannot
+freeze source pixels. drawSorted4011 retains explicit index order,GEQ depth,
+no depth writes for sorted transparency;its multipass depth-mask pass is also
+part of semantics. Per-poly constants are rewritten with WRITE_DISCARD.
+Implementation direction: source-qualified retained draw-command snapshots
+using native bound shaders/blend/depth/raster/sampler state,owned copies of
+vertex/index/constant buffers and all referenced texture subresources,plus
+pre-translucent depth/stencil and native background. Deduplicate immutable
+copies within a source snapshot;never alias later mutable contents. Replay
+on immediate context with state restoration and source epoch/ordinal/cycle
+checks;count owned objects/bytes and retire with existing overlay slots.
+First implementation belongs at normal drawStrips translucent boundary and
+DrawIndexed submission seam;leave OIT unchanged. Native-background equality
+must pass with intentional later source-resource mutation as negative control
+before accepted-return integration. This audit rules out reusing same-frame
+packet replay or retained live SRVs as delayed ownership. No code/build/launch
+this checkpoint;next is capture/replay implementation and focused GPU proof.
+
 LOG846 normal-renderer native-effects diagnosis (read-only source, no launch).
 LOG792 rejection is still structurally present: DX11Renderer stores only
 shared_ptr<const RemakeOitEffects>,default reason unsupported-renderer;
@@ -6660,3 +6830,8 @@ Toolchain: Windows 11 10.0.26220; CMake 4.4.3; Ninja 1.13.2; Visual Studio
 #129 2026-09-07 bd5686167 plus working tree | begin the affected OIT Gate 16/17 recapture with the restored supplied consumer configuration, conservative intensity 0.125/Natural/tone-zero candidate, marker, and explicit policy-off lanes; reject phase-shifted evidence; add a synchronous-capture-only one-shot discontinuity before the first retained frame; rebuild automation, NGX, no-NGX, and feature-off; run all enabled selftests; execute a bounded real Soulcalibur OIT reset smoke | both 30-frame and widened 60-frame attempts are rejected: marker and policy-off match exact same-frame color/depth/motion/mask, but the candidate starts with a different accepted-evaluation Halton phase because external-host startup accepted a different number of pre-capture frames. At nominal frame 2261 candidate jitter is `[0.375,0.0555556]` while marker/off are `[-0.4375,0.388889]`, so no visual or metric result is accepted. The capture writer now consumes one start boundary after warm-up and calls the existing discontinuity before geometry capture, incrementing history generation, setting reset, and returning the accepted-evaluation jitter index to zero. All four builds link and automation/NGX/no-NGX selftests pass 168/168. A three-frame real OIT capture closes cleanly; its first retained combat frame records `reset_history=true`, incremented generation, and phase-zero jitter `[0,-0.166667]`. Public NGX was unavailable in that isolated smoke stage, so its repeated reset frames are mechanism evidence only, not DLAA quality evidence. A malformed PowerShell empty-pipe summary failed before evidence inspection and was corrected. The supplied 1874-byte configuration was restored after every attempt to SHA-256 `222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC` | exact-input proof remains strict. Production gameplay and asynchronous performance behavior are unchanged because the reset is armed only by a non-empty bounded capture. Rebuild/stage the exact resulting commit, then rerun candidate/marker/policy-off and require matching phase plus exact inputs before resuming visual judgment. Rejected raw captures remain outside Git under `flycast-evidence/gate16-oit-jitter-bd5686167`; no third-party binary, configuration, capture, media, or user path is staged
 
 #130 2026-09-07 9466e1c2b | rebuild and stage the exact capture-reset commit; rerun Soulcalibur OIT conservative 0.125/Natural/tone-zero, Uncanny Cinematic/intensity-2/tone-0.75/local-structure-2 maximum-coverage, and the same Uncanny tuple with automatic HUD protection; require exact candidate/marker/policy-off provenance and consumer-reported settings; compare moving results to public Auto; restore the supplied configuration; regenerate user-viewable moving comparisons; rerun all exact-SHA selftests | all three external lanes confirm 30/30 exact color/depth/motion/mask contracts. Every first retained lane frame records reset history and a common phase; jittered maximum-coverage frames begin at `[0,-0.166667]`, while the HUD-safe lane correctly reports zero jitter for `protected-overlay-present`. Conservative slightly lowers raw temporal RGB MAE from public `0.610280` to `0.604905` and edge displacement from `0.978536` to `0.978264`, but raises source MAE `1.839098` to `2.080172`, trail `8.812967` to `8.905790`, color drift `0.044727` to `0.230871`, saturation `1.987151` to `2.432000`, and black drift `0.563773` to `0.613786`; it does not displace public Auto. Maximum-coverage Uncanny records temporal/source/trail/edge/thin/color/saturation/black `0.624877/7.951702/12.398491/1.105515/68.438055/0.921269/10.350593/4.123283` versus public `0.610280/1.839098/8.812967/0.978536/72.634196/0.044727/1.987151/0.563773`. HUD-safe Uncanny slightly lowers temporal MAE `5.776949` to `5.735870` but raises source `2.175469` to `10.040473`, trail `3.318915` to `11.650328`, edge `0.554630` to `0.983441`, color `0.097595` to `1.812866`, saturation `2.471401` to `12.374512`, and black `1.896269` to `8.505836`, while lowering thin-line continuity `85.693872` to `71.461472`. It protects an average 15,803.1 HUD pixels with zero mismatch/repeat/drop. The consumer logs positively report upscaling off, intensity 0.125/tone 0/style 1 for Conservative and intensity 2/tone 0.75/style 2 for Uncanny; local structure remains requested plus prior isolated-output-proven rather than falsely consumer-reported. The original 1874-byte config is restored exactly to SHA-256 `222D059C727A683C8DEACE07C938002BDD6A69EB0DC9C908743E17A92B54EFBC`. Automation, NGX, no-NGX, and feature-off exact-SHA builds link, and all three enabled selftests pass 168/168. Failed attempts remain explicit: parallel exact-SHA reconfiguration collided on Flycast's shared generated version header and was rerun serially; the first confirmation rejected an append-only log containing old-SHA evidence; the second rejected a 2000-2239 sentinel window that did not cover retained frames 2721-2750, after which the evidence window alone moved to 2700-2939 | outcome B remains for Faithful and public Auto stays its default. Uncanny is now current-OIT, reset-aligned, HUD-safe evidence for a deliberately transformative user-selected default, not a factory-default promotion. Raw captures, reports, scripts, and both moving GIFs remain outside Git under `flycast-evidence/gate16-oit-capture-reset-9466e1c2b`; no third-party binary, config, capture, media, or user path is staged
+
+LOG855 live diagnostic pilot-normal-effects-proof-a active44917,normal DX11
+1280x960,cpu-timing marks diagnostic. Staged automation executable
+flycast-pilot-normal-effects-proof.exe. Poll same handle;archive stage flycast.log
+before any further launch and inspect Normal effects proof lines. No acceptance.

@@ -1,5 +1,13 @@
 # Neural rendering decisions
 
+## D-236: prove normal effects over native background before returned output
+
+LOG846-859. Own mutable draw resources and pre-effect depth/color;retain exact
+producer identity and native draw order. Replay under isolated context state.
+Three real frames match native pixels exactly,with supporting mutation and
+wrong-identity controls. Accept the explicit diagnostic mechanism only. Normal
+remaster composition,resource cost and lifecycle acceptance remain open.
+
 ## D-235: resolve writer and transform from one matching RAM observation
 
 LOG844-845. Preserve physical address, observed value, nonzero writer and owned

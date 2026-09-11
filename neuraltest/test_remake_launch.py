@@ -17,6 +17,20 @@ class LaunchPreflightTests(unittest.TestCase):
             ('flycast', 'harness', 'helper', 'runtime', 'game')},
             out=Path(self.temp.name)/'new', anchored_light=False, manual_input=False, managed_session=False)
 
+    def test_normal_effect_proof_requires_explicit_diagnostic_route(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_NORMAL_EFFECT_PROOF': '1'}):
+            self.assertNotIn('FLYCAST_REMAKE_NORMAL_EFFECT_PROOF', prepare(self.args)[2])
+        self.args.normal_effect_proof = True
+        with self.assertRaisesRegex(ValueError, 'requires dx11'):
+            prepare(self.args)
+        self.args.renderer = 'dx11'
+        with self.assertRaisesRegex(ValueError, 'diagnostic CPU timing'):
+            prepare(self.args)
+        self.args.cpu_timing = True
+        env = prepare(self.args)[2]
+        self.assertEqual(env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF'], '1')
+        self.assertEqual(Path(env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF_ROOT']), self.args.out/'normal-effects')
+
     def test_no_writes_and_explicit_opt_in(self):
         _, out, _, host, helper = prepare(self.args)
         self.assertFalse(out.exists())

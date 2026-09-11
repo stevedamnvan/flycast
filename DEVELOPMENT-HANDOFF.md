@@ -147,6 +147,36 @@ and cannot substitute. Next inspect source-owned normal draw replay resources,
 then prove retained effects over native pre-effect color equal native output
 before Remix integration. Preserve blend order,depth,alpha,HUD and producer
 identity;never remove the requirement or relabel OIT as normal.
+LOG847 ownership audit: existing packet replay borrows live texture/palette/fog
+and mutable constants;COM retention does not freeze contents. Next implement
+normal translucent DrawIndexed capture with native pipeline states and owned
+geometry/constants/texture/depth copies,deduplicated per source. Prove native
+background equality and rejection/isolation of later resource mutation before
+returned-output integration. Retire through existing overlay slots and count
+owned resources. LOG848 unintegrated owned helper core/rend/neural/remake_native_resource.h
+implemented. Private normal-effect-resource-test.cpp/.exe passes WARP buffer/
+texture later-mutation isolation and null/deferred rejection;not hardware proof.
+Exact Texture2D SRV descriptor capture added;WARP mip1/array slice1 view
+and later-mutation pixel isolation passed. Non-2D views rejected. Next capture
+native draw state and replay over owned native background. LOG849 adds
+unintegrated remake_native_draw.h capture/replay prototype;MSVC compile only,
+resource-isolation fixture still passes. Next exact offscreen draw replay plus
+mutated live-resource control;review UAV/ranged constants and context restoration.
+LOG850 actual basic draw replay passes WARP:120 nonzero pixels,live geometry/
+constant mutation changes output,retained replay after ClearState equals all256
+original pixels. Private normal-effect-draw-test.cpp/.exe. LOG851 UAV/ranged-CB guards implemented and WARP rejection controls pass.
+GetConstantBuffers1 null-output crash corrected with actual owned output.
+LOG852 combined WARP texture/blend/GEQ-depth replay exact after mutations;
+depth negative control changes output. Private normal-effect-draw-combined-test.*.
+LOG853 remake_native_context.h adds scoped D3D11.1 state swap;WARP test
+restores vertex/constants/target/depth after exact combined replay. Three owned
+untracked headers now. LOG854 remake_native_effects.h wrapper owns color/depth/draws,seals expected
+count and rejects producer mismatch. WARP exact after color/depth mutation;
+wrong epoch/ordinal/cycle rejected. Four headers owned/untracked. Next diagnostic
+normal-renderer pre-translucency capture and DrawIndexed append/native comparison,
+then native-game equality. No physical-device or game acceptance yet. Both headers
+untracked/owned;do not lose it. No production call site,four-build commit gates
+not yet run. No active jobs.
 Full60fps,quality,resource and human visual gates remain open.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
 intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
@@ -455,3 +485,12 @@ pixel against native where mask>=128 and evaluated-world elsewhere; it also
 compares RGB against pre-OSD backbuffer. H17 moving acceptance requires all
 three mismatch counts zero,not only HUD. This isolates composition correctness
 from upstream neural color variation. All generation calls now terminal; final disposition in LOG831.
+
+LOG859 / D-236 current checkpoint: normal native-effects diagnostic accepted,
+three1280x960 frames pixel-exact,images reviewed;four serial builds pass,
+986/0 x3,SDK302/0,Python25/0. Run-a unexercised and helper-before-first-source
+failures retained. No active jobs. Source commit contains LOG859.
+Next normal returned-output integration: carry source-owned normal snapshot
+through existing overlay slots,alpha ownership and resource accounting;avoid
+per-draw duplicate immutable resources before timing. Diagnostic copies are
+not performance evidence;normal gameplay/full lifecycle acceptance stays open.

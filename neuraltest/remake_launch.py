@@ -34,6 +34,12 @@ def prepare(args):
         if key.startswith('FLYCAST_REMAKE_'):
             del env[key]
     env['FLYCAST_REMAKE_OUTPUT_SIZE'] = output_size
+    if getattr(args, 'normal_effect_proof', False):
+        if getattr(args, 'renderer', 'dx11-oit') != 'dx11' or not getattr(args, 'cpu_timing', False):
+            raise ValueError('Normal effects proof requires dx11 and diagnostic CPU timing')
+        env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF'] = '1'
+        env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF_ROOT'] = str(out / 'normal-effects')
+
     enabled = ('TEMPORAL_RASTER', 'TEMPORAL_PREPARE', 'CAMERA_ANCHOR',
                'ALPHA_COMBINED', 'PUNCH_THROUGH', 'ASYNC_OIT', 'ASYNC_DIAGNOSTICS',
                'ESTIMATE_UNTRACED', 'ASYNC_PRESENT', 'ASYNC_NEURAL', 'NATIVE_EFFECTS')
@@ -275,6 +281,7 @@ def main():
                    help='Force the helper RGBA32F depth reference path')
     p.add_argument('--verify-depth-format', action='store_true',
                    help='With CPU timing, compare both depth formats from eight identical completed frames')
+    p.add_argument('--normal-effect-proof', action='store_true', help='Diagnostic-only bounded native effects replay comparison; requires dx11 and cpu-timing')
     p.add_argument('--renderer', choices=['dx11-oit', 'dx11'], default='dx11-oit',
                    help='Host renderer route for the run (the 600-frame gate asks for both); default dx11-oit')
     p.add_argument('--alpha-combined-off', action='store_true',

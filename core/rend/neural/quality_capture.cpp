@@ -394,6 +394,21 @@ void EdgeMetrics(const QualityCaptureWriter::RgbaImage& reference,
 
 } // namespace
 
+bool CaptureNativeEffectProof(const std::filesystem::path& root,ID3D11Device* device,
+ ID3D11DeviceContext* context,std::uint64_t source,ID3D11Texture2D* native,
+ ID3D11Texture2D* replay,std::string& error)
+{
+ try {
+  if(!root.is_absolute()||!source||!native||!replay){error="native-proof-input";return false;}
+  const auto directory=root/("source-"+std::to_string(source));
+  if(std::filesystem::exists(directory)){error="native-proof-exists";return false;}
+  RawTexture a,b;
+  if(!ReadTexture(device,context,native,a,error)||!ReadTexture(device,context,replay,b,error))return false;
+  std::filesystem::create_directories(directory);
+  return WritePng(directory/"native.png",ToRgba(a),error)&&WritePng(directory/"replay.png",ToRgba(b),error);
+ }catch(const std::exception& e){error=e.what();return false;}
+}
+
 bool CaptureRemakeGuidance(const std::filesystem::path& root,ID3D11Device* device,ID3D11DeviceContext* context,
  const RemakeReturnedImage& source,std::uint64_t current,std::uint64_t guidanceFrame,
  const std::array<ID3D11Texture2D*,6>& textures,std::string& error)
