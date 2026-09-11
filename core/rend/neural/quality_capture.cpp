@@ -475,7 +475,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		RawTexture raw[4];
 		for(unsigned i=0;i<4;++i)if(!ReadTexture(device,context,textures[i],raw[i],error))return false;
 		RawTexture source;source.width=RemakeWidth();source.height=RemakeHeight();source.format=DXGI_FORMAT_B8G8R8A8_UNORM;
-		source.bytesPerPixel=4;source.bytes=returned.bgra;
+		source.bytesPerPixel=4;source.bytes=returned.bgra.Read();
 		const auto input=ToRgba(source),native=ToRgba(raw[0]),overlay=ToRgba(raw[1]),output=ToRgba(raw[2]),presented=ToRgba(raw[3]);
 		auto world=input;
 		if(preEffects&&!evaluated){error="pre-effect capture requires evaluated output";return false;}

@@ -7,6 +7,8 @@
 #include <atomic>
 #include <vector>
 #include <utility>
+#include <memory>
+#include <type_traits>
 
 namespace flycast::rend::neural {
 enum class RemakeDepthValidity { Valid, Nonfinite, OutOfRange };
@@ -26,63 +28,80 @@ inline RemakeDepthValidity ValidateRemakeDepth(const float* values,std::size_t c
  return nonfinite?RemakeDepthValidity::Nonfinite:
   outOfRange?RemakeDepthValidity::OutOfRange:RemakeDepthValidity::Valid;
 }
-// A writable pointer/reference/iterator may outlive a validation call. Once
-// any such alias escapes, never reuse this allocation's validation result.
-// Fresh assignment allocates new storage; const-only pipeline ownership can
-// then validate once. Copies own their bytes and carry the measured result.
-class RemakeDepthBuffer {
+// Const-only copies share storage. Before writable access, detach shared bytes.
+// If an alias already escaped, copying takes a separate snapshot instead.
+// The vector object itself is never exposed mutably.
+template<class T> class RemakeImageBuffer {
+ using Values=std::vector<T>;
  static std::uint64_t NewIdentity() {
   static std::atomic<std::uint64_t> next{1};
   auto value=next.load(std::memory_order_relaxed);
-  while(value!=UINT64_MAX) {
-   if(next.compare_exchange_weak(value,value+1,std::memory_order_relaxed))return value;
-  }
-  return 0; // Saturation disables reuse rather than reusing an identity.
+  while(value!=UINT64_MAX)if(next.compare_exchange_weak(value,value+1,std::memory_order_relaxed))return value;
+  return 0;
  }
- std::vector<float> values;
+ std::shared_ptr<Values> values;
  std::uint64_t identity=NewIdentity();
  mutable std::atomic<int> validity{-1};
  bool writableAlias=false;
- void expose(){writableAlias=true;identity=0;validity.store(-1,std::memory_order_relaxed);}
- void replace(std::vector<float> next){values.swap(next);identity=NewIdentity();writableAlias=false;validity.store(-1,std::memory_order_relaxed);}
+ const Values& read()const {static const Values empty;return values?*values:empty;}
+ Values& write() {
+  if(!values)values=std::make_shared<Values>();
+  else if(!values.unique())values=std::make_shared<Values>(*values);
+  return *values;
+ }
+ void expose(){write();writableAlias=true;identity=0;validity.store(-1,std::memory_order_relaxed);}
+ void replace(Values next){values=std::make_shared<Values>(std::move(next));identity=NewIdentity();writableAlias=false;validity.store(-1,std::memory_order_relaxed);}
+ void changed(){identity=writableAlias?0:NewIdentity();validity.store(-1,std::memory_order_relaxed);}
 public:
- RemakeDepthBuffer()=default;
- RemakeDepthBuffer(const std::vector<float>& source):values(source){}
- RemakeDepthBuffer(const RemakeDepthBuffer& other):values(other.values),identity(other.identity?other.identity:NewIdentity()),validity(int(other.Validity())){}
- RemakeDepthBuffer(RemakeDepthBuffer&& other)noexcept:values(std::move(other.values)),
-  identity(other.identity),validity(other.validity.load(std::memory_order_relaxed)),writableAlias(other.writableAlias){other.identity=0;other.validity.store(-1,std::memory_order_relaxed);}
- RemakeDepthBuffer& operator=(const RemakeDepthBuffer& other){if(this!=&other){RemakeDepthBuffer copy(other);*this=std::move(copy);}return *this;}
- RemakeDepthBuffer& operator=(RemakeDepthBuffer&& other)noexcept {
+ RemakeImageBuffer()=default;
+ RemakeImageBuffer(const Values& source):values(std::make_shared<Values>(source)){}
+ RemakeImageBuffer(const RemakeImageBuffer& other)
+  :values(other.writableAlias?std::make_shared<Values>(other.read()):other.values),
+   identity(other.identity?other.identity:NewIdentity()),validity(int(other.Validity())){}
+ RemakeImageBuffer(RemakeImageBuffer&& other)noexcept:values(std::move(other.values)),
+  identity(other.identity),validity(other.validity.load(std::memory_order_relaxed)),writableAlias(other.writableAlias) {
+  other.identity=0;other.validity.store(-1,std::memory_order_relaxed);
+ }
+ RemakeImageBuffer& operator=(const RemakeImageBuffer& other){if(this!=&other){RemakeImageBuffer copy(other);*this=std::move(copy);}return *this;}
+ RemakeImageBuffer& operator=(RemakeImageBuffer&& other)noexcept {
   if(this!=&other){values=std::move(other.values);identity=other.identity;other.identity=0;writableAlias=other.writableAlias;
    validity.store(other.validity.load(std::memory_order_relaxed),std::memory_order_relaxed);
    other.validity.store(-1,std::memory_order_relaxed);}return *this;
  }
- std::size_t size()const{return values.size();}
- bool empty()const{return values.empty();}
- const float* data()const{return values.data();}
- float* data(){expose();return values.data();}
- auto begin()const{return values.begin();} auto end()const{return values.end();}
- auto begin(){expose();return values.begin();} auto end(){expose();return values.end();}
- const float& operator[](std::size_t i)const{return values[i];}
- float& operator[](std::size_t i){expose();return values[i];}
- void clear(){replace({});}
- void pop_back(){values.pop_back();identity=writableAlias?0:NewIdentity();validity.store(-1,std::memory_order_relaxed);}
- void resize(std::size_t count){
-  if(count!=values.size()){values.resize(count);identity=writableAlias?0:NewIdentity();validity.store(-1,std::memory_order_relaxed);}
+ RemakeImageBuffer& operator=(const Values& source){
+  if(values&&values.unique()){*values=source;changed();}
+  else replace(source);
+  return *this;
  }
- void assign(std::size_t count,float value){replace(std::vector<float>(count,value));}
- template<class Iterator> void assign(Iterator first,Iterator last){replace(std::vector<float>(first,last));}
+ std::size_t size()const{return read().size();}
+ bool empty()const{return read().empty();}
+ const T* data()const{return read().data();}
+ T* data(){expose();return values->data();}
+ auto begin()const{return read().begin();} auto end()const{return read().end();}
+ auto begin(){expose();return values->begin();} auto end(){expose();return values->end();}
+ const T& operator[](std::size_t i)const{return read()[i];}
+ T& operator[](std::size_t i){expose();return (*values)[i];}
+ const Values& Read()const{return read();}
+ void clear(){replace({});}
+ void pop_back(){write().pop_back();changed();}
+ void resize(std::size_t count){if(count!=size()){write().resize(count);changed();}}
+ void assign(std::size_t count,T value){replace(Values(count,value));}
+ template<class Iterator> void assign(Iterator first,Iterator last){replace(Values(first,last));}
  bool HasReusableValidation()const{return !writableAlias&&validity.load(std::memory_order_relaxed)>=0;}
- // Equal nonzero identities imply equal unchanged bytes, including owned copies.
  std::uint64_t ContentIdentity()const{return identity;}
  RemakeDepthValidity Validity()const {
-  const int cached=validity.load(std::memory_order_relaxed);
-  if(!writableAlias&&cached>=0)return RemakeDepthValidity(cached);
-  const auto result=ValidateRemakeDepth(values.data(),values.size());
-  if(!writableAlias)validity.store(int(result),std::memory_order_relaxed);
-  return result;
+  if constexpr(!std::is_same_v<T,float>)return RemakeDepthValidity::Valid;
+  else {
+   const int cached=validity.load(std::memory_order_relaxed);
+   if(!writableAlias&&cached>=0)return RemakeDepthValidity(cached);
+   const auto result=ValidateRemakeDepth(read().data(),read().size());
+   if(!writableAlias)validity.store(int(result),std::memory_order_relaxed);
+   return result;
+  }
  }
- bool operator==(const RemakeDepthBuffer& other)const{return values==other.values;}
- bool operator!=(const RemakeDepthBuffer& other)const{return !(*this==other);}
+ bool operator==(const RemakeImageBuffer& other)const{return read()==other.read();}
+ bool operator!=(const RemakeImageBuffer& other)const{return !(*this==other);}
 };
+using RemakeDepthBuffer=RemakeImageBuffer<float>;
+using RemakeColorBuffer=RemakeImageBuffer<unsigned char>;
 }

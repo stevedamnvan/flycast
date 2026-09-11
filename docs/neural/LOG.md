@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG811 CODEX-GOAL item4: const-only color/depth buffers share owned storage;
+writes detach, and copies after writable alias escape take independent bytes.
+Accepted history retains references, with existing worker conversion and
+diagnostic capture copies preserved. Five sharing/detachment controls plus
+existing mutation/history and exact sampled GPU controls pass. Four serial
+builds complete;906/0 x3, SDK272/0, Python23. Matched diagnostic
+pilot-extent1280-h4-copies versus h3-depth (600 samples each): history-copy
+median0.7313 to0.0004ms, history-accept0.7702 to0.0144, returned-evaluate
+6.7586 to5.3897; return-worker6.0340 to6.0261, raster-upload0.5566 to0.5608.
+pilot-h4-moving:12 captures,12 completed-Present joins, zero protected HUD
+mismatches (minimum72629 protected pixels). Eleven common sources match
+h3-moving native pixels exactly; composite MAE1.72..1.85/255, not pixel
+equality or an artwork improvement claim. Reviewed source2573 without new
+stale-history artifacts. Both runs host0/helper11, orderly shutdown, no
+forced children, performance_eligible=false. Original exposure A retained
+for the matched denominator. Evidence and JSON summaries archived under
+the named D:/Flycast-Evidence directories. Item4 technically accepted;
+no60fps claim. Next item5 helper fused extraction/clamp, R32F fallback and
+two-thread return; final performance-eligible measurement remains pending.
+
 LOG810 CODEX-GOAL item3: depth textures swap roles using immutable content
 identities. Owned copies preserve identity, writes invalidate it; saturating
 identity counter never reuses keys. Missing/mutable history uploads; failed

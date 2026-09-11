@@ -70,13 +70,13 @@ inline bool CompatibleRemakeTemporalReference(const RemakeTemporalScene& previou
 class RemakeTemporalHistory {
  std::shared_ptr<const RemakeTemporalScene> accepted;
  RemakeDepthBuffer acceptedDepth;
- std::vector<unsigned char> acceptedColor;
+ RemakeColorBuffer acceptedColor;
 public:
  void Reset(){accepted.reset();acceptedDepth.clear();acceptedColor.clear();}
  const RemakeTemporalScene* Last()const{return accepted.get();}
  std::shared_ptr<const RemakeTemporalScene> Shared()const{return accepted;} // Immutable; safe to hand to a worker.
  const RemakeDepthBuffer& Depth()const{return acceptedDepth;}
- const std::vector<unsigned char>& Color()const{return acceptedColor;}
+ const std::vector<unsigned char>& Color()const{return acceptedColor.Read();}
  bool CanReproject(const RemakeTemporalScene& next)const {
   return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
  }
@@ -92,7 +92,7 @@ public:
   validateTiming.End();
   RemakeCpuScope copyTiming("history-copy",image.frame,copyCount);
   auto depth=image.projectionDepth;
-  auto color=retainColor?image.bgra:std::vector<unsigned char>{};
+  auto color=retainColor?image.bgra:RemakeColorBuffer{};
   accepted=std::move(scene);acceptedDepth=std::move(depth);acceptedColor=std::move(color);return true;
  }
 };

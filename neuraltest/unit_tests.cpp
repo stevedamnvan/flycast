@@ -117,6 +117,23 @@ int RunSelfTests()
 {
 	Suite suite;
 	{
+		RemakeDepthBuffer depth;depth.assign(32,.5f);auto shared=depth;
+		suite.Expect(std::as_const(depth).data()==std::as_const(shared).data(),
+			"unchanged depth copies share storage instead of copying image bytes");
+		depth[0]=.25f;
+		suite.Expect(std::as_const(depth).data()!=std::as_const(shared).data()&&std::as_const(shared)[0]==.5f,
+			"depth writer detaches before changing a shared accepted snapshot");
+		RemakeColorBuffer color;color.assign(128,42);auto retained=color;
+		suite.Expect(std::as_const(color).data()==std::as_const(retained).data(),
+			"unchanged color snapshots share their byte storage");
+		auto* writable=color.data();auto isolated=color;writable[0]=99;
+		suite.Expect(std::as_const(retained)[0]==42&&std::as_const(isolated)[0]==42&&std::as_const(color)[0]==99,
+			"escaped color aliases cannot mutate snapshots copied before or after escape");
+		auto resized=retained;resized.resize(64);
+		suite.Expect(retained.size()==128&&resized.size()==64&&std::as_const(retained)[0]==42,
+			"resizing shared image storage preserves retained extent and pixels");
+	}
+	{
 		const auto cold=PlanRemakeDepthUploads(0,0,11,10);
 		suite.Expect(!cold.swap&&cold.current&&cold.previous,"depth textures upload both on cold or invalidated cache");
 		const auto advance=PlanRemakeDepthUploads(11,10,12,11);

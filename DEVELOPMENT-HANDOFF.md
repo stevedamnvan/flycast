@@ -2,6 +2,17 @@
 
 ## Current state (2026-09-10, D-224)
 
+H item4 verified (LOG811): shared owned color/depth snapshots, detach before
+writes, independent copies after writable aliases. Four final serial builds
+pass,906/0 x3, SDK272/0, Python23. Matched diagnostic history acceptance
+0.7702 to0.0144ms; returned evaluation6.7586 to5.3897. Moving12 captures,
+12 completed-Present joins, zero HUD mismatches; reviewed source2573.
+Both runs finished, logs archived; no game/helper running. No60fps claim.
+Next CODEX-GOAL item5: helper fused depth extraction/clamp, try R32F with
+RGBA32F fallback, split color/depth return across two threads. Preserve
+source/format/depth validation and publish only after both buffers complete.
+Keep original exposure A for timing;0.30 remains the opt-in visual candidate.
+
 H item3 verified (LOG810): depth texture ping-pong with immutable content
 identity. Final four builds,901/0 x3, SDK272/0, Python23; exact sampled GPU
 fixture on both APIs. Matched diagnostic raster upload1.009 to0.557ms,

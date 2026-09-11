@@ -82,11 +82,14 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Pilot substeps (D-224): Soulcalibur Faithful RTX
 
-H items1/2/3 complete (LOG807/808/810): scopes, depth validation reuse and texture ping-pong
+H items1/2/3/4 complete (LOG807/808/810/811): scopes, depth validation reuse, texture ping-pong and shared owned buffers
 measured in pilot-extent1280-h1-scopes / h2-depth after required builds/tests.
 Returned evaluation median10.82 to7.33ms is diagnostic, not a60fps claim.
 Item3 raster upload1.01 to0.56ms is verified with GPU controls and moving captures.
-Continue item4 buffer copies, then the remaining order. User reports the
+Item4 history acceptance0.7702 to0.0144ms; returned evaluation6.7586 to5.3897,
+with four builds,906/0 x3, SDK272/0, Python23 and12 moving Present joins.
+Continue item5 helper extraction/clamp, R32F fallback and two-thread return,
+then performance-eligible measurements. User reports the
 composite is overexposed; LOG809 now records a matched0.30 exposure candidate
 with native HUD preserved. Human look approval stays open. Performance
 comparisons retain exposure A.

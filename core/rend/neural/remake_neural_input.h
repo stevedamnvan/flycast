@@ -57,7 +57,7 @@ inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
  validateTiming.End();
  RemakeCpuScope copyTiming("input-color-copy",frame,copyCount);
  RemakeNeuralInput candidate;
- candidate.rgba=image.bgra;
+ candidate.rgba=image.bgra.Read();
  copyTiming.End();
  RemakeCpuScope convertTiming("input-convert",frame,convertCount);
  candidate.invertedDepth.reserve(image.projectionDepth.size());

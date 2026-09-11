@@ -3278,7 +3278,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			const auto& previousDepth=rasterHistory?remakeTemporalHistory.Depth():source.projectionDepth;
 			const char* colorSetting=std::getenv("FLYCAST_REMAKE_COLOR_CONSISTENCY");
 			const bool colorCheck=colorSetting&&std::strcmp(colorSetting,"1")==0;
-			const auto& previousColor=rasterHistory?remakeTemporalHistory.Color():source.bgra;
+			const auto& previousColor=rasterHistory?remakeTemporalHistory.Color():source.bgra.Read();
 			bool rasterReady;
 			{
 				static thread_local unsigned count=0;
@@ -3286,7 +3286,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				rasterReady=remakeMotionRaster.Initialize(device,DX11Context::Instance()->getCompiler(),error)
 					&&remakeMotionRaster.Render(deviceContext,stream,source.projectionDepth,previousDepth,
 						rasterHistory?remakeAcceptedRaster.views[2].Get():nullptr,source.nearPlane,source.farPlane,
-						.001f,.0001f,rasterOutput,error,colorCheck?&source.bgra:nullptr,colorCheck?&previousColor:nullptr);
+						.001f,.0001f,rasterOutput,error,colorCheck?&source.bgra.Read():nullptr,colorCheck?&previousColor:nullptr);
 			}
 			if(!rasterReady) {
 				NOTICE_LOG(RENDERER,"Remake GPU guidance rejected: source=%llu reason=%s",
