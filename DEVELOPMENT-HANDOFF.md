@@ -1,46 +1,41 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current checkpoint: normal-effects color conversion (LOG882)
+## Current checkpoint: batched normal-effects replay (LOG891)
 
-The RGBA8 external-output / BGRA8 native-raster mismatch is corrected using
-the existing Quad typed-sampling shader, point sampling, no blending and a
-saved/restored context. No source resize, raw-byte reinterpretation or relaxed
-source/layout guard. The opt-in normal path remains diagnostic-only.
+Parent3371b7b1b4548c0b3d9f40eacd56374ea1489ee2. Replay submits all348
+vertex/constant/view/sampler bindings in7 calls, including null slots. Snapshot
+ownership and per-draw constants remain unchanged. Added gated CPU scopes for
+normal-color-conversion and native-effects-compose. No ordinary-mode promotion.
 
-Scoped technical acceptance: typed conversion WARP checks65536 pixels with
-asymmetric RGB and all256 alpha values. pilot-normal-color-moving captures
-2560..2571 all join completed Present and mark native effects applied.
-Independent decoded-image checks prove exact native-overlay/evaluated-scene
-composition and pre-OSD backbuffer RGB in all12 frames; report is
-D:/Flycast-Evidence/pilot-normal-color-moving/independent-composition-check.json.
-Run76850 terminal0, host0/helper11 orderly=true, no forced children, host log
-archived. Four serial builds pass (automation no-op recheck, baseline, no-NGX,
-off);986/0 selftests each enabled configuration, SDK302/0, Python26. Logs
-D:/Flycast-Evidence/color-final-*.log. No jobs active.
+Evidence: focused WARP mutation/source/layout/alpha/depth controls pass. Native
+proof pilot-normal-batch-proof sources2560..2562 matches native and previous
+reference byte-exact at1280x960. Moving pilot-normal-batch-moving has12 exact
+composition/backbuffer checks and completed-Present joins;492 mesh materials
+and camera/geometry match prior profile-A run. Moving62846 exits0 with host0,
+helper11 orderly=true, no forced children; host log archived.
 
-Visual acceptance remains OPEN: viewed source2562/current2565 is overexposed
-and shows hair/edge artifacts. The diagnostic used default lighting, not the
-existing supplied exposure-A/temple profile. External neural provenance is
-explicitly false/unproven in these captures. No60fps or broad normal-renderer
-acceptance. Native alpha/HUD protection and smooth-normal requirements persist.
+Matched417 source-frame CPU scopes: effects-compose median2.4913ms before,
+0.5815ms batched. Overall speed is NOT accepted: native drawing slower and
+no-capture diagnostic84794 hit helper watchdog124. No performance-eligible
+run or60fps claim. Existing helper worker budget is120s without captures,
+420s with diagnostic capture; initial source wait can consume90s. Review
+lifecycle/budget contract separately; retain failures, never relabel them passes.
 
-Next: compare the new normal composition under the existing supplied pilot
-lighting/exposure profile, then attribute remaining capture/composition CPU
-cost with existing scopes. Do not run generation during timing. Preserve
-same-source/moving evidence and diagnose hair/edge defects before visual claims.
-Normal external-neural provenance and lifecycle/retirement coverage remain
-separate gates; prior helper124 failures remain retained in LOG876/878.
+Validation matrix2633 passed: four serial builds (automation no-op recheck), all three enabled selftests986/0, SDK302/0 and Python26. Logs batch-final-*.log under D:/Flycast-Evidence. No game/helper/build active. Private assets untouched.
 
-Baseline checkpoint parent04bd92db322088d182dac1b7dd3c398458954898. Source
-changes in this slice are only the explicit renderer color conversion; earlier
-capture/ownership/alpha/resource-sharing prototype is in that parent commit.
-Private evidence, assets and untracked logs remain outside Git. Broad goal ACTIVE.
+Next engineering target: measured normal native-draw capture overhead, which
+remains much larger than color conversion (~0.2ms) and batched replay (~0.6ms).
+Audit capture-side binding queries/copies and measure before accepting changes.
+Preserve same-source native replay, moving effects/HUD, freshness and latency.
+Use existing profile-A/temple lights: 12-frame matched comparison reduced world
+any-channel>=250 pixels1.48345% to0.005327%, but hair/edge artifacts persist.
+Visual quality, external neural provenance, full normal coverage and lifecycle
+acceptance remain OPEN. Broad goal ACTIVE; eGPU evaluation follows CPU work.
 
-Package D: retain PBRify normals/height. PBRFusion4 review found depth/normal
-outputs only; no install or generation performed. Full material scope and
-approved numeric paid-budget gate remain unchanged.
-
-Historical notes below are chronology, not live job state or next assignments.
+Evidence roots: pilot-normal-batch-proof, pilot-normal-batch-cost (cost-summary
+and matched-compose-cost.json), pilot-normal-batch-moving (independent-
+composition-check.json and archived host log), pilot-normal-color-profile-a.
+All are under D:/Flycast-Evidence. Historical notes below are chronology only.
 
 ## Historical CPU scheduling checkpoint (LOG841 / D-233)
 

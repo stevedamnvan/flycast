@@ -135,13 +135,20 @@ struct NativeEffectDraw {
   context->VSSetShader(vs,nullptr,0);context->PSSetShader(ps,nullptr,0);
   context->IASetInputLayout(layout);context->IASetPrimitiveTopology(topology);
   context->IASetIndexBuffer(indices,indexFormat,indexOffset);
-  for(UINT i=0;i<32;++i){ID3D11Buffer* buffer=vertices[i];context->IASetVertexBuffers(i,1,&buffer,&strides[i],&offsets[i]);}
-  for(UINT i=0;i<14;++i){ID3D11Buffer* value=vsConstants[i];context->VSSetConstantBuffers(i,1,&value);}
-  for(UINT i=0;i<128;++i){ID3D11ShaderResourceView* value=vsViews[i];context->VSSetShaderResources(i,1,&value);}
-  for(UINT i=0;i<16;++i){ID3D11SamplerState* value=vsSamplers[i];context->VSSetSamplers(i,1,&value);}
-  for(UINT i=0;i<14;++i){ID3D11Buffer* value=psConstants[i];context->PSSetConstantBuffers(i,1,&value);}
-  for(UINT i=0;i<128;++i){ID3D11ShaderResourceView* value=psViews[i];context->PSSetShaderResources(i,1,&value);}
-  for(UINT i=0;i<16;++i){ID3D11SamplerState* value=psSamplers[i];context->PSSetSamplers(i,1,&value);}
+  // Submit every slot, including nulls, in one call per binding class.
+  // Raw arrays borrow the snapshot's ownership for this immediate submission.
+  std::array<ID3D11Buffer*,32> vertexBindings{};
+  for(UINT i=0;i<32;++i)vertexBindings[i]=vertices[i];
+  context->IASetVertexBuffers(0,32,vertexBindings.data(),strides.data(),offsets.data());
+  std::array<ID3D11Buffer*,14> vsBuffers{},psBuffers{};
+  for(UINT i=0;i<14;++i){vsBuffers[i]=vsConstants[i];psBuffers[i]=psConstants[i];}
+  context->VSSetConstantBuffers(0,14,vsBuffers.data());context->PSSetConstantBuffers(0,14,psBuffers.data());
+  std::array<ID3D11ShaderResourceView*,128> vertexViews{},pixelViews{};
+  for(UINT i=0;i<128;++i){vertexViews[i]=vsViews[i];pixelViews[i]=psViews[i];}
+  context->VSSetShaderResources(0,128,vertexViews.data());context->PSSetShaderResources(0,128,pixelViews.data());
+  std::array<ID3D11SamplerState*,16> vertexSamplers{},pixelSamplers{};
+  for(UINT i=0;i<16;++i){vertexSamplers[i]=vsSamplers[i];pixelSamplers[i]=psSamplers[i];}
+  context->VSSetSamplers(0,16,vertexSamplers.data());context->PSSetSamplers(0,16,pixelSamplers.data());
   ComPtr<ID3D11BlendState> excludedBlend;
   if(suppressColor){
    D3D11_BLEND_DESC desc{};

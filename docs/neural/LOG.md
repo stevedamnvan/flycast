@@ -1,5 +1,88 @@
 # Neural rendering evidence log
 
+LOG891 batched replay scoped checkpoint: four serial builds2633 pass,
+986/0 selftests x3, SDK302/0, Python26; batch-final-*.log. Moving62846
+terminal0, host0/helper11 orderly=true, no forced children, host log archived.
+Native equality, independent12-frame composition and417-source composition
+cost reduction support this narrow replay change. Overall normal performance,
+visual quality, neural provenance and lifecycle remain open. Handoff rewritten
+in place; next capture-side cost audit. No active jobs; private assets preserved.
+
+
+LOG890 moving batch captures pass independent checks: all12 sources2560..2571
+exact native-overlay/evaluated-scene composition and backbuffer RGB,12 completed
+Present joins. Existing exact-geometry tool matches12 frames/492 mesh materials
+against prior profile-A run, no unmatched frames. Report archived in
+pilot-normal-batch-moving/independent-composition-check.json; reusable private
+check-normal-moving.py requires all12 frames. Run62846 still active at last
+poll; do not build until terminal. No overall performance or visual acceptance.
+
+LOG889 moving batch verification launched as session62846,
+pilot-normal-batch-moving. Same12 captures from2560, profile-A/temple,
+normal-effects/CPU diagnostic and staged batch executable. Source diff review
+confirms all32 vertex,14+14 constant,128+128 view and16+16 sampler slots are
+submitted, including nulls; owning snapshot remains alive. No source change
+or build during gameplay. Poll62846; archive host log at terminal and verify
+independent PNG/Present joins against prior profile run. Four-build matrix
+still required before commit. No performance/visual acceptance inferred.
+
+LOG888 batch-cost84794 terminal1, watchdog/retirement failure retained; no
+host/helper live, host log archived. Matched417 source-frame composition timings
+baseline2.4913ms median versus batch0.5815ms. Full run differs in sample count:
+batch417 effects samples and419 native-draw samples; do not compare600 versus
+417 as identical denominators. Native-draw median18.3987ms is worse than prior
+14.07405ms; no overall performance win claimed. Reports cost-summary.json and
+matched-compose-cost.json under pilot-normal-batch-cost. Owned helper log says
+session_worker=1, watchdog120s, initial-source wait90s. RemakeRuntimeBudget
+currently grants420s only when diagnosticCapture=true, explaining why these
+slow no-capture diagnostics exhaust the total watchdog. Preserve timeout failure;
+do not extend budget merely to obtain a passing performance result. Next finish
+batching correctness/moving checks and required build matrix; lifecycle budget
+contract review remains separate. Source changes uncommitted.
+
+LOG887 batch replay automation77494 passed. Native proof27975 terminal1
+(proof-only/no helper source);3 sources2560..2562,62/61/64 draws,zero1280x960
+mismatches. Independent PNG decode matches native/replay/previous native
+reference byte-exact. Host log archived in pilot-normal-batch-proof.
+Matched diagnostic pilot-normal-batch-cost launched with same profile/scopes,
+no captures. Measure effects-compose against2.34905ms baseline; no gain yet
+claimed. Uncommitted replay batching and instrumentation remain under test.
+
+LOG886 cost18582 terminal1, superseded helper failure retained; no live host/
+helper remains, log archived.600 samples: conversion median0.2018ms,
+effects-compose2.34905ms, returned-evaluate9.56175ms, native-draw14.07405ms.
+cost-summary.json archived; diagnostic only. Candidate replay now submits
+all vertex/constant/view/sampler slots in7 calls instead of348, preserving
+null slots and snapshot ownership. WARP replay/mutation/source/layout/alpha/
+depth controls pass (normal-replay-batch-test.exe). Automation77494 active,
+normal-replay-batch-build.log; next native game equality then matched cost.
+
+LOG885 finer returned-image CPU attribution: added existing gated RemakeCpuScope
+around normal-color-conversion and native-effects-compose; no rendering change.
+Automation86041 passed. Active diagnostic18582 pilot-normal-compose-cost uses
+same profile-A/temple/normal settings without image captures. Still diagnostic
+and not performance eligible. Poll18582, archive stage host log at terminal,
+then compare conversion/composition/capture costs before optimizing. Uncommitted.
+
+LOG884 profile comparison59528 terminal0, host log archived. Existing exact-
+geometry/material comparison matches12 frames/492 mesh materials with no
+unmatched frames. Independent PNG checks pass exact protected/native plus
+evaluated-world composition and backbuffer RGB. World any-channel>=250 fraction
+averages1.48345% default versus0.005327% supplied exposure-A/temple profile;
+this metric is not perceptual acceptance. Source2562/current2565 viewed:
+less washed out, hair/edge artifacts persist. Report profile-image-check.json
+under pilot-normal-color-profile-a. Keep existing profile for subsequent
+diagnostics; next measured capture/replay CPU costs, visual defects still open.
+
+LOG883 existing lighting/exposure profile comparison launched: session59528,
+pilot-normal-color-profile-a, same staged color-conversion executable, normal
+CPU diagnostic,12 captures from2560, anchored temple rig and supplied
+pilot-curated/profiles/exposure-probe-a.conf. No live config rewritten.
+Previous moving-run CPU scope summary archived as cpu-scope-summary.json:
+600 sampled native-draw median16.4547ms, returned-evaluate10.1421ms;
+instrumented/synchronous-capture evidence only, not performance eligibility.
+Profile run still active; poll59528 and archive host log before next launch.
+
 LOG882 color conversion scoped technical acceptance. Moving76850 terminal0,
 host0/helper11 orderly=true, no forced children. Independent decoded PNG check
 of12 sources2560..2571 proves native-overlay/evaluated-scene composition and

@@ -3421,6 +3421,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(RemakeNativeEffectsRequested()) {
 			if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)preEffects=owned;
 			if(remakeAsyncAcceptedOverlay.normalEffects){
+				static thread_local unsigned conversionTimingCount=0;
+				RemakeCpuScope conversionTiming("normal-color-conversion",source.frame,conversionTimingCount);
 				const auto nativeDesc=remakeAsyncAcceptedOverlay.normalEffects->RasterDescription();
 				D3D11_TEXTURE2D_DESC inputDesc{};owned->GetDesc(&inputDesc);
 				// Typed sampling preserves logical RGBA while the target writes BGRA
@@ -3449,7 +3451,13 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				}
 			}
 			ComPtr<ID3D11Texture2D> composed;ComPtr<ID3D11ShaderResourceView> composedView;
-			if(!remakeAsyncAcceptedOverlay.ComposeEffects(device,deviceContext,source.producer,owned,composed,composedView)){
+			bool effectsComposed;
+			{
+				static thread_local unsigned compositionTimingCount=0;
+				RemakeCpuScope compositionTiming("native-effects-compose",source.frame,compositionTimingCount);
+				effectsComposed=remakeAsyncAcceptedOverlay.ComposeEffects(device,deviceContext,source.producer,owned,composed,composedView);
+			}
+			if(!effectsComposed){
 				if(remakeAsyncAcceptedOverlay.normalEffects){
 					static unsigned normalComposeFailures=0;
 					if(normalComposeFailures++<3){
