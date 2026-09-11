@@ -48,6 +48,15 @@ void os_VideoRoutingTermDX();
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/remake_cpu_scope.h"
 using flycast::rend::neural::RemakeCpuScope;
+namespace {
+const bool remakeCpuReporterInstalled=[] {
+ flycast::rend::neural::ReportRemakeCpuScope=[](std::uint64_t frame,const char* label,double ms) {
+  NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
+   (unsigned long long)frame,label,ms);
+ };
+ return true;
+}();
+}
 #endif
 
 const D3D11_INPUT_ELEMENT_DESC MainLayout[]

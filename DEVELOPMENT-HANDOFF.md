@@ -2,6 +2,14 @@
 
 ## Current state (2026-09-10, D-224)
 
+CODEX-GOAL item1 verified (LOG807): finer diagnostic scopes and matched
+pilot-extent1280-h1-scopes run complete; four builds,883/0 x3, SDK272/0,
+Python23 and backlog6 pass. Validation dominates raster/history CPU time.
+Next H item2: preserve every accept/reject result while removing redundant
+depth scans. User reports overexposed delivered composite; perform a bounded
+same-source exposure comparison under D/E, preserving native HUD/effects.
+No speed improvement or visual acceptance claimed. Item2-6 remain open.
+
 Resume 2026-09-11 (LOG806): host-side attribution done with matched
 640/1280 CPU-timing runs (`pilot-extent640-cpu-a`, `pilot-extent1280-cpu-a`).
 The render thread's returned-image work (validation passes, buffer copies,

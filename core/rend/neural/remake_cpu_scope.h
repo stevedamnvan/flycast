@@ -12,6 +12,10 @@
 
 #ifdef FLYCAST_ENABLE_NEURAL
 namespace flycast::rend::neural {
+// Installed by the host before rendering starts. Standalone contract tools
+// have no emulator logger and leave this unset.
+using RemakeCpuReporter = void (*)(std::uint64_t, const char*, double);
+inline RemakeCpuReporter ReportRemakeCpuScope=nullptr;
 // Whole-frame scopes sample only once the remake lane has evaluated an image,
 // so the bounded sample budget covers the lane, not the warmup.
 inline std::atomic<bool> RemakeFrameTimingActive{false};
@@ -51,7 +55,7 @@ public:
 	RemakeCpuScope(const char* label, std::uint64_t frame, unsigned& count)
 		: label(label), frame(frame), enabled(false) {
 		const char* value=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
-		enabled=value&&std::strcmp(value,"1")==0&&count<600&&RemakeFrameTimingActive.load(std::memory_order_relaxed);
+		enabled=ReportRemakeCpuScope&&value&&std::strcmp(value,"1")==0&&count<600&&RemakeFrameTimingActive.load(std::memory_order_relaxed);
 		if(enabled){++count;start=std::chrono::steady_clock::now();}
 	}
 	RemakeCpuScope(const RemakeCpuScope&)=delete;
@@ -61,8 +65,7 @@ public:
 private:
 	void report()const {
 		const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-		NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
-			(unsigned long long)frame,label,ms);
+		ReportRemakeCpuScope(frame,label,ms);
 	}
 };
 }

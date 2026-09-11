@@ -8,6 +8,7 @@
 #include "remake_motion_shader.h"
 #include "rend/neural/remake_motion_stream.h"
 #include "rend/neural/remake_extent.h"
+#include "rend/neural/remake_cpu_scope.h"
 
 namespace flycast::rend::neural {
 // Isolated deferred-context work preserves the caller's graphics state. Output
@@ -113,6 +114,8 @@ public:
   float absoluteTolerance,float relativeTolerance,RemakeRasterOutput& output,std::string& error,
   const std::vector<unsigned char>* currentColor=nullptr,const std::vector<unsigned char>* previousColor=nullptr) {
   auto fail=[&](const char* why){error=why;return false;};
+  static thread_local unsigned validateCount=0,uploadCount=0,drawCount=0;
+  RemakeCpuScope validateTiming("raster-validate",0,validateCount);
   if(bool(currentColor)!=bool(previousColor)||(currentColor
    &&(currentColor->size()!=flycast::rend::neural::RemakePixels()*4||previousColor->size()!=flycast::rend::neural::RemakePixels()*4)))
    return fail("remake-raster-color-bound");
@@ -133,6 +136,8 @@ public:
   for(std::size_t i=0;i<currentDepth.size();++i)
    if(!std::isfinite(currentDepth[i])||currentDepth[i]<0||currentDepth[i]>1
     ||!std::isfinite(previousDepth[i])||previousDepth[i]<0||previousDepth[i]>1)return fail("remake-raster-depth");
+  validateTiming.End();
+  RemakeCpuScope uploadTiming("raster-upload",0,uploadCount);
   if(!ensureResources(error))return false;
   // Never render into the set whose draw IDs the caller retained as previous.
   unsigned pick=nextSet%2;
@@ -161,6 +166,8 @@ public:
   if(!write(vertices.Get(),stream.vertices.data(),stream.vertices.size()*sizeof(RemakeMotionVertex))
    ||!write(indices.Get(),stream.indices.data(),stream.indices.size()*4)
    ||!write(contract.Get(),constants,sizeof(constants)))return fail("remake-raster-buffer");
+  uploadTiming.End();
+  RemakeCpuScope drawTiming("raster-draw-submit",0,drawCount);
   const float zero[4]{},one[4]={1,1,1,1};
   const float uncovered[4]={7,7,7,7};
   for(unsigned i=0;i<6;++i)context->ClearRenderTargetView(targets[i].Get(),i==4?uncovered:(i==3||i==5)?one:zero);

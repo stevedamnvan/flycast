@@ -82,6 +82,12 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Pilot substeps (D-224): Soulcalibur Faithful RTX
 
+H item1 complete (LOG807): finer scopes measured in
+pilot-extent1280-h1-scopes after all required builds/tests. Continue item2
+depth validation, then the remaining CODEX-GOAL order. User reports the
+composite is overexposed; D/E now needs a same-source composite exposure
+comparison before look approval. Native HUD/effects stay protected.
+
 PBRify status under D: generation and104-map ingestion complete (LOG800);
 corrected height stays on tiling floor only. Two Kilik cloth-atlas roughness
 regions are refined in the separate MCP-bound pbrify_cloth_refined_v2 layer.

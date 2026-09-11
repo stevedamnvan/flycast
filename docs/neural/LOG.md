@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG807 CODEX-GOAL item1: finer CPU scopes implemented, acceptance unchanged.
+pilot-extent1280-h1-scopes uses the LOG8061280 launch and exposure A,
+native alpha, welded normals and temple rig. Host0/helper11, orderly
+shutdown, no forced children; diagnostic only, performance_eligible=false.
+Each new stage has600 samples. Median ms: raster validation3.080,
+upload1.010, draw/submit0.092; history validation1.417/copy0.620;
+channel color integrity0.479/copy0.511, depth integrity1.821/copy0.492;
+return well-formed1.354, motion stream2.525; input validation1.388,
+color copy0.571, conversion1.881. Full scope-summary.json and host log
+retained in that evidence directory. Nested stages are not additive totals;
+raster subscopes have frame0 (unattributed), aggregate samples only.
+Four serial builds pass, enabled selftests883/0 each, SDK272/0, Python
+launcher18, normals3, capture2 pass; backlog tests6 also pass. First build
+failed GenericLog linkage; host-installed reporting callback fixes standalone
+test linkage. Existing untracked remake_extent.h is included unchanged to
+make the committed extent dependency available from a checkout.
+Item1 technically accepted as diagnostic instrumentation, no speed claim.
+User reports the delivered composite is overexposed. Reviewed the moving
+Kilik strip: bright warm floor/skin and saturated cloth warrant a matched
+composite exposure comparison; the look remains unapproved. Preserve native
+HUD/effects while diagnosing scene exposure. This does not replace H items2-6.
+
 LOG806 substep H host-side cost attribution at 1280x960 (diagnostic
 CPU-timing runs, never performance evidence). Two matched runs with the
 LOG805 perf-a launch plus `--cpu-timing`: `pilot-extent1280-cpu-a` and the

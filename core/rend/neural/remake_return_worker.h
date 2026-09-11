@@ -53,12 +53,20 @@ class RemakeReturnWorker {
   const std::shared_ptr<const RemakeTemporalScene>& scene,const std::shared_ptr<const RemakeTemporalScene>& previous) {
   const auto start=std::chrono::steady_clock::now();
   RemakeReturnResult r;r.returned=std::move(image);r.overlay=std::move(overlay);
-  r.wellFormed=RemakeReturnedImageWellFormed(r.returned);
+  static thread_local unsigned validateCount=0,streamCount=0,inputCount=0;
+  {
+   RemakeCpuScope timing("return-validate",r.returned.frame,validateCount);
+   r.wellFormed=RemakeReturnedImageWellFormed(r.returned);
+  }
   if(scene) {
+   RemakeCpuScope timing("return-motion-stream",r.returned.frame,streamCount);
    r.temporal=true;r.previousFrame=previous?previous->frame:0;
    r.streamReady=BuildRemakeMotionStream(previous.get(),*scene,r.stream,r.streamError);
   }
-  if(r.wellFormed)r.inputReady=BuildRemakeNeuralInput(r.returned,r.returned.frame,r.returned.producer,r.input);
+  if(r.wellFormed) {
+   RemakeCpuScope timing("return-input-build",r.returned.frame,inputCount);
+   r.inputReady=BuildRemakeNeuralInput(r.returned,r.returned.frame,r.returned.producer,r.input);
+  }
   r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
   return r;
  }

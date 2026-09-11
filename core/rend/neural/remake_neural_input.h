@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "remake_live_channel.h"
+#include "remake_cpu_scope.h"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -47,11 +48,17 @@ inline std::string DescribeRemakeReturnedImage(const RemakeReturnedImage& image,
 inline bool BuildRemakeNeuralInput(const RemakeReturnedImage& image,
  std::uint64_t frame, const ProducerIdentity& producer, RemakeNeuralInput& output)
 {
+ static thread_local unsigned validateCount=0,copyCount=0,convertCount=0;
+ RemakeCpuScope validateTiming("input-validate",frame,validateCount);
  if(image.frame!=frame || image.producer.epoch!=producer.epoch
   || image.producer.ordinal!=producer.ordinal || image.producer.cycle!=producer.cycle
   || !RemakeReturnedImageWellFormed(image)) return false;
+ validateTiming.End();
+ RemakeCpuScope copyTiming("input-color-copy",frame,copyCount);
  RemakeNeuralInput candidate;
  candidate.rgba=image.bgra;
+ copyTiming.End();
+ RemakeCpuScope convertTiming("input-convert",frame,convertCount);
  candidate.invertedDepth.reserve(image.projectionDepth.size());
  for(float depth:image.projectionDepth)candidate.invertedDepth.push_back(1.f-depth);
  for(std::size_t i=0;i<candidate.rgba.size();i+=4)

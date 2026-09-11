@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_live_channel.h"
+#include "remake_cpu_scope.h"
 #include "remake_view_transport.h"
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -322,20 +323,28 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
  }
  struct Release {volatile LONG* state;~Release(){InterlockedExchange(state,freeSlot);}} release{&s.imageState};
  const auto& source=p.sources[s.imageSource.sequence%kInFlight];
+ static thread_local unsigned colorValidateCount=0,colorCopyCount=0,depthValidateCount=0,depthCopyCount=0;
+ RemakeCpuScope colorValidateTiming("return-channel-color-validate",s.imageFrame,colorValidateCount);
  if(!s.imageSource.sequence||s.imageSource.sequence<=p.returnedSequence||!sameReceipt(s.imageSource,source.receipt)
   ||s.imageFrame!=source.frame||s.imageEpoch!=source.producer.epoch||s.imageOrdinal!=source.producer.ordinal
   ||s.imageCycle!=source.producer.cycle||s.imageDigest!=imageDigest64(reinterpret_cast<const char*>(s.imagePixels),RemakePixels()*4)) {
   error="return-stale-source-or-integrity";return RemakeChannelResult::Invalid;
  }
  try {
+  colorValidateTiming.End();
   RemakeReturnedImage image;image.source=s.imageSource;image.frame=s.imageFrame;image.producer=source.producer;
+  RemakeCpuScope colorCopyTiming("return-channel-color-copy",s.imageFrame,colorCopyCount);
   image.width=RemakeWidth();image.height=RemakeHeight();image.bgra.assign(s.imagePixels,s.imagePixels+RemakePixels()*4);
+  colorCopyTiming.End();
 	if(s.depthCount) {
+		RemakeCpuScope depthValidateTiming("return-channel-depth-validate",s.imageFrame,depthValidateCount);
 		if(s.depthCount!=RemakePixels()||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
 			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float))
 			||!std::all_of(s.depthPixels,s.depthPixels+RemakePixels(),[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
 			error="return-depth-integrity";return RemakeChannelResult::Invalid;
 		}
+		depthValidateTiming.End();
+		RemakeCpuScope depthCopyTiming("return-channel-depth-copy",s.imageFrame,depthCopyCount);
 		image.projectionDepth.assign(s.depthPixels,s.depthPixels+RemakePixels());image.nearPlane=s.nearPlane;image.farPlane=s.farPlane;
 	}else if(s.nearPlane!=0||s.farPlane!=0||s.depthDigest!=0){error="return-depth-empty-header";return RemakeChannelResult::Invalid;}
   output=std::move(image);p.returnedSequence=s.imageSource.sequence;error.clear();return RemakeChannelResult::Received;

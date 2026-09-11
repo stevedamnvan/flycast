@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "remake_live_channel.h"
+#include "remake_cpu_scope.h"
 #include <memory>
 
 namespace flycast::rend::neural {
@@ -79,12 +80,16 @@ public:
   return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
  }
  bool Accept(std::shared_ptr<const RemakeTemporalScene> scene,const RemakeReturnedImage& image,bool evaluated,bool retainColor=true) {
+  static thread_local unsigned validateCount=0,copyCount=0;
+  RemakeCpuScope validateTiming("history-validate",image.frame,validateCount);
   if(!evaluated||!scene||!scene->Matches(image)||image.width!=scene->extent.width||image.height!=scene->extent.height
    ||image.projectionDepth.size()!=scene->extent.Pixels())return false;
   for(float z:image.projectionDepth)if(!std::isfinite(z)||z<0||z>1)return false;
   if(accepted&&(scene->producer.epoch!=accepted->producer.epoch||scene->frame<=accepted->frame
    ||scene->producer.ordinal<=accepted->producer.ordinal||scene->producer.cycle<accepted->producer.cycle
    ||scene->receipt.sequence<=accepted->receipt.sequence))return false;
+  validateTiming.End();
+  RemakeCpuScope copyTiming("history-copy",image.frame,copyCount);
   auto depth=image.projectionDepth;
   auto color=retainColor?image.bgra:std::vector<unsigned char>{};
   accepted=std::move(scene);acceptedDepth=std::move(depth);acceptedColor=std::move(color);return true;
