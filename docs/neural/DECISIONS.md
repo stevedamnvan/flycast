@@ -1,5 +1,16 @@
 # Neural rendering decisions
 
+## D-226: a standalone render size is a diagnostic helper option; the live return contract stays 640x480 until the opt-in higher-resolution path exists
+
+LOG798. The helper accepts `FLYCAST_REMAKE_HELPER_RENDER_SIZE` for standalone
+renders only (4:3, bounded, never set by the launcher) and refuses it when a
+live channel is active, because return slots, evaluation input and archives
+are 640x480 by contract. Real shading resolution is recorded through an
+explicitly supplied runtime profile (`DXVK_RTX_CONFIG_FILE`), never by editing
+the user's live configuration; a resolution result without that profile is
+an output size, not a shading resolution. Raising the live resolution is
+pilot substep F with its own controls.
+
 ## D-225: smoothing groups are source-qualified; a weld needs identical source attributes, never a coincident position alone
 
 LOG797. Level 2 of the D-223 shading option welds, within one source draw,

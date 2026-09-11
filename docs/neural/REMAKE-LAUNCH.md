@@ -129,7 +129,9 @@ so that stronger experiment layers can be inserted first (LOG796);
 `neuraltest/remix_mcp_client.py` drives the Toolkit MCP server and
 `neuraltest/remake_material_manifest.py` writes the material manifest. The helper honours two diagnostic environment bounds the launcher never
 sets: `FLYCAST_REMAKE_HELPER_LINGER_MS` and `FLYCAST_REMAKE_HELPER_STARTUP_WAIT_MS`
-(D-222, standalone Remix USD capture and mod-loading renders). The scene feed runs anchor, temporal capture,
+(D-222, standalone Remix USD capture and mod-loading renders) and
+`FLYCAST_REMAKE_HELPER_RENDER_SIZE=WxH` (D-226, standalone renders only; refused
+with a live channel). The scene feed runs anchor, temporal capture,
 serialization and digest on a worker thread (D-211); `worker-busy-native-fallback`
 skips count sources that fell back because the worker was still busy. The
 synchronous `neuraltest capture` lane accepts up to300 frames (renderer and

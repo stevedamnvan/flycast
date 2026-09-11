@@ -404,7 +404,19 @@ int wmain(int argc,wchar_t** argv) {
  }
  WNDCLASSW cls{};cls.lpfnWndProc=windowProc;cls.hInstance=GetModuleHandleW(nullptr);cls.lpszClassName=L"FlycastRemixSmoke";
  if(!RegisterClassW(&cls)) { api.Shutdown();FreeLibrary(module);return 8; }
- RECT bounds{0,0,640,480};
+ // D-226: standalone render size (FLYCAST_REMAKE_HELPER_RENDER_SIZE=WxH, 4:3,
+ // at most 2560x1920). Refused when a live channel is active: return slots
+ // are 640x480 by contract. Diagnostic only; never set by the launcher.
+ int renderW=640,renderH=480;
+ if(const char* size=std::getenv("FLYCAST_REMAKE_HELPER_RENDER_SIZE");size&&*size) {
+  char* sizeEnd=nullptr;const long w=std::strtol(size,&sizeEnd,10);
+  const long h=(*sizeEnd=='x')?std::strtol(sizeEnd+1,&sizeEnd,10):0;
+  if(liveChannel){std::cerr<<"render_size ignored=true reason=live-channel-return-slots-640x480\n";}
+  else if(!*sizeEnd&&w>=640&&w<=2560&&h*4==w*3){renderW=int(w);renderH=int(h);
+   std::cerr<<"render_size width="<<renderW<<" height="<<renderH<<" standalone_only=true\n";}
+  else{std::cerr<<"invalid render size (WxH, 4:3, 640..2560 wide)\n";return 2;}
+ }
+ RECT bounds{0,0,renderW,renderH};
  AdjustWindowRect(&bounds,WS_OVERLAPPEDWINDOW,FALSE);
  HWND window=CreateWindowW(cls.lpszClassName,L"Experimental Remix synthetic bring-up",WS_OVERLAPPEDWINDOW,
   CW_USEDEFAULT,CW_USEDEFAULT,bounds.right-bounds.left,bounds.bottom-bounds.top,nullptr,nullptr,cls.hInstance,nullptr);
@@ -429,7 +441,7 @@ int wmain(int argc,wchar_t** argv) {
   }else status=api.dxvk_CreateD3D9?api.dxvk_CreateD3D9(0,&ownedD3D):REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
   if(legacyRaster)std::cerr<<"raster_contract_only=true factory=public_api draw_conversion_expected=false remix_output_proof=false\n";
   if(status==REMIXAPI_ERROR_CODE_SUCCESS && ownedD3D) {
-   D3DPRESENT_PARAMETERS pp{};pp.BackBufferWidth=640;pp.BackBufferHeight=480;
+   D3DPRESENT_PARAMETERS pp{};pp.BackBufferWidth=UINT(renderW);pp.BackBufferHeight=UINT(renderH);
    // Capture reads the backbuffer after Present; DISCARD cannot preserve it.
    pp.BackBufferFormat=D3DFMT_A8R8G8B8;pp.BackBufferCount=1;pp.SwapEffect=D3DSWAPEFFECT_COPY;
    pp.hDeviceWindow=window;pp.Windowed=TRUE;
@@ -621,10 +633,10 @@ int wmain(int argc,wchar_t** argv) {
    HRESULT hr=S_OK;
    if(legacyBackbuffer)hr=ownedDevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&gpu);
    else {
-    if(!captureGpu)hr=ownedDevice->CreateRenderTarget(640,480,format,D3DMULTISAMPLE_NONE,0,FALSE,&captureGpu,nullptr);
+    if(!captureGpu)hr=ownedDevice->CreateRenderTarget(renderW,renderH,format,D3DMULTISAMPLE_NONE,0,FALSE,&captureGpu,nullptr);
     gpu=captureGpu;
    }
-   if(SUCCEEDED(hr)&&!captureCpu)hr=ownedDevice->CreateOffscreenPlainSurface(640,480,format,D3DPOOL_SYSTEMMEM,&captureCpu,nullptr);
+   if(SUCCEEDED(hr)&&!captureCpu)hr=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,format,D3DPOOL_SYSTEMMEM,&captureCpu,nullptr);
    cpu=captureCpu;
    if(SUCCEEDED(hr)) {
     // The runtime's output copy waits for its frame; time it with the readback.
@@ -642,19 +654,19 @@ int wmain(int argc,wchar_t** argv) {
    lockWaitMs=msSince(lockStart);
    if(SUCCEEDED(hr)) {
     const auto colorCopyStart=std::chrono::steady_clock::now();
-    pixels.resize(640*480*4);
-    raw.resize(floatOutput?640*480*16:0);
-    for(int y=0;y<480;y++) {
+    pixels.resize(std::size_t(renderW)*renderH*4);
+    raw.resize(floatOutput?std::size_t(renderW)*renderH*16:0);
+    for(int y=0;y<renderH;y++) {
      const auto row=static_cast<unsigned char*>(locked.pBits)+y*locked.Pitch;
-     if(floatOutput)memcpy(raw.data()+y*640*16,row,640*16);
-     if(!floatOutput)memcpy(pixels.data()+y*640*4,row,640*4);
-     else for(int x=0;x<640;x++) {
+     if(floatOutput)memcpy(raw.data()+std::size_t(y)*renderW*16,row,std::size_t(renderW)*16);
+     if(!floatOutput)memcpy(pixels.data()+std::size_t(y)*renderW*4,row,std::size_t(renderW)*4);
+     else for(int x=0;x<renderW;x++) {
       float value[4];memcpy(value,row+x*16,16);
       for(int c=0;c<3;c++) {
        float mapped=value[0]/10.f;
-       pixels[(y*640+x)*4+c]=static_cast<unsigned char>(mapped>=1?255:mapped>0?mapped*255:0);
+       pixels[(std::size_t(y)*renderW+x)*4+c]=static_cast<unsigned char>(mapped>=1?255:mapped>0?mapped*255:0);
       }
-      pixels[(y*640+x)*4+3]=255;
+      pixels[(std::size_t(y)*renderW+x)*4+3]=255;
      }
     }
     cpu->UnlockRect();
@@ -662,7 +674,7 @@ int wmain(int argc,wchar_t** argv) {
     if(liveChannel&&!floatOutput&&!legacyBackbuffer&&!legacyRaster) {
      auto& returned=returnedFrame;
      returned.source=activeSourceReceipt;returned.frame=packet.frame;returned.producer=packet.producer;
-     returned.width=640;returned.height=480;returned.bgra=pixels;
+     returned.width=unsigned(renderW);returned.height=unsigned(renderH);returned.bgra=pixels;
      if(!captureReturnedDepth) {
      std::string returnError;const auto result=channel.ReturnImage(returned,returnError);
      std::cout<<"live_return sequence="<<returned.source.sequence<<" frame="<<returned.frame
@@ -678,12 +690,12 @@ int wmain(int argc,wchar_t** argv) {
      rawOk=rawFile!=INVALID_HANDLE_VALUE;
      if(rawOk)rawOk=WriteFile(rawFile,raw.data(),DWORD(raw.size()),&bytes,nullptr)&&bytes==raw.size();
      if(rawFile!=INVALID_HANDLE_VALUE)CloseHandle(rawFile);
-     std::cerr<<"raw_guidance width=640 height=480 channels=RGBA type=float32 rows=top-down frame="<<accepted
+     std::cerr<<"raw_guidance width="<<renderW<<" height="<<renderH<<" channels=RGBA type=float32 rows=top-down frame="<<accepted
       <<" output_type="<<int(captureType)<<" write_ok="<<rawOk<<'\n'<<std::flush;
     }
     if(!returnOnly) {
     BITMAPFILEHEADER file{};file.bfType=0x4d42;file.bfOffBits=sizeof(file)+sizeof(BITMAPINFOHEADER);file.bfSize=file.bfOffBits+DWORD(pixels.size());
-    BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=640;info.biHeight=-480;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
+    BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=renderW;info.biHeight=-renderH;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(pixels.size());
     HANDLE out=CreateFileW(capturePath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     DWORD written=0;
     bool ok=out!=INVALID_HANDLE_VALUE;
@@ -703,9 +715,9 @@ int wmain(int argc,wchar_t** argv) {
 		const auto depthPath=capturePath.wstring()+L".depth.rgba32f";
 		RemakeFarPlaneReport farPlane{};
 		HRESULT depthHr=S_OK;
-		if(!depthGpu)depthHr=ownedDevice->CreateRenderTarget(640,480,D3DFMT_A32B32G32R32F,
+		if(!depthGpu)depthHr=ownedDevice->CreateRenderTarget(renderW,renderH,D3DFMT_A32B32G32R32F,
 			D3DMULTISAMPLE_NONE,0,FALSE,&depthGpu,nullptr);
-		if(SUCCEEDED(depthHr)&&!depthCpu)depthHr=ownedDevice->CreateOffscreenPlainSurface(640,480,
+		if(SUCCEEDED(depthHr)&&!depthCpu)depthHr=ownedDevice->CreateOffscreenPlainSurface(renderW,renderH,
 			D3DFMT_A32B32G32R32F,D3DPOOL_SYSTEMMEM,&depthCpu,nullptr);
 		if(SUCCEEDED(depthHr)) {
 			const auto depthStart=std::chrono::steady_clock::now();
@@ -720,12 +732,12 @@ int wmain(int argc,wchar_t** argv) {
 		depthLockWaitMs=msSince(depthLockStart);
 		if(SUCCEEDED(depthHr)) {
 			const auto depthConvertStart=std::chrono::steady_clock::now();
-			returnedFrame.projectionDepth.resize(640*480);
+			returnedFrame.projectionDepth.resize(std::size_t(renderW)*renderH);
 			// Source texels are RGBA32F; only the R channel is the depth value.
-			for(int y=0;y<480;++y) {
+			for(int y=0;y<renderH;++y) {
 				const unsigned char* row=static_cast<const unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch;
-				float* out=returnedFrame.projectionDepth.data()+y*640;
-				for(int x=0;x<640;++x,row+=16) {
+				float* out=returnedFrame.projectionDepth.data()+std::size_t(y)*renderW;
+				for(int x=0;x<renderW;++x,row+=16) {
 					float value;std::memcpy(&value,row,sizeof(float));
 					out[x]=value;
 				}
@@ -737,15 +749,15 @@ int wmain(int argc,wchar_t** argv) {
 			if(!returnOnly) {
 			HANDLE file=CreateFileW(depthPath.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
 			bool ok=file!=INVALID_HANDLE_VALUE;
-			for(int y=0;y<480&&ok;++y){DWORD written=0;ok=WriteFile(file,
-				static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch,640*16,&written,nullptr)&&written==640*16;}
+			for(int y=0;y<renderH&&ok;++y){DWORD written=0;ok=WriteFile(file,
+				static_cast<unsigned char*>(depthLocked.pBits)+y*depthLocked.Pitch,DWORD(renderW)*16,&written,nullptr)&&written==DWORD(renderW)*16;}
 			if(file!=INVALID_HANDLE_VALUE)CloseHandle(file);depthHr=ok?S_OK:E_FAIL;
 			}
 			depthCpu->UnlockRect();
 			depthConvertMs=msSince(depthConvertStart);
 		}
 		std::cout<<"returned_depth source_frame="<<packet.frame<<" source_sequence="<<activeSourceReceipt.sequence
-			<<" width=640 height=480 format=RGBA32F semantics=unverified hresult="<<depthHr
+			<<" width="<<renderW<<" height="<<renderH<<" format=RGBA32F semantics=unverified hresult="<<depthHr
 			<<" beyond_far_clamped="<<farPlane.beyondFar<<" before_near_clamped="<<farPlane.beforeNear<<" above_limit="<<farPlane.aboveLimit
 			<<" max_depth="<<std::setprecision(9)<<farPlane.maxDepth<<" min_depth="<<farPlane.minDepth<<" far_limit="<<farPlane.limit<<std::setprecision(6)
 			<<" policy=outside-clip-range-is-the-plane\n"<<std::flush;

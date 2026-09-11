@@ -1,5 +1,52 @@
 # Neural rendering evidence log
 
+LOG798 pilot substep C, higher-resolution visual reference (standalone,
+non-performance evidence): resolution benefit demonstrated at a known real
+shading resolution; the AI draft maps are inert at every resolution, so the
+"replacement textures need resolution" hypothesis of LOG794 is withdrawn.
+Route: D-226 gives the helper a diagnostic render size
+(`FLYCAST_REMAKE_HELPER_RENDER_SIZE=WxH`, 4:3, 640 to 2560 wide, refused when
+a live channel is active because return slots are 640x480 by contract; never
+set by the launcher); the window, backbuffer, readback surfaces, returned
+image, BMP and depth output follow it. Renders of the saved source-2601
+packet with the draft mod loaded at 640x480, 960x720, 1280x960 and 1440x1080
+(`pilot-resolution/`, `run.json` per render, exit 0). Real shading
+resolution: the runtime's default profile (graphics preset Auto, upscaler
+DLSS) does not report its internal resolution in the log, so the benefit
+measurements use an explicit profile handed through `DXVK_RTX_CONFIG_FILE`
+(`profiles/native-shading.conf`: `rtx.upscalerType = 0`,
+`rtx.resolutionScale = 1.0`; the log confirms both values), under which the
+internal shading resolution equals the helper backbuffer; a second profile
+(`reference-accumulation.conf`: `rtx.useDenoiserReferenceMode = True`,
+100 accumulated frames on the frozen packet scene) gives the art reference.
+Results at 1280x960: draft mod against no mod (junction hidden) differs by
+398 pixels under the default profile (repeat noise 1188), 1375 under native
+shading and 332 under reference accumulation; the 1280 crops
+(`native1280-nomod-vs-mod-*.png`) are indistinguishable. The draft maps are
+therefore visually inert regardless of resolution, and the earlier reading
+that they "need a higher consumer resolution" is withdrawn. Cause, measured on
+the floor material: the AI diffuse (1024x1024, BC7, 11 mips) is 33.9 dB PSNR
+from a bilinear 4x enlargement of the original 256x256 texture (34.7 dB after
+box-downsampling back to 256), with edge energy 3.45 against 1.6 for the
+bilinear enlargement and 6.45 for the original at its own scale: the upscaler
+adds a little sharpness and no detail, and the draft normal and roughness maps
+were already shown inert (LOG796). Binding, mips and sampling are fine: a
+1024-texel diagnostic checker (8-texel cells) bound to the floor through the
+MCP override renders as a visible fine checker at 640, 1280 and 1440
+(`checker1024-floor-640-1280-1440.png`; aliased at 640, cleanly resolved at
+1280 and 1440), so high-resolution texel detail reaches the screen when a
+map actually carries it. Resolution benefit with the original textures
+(`ladder-kilik-640-960-1280-1440.png`, equal on-screen scale): edges, painted
+costume detail and shading read progressively cleaner from 640 to 960 to
+1280; 1440 adds little over 1280 at this viewing scale. Cost (standalone,
+rough): 120 frames plus readback took about 3.4 s at 640, 3.7 s at 1280 and
+3.9 s at 1440 on this GPU (helper wall time minus the 15 s mod-loading wait
+and 1 s linger), i.e. about 2 to 4 ms per frame more than 640; the live cost
+belongs to substep F. Recommendation for F: 1280x960 as the first live test
+point (960x720 is a clear but smaller gain). Consequence for D: curation
+starts from the original artwork with authored detail, not from the AI 4x
+output. Renders of the welded packet at 640, 1280 and 1440 under native shading (smooth-*-native, crops smooth-kilik-640-vs-1280-vs-1440.png, smooth-taki-640-vs-1280.png, flat-vs-smooth-1280.png) after the user's note that the ladder had been rendered from the flat packet; the user keeps the smooth fix. Builds: four configurations serial, 0 errors (the off build had no work). Selftest 868/0 in automation, baseline and no-ngx; remake-sdk-contract 260/0; python suites pass.
+
 LOG797 pilot substep B: same-source smooth-normal comparison (D-225 weld) and
 the per-material alpha candidate; technical ACCEPTED for both as reversible
 options, look NOT_REVIEWABLE pending the user. (1) Same-source normals: live
