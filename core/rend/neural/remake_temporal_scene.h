@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_live_channel.h"
 #include "remake_cpu_scope.h"
+#include "remake_depth_validation.h"
 #include <memory>
 
 namespace flycast::rend::neural {
@@ -68,13 +69,13 @@ inline bool CompatibleRemakeTemporalReference(const RemakeTemporalScene& previou
 }
 class RemakeTemporalHistory {
  std::shared_ptr<const RemakeTemporalScene> accepted;
- std::vector<float> acceptedDepth;
+ RemakeDepthBuffer acceptedDepth;
  std::vector<unsigned char> acceptedColor;
 public:
  void Reset(){accepted.reset();acceptedDepth.clear();acceptedColor.clear();}
  const RemakeTemporalScene* Last()const{return accepted.get();}
  std::shared_ptr<const RemakeTemporalScene> Shared()const{return accepted;} // Immutable; safe to hand to a worker.
- const std::vector<float>& Depth()const{return acceptedDepth;}
+ const RemakeDepthBuffer& Depth()const{return acceptedDepth;}
  const std::vector<unsigned char>& Color()const{return acceptedColor;}
  bool CanReproject(const RemakeTemporalScene& next)const {
   return accepted&&CompatibleRemakeTemporalReference(*accepted,next);
@@ -84,7 +85,7 @@ public:
   RemakeCpuScope validateTiming("history-validate",image.frame,validateCount);
   if(!evaluated||!scene||!scene->Matches(image)||image.width!=scene->extent.width||image.height!=scene->extent.height
    ||image.projectionDepth.size()!=scene->extent.Pixels())return false;
-  for(float z:image.projectionDepth)if(!std::isfinite(z)||z<0||z>1)return false;
+  if(image.projectionDepth.Validity()!=RemakeDepthValidity::Valid)return false;
   if(accepted&&(scene->producer.epoch!=accepted->producer.epoch||scene->frame<=accepted->frame
    ||scene->producer.ordinal<=accepted->producer.ordinal||scene->producer.cycle<accepted->producer.cycle
    ||scene->receipt.sequence<=accepted->receipt.sequence))return false;

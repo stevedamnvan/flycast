@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_live_channel.h"
 #include "remake_cpu_scope.h"
+#include "remake_depth_validation.h"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -25,7 +26,7 @@ inline bool RemakeReturnedImageWellFormed(const RemakeReturnedImage& image)
  // usable near-plane scene. Do not reject legitimately black opaque images.
  if(std::none_of(image.bgra.begin(),image.bgra.end(),[](unsigned char v){return v!=0;})
   &&std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v==0;}))return false;
- for(float depth:image.projectionDepth)if(!std::isfinite(depth)||depth<0||depth>1)return false;
+ if(image.projectionDepth.Validity()!=RemakeDepthValidity::Valid)return false;
  return true;
 }
 // Diagnostic only: why a returned image is not accepted as neural input.

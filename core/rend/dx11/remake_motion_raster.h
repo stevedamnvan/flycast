@@ -9,6 +9,7 @@
 #include "rend/neural/remake_motion_stream.h"
 #include "rend/neural/remake_extent.h"
 #include "rend/neural/remake_cpu_scope.h"
+#include "rend/neural/remake_depth_validation.h"
 
 namespace flycast::rend::neural {
 // Isolated deferred-context work preserves the caller's graphics state. Output
@@ -109,7 +110,7 @@ public:
   device=incoming;error.clear();return true;
  }
  bool Render(ID3D11DeviceContext* immediate,const RemakeMotionStream& stream,
-  const std::vector<float>& currentDepth,const std::vector<float>& previousDepth,
+  const RemakeDepthBuffer& currentDepth,const RemakeDepthBuffer& previousDepth,
   ID3D11ShaderResourceView* previousDrawIds,float nearPlane,float farPlane,
   float absoluteTolerance,float relativeTolerance,RemakeRasterOutput& output,std::string& error,
   const std::vector<unsigned char>* currentColor=nullptr,const std::vector<unsigned char>* previousColor=nullptr) {
@@ -133,9 +134,8 @@ public:
     ||!std::isfinite(v.previousScreen.x)||!std::isfinite(v.previousScreen.y)||!std::isfinite(v.previousScreen.z)
     ||v.currentScreen.z<=0||v.previousScreen.z<=0||!std::isfinite(v.confidence)
     ||v.currentDraw>128||v.previousDraw>128)return fail("remake-raster-vertex");
-  for(std::size_t i=0;i<currentDepth.size();++i)
-   if(!std::isfinite(currentDepth[i])||currentDepth[i]<0||currentDepth[i]>1
-    ||!std::isfinite(previousDepth[i])||previousDepth[i]<0||previousDepth[i]>1)return fail("remake-raster-depth");
+  if(currentDepth.Validity()!=RemakeDepthValidity::Valid
+   ||previousDepth.Validity()!=RemakeDepthValidity::Valid)return fail("remake-raster-depth");
   validateTiming.End();
   RemakeCpuScope uploadTiming("raster-upload",0,uploadCount);
   if(!ensureResources(error))return false;

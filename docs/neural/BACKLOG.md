@@ -82,9 +82,10 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 
 ### Pilot substeps (D-224): Soulcalibur Faithful RTX
 
-H item1 complete (LOG807): finer scopes measured in
-pilot-extent1280-h1-scopes after all required builds/tests. Continue item2
-depth validation, then the remaining CODEX-GOAL order. User reports the
+H items1/2 complete (LOG807/808): scopes and owned-depth validation reuse
+measured in pilot-extent1280-h1-scopes / h2-depth after required builds/tests.
+Returned evaluation median10.82 to7.33ms is diagnostic, not a60fps claim.
+Continue item3 depth-texture ping-pong, then the remaining order. User reports the
 composite is overexposed; D/E now needs a same-source composite exposure
 comparison before look approval. Native HUD/effects stay protected.
 

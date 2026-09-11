@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_live_channel.h"
 #include "remake_cpu_scope.h"
+#include "remake_depth_validation.h"
 #include "remake_view_transport.h"
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -290,8 +291,11 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
 	if(hasDepth) {
 		if(image.projectionDepth.size()!=RemakePixels())depthError="return-depth-extent";
 		else if(image.nearPlane!=source.nearPlane||image.farPlane!=source.farPlane)depthError="return-depth-projection";
-		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return std::isfinite(v);}))depthError="return-depth-nonfinite";
-		else if(!std::all_of(image.projectionDepth.begin(),image.projectionDepth.end(),[](float v){return v>=0&&v<=1;}))depthError="return-depth-range";
+		else {
+			const auto validity=image.projectionDepth.Validity();
+			if(validity==RemakeDepthValidity::Nonfinite)depthError="return-depth-nonfinite";
+			else if(validity==RemakeDepthValidity::OutOfRange)depthError="return-depth-range";
+		}
 	} else if(image.nearPlane!=0||image.farPlane!=0)depthError="return-depth-missing";
 	if(depthError){error=depthError;return RemakeChannelResult::Invalid;}
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
@@ -339,13 +343,16 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
 	if(s.depthCount) {
 		RemakeCpuScope depthValidateTiming("return-channel-depth-validate",s.imageFrame,depthValidateCount);
 		if(s.depthCount!=RemakePixels()||s.nearPlane!=source.nearPlane||s.farPlane!=source.farPlane
-			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float))
-			||!std::all_of(s.depthPixels,s.depthPixels+RemakePixels(),[](float v){return std::isfinite(v)&&v>=0&&v<=1;})) {
+			||s.depthDigest!=imageDigest64(reinterpret_cast<const char*>(s.depthPixels),RemakePixels()*sizeof(float))) {
 			error="return-depth-integrity";return RemakeChannelResult::Invalid;
 		}
 		depthValidateTiming.End();
 		RemakeCpuScope depthCopyTiming("return-channel-depth-copy",s.imageFrame,depthCopyCount);
 		image.projectionDepth.assign(s.depthPixels,s.depthPixels+RemakePixels());image.nearPlane=s.nearPlane;image.farPlane=s.farPlane;
+		depthCopyTiming.End();
+		static thread_local unsigned depthRangeCount=0;
+		RemakeCpuScope depthRangeTiming("return-channel-depth-range",s.imageFrame,depthRangeCount);
+		if(image.projectionDepth.Validity()!=RemakeDepthValidity::Valid){error="return-depth-integrity";return RemakeChannelResult::Invalid;}
 	}else if(s.nearPlane!=0||s.farPlane!=0||s.depthDigest!=0){error="return-depth-empty-header";return RemakeChannelResult::Invalid;}
   output=std::move(image);p.returnedSequence=s.imageSource.sequence;error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}

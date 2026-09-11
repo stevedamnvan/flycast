@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG808 CODEX-GOAL item2: owned depth range validation reuse. Binary32 integer
+reduction preserves signed zeros, finite range and all NaN/infinity classes;
+nonfinite errors retain priority. RemakeDepthBuffer caches only while no
+writable alias exists; escaped pointers/references/iterators force rescans,
+copies own their bytes, moves preserve alias state. Fresh assignment owns
+new storage. Same-size resize retains storage and avoids an accidental copy
+found during audit. Channel validates its owned depth once; input/history/
+raster reuse that result. Raw/mutable inputs still validate. No identity,
+extent, depth-digest, projection, missing-output or history gate is removed.
+Final four serial builds successful; selftests893/0 each, SDK272/0,
+Python23. Ten added checks cover IEEE classes, raw-bit corpus, NaN lanes/
+tails, error priority, copied/moved ownership and post-check mutations.
+pilot-extent1280-h2-depth matches h1-scopes flags/profile, host0/helper11,
+orderly shutdown, no forced children;600 samples per stage. Median ms,
+h1 then h2: raster validation3.080/0.256, history validation1.417/0.0002,
+input validation1.388/0.0003, return well-formed1.354/0.0003, worker8.171/
+5.950, returned evaluation10.818/7.325. Raster upload1.010/1.009 unchanged;
+history copy0.620/0.752 remains. New owned-depth range pass0.291 ms.
+Diagnostic ACCEPTED, performance_eligible=false; no60fps claim. Full
+logs and scope-summary.json retained under the named evidence directory.
+Next item3 depth-texture ping-pong, then copies/helper and performance runs.
+Separate exposure comparison current/low is next for the user's visual issue.
+
 LOG807 CODEX-GOAL item1: finer CPU scopes implemented, acceptance unchanged.
 pilot-extent1280-h1-scopes uses the LOG8061280 launch and exposure A,
 native alpha, welded normals and temple rig. Host0/helper11, orderly

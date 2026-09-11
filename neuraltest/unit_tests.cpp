@@ -115,6 +115,52 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		bool equivalent=true;
+		auto check=[&](std::uint32_t bits) {
+			float value;std::memcpy(&value,&bits,sizeof(value));
+			const auto expected=!std::isfinite(value)?RemakeDepthValidity::Nonfinite:
+				(value<0||value>1)?RemakeDepthValidity::OutOfRange:RemakeDepthValidity::Valid;
+			equivalent&=ValidateRemakeDepth(&value,1)==expected;
+		};
+		// Every exponent/sign class, mantissa boundaries and deterministic raw bits.
+		for(std::uint32_t sign:{0u,0x80000000u})for(std::uint32_t exponent=0;exponent<256;++exponent)
+			for(std::uint32_t mantissa:{0u,1u,0x3fffffu,0x400000u,0x7ffffeu,0x7fffffu})
+				check(sign|(exponent<<23)|mantissa);
+		std::uint32_t bits=17;
+		for(unsigned i=0;i<65536;++i){bits=bits*1664525u+1013904223u;check(bits);}
+		suite.Expect(equivalent,"depth range reduction matches scalar IEEE classes and raw-bit corpus");
+		std::vector<float> values(37,.5f);bool positions=true;
+		for(unsigned i=0;i<values.size();++i){values[i]=std::numeric_limits<float>::quiet_NaN();
+			positions&=ValidateRemakeDepth(values.data(),values.size())==RemakeDepthValidity::Nonfinite;values[i]=.5f;}
+		suite.Expect(positions,"depth range reduction rejects NaN in every vector lane and tail");
+		values[0]=-1;values.back()=std::numeric_limits<float>::infinity();
+		suite.Expect(ValidateRemakeDepth(values.data(),values.size())==RemakeDepthValidity::Nonfinite,
+			"depth range reduction preserves nonfinite error priority over range errors");
+		RemakeDepthBuffer owned;owned.assign(37,.5f);
+		suite.Expect(!owned.HasReusableValidation()&&owned.Validity()==RemakeDepthValidity::Valid
+			&&owned.HasReusableValidation(),"owned depth obtains reusable range validation");
+		auto copy=owned;
+		float* escaped=owned.data();
+		suite.Expect(owned.Validity()==RemakeDepthValidity::Valid&&!owned.HasReusableValidation(),
+			"writable depth alias permanently disables result reuse for its allocation");
+		escaped[5]=std::numeric_limits<float>::infinity();
+		suite.Expect(owned.Validity()==RemakeDepthValidity::Nonfinite&&copy.Validity()==RemakeDepthValidity::Valid
+			&&copy.HasReusableValidation(),"mutation through escaped alias rejects without changing owned copy");
+		owned.assign(37,.25f);
+		suite.Expect(owned.Validity()==RemakeDepthValidity::Valid&&owned.HasReusableValidation(),
+			"fresh depth allocation can obtain fresh validation after replacement");
+		auto moved=std::move(owned);
+		suite.Expect(moved.HasReusableValidation()&&moved.Validity()==RemakeDepthValidity::Valid
+			&&owned.Validity()==RemakeDepthValidity::Valid,"depth move retains certificate and resets moved-from validation");
+		float* movedAlias=moved.data();moved.resize(moved.size());
+		movedAlias[0]=-1;
+		suite.Expect(moved.Validity()==RemakeDepthValidity::OutOfRange&&!moved.HasReusableValidation(),
+			"same-size resize preserves escaped-alias rejection without copying");
+		auto aliasOwner=std::move(moved);movedAlias[0]=std::numeric_limits<float>::quiet_NaN();
+		suite.Expect(aliasOwner.Validity()==RemakeDepthValidity::Nonfinite&&!aliasOwner.HasReusableValidation(),
+			"depth move preserves escaped-alias invalidation at the new owner");
+	}
 	for (unsigned flags=0;flags<8;++flags) {
 		const bool report=(flags&1)!=0, checks=(flags&2)!=0, forced=(flags&4)!=0;
 		suite.Expect(PerformanceExitCode(report,checks,forced)==(flags==3?0:1),

@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_scene.h"
 #include "remake_extent.h"
+#include "remake_depth_validation.h"
 #include <memory>
 #include <mutex>
 namespace flycast::rend::neural {
@@ -13,7 +14,7 @@ struct RemakeReturnedImage {
  RemakeChannelReceipt source;std::uint64_t frame=0;ProducerIdentity producer;
  std::uint32_t width=0,height=0;std::vector<unsigned char> bgra;
 	// Optional same-frame public depth; projection interpretation still experimental.
-	std::vector<float> projectionDepth;float nearPlane=0,farPlane=0;
+	RemakeDepthBuffer projectionDepth;float nearPlane=0,farPlane=0;
 };
 // Windows, one producer/consumer, two bounded slots. No waits or file transport
 // on Publish; busy means skip/native fallback. Not a neural acceptance history.

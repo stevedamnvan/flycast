@@ -2,6 +2,18 @@
 
 ## Current state (2026-09-10, D-224)
 
+H item2 verified (LOG808): four builds,893/0 x3, SDK272/0, Python23.
+Matched diagnostic pilot-extent1280-h2-depth: returned-evaluate median
+10.82 to7.33ms; raster validation3.08 to0.26ms and cached history/input
+checks near zero. No identity/acceptance checks removed. No60fps claim.
+Next CODEX-GOAL item3: ping-pong depth textures with previous-source identity.
+Before further source work, finish the user's exposure comparison: current
+profile capture pilot-h2-exposure-current is running (session68044),12
+frames from2560,1280x960, native alpha and temple rig. Archive its flycast.log
+before next launch. Then same run with exposure-probe-h2-low.conf (0.30
+instead of0.45) and a new evidence directory; review delivered composites
+and native HUD/effects. No builds while game/helper runs.
+
 CODEX-GOAL item1 verified (LOG807): finer diagnostic scopes and matched
 pilot-extent1280-h1-scopes run complete; four builds,883/0 x3, SDK272/0,
 Python23 and backlog6 pass. Validation dominates raster/history CPU time.

@@ -20,7 +20,8 @@ namespace neuraltest::remake {
 // semantic made explicit (D-209), not a relaxed acceptance. The report carries
 // the measured extremes so the actual excess stays visible in the helper log.
 struct RemakeFarPlaneReport { std::size_t beyondFar=0,beforeNear=0,aboveLimit=0; float maxDepth=0,minDepth=0,limit=0; };
-inline RemakeFarPlaneReport RemakeClampBeyondFarPlane(std::vector<float>& depth,float nearPlane,float farPlane) noexcept {
+template<class DepthBuffer>
+inline RemakeFarPlaneReport RemakeClampBeyondFarPlane(DepthBuffer& depth,float nearPlane,float farPlane) noexcept {
  RemakeFarPlaneReport r{};
  if(!(nearPlane>0)||!(farPlane>nearPlane)||!std::isfinite(farPlane))return r;
  r.limit=farPlane/(farPlane-nearPlane);
