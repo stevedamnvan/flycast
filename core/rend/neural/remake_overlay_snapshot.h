@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_live_channel.h"
 #include "remake_oit_effects.h"
+#include "remake_native_effects.h"
 #include "remake_temporal_scene.h"
 #include "windows/comptr.h"
 #include <d3d11.h>
@@ -30,7 +31,26 @@ struct RemakeOverlaySnapshot {
  std::shared_ptr<const RemakeTemporalScene> temporalScene;
  std::uint64_t replayOriginalFrame=0;
  std::shared_ptr<const RemakeOitEffects> effects;
+ std::shared_ptr<const class NativeEffectSnapshot> normalEffects;
  std::vector<AlphaEffectSelection> alphaEffectSelections;
+ bool EffectsMatch(const ProducerIdentity& source)const noexcept {
+  if(bool(effects)==bool(normalEffects))return false;
+  return effects?effects->Matches(source):normalEffects->Matches(source);
+ }
+ bool ComposeEffects(ID3D11Device* device,ID3D11DeviceContext* context,
+  const ProducerIdentity& source,ID3D11Texture2D* input,
+  ComPtr<ID3D11Texture2D>& output,ComPtr<ID3D11ShaderResourceView>& view)const {
+  if(!EffectsMatch(source)||!device||!context)return false;
+  if(effects)return effects->Compose(device,context,source,input,output,view,alphaEffectSelections);
+  auto composed=normalEffects->Compose(context,source,input,alphaEffectSelections);
+  if(!composed)return false;
+  ComPtr<ID3D11Device> owner;composed->GetDevice(&owner.get());
+  if(owner.get()!=device)return false;
+  ComPtr<ID3D11ShaderResourceView> resultView;
+  if(FAILED(device->CreateShaderResourceView(composed,nullptr,&resultView.get())))return false;
+  output=std::move(composed);view=std::move(resultView);return true;
+ }
+
  ComPtr<ID3D11Texture2D> color,mask;
  ComPtr<ID3D11ShaderResourceView> colorView,maskView;
 };

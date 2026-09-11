@@ -650,6 +650,8 @@ bool DX11Renderer::Render()
 	{
 		std::optional<RemakeCpuScope> timing;
 		if(frameTimed)timing.emplace("frame-pvr-draw",0,remakeFrameScopeCounts[2]);
+		struct NativeCapturePassScope {bool& active;~NativeCapturePassScope(){active=false;}} captureScope{nativeEffectCapturePass};
+		nativeEffectCapturePass=true;
 		drawStrips();
 	}
 #else
@@ -2418,6 +2420,17 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 		remakeAsyncOverlaySources[2].effects.get(),remakeAsyncOverlaySources[3].effects.get(),
 		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
 	count+=effects.objects;
+	const std::array<const flycast::rend::neural::NativeEffectSnapshot*,9> normalOwners{
+		remakeCurrentNormalEffects.get(),
+		nativeEffectProof.get(),remakeAsyncOverlaySources[0].normalEffects.get(),remakeAsyncOverlaySources[1].normalEffects.get(),
+		remakeAsyncOverlaySources[2].normalEffects.get(),remakeAsyncOverlaySources[3].normalEffects.get(),
+		remakeAsyncAcceptedOverlay.normalEffects.get(),remakeEvaluatedOverlay.normalEffects.get(),remakeWarmupNative.normalEffects.get()};
+	for(std::size_t i=0;i<normalOwners.size();++i){
+		if(!normalOwners[i])continue;
+		bool duplicate=false;for(std::size_t j=0;j<i;++j)duplicate|=normalOwners[j]==normalOwners[i];
+		if(!duplicate)count+=normalOwners[i]->OwnedObjects();
+	}
+
 	count+=remakeDisplayContext?1u:0u;
 	if(remakeDisplayQuad)count+=remakeDisplayQuad->ownedResourceObjects();
 	count+=remakeMotionRaster.OwnedObjects();
@@ -3058,7 +3071,8 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	if(currentNeuralSourceFrameId!=metadata.frameId||currentNeuralGuidanceFrameId!=metadata.frameId){skip("guidance","frame-mismatch");return;}
 	RemakeOverlaySnapshot overlay;
 	if(RemakeNativeEffectsRequested()) {
-		if(!remakeCurrentEffects||!remakeCurrentEffects->Matches(producer)) {
+		if((!remakeCurrentEffects||!remakeCurrentEffects->Matches(producer))
+			&&(!remakeCurrentNormalEffects||!remakeCurrentNormalEffects->Matches(producer))) {
 			skip("native-effects",remakeCurrentEffectsReason);return;
 		}
 	}
@@ -3071,7 +3085,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		releaseNeuralInputs();
 	}
 	if(!copied){skip("overlay","copy-failed");return;}
-	if(RemakeNativeEffectsRequested())overlay.effects=remakeCurrentEffects;
+	if(RemakeNativeEffectsRequested()){overlay.effects=remakeCurrentEffects;overlay.normalEffects=remakeCurrentNormalEffects;}
 	std::map<std::uint32_t,EffectIdentityPoly> alphaParams;
 	if(alphaCombined) {
 		// Bindings and list ranges are verified here against the live source;
@@ -3168,8 +3182,8 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 	if(!RemakeComparisonBeforeEnd(std::getenv("FLYCAST_REMAKE_COMPARE_END_FRAME"),returned.frame,boundedComparison))return;
 	if(RemakeNativeEffectsRequested()) {
 		const auto* lockedRoot=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
-		const char* rejected=!remakeAsyncAcceptedOverlay.effects?"missing-effects"
-			:!remakeAsyncAcceptedOverlay.effects->Matches(returned.producer)?"effect-source-mismatch"
+		const char* rejected=(!remakeAsyncAcceptedOverlay.effects&&!remakeAsyncAcceptedOverlay.normalEffects)?"missing-effects"
+			:!remakeAsyncAcceptedOverlay.EffectsMatch(returned.producer)?"effect-source-mismatch"
 			:lockedRoot&&*lockedRoot&&!RemakeEffectEvidenceRequested()?"locked-effects-replay-requires-identity":nullptr;
 		if(rejected) {
 			NOTICE_LOG(RENDERER,"Remake effects evaluation rejected: source=%llu reason=%s",(unsigned long long)returned.frame,rejected);
@@ -3192,7 +3206,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				++remakeEffectReplayAttempts;
 				std::vector<std::uint32_t> identity;
 				std::ifstream evidence(matchedDirectory/"native-effect-identity.bin",std::ios::binary);
-				if(!remakeAsyncAcceptedOverlay.effects->ReadIdentityForEvidence(device,deviceContext,returned.producer,identity,error)
+				if(!remakeAsyncAcceptedOverlay.effects||!remakeAsyncAcceptedOverlay.effects->ReadIdentityForEvidence(device,deviceContext,returned.producer,identity,error)
 					||!MatchEffectIdentity(evidence,identity,error)) {
 					NOTICE_LOG(RENDERER,"Remake effect replay rejected: source=%llu reason=%s",(unsigned long long)returned.frame,error.c_str());return;
 				}
@@ -3239,8 +3253,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			D3D11_SUBRESOURCE_DATA data{source.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0};
 			ComPtr<ID3D11Texture2D> raw,composed;ComPtr<ID3D11ShaderResourceView> composedView;
 			if(FAILED(device->CreateTexture2D(&desc,&data,&raw.get()))
-				||!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,raw,composed,composedView,
-					remakeAsyncAcceptedOverlay.alphaEffectSelections))return;
+				||!remakeAsyncAcceptedOverlay.ComposeEffects(device,deviceContext,source.producer,raw,composed,composedView))return;
 			remakeEvaluatedSource=source;remakeEvaluatedOverlay=remakeAsyncAcceptedOverlay;
 			remakeEvaluatedOverlay.replayOriginalFrame=replayOriginalFrame;
 			remakeEvaluatedTexture=std::move(composed);remakeEvaluatedView=std::move(composedView);
@@ -3408,11 +3421,24 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		if(RemakeNativeEffectsRequested()) {
 			if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)preEffects=owned;
 			ComPtr<ID3D11Texture2D> composed;ComPtr<ID3D11ShaderResourceView> composedView;
-			if(!remakeAsyncAcceptedOverlay.effects->Compose(device,deviceContext,source.producer,owned,composed,composedView,
-				remakeAsyncAcceptedOverlay.alphaEffectSelections))return;
+			if(!remakeAsyncAcceptedOverlay.ComposeEffects(device,deviceContext,source.producer,owned,composed,composedView)){
+				if(remakeAsyncAcceptedOverlay.normalEffects){
+					static unsigned normalComposeFailures=0;
+					if(normalComposeFailures++<3){
+						D3D11_TEXTURE2D_DESC inputDesc{};owned->GetDesc(&inputDesc);
+						const auto nativeDesc=remakeAsyncAcceptedOverlay.normalEffects->RasterDescription();
+						NOTICE_LOG(RENDERER,"Normal effects composition rejected: source=%llu identity=%d input=%ux%u/%u native=%ux%u/%u input_samples=%u native_samples=%u diagnostic-only=true",
+							(unsigned long long)source.frame,remakeAsyncAcceptedOverlay.EffectsMatch(source.producer),
+							inputDesc.Width,inputDesc.Height,(unsigned)inputDesc.Format,nativeDesc.Width,nativeDesc.Height,(unsigned)nativeDesc.Format,
+							inputDesc.SampleDesc.Count,nativeDesc.SampleDesc.Count);
+					}
+				}
+				return;
+			}
 			owned=std::move(composed);view=std::move(composedView);
-			NOTICE_LOG(RENDERER,"Remake source effects composited: source=%llu sequence=%llu scope=native-oit-single-pass-copy-experiment provenance=pending",
-				(unsigned long long)source.frame,(unsigned long long)source.source.sequence);
+			NOTICE_LOG(RENDERER,"Remake source effects composited: source=%llu sequence=%llu scope=%s provenance=pending",
+				(unsigned long long)source.frame,(unsigned long long)source.source.sequence,
+				remakeAsyncAcceptedOverlay.normalEffects?"native-normal-single-pass-copy-experiment":"native-oit-single-pass-copy-experiment");
 		}
 		remakeEvaluatedSource=source;remakeEvaluatedOverlay=remakeAsyncAcceptedOverlay;
 		remakeEvaluatedOverlay.replayOriginalFrame=replayOriginalFrame;
@@ -4003,7 +4029,8 @@ void DX11Renderer::drawList(const std::vector<PolyParam>& gply, int first, int c
 			setRenderState<Type, SortingEnabled>(params);
 #ifdef FLYCAST_ENABLE_NEURAL
 			if constexpr(Type == ListType_Translucent)if(nativeEffectProof){
-				++nativeEffectProofDraws;nativeEffectProof->Append(deviceContext,params->count,params->first,0);
+				++nativeEffectProofDraws;nativeEffectProof->Append(deviceContext,params->count,params->first,0,
+					static_cast<std::uint32_t>(params-rendContext->global_param_tr.data()));
 			}
 #endif
 			deviceContext->DrawIndexed(params->count, params->first, 0);
@@ -4029,7 +4056,8 @@ void DX11Renderer::drawSorted(int first, int count, bool multipass)
 		setRenderState<ListType_Translucent, true>(params, ordinal);
 #ifdef FLYCAST_ENABLE_NEURAL
 		if(nativeEffectProof){++nativeEffectProofDraws;nativeEffectProof->Append(deviceContext,
-			rendContext->sortedTriangles[p].count,rendContext->sortedTriangles[p].first,0);}
+			rendContext->sortedTriangles[p].count,rendContext->sortedTriangles[p].first,0,
+			rendContext->sortedTriangles[p].polyIndex);}
 #endif
 		deviceContext->DrawIndexed(rendContext->sortedTriangles[p].count, rendContext->sortedTriangles[p].first, 0);
 	}
@@ -4201,6 +4229,11 @@ void DX11Renderer::finishNativeEffectProof()
 
 void DX11Renderer::drawStrips()
 {
+#ifdef FLYCAST_ENABLE_NEURAL
+	const auto* normalOption=std::getenv("FLYCAST_REMAKE_NORMAL_EFFECTS");
+	const bool normalLive=nativeEffectCapturePass&&normalOption&&std::strcmp(normalOption,"1")==0&&!IsOitRenderer()&&!neuralExportActive;
+	if(nativeEffectCapturePass&&!IsOitRenderer()&&!neuralExportActive)remakeCurrentNormalEffects.reset();
+#endif
 	RenderPass previous_pass {};
     for (int render_pass = 0; render_pass < (int)rendContext->render_passes.size(); render_pass++)
     {
@@ -4219,15 +4252,18 @@ void DX11Renderer::drawStrips()
 		drawModVols(previous_pass.mvo_count, mvo_count);
 #ifdef FLYCAST_ENABLE_NEURAL
 		const char* nativeProof=std::getenv("FLYCAST_REMAKE_NORMAL_EFFECT_PROOF");
-		if(nativeProof&&std::strcmp(nativeProof,"1")==0&&!IsOitRenderer()
+		if(nativeEffectCapturePass&&(normalLive||(nativeProof&&std::strcmp(nativeProof,"1")==0))&&!IsOitRenderer()
 			&&!neuralExportActive&&!rendContext->isRTT&&!config::EmulateFramebuffer
-			&&rendContext->render_passes.size()==1&&rendContext->captureProducer.ordinal>=2560
-			&&nativeEffectProofAttempts<3&&tr_count){
+			&&rendContext->render_passes.size()==1
+			&&(normalLive||(rendContext->captureProducer.ordinal>=2560&&nativeEffectProofAttempts<3))&&tr_count){
 			++nativeEffectProofAttempts;nativeEffectProofDraws=0;
 			ComPtr<ID3D11RenderTargetView> target;ComPtr<ID3D11DepthStencilView> depthTarget;
 			deviceContext->OMGetRenderTargets(1,&target.get(),&depthTarget.get());
+			std::vector<flycast::rend::neural::EffectIdentityPoly> nativeParameters;
+			for(const auto& pp:rendContext->global_param_tr)
+				nativeParameters.push_back({(pp.tsp.full&0xffff00c0)|((pp.isp.full>>16)&0xe400)|((pp.pcw.full>>7)&1),pp.tsp1.full});
 			nativeEffectProof=flycast::rend::neural::NativeEffectSnapshot::Begin(device,deviceContext,
-				rendContext->captureProducer,target,depthTarget);
+				rendContext->captureProducer,target,depthTarget,nativeParameters,true,true);
 			if(!nativeEffectProof)NOTICE_LOG(RENDERER,"Normal effects proof: capture-begin-failed source=%llu",
 				(unsigned long long)rendContext->captureProducer.ordinal);
 		}
@@ -4246,7 +4282,18 @@ void DX11Renderer::drawStrips()
 			drawList<ListType_Translucent, false>(rendContext->global_param_tr, previous_pass.tr_count, tr_count);
 		}
 #ifdef FLYCAST_ENABLE_NEURAL
-		if(nativeEffectProof)finishNativeEffectProof();
+		if(nativeEffectProof){
+			if(normalLive){
+				if(nativeEffectProof->Seal(nativeEffectProofDraws)){
+					if(nativeEffectProofAttempts<=3||nativeEffectProofAttempts%120==0)
+						NOTICE_LOG(RENDERER,"Normal effects capture cost: source=%llu draws=%u objects=%u capture_ms=%.3f diagnostic-only=true",
+							(unsigned long long)rendContext->captureProducer.ordinal,nativeEffectProofDraws,
+							nativeEffectProof->OwnedObjects(),nativeEffectProof->CaptureMilliseconds());
+					remakeCurrentNormalEffects=std::move(nativeEffectProof);
+				}
+				nativeEffectProof.reset();
+			}else finishNativeEffectProof();
+		}
 #endif
 		previous_pass = current_pass;
     }

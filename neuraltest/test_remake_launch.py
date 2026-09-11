@@ -31,6 +31,18 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertEqual(env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF'], '1')
         self.assertEqual(Path(env['FLYCAST_REMAKE_NORMAL_EFFECT_PROOF_ROOT']), self.args.out/'normal-effects')
 
+    def test_normal_effects_cannot_enter_performance_route_implicitly(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_NORMAL_EFFECTS': '1'}):
+            self.assertNotIn('FLYCAST_REMAKE_NORMAL_EFFECTS', prepare(self.args)[2])
+        self.args.normal_effects = True
+        with self.assertRaisesRegex(ValueError, 'requires dx11'):
+            prepare(self.args)
+        self.args.renderer = 'dx11'
+        with self.assertRaisesRegex(ValueError, 'diagnostic CPU timing'):
+            prepare(self.args)
+        self.args.cpu_timing = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_NORMAL_EFFECTS'], '1')
+
     def test_no_writes_and_explicit_opt_in(self):
         _, out, _, host, helper = prepare(self.args)
         self.assertFalse(out.exists())

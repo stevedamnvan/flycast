@@ -25,14 +25,26 @@ struct NativeEffectDraw {
  UINT viewportCount=16,scissorCount=16,stencilRef=0,sampleMask=0;
  FLOAT blendFactor[4]{};
  UINT count=0,start=0;INT base=0;
+ bool sharedGeometry=false,sharedViews=false;
  std::array<ComPtr<ID3D11Buffer>,14> vsConstants;
  std::array<ComPtr<ID3D11ShaderResourceView>,128> vsViews;
  std::array<ComPtr<ID3D11SamplerState>,16> vsSamplers;
  std::array<ComPtr<ID3D11Buffer>,14> psConstants;
  std::array<ComPtr<ID3D11ShaderResourceView>,128> psViews;
  std::array<ComPtr<ID3D11SamplerState>,16> psSamplers;
+ // Newly allocated snapshot resources only. Shared shader/state/sampler
+ // references are owned by the renderer and must not be counted twice.
+ std::uint32_t OwnedObjects()const noexcept {
+  std::uint32_t count=0;
+  if(!sharedGeometry){count=indices?1u:0u;for(const auto& item:vertices)count+=item?1u:0u;}
+  for(const auto& item:vsConstants)count+=item?1u:0u;
+  for(const auto& item:psConstants)count+=item?1u:0u;
+  if(!sharedViews)for(const auto& item:vsViews)count+=item?2u:0u; // copied texture + new view
+  if(!sharedViews)for(const auto& item:psViews)count+=item?2u:0u;
+  return count;
+ }
  static std::unique_ptr<NativeEffectDraw> Capture(ID3D11Device* device,
-  ID3D11DeviceContext* context,UINT count,UINT start,INT base) {
+  ID3D11DeviceContext* context,UINT count,UINT start,INT base,NativeGeometryCopies* geometry=nullptr,NativeViewCopies* views=nullptr) {
   if(!device||!context||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return {};
   ComPtr<ID3D11Device> contextOwner;context->GetDevice(&contextOwner.get());
   if(contextOwner.get()!=device)return {};
@@ -56,7 +68,7 @@ struct NativeEffectDraw {
   ComPtr<ID3D11DeviceContext1> context1;
   context->QueryInterface(__uuidof(ID3D11DeviceContext1),reinterpret_cast<void**>(&context1.get()));
   auto result=std::make_unique<NativeEffectDraw>();auto& r=*result;
-  r.owner=contextOwner;r.count=count;r.start=start;r.base=base;
+  r.sharedGeometry=geometry!=nullptr;r.sharedViews=views!=nullptr;r.owner=contextOwner;r.count=count;r.start=start;r.base=base;
   UINT vsInstances=0,psInstances=0;
   context->VSGetShader(&r.vs.get(),nullptr,&vsInstances);
   context->PSGetShader(&r.ps.get(),nullptr,&psInstances);
@@ -65,11 +77,11 @@ struct NativeEffectDraw {
   context->IAGetPrimitiveTopology(&r.topology);
   ComPtr<ID3D11Buffer> index;
   context->IAGetIndexBuffer(&index.get(),&r.indexFormat,&r.indexOffset);
-  r.indices=CopyNativeEffectBuffer(device,context,index);if(!r.indices)return {};
+  r.indices=geometry?geometry->Get(device,context,index):CopyNativeEffectBuffer(device,context,index);if(!r.indices)return {};
   for(UINT i=0;i<32;++i){
    ComPtr<ID3D11Buffer> source;
    context->IAGetVertexBuffers(i,1,&source.get(),&r.strides[i],&r.offsets[i]);
-   if(source){r.vertices[i]=CopyNativeEffectBuffer(device,context,source);if(!r.vertices[i])return {};}
+   if(source){r.vertices[i]=geometry?geometry->Get(device,context,source):CopyNativeEffectBuffer(device,context,source);if(!r.vertices[i])return {};}
   }
   for(UINT i=0;i<14;++i){
    ComPtr<ID3D11Buffer> source;context->VSGetConstantBuffers(i,1,&source.get());
@@ -85,7 +97,7 @@ struct NativeEffectDraw {
   }
   for(UINT i=0;i<128;++i){
    ComPtr<ID3D11ShaderResourceView> source;context->VSGetShaderResources(i,1,&source.get());
-   if(source){r.vsViews[i]=CopyNativeEffectView(device,context,source);if(!r.vsViews[i])return {};}
+   if(source){r.vsViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.vsViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->VSGetSamplers(i,1,&r.vsSamplers[i].get());
   for(UINT i=0;i<14;++i){
@@ -102,7 +114,7 @@ struct NativeEffectDraw {
   }
   for(UINT i=0;i<128;++i){
    ComPtr<ID3D11ShaderResourceView> source;context->PSGetShaderResources(i,1,&source.get());
-   if(source){r.psViews[i]=CopyNativeEffectView(device,context,source);if(!r.psViews[i])return {};}
+   if(source){r.psViews[i]=views?views->Get(device,context,source):CopyNativeEffectView(device,context,source);if(!r.psViews[i])return {};}
   }
   for(UINT i=0;i<16;++i)context->PSGetSamplers(i,1,&r.psSamplers[i].get());
   context->OMGetBlendState(&r.blend.get(),r.blendFactor,&r.sampleMask);
@@ -113,7 +125,7 @@ struct NativeEffectDraw {
   return result;
  }
  // Output/depth binding and restoration are required at the snapshot owner.
- bool Replay(ID3D11DeviceContext* context)const {
+ bool Replay(ID3D11DeviceContext* context,bool suppressColor=false)const {
   if(!context||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return false;
   ComPtr<ID3D11Device> device;context->GetDevice(&device.get());
   if(static_cast<ID3D11Device*>(device)!=static_cast<ID3D11Device*>(owner))return false;
@@ -130,7 +142,20 @@ struct NativeEffectDraw {
   for(UINT i=0;i<14;++i){ID3D11Buffer* value=psConstants[i];context->PSSetConstantBuffers(i,1,&value);}
   for(UINT i=0;i<128;++i){ID3D11ShaderResourceView* value=psViews[i];context->PSSetShaderResources(i,1,&value);}
   for(UINT i=0;i<16;++i){ID3D11SamplerState* value=psSamplers[i];context->PSSetSamplers(i,1,&value);}
-  context->OMSetBlendState(blend,blendFactor,sampleMask);
+  ComPtr<ID3D11BlendState> excludedBlend;
+  if(suppressColor){
+   D3D11_BLEND_DESC desc{};
+   if(blend)blend->GetDesc(&desc);
+   else for(auto& target:desc.RenderTarget){
+    target.SrcBlend=target.SrcBlendAlpha=D3D11_BLEND_ONE;
+    target.DestBlend=target.DestBlendAlpha=D3D11_BLEND_ZERO;
+    target.BlendOp=target.BlendOpAlpha=D3D11_BLEND_OP_ADD;
+   }
+   // Preserve depth/stencil and draw execution while excluding color ownership.
+   for(auto& target:desc.RenderTarget)target.RenderTargetWriteMask=0;
+   if(FAILED(device->CreateBlendState(&desc,&excludedBlend.get())))return false;
+  }
+  context->OMSetBlendState(suppressColor?static_cast<ID3D11BlendState*>(excludedBlend):static_cast<ID3D11BlendState*>(blend),blendFactor,sampleMask);
   context->OMSetDepthStencilState(depth,stencilRef);context->RSSetState(raster);
   context->RSSetViewports(viewportCount,viewports.data());context->RSSetScissorRects(scissorCount,scissors.data());
   context->DrawIndexed(count,start,base);return true;

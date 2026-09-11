@@ -154,8 +154,14 @@ the refined layer is generated, not hand-curated from originals; the user
 authorized installing a local ComfyUI with the NVIDIA ComfyUI-RTX-Remix nodes
 and the PBRify 1.7.2 models (CC0) for it. ComfyUI is driven through its own
 HTTP API; ingestion, layers and bindings go through the Toolkit MCP. The
-diffusion-based PBRFusion4 workflow (about 15 GB of extra models) is a
-further step that needs a separate go-ahead.
+PBRFusion4 pipeline remains an optional normal/depth comparison requiring a
+separate go-ahead for installation. The author currently supplies one
+4,320,268,942-byte weight (4.32 GB); the stated 8 GB minimum VRAM is a separate
+hardware requirement, not measured local consumption. It supplies no delit
+albedo, roughness or metallic maps and does not replace Package D's retained
+PBRify normal/height contract. Read-only subagent recheck confirmed the node
+and weight remain absent. See D:/Flycast-Evidence/package-d-pbrfusion4-review-20260911/REVIEW.md
+and https://huggingface.co/NightRaven109/PBRFusion4 for the reviewed pipeline.
 
 | Pkg | Parent card / status | Dependencies and bounded change | Expected visible benefit | Falsifying check and required evidence | Rollback / next action | Technical | Human visual |
 |---|---|---|---|---|---|---|---|

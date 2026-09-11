@@ -1,4 +1,195 @@
 # Neural rendering evidence log
+LOG877 user-requested diagnostic checkpoint and handoff. Four serial builds
+pass: automation95393 and baseline/no-NGX/off chain1067; all three enabled
+selftests986/0, SDK302/0, Python26, backlog contract and diff checks pass.
+Logs D:/Flycast-Evidence/normal-compose-rejection-build.log and
+normal-handoff-{baseline,no-ngx,off}-build.log, normal-handoff-*-selftest.log,
+normal-handoff-sdk.log. Commit scope is the opt-in diagnostic prototype and
+native replay preservation only. Live returned normal effects composition is
+NOT_REVIEWABLE; performance eligibility, helper retirement and full gates stay
+open. Handoff rewritten in place with exact evidence, failures and next action.
+No game/helper/build remains active; private/untracked assets preserved.
+
+LOG876 view-cost23726 terminal1: helper published645 replies through source2738,
+but no successful normal effects composition logged. Managed launcher reports
+superseded helper timeout124 and forced child25980; no live process remains.
+Host log archived in pilot-normal-view-cost. Matched source1941 capture cost
+283.518 to29.534ms, objects1283 to457; source2181 169.155 to30.074ms,
+objects1634 to578. These diagnostic samples show reduced capture overhead,
+not performance eligibility or full pipeline acceptance. Added first-three
+normal composition rejection diagnostics for identity and native/input raster
+layout; guards unchanged. Next rebuild and diagnose returned composition.
+
+LOG875 view-copy reuse automation build78728 terminal0. First build without
+VS environment failed on missing standard headers; initialized VS build passed.
+Native proof pilot-normal-view-proof90259 terminal1 (host0/helper11, no helper
+source); three sources2560..2562 at62/61/64draws have zero1280x960 mismatches.
+Independent Pillow decode confirms native/replay/previous geometry-proof native
+all byte-identical; source2560 replay visually inspected. Host log archived.
+Python26 pass, including normal-effects inherited-environment/diagnostic guards.
+Next cost run pilot-normal-view-cost started with same staged executable.
+No live normal composition or performance acceptance; four-build matrix pending.
+
+LOG874 within-native-pass sampled-view copy reuse candidate. Separate explicit
+stable-view contract defaults off; enabled only for original single-pass native
+capture. Texture cache updates happen during Process/TA parsing; geometry,
+fog and palette uploads precede drawStrips. Translucent state binds existing
+views while per-draw constants remain independently copied. Cache retains live
+view identity to prevent pointer reuse and owns a copied texture/view pair per
+unique view; no cross-frame reuse. Owned-resource count deduplicates these pairs.
+Private normal-effect-view-cache-test WARP passes shared view identity, distinct
+constants, exact replay after live texture mutation, source/layout/alpha/depth
+controls. This is correctness evidence, not hardware speed. Automation build
+started with log D:/Flycast-Evidence/normal-view-cache-build.log; game proof and
+capture-cost remeasurement remain pending. Source uncommitted.
+
+LOG873 geometry cost run terminal and FAILED. Live process inventory confirms
+no Flycast/helper remains; launch.json records host1/helper11, orderly=false,
+publisher.log says performance run timed out. Host log archived under
+D:/Flycast-Evidence/pilot-normal-geometry-cost/flycast.log before any relaunch.
+Sampled capture CPU cost includes source1461 68draws/617objects/136.994ms,
+source1941 142draws/1283objects/283.518ms and source2181
+181draws/1634objects/169.155ms. Helper reports no GPU image/readback proof.
+Geometry sharing alone is insufficient; no normal live composition or
+performance acceptance. Next audit within-pass texture/view immutability and
+deduplicate only proven stable inputs; retain changing constants per draw.
+PBRFusion4 subagent read-only recheck confirms normal/depth-only outputs,
+missing local node/weight/dependencies and current single weight4.32GB;
+BACKLOG's old15GB estimate corrected without changing Package D scope.
+
+LOG872 geometry cache game proof passes. Build73193 terminal0;diagnostic
+pilot-normal-geometry-proof20692 terminal1 (no helper source). Sources2560..2562
+62/61/64 draws zero mismatch at1280x960. Independently decoded native/replay
+and preceding original-native-pass reference images all byte-exact;log archived.
+Capture-cost run pilot-normal-geometry-cost active98758 using same staged
+flycast-pilot-normal-geometry.exe. Poll same handle,measure unique sources/object
+counts/capture time;archive host log before next launch. No performance or
+normal-live acceptance;source uncommitted.
+
+LOG871 within-native-pass geometry copy reuse implemented. Explicit stable-
+geometry contract enabled only at original normal pass;default snapshots remain
+uncached. Vertex/index copies shared within snapshot;constant buffers rejected
+by geometry cache and still copied per draw. Object count counts shared geometry
+once. Existing uploadGeometryBuffers precedes drawStrips;draw-state changes do
+not update vertex/index resources. Private normal-effect-geometry-cache-test
+WARP passes shared geometry identity,distinct constants,constant-cache rejection
+and existing exact replay/alpha/identity controls. No measured gameplay gain yet.
+Automation build launched normal-geometry-cache-build.log;next compile then
+native equality and capture-cost comparison. Source uncommitted.
+
+LOG870 original-native-pass correction revalidated. Cost-a launcher18135
+terminal1,host1/helper11 after explicit close;no active processes. Guard build
+75636 terminal0. pilot-normal-native-pass-proof session60933 terminal1 (helper
+no source,diagnostic only). Sources2560/2561/2562 retain62/61/64 draws,each
+1,228,800 pixels zero mismatches. Three saved PNG pairs independently decoded
+and equal;actual source2560 replay image inspected. Host log archived.
+This restores unambiguous native-pass proof;does not prove live composition.
+Next within-source stable vertex/index/texture reuse,preserve dynamic constants,
+rerun mutation controls and native comparison before live timing. Source
+uncommitted;full build matrix still required for final candidate.
+
+LOG869 capture attribution found duplicated source ownership. Cost-a reports
+source2 twice,6 draws/74 objects at4.013 and3.097ms;source27541 draws/494objects
+23.661ms CPU capture submission. renderNeuralSceneColor also calls drawStrips
+without neuralExportActive,so prototype recaptured/replaced native ownership
+with replay state. Corrected with RAII nativeEffectCapturePass armed only at
+original native drawStrips call;neural replay cannot capture or clear snapshot.
+Own test host closed gracefully after useful measurements;log archived. Session
+18135 still awaiting helper exit (PID35592 confirmed),do not build until terminal.
+Next compile and repeat bounded capture to verify unique producer and costs,
+then resource deduplication. Existing diagnostic equality must be rerun because
+which pass supplied snapshot was previously ambiguous. Source uncommitted.
+
+LOG868 capture-cost instrumentation added before optimization. Snapshot measures
+CPU duration of Begin and each Append (including resource-copy submissions);
+normal prototype logs first3 and every120 successful capture attempts with
+source/draw/new-owned-object counts. This is CPU submission duration,not GPU
+completion or full-frame attribution. Earlier normal-live-a has no usable
+frame-pvr-draw timing lines,so its slowdown remains unquantified. Automation
+build46174 active,normal-capture-cost-build.log. Next bounded diagnostic to
+measure early snapshots,then within-source stable geometry/texture reuse with
+per-draw constants preserved. No gameplay active;source uncommitted.
+
+LOG867 first normal-live trial FAILED before publication. Helper reports live
+channel bounded receive timeout,no source/image. Host still progressing around
+source1476 at108s;retained per-draw resource copying is grossly expensive before
+feed starts (not isolated attribution). Helper terminal confirmed,host PID31912
+closed via CloseMainWindow;launcher15800 terminal1,host log archived. Do not
+extend timeout and call this progress or weaken freshness. Next add bounded
+capture-scope/object/byte attribution and deduplicate resources stable within
+one source frame,while preserving per-draw changing constants and texture-update
+semantics. No active jobs. No live normal composition demonstrated. Source
+uncommitted;accepted diagnostic and OIT baselines intact.
+
+LOG866 first normal live diagnostic launched. Build18276 and corrected normal/
+OIT provenance-label build99352 terminal0;Python25/0. Staged automation
+flycast-pilot-normal-live.exe,normal dx11 1280x960,exposureA,temple/anchor,
+native alpha-off,weld normals,cpu-timing,12 captures from2560. Evidence
+pilot-normal-live-a. Source snapshots now published only on explicit normal
+prototype option. No performance acceptance;per-draw copies unoptimized.
+Poll running handle,archive stage log at terminal;inspect source composition,
+format failures and native HUD/world/backbuffer joins before promotion.
+
+LOG865 normal live prototype wiring unaccepted. Explicit --normal-effects
+requires dx11 plus diagnostic CPU timing;normal single-pass draws retain sealed
+source snapshot,feed accepts matching normal or OIT ownership and carries it
+through existing overlay slots. Current normal ownership resets at next native
+frame and history retirement. Retained object count includes current snapshot.
+No ordinary mode activation. Automation build18276 active,
+normal-live-prototype-build.log. Next verify compile,correct OIT-specific log
+labels,then first diagnostic launch. Exact returned format guard may reveal
+conversion requirement;do not relax it. Copies per draw remain expensive;no
+performance claim. No live run yet,source uncommitted.
+
+LOG864 returned composition dispatch added to RemakeOverlaySnapshot. Exactly
+one OIT or normal snapshot must match source;both missing or both present reject.
+Raw comparison and evaluated output sites use ComposeEffects;normal creates
+owned SRV after Compose. OIT-only locked-input identity check explicitly rejects
+missing OIT snapshot rather than dereference normal-only data. No normal capture
+published yet. Ownership build55722 terminal0. New routing build71514 active,
+normal-compose-routing-build.log. Next capture retention/publish gate and accurate
+normal preview provenance;then live diagnostic. No acceptance;source uncommitted.
+
+LOG863 source-slot ownership foundation: normalEffects shared_ptr added to
+existing RemakeOverlaySnapshot (automatic retirement with overlay),new owned
+object counts cover copied buffers/textures/views/background/depth and deduplicate
+snapshot pointers across renderer slots. Shared shaders/states/samplers excluded
+from newly allocated counts. Transient replay objects/VRAM bytes are not claimed
+by this retained count. No normal snapshot published yet. Previous alpha-map
+build42160 terminal0. Automation ownership build active55722,log
+D:/Flycast-Evidence/normal-slot-ownership-build.log. Next actual capture carry
+and composition path with matching source and alpha selections,then diagnostic
+moving proof. Source changes uncommitted;no gameplay active.
+
+LOG862 alpha exclusion depth-write control passes WARP. Private
+normal-effect-alpha-depth-test.* captures GEQ depth-writing triangle,replays
+with color suppressed:clear color remains uniform and120 depth pixels equal0.5.
+Normal drawList now retains exact translucent PolyParam offset;drawSorted uses
+sortedTriangles.polyIndex. Begin retains source-native parameter words matching
+existing alpha selection contract. Automation build active42160,
+D:/Flycast-Evidence/normal-alpha-map-build.log. No gameplay activated;next
+complete source-slot integration/resource accounting after successful compile.
+Uncommitted source;four-config gates remain before commit.
+
+LOG861 normal snapshot alpha selection uses existing PlanAlphaEffectExclusion
+producer/ordinal/parameter contract. Optional source parameter table and per-draw
+ordinal map retained;selected draws replay with color writes disabled,not skipped,
+so depth/stencil behavior can remain. Private normal-effect-alpha-test WARP
+passes selected-color exclusion,wrong-parameter rejection and all existing
+composition controls. Depth-write preservation not yet independently exercised
+(the combined fixture uses no depth writes). Normal game capture call sites
+still omit ordinal table;must wire exact list/triangle ordinals before nonempty
+selection use. No live activation or acceptance;source uncommitted.
+
+LOG860 uncommitted normal snapshot Compose accepts source-matched caller color,
+requires exact extent/format/mip/array/sample layout,allocates owned RT/SRV output
+and replays with owned depth and isolated state. ReplayNative delegates to same
+path. Private normal-effect-compose-test WARP passes exact known-background
+result,input unchanged,wrong extent/identity rejection,alternate supplied color
+changes output and preserves uncovered pixel. Previous draw/mutation controls
+pass. Not wired to overlay slots yet;alpha ownership and format compatibility
+must be integrated before live route activation. No performance acceptance.
+Next per-draw alpha selection mapping and source-slot ownership/resource counts.
 
 LOG859 / D-236 normal-renderer native-effects diagnostic ACCEPTED only as
 native replay mechanism. Four serial builds terminal0,selftests986/0 in all3

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include <d3d11.h>
+#include <map>
 #include "windows/comptr.h"
 
 namespace flycast::rend::neural {
@@ -56,5 +57,35 @@ inline ComPtr<ID3D11ShaderResourceView> CopyNativeEffectView(ID3D11Device* devic
  if(FAILED(device->CreateShaderResourceView(owned,&desc,&view.get())))return {};
  return view;
 }
+
+// Caller guarantees sampled textures are immutable for this capture interval.
+// Keep source views alive to prevent address reuse; never share across frames.
+struct NativeViewCopies {
+ struct Entry { ComPtr<ID3D11ShaderResourceView> source,copy; };
+ std::map<ID3D11ShaderResourceView*,Entry> copies;
+ ComPtr<ID3D11ShaderResourceView> Get(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11ShaderResourceView* source){
+  if(!source)return {};
+  ComPtr<ID3D11Resource> resource;source->GetResource(&resource.get());
+  if(!NativeCaptureContextMatches(device,context,resource))return {};
+  auto found=copies.find(source);if(found!=copies.end())return found->second.copy;
+  auto copy=CopyNativeEffectView(device,context,source);
+  if(copy){Entry entry;source->AddRef();entry.source.reset(source);entry.copy=copy;copies.emplace(source,std::move(entry));}
+  return copy;
+ }
+};
+
+// Caller must guarantee geometry is immutable for this capture interval.
+// Never use for constants; each draw may update their contents.
+struct NativeGeometryCopies {
+ std::map<ID3D11Buffer*,ComPtr<ID3D11Buffer>> copies;
+ ComPtr<ID3D11Buffer> Get(ID3D11Device* device,ID3D11DeviceContext* context,ID3D11Buffer* source){
+  if(!NativeCaptureContextMatches(device,context,source))return {};
+  D3D11_BUFFER_DESC desc{};source->GetDesc(&desc);
+  if(desc.BindFlags&~(D3D11_BIND_VERTEX_BUFFER|D3D11_BIND_INDEX_BUFFER))return {};
+  auto found=copies.find(source);if(found!=copies.end())return found->second;
+  auto copy=CopyNativeEffectBuffer(device,context,source);
+  if(copy)copies.emplace(source,copy);return copy;
+ }
+};
 
 }

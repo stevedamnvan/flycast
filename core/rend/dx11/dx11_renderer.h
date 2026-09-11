@@ -372,6 +372,8 @@ protected:
 	std::string remakeCurrentEffectsReason="unsupported-renderer";
 	std::unique_ptr<flycast::rend::neural::NativeEffectSnapshot> nativeEffectProof;
 	unsigned nativeEffectProofAttempts=0,nativeEffectProofDraws=0;
+	bool nativeEffectCapturePass=false;
+	std::shared_ptr<const flycast::rend::neural::NativeEffectSnapshot> remakeCurrentNormalEffects;
 	void finishNativeEffectProof();
 
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
@@ -392,7 +394,7 @@ protected:
 	// history reset is deferred to the first return of a post-cut source.
 	bool remakeHistoryResetPending=false;std::uint64_t remakeHistoryResetAfterFrame=0;
 	void retireRemakeHistoryKeepingReturns() {
-		remakePreEffectTexture.reset();remakeCurrentEffects.reset();
+		remakePreEffectTexture.reset();remakeCurrentEffects.reset();remakeCurrentNormalEffects.reset();
 		remakeTemporalHistory.Reset();
 		remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();
@@ -405,7 +407,7 @@ protected:
 	// anchor generation change so no pre-cut image is presented after the cut.
 	void retireRemakeHistory() {
 		remakePreEffectTexture.reset();
-		remakeCurrentEffects.reset();
+		remakeCurrentEffects.reset();remakeCurrentNormalEffects.reset();
 		retireRemakeTemporalHistory();
 	}
 	// Retire temporal/raster history, pending returns and presentation carry-over
