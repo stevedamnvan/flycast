@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG846 normal-renderer native-effects diagnosis (read-only source, no launch).
+LOG792 rejection is still structurally present: DX11Renderer stores only
+shared_ptr<const RemakeOitEffects>,default reason unsupported-renderer;
+feed requires producer-matched snapshot at3060. Only OIT renderABuffer captures
+one at591-624 from fragment/pointer/parameter/constant buffers. Normal drawStrips
+4160-4184 immediately blends sorted triangles or translucent strips,so has no
+retained equivalent. renderNeuralReactiveCoverage reuses those draws but writes
+coverage without authoritative depth;it cannot substitute for effects replay.
+Safe next implementation must retain source-owned normal draw resources and
+pre-translucent depth/state,then replay native blending onto matching returned
+color. Preserve sorted/per-strip order,modifier interactions,alpha ownership,
+HUD and epoch/ordinal/cycle matching. Do not disable native-effects requirement,
+reuse latest live buffers,or convert normal route to OIT merely to pass gate.
+First bounded proof: replay retained normal effects over their own source's
+native pre-effect background and require exact native output before any Remix
+integration; unsupported multipass/RTT remain explicit until covered. Inspect
+mutable texture/buffer ownership and existing capture/replay utilities before
+choosing implementation. Source unchanged, no active jobs. Current checkpoint
+6b39d3e68642197cc51b053accf2e812a784f3c1 verified on fork.
+
 LOG845 / D-235 H24 ACCEPTED for tested1280 OIT scope. Combined read lookup
 removes redundant identity/value tests and inactive optional copying,while
 retaining owned serial-qualified transform state. Four serial builds,986/0 x3,

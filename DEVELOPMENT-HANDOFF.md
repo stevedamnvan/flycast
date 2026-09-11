@@ -141,8 +141,12 @@ p95 slightly improved. Moving12 completed joins/nonempty HUD,zero composition
 mismatches;10 matching sources239,334 vertices plus indices exact versusH23.
 Evidence pilot-h24-read-observation-{perf1280,perf1280-b,moving};logs archived.
 Staged automation host flycast-pilot-h24-read-observation.exe with unchanged
-H22 helper. No active jobs. Next diagnose normal-renderer native-effects gap
-LOG792 in source,then bounded integration/proof;avoid more low-yield micro work.
+H22 helper. No active jobs. LOG846 diagnoses normal-renderer gap: only OIT produces retained fragment
+snapshots;normal drawStrips blends immediately. Reactive coverage has no depth
+and cannot substitute. Next inspect source-owned normal draw replay resources,
+then prove retained effects over native pre-effect color equal native output
+before Remix integration. Preserve blend order,depth,alpha,HUD and producer
+identity;never remove the requirement or relabel OIT as normal.
 Full60fps,quality,resource and human visual gates remain open.
 PBRFusion4 user-requested subagent check complete (LOG835): five depth/normal/
 intensity outputs,no delit albedo/roughness/metallic. Existing PBRify maps kept.
