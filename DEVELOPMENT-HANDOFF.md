@@ -2,6 +2,15 @@
 
 ## Current state (2026-09-10, D-224)
 
+H item3 verified (LOG810): depth texture ping-pong with immutable content
+identity. Final four builds,901/0 x3, SDK272/0, Python23; exact sampled GPU
+fixture on both APIs. Matched diagnostic raster upload1.009 to0.557ms,
+returned-evaluate7.325 to6.759. Moving run12 captures/12 Present joins,
+zero HUD mismatches; reviewed frame2573. No60fps claim. Both runs finished,
+logs archived. Next CODEX-GOAL item4: remove/move render-thread buffer copies
+without weakening alias/accepted-history ownership. Keep exposure A for
+performance runs and the separate0.30 candidate for visual review.
+
 H item2 verified (LOG808): four builds,893/0 x3, SDK272/0, Python23.
 Matched diagnostic pilot-extent1280-h2-depth: returned-evaluate median
 10.82 to7.33ms; raster validation3.08 to0.26ms and cached history/input

@@ -365,6 +365,35 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
   value=0;std::memcpy(&value,static_cast<const char*>(mapped.pData)+160*mapped.RowPitch+200*bytes,bytes);
   surface.context->Unmap(staging.Get(),0);return true;
  };
+ // Exercise actual retained depth textures on both graphics APIs, and compare
+ // sampled outputs with the same bytes forced through fresh uploads.
+ {
+  RemakeDepthBuffer prior;prior.assign(640*480,projection(10));
+  ComPtr<ID3D11ShaderResourceView> view;if(!idView(1,view))return false;
+  float priorZ=10;
+  for(unsigned step=0;step<4;++step) {
+   const float nextZ=step%2?10.f:20.f;
+   RemakeDepthBuffer next;next.assign(640*480,projection(nextZ));
+   RemakeMotionStream stream;stream.indices={0,1,2};
+   stream.vertices={{{100,100,nextZ},{100,100,priorZ},1,1,1},{{500,100,nextZ},{500,100,priorZ},1,1,1},{{100,400,nextZ},{100,400,priorZ},1,1,1}};
+   RemakeRasterOutput retained;
+   if(!raster.Render(surface.context.Get(),stream,next,prior,view.Get(),1,100,.1f,0,retained,error))return false;
+   std::array<std::uint32_t,6> cached{};const unsigned bytes[]={4,1,2,1,2,4};
+   for(unsigned i=0;i<6;++i)if(!read(retained.textures[i].Get(),bytes[i],cached[i]))return false;
+   // A separate renderer forces all uploads without disturbing this renderer's
+   // retained current depth, which must become previous on the next step.
+   RemakeMotionRaster fresh;if(!fresh.Initialize(surface.device.Get(),&D3DCompile,error))return false;
+   RemakeRasterOutput uncached;
+   if(!fresh.Render(surface.context.Get(),stream,next,prior,view.Get(),1,100,.1f,0,uncached,error))return false;
+   for(unsigned i=0;i<6;++i){std::uint32_t value=0;
+    if(!read(uncached.textures[i].Get(),bytes[i],value)||value!=cached[i]) {
+     error="remake depth ping-pong differs from forced upload step="+std::to_string(step);return false;
+    }
+   }
+   if(cached[1]!=255||cached[3]!=0||cached[4]!=0){error="remake depth ping-pong lost expected history";return false;}
+   prior=std::move(next);priorZ=nextZ;
+  }
+ }
  for(unsigned mode=0;mode<11;++mode) {
   RemakeMotionStream stream;stream.indices={0,1,2};
   stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};

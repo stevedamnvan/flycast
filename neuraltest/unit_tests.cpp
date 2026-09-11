@@ -13,6 +13,7 @@
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_return_worker.h"
 #include "rend/neural/remake_frame_budget.h"
+#include "rend/neural/remake_depth_upload.h"
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -115,6 +116,25 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		const auto cold=PlanRemakeDepthUploads(0,0,11,10);
+		suite.Expect(!cold.swap&&cold.current&&cold.previous,"depth textures upload both on cold or invalidated cache");
+		const auto advance=PlanRemakeDepthUploads(11,10,12,11);
+		suite.Expect(advance.swap&&advance.current&&!advance.previous,"depth textures swap roles and reuse prior current on advance");
+		const auto skipped=PlanRemakeDepthUploads(12,11,13,11);
+		suite.Expect(!skipped.swap&&skipped.current&&!skipped.previous,"depth textures retain actual accepted history after skipped evaluation");
+		const auto missing=PlanRemakeDepthUploads(12,11,13,9);
+		suite.Expect(missing.current&&missing.previous,"depth textures upload missing older history instead of assuming adjacency");
+		const auto mutableInput=PlanRemakeDepthUploads(12,11,0,0);
+		suite.Expect(mutableInput.current&&mutableInput.previous,"depth textures never reuse mutable or unqualified input");
+		RemakeDepthBuffer a;a.assign(8,.5f);auto b=a;
+		const auto identity=a.ContentIdentity();
+		suite.Expect(identity&&identity==b.ContentIdentity(),"owned equal depth copy retains immutable content identity");
+		a[0]=.25f;
+		suite.Expect(!a.ContentIdentity()&&b.ContentIdentity()==identity,"writable depth access invalidates only its own content identity");
+		b.resize(9);
+		suite.Expect(b.ContentIdentity()&&b.ContentIdentity()!=identity,"depth extent change gets a new content identity");
+	}
 	{
 		bool equivalent=true;
 		auto check=[&](std::uint32_t bits) {

@@ -10,6 +10,7 @@
 #include "rend/neural/remake_extent.h"
 #include "rend/neural/remake_cpu_scope.h"
 #include "rend/neural/remake_depth_validation.h"
+#include "rend/neural/remake_depth_upload.h"
 
 namespace flycast::rend::neural {
 // Isolated deferred-context work preserves the caller's graphics state. Output
@@ -37,6 +38,7 @@ class RemakeMotionRaster {
  };
  std::array<Targets,2> sets;unsigned nextSet=0;
  Ptr<ID3D11Texture2D> depth,current,previous,colorNow,colorBefore;
+ std::uint64_t currentDepthIdentity=0,previousDepthIdentity=0;
  Ptr<ID3D11DepthStencilView> dsv;
  Ptr<ID3D11ShaderResourceView> currentView,previousView,colorNowView,colorBeforeView;
  Ptr<ID3D11Buffer> vertices,indices,contract;
@@ -157,8 +159,14 @@ public:
   }
   const float constants[]={float(flycast::rend::neural::RemakeWidth()),float(flycast::rend::neural::RemakeHeight()),nearPlane,farPlane,absoluteTolerance,relativeTolerance,currentColor?1.f:0.f,8.f/255.f};
   context->ClearState();
-  context->UpdateSubresource(current.Get(),0,nullptr,currentDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
-  context->UpdateSubresource(previous.Get(),0,nullptr,previousDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
+  const auto currentIdentity=currentDepth.ContentIdentity(),previousIdentity=previousDepth.ContentIdentity();
+  const auto depthUploads=PlanRemakeDepthUploads(currentDepthIdentity,previousDepthIdentity,currentIdentity,previousIdentity);
+  // Keys describe executed uploads only. Any recording failure invalidates
+  // reuse, including after the two resource roles have been exchanged.
+  currentDepthIdentity=previousDepthIdentity=0;
+  if(depthUploads.swap){current.Swap(previous);currentView.Swap(previousView);}
+  if(depthUploads.current)context->UpdateSubresource(current.Get(),0,nullptr,currentDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
+  if(depthUploads.previous)context->UpdateSubresource(previous.Get(),0,nullptr,previousDepth.data(),flycast::rend::neural::RemakeWidth()*4,0);
   if(currentColor) {
    context->UpdateSubresource(colorNow.Get(),0,nullptr,currentColor->data(),flycast::rend::neural::RemakeWidth()*4,0);
    context->UpdateSubresource(colorBefore.Get(),0,nullptr,previousColor->data(),flycast::rend::neural::RemakeWidth()*4,0);
@@ -185,6 +193,7 @@ public:
   Ptr<ID3D11CommandList> commands;
   if(FAILED(context->FinishCommandList(FALSE,commands.GetAddressOf())))return fail("remake-raster-command-list");
   immediate->ExecuteCommandList(commands.Get(),TRUE);
+  currentDepthIdentity=currentIdentity;previousDepthIdentity=previousIdentity;
   output.textures=set.textures;output.views=set.views;error.clear();return true;
  }
 };

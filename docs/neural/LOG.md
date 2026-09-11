@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG810 CODEX-GOAL item3: depth textures swap roles using immutable content
+identities. Owned copies preserve identity, writes invalidate it; saturating
+identity counter never reuses keys. Missing/mutable history uploads; failed
+command recording clears reuse; keys publish after ExecuteCommandList.
+Four serial builds pass,901/0 x3, SDK272/0, Python23. Eight CPU controls plus
+GPU fixture on D3D11 and D3D11On12: four alternating depth frames compare
+all six sampled outputs against a fresh-upload renderer, exact equality.
+Matched diagnostic pilot-extent1280-h3-depth (600 samples per scope) versus
+h2-depth: raster-upload median1.009 to0.557ms, evaluate-raster1.407 to0.927,
+returned-evaluate7.325 to6.759; history-copy0.752 to0.731 remains. Host0/
+helper11, orderly shutdown, no forced children, performance_eligible=false.
+pilot-h3-moving has12 captures,12 completed-Present joins, zero HUD
+mismatches. Nine common frames2565..2573 match h2-exposure-current native
+pixels exactly; composite MAE1.46..1.63/255, not claimed pixel equality or
+art improvement. Reviewed frame2573 without a new stale-depth artifact;
+the controlled GPU fixture is the exact-output check. Capture run orderly
+host0/helper11;40-object teardown warning remains. Both runs retain original
+exposure A for comparison. Item3 technically ACCEPTED; no60fps/full-pipeline
+claim. Evidence logs, scope-summary, comparison and capture-joins JSON under
+the named D:/Flycast-Evidence directories. Next item4 copies/ownership.
+
 LOG809 user-reported composite overexposure: matched current/low captures
 pilot-h2-exposure-current and pilot-h2-exposure-low,1280x960, same prepared
 h2 binary/rig/native-alpha/welded normals,12 captures each. New opt-in
