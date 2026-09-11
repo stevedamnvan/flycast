@@ -1,5 +1,18 @@
 # Neural rendering decisions
 
+## D-230: retain useful CPU work and validate freshness before offload promotion
+
+LOG815-818. The tested OIT scheduling checkpoint uses one active feed plus one
+FIFO pending source, owned normal smoothing scratch and up to five retained
+anchor helper threads. A full slot rejects without blocking or replacement.
+Anchor workers belong explicitly to the feed worker; joining from TLS teardown
+failed live shutdown and is not retained. Same-input arithmetic, full packet
+bytes, source order, failure selection and barriers are preserved.
+User priority is performance through useful memory retention. Allocation growth
+alone is not rejection: measure pressure, stalls, reuse and lifetime. Existing
+99 percent freshness, latency and quality criteria remain unchanged. Accepting
+this tested scheduling slice neither closes H nor establishes60fps/full remaster.
+
 ## D-229: every fixed 640x480 site on the returned-image path is an extent bug, and silent early returns on that path are not allowed
 
 LOG804. The live extent is the launch contract from `remake_extent.h`; the

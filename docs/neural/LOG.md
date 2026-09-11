@@ -1,5 +1,118 @@
 # Neural rendering evidence log
 
+LOG818 CPU scheduling checkpoint ACCEPTED within the1280x960 OIT pilot.
+Final h12 matrix:four serial builds,982/0 x3,SDK302/0,Python24. Corrected
+repeat pilot-h12-workers-perf1280-c:20.7264/25.6128/28.5602ms,1183 evaluations,
+1176 Remix Presents,24 native,8 repeats,max latency4,zero identity errors;
+1075/1080 fresh after existing120 exclusion=99.537037%. Prior corrected b
+is1070/1080=99.074074%,max4 and20.261/24.845/28.1081ms. Both1200 samples/
+2100 warmup,original exposure A,no captures/scopes,eligible,orderly exits0/11.
+Compare pre-offload h7 median22.246ms: final20.26-20.73ms is a scoped speed
+improvement with two runs meeting the existing99% freshness/four-frame bounds.
+No60fps, whole-pipeline quality, normal-renderer or complete-resource claim.
+Moving pilot-h12-workers-moving-b:12 captures,12 exact source/current completed
+Remix-Present joins,zero protected HUD mismatches,min72537 protected pixels;
+reviewed source2574/current2578 composited image. Run terminal0/11,log archived.
+Prior failed/superseded h8-h12 remain evidence; TLS executor is replaced by
+explicit feed-worker ownership. Tests preserve smoothing arithmetic, complete
+packet bytes, bounded source queue, receipt order, chunk completion/errors and
+thread reuse. No fresh exact-SHA Gate18 claim; launcher records executable hashes.
+Retained memory is intentional, not itself a defect. VRAM final~4.78GB and
+repeatable growth1.724GB require phase/plateau/cleanup attribution, not automatic
+rejection or a zero-growth target. Broader H and active goal stay open.
+Next inspect exact-input smoothing reuse on unchanged meshes to spend memory
+on avoided work; keep cache correctness and measured benefit separate.
+
+LOG817 retained camera-anchor chunk workers, uncommitted candidate.
+Replaces creation/join of up to5 helper threads per Apply with a bounded
+single-owner executor. Caller runs chunk0; remaining chunks keep the identical
+ranges/arithmetic. Every chunk completes before return or ordered exception
+propagation. No frame queue, no input ownership change, no acceptance change.
+Initial TLS-owned executor completed1200 samples but failed orderly host
+shutdown (pilot-h12-workers-perf1280,exits1/11); retained as failed evidence.
+Likely Windows TLS teardown/join interaction, not stack-trace proven. Corrected
+ownership: RemakeFeedWorker member passes executor explicitly to Apply; default
+callers keep existing scoped threads. Executor destruction joins idle helpers.
+Tests verify reuse, changing chunk counts, exact visits, ordered exceptions,
+recovery, and full serialized packet identity versus scoped threads above1024
+vertices. Final automation982/0,Python24. Remaining serial matrix in progress.
+Corrected performance pilot-h12-workers-perf1280-b:20.261/24.845/28.1081ms,
+1200 Presents,1177 evaluations/Remix Presents,23 native,13 repeats,max latency4,
+zero identity errors,VRAM growth1724174336. Original exposure A,1200/2100
+sample/warmup,no capture/scopes,eligible=true,orderly=true,exits0/11.
+After existing120-frame exclusion:1070 fresh Remix of1080 total=99.074074%;
+5 held-native plus5 repeated Remix. Compare h7:1076/1080=99.62963 and h10-a:
+1075/1080=99.53704. Do not claim repeatability/full scheduling closure yet.
+Diagnostic pilot-h12-workers-cpu1280-b:600 scope samples,anchor3.4157ms versus
+h11's4.25475;feed-worker15.31 versus15.9912;packet5.87695,publish4.2487.
+Nested scopes not additive; diagnostic run is excluded from performance claims.
+Both corrected runs terminal0/11, host logs archived. Next finish matrix,
+repeat eligible run and moving-output validation before acceptance. Source,
+new remake_chunk_workers.h and smoothing reference test remain uncommitted.
+
+LOG816 memory-for-performance follow-up, candidate still uncommitted.
+User priority: retain useful memory to eliminate repeated work, not minimize
+allocation. Do not label raw growth a defect absent pressure/stall/unbounded
+accumulation evidence. h10-b latency attribution: its only five-frame sample
+is current3103/output3098 at source3099 camera cut, followed by held-native;
+no acceptance threshold changed and transition defect remains open.
+h11 retains thread-local order/key/normal scratch vectors across meshes and
+frames; high-water capacity retained, contents rewritten, destroyed with thread.
+Differential controls grow/shrink/empty and switch smoothing mode repeatedly;
+automation build975/0. Other configurations not yet rebuilt for h11.
+Diagnostic pilot-h11-scratch-cpu1280:600 samples,worker15.9912ms,packet build
+including smoothing5.9273,anchor4.25475,publish4.16385. Compared with h9,
+sort removal plus scratch retention reduce packet scope6.4923 to5.9273;
+scratch-only attribution is not established. Scopes nested, not additive.
+Performance pilot-h11-scratch-perf1280:20.5999/26.4043/29.4121ms p50/p95/p99,
+1200 Presents,1179 accepted evaluations,1178 Remix,22 native,12 repeats,
+max latency5,zero frame identity errors. VRAM3054280704 to4778455040 bytes.
+Original exposure A,1200 samples/2100 warmup,no capture/instrumentation,
+eligible=true,exits0/11. No robust whole-frame speed improvement; do not promote.
+Both h11 runs terminal, host logs archived. Next bounded candidate: retain the
+anchor's up-to-five parallel workers instead of constructing/joining per Apply.
+Preserve chunk arithmetic, ordered failure selection, exception propagation,
+completion barrier, packet failure atomicity and thread shutdown. The existing
+anchor copy remains untouched. No new unbounded queue or relaxed freshness.
+
+LOG815 CPU scheduling follow-up, uncommitted and NOT ACCEPTED as a combined
+performance change. h8 moved smoothing to the feed worker and matched full
+synchronous packet bytes, but produced77 repeats/max latency5. h9 added one
+bounded FIFO pending slot while one source is active; third dispatch rejects
+without waiting or replacement. A blocked-publisher test verifies capacity,
+source/receipt order and publish failure reporting. Automation939/0, Python24.
+First CLI invocation incorrectly used --selftest; corrected to selftest. Then
+one test required updating its completion count for the extra queued source.
+Both failed attempts remain in D:/Flycast-Evidence/h9-scheduling-* logs.
+Matched h9 performance:20.2735/23.84/27.2645ms p50/p95/p99,13 repeats,40 native,
+max latency5,VRAM growth1726009344 bytes. h9 diagnostic: worker16.645ms,
+packet build including smoothing6.4923,anchor4.2358,publish4.33; nested scopes.
+Only2 feed-busy skips; no-return-credit20,publish-credit-busy3. More buffering
+is not justified by this evidence.
+h10 removes redundant second sort in welded normal grouping. Key/index pairs
+are already sorted; replacing keys with monotonically increasing groups keeps
+pair order and therefore floating-point accumulation order. Non-welded mode
+still sorts. Frozen original differential controls cover both modes and six
+sizes including empty and4097 vertices; automation951/0. Actual h10 performance
+pilot-h10-smoothing-perf1280:20.4523/25.8009/28.2072ms,1183 evaluations,
+1178 Remix Presents,22 native,8 repeats,max latency4,zero identity errors over
+1200 observed Presents. Memory growth1724174336 bytes remains worse than h7's
+627601408. Do not promote or claim CPU scheduling/full performance accepted.
+Both performance launches used original exposure A and matching1200/2100
+sample/warmup denominator, no capture/scopes; eligible=true,exits0/11,orderly.
+Host logs and summaries archived per run; private evidence remains outside Git.
+Final h10 matrix:four serial builds pass,951/0 x3,SDK302/0. Repeat performance
+pilot-h10-smoothing-perf1280-b:20.5817/25.4372/27.9549ms,9 repeats,22 native,
+max latency5 with one such sample; VRAM growth1724174336 bytes again.
+h10-smoothing-moving:12 captures with12 exact completed-Present joins and
+zero protected HUD mismatches; reviewed source2574/current2578 composited PNG.
+All runs terminal, logs archived. User correctly challenged calling memory
+growth inherently unacceptable: initial usage differs by about0.55GB, final
+usage by about0.55GB. This is unexplained allocation growth, not a proven leak.
+Next phase/plateau/cleanup attribution must distinguish bounded useful caches
+from unbounded accumulation; no arbitrary zero-growth requirement introduced. Camera anchor packet copy is a next measured-cost candidate,
+not authorization to weaken failure atomicity or source ownership.
+
 LOG814 user-requested web-informed performance follow-up. Primary guidance:
 NVIDIA Expected Workflow says determine CPU/GPU bottleneck first
 (https://docs.nvidia.com/nsight-graphics/UserGuide/expected-workflow.html);

@@ -1,6 +1,50 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-10, D-224)
+## Current state (2026-09-11, LOG818 / D-230)
+
+CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
+This commit combines off-thread smoothing, one bounded FIFO pending feed,
+reused smoothing scratch, redundant-sort removal and explicitly owned retained
+anchor workers. Earlier h8-h12 rejected experiments remain in LOG815-817.
+The broad app goal is ACTIVE; neither full CPU optimization nor60fps achieved.
+
+Final four serial builds pass;982/0 selftests in all3 enabled configurations,
+SDK302/0,Python24,backlog contract pass. Production executor output matches
+scoped-thread packet bytes; smoothing matches frozen original arithmetic.
+Initial TLS-worker shutdown failure is fixed by feed-worker-owned executor.
+Final performance pilot-h12-workers-perf1280-b/c:1200 samples,2100 warmup,
+original exposure A,no captures/scopes; both eligible,orderly exits0/11.
+Present p50/p95/p99=20.261/24.845/28.1081 and20.7264/25.6128/28.5602ms.
+Existing120-frame exclusion:1070/1080=99.074074% and1075/1080=99.537037%
+fresh Remix over all remaining presents; max latency4 both,zero identity errors.
+Raw repeats13/8,native23/24 remain reported; denominator has not changed.
+Original pre-offload h7 p50/p95=22.246/25.8046ms. About48-49fps now,not60.
+Diagnostic anchor median4.25475 to3.4157ms; total feed15.9912 to15.31ms.
+Moving pilot-h12-workers-moving-b:12 captures,12 exact completed-Present joins,
+zero protected HUD mismatches; source2574/current2578 composited PNG reviewed.
+This focused check does not replace300-frame quality/600-frame full acceptance
+or normal-renderer coverage. Human visual approval and neural contribution
+remain open. Existing exposure0.30 candidate stays opt-in, timing uses A.
+
+All runs/builds terminal and host logs archived; no game/helper/build active.
+Source checkpoint is the commit containing LOG818; verify HEAD/fork live.
+Private evidence lives under D:/Flycast-Evidence and is not staged.
+
+Next: remaining measured performance improvements under BACKLOG H. Feed packet
+build/smoothing~5.88ms,publish~4.25ms and return input work remain material.
+Investigate exact-input reuse for unchanged mesh smoothing before more
+threading or deeper queues; measure cache hit rate/cost and preserve seams,
+crease/normal arithmetic and same-packet output. Reuse existing pipeline.
+User priority: spend memory on useful retained work; judge pressure, evictions,
+stalls, bounded lifetime and cleanup rather than minimum allocation. Current
+VRAM growth1,724,174,336 bytes is reproducible, not a proven leak; phase/plateau
+attribution and40-object teardown warning remain separate open work.
+
+User hardware: RTX5090 plus Thunderbolt4 RTX5060Ti. Evaluate dual GPU only
+after CPU work. Direct display hookup/live5060Ti enumeration remain unverified.
+MGPU Bridge upstream architecture was read; no binaries downloaded or private
+neural code copied. D3D12 add-on compatibility with D3D11On12 remains unverified.
+https://github.com/maohgad-web/Neural-coprocessor
 
 Performance follow-up LOG814: batched R32F conversion reduces helper cost
 3.6393 to0.79905ms;937/0 x3, SDK302/0, Python24, four builds pass. Eight

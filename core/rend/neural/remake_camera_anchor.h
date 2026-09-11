@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <thread>
+#include "remake_chunk_workers.h"
 #include "remake_view_transport.h"
 #include <map>
 #include <set>
@@ -141,7 +142,7 @@ public:
  double MaximumProjectionError()const{return projectionError;}
  const ProjectionReport& LastProjectionReport()const{return projectionReport;}
  bool Apply(const PvrDecodedPacket& source,const RemakeViewScene& scene,
-  remake::Packet& packet,std::string& error) {
+  remake::Packet& packet,std::string& error,RemakeChunkWorkers* executor=nullptr) {
   const auto fail=[&](const char* why){error=why;return false;};
   const auto p=source.sourceProducer;
   if(!p.Available()||source.frame!=scene.frame||packet.frame!=source.frame
@@ -420,10 +421,14 @@ public:
      for(std::size_t i=begin;i<end;++i)if(!embedVertex(*vertexList[i],r.maximum,r.projection,r.error)){r.failed=i;return;}
     }catch(...){r.thrown=std::current_exception();r.failed=begin;}
    };
-   std::vector<std::thread> threads;
-   for(unsigned c=1;c<workers;++c)threads.emplace_back(runChunk,c);
-   runChunk(0);
-   for(auto& t:threads)t.join();
+   // Reuse helpers on this owning thread; Run is a completion barrier, so
+   // packet vertices and local reports cannot outlive this Apply invocation.
+   if(executor)executor->Run(workers,runChunk);
+   else {
+    std::vector<std::thread> threads;
+    for(unsigned c=1;c<workers;++c)threads.emplace_back(runChunk,c);
+    runChunk(0);for(auto& t:threads)t.join();
+   }
    for(const auto& r:chunks) {
     if(r.thrown)std::rethrow_exception(r.thrown);
     if(r.failed!=SIZE_MAX){error=r.error;return false;}

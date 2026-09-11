@@ -43,13 +43,19 @@ inline int RemakeSmoothNormalsLevel() {
  return level;
 }
 inline bool RemakeSmoothNormalsEnabled() { return RemakeSmoothNormalsLevel()!=0; }
-inline void SmoothRemakeViewNormals(RemakeViewMesh& mesh) {
+inline void SmoothRemakeViewNormals(RemakeViewMesh& mesh,int level=RemakeSmoothNormalsLevel()) {
  constexpr float creaseCosine=0.5f; // 60 degrees.
- std::vector<std::pair<std::uint64_t,std::uint32_t>> order;order.reserve(mesh.vertices.size());
- if(RemakeSmoothNormalsLevel()>=2) {
-  // Exact attribute identity, hashed; collisions only merge vertices whose
-  // 24 bytes of position/uv/colour agree, which is the weld condition itself.
-  std::vector<std::pair<std::array<std::uint32_t,6>,std::uint32_t>> keyed;keyed.reserve(mesh.vertices.size());
+ // Thread-owned scratch retains its high-water capacity across meshes/frames.
+ // Contents never escape and every used element is rewritten before reading.
+ // Separate threads cannot share scratch; thread exit releases the storage.
+ static thread_local std::vector<std::pair<std::uint64_t,std::uint32_t>> order;
+ static thread_local std::vector<std::pair<std::array<std::uint32_t,6>,std::uint32_t>> keyed;
+ static thread_local std::vector<std::array<float,3>> smoothed;
+ order.clear();order.reserve(mesh.vertices.size());
+ if(level>=2) {
+  // Sort exact attribute identity followed by source index. Replacing the
+  // sorted key with a monotonic group preserves the final pair ordering.
+  keyed.clear();keyed.reserve(mesh.vertices.size());
   for(std::uint32_t i=0;i<mesh.vertices.size();++i) {
    const auto& v=mesh.vertices[i].source;std::array<std::uint32_t,6> key{};
    std::memcpy(&key[0],&v.x,4);std::memcpy(&key[1],&v.y,4);std::memcpy(&key[2],&v.z,4);
@@ -61,9 +67,9 @@ inline void SmoothRemakeViewNormals(RemakeViewMesh& mesh) {
   for(std::size_t i=0;i<keyed.size();++i){if(i&&keyed[i].first!=keyed[i-1].first)++group;order.emplace_back(group,keyed[i].second);}
  } else {
   for(std::uint32_t i=0;i<mesh.vertices.size();++i)order.emplace_back(mesh.vertices[i].sourceVertex,i);
+  std::sort(order.begin(),order.end());
  }
- std::sort(order.begin(),order.end());
- std::vector<std::array<float,3>> smoothed(mesh.vertices.size());
+ smoothed.resize(mesh.vertices.size());
  for(std::size_t begin=0;begin<order.size();) {
   std::size_t end=begin;while(end<order.size()&&order[end].first==order[begin].first)++end;
   for(std::size_t i=begin;i<end;++i) {
@@ -99,7 +105,7 @@ struct RemakeViewScene {
 // The empirical tolerance admits an experiment; it does NOT close strict parity.
 inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
  const ProducerIdentity& expectedProducer,std::uint64_t expectedFrame,
- RemakeViewScene& output,std::string& error,bool estimateUntraced=false,bool includeCutouts=false,bool includeAlpha=false) {
+ RemakeViewScene& output,std::string& error,bool estimateUntraced=false,bool includeCutouts=false,bool includeAlpha=false,bool deferSmoothing=false) {
  const auto fail=[&](const char* why){error=why;return false;};
  if(!expectedProducer.Available() || packet.frame!=expectedFrame || !expectedFrame
   || packet.sourceProducer.epoch!=expectedProducer.epoch
@@ -255,7 +261,7 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
    previous[0]=previous[1];previous[1]=vertex;++stripLength;
   }
   if(mesh.vertices.empty()){++result.omittedDraws;continue;}
-  if(RemakeSmoothNormalsEnabled())SmoothRemakeViewNormals(mesh);
+  if(!deferSmoothing&&RemakeSmoothNormalsEnabled())SmoothRemakeViewNormals(mesh);
   if(result.meshes.size()>=128)return fail("view-mesh-bound");
   result.meshes.push_back(std::move(mesh));
  }

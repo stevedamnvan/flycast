@@ -22,9 +22,9 @@
 #include <vector>
 namespace flycast::rend::neural {
 // Off-render-thread scene feed (D-211). The render thread keeps every stage
-// that touches the device (snapshot, view scene, texture reads, packet build,
-// overlay copy); the camera anchor, temporal capture, serialization and digest
-// run here on one worker with a single pending job. A busy worker is an explicit
+// that touches the device (snapshot, view scene, texture reads,
+// overlay copy); normal smoothing, packet build, camera anchor, temporal capture,
+// serialization and digest run on one worker with one pending slot. A full slot is an explicit
 // native fallback for that source: the render thread never waits, so a slow
 // lane cannot slow emulation. The worker owns the camera anchor so support
 // lineage stays sequential; results are drained on the render thread, which
@@ -34,6 +34,9 @@ struct RemakeFeedJob {
  std::uint64_t frame=0;ProducerIdentity producer;
  PvrDecodedPacket snapshot;RemakeViewScene scene;remake::Packet packet;RemakeOverlaySnapshot overlay;
  bool anchored=false,temporal=false,managed=false,captureScene=false;
+ // Geometry and texture selection are already owned; smoothing changes only
+ // normals and can precede packet creation without device/context access.
+ bool smoothNormals=false;
  // Packet build on the worker (D-213): the render thread stages every needed
  // texture's bytes by draw (list, ordinal) and an immutable snapshot of the
  // identities the consumer already holds; no device access happens here.
@@ -66,12 +69,14 @@ class RemakeFeedWorker {
  mutable std::mutex mutex;std::condition_variable wake;std::thread thread;
  std::optional<RemakeFeedJob> pending;bool busy=false,stop=false,resetAnchor=false;
  std::deque<RemakeFeedResult> results;
+ RemakeChunkWorkers chunkWorkers; // Explicit owner, never a TLS destructor join.
  RemakeCameraAnchor anchor; // Worker thread only once started.
  std::uint64_t busySkips=0,dispatched=0,completed=0;
  RemakeFeedResult process(RemakeFeedJob& job) {
   const auto start=std::chrono::steady_clock::now();
   RemakeFeedResult r;r.frame=job.frame;r.producer=job.producer;r.overlay=std::move(job.overlay);r.anchored=job.anchored;
   std::string error;RemakeCameraAnchor proposed;
+  if(job.smoothNormals)for(auto& mesh:job.scene.meshes)SmoothRemakeViewNormals(mesh);
   if(job.buildPacket) {
    const RemakeTextureReader reader=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) {
     const auto found=job.textures.find({draw.list,draw.ordinal});
@@ -100,7 +105,7 @@ class RemakeFeedWorker {
   if(job.anchored) {
    const auto anchorStart=elapsed();
    proposed=anchor;
-   const bool applied=proposed.Apply(job.snapshot,job.scene,job.packet,error);
+   const bool applied=proposed.Apply(job.snapshot,job.scene,job.packet,error,&chunkWorkers);
    r.anchorMs=elapsed()-anchorStart;
    if(!applied) {
     r.stage="camera-anchor";r.error=error;r.support=proposed.LastSupportReport();r.referenceOrdinal=proposed.ReferenceOrdinal();
@@ -180,11 +185,12 @@ public:
   if(thread.joinable())thread.join();
   std::lock_guard<std::mutex> lock(mutex);results.clear();busy=false;thread=std::thread();
  }
- // False means the worker is busy: an explicit native fallback for this source.
+ // One active job plus one FIFO pending slot absorbs scheduling jitter.
+ // A full slot rejects without waiting or replacing an owned source.
  bool Dispatch(RemakeFeedJob&& job) {
   {
    std::lock_guard<std::mutex> lock(mutex);
-   if(!thread.joinable()||busy||pending){++busySkips;return false;}
+   if(!thread.joinable()||pending){++busySkips;return false;}
    pending=std::move(job);++dispatched;
   }
   wake.notify_one();return true;

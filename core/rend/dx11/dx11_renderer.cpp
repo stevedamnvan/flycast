@@ -2972,7 +2972,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		static thread_local unsigned count=0;
 		RemakeCpuScope timing("view-scene",metadata.frameId,count);
 		sceneReady=BuildRemakeViewScene(snapshot,producer,metadata.frameId,scene,error,estimate&&std::strcmp(estimate,"1")==0,
-			cutout&&std::strcmp(cutout,"1")==0,alphaPreview||alphaCombined);
+			cutout&&std::strcmp(cutout,"1")==0,alphaPreview||alphaCombined,true);
 	}
 	if(!sceneReady) {skip("scene",error);return;}
 	if(alphaPreview) {
@@ -3067,6 +3067,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	remakeFeedWorker.Start();
 	RemakeFeedJob job;job.frame=metadata.frameId;job.producer=producer;
 	job.snapshot=std::move(snapshot);job.scene=std::move(scene);job.packet=std::move(packet);job.overlay=std::move(overlay);
+	job.smoothNormals=RemakeSmoothNormalsEnabled();
 	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
 	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;
 	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);

@@ -11,6 +11,7 @@
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
+#include "remake_smoothing_reference.h"
 #include "rend/neural/remake_return_worker.h"
 #include "rend/neural/remake_frame_budget.h"
 #include "rend/neural/remake_depth_upload.h"
@@ -443,6 +444,17 @@ int RunSelfTests()
 				// once the identity is held.
 				RemakeFeedWorker builder;builder.Start();
 				RemakeFeedJob build;build.frame=textured.frame;build.scene=textured;build.buildPacket=true;build.byReference=true;
+				build.smoothNormals=true;build.captureScene=true;
+				for(auto& mesh:build.scene.meshes)for(std::size_t i=0;i<mesh.vertices.size();++i) {
+					mesh.vertices[i].sourceVertex=0;
+					mesh.vertices[i].normal=i%2?std::array<float,3>{0,.6f,.8f}:std::array<float,3>{0,0,1};
+				}
+				auto synchronous=build.scene;
+				for(auto& mesh:synchronous.meshes)SmoothRemakeViewNormals(mesh);
+				remake::Packet expectedSmoothed;
+				const bool expectedReady=BuildRemakeViewPacket(synchronous,
+					[&](const PvrCapturedDraw&,std::vector<unsigned char>& bytes,std::string&){bytes=dds;return true;},
+					expectedSmoothed,why,[](const remake::TextureIdentity&){return false;});
 				build.textures[{textured.meshes[0].sourceDraw.list,textured.meshes[0].sourceDraw.ordinal}]=dds;
 				build.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};
 				suite.Expect(builder.Dispatch(std::move(build)),"feed worker accepts a packet build job");
@@ -450,6 +462,11 @@ int RunSelfTests()
 				auto built=builder.Drain();
 				suite.Expect(built.size()==1&&built[0].stage.empty()&&built[0].registeredTextures.size()==1&&built[0].packetMs>0,
 					"worker packet build registers a texture while nothing is held");
+				std::ostringstream expectedWire(std::ios::binary),workerWire(std::ios::binary);
+				suite.Expect(expectedReady&&built.size()==1&&built[0].capturedPacket
+					&&SerializeRemakeViewPacket(expectedWire,expectedSmoothed,why)
+					&&SerializeRemakeViewPacket(workerWire,*built[0].capturedPacket,why)
+					&&expectedWire.str()==workerWire.str(),"worker smoothing produces exact synchronous packet bytes");
 				RemakeFeedJob again;again.frame=textured.frame;again.scene=textured;again.buildPacket=true;again.byReference=true;
 				auto held=std::make_shared<RemakeSentTextureSet>();held->insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
 				again.sent=held;again.captureScene=true;
@@ -488,6 +505,15 @@ int RunSelfTests()
 				observed.sourceVertices.push_back(witness);
 				auto vertex=view.meshes[0].vertices[0];vertex.transformSerial=i+1;supported.meshes[0].vertices.push_back(vertex);
 			}
+            {
+                auto large=packet;const auto vertices=large.meshes[0].vertices;
+                while(large.meshes[0].vertices.size()<1536)large.meshes[0].vertices.insert(large.meshes[0].vertices.end(),vertices.begin(),vertices.end());
+                auto scoped=large,retained=large;RemakeCameraAnchor a,b;RemakeChunkWorkers executor;
+                std::string ea,eb;std::ostringstream wa(std::ios::binary),wb(std::ios::binary);
+                const bool same=a.Apply(observed,supported,scoped,ea)&&b.Apply(observed,supported,retained,eb,&executor)
+                    &&SerializeRemakeViewPacket(wa,scoped,ea)&&SerializeRemakeViewPacket(wb,retained,eb)&&wa.str()==wb.str();
+                suite.Expect(same,"retained anchor workers match scoped-thread packet bytes above parallel threshold");
+            }
 			RemakeCameraAnchor anchor;auto initial=packet;
 			suite.Expect(anchor.Apply(observed,supported,initial,error)&&anchor.ReferenceOrdinal()==p.sourceProducer.ordinal,
 				"observed camera anchor initializes fixed first source view");
@@ -645,28 +671,62 @@ int RunSelfTests()
 					"an even split with lineage keeps the basis continuing the accepted support");
 			}
 			{
+                {
+                    RemakeChunkWorkers executor;
+                    std::array<std::thread::id,6> first{};
+                    for(unsigned count : {6u,1u,3u,6u}) {
+                        std::array<unsigned,6> visits{};std::array<std::thread::id,6> ids{};
+                        executor.Run(count,[&](unsigned c){++visits[c];ids[c]=std::this_thread::get_id();});
+                        bool exact=true,reused=true;
+                        for(unsigned c=0;c<6;++c){exact=exact&&(visits[c]==(c<count?1u:0u));if(c<count){if(first[c]==std::thread::id{})first[c]=ids[c];else reused=reused&&first[c]==ids[c];}}
+                        suite.Expect(exact&&reused,"retained chunk workers finish exactly once and reuse threads across changing counts");
+                    }
+                    std::array<unsigned,6> visits{};bool ordered=false;
+                    try{executor.Run(6,[&](unsigned c){++visits[c];if(c==1||c==4)throw std::runtime_error(std::to_string(c));});}
+                    catch(const std::runtime_error& e){ordered=std::string(e.what())=="1";}
+                    suite.Expect(ordered&&std::all_of(visits.begin(),visits.end(),[](unsigned n){return n==1;}),"chunk failure waits for all work and propagates first chunk error");
+                    unsigned recovered=0;executor.Run(1,[&](unsigned){++recovered;});
+                    suite.Expect(recovered==1,"chunk workers recover after an exception");
+                }
+                for(int level : {1,2,1,2})for(unsigned count : {0u,1u,3u,33u,257u,4097u,33u,0u,3u}) {
+                    RemakeViewMesh original;
+                    for(unsigned i=0;i<count;++i) {
+                        RemakeViewVertex v{};v.sourceVertex=(i*17)%23;
+                        v.source.x=float((i*7)%19);v.source.y=float(i%3);v.source.z=1;
+                        v.source.u=float(i%5);v.source.v=float(i%2);v.source.col[0]=i%2;
+                        v.normal=i%3==0?std::array<float,3>{0,0,1}:i%3==1?std::array<float,3>{0,.6f,.8f}:std::array<float,3>{1,0,0};
+                        original.vertices.push_back(v);
+                    }
+                    auto reference=original,optimized=original;
+                    ReferenceSmoothRemakeViewNormals(reference,level);SmoothRemakeViewNormals(optimized,level);
+                    bool equal=true;
+                    for(unsigned i=0;i<count;++i)equal=equal&&std::memcmp(reference.vertices[i].normal.data(),optimized.vertices[i].normal.data(),sizeof(reference.vertices[i].normal))==0;
+                    suite.Expect(equal,"optimized normal grouping matches frozen algorithm bit for bit");
+                }
 				// D-211 feed worker: one pending job, explicit busy fallback, results and
 				// receipts in source order, publish failures reported as skips.
 				RemakeFeedWorker worker;worker.Start();
-				std::mutex gate;std::condition_variable release;bool go=false;std::atomic<unsigned> published{0};
+				std::mutex gate;std::condition_variable release;bool go=false;std::atomic<bool> entered{false};std::atomic<unsigned> published{0};
 				const auto makeJob=[&](std::uint64_t frame,bool wait) {
 					RemakeFeedJob job;job.frame=frame;
 					job.publish=[&,wait](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&) {
-						if(wait){std::unique_lock<std::mutex> lock(gate);release.wait(lock,[&]{return go;});}
+						if(wait){std::unique_lock<std::mutex> lock(gate);entered=true;release.wait(lock,[&]{return go;});}
 						receipt={++published,7,9};return RemakeChannelResult::Published;
 					};
 					return job;
 				};
 				suite.Expect(worker.Dispatch(makeJob(1,true)),"feed worker accepts a job when idle");
-				for(int i=0;i<200&&worker.Idle();++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				suite.Expect(!worker.Idle()&&!worker.Dispatch(makeJob(2,false))&&worker.BusySkips()==1,
-					"feed worker refuses a job while busy: explicit native fallback");
+				for(int i=0;i<2000&&!entered;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(entered&&!worker.Idle()&&worker.Dispatch(makeJob(2,false)),
+					"feed worker accepts one pending source while active publish is blocked");
+				suite.Expect(!worker.Dispatch(makeJob(99,false))&&worker.BusySkips()==1,
+					"feed worker rejects beyond the bounded pending slot without replacing it");
 				{std::lock_guard<std::mutex> lock(gate);go=true;}release.notify_all();
-				for(int i=0;i<2000&&worker.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				suite.Expect(worker.Dispatch(makeJob(3,false)),"feed worker accepts again once idle");
 				for(int i=0;i<2000&&worker.Completed()<2;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				suite.Expect(worker.Dispatch(makeJob(3,false)),"feed worker accepts again once idle");
+				for(int i=0;i<2000&&worker.Completed()<3;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				const auto results=worker.Drain();
-				suite.Expect(results.size()==2&&results[0].frame==1&&results[1].frame==3&&results[0].stage.empty()
+				suite.Expect(results.size()==3&&results[0].frame==1&&results[1].frame==2&&results[2].frame==3&&results[2].receipt.sequence==3&&results[0].stage.empty()
 					&&results[0].receipt.sequence==1&&results[1].receipt.sequence==2&&results[0].overlay.identity.receipt.sequence==1,
 					"feed worker returns published results in source order with receipts");
 				{
@@ -737,7 +797,7 @@ int RunSelfTests()
 				RemakeFeedJob failing;failing.frame=4;
 				failing.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string& why){why="channel-busy-native-fallback";return RemakeChannelResult::Busy;};
 				suite.Expect(worker.Dispatch(std::move(failing)),"feed worker accepts a failing job");
-				for(int i=0;i<2000&&worker.Completed()<3;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				for(int i=0;i<2000&&worker.Completed()<4;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				const auto failed=worker.Drain();
 				suite.Expect(failed.size()==1&&failed[0].stage=="publish"&&failed[0].error=="channel-busy-native-fallback",
 					"feed worker reports a publish failure as a skip");
