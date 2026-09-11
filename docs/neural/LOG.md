@@ -1,5 +1,48 @@
 # Neural rendering evidence log
 
+LOG821 within-frame exact-key welded grouping ACCEPTED for the tested pilot.
+Final four serial builds pass,982/0 x3,SDK302/0,Python24. Existing differential
+controls match frozen sort arithmetic. Repeat pilot-h14-group-perf1280-b:
+19.6728/23.3666/25.9121ms,1182 evaluations,1179 Remix Presents,21 native,
+9 repeats,max latency4,zero identity errors;1073/1080 fresh after120=99.351852%.
+First clean h14:19.8419/23.8781/27.7446ms,1071/1080=99.166667%,max4.
+Both1200/2100 sample/warmup,original exposure A,no scopes/captures,eligible,
+orderly exits0/11. Versus h12 median20.26-20.73ms, this is a modest whole-frame
+gain alongside diagnostic packet+smoothing5.87695 to3.2435ms (44.8% lower).
+Moving pilot-h14-group-moving:12 captures/12 exact completed-Present joins,
+0 HUD mismatches. Ten same-source intersections with h12-workers-moving-b:
+239322 full encoded vertex records and mesh indices byte-identical, including
+positions,normals,UVs,colours. Two unmatched capture sources not claimed as
+comparisons. Used existing v4 packet layout from remake_packet_normals.py;
+report in capture-summary.json. Reviewed source2573/current2577 composite.
+All runs/builds terminal,logs archived. This slice is not60fps or full H/G
+acceptance. Package D full-set/budget amendment remains intact; no paid request.
+Next: returned-image conversion (individual depth push_back and separate
+colour copy/swap) with exact acceptance/ownership and float/alpha preservation.
+
+LOG820 exact-key within-frame weld grouping candidate after8f59ffd6a.
+Retained open-addressed table replaces sorting six-word attribute keys; full
+key equality resolves collisions. Linked source indices stay ascending within
+each group, preserving original floating-point summation/crease results.
+Group traversal order differs but groups only write independent scratch slots;
+mesh normals are replaced after all groups finish. Existing frozen-algorithm
+comparisons, grow/shrink/empty/mode tests and full packet tests pass982/0 in
+automation; Python24 pass. No cached cross-frame result is used.
+Diagnostic pilot-h14-group-cpu1280:600 samples,packet+smoothing3.2435ms vs
+h12's5.87695,feed12.37185 vs15.31,anchor3.3981,publish4.0907. Nested scopes,
+not additive; overall diagnostic emulated frame20.540249ms is not FPS proof.
+Clean pilot-h14-group-perf1280:19.8419/23.8781/27.7446ms p50/p95/p99,
+1200 Presents,1179 accepted evaluations,1178 Remix,22 native,11 repeats,
+max latency4,zero identity errors. Existing120 exclusion:1071/1080 fresh
+(99.166667%). Original exposure A,1200/2100 sample/warmup,eligible=true,
+orderly0/11. VRAM growth1726009344 bytes, not a standalone rejection criterion.
+Both runs terminal, host logs archived. Remaining serial baseline/no-NGX/off
+build matrix and SDK running; repeat performance and moving output pending.
+NOT ACCEPTED or committed yet. Next after validation: return input conversion
+still pushes depth values individually and copies then swaps BGRA channels;
+consider fused/vectorized conversion with exact result proof. No acceptance or
+range-validation weakening and no pipeline replacement.
+
 LOG819 exact-input smoothing cache REJECTED. Worker-owned candidate compared
 all smoothing input words and mode, retained128 entries/64MiB plus scratch;
 1006/0 automation selftests included input mutations and mode switching.

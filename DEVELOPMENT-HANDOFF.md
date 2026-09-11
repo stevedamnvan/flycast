@@ -1,9 +1,9 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-## Current state (2026-09-11, LOG818 / D-230)
+## Current state (2026-09-11, LOG821 / D-231)
 
 CPU scheduling checkpoint ACCEPTED for the tested1280x960 OIT pilot only.
-This commit combines off-thread smoothing, one bounded FIFO pending feed,
+The accepted baseline combines off-thread smoothing, one bounded FIFO pending feed,
 reused smoothing scratch, redundant-sort removal and explicitly owned retained
 anchor workers. Earlier h8-h12 rejected experiments remain in LOG815-817.
 The broad app goal is ACTIVE; neither full CPU optimization nor60fps achieved.
@@ -35,15 +35,22 @@ Automation1006/0 but only600/24106 mesh hits (2.49%) in600-frame diagnostic;
 packet/smoothing6.26935ms versus h12 5.87695, feed15.4397 versus15.31.
 No performance-eligible run warranted. Run terminal0/11, host log archived;
 patch/header retained privately under pilot-h13-cache-cpu1280. No active jobs.
-Next investigate within-frame hash grouping for weld mode, preserving exact
-attribute equivalence and ascending vertex summation order. Full mesh inputs
-change too frequently for simple previous-result reuse. Reuse memory where
-measured beneficial; do not retain caches merely to raise allocation.
+LOG821 h14 exact-key weld grouping ACCEPTED. Four builds982/0 x3,SDK302/0,
+Python24. Packet+smoothing5.87695 to3.2435ms; total feed15.31 to12.37185.
+Clean h14-group-perf1280 / -b medians19.8419/19.6728ms,p95 23.8781/23.3666;
+fresh1071/1080 and1073/1080 after existing120 exclusion,max4,zero identity
+errors,orderly0/11. Moving12 completed joins,0 HUD mismatches;10 matched
+sources against h12 have239322 vertex records+indices byte-identical. Source
+2573/current2577 reviewed. All runs/builds terminal,host logs archived.
+No game/helper/build active. Next returned-image depth/color conversion;
+individual push_back and copy-then-swap still cost measurable CPU time.
+Preserve validation,ownership and bit-exact float/alpha results. Package D
+full texture-set amendment remains intact; no paid work without numeric cap.
 Next: remaining measured performance improvements under BACKLOG H. Feed packet
 build/smoothing~5.88ms,publish~4.25ms and return input work remain material.
-Investigate within-frame exact-key weld grouping to replace comparison sort;
-preserve seams, crease/normal arithmetic and ascending per-group accumulation.
-Avoid more threading or deeper queues. Reuse the existing pipeline.
+Weld grouping is complete (LOG821); next fuse/vectorize returned-image input
+conversion with exact scalar-result controls. Avoid more threading or deeper
+queues. Reuse the existing pipeline.
 User priority: spend memory on useful retained work; judge pressure, evictions,
 stalls, bounded lifetime and cleanup rather than minimum allocation. Current
 VRAM growth1,724,174,336 bytes is reproducible, not a proven leak; phase/plateau

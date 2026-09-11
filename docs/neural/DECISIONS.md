@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-231: exact weld equivalence and summation order survive faster grouping
+
+LOG821. An open-addressed table compares all six attribute words; hash collisions
+never authorize welding. Source indices remain ascending inside each group, so
+crease tests and float accumulation match the original sort. Independent groups
+may execute in a different order; final vertex order is unchanged. Ten captured
+same-source comparisons confirm byte-identical geometry/normals. Rejected h13
+whole-mesh caching stays removed. Retain memory only where it avoids measured
+work, not merely to increase allocation.
+
 ## D-230: retain useful CPU work and validate freshness before offload promotion
 
 LOG815-818. The tested OIT scheduling checkpoint uses one active feed plus one

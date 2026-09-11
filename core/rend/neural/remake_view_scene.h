@@ -49,22 +49,30 @@ inline void SmoothRemakeViewNormals(RemakeViewMesh& mesh,int level=RemakeSmoothN
  // Contents never escape and every used element is rewritten before reading.
  // Separate threads cannot share scratch; thread exit releases the storage.
  static thread_local std::vector<std::pair<std::uint64_t,std::uint32_t>> order;
- static thread_local std::vector<std::pair<std::array<std::uint32_t,6>,std::uint32_t>> keyed;
+ static thread_local std::vector<std::array<std::uint32_t,6>> keys;
+ static thread_local std::vector<std::uint32_t> slots,next,tail,roots;
  static thread_local std::vector<std::array<float,3>> smoothed;
  order.clear();order.reserve(mesh.vertices.size());
  if(level>=2) {
-  // Sort exact attribute identity followed by source index. Replacing the
-  // sorted key with a monotonic group preserves the final pair ordering.
-  keyed.clear();keyed.reserve(mesh.vertices.size());
-  for(std::uint32_t i=0;i<mesh.vertices.size();++i) {
-   const auto& v=mesh.vertices[i].source;std::array<std::uint32_t,6> key{};
+  // Exact-key open addressing only finds groups; hash collisions never weld
+  // unequal attributes. Append source indices in ascending order, preserving
+  // the original sort's per-group floating-point accumulation order.
+  const auto count=mesh.vertices.size();std::size_t capacity=2;
+  while(capacity<count*2)capacity*=2;
+  slots.assign(capacity,UINT32_MAX);keys.resize(count);next.assign(count,UINT32_MAX);
+  tail.resize(count);roots.clear();roots.reserve(count);
+  for(std::uint32_t i=0;i<count;++i) {
+   const auto& v=mesh.vertices[i].source;auto& key=keys[i];
    std::memcpy(&key[0],&v.x,4);std::memcpy(&key[1],&v.y,4);std::memcpy(&key[2],&v.z,4);
    std::memcpy(&key[3],&v.u,4);std::memcpy(&key[4],&v.v,4);std::memcpy(&key[5],v.col,4);
-   keyed.emplace_back(key,i);
+   std::uint64_t hash=14695981039346656037ull;
+   for(auto word:key){hash^=word;hash*=1099511628211ull;hash^=hash>>32;}
+   auto slot=std::size_t(hash)&(capacity-1);
+   while(slots[slot]!=UINT32_MAX&&keys[slots[slot]]!=key)slot=(slot+1)&(capacity-1);
+   if(slots[slot]==UINT32_MAX){slots[slot]=i;tail[i]=i;roots.push_back(i);}
+   else{const auto root=slots[slot];next[tail[root]]=i;tail[root]=i;}
   }
-  std::sort(keyed.begin(),keyed.end());
-  std::uint64_t group=0;
-  for(std::size_t i=0;i<keyed.size();++i){if(i&&keyed[i].first!=keyed[i-1].first)++group;order.emplace_back(group,keyed[i].second);}
+  for(auto root:roots)for(auto i=root;i!=UINT32_MAX;i=next[i])order.emplace_back(root,i);
  } else {
   for(std::uint32_t i=0;i<mesh.vertices.size();++i)order.emplace_back(mesh.vertices[i].sourceVertex,i);
   std::sort(order.begin(),order.end());
