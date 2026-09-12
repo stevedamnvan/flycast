@@ -1,5 +1,13 @@
 # Bounded experimental Remix launch
 
+For same-source helper light diagnosis, append
+`--scene-light-direction "0 0 1" --scene-light-anchor` to the existing
+`remake-runtime-smoke` capture command. The vector must be finite and unit length;
+the override requires anchoring and rejects combination with the temple rig.
+If also supplying radiance, put radiance before direction. This permits matching
+a live session's logged direction without changing camera geometry or materials.
+It does not alter launcher defaults or establish recovered world lighting.
+
 Practice HUD restoration (LOG996): the panel witness differs by renderer:
 normal sorted triangles use18 indices; OIT strip uses14, both12 vertices.
 Do not certify the HUD from a zero mismatch counter alone: require nonempty

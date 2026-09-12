@@ -340,6 +340,11 @@ Scoped Practice HUD restored; moving combat and performance remain open.
 User likes arena/floor: preserve environment reference; next exact current
 character material/lighting response. All seven earlier displacement-correction
 IDs absent from current pair,so layer activation alone is not a fix.
+LOG999 explicit same-source light-direction control reproduces dark fighters
+with0,0,1; camera-direction control overlights skin. Four builds/1078x3/SDK313,
+three negative CLI checks and three120-frame renders pass in diagnostic scope.
+Next stage-light distribution/anchor ownership with fixed exposure policy,
+preserving arena/floor; verify moving camera and fighters before promotion.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

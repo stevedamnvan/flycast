@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG999 light direction causes dark-character failure in controlled source5302.
+Existing helper gains explicit --scene-light-direction "X Y Z" before
+--scene-light-anchor. Requires finite unit vector,anchor and no temple rig;
+defaults unchanged. Control uses current-camera direction,live-direction uses
+0,0,1,then identical repeat; all120 frames exit0,baseline byte-exact.
+Viewed live-direction reproduces near-black fighters. Full RGB MAE48.964 versus
+repeat.442; fighter rectangles85.706/81.172 versus.301/.380 (include background).
+This is causal direction evidence,not a finished light preset: camera-direction
+control overlights skin and also changes floor. Keep user-liked environment.
+Four serial builds,1078selftests x3,SDK313 pass; three CLI negatives reject2
+before runtime load (zero vector,unanchored,conflicting rig). No game changes,
+guard changes,material edits or performance claim.40-object helper cleanup stays
+open. Evidence C:/Flycast-Evidence/practice-light-direction-a. Next controlled
+stage-key/fill distribution with fixed exposure policy and source-qualified
+anchor ownership,then moving camera/fighter verification. Do not make key track
+camera continuously or promote the overlit control as final.
+
 LOG998 camera-light guidance and character-only vertex isolation. Source5302
 all12 character atlas matches exact;22992 vertex RGB values whitened in external
 diagnostic packet only,alpha/geometry/UV/normals/textures retained. Control,

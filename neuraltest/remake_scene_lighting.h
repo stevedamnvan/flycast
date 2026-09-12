@@ -4,6 +4,8 @@
 #include <cmath>
 #include <optional>
 #include <string_view>
+#include <sstream>
+#include <locale>
 
 namespace neuraltest::remake {
 // Sequence-owned authored direction, independent of material resource lifetime.
@@ -43,6 +45,16 @@ inline Vec3 TempleLightDirection(const Camera& camera,bool fill) {
  return {d.x/length,d.y/length,d.z/length};
 }
 // Harness-authored bounds, not a recovered game light or NVIDIA intensity scale.
+inline std::optional<Vec3> ParseSceneLightDirection(std::wstring_view text) {
+ if(text.empty()||text.size()>96)return {};
+ std::wistringstream stream{std::wstring(text)};stream.imbue(std::locale::classic());
+ Vec3 d{};
+ if(!(stream>>d.x>>d.y>>d.z))return {};
+ stream>>std::ws;if(!stream.eof())return {};
+ const float length=d.x*d.x+d.y*d.y+d.z*d.z;
+ if(!std::isfinite(length)||std::abs(length-1.f)>1e-5f)return {};
+ return d;
+}
 inline std::optional<float> ParseSceneLightRadiance(std::wstring_view text) {
  if(text.empty() || text.size()>12)return {};
  double value=0,place=.1;

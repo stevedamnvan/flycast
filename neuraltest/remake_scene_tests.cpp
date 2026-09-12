@@ -169,6 +169,10 @@ TestCounts TestSceneContract() {
  for(const auto* value:{L"0",L"0.03",L"1",L"3",L"30"})
   expect(ParseSceneLightRadiance(value).has_value(),"bounded authored light accepts decimal");
  expect(ParseSceneLightRadiance(L"0.03")==.03f,"authored light preserves fractional value");
+ for(const auto* value:{L"0 0 1",L"-1 0 0",L"0.6 0 0.8"})
+  expect(ParseSceneLightDirection(value).has_value(),"explicit unit light direction accepted");
+ for(const auto* value:{L"",L"0 0",L"0 0 0",L"0 0 2",L"nan 0 1",L"inf 0 1",L"0 0 1 extra",L"0,0,1"})
+  expect(!ParseSceneLightDirection(value),"invalid explicit light direction rejected");
  for(const auto* value:{L"",L".",L"-1",L"30.01",L"nan",L"inf",L"1e2",L"1junk",L" 3",L"1.2.3",L"9999999999999"})
   expect(!ParseSceneLightRadiance(value),"invalid authored light rejects");
  {

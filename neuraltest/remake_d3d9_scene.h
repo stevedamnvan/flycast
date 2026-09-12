@@ -42,6 +42,7 @@ class D3D9PacketScene {
  float sceneLightRadiance_=3;
  bool anchoredLight_=false;
  bool templeLightRig_=false;
+ std::optional<Vec3> authoredDirection_;
  AnchoredSceneLight anchoredLightDirection_; // Survives material resource rebuilds.
  AnchoredSceneLight anchoredFillDirection_;
  TextureReferenceResolver resolveReference_;
@@ -133,7 +134,7 @@ class D3D9PacketScene {
  HRESULT DrawInternal(const Packet& packet) {
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet,
-   templeLightRig_?std::optional<Vec3>{TempleLightDirection(packet.camera,false)}:std::optional<Vec3>{}):std::optional<Vec3>{};
+   templeLightRig_?std::optional<Vec3>{TempleLightDirection(packet.camera,false)}:authoredDirection_):std::optional<Vec3>{};
   if(anchoredLight_&&!fixedDirection)return E_INVALIDARG;
   const auto fillDirection=templeLightRig_?anchoredFillDirection_.Select(packet,TempleLightDirection(packet.camera,true)):std::optional<Vec3>{};
   if(templeLightRig_&&!fillDirection)return E_INVALIDARG;
@@ -272,8 +273,8 @@ class D3D9PacketScene {
   return S_OK;
  }
 public:
- D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false,TextureReferenceResolver resolveReference={},bool templeLightRig=false):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight),templeLightRig_(templeLightRig),resolveReference_(std::move(resolveReference)){
-  failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30||(templeLightRig_&&!anchoredLight_);
+ D3D9PacketScene(IDirect3DDevice9Ex* device,remixapi_Interface api,bool refreshResources=false,bool allowSkippedSources=false,bool omitCutoutsControl=false,float sceneLightRadiance=3,bool anchoredLight=false,TextureReferenceResolver resolveReference={},bool templeLightRig=false,std::optional<Vec3> authoredDirection={}):device_(device),api_(api),refreshResources_(refreshResources),allowSkippedSources_(allowSkippedSources),omitCutoutsControl_(omitCutoutsControl),sceneLightRadiance_(sceneLightRadiance),anchoredLight_(anchoredLight),templeLightRig_(templeLightRig),authoredDirection_(authoredDirection),resolveReference_(std::move(resolveReference)){
+  failed_=!std::isfinite(sceneLightRadiance_)||sceneLightRadiance_<0||sceneLightRadiance_>30||(templeLightRig_&&!anchoredLight_)||(authoredDirection_&&(!anchoredLight_||templeLightRig_));
  }
  D3D9PacketScene(const D3D9PacketScene&)=delete;D3D9PacketScene& operator=(const D3D9PacketScene&)=delete;
  ~D3D9PacketScene(){ReleaseResources();if(device_)device_->SetPixelShader(nullptr);if(cutoutShader_)cutoutShader_->Release();}

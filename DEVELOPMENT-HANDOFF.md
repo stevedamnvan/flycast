@@ -1,6 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG996: Practice HUD restored with topology-qualified
+Current resume checkpoint LOG999: same-source light-direction isolation confirms
+0,0,1 reproduces dark fighters; current-camera direction overlights them. New
+helper explicit unit-direction option preserves defaults. Four builds/1078x3/
+SDK313 and three CLI negatives pass; three120-frame renders exit0,baseline exact.
+Evidence practice-light-direction-a; no live helper/game. Next stage-key/fill
+distribution preserving user-liked arena/floor; no camera-following main key,
+global exposure workaround or promotion of overlit control. Material atlas union
+still needs new Practice variants (LOG997). Simplified tracker goal ACTIVE.
+
+Previous checkpoint LOG996: Practice HUD restored with topology-qualified
 14-index OIT strip/18-index normal list panel certificate. Live e finished116
 captures,24432 protected pixels each,independent native/composite RGBA mismatch0.
 Four builds/1067 selftests x3/SDK302/Python40 pass. No live process remains on
