@@ -347,9 +347,10 @@ Next stage-light distribution/anchor ownership with fixed exposure policy,
 preserving arena/floor; verify moving camera and fighters before promotion.
 LOG1000 fixed secondary fill.3 improves source5302 fighter readability while
 retaining main key; face highlights remain. Four builds/1088x3/SDK323/Python41.
-Live practice-remix-temple-fill-a pending; verify before promotion,then moving
-combat and stage transfer. Do not generalize the reference-view fill vector to
-all coordinate anchors or mistake unchanged materials for unchanged lighting.
+LOG1001 live1280 produced no previews (fallback at5309);640 completed115 with
+6108 exact nativeHUD pixels each and visible fighters. Next controlled combat/
+turning input and stage transfer,plus1280 return-latency work. Do not generalize
+the reference-view fill vector to all anchors or call this performance accepted.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,
@@ -661,8 +662,10 @@ Metallic scalars may be appropriate for single-class surfaces; mixed atlases
 still require region masks. Baseline binds26 replacement materials; water ledger
 records9 reused/16 upgrade candidates/4 sky/1 rejected. These are conversion and
 binding counts,not visual acceptance. Built-in trial4 outputs all rejected.
-New Mitsurugi/Sophitia twelve-atlas inventory has only2 exact old-cache matches;
-reconcile its variants into the existing union before claiming current coverage.
+New Mitsurugi/Sophitia twelve-atlas inventory has only2 exact old-cache matches.
+LOG1001 extends existing union evidence with10 additional source-content keys
+in practice-variant-extension.json; exact across3 stages. Runtime hash/binding
+and used-region validation remain pending; native baseline retained for all12.
 All eight fighter/stage pairings and the full-game denominator remain incomplete.
 
 **Executable next batch: reconcile and validate existing assets, then scale

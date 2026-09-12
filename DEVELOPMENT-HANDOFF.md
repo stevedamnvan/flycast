@@ -1,11 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1000: independent fixed fill.3 restores body/cloth/
-weapon readability in source5302 still; main key unchanged,face highlights still
-harsh. Four builds/1088x3/SDK323/Python41 pass. Live diagnostic
-practice-remix-temple-fill-a running on handle1989; poll same handle and archive
-isolated host log at completion. Do not restart from lack of preview files.
-Candidate remains unaccepted until live/combat/transfer review; no material edits.
+Current resume checkpoint LOG1001: fill1280 completed with no previews after
+fallback at5309; preserve failure,do not relax guards. Fill640 completed115
+captures,6108 exact nativeHUD pixels each,viewed fighters visible. No process
+remains on handles1989/90178;host logs archived. Next controlled combat/turning
+input and stage transfer plus1280 return latency. Face highlights and overall
+acceptance remain open. Material union extension records12 Practice atlases,
+2 old matches/10 new source-content keys; runtime binding pending,native retained.
+Source152410113 includes bounded fill;four builds/1088x3/SDK323/Python41 pass.
 
 Previous resume checkpoint LOG999: same-source light-direction isolation confirms
 0,0,1 reproduces dark fighters; current-camera direction overlights them. New

@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1001 live fill640 verifies visibility;1280 return gate remains failed.
+practice-remix-temple-fill-a ends host0/helper11 orderly,zero previews:
+current5309 candidate0 source0 latched fallback. Fill created correctly; no
+same-bound retry/guard relaxation. Lower640 diagnostic fill640-a completes115
+captures; viewed5300 composite restores fighter cloth/equipment and nativeHUD.
+Independent mask/native RGBA check6108 protected pixels each,mismatches0.
+Host0/helper11 orderly,no forced children. Not moving combat,1280 acceptance,
+performance or suppliedDLSS5 proof; skin highlights still need work. Same fixed
+fill vector not certified across anchors/stages. Both host logs retained.
+Material extension: material-union-a/practice-variant-extension.json decodes old
+source DDS anew,joins12 Practice atlases across3 stages:2 old matches,10 new
+source-content keys. All retained as reused native pending binding/region work;
+not10 upgraded materials or known new runtime hashes. No generation/spending.
+Next controlled combat/turning input and stable stage transfer at diagnostic640,
+plus capture-free return-latency work for1280. Existing guards remain.
+
 LOG1000 independent fixed fill candidate restores fighter readability in still.
 Existing helper accepts --scene-fill "X Y Z radiance" (unit direction,0..3,
 anchor required,no temple rig); independent12-degree white fill leaves primary
