@@ -96,6 +96,8 @@ void InitAudio()
 		return;
 	}
 
+	NOTICE_LOG(AUDIO, "Audio backend ready: %s (%s)", currentBackend->slug.c_str(), currentBackend->getName().c_str());
+
 	if (audio_recording_started)
 	{
 		// Restart recording

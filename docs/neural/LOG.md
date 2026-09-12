@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG959 audio backend attribution, base7df17f508 plus source changes.
+Release diagnostics now report successful backend, SDL obtained driver/rate/
+callback/buffer and whole-session callback/underrun counts on device close.
+Counters reset on init, callback-owned under existing mutex, read after device
+close joins callbacks. No per-callback logging, buffering/pacing/settings change.
+Four serial builds,1053 selftests x3,SDK302,Python36 pass. Bounded native run
+300 samples after120 warmup exits0: SDL2 WASAPI,44100Hz,1024 callback frames,
+2822 buffer frames,no resampling;454 callbacks,2 underruns including startup.
+Evidence C:/Flycast-Evidence/audio-backend-attribution-a contains build/test
+logs, command, launch and flycast.log. Staged flycast-audio-diagnostic-auto-a.exe
+is incremental, not exact-SHA evidence. Short startup lane is not a gameplay
+performance or audible-quality acceptance. No Toolkit/material/config edits.
+1024/44100=23.22ms callbacks and64ms capacity identify coarse audio pacing;
+the46ms tail still requires causal comparison, not inference from arithmetic.
+Next bounded same-source real-time pair with this telemetry to locate steady
+underruns, then test existing supported audio configuration only if warranted.
+Keep human listening/manual combat and hair/coverage in queue. No test live.
+
 LOG958 real-time timing repeat, basefb973b37b, no source changes.
 Resumed live session88976 to terminal0; native/combined both0. Matched1200
 samples, discard120 warmup,1080 denominator; identical cycle endpoints

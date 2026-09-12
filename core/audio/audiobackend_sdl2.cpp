@@ -18,6 +18,8 @@ class SDLAudioBackend : AudioBackend
 	uint32_t *sample_buffer;
 	unsigned sample_buffer_size = 0;
 	unsigned sample_count = 0;
+	unsigned long long callback_count = 0;
+	unsigned long long underrun_count = 0;
 	SDL_AudioCVT audioCvt;
 
 	SDL_AudioDeviceID recorddev {};
@@ -30,12 +32,14 @@ class SDLAudioBackend : AudioBackend
 		SDLAudioBackend *backend = (SDLAudioBackend *)userdata;
 
 		backend->stream_mutex.lock();
+		++backend->callback_count;
 		// Wait until there's enough samples to feed the kraken
 		unsigned oslen = len / sizeof(uint32_t);
 		unsigned islen = backend->needs_resampling ? std::ceil(oslen / backend->audioCvt.len_ratio) : oslen;
 
 		if (backend->sample_count < islen)
 		{
+			++backend->underrun_count;
 			// No data, just output a bit of silence for the underrun
 			memset(stream, 0, len);
 			backend->stream_mutex.unlock();
@@ -81,6 +85,7 @@ public:
 		sample_buffer_size = std::max<u32>(SAMPLE_COUNT * 2, config::AudioBufferSize);
 		sample_buffer = new uint32_t[sample_buffer_size]();
 		sample_count = 0;
+		callback_count = underrun_count = 0;
 
 		// Support 44.1KHz (native) but also upsampling to 48KHz
 		SDL_AudioSpec wav_spec, out_spec;
@@ -120,6 +125,9 @@ public:
 			}
 		}
 
+		if (audiodev != 0)
+			NOTICE_LOG(AUDIO, "SDL audio ready: driver=%s rate=%d callback_frames=%u buffer_frames=%u resampling=%d",
+				SDL_GetCurrentAudioDriver(), out_spec.freq, unsigned(out_spec.samples), sample_buffer_size, int(needs_resampling));
 		return audiodev != 0;
 	}
 
@@ -157,6 +165,8 @@ public:
 			SDL_PauseAudioDevice(audiodev, 1);
 			read_wait.Set();
 			SDL_CloseAudioDevice(audiodev);
+			// Closing the device joins callbacks before reading their counters.
+			NOTICE_LOG(AUDIO, "SDL audio stopped: callbacks=%llu underruns=%llu (whole session, includes startup)", callback_count, underrun_count);
 			audiodev = SDL_AudioDeviceID();
 		}
 		delete [] sample_buffer;

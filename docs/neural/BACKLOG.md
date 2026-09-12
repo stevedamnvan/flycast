@@ -238,9 +238,12 @@ pair199.80M/197.94Mcycles/s (-0.9269%, within1% narrowly),1074/1080 fresh99.444%
 P95 native46.0ms/combined24.9ms; pacing and audible quality remain open.
 LOG958 repeat confirms199.800M/197.890Mcycles/s (-0.9561%),1072/1080
 fresh99.259%. Same cycle endpoints; both exits0, baseline/config exact.
-Next identify actual audio backend/callback cadence and underruns before tuning
-long intervals, then manual playable session/hair/coverage. No third timing
-repeat without a changed hypothesis. Evidence realtime-audio-b/comparison.json.
+LOG959 release diagnostics identify SDL2/WASAPI44100Hz,1024 callback frames,
+2822 buffer frames; short native run454 callbacks/2 underruns including startup.
+Four builds/1053x3/SDK302/Python36 pass. No audio policy changed.
+Next same-source real-time pair with backend/underrun telemetry, then supported
+configuration comparison if warranted; manual combat/hair/coverage follow.
+Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
