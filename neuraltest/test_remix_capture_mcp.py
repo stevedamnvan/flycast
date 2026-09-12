@@ -1,7 +1,8 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
-from remix_capture_mcp import capture_destination, displacement_request
+from remix_capture_mcp import capture_destination, displacement_request, ingestion_request
 
 
 class CaptureDestinationTests(unittest.TestCase):
@@ -30,6 +31,20 @@ class CaptureDestinationTests(unittest.TestCase):
                 capture_destination(project, source)
             self.assertEqual(target.read_text(), 'existing')
             self.assertEqual(source.read_bytes(), b'capture source')
+
+    def test_ingestion_rejects_escape_and_cache_collision(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d); project = root / 'p.usda'; project.write_text('project')
+            src = root / 'source.png'; src.write_bytes(b'png')
+            output = root / 'assets/ingested/candidate'
+            body = {'executor': 1, 'context_plugin': {'data': {
+                'input_files': [[str(src), 'DIFFUSE']], 'output_directory': str(output)}}}
+            self.assertEqual(ingestion_request(project, json.dumps(body))['executor'], 0)
+            output.mkdir(parents=True); (output / 'cached.dds').write_bytes(b'cached')
+            with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body))
+            body['context_plugin']['data']['output_directory'] = str(root / 'outside')
+            with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body))
+            self.assertEqual((output / 'cached.dds').read_bytes(), b'cached')
 
     def test_invalid_sources_are_rejected(self):
         with self.assertRaises(ValueError):

@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG969 current-process ingestion wrapper proven; hair candidate not promoted.
+Based24a19520. Existing capture MCP now exposes flycast_ingest_diffuse_current_process,
+plain JSON string avoids unresolved executor enum in installed OpenAPI tool.
+Validates saved project,one local diffuse PNG,fresh assets/ingested subdirectory;
+rejects cached output/escape; forwards existing ASGI material ingestion API with
+supported executor0. No installed-package edits, new server/models or layer binding.
+Four serial builds,1053 selftests x3,SDK302,Python37 pass; focused path/collision
+controls pass. Seven open layers backed up/saved byte-exact; project closed via
+MCP, oldPID2772 exited normally, restarted extension PID20588. Initial open call
+used wrong project_path argument and was rejected; corrected layer_id succeeds.
+Live wrapper succeeds validation/metadata output candidate-preserved.a.rtex.dds.
+Evidence hair-ingest-wrapper-a save-receipt/live-ingest/build/selftest logs.
+Frozen original-region comparison via MCP diagnostic layer both0, baseline exact,
+layer detached. Viewed1280 render: no convincing strand improvement, broad clumps
+persist. BC7 decoded alpha128 disagreement7402 atlas/126 hair pixels, max hair
+alpha error14; source PNG alpha was exact. Not promoted; no moving acceptance.
+Evidence hair-region-render-a plus hair-ingest-wrapper-a/ingested-alpha.json.
+Keep reusable MCP repair, retain candidate/cache as unaccepted. Next source-supported
+hair geometry/shading assessment, not another upscale or roughness sweep. Full
+material coverage remains open. Audio parked. No game/test/ingestion live.
+
 LOG968 hair candidate ingestion exposes Toolkit MCP executor schema defect.
 Base0de9cd8a8. Candidate inspected; exact alpha/outside preservation retained.
 Existing remix_ingest_material_asset default executor1 returns500: validator

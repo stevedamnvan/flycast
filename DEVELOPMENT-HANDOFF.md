@@ -1,25 +1,12 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG963: no-rebuild repeat0 late audio gaps,1074/1080 fresh,199.964M
-cycles/s. Startup and smooth pacing remain open. Locked intensity1/0 control
-15 common exact returned colour/depth/material pairs,14 exact guidance, native
-invariants0, visible difference; full provenance and visual acceptance not closed.
-All runs0, baseline/reshade/emu restored, no test live. Evidence audio-no-rebuild-b
-and no-rebuild-output-a. Candidate hair still glossy/clumped in inspected2540.
-User reports audio sounds fine; stop audio/sync diagnostic loops and startup
-tuning. Capture-device overhead remains unverified hypothesis. Next playable
-visual review, hair and character material completeness, then full coverage.
-Keep default compatibility policy; no-rebuild experimental only. Source unchanged.
-LOG964: Kilik hair tile8x roughness smoother than4x (.341 vs.369 median);
-LOG965 frozen MCP4x roughness comparison shows no convincing improvement;
-not promoted.232 draws/116 frames verified within hair tile. Baseline exact,
-diagnostic layer detached. Next strand detail/shading and source-supported
-attachment/coverage; preserve atlas/alpha/UV/normals, no roughness sweep.
-Evidence hair-material-audit-a and hair-roughness-compare-a. No test live.
-LOG966: original hair64x64 in256 atlas, first-pass input exact;8x feeds generated
-4x. Latest built-in hair edit1254 RGB loses alpha/changes locks, rejected/no retry.
-Evidence hair-strand-candidate-a and foundation.json. Next original-region
-foundation with exact alpha/UV/retained-map constraints, no recursive generation.
+Current LOG969: typed current-process ingestion MCP wrapper proven live,
+4builds/1053x3/SDK302/Python37 pass. Toolkit restarted safely PID20588 after
+seven layers saved byte-exact. Candidate ingested/rendered but not promoted:
+no convincing strand gain, BC7 hair alpha128 differs126 pixels. Baseline exact,
+diagnostic layer detached. No game/test/ingestion live. Next source-supported
+hair geometry/shading, no upscale/roughness loops. Audio parked.
+Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.
