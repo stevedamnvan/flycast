@@ -309,7 +309,15 @@ this coverage; hair attachment research must not serialize the whole remaster.
 Then test the same material-class decisions across all eight pairings and motion.
 LOG991: Mitsurugi/Sophitia native source captures on Emperor's Garden (the water
 reference) now verified in Practice, frames5900..5902;36 assets/35 previews pass.
-Temple pair remains pending; Practice idle frames are not moving-combat acceptance.
+LOG992: Hoko Temple pair captured5300..5302;30 assets/29 previews pass.
+All twelve character atlas previews (assets2..13) are byte-identical across
+Takamatsu, Emperor's Garden and Hoko; source reuse is demonstrated for this
+costume/pose sample. Practice idle frames are not moving-combat acceptance.
+Next bring the verified Practice replay into the existing managed Remix route;
+its current default1200-frame run plus2100 warmup ends before these selections.
+Use explicit diagnostic run bounds for the later source, retain420s ceiling,
+and do not label altered capture timing performance evidence. Keep welded normals,
+native effects and the preferred material candidate separate from source coverage.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

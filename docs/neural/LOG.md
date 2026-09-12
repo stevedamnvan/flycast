@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG992 sword-character Hoko source coverage and cross-stage atlas reuse.
+stage-menu-f verifies Hoko Temple name/preview; pair-temple-a frames5300..5302
+shows Mitsurugi/Sophitia standing, clean_close=yes. material_inspect passes
+3 frames30 assets29 previews. character-cross-stage-hashes.json verifies
+assets2..13 decoded-preview PNG files byte-identical across castle/water/temple.
+This proves this source subset can share map work across those levels, not all
+expression/costume variants. Existing launcher defaults1200+2100 frames, earlier
+than Practice selection; adapt explicit diagnostic bounds using existing route,
+retain420s ceiling and source identity. No remaster render/visual acceptance yet.
+
+
 LOG991 Emperor's Garden source coverage for Mitsurugi and Sophitia established.
 Practice stage-menu-e verifies name/preview; pair-water-a confirms matching
 Chinese courtyard architecture in gameplay with both standing characters.
