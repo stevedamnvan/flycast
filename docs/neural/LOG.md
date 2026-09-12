@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG966 hair foundation trace and rejected strand candidate, base0423c2d75.
+User questions wrong foundation. Verified first-pass Comfy input pixel-exact to
+PIL-decoded original captured256x256 DDS. Hair is64x64 tile UV.5..75, with
+noisy mixed content outside. Existing8x driver feeds generated4x albedo into
+PBRify again, generates16x then downsamples8x. Correct original texture selected;
+recursive generated input and whole-atlas context remain plausible quality causes,
+not proof decoder/runtime source itself is wrong. Analysis-only BOX reduction
+to source dimensions: hair alpha128 disagreement8 pixels4x/9 pixels8x,4096 tile
+pixels; not runtime mip/silhouette acceptance. No texture file changed.
+One built-in strand edit attempted for26F0 hair region only, explicit unchanged
+outside/alpha/UV and2048 request. Output1254x1254 RGB (no alpha), changed lock
+silhouette; REJECTED before ingestion/binding. No retries, API fallback, new
+models or paid API calls. Built-in model/monetary charge unexposed. Attempt/cache
+key/prompt/output saved hair-strand-candidate-a/attempt.json,rejected-output.png.
+This material-specific request differs from LOG930 four-character delit attempt;
+do not repeat either. No generated image promoted as texture quality evidence.
+Foundation evidence hair-material-audit-a/foundation.json plus original existing
+input and4x/8x driver. Next original64x64 hair-region foundation with exact alpha/
+UV constraints and retained-map compatibility; avoid generated-on-generated
+inputs and whole-atlas conditioning. Preserve existing baseline; no global regen.
+Source-supported attachment/full coverage remain open; audio parked. No test live.
+
 LOG965 bounded hair roughness comparison through MCP, base87fbb8947.
 Matched source DDS payload for26F0F098F66BA515 across116 moving captures;
 232 draws all UV inside hair tile[.5,.5]..[.75,.75]. Evidence UV coverage in

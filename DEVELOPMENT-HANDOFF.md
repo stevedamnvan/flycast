@@ -16,6 +16,10 @@ not promoted.232 draws/116 frames verified within hair tile. Baseline exact,
 diagnostic layer detached. Next strand detail/shading and source-supported
 attachment/coverage; preserve atlas/alpha/UV/normals, no roughness sweep.
 Evidence hair-material-audit-a and hair-roughness-compare-a. No test live.
+LOG966: original hair64x64 in256 atlas, first-pass input exact;8x feeds generated
+4x. Latest built-in hair edit1254 RGB loses alpha/changes locks, rejected/no retry.
+Evidence hair-strand-candidate-a and foundation.json. Next original-region
+foundation with exact alpha/UV/retained-map constraints, no recursive generation.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

@@ -262,6 +262,10 @@ on opaque Kilik hair tile; broad locks remain. LOG965 MCP4x roughness
 comparison shows no convincing improvement; not promoted, no further sweep.
 232 draws/116 frames sample hair tile only. Next strand-detail/shading structure
 and source-supported attachment, then full material coverage.
+LOG966 foundation: first-pass input matches original256 DDS; hair only64x64.
+8x recycles generated4x. New hair-region built-in output lost alpha/resized and
+changed locks: rejected, no retry/binding. Next original-region foundation,
+exact alpha/UV and retained-map compatibility before generation/integration.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
