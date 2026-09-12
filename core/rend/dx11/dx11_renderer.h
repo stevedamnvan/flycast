@@ -382,6 +382,11 @@ protected:
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;
 	ComPtr<ID3D11Texture2D> remakeCompositeTexture;
 	ComPtr<ID3D11ShaderResourceView> remakeCompositeView,remakeDisplayedView;
+	// LOG909: composite targets come from a small ring instead of a texture
+	// created per composited frame; a composite is read by its own display and
+	// capture only, so the slot reused three composites later is free.
+	struct RemakeCompositeSlot { ComPtr<ID3D11Texture2D> texture; ComPtr<ID3D11RenderTargetView> rtv; ComPtr<ID3D11ShaderResourceView> view; };
+	std::array<RemakeCompositeSlot,3> remakeCompositeRing;std::size_t remakeCompositeRingNext=0;
 	std::uint64_t remakeCompositeFrame=0,remakeDisplayedFrame=0;
 	bool remakeCompositeEvaluated=false,remakeDisplayedEvaluated=false;
 	unsigned remakePreviewCaptureAttempts=0;
@@ -402,6 +407,7 @@ protected:
 		remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
+		for(auto& slot:remakeCompositeRing)slot={};remakeCompositeRingNext=0;
 		remakeCompositeView.reset();remakeDisplayedView.reset();remakeCompositeFrame=remakeDisplayedFrame=0;
 		remakeCompositeEvaluated=remakeDisplayedEvaluated=false;
 	}
@@ -427,6 +433,7 @@ protected:
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
+		for(auto& slot:remakeCompositeRing)slot={};remakeCompositeRingNext=0;
 		remakeCompositeView.reset();remakeDisplayedView.reset();remakeCompositeFrame=remakeDisplayedFrame=0;
 		remakeCompositeEvaluated=remakeDisplayedEvaluated=false;
 	}

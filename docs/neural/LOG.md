@@ -1,5 +1,33 @@
 # Neural rendering evidence log
 
+LOG909 pooled display composite target accepted (first LOG908
+candidate). Code (committed with this entry): the display composite
+target comes from a ring of three pooled textures with their views
+instead of a texture created with initial data for every composited
+frame; the evaluated composite draws every pixel of the target (full
+quad, no blending, then the masked overlay with discard), so the
+returned image is uploaded as the base only when a returned image is
+displayed without evaluation. Diagnostic run
+`C:/Flycast-Evidence/pilot-display-pool-cpu-a` (narrow scope,
+`--cpu-timing`): display-create-target 1.05 to 0.001 ms, frame-display
+1.5 to 0.16 ms, frame-render 15.65 to 14.5 ms; the present flush grew
+2.36 to 3.0 ms (the frame's command translation moved, LOG908) and the
+emulated frame period 19.24 to 18.91 ms. Performance-eligible narrow
+runs (no capture, no timing, same flags as LOG907)
+`pilot-display-pool-{a,b}`: present p50/p95 18.28/25.80 and 18.04/25.70
+ms against 18.93/24.73 (LOG907 narrow-digest-b) and 18.46/25.38
+(pilot-scope-narrow-a) before; remake presents 1173/1167, output repeats
+265/276, no-return-credit 253, worker-busy 4, anchor rejections 0,
+presentation never stopped. About 0.5 ms per frame whole-frame gain,
+accepted; about 55 fps. GPU utilization sampled read-only with
+nvidia-smi during pool-a (`gpu-util-display-pool-a.csv`): steady p50 40
+percent, p90 71 percent, so the GPU is not the gate and the present
+flush cost is host-side. Next LOG908 candidates: the view-scene build
+onto the feed worker (the render thread would stage the effect identity
+words of every translucent draw instead of only the alpha meshes, and the
+worker selects after building the scene), then the capture-geometry
+classification on the remake lane.
+
 LOG908 render-thread budget on the narrowed route: the frame handoff is
 not idle time, it is the D3D11on12 present flush. Diagnostics added
 (committed with this entry, all under `--cpu-timing`): the frame handoff

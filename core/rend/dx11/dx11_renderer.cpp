@@ -2674,13 +2674,26 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 				D3D11_TEXTURE2D_DESC desc{};desc.Width=flycast::rend::neural::RemakeWidth();desc.Height=flycast::rend::neural::RemakeHeight();desc.MipLevels=desc.ArraySize=1;
 				desc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;desc.SampleDesc.Count=1;
 				desc.BindFlags=D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE;
-				D3D11_SUBRESOURCE_DATA initial{image.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0};
 				ComPtr<ID3D11Texture2D> target;ComPtr<ID3D11RenderTargetView> rtv;
 				ComPtr<ID3D11ShaderResourceView> view;ComPtr<ID3D11DeviceContext> deferred;
 				RemakeCpuScope targetTiming("display-create-target",current,targetCount);
-    if(FAILED(device->CreateTexture2D(&desc,&initial,&target.get()))
-					||FAILED(device->CreateRenderTargetView(target,nullptr,&rtv.get()))
-					||FAILED(device->CreateShaderResourceView(target,nullptr,&view.get())))throw std::runtime_error("composite resources unavailable");
+				{
+					auto& slot=remakeCompositeRing[remakeCompositeRingNext%remakeCompositeRing.size()];++remakeCompositeRingNext;
+					if(slot.texture) {
+						D3D11_TEXTURE2D_DESC have{};slot.texture->GetDesc(&have);
+						if(have.Width!=desc.Width||have.Height!=desc.Height||have.Format!=desc.Format)slot={};
+					}
+					if(!slot.texture&&(FAILED(device->CreateTexture2D(&desc,nullptr,&slot.texture.get()))
+						||FAILED(device->CreateRenderTargetView(slot.texture,nullptr,&slot.rtv.get()))
+						||FAILED(device->CreateShaderResourceView(slot.texture,nullptr,&slot.view.get())))) {
+						slot={};throw std::runtime_error("composite resources unavailable");
+					}
+					// The evaluated composite draws every pixel of the target; only a
+					// returned image displayed without evaluation keeps it as the base.
+					if(!evaluatedRequested)
+						deviceContext->UpdateSubresource(slot.texture,0,nullptr,image.bgra.data(),flycast::rend::neural::RemakeWidth()*4,0);
+					target=slot.texture;rtv=slot.rtv;view=slot.view;
+				}
     targetTiming.End();
     RemakeCpuScope setupTiming("display-create-context-quad",current,setupCount);
     // Take the cached recording resources out while recording. A failure
