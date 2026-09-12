@@ -1,5 +1,15 @@
 # Neural rendering evidence log
 
+LOG993 bounded late-replay capture warmup in existing remake_launch.py.
+--capture-warmup defaults0 (unchanged2100), accepts2100..10000 only with image
+capture. Host1200 measurement count and capture420s ceiling unchanged. Rejects
+capture-free use and invalid bounds; therefore cannot silently alter performance
+defaults. Host command receipt records actual warmup. Four serial builds pass,
+1054selftests x3, SDK302 and Python40 pass; evidence practice-capture-warmup-a.
+No live Remix Practice run claimed yet; next existing managed route with later
+source selection, baseline preserved and no third-party setup restart.
+
+
 LOG992 sword-character Hoko source coverage and cross-stage atlas reuse.
 stage-menu-f verifies Hoko Temple name/preview; pair-temple-a frames5300..5302
 shows Mitsurugi/Sophitia standing, clean_close=yes. material_inspect passes

@@ -9,6 +9,22 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_late_capture_warmup_cannot_change_performance_defaults(self):
+        host = prepare(self.args)[3]
+        self.assertEqual(host[host.index('--warmup')+1], '2100')
+        self.args.capture_warmup = 5900
+        with self.assertRaisesRegex(ValueError, 'Capture warmup requires'):
+            prepare(self.args)
+        self.args.capture_frames = 3
+        host = prepare(self.args)[3]
+        self.assertEqual(host[host.index('--warmup')+1], '5900')
+        self.assertEqual(host[host.index('--frames')+1], '1200')
+        self.assertEqual(host[host.index('--timeout-ms')+1], '420000')
+        for invalid in (-1, 2099, 10001):
+            self.args.capture_warmup = invalid
+            with self.assertRaisesRegex(ValueError, 'Capture warmup requires'):
+                prepare(self.args)
+
     def test_realtime_audio_requires_explicit_request(self):
         with patch.dict(os.environ, {'FLYCAST_AUTOMATION_REALTIME_AUDIO': '1'}):
             self.assertNotIn('FLYCAST_AUTOMATION_REALTIME_AUDIO', prepare(self.args)[2])

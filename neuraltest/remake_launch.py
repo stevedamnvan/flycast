@@ -101,6 +101,11 @@ def prepare(args):
     if args.managed_session:
         helper.append('--session-worker')
     capture_frames = getattr(args, 'capture_frames', 0)
+    capture_warmup = getattr(args, 'capture_warmup', 0)
+    if capture_warmup:
+        if not capture_frames or not 2100 <= capture_warmup <= 10000:
+            raise ValueError('Capture warmup requires image capture and 2100..10000 frames')
+        host[host.index('--warmup')+1] = str(capture_warmup)
     benchmark_reuse = getattr(args, 'benchmark_selective_resource_refresh', False)
     if benchmark_reuse:
         if (not args.anchored_light or capture_frames or args.manual_input
@@ -322,6 +327,8 @@ def main():
     p.add_argument('--capture-frames', type=int, default=0,
                    help='Developer image capture 1..300; excludes this run from performance evidence')
     p.add_argument('--capture-start-source', type=int, default=0)
+    p.add_argument('--capture-warmup', type=int, default=0,
+                   help='Capture-only host warmup 2100..10000 for later replay selections; zero retains default')
     p.add_argument('--remix-only', action='store_true',
                    help='Capture-only comparison: skip neural evaluation, preserve native effects and HUD')
     p.add_argument('--returned-dlaa', action='store_true',

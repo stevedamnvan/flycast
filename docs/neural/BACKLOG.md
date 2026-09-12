@@ -318,6 +318,9 @@ its current default1200-frame run plus2100 warmup ends before these selections.
 Use explicit diagnostic run bounds for the later source, retain420s ceiling,
 and do not label altered capture timing performance evidence. Keep welded normals,
 native effects and the preferred material candidate separate from source coverage.
+LOG993 adds existing-launcher --capture-warmup2100..10000, image-capture only;
+default unchanged. Four builds/1054x3/SDK302/Python40 pass. Next live Practice
+Remix capture with explicit warmup; preflight is not runtime success.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

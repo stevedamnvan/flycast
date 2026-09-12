@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG992 (supersedes the historical current paragraphs
+Current resume checkpoint LOG993 (supersedes the historical current paragraphs
 below): roughness MCP source committed as2a9378a52, four builds/1054x3/SDK302/
 Python39 passed. Masonry candidate ingested and rendered, outside-region pixels
 exact; user prefers second masonry image as slightly more accurate. Retain for
@@ -13,6 +13,8 @@ reference;3 frames36 assets35 previews pass. Hoko pair-temple-a now also passes
 3 frames30 assets29 previews; all twelve character atlas PNGs exact across3 levels.
 Next existing managed Remix route with explicit later diagnostic bounds (defaults
 end before Practice selection), no420s ceiling increase or performance claim.
+--capture-warmup now supports2100..10000 only with image capture; defaults and
+420s ceiling unchanged. Four builds/1054x3/SDK302/Python40 pass; live run next.
 Native source coverage is not remastered appearance acceptance. World and
 character work proceed together; hair lineage must not block scene inventory.
 Use close face/hair/weapon views; preserve all eight pairings and full-game scope.
