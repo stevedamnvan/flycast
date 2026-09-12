@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG987 typed roughness MCP ingestion implemented and proven live. Existing
+request guard now takes internal DIFFUSE/ROUGHNESS semantic; separate roughness
+tool preserves old diffuse-only API. Semantic mismatch/unsupported type tests
+pass,cache/path guards unchanged. Four serial builds,1054 selftests x3,SDK302,
+Python39 pass. Toolkit saved7 layers; baseline/materials byte-exact,project
+timeline persisted existing in-memory0..40/60fps (backup retained). Normal
+close did not exit; saved process20588 stopped,restarted28016. New tool live.
+Candidate ingested ROUGHNESS executor0 validation_passed:true to assets/
+ingested/masonry_roughness_a/roughness_00001_.r.rtex.dds,not bound. Evidence
+roughness-mcp-a requests/results/save receipts. Next format/region check then
+MCP isolated material render,no regeneration. Audio parked,no game live.
+
 LOG986 masonry-only roughness candidate prepared through existing Comfy HTTP.
 Promptafcc409a-8c14-43dc-b82b-1de08f6486ea complete:LoadImage/EmptyImage/
 ImageCompositeMasked/SaveImage,no model,one output,no retries,paidcost0.

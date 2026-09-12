@@ -40,15 +40,17 @@ def capture_destination(project_file, capture_file):
     return source, target, digest
 
 
-def ingestion_request(project_file, request_json):
+def ingestion_request(project_file, request_json, semantic='DIFFUSE'):
+    if semantic not in ('DIFFUSE', 'ROUGHNESS'):
+        raise ValueError('Unsupported ingestion semantic')
     project = Path(project_file)
     if not project.is_absolute() or not project.is_file():
         raise ValueError('Saved local project required')
     body = json.loads(request_json)
     data = body['context_plugin']['data']
     files = data['input_files']
-    if len(files) != 1 or len(files[0]) != 2 or files[0][1] != 'DIFFUSE':
-        raise ValueError('Exactly one diffuse PNG required')
+    if len(files) != 1 or len(files[0]) != 2 or files[0][1] != semantic:
+        raise ValueError('Exactly one ' + semantic + ' PNG required')
     source = Path(files[0][0])
     if not source.is_absolute() or source.suffix.lower() != '.png' or not source.is_file():
         raise ValueError('Existing absolute PNG required')
@@ -63,8 +65,7 @@ def ingestion_request(project_file, request_json):
 
 
 def register(mcp):
-    @mcp.tool(name='flycast_ingest_diffuse_current_process')
-    async def ingest_diffuse_current_process(request_json: str) -> dict:
+    async def ingest_current_process(request_json, semantic):
         """Ingest one diffuse through Toolkit's existing API, avoiding broken enum refs.
 
         Uses supported current-process executor. No layer binding or model work.
@@ -76,12 +77,25 @@ def register(mcp):
         stage = omni.usd.get_context().get_stage()
         if stage is None:
             raise ValueError('Open the intended project first')
-        body = ingestion_request(stage.GetRootLayer().realPath, request_json)
+        body = ingestion_request(stage.GetRootLayer().realPath, request_json, semantic)
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.get_app()),
                                      base_url='http://fastapi', timeout=120) as client:
             response = await client.post('/ingestcraft/mass-validator/queue/material', json=body)
             response.raise_for_status()
             return dict(result=response.json(), executor=0, bound=False)
+
+    @mcp.tool(name='flycast_ingest_diffuse_current_process')
+    async def ingest_diffuse_current_process(request_json: str) -> dict:
+        """Ingest one DIFFUSE PNG into a fresh project directory; no binding."""
+        return await ingest_current_process(request_json, 'DIFFUSE')
+
+    @mcp.tool(name='flycast_ingest_roughness_current_process')
+    async def ingest_roughness_current_process(request_json: str) -> dict:
+        """Ingest one ROUGHNESS PNG using Toolkit semantic conversion; no binding.
+
+        Requires a fresh project ingestion directory and never overwrites cache.
+        """
+        return await ingest_current_process(request_json, 'ROUGHNESS')
 
     @mcp.tool(name='flycast_inspect_displacement')
     async def inspect_displacement(shader_path: str) -> dict:

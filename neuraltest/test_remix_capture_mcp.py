@@ -40,6 +40,13 @@ class CaptureDestinationTests(unittest.TestCase):
             body = {'executor': 1, 'context_plugin': {'data': {
                 'input_files': [[str(src), 'DIFFUSE']], 'output_directory': str(output)}}}
             self.assertEqual(ingestion_request(project, json.dumps(body))['executor'], 0)
+            body['context_plugin']['data']['input_files'][0][1] = 'ROUGHNESS'
+            with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body))
+            roughness = ingestion_request(project, json.dumps(body), 'ROUGHNESS')
+            self.assertEqual(roughness['context_plugin']['data']['input_files'][0][1], 'ROUGHNESS')
+            self.assertEqual(roughness['executor'], 0)
+            with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body), 'NORMAL')
+            body['context_plugin']['data']['input_files'][0][1] = 'DIFFUSE'
             output.mkdir(parents=True); (output / 'cached.dds').write_bytes(b'cached')
             with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body))
             body['context_plugin']['data']['output_directory'] = str(root / 'outside')
