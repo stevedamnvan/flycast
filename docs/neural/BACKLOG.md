@@ -236,8 +236,11 @@ Production/silent defaults unchanged; launcher records request/clears ambient.
 4 builds,1053 selftests x3,SDK302,Python36 pass. First real-time native/combined
 pair199.80M/197.94Mcycles/s (-0.9269%, within1% narrowly),1074/1080 fresh99.444%.
 P95 native46.0ms/combined24.9ms; pacing and audible quality remain open.
-Next repeat real-time pair and inspect audio buffering/long intervals before
-tuning, then manual playable session/hair/coverage. Baseline/config exact.
+LOG958 repeat confirms199.800M/197.890Mcycles/s (-0.9561%),1072/1080
+fresh99.259%. Same cycle endpoints; both exits0, baseline/config exact.
+Next identify actual audio backend/callback cadence and underruns before tuning
+long intervals, then manual playable session/hair/coverage. No third timing
+repeat without a changed hypothesis. Evidence realtime-audio-b/comparison.json.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.

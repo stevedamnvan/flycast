@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG958 real-time timing repeat, basefb973b37b, no source changes.
+Resumed live session88976 to terminal0; native/combined both0. Matched1200
+samples, discard120 warmup,1080 denominator; identical cycle endpoints
+9073227968..12673176320, monotonic same-epoch cycles/wall time verified.
+Native199800083.38cycles/s, combined197889867.43, relative -0.956064%:
+second narrow within1% result, not robust pacing/full60fps acceptance.
+Combined1072/1080 fresh=99.259%; restoration receipt baseline/config exact.
+Evidence C:/Flycast-Evidence/realtime-audio-b comparison.json, reports,
+commands and receipt.json. Same staged incremental executable as LOG957.
+Source inspection: SDL requests1024 audio frames (SAMPLE_COUNT512 x2),
+44100Hz first then48000 fallback; producer waits for buffer capacity. This
+alone does not identify actual backend or explain46ms native tail. No buffer
+settings changed and no audible quality claim. Next bounded backend/callback
+and underrun attribution before tuning; no unchanged third pair. Hair and
+coverage remain queued after playable pacing. No runtime test remains live.
+
 LOG957 automation audio pacing restored by explicit opt-in, base1db61ece5.
 Root cause: core/nullDC.cpp TEST_AUTOMATION unconditionally muted audio;
 sgc_if returns before WriteSample, bypassing backend pacing. New exact

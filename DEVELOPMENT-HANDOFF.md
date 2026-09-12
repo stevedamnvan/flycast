@@ -1,12 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG957: explicit --realtime-audio automation option implemented;
-TEST_AUTOMATION mute had bypassed normal audio pacing. Defaults unchanged.
-4 builds,1053 selftests x3,SDK302,Python36 pass. First real-time pair native
-199.80M vs combined197.94Mcycles/s (-0.9269%, narrow1% pass),99.444% freshness.
-Pacing/audio quality still open; repeat pair next, inspect buffering before tuning.
-Evidence realtime-audio-a; staged flycast-realtime-audio-auto-a.exe. Baseline/
-config exact, no runtime live. No full60fps/visual/lifecycle/provenance approval.
+Current LOG958: real-time pair repeated, native199.800M/combined197.890M
+cycles/s (-0.9561%),1072/1080 fresh99.259%. Same cycle endpoints as LOG957;
+both narrow1% checks pass, not smooth60fps/audio/full acceptance. Both exits0,
+baseline/config exact. Evidence realtime-audio-b/comparison.json and receipt.
+No runtime test live. No source changes; prior four builds/tests remain applicable.
+Next identify actual audio backend/callback cadence and underruns before tuning
+long intervals, then playable manual session/hair/coverage. Do not repeat the
+unchanged timing pair or infer audible quality from200MHz emulation pacing.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.
