@@ -1,13 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG962: existing max rebuild attempts0 temporary control removes
-scheduled later208ms stall. Audio gaps123 total/1 after50s vs135/8;199.618M
-cycles/s,1074/1080 fresh. Consumer logs success count1/60, not returned-image
-proof. Defaults unchanged, all configs/baseline byte-restored. No test live.
-Evidence audio-no-rebuild-a/summary.json and logs. Next repeat no-rebuild
-candidate and prove returned-image consumer contribution before opt-in adoption;
-then initial warmup stall, manual combat/hair/coverage. No full acceptance.
-Source remains LOG961 diagnostics; this slice docs only.
+Current LOG963: no-rebuild repeat0 late audio gaps,1074/1080 fresh,199.964M
+cycles/s. Startup and smooth pacing remain open. Locked intensity1/0 control
+15 common exact returned colour/depth/material pairs,14 exact guidance, native
+invariants0, visible difference; full provenance and visual acceptance not closed.
+All runs0, baseline/reshade/emu restored, no test live. Evidence audio-no-rebuild-b
+and no-rebuild-output-a. Candidate hair still glossy/clumped in inspected2540.
+User reports audio sounds fine; stop audio/sync diagnostic loops and startup
+tuning. Capture-device overhead remains unverified hypothesis. Next playable
+visual review, hair and character material completeness, then full coverage.
+Keep default compatibility policy; no-rebuild experimental only. Source unchanged.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG963 no-rebuild repeat and locked-source output control, baseac5ba9066.
+Repeat audio-no-rebuild-b exits0:123 whole-session underruns,0 after50s,
+199963670cycles/s,1074/1080 fresh99.444%; p50/p95/p99ms15.320/24.605/29.001.
+Baseline,reshade,emu restored exactly. This supports prior LOG962 but does not
+close startup/pacing/audio-listening gates or constitute fresh paired native run.
+Then no-rebuild-output-a candidate overall1 versus overall0 control, structure0,
+20 requested sources2540..2559 per lane, locked to selective-corrected-moving-a.
+Both0 and all three restorations exact. Fifteen common frames: returned BGRA,
+depth and material geometry exact;14 also exact guidance motion/bias. Native
+HUD/world/backbuffer checks0. Mean composite difference3.36793/255; visible
+intensity-controlled contribution with no rebuild, not quality gain or full
+consumer provenance. Existing comparison labels external_provenance=false and
+visual_acceptance=false; do not override these based on changed pixels alone.
+Viewed candidate2540: costume/staff details intact, hair glossy/clumped, skin
+still simplified. No full moving/hair appearance acceptance. Capture timing
+excluded from performance. An initial tool-call quoting error executed nothing;
+corrected before creation/launch. No source changes or new generation/spend.
+User subsequently reports audio sounds fine and directs no further audio/sync
+loops. Capture-device overhead is user hypothesis, not verified cause. Park
+audio attribution/initialization tuning. Next playable visual review, hair and
+character completeness/full coverage; no-rebuild stays experimental, default
+compatibility unchanged. No capture/test live.
+Evidence C:/Flycast-Evidence/audio-no-rebuild-b/summary.json and
+C:/Flycast-Evidence/no-rebuild-output-a comparison.json, scripts, per-lane
+commands,captures,logs,restoration receipts. Baseline remains opt-in unchanged.
+
 LOG962 existing no-rebuild control isolates scheduled combat stall, base279332c3d.
 Prior log gaps: source2113 guidance257ms then initial submit926ms; source2115
 submit422ms; source2415 submit208ms coincides with compatibility rebuild.

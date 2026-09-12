@@ -249,8 +249,14 @@ around initial consumer readiness,8 after50s from audio init. All135 retained.
 LOG962 existing max-rebuild-attempts0 control removes scheduled later stall:
 123 total gaps/1 after50s versus135/8,1074/1080 fresh,199.618Mcycles/s.
 Consumer reports evaluation success; exact image provenance still required.
-All configs/baseline restored. Next repeat and prove returned-image contribution
-before opt-in adoption, then initialization warmup/manual combat/hair/coverage.
+LOG963 repeat0 late gaps,1074/1080 fresh; locked intensity1/0 control15 exact
+returned input pairs,14 exact guidance, native invariants0, visible contribution.
+Full provenance/appearance still open. All configs/baseline restored. User
+reports audio sounds fine and directs stopping audio/sync investigation; capture
+device overhead is a hypothesis, not verified cause. Park further audio timing
+loops and initialization tuning. Next playable visual review: hair and character
+material completeness, then full coverage. Keep compatibility default unchanged;
+no-rebuild remains an experimental candidate, not a prerequisite for visuals.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 
