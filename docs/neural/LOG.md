@@ -1,5 +1,88 @@
 # Neural rendering evidence log
 
+Validation checkpoint: material-manifest correction passes four serial builds,
+three enabled selftests, SDK contract and29 Python tests; backlog consistency
+and whitespace checks pass. Initial build invocation quoting failed before
+compilation; corrected invocation passed, both logs retained. Active mod layer
+currently binds height maps on character atlases despite LOG800/pbrify_run.py
+removing them to prevent parallax pulling adjacent atlas texels. This is a
+candidate regression cause requiring a copied-layer same-source test, not yet
+proven rendering causality. Preserve originals and Toolkit MCP route.
+
+LOG915 hair transparency attribution (2026-09-12), same frozen source2756.
+B7552C1791289693,74909B4BBB03A72B,54C3A2076C5A9764 are fully opaque
+RGBA atlases (65536 alpha255 texels each); those draws are not cutouts.
+The separate BEF7B3CA57719AF1 atlas visibly contains the character fringe:
+6358 clear and24842 opaque texels, intermediate alpha in17-step values.
+Its two meshes use cutout semantics,1911 exported vertices, no replacement
+binding. It is not the opaque atlas with alpha restored: decoded RGB and even
+RGB restricted to fully opaque fringe texels differ. Source texture IDs also
+differ (403636736 versus269419008). Do not alias these hashes or copy alpha.
+Hair coverage is partial:26F0F098F66BA515,2B0271DC930143C5,503E88B7E5108669
+have cutout replacement bindings, while BEF7B3CA57719AF1 does not. Corrects
+any inference that all hair is unbound or that green atlas regions establish
+a missing-alpha bug. Preserve per-draw alpha semantics; missing Xianghua maps
+and hard cutout edges require separate controlled fixes. No visual acceptance.
+
+LOG914 material audit correction and character coverage (2026-09-12).
+The manifest parser recognized typed `def Material` only; Toolkit PBRify and
+cloth refinement layers author untyped `over` material opinions. Fixed the
+existing parser to include both, preserving strongest-first per-slot merging.
+Three focused material-manifest tests pass, including a new stronger untyped
+roughness override with inherited diffuse map. Four serial builds, three enabled selftests, SDK contract and29 Python
+tests pass; no production renderer behavior changed.
+Rebuilt material-manifest-corrected.json for frozen source2756: still9/29 bound,
+zero missing files/wrong suffixes; actual refined cloth roughness and PBRify
+paths now reported rather than obsolete weaker draft paths. The previous
+manifest's coverage count holds, but its selected map paths were incomplete.
+Viewed uncovered source atlases: 74909B4BBB03A72B contains red embroidered
+costume, skin, hair and boot details; 54C3A2076C5A9764 contains costume, ear,
+face and limbs; B7552C1791289693 contains hair and skin with green regions.
+These character atlases have no replacement-map bindings in this capture.
+Do not alias older character hashes without alignment/alpha proof or infer
+an appropriate uniform material for mixed skin, cloth, trim and hair atlases.
+Next inspect alpha and source draw semantics for the hair atlas and compare
+existing retained-map inventory before any generation or binding mutation.
+
+LOG913 frozen-source visual isolation and candidate sky correction (2026-09-12).
+No production code or live configuration changed. Evidence:
+C:/Flycast-Evidence/visual-regression-frozen-a. Existing helper, source2756
+from curved-d, 1280x960, 120 frozen draws. Native-profile versus repeat MAE
+0.2961; versus DLSS-profile MAE0.2910: no benefit above repeat noise. The
+pre-Remix raster has continuous sky; returned Remix has a hard horizontal
+and vertical boundary. Disabling replacement assets leaves the seam.
+A replacement-disabled USD capture joins all29 runtime materials to packet
+pixel payloads; the existing manifest tool finds bindings for9/29, no missing
+files or wrong map suffixes among those bindings. This is static binding
+coverage, not proof all nine affect runtime shading; unbound materials are
+not automatically eligible for generation or safe aliases to older hashes.
+Four background texture hashes matched by exact decoded pixels:
+CE989223E84C5BB0, DFE0C9BDE5067C71, 972AB446E32EDC34, 0E54EF2725E42F40.
+Explicit copied profile sky-classified.conf adds these to rtx.skyBoxTextures.
+Viewed sky-classified.bmp: the hard sky boundaries disappear; lighting also
+changes. Candidate only: moving combat, other views, performance, character
+and hair quality remain unaccepted. Keep the candidate opt-in; do not change
+live defaults or classify unrelated texture identities. No paid generation.
+Next audit uncovered material roles and retained-map correspondence; compare
+character curvature/hair on the same source and verify this sky candidate in
+motion. User-amended broad goal is ACTIVE; backlog contract passes.
+
+LOG912 user reports visual regression and requests remastered appearance with
+performance preserved. Refreshed actual HEAD10c97e1eb; older29b056f21 status
+was stale. Read-only stage inspection of pilot-curved-d source2756/current2763:
+original-native, returned-remix, neural-before-native-effects and composited
+PNGs viewed. Floor detail softness and hard sky seam already exist in returned
+Remix, before external neural processing and native composition. Composition
+restores water; it does not originate those defects. This localizes the sampled
+defects to Remix/input/material/lighting/upscaling, not a proven single cause.
+All43 packet mesh sampler modes are1; suspected helper mode2 filter-bit handling
+cannot explain this frame and was not changed. Preview external_nr_proven=false;
+no new provenance claim. Current narrow HEAD has no matched capture proof yet,
+so this older visual sample must not be described as fresh HEAD verification.
+Next controlled same-source Remix-stage comparison should separate DLSS/native
+shading from material/light handling; preserve current performance commits and
+user-selected curved/hair options, no new generation or model installs.
+
 LOG911 helper cycle located and its packet read shortened; the ring stays
 at three. Code (committed with this entry): the helper
 (`remake-runtime-smoke`) reports a stage split of one consumer cycle in

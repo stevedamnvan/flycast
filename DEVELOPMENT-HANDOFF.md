@@ -1,5 +1,27 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+User visual-regression steering (LOG912; goal amended 2026-09-12): restore a
+convincing, performant path-traced remaster with verified external DLSS 5
+contribution. BACKLOG remains the single authority. Current diagnostic source
+is HEAD10c97e1eb; frozen curved-d source2756 reproduces the sky seam after
+Remix, while the pre-Remix raster has continuous sky. Upscaling profile
+variation is within repeat-run noise, not an established cause. Characters,
+hair, material detail and lighting response are also explicitly unaccepted.
+LOG913 now isolates and corrects the sky seam in a copied diagnostic profile:
+sky-classified.conf identifies four background textures by captured pixel
+identity. Still-image seam removed; lighting changes, moving review pending.
+Current captured29-material manifest has replacement bindings for9; no missing
+files/wrong suffixes among those bindings. LOG914-915 identify uncovered character and graded-alpha fringe atlases;
+the manifest now honors Toolkit override layers (all required checks pass).
+Next test character height-map bindings in a copied layer: they are present
+again despite the prior atlas-parallax fix. Verify image causality before
+acceptance; preserve distinct opaque/fringe identities and alpha.
+Preserve accepted performance work; require moving combat, fresh-output cadence
+and separate human visual approval. Evidence and candidate profile are under
+C:/Flycast-Evidence/visual-regression-frozen-a; no live configuration changed.
+The amended broad goal is ACTIVE. Diagnostic runs are not performance evidence.
+
+
 ## Current checkpoint: capture texture-query batching committed (LOG893)
 
 Proof, moving and matched cost runs pass their exactness checks; no

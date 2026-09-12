@@ -69,6 +69,23 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual(m['missing_replacements'], [['AAAA000000000001', 'reflectionroughness_texture']])
         self.assertEqual(json.loads(out.read_text(encoding='utf-8'))['source_frame'], 2601)
 
+    def test_stronger_untyped_override_preserves_weaker_slots(self):
+        root = self.project / 'mod.usda'
+        root.write_text(root.read_text().replace(
+            '@./layers/draft.usda@',
+            '@./layers/refined.usda@, @./layers/draft.usda@'))
+        (self.project / 'layers' / 'refined.usda').write_text(
+            'over "RootNode"\n{\n    over "Looks"\n    {\n'
+            '        over "mat_AAAA000000000001"\n        {\n'
+            '            over "Shader"\n            {\n'
+            '                asset inputs:reflectionroughness_texture = @../assets/refined.r.rtex.dds@\n'
+            '            }\n        }\n    }\n}\n')
+        maps = manifest.mod_layers(root)['AAAA000000000001']
+        self.assertEqual(maps['reflectionroughness_texture'], 'assets/refined.r.rtex.dds')
+        self.assertEqual(maps['diffuse_texture'],
+                         'assets/ingested/AAAA000000000001_diffuse.a.rtex.dds')
+        self.assertEqual(len(maps), 3)
+
     def test_unmatched_and_bad_packets(self):
         p = self.dir / 'remake-view.bin'
         p.write_bytes(packet([(1, 7, 256, 0, (100, 1, 0, 0), dds(bytes(64)))]))

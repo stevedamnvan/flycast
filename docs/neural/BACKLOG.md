@@ -11,13 +11,16 @@ Do not create replacement FC IDs or another task-state system.
 
 ### Short standing goal
 
-> Follow docs/neural/BACKLOG.md until the opt-in Soulcalibur remaster using RTX Remix plus externally supplied DLSS 5 is polished and playable: integrate the reimagined PBR materials and authored lighting at useful live resolution, preserve native effects/HUD and smooth shading, verify moving gameplay and neural contribution, and meet the backlog's stability, cadence, resource, and working-pipeline acceptance. Continue autonomously, keep evidence and handoff current, preserve existing safety boundaries, and distinguish measured technical acceptance from human visual approval.
+> Follow docs/neural/BACKLOG.md to deliver a convincing, highly performant, playable Soulcalibur path-traced remaster using RTX Remix and externally supplied DLSS 5. Fix materials, characters, hair, sky and exposure; verify PBR lighting and neural contribution. Preserve artwork identity, native effects/HUD, smooth normals, safety and performance gains. Target sustained 60 fps with fresh-output cadence, pacing, latency and bounded resources. Require same-source comparisons, moving combat and separate technical acceptance and human visual approval. Continue autonomously under existing gates and budget limits.
 
-User reaffirmed this goal on 2026-09-10 and withdrew the instruction to stop
-after a handoff. On 2026-09-11 the goal tool reports no active goal following
-completion of the bounded six-item CPU goal. The user-requested broader goal
-was then restored and verified ACTIVE, with CPU scheduling first and other
-performance improvements next. The standing backlog remains open.
+User amended the goal on 2026-09-12 to restore visual quality as a required
+partner to performance: materials must respond convincingly to path-traced
+lighting, characters must retain detail and identity, and hair must survive
+moving-combat review. The goal tool returned no active goal in this turn; the
+amended objective was registered and verified ACTIVE. This changes immediate
+focus within the existing queue, not completed engineering or acceptance gates.
+Next: isolate replacement-material bindings, character curvature and hair
+handling using matched evidence before accepting further appearance changes.
 
 Run with Astra low as requested. On 2026-09-08 the app reported no existing
 goal, and the short objective above was successfully registered as active.

@@ -113,7 +113,9 @@ def mod_bindings(mod_path):
     """Replacement map paths per material hash from a typed Material/Shader layer."""
     text = Path(mod_path).read_text(encoding='utf-8')
     bindings = {}
-    for block in re.finditer(r'def Material "mat_([0-9A-F]{16})"(.*?)\n        \}', text, re.S):
+    # Toolkit refinement layers author untyped `over` opinions, which must
+    # participate before weaker typed definitions when resolving map slots.
+    for block in re.finditer(r'(?:def Material|over) "mat_([0-9A-F]{16})"(.*?)\n        \}', text, re.S):
         maps = dict(re.findall(r'inputs:(\w+_texture) = @([^@]*)@', block.group(2)))
         bindings[block.group(1)] = maps
     return bindings
