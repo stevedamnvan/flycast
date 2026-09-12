@@ -572,9 +572,11 @@ scope or establish world-space truth or a production hair solution.
 
 ### Package D / FC-067: GPT-assisted full texture-set upgrade
 
-User amendment, 2026-09-11. This expands the existing Package D deliverable,
-not the active engineering priority: continue the authoritative performance
-queue in H while D's paid-execution prerequisites remain unsatisfied. Keep
+User amendment, 2026-09-11, with current2026-09-12 visual priority. Package D
+retains the entire captured-set deliverable. Follow the playable-delivery order:
+correct character lighting/material response while preserving the user-preferred
+arena/floor, and advance independent material validation alongside it. H remains
+required after visual corrections; paid prerequisites do not block cached work. Keep
 existing FC IDs, dependencies, runtime safeguards and acceptance gates. Reuse
 completed inventory, generation setup and integration; do not restart setup or
 create another roadmap, renderer or orchestration system.
@@ -636,12 +638,24 @@ are4 sky and rejected atlas. All50 inactive candidate bindings exist. Next
 validate cached alpha, class/region semantics and retained-map alignment;
 no regeneration justified by inventory alone. Whole-game denominator unknown.
 
+LOG997 current file audit: all489 cached paths still exist. Of47 audited runtime
+hashes,42 have DDS albedo/normal/roughness,38 DDS height and1 explicit metallic
+map; cached height exists for42,so cached and ingested counts are distinct.
+Metallic scalars may be appropriate for single-class surfaces; mixed atlases
+still require region masks. Baseline binds26 replacement materials; water ledger
+records9 reused/16 upgrade candidates/4 sky/1 rejected. These are conversion and
+binding counts,not visual acceptance. Built-in trial4 outputs all rejected.
+New Mitsurugi/Sophitia twelve-atlas inventory has only2 exact old-cache matches;
+reconcile its variants into the existing union before claiming current coverage.
+All eight fighter/stage pairings and the full-game denominator remain incomplete.
+
 **Executable next batch: reconcile and validate existing assets, then scale
 each proven recipe.** No new generation is needed to begin this batch. Use
 `D:/Flycast-Evidence/package-d-preflight-20260911/inventory.json` (old26),
 `C:/Flycast-Evidence/visual-repeat-b/water/water-coverage.json` (water30), and
-the corrected source2756 manifest; reconcile all47 observed hashes into the
-existing inventory, preserving the source ledgers and their evidence. Write
+the corrected source2756 manifest plus scene-roster-inventory-a captures. The
+old47 union is already reconciled; extend it with new Practice variants and
+their source identity, preserving the source ledgers and their evidence. Write
 new evidence under C:/Flycast-Evidence. The old67-output estimate covers only
 old26 and must not become the full-union job count or budget by extrapolation.
 

@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG997 user-requested material/goal audit. Goal tool confirms ACTIVE full
+remaster objective. Rechecked489 cached paths in47-material union: none missing.
+Existing DDS map coverage42 albedo/normal/roughness,38 height,1 metallic;
+cached height42 differs from DDS count. Conversion is not visual acceptance.
+Baseline26 replacements; water30 ledger9 reused/16 candidate/4 sky/1 rejected.
+New Practice twelve-atlas inventory has2 exact old-cache matches and is not yet
+reconciled into47 union. Whole-game denominator remains unknown. Built-in trial
+4/4 rejected; no numeric paid budget approved. Updated Package D stale H-first
+wording and already-completed47 reconciliation instruction in place; preserve
+current character-response priority and user-liked environment. Evidence:
+C:/Flycast-Evidence/material-union-a/current-conversion-status.json. No source,
+generation,spending or live-layer changes; technical/human acceptance separate.
+
 LOG996 Practice HUD restored in scoped stationary live sequence. OIT native960
 capture proves panel is14-index strip/12 vertices, while normal sorted capture
 has18-index triangle list. Certificate now accepts those exact topology forms,
