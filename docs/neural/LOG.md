@@ -1,5 +1,44 @@
 # Neural rendering evidence log
 
+LOG928 moving A/B of both candidate layers over the replay combat window and
+the unbound water-stage material dispositioned (2026-09-12). No production
+code changed. Unbound material 4E35880E8E86FC1E (water-stage capture
+`capture_2026-09-12_04-24-28.usd`): bound by one mesh only
+(`mesh_342A13FA4690C3A1`, 141 vertices, 47 faces, one instance), which samples
+a strip u 0.504 to 0.867, v 0.004 to 0.125 of a 256 atlas whose other three
+quadrants are mis-decoded noise (the clean quadrant is a red door and pillar);
+projected through the capture camera 1.4 percent of its vertices are inside
+the frustum and its footprint lies at x 1268 to 2546 of 1280, off the right
+edge. Rejected for this package (recorded in
+`visual-repeat-b/water/water-coverage.json`, `unbound_disposition`): not
+visible from the captured camera and PBRify on the corrupt atlas would
+fabricate detail; reopen if it enters the frame in combat. Water-stage
+ledger: 9 reused, 16 upgraded candidates, 4 sky baseline, 1 rejected. Moving
+A/B: two managed sessions with the standard 1280 flags and the DLSS consumer
+profile, `--effect-identity --extended-effect-capture --capture-frames 300
+--capture-start-source 2400` on the launcher's input replay; control
+`pilot-layers-moving-control-a` (no layers) and `pilot-layers-moving-a`
+(both layers activated and removed through the Toolkit MCP, baseline bytes
+e3c0979057770020 verified before and after). Both sessions stopped at the
+launcher's 420 s capture ceiling (host closed at present 2600, no
+performance.json): 1280 synchronous captures cost about 1.5 s each, so 300
+frames do not fit; they captured 193 and 203 frames of sources 2401 to 2596
+with 192 in common, all with identical source packets, cameras, meshes, scope
+and proof (`compare_captures` 192 of 192). Composited MAE median 4.90 (range
+4.58 to 9.82), upper band 5.57, 17.2 percent of pixels above 8, and stable
+per 50-frame window (5.06, 4.87, 4.74, 4.94), against the live control noise
+of 2.50 from LOG927; the difference map follows the walls, roofs, railings
+and floor joints through camera motion, and the side-by-side at source 2453
+shows finer stone detail on the right. Metrics in
+`pilot-layers-moving-a/moving-ab-metrics.json`. This is a 192-frame
+candidate moving comparison, not the 300-frame gate: an exact 300-frame lane
+at 1280 needs the locked-source route of LOG779 or a shorter window, and the
+ceiling was not raised. Accepted: the rejection with its evidence and the
+moving measurement. NOT accepted: any appearance gain (human review of the
+frame-2453 and frame-2580 pairs pending), player-controlled combat (replay
+only so far), and the character layer's live effect. Both layers remain
+inactive; baseline mod byte-identical.
+
 LOG927 live A/B of both candidate layers on the water-stage scene, with a
 live control repeat (2026-09-12). No production code changed; evidence under
 `C:/Flycast-Evidence/pilot-layers-capture-a/` (`live-ab-record.json`,

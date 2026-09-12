@@ -249,10 +249,15 @@ ran a live 40-capture A/B with both layers plus a control repeat: live noise
 2.50 MAE (character box 4.4); layers 5.04 to 5.08 (upper walls band 6.0
 against 2.25 noise, 18 percent of pixels above 8), concentrated on walls,
 roofs, railings and floor joints; the character layer's live effect (box 5.7)
-is marginal. Next: human review of the frame-2580 side-by-side and the frozen
-stills; bind or explicitly reject 4E35880E8E86FC1E; then the 300-frame moving
-comparison with both layers under player control. No appearance gain is
-accepted yet.
+is marginal. LOG928 rejects 4E35880E8E86FC1E with evidence (one off-frame
+47-face mesh on a mostly mis-decoded atlas; ledger 9/16/4/1) and adds a
+192-frame replay moving A/B over sources 2401 to 2596: 4.90 MAE against 2.50
+noise, stable per window, following walls, roofs, railings and floor joints;
+300 synchronous 1280 captures exceed the launcher's 420 s ceiling, so an
+exact 300-frame lane needs the LOG779 locked-source route. Next: human review
+of the frame-2453 and frame-2580 pairs; player-controlled combat with both
+layers (manual session); then the consumer-profile look decision and
+performance from LOG911. No appearance gain is accepted yet.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not

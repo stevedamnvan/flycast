@@ -1,5 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Moving checkpoint (LOG928; docs only on source HEAD 55ad44c01): a 192-frame
+replay moving A/B (sources 2401 to 2596, control and both layers, identical
+packets) changes the composited image by 4.90 MAE against 2.50 live noise,
+stable across the window and following the environment materials; the
+unbound water-stage material 4E35880E8E86FC1E is rejected with evidence
+(off-frame single mesh, corrupt atlas). 300 synchronous 1280 captures do not
+fit the launcher's 420 s ceiling; use the LOG779 locked-source route for an
+exact 300-frame lane. Human review of the frame-2453 and frame-2580 pairs and
+player-controlled combat remain before any appearance gain is accepted.
+
 Live checkpoint (LOG927; docs only on source HEAD 55ad44c01): both candidate
 layers were activated through the Toolkit MCP for one managed 40-capture
 session on the water stage and removed again (baseline bytes verified). A
