@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG990 (supersedes the historical current paragraphs
+Current resume checkpoint LOG991 (supersedes the historical current paragraphs
 below): roughness MCP source committed as2a9378a52, four builds/1054x3/SDK302/
 Python39 passed. Masonry candidate ingested and rendered, outside-region pixels
 exact; user prefers second masonry image as slightly more accurate. Retain for
@@ -8,7 +8,9 @@ moving comparison, inactive, baseline restored byte-exact; not final acceptance.
 Isolated native Practice replay verifies Mitsurugi then opponent selection;
 continue scene-roster-inventory-a menu observations and retained seed/replays.
 Original inputs/saves preserved; Arcade lava capture is not requested stage coverage.
-Next finish opponent/stage selection and fill missing Mitsurugi/Sophitia
+Emperor's Garden pair-water-a now verifies both standing characters on the water
+reference;3 frames36 assets35 previews pass. Next locate Hoko Temple and fill
+remaining Mitsurugi/Sophitia
 temple/water capture coverage before further single-pair tuning. World and
 character work proceed together; hair lineage must not block scene inventory.
 Use close face/hair/weapon views; preserve all eight pairings and full-game scope.

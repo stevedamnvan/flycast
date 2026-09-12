@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG991 Emperor's Garden source coverage for Mitsurugi and Sophitia established.
+Practice stage-menu-e verifies name/preview; pair-water-a confirms matching
+Chinese courtyard architecture in gameplay with both standing characters.
+Frames5900..5902, exit0 clean_close=yes; material_inspect passes36 assets and
+35 texture/palette previews. Evidence scene-roster-inventory-a/pair-water-a,
+pair-water-validation and retained input/seed receipts. No material generation,
+Toolkit binding or remake visual acceptance in this slice. Practice idle is not
+combat. Hoko Temple pair next, then source variant/used-UV mapping and existing
+Remix capture integration. Extra Takamatsu pair validates40 assets39 previews.
+
+
 LOG990 isolated native roster route established. Subagent ROSTER-AUDIT.md warns
 record_input truncates adjacent replay; copied native exe/boot/VMU seed to
 scene-roster-inventory-a/native-workspace, hashes verified, original unchanged.
