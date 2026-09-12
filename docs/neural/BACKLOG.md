@@ -149,6 +149,22 @@ Next carry this scoped correction into the existing character candidate and
 assess remaining returned-Remix versus downstream skin/hair defects with
 shading-aware motion, then moving combat/performance. Do not regenerate maps
 or repeat neutral-height guesses. Preserve full coverage and300/600-frame gates.
+LOG946 integrates the seven zero displacement ranges through MCP into the
+existing inactive character_correction layer, preserving all prior map bindings.
+Extended moving run completed118 captures across2440..2559 (2441/2445 absent).
+All118 source/receipt/completed-Present joins pass, native composition exact,
+invalid motion pixels0. Baseline restored byte-exact. This synchronous run is
+not performance or300-frame acceptance, nor fresh external-consumer provenance.
+Reviewed2559 returned Remix versus neural-before-native-effects: downstream
+stage adds brown/grainy skin detail; clumped hair is already present upstream.
+These are localized visual observations, not proof of the responsible setting
+or a quantified shimmer improvement. Overall appearance CORRECTIONS_REQUIRED.
+Next bounded correction: inspect the actual supplied-consumer public controls
+and current requested tuple; use the existing exact-input comparison route to
+reduce the added skin grain while retaining meaningful contribution. Preserve
+Remix lighting and weapon maps. Treat upstream hair separately; no texture
+regeneration or further resource-reuse image loop. Then moving combat and
+capture-free performance, retaining the full300/600-frame acceptance gates.
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported

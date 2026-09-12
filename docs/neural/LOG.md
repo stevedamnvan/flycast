@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG946 integrated character candidate and extended moving review.
+Base3fb9485cb. MCP merged seven LOG945 zero in/out ranges into existing
+character_correction.usda; prior asset bindings unchanged. Before SHA256
+535eec39458f3a04d7e23c8a8aeab378f2646887dc5468459cd39e75b24e6950,
+after bc4e369ff55fd1e303ce65a1efeb76240cf4996dc448bb7cf67d91a6ae3d5757.
+No generation, spend, new layer stack or source change. Frozen baseline/repeat/
+integrated source2461 all exit0. Extended-effect moving requested120 sources
+2440..2559 with guarded shading motion, uncurved welded normals and cutout;
+selective-resource-refresh remains off. Launcher exit0,118 retained frames,
+missing2441/2445. Existing verifier joins all118 source/helper/completed Presents;
+HUD/world/backbuffer mismatches0 and invalid motion0. Baseline restored exactly.
+Reviewed source2559 native, returned Remix and neural-before-native-effects:
+cloth/boots coherent, upstream hair clumped, downstream skin visibly browner
+and grainier than returned skin. This stage-local observation motivates the
+next supplied-consumer control correction; it does not identify a setting as
+causal or prove a temporal improvement. Appearance CORRECTIONS_REQUIRED.
+No new moving baseline repeat, no300-frame acceptance, no performance evidence,
+no fresh exact-input external provenance. Evidence and analysis script under
+C:/Flycast-Evidence/character-integrated-a; moving-analysis.json records scope.
+Next existing exact-input consumer comparison, then combat/performance; do not
+regenerate atlases to compensate for downstream grain. Docs-only slice reuses
+LOG945 source checks; backlog contract rerun separately.
+
 LOG945 supported character displacement correction through Toolkit MCP.
 Base207423729. Extended existing capture MCP module with
 flycast_inspect_displacement/flycast_set_displacement, no second server.
