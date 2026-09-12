@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG994 live Practice diagnosis: practice-remix-temple-a returned scene data but
+no images after presentation latched fallback at5053 (candidate0,lastsource5044).
+No capture-kind bug: remake-evaluated is a label. b uses existing exact-effect
+window5300..5329, captures24. Viewed5301 original/composite: dark characters,
+over-relieved floor and missing Practice glyphs, CORRECTIONS_REQUIRED.
+HUD-AUDIT.md: protected_pixels0, zero HUD mismatch vacuous; known glyph atlas
+fails combat-only bbox/depth certificate, generic history not live proof.
+Panel is retained OIT, glyphs punch-through. Native record3199 bbox40,32,506,96
+depth2068.97, panel3416 bbox32,24,333,117 depth1896.55. Separate-session source
+evidence, not exact live join. Need cohort-scoped Practice certificate/negative
+controls. Material manifest12 matched17 unmatched. b helper exits11 after
+channel-close;40 undisposed objects remains open. Handover checker inapplicable
+to single-generation window, not a valid verification. No acceptance.
+
+
 LOG993 bounded late-replay capture warmup in existing remake_launch.py.
 --capture-warmup defaults0 (unchanged2100), accepts2100..10000 only with image
 capture. Host1200 measurement count and capture420s ceiling unchanged. Rejects

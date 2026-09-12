@@ -321,6 +321,12 @@ native effects and the preferred material candidate separate from source coverag
 LOG993 adds existing-launcher --capture-warmup2100..10000, image-capture only;
 default unchanged. Four builds/1054x3/SDK302/Python40 pass. Next live Practice
 Remix capture with explicit warmup; preflight is not runtime success.
+LOG994: Practice Remix-only b captured24 frames; appearance rejected (dark
+characters, excessive floor relief, missing Practice glyphs). HUD-AUDIT.md finds
+protected_pixels=0: zero mismatch is vacuous. Next a separate Practice layout/
+depth certificate with negative controls, not a generic HUD relaxation; then
+same-source light/material isolation. Material manifest matches12 textures to
+existing captures,17 unmatched; unmatched is not proof missing source pixels.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,
