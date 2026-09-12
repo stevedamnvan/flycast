@@ -1,9 +1,10 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG988 (supersedes the historical current paragraphs
+Current resume checkpoint LOG989 (supersedes the historical current paragraphs
 below): roughness MCP source committed as2a9378a52, four builds/1054x3/SDK302/
 Python39 passed. Masonry candidate ingested and rendered, outside-region pixels
-exact; no convincing appearance gain, inactive, baseline restored byte-exact.
+exact; user prefers second masonry image as slightly more accurate. Retain for
+moving comparison, inactive, baseline restored byte-exact; not final acceptance.
 Next inspect existing replay/session metadata and fill missing Mitsurugi/Sophitia
 temple/water capture coverage before further single-pair tuning. World and
 character work proceed together; hair lineage must not block scene inventory.

@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG989 user prefers second masonry image as slightly more accurate, superseding
+the initial agent preference in LOG988. Retain candidate for moving comparison;
+no final appearance acceptance or baseline activation. Replay inventory across
+C:/Flycast-Evidence and D:/Flycast-Evidence found390 .input files, all2667 bytes
+with SHA256 25e4bdc3a4dcd43ec66aa5b15116cafa5a7f2f4783faa1140dcc454b14c018dd.
+Evidence scene-roster-inventory-a/replay-groups.json. These are one input sequence,
+not390 independently selected rosters. Different timing/state may still produce
+different scenes. Delegated read-only selection/capture preparation audit;
+no game launches or shared replay mutations authorized to that worker.
+
+
 LOG988 masonry diagnostic reviewed and cross-scene inventory prioritized.
 Ingested roughness is DXGI80 BC4_UNORM, region191/255; decoded outside region
 exact against original ingested map. Evidence masonry-roughness-a/

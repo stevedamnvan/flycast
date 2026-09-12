@@ -291,7 +291,10 @@ matched face views alongside LOG986 validated masonry roughness candidate.
 LOG987 roughness MCP operation proven live. LOG988 verifies linear BC4 and
 unchanged decoded pixels outside the masonry quadrant; control/candidate both
 rendered successfully and baseline restored byte-exact. No convincing visual
-gain at this view; candidate stays inactive, no more masonry scalar sweeps.
+gain at this view in the initial agent review. User subsequently judged the
+second (masonry) image slightly more accurate: retain as the preferred candidate
+for moving comparison, inactive until tested; this is not final acceptance.
+No more masonry scalar sweeps.
 Next inventory and parse the missing character/stage captures before further
 appearance tuning. Existing Kilik/Taki temple and water evidence is reusable;
 Mitsurugi/Sophitia coverage is not yet established. Use the existing capture
