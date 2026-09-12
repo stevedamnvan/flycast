@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG953 correct preparation interpretation; resource rebuild cost correlation.
+Basefb6641a58. Source read shows prepare_ms is drawStart-receivedAt, where
+receivedAt can belong to a packet prefetched before previous-frame readback.
+Thus LOG952's7ms is packet age/overlap, not7ms CPU preparation. Actual
+loop_to_draw median0.0475/0.0521ms, tail0.385/0.379, receive_call2.174/2.186.
+No code optimization justified by the misleading timer name alone.
+Existing performance logs classified by exact source frame >=2221:
+runA472 resource-refresh draws median6.245ms,53 source-gap draws6.361,
+504 neither1.271. RunB456 refresh6.331,62 gap6.317,499 neither1.282.
+Correlation replicated; not isolated proof of5ms removable work since scene
+content also varies. Strong next bounded experiment: existing strict selective
+resource reuse under an explicit capture-free benchmark authorization in launcher,
+with anchored scene, same-slot/texture compatibility, source-gap/generation full
+resets, poisoned failure/no Present and default full reset preserved. Do not
+bypass capture-only gate via environment. Source change requires focused tests,
+four serial builds/three selftests and same-denominator pair before commit.
+Evidence preparation-attribution-correction.json and draw-refresh-attribution.json
+under C:/Flycast-Evidence/remaster-corrected-perf-b. No new runtime launch,
+source/asset/config changes. Current goal remains open; next source slice is
+benchmark access to guarded reuse, not speculative7ms prep optimization.
+
 LOG952 corrected supported-path performance pair, baseb19718263.
 Two1200-sample capture-free runs OIT1280x960, narrow observation, uncurved
 welded normals/cutout, corrected25-range candidate and structure0. Guarded

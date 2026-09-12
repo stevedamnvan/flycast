@@ -204,9 +204,13 @@ LOG952 capture-free pair complete,1200 samples each. After120 warmup,
 fresh60.04/59.16fps. p50~15.2ms,p95~21.9,p99~24; latency mean~3.9,max6/7.
 No99% or sustained60fresh pass, audio/provenance/lifecycle still open. Both
 baseline/config exact. Supported motion only, not exact LOG951 policy.
-Next helper scene preparation attribution (median7.05ms versus draw4.96),
-remove proven redundant update work preserving identity/cut/material guards;
-then repeat same denominator. Existing selective flag remains capture-only.
+LOG953 corrects attribution: prepare7.05ms includes prefetched packet age,
+actual loop-to-draw~0.05ms. Rebuild draws median6.25/6.33ms versus surviving
+resources1.27/1.28 in two runs; correlated cost, not isolated causal saving.
+Next explicit guarded selective-reuse benchmark path in launcher; preserve
+anchored scene/strict compatibility/gap/generation resets/failure guards and
+default full reset. Do not bypass capture-only guard through environment.
+Four serial builds/three selftests/focused tests and paired timing required.
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
 
 

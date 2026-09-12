@@ -1,5 +1,14 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG953 corrects LOG952 preparation interpretation:7ms is prefetched
+packet age, actual loop-to-draw~0.05ms. Source-frame log joins show rebuild
+median draw6.25/6.33ms vs1.27/1.28 without resets. Next explicit bounded
+capture-free selective-reuse benchmark support, preserving all strict resource,
+cut/gap/generation/failure guards and default full reset. No environment bypass.
+Source slice requires four builds/three selftests/focused tests and paired timing.
+No runtime live or source change this turn. Evidence attribution JSONs in
+remaster-corrected-perf-b. Full quality/performance/lifecycle goal remains open.
+
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.
 Pacing p50~15.2ms,p95~21.9,p99~24; latency mean3.9,max6/7. Gates not passed.
