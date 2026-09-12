@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG985 face-normal isolation and world-region audit integrated. Existing flat
+ingested normal temporarily bound via MCP only to145398E2FC5B2FEA and
+F8CC33F333E700CD; current correction held,reference lighting/source2601 fixed.
+control/flat-face120 frames exit0,baseline exact,diagnostic layer detached.
+Viewed full candidate:no convincing facial improvement at this distance and
+exposure;not promoted,not proof normal maps innocent. Need close matched face
+views for contour review,not another distant full-scene scalar sweep.
+World subagent WORLD-UV-REVIEW.md confirms used masonry quadrant of
+3D62046ADCBFE6E7 UV[0,.25)x[0,.25); proposes isolated roughness.75 test with
+outside exact and existing maps/lighting retained. Bronze atlases do not support
+blanket nonmetal conversion. UV masks are not visibility/mip proof. Next
+world masonry candidate and closer character comparison independently; full
+validation set remains open. No generation/spending,audio parked,no game live.
+Evidence temple-face-normal-a and scene-audit-reference-a.
+
 LOG984 temple rig appearance rejected following user contour/face regression.
 Existing warm-key/cool-fill rig at3,fixed exposure,same source2601/current
 correction layer renders120 frames exit0,baseline exact. Viewed rig-3.bmp:
