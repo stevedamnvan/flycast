@@ -257,6 +257,10 @@ device overhead is a hypothesis, not verified cause. Park further audio timing
 loops and initialization tuning. Next playable visual review: hair and character
 material completeness, then full coverage. Keep compatibility default unchanged;
 no-rebuild remains an experimental candidate, not a prerequisite for visuals.
+LOG964 hair audit: second-pass8x source roughness median.341 versus4x.369
+on opaque Kilik hair tile; broad locks remain. Next isolated existing-map
+hair roughness comparison through MCP, then strand/attachment and coverage.
+Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 

@@ -10,6 +10,11 @@ User reports audio sounds fine; stop audio/sync diagnostic loops and startup
 tuning. Capture-device overhead remains unverified hypothesis. Next playable
 visual review, hair and character material completeness, then full coverage.
 Keep default compatibility policy; no-rebuild experimental only. Source unchanged.
+LOG964: Kilik hair tile8x roughness smoother than4x (.341 vs.369 median);
+broad painted locks remain. Source maps only, no causal render proof. Next
+isolated existing-map roughness comparison via MCP, preserve mixed-atlas
+regions/alpha/UV/normals, then strands/attachment/coverage. Evidence
+hair-material-audit-a. No assets changed, no generation, no test live.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

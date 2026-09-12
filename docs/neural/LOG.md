@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG964 Kilik hair map audit, base0ed52eb8b, no asset mutation.
+Inspected 26F0F098F66BA515 current8x albedo/roughness visually and retained4x
+maps. Hair occupies UV[.5,.5]..[.75,.75] in mixed atlas; much of remaining atlas
+is noisy/mixed content, so do not apply a whole-atlas hair classification.
+Opaque-region alpha>=128 red roughness p5/median/p95:4x .286/.369/.416,
+8x .220/.341/.380. Source PNG statistics, not composed runtime roughness.
+Second PBRify pass makes source roughness smoother; albedo retains broad locks,
+not resolved individual strands. Hypothesis: this reinforces glossy/clumped
+appearance. No isolated render yet, no claim of complete causal proof.
+Current binding points8x albedo/normal/roughness, retained height zeroed by
+opt-in correction. Toolkit MCP45 tools and current character-review project
+verified read-only. Baseline untouched, no generation/cost, no test live.
+Evidence C:/Flycast-Evidence/hair-material-audit-a maps.json with hashes and
+opaque-hair-stats.json. Next isolate hair roughness response using existing
+maps/MCP, preserve albedo/alpha/UV/normals and other materials; then strand
+appearance/source-supported attachment and broader character coverage. No
+new full-set roadmap or restarted generation; audio investigation stays parked.
+
 LOG963 no-rebuild repeat and locked-source output control, baseac5ba9066.
 Repeat audio-no-rebuild-b exits0:123 whole-session underruns,0 after50s,
 199963670cycles/s,1074/1080 fresh99.444%; p50/p95/p99ms15.320/24.605/29.001.
