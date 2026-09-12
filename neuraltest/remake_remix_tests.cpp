@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <fstream>
 #include <chrono>
+#include <cmath>
+#include <limits>
 
 using namespace neuraltest::remake;
 namespace {
@@ -130,6 +132,21 @@ int main() {
    "diagnostic redraw retains provenance and omissions");
   camera.provenance=Provenance::Analytic;const int before=calls.cameras;
   expect(!scene.Redraw(camera).ok && calls.cameras==before,"diagnostic redraw cannot silently change provenance");
+  for(float depth : {std::nextafter(p.camera.nearPlane,0.f),p.camera.nearPlane,
+       std::nextafter(p.camera.nearPlane,p.camera.farPlane),p.camera.farPlane,
+       std::nextafter(p.camera.farPlane,std::numeric_limits<float>::infinity())}) {
+   auto edge=p;bool reference=true;
+   for(auto& m:edge.meshes)for(auto& v:m.vertices) {
+    v.position={-0.f,0.f,depth};
+    const auto q=Project(edge.camera,WorldPosition(m,v));
+    reference &= q.z>=edge.camera.nearPlane && q.z<=edge.camera.farPlane;
+   }
+   expect(ReadyForDiagnosticAdapter(edge,edge.frame,edge.game,true).ok==reference,
+          "identity fast validation retains exact near/far boundary decisions");
+  }
+  auto transformed=p;(*transformed.meshes[0].transform)[3]=.01f;
+  expect(ReadyForDiagnosticAdapter(transformed,transformed.frame,transformed.game,true).reason=="transform-unsupported",
+         "identity fast validation still rejects nonidentity transforms");
   auto bad=p;bad.omissions.clear();
   expect(!ReadyForDiagnosticAdapter(bad,bad.frame,bad.game,true).ok,"diagnostic limitations cannot be erased");
   bad=p;bad.meshes[0].vertices[0].normal.reset();

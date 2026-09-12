@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1007 identity-validation CPU measurement and ordinary-face evidence.
+Retained practice-stage-fill-a/fill.bmp (ordinary5302,1280) also visibly loses
+Sophitia facial detail. Hit5458 at640 is not same-input/resolution evidence;
+this observation only rules out hit flash as the sole cause. No moving exposure
+or visual acceptance claim. Preserve native hit effects and welded normals.
+
+validation-identity-timing-a compares HEAD scene.cpp to the pending identity
+shortcut with the same MSVC /O2 harness, static neural library and retained5458
+packet. Eight alternating-order process pairs,300 validation calls each after10
+warmups, exclude file read. Median ReadyForDiagnosticAdapter time .715984ms
+before versus .452220ms after (about37 percent lower, .264ms per validation).
+All calls accept. Compiler source/artifacts/logs and timing.json retained;
+initial shell/include setup failures retained too. This is a CPU microbenchmark,
+not fresh-output/present timing or a60fps claim. Two idle Toolkit processes were
+present; no game/helper, build or generation ran during measurement.
+Exact identity transform is already required before using position directly.
+Near/far neighboring-float and nonidentity rejection tests pass,SDK329/0;
+validation-identity-boundaries-a has four serial build logs and1092/0 selftests
+for automation/baseline/no-ngx. Promote this narrow source slice; full LOG911
+performance denominator and scene-quality acceptance remain open.
+
 LOG1006 explicit fallback-light negative control (2026-09-12).
 Evidence C:/Flycast-Evidence/practice-fallback-light-a: retained hit5458,
 control/repeat/fallback-off,120 presents each, all exit0. Same source, main3,

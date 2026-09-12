@@ -190,7 +190,8 @@ static Result ReadyForScene(const Packet& p, std::uint64_t frame, const std::str
   const auto& c=p.camera;
   for (const auto& v : m.vertices) {
    if (!v.normal) return {false, "normal-unknown"};
-   auto world = WorldPosition(m, v);
+   // Identity was required above; avoid a redundant matrix application per vertex.
+   const auto& world = v.position;
    if (!finite(world)) return {false, "clip-unsupported"};
    const double dx=double(world.x)-c.position.x,dy=double(world.y)-c.position.y,dz=double(world.z)-c.position.z;
    const double z=dx*c.forward.x+dy*c.forward.y+dz*c.forward.z;

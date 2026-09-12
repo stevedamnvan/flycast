@@ -84,6 +84,11 @@ expand the existing visual investigation into another preset sweep.
 LOG1006 closes the retained-hit fallback diagnostic: explicit off is at baseline
 repeat noise (.698 versus .695 MAE), face still washed out; no fix promoted.
 Remaining check is ordinary versus hit-flash response and moving exposure.
+LOG1007: retained ordinary pose also has washed-out facial detail; hit flash is
+not the sole cause. Identity validation shortcut measures .716 to .452ms in an
+alternating CPU-only benchmark, with boundary parity and required build/tests.
+Next performance proof remains an eligible whole-pipeline run; microbenchmark
+improvement does not close H or claim60fps.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,
