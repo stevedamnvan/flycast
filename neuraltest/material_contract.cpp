@@ -60,6 +60,24 @@ bool RunMaterialContract(const std::filesystem::path& out,std::string& error) {
    const auto kept=owned.color.get();
    check(!CaptureRemakeOverlay(device,context,color,nullptr,11,producer,owned)&&owned.color.get()==kept
     &&owned.identity.frame==10,"overlay-copy-failure-preserves-owner");++controls;
+   // LOG910: pooled copies retire only when the last copy of the snapshot is gone,
+   // and the next capture of the same shape reuses them.
+   {
+    auto pool=std::make_shared<NativeResourcePool>(device.get());
+    RemakeOverlaySnapshot first;
+    check(CaptureRemakeOverlay(device,context,color,mask,12,producer,first,pool)&&first.lease&&pool->Statistics().created==2,"overlay-pooled-copy-created");
+    const auto firstColor=first.color.get();
+    RemakeOverlaySnapshot copy=first;first={};
+    check(pool->Statistics().held==0&&copy.color.get()==firstColor,"overlay-pooled-copy-held-by-remaining-copy");
+    copy={};
+    check(pool->Statistics().held==2,"overlay-pooled-copy-retired-when-last-copy-gone");
+    RemakeOverlaySnapshot second;
+    check(CaptureRemakeOverlay(device,context,color,mask,13,producer,second,pool)&&second.color.get()==firstColor
+     &&pool->Statistics().reused==2&&pool->Statistics().held==0,"overlay-pooled-copy-reused");
+    RemakeOverlaySnapshot unpooled;
+    check(CaptureRemakeOverlay(device,context,color,mask,14,producer,unpooled)&&!unpooled.lease,"overlay-unpooled-copy-has-no-lease");
+    ++controls;
+   }
   }
   {
    rend_context emptyContext;

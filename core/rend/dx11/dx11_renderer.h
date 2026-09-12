@@ -377,6 +377,12 @@ protected:
 	// LOG895: retired native-effect copies of identical shape are reused across
 	// frames on this device; snapshots keep exclusive ownership while alive.
 	std::shared_ptr<flycast::rend::neural::NativeResourcePool> remakeNativeResourcePool;
+	// LOG910: the overlay snapshot copies share the native resource pool.
+	const std::shared_ptr<flycast::rend::neural::NativeResourcePool>& remakeOverlayPool() {
+		if(!remakeNativeResourcePool||!remakeNativeResourcePool->Serves(device))
+			remakeNativeResourcePool=std::make_shared<flycast::rend::neural::NativeResourcePool>(device);
+		return remakeNativeResourcePool;
+	}
 	void finishNativeEffectProof();
 
 	flycast::rend::neural::RemakePresentationPolicy remakePresentationPolicy;

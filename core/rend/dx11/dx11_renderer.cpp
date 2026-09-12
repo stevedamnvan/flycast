@@ -2747,7 +2747,7 @@ flycast::rend::neural::RemakeDisplayDecision DX11Renderer::selectRemakePreview(b
 			if(remakeWarmupNative.identity.frame!=decision.frame) {
 				if(decision.frame!=current)throw std::runtime_error("warmup source unavailable");
 				acquireNeuralInputs();
-				const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],current,rendContext->captureProducer,remakeWarmupNative);
+				const bool copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],current,rendContext->captureProducer,remakeWarmupNative,remakeOverlayPool());
 				releaseNeuralInputs();
 				if(!copied)throw std::runtime_error("warmup snapshot unavailable");
 			}
@@ -3117,7 +3117,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		static thread_local unsigned count=0;
 		RemakeCpuScope timing("feed-overlay-copy",metadata.frameId,count);
 		acquireNeuralInputs();
-		copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],metadata.frameId,producer,overlay);
+		copied=CaptureRemakeOverlay(device,deviceContext,fbTex,neuralOverlayMask.textures[neuralExportSlot],metadata.frameId,producer,overlay,remakeOverlayPool());
 		releaseNeuralInputs();
 	}
 	if(!copied){skip("overlay","copy-failed");return;}

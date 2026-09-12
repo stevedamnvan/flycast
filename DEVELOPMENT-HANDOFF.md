@@ -49,8 +49,11 @@ composite 1.5 (a texture created per frame), capture geometry 1.1; no
 single item remains, so 60 fps needs about 3 ms across several items
 (ordered candidates in LOG908). LOG909: pooled display composite target
 accepted, narrow present p50 18.28/18.04 ms (about 55 fps); GPU at 40
-percent, so the remaining cost is host-side. Next,
-in order: (1) the remaining LOG908 render-thread candidates (view-scene onto the feed worker, capture-geometry classification), each accepted only on a whole-frame gain, then a matched narrow capture proof; (2) human
+percent, so the remaining cost is host-side. LOG910: pooled overlay
+snapshot copies accepted, narrow present p50 17.45/17.20 ms (about 57
+fps), but accepted evaluations fall and output repeats rise because the
+helper (period about 23 ms) now paces fresh output. Next,
+in order: (1) the helper's per-returned-frame cost (draw 8 ms with curved geometry, prepare 5.5 ms) and the remaining host items (view-scene, returned-evaluate, present flush), each accepted only on a whole-frame or fresh-share gain, then a matched narrow capture proof; (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog

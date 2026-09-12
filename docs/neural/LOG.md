@@ -1,5 +1,38 @@
 # Neural rendering evidence log
 
+LOG910 pooled overlay snapshot copies accepted. Code (committed with
+this entry): `CaptureRemakeOverlay` takes an optional native resource
+pool (LOG895's `NativeResourcePool`, now shared by the overlay copies
+through `DX11Renderer::remakeOverlayPool()`); the two per-frame copies of
+the native color and overlay mask come from the pool instead of two
+textures created per fed frame, and the snapshot carries a shared lease
+so that every copy of a snapshot (feed job, result, accepted, evaluated,
+warmup, capture) keeps the textures until the last copy is gone, when
+they retire to the pool; the pool's held count is already part of the
+resource accounting. The material contract fixture
+(`neuraltest material-contract`, `C:/Flycast-Evidence/material-contract-910`)
+gains checks that a pooled copy is created, is held while any copy of the
+snapshot lives, retires when the last copy is gone, is reused by the next
+capture of the same shape, and that an unpooled capture carries no lease.
+Diagnostic run `pilot-overlay-pool-cpu-a` (narrow, `--cpu-timing`):
+feed-overlay-copy 0.75 to 0.18 ms (p90 6.8 ms, occasional spikes to
+watch), scene-feed 3.3 to 2.45 ms, frame-render 14.5 to 13.5 ms,
+emulated frame period 18.9 to 17.7 ms. Performance-eligible narrow runs
+`pilot-overlay-pool-{a,b}` (same flags as LOG907, no capture, no
+timing): present p50/p95 17.45/25.27 and 17.20/25.43 ms against
+18.28/18.04 (LOG909) and 18.93 (LOG907); remake presents 1174/1169,
+accepted evaluations 877/853 (914/917 before), output repeats 303/324
+(265/276 before), no-return-credit 274/290, worker-busy 4, anchor
+rejections 0, presentation never stopped. About 0.8 ms per frame
+whole-frame gain, accepted; about 57 fps. Reading: as the host approaches
+60 fps the helper becomes the pace of fresh output (helper period about
+23 ms, turnaround 28 ms, draw 8.0 ms and prepare 5.5 ms per returned
+frame), so accepted evaluations fall and output repeats rise (about 27
+percent of presents repeat the previous evaluated output); the remaining
+host items (view-scene 1.35 ms, returned-evaluate 6.2 ms, present flush
+2.6 ms) and the helper's per-frame cost are the next 60 fps items, and
+the fresh share, not only the present period, is the acceptance figure.
+
 LOG909 pooled display composite target accepted (first LOG908
 candidate). Code (committed with this entry): the display composite
 target comes from a ring of three pooled textures with their views

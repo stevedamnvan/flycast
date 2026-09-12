@@ -4,8 +4,10 @@
 #include "remake_oit_effects.h"
 #include "remake_native_effects.h"
 #include "remake_temporal_scene.h"
+#include "remake_native_resource.h"
 #include "windows/comptr.h"
 #include <d3d11.h>
+#include <memory>
 
 namespace flycast::rend::neural {
 struct RemakeOverlayIdentity {
@@ -53,12 +55,18 @@ struct RemakeOverlaySnapshot {
 
  ComPtr<ID3D11Texture2D> color,mask;
  ComPtr<ID3D11ShaderResourceView> colorView,maskView;
+ // LOG910: when the copies came from a pool, every copy of this snapshot
+ // shares the lease and the textures retire to the pool only when the last
+ // copy is gone, so a pooled texture is never handed out while still read.
+ std::shared_ptr<void> lease;
 };
 // Copy immutable original-frame native color/mask before publishing its receipt.
 // No CPU readback, flush or wait. Caller owns wrapped-resource acquire/release.
+// With a pool serving the device the two textures are reused allocations.
 inline bool CaptureRemakeOverlay(ID3D11Device* device,ID3D11DeviceContext* context,
  ID3D11Texture2D* color,ID3D11Texture2D* mask,std::uint64_t frame,
- const ProducerIdentity& producer,RemakeOverlaySnapshot& output) {
+ const ProducerIdentity& producer,RemakeOverlaySnapshot& output,
+ const std::shared_ptr<NativeResourcePool>& pool={}) {
  if(!device||!context||!color||!mask||!frame||!producer.Available()
   ||context->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)return false;
  D3D11_TEXTURE2D_DESC c{},m{};color->GetDesc(&c);mask->GetDesc(&m);
@@ -72,10 +80,21 @@ inline bool CaptureRemakeOverlay(ID3D11Device* device,ID3D11DeviceContext* conte
  RemakeOverlaySnapshot snapshot;snapshot.identity.frame=frame;snapshot.identity.producer=producer;
  for(auto* desc:{&c,&m}) {desc->Usage=D3D11_USAGE_DEFAULT;desc->BindFlags=D3D11_BIND_SHADER_RESOURCE;
   desc->CPUAccessFlags=0;desc->MiscFlags=0;}
- if(FAILED(device->CreateTexture2D(&c,nullptr,&snapshot.color.get()))
-  ||FAILED(device->CreateTexture2D(&m,nullptr,&snapshot.mask.get()))
+ const bool pooled=pool&&pool->Serves(device);
+ if(pooled){snapshot.color=pool->AcquireTexture(device,c);snapshot.mask=pool->AcquireTexture(device,m);}
+ else if(FAILED(device->CreateTexture2D(&c,nullptr,&snapshot.color.get()))
+  ||FAILED(device->CreateTexture2D(&m,nullptr,&snapshot.mask.get())))return false;
+ if(!snapshot.color||!snapshot.mask
   ||FAILED(device->CreateShaderResourceView(snapshot.color,nullptr,&snapshot.colorView.get()))
   ||FAILED(device->CreateShaderResourceView(snapshot.mask,nullptr,&snapshot.maskView.get())))return false;
+ if(pooled) {
+  struct Lease {
+   std::shared_ptr<NativeResourcePool> pool;ComPtr<ID3D11Texture2D> color,mask;
+   ~Lease(){pool->Retire(color.get());pool->Retire(mask.get());}
+  };
+  auto lease=std::make_shared<Lease>();lease->pool=pool;lease->color=snapshot.color;lease->mask=snapshot.mask;
+  snapshot.lease=std::move(lease);
+ }
  context->CopyResource(snapshot.color,color);context->CopyResource(snapshot.mask,mask);
  output=std::move(snapshot);return true;
 }
