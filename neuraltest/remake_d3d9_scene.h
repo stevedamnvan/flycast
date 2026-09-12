@@ -36,6 +36,7 @@ class D3D9PacketScene {
  const bool opaqueAlphaOne_=[]{wchar_t v[2]{};return GetEnvironmentVariableW(L"FLYCAST_REMAKE_OPAQUE_ALPHA_ONE",v,2)==1&&v[0]==L'1';}();
  bool failed_=false,ready_=false;
  bool refreshResources_=false;
+ const bool selectiveRefresh_=[]{wchar_t v[2]{};return GetEnvironmentVariableW(L"FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH",v,2)==1&&v[0]==L'1';}();
  bool allowSkippedSources_=false;
  bool omitCutoutsControl_=false;
  float sceneLightRadiance_=3;
@@ -158,10 +159,30 @@ class D3D9PacketScene {
    for(std::size_t i=0;compatible&&i<packet.meshes.size();++i)
     compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && SameTexture(packet.meshes[i],textureBytes_[i]);
    if(!compatible) {
+    if(selectiveRefresh_&&anchoredLight_&&packet.game==initial_.game&&packet.meshes.size()==resources_.size()) {
+     // Allocation reuse only: never infer temporal identity from a slot. The
+     // unchanged strict contract and exact DDS decide which resources survive.
+     std::size_t replaced=0;
+     for(std::size_t i=0;i<resources_.size();++i) {
+      const auto& mesh=packet.meshes[i];
+      if(LegacyResourceCompatible(mesh,initial_.meshes[i])&&SameTexture(mesh,textureBytes_[i]))continue;
+      auto bytes=ReadTexture(mesh);auto indices=Triangles(mesh);if(indices.empty())return E_INVALIDARG;
+      auto& r=resources_[i];
+      if(FAILED(device_->SetTexture(0,nullptr))||FAILED(device_->SetStreamSource(0,nullptr,0,0)))return E_FAIL;
+      if(r.vb){r.vb->Release();r.vb=nullptr;}if(r.texture){r.texture->Release();r.texture=nullptr;}
+      r.indices=std::move(indices);textureBytes_[i]=std::move(bytes);
+      auto hr=device_->CreateVertexBuffer(UINT(r.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&r.vb,nullptr);
+      if(FAILED(hr))return hr;if(FAILED(hr=Texture(*textureBytes_[i],&r.texture)))return hr;
+      initial_.meshes[i]=mesh;++replaced;
+     }
+     std::cout<<"selective_source_resource_refresh frame="<<packet.frame<<" replaced="<<replaced
+      <<" retained="<<resources_.size()-replaced<<" anchored_lights_retained=true temporal_identity_proven=false\n";
+    } else {
     std::cout<<"live_source_resource_refresh frame="<<packet.frame<<" draws="<<packet.meshes.size()<<" temporal_identity_proven=false\n";
     // Diagnostic policy: discard/recreate incompatible resources, never freeze
     // the first packet. Any failure poisons this uploader; caller must not Present.
     ReleaseResources();
+    }
    }
   }
   if(!ready_) {

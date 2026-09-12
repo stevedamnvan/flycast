@@ -1,5 +1,20 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG944: selective helper resource refresh diagnostic complete. Four
+builds,1053 selftests x3,SDK302,Python33 pass. Control/candidate/repeat26/27/27
+captures,80 source/Present joins and native composition exact. Typical refresh
+retains40/48 slots; light creation18 ->3, gap/generation full resets preserved.
+Candidate2.880 MAE versus repeat2.525 gives no visual improvement claim.
+Default remains full reset; both resource and motion diagnostics unpromoted.
+Next actual character displacement correction: installed material exposes
+displace_in/out (defaults0.05/0); verify resolved values, then zero-range test
+on seven historical character atlases via separate opt-in layer. Live standard
+Toolkit MCP still41 tools, no scalar authoring; extend existing MCP integration
+with bounded typed material inspection/edit rather than bypass it. Preserve
+project, baseline, cached maps and weapon/lighting work. No game/helper live.
+Evidence character-regression-a/reuse-* and LOG944. No repeated tiny reuse
+comparison loop; runtime instance/history identity remains unproven.
+
 Current LOG943: guarded --shading-aware-motion diagnostic implemented/tested.
 Four serial builds,1053 selftests x3,SDK302,Python32 pass. Fresh control/
 candidate/repeat26/28/26 captures; all80 source/receipt/Present joins and native

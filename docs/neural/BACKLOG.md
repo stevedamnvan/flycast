@@ -114,6 +114,24 @@ Next: audit upstream global resource rebuilds (18 across27 submitted scenes
 Preserve real cuts/identity, smooth normals and cached maps; don't merely
 suppress resets or assume constant-one height is neutral. Review upstream
 Remix and downstream consumer separately. Adaptive curved topology remains open.
+LOG944 bounded reuse experiment: adjacent saved-packet audit22 pairs finds12 first
+failures from changed IDs in the final eight slots, with40/48 slots compatible;
+one first failure is real topology. Test explicit anchored-light capture-only
+selective replacement of incompatible same-slot resources. Keep full reset on
+source gaps, generation changes, game/count changes; never relabel changed IDs.
+Unchanged resources still receive current vertex data. Preserve exact DDS and
+compatibility checks, poisoned-uploader failure behavior and default reset path.
+Four builds,1053 selftests x3,SDK302,Python33 pass. Fresh control/candidate/
+repeat26/27/27 captures have80 verified source/Present joins and exact native
+composition.16 selective refreshes replace affected slots; light creation18
+to3 (repeat20), with source-gap full resets retained. Candidate MAE2.880 versus
+repeat2.525: no appearance win or performance claim. Diagnostic option stays
+off by default; no further tiny reuse image loop. Next supported per-material
+character displacement disable via MCP. Installed AperturePBR_Opacity exposes
+displace_in/out defaults0.05/0; inspect resolved attributes before authoring.
+Live41-tool MCP lacks scalar read/write; extend the existing integration with
+bounded typed material attributes, preserving saved project/layers and rollback.
+Buffer reuse does not establish runtime instance identity or temporal improvement.
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported

@@ -98,6 +98,10 @@ def prepare(args):
     if args.managed_session:
         helper.append('--session-worker')
     capture_frames = getattr(args, 'capture_frames', 0)
+    if getattr(args, 'selective_resource_refresh', False):
+        if not capture_frames or not args.anchored_light:
+            raise ValueError('Selective resource refresh requires bounded capture and anchored light')
+        env['FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH'] = '1'
     if getattr(args, 'shading_aware_motion', False):
         if not capture_frames or getattr(args, 'remix_only', False):
             raise ValueError('Shading-aware motion requires bounded combined capture')
@@ -333,6 +337,8 @@ def main():
                    help='Experimental (D-241): curved PN-triangle export of the smoothed geometry (FLYCAST_REMAKE_CURVED_EXPORT=1); requires smoothed normals')
     p.add_argument('--shading-aware-motion', action='store_true',
                    help='Diagnostic capture: match geometry across RGB shading changes with mandatory returned-colour rejection')
+    p.add_argument('--selective-resource-refresh', action='store_true',
+                   help='Diagnostic anchored capture: retain strictly compatible mesh resources when other slots change')
     p.add_argument('--alpha-cutout', action='store_true',
                    help='Experimental (D-240): promoted alpha draws with cutout texture alpha travel as alpha-tested cutouts (FLYCAST_REMAKE_ALPHA_CUTOUT=1); the rest stay native')
     p.add_argument('--smooth-normals-weld', action='store_true',
@@ -384,6 +390,7 @@ def main():
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
                   alpha_cutout=args.alpha_cutout, curved_export=args.curved_export,
                   shading_aware_motion=args.shading_aware_motion,
+                  selective_resource_refresh=args.selective_resource_refresh,
                   smooth_normals=args.smooth_normals, smooth_normals_weld=args.smooth_normals_weld,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,

@@ -9,6 +9,18 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_selective_refresh_requires_capture_and_anchored_lights(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH': '1'}):
+            self.assertNotIn('FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH', prepare(self.args)[2])
+        self.args.selective_resource_refresh = True
+        with self.assertRaisesRegex(ValueError, 'requires bounded capture and anchored light'):
+            prepare(self.args)
+        self.args.capture_frames = 30
+        with self.assertRaisesRegex(ValueError, 'requires bounded capture and anchored light'):
+            prepare(self.args)
+        self.args.anchored_light = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH'], '1')
+
     def test_shading_motion_requires_explicit_capture_and_colour_check(self):
         with patch.dict(os.environ, {'FLYCAST_REMAKE_SHADING_AWARE_MOTION': '1',
                                     'FLYCAST_REMAKE_COLOR_CONSISTENCY': '1'}):

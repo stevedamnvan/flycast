@@ -1,5 +1,44 @@
 # Neural rendering evidence log
 
+LOG944 upstream selective resource refresh, diagnostic allocation contract.
+Base71f50e08b. Adjacent saved-packet audit22 pairs:12 first compatibility
+failures are ID changes in final eight slots; one first failure changes vertex
+count/indices.40/48 slots commonly remain compatible. This is not complete
+replay of unsaved runtime sources. Evidence upstream-resource-packet-audit.json.
+--selective-resource-refresh requires anchored capture in launcher; helper
+retains only same-slot LegacyResourceCompatible plus exact DDS. Changed slots
+are recreated and current vertices uploaded for all draws. Anchored lights
+survive compatible scene refresh; source gaps/generation and game/count changes
+retain full resets. Failed allocation/upload poisons uploader as before, no
+Present. Default path unchanged. No invented instance identity or reset bypass.
+Four serial incremental builds pass (helper rebuilt in automation; other
+graphs no work),1053/0 selftests x3,SDK302/0,Python33/0. Generated version still
+old; not fresh exact-SHA. Launcher records exact executable hashes.
+Fresh reuse-control/candidate/repeat26/27/27 captures: all80 helper receipt,
+source and completed-Present joins pass, native HUD/world/backbuffer counters0.
+26 exact material/state/camera/geometry/source pairs in each comparison.
+Window2440..2469: control16 full refreshes+2 gaps and18 light creations;
+candidate16 selective refreshes+3 gap resets and3 light creations; repeat18
+full refreshes+2 gaps and20 light creations. Typical selective event replaces8
+and retains40. Source cadences differ; counts are diagnostic, not speed evidence.
+Candidate median whole RGB MAE2.880 versus repeat2.525. Viewed2461 still has
+character cloth/skin/hair defects; no appearance improvement accepted. Geometry
+motion remains strict/default for this isolated helper experiment. No new
+upstream temporal identity, external DLSS5,300/600-frame or performance claim.
+All launchers0/helper11 orderly, no forced children. Baseline mod unchanged
+SHA e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340.
+Disposition ACCEPTED only as guarded allocation diagnostic; visual result
+CORRECTIONS_REQUIRED. Evidence C:/Flycast-Evidence/character-regression-a/
+reuse-*, compare-reuse.py and reuse-resource-events.json.
+Next displacement correction: installed Toolkit AperturePBR_Opacity.mdl
+declares linear height and displace_in=0.05/displace_out=0. No inputs:displace
+overrides found in project USDA files, but resolved runtime values still need
+verification. MCP live discovery confirms41 standard tools and no scalar
+attribute read/write. Extend existing MCP integration with bounded typed
+material inspection/authoring, then test zero displacement ranges per affected
+character material in a separate opt-in layer; retain source maps, lights,
+weapons and baseline rollback. No new model or generation pass.
+
 LOG943 guarded RGB-shading-aware geometry motion, diagnostic contract only.
 Source base c0a978a98 plus explicitly staged motion/worker/raster/launcher/test
 changes. --shading-aware-motion requires bounded capture and enables existing
