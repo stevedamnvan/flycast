@@ -99,6 +99,11 @@ existing guarded benchmark option restored, exploratory fresh share is85.00%
 (918/1080), present median17.475ms, latency max7. Better than full-reset control,
 still not99% or clean acceptance. Preserve this option in subsequent supported
 benchmarks; separate runtime/environment load before further source changes.
+LOG1010 measures substantial Toolkit GPU activity with game stopped (~43%/~16%
+3D engine per process). Clean timing needs state-preserving viewport pause or
+normal close after pending-state preservation; MCP close403 preserved edits.
+Recent exploratory runs do not establish a renderer regression. Do not force
+discard, suspend GPU processes, or repeat confounded acceptance runs.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

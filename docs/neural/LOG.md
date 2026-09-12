@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1010 background GPU load measured with game/helper stopped.
+RTX5090 nvidia-smi snapshot66% GPU,9867MiB,315.55W. Two Windows GPU Engine
+samples attribute3D activity to Toolkit PID27736 about43% and PID34596 about16%.
+Counter evidence toolkit-background-load-a/gpu-counters.json. These are current
+samples, not retroactive telemetry proving exact load during LOG1008/1009;
+they invalidate the prior casual description of these sessions as idle.
+MCP8001 discovery48 tools exposes no viewport/render-pause operation. Nonforced
+remix_close_project returned403 pending changes; no forced close, save of stale
+state, or edit discard performed. Both sessions preserved. Before clean timing,
+provide a state-preserving viewport-pause route or preserve all pending state
+and close normally. No renderer regression or pipeline improvement follows from
+the recent confounded timings alone. Continue independent source/visual work
+while resolving this measurement prerequisite; no acceptance gates relaxed.
+
 LOG1009 benchmark-policy audit corrects LOG1008 interpretation.
 LOG1008 run b inherited old LOG911 flags, omitting the existing LOG954
 --benchmark-selective-resource-refresh option. Its74.35 percent fresh result
