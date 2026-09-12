@@ -287,7 +287,8 @@ LOG982 light3-to2 candidate below repeat noise; next trace effective lighting
 LOG983 fixed exposure reveals light response;lower intensity alone too dark.
 LOG984 temple rig rejected for face/contour appearance. Next isolate skin
 LOG985 flat-face normal test inconclusive at distance,not promoted. Next closer
-matched face views alongside isolated used-region masonry roughness candidate;
+matched face views alongside LOG986 validated masonry roughness candidate.
+Next existing MCP ingestion semantic support for roughness,then controlled render;
 review and moving proof across validation set.
 Validation set: Kilik, Taki, Mitsurugi, Sophitia across temple and water stage.
 Track all eight character/stage pairings; uncaptured pairings remain pending.

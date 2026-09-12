@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG986 masonry-only roughness candidate prepared through existing Comfy HTTP.
+Promptafcc409a-8c14-43dc-b82b-1de08f6486ea complete:LoadImage/EmptyImage/
+ImageCompositeMasked/SaveImage,no model,one output,no retries,paidcost0.
+3D62046ADCBFE6E7 roughness1024RGB upper-left256square=191/255;outside
+pixels exact,zero changed outside channels. Evidence masonry-roughness-a
+workflow/submission/history/attempt/validation. Cached output Comfy output/
+masonry-roughness-a/roughness_00001_.png. Not ingested/bound/accepted.
+Existing current-process MCP wrapper permits DIFFUSE only; next extend its
+validated semantic allowlist for ROUGHNESS without mislabelling the map or
+adding an ingestion system. Retain cache guards and verify linear convention.
+User latest image slightly better is relative preference,not visual acceptance.
+Character close-view comparison continues;no game live,audio parked.
+
 LOG985 face-normal isolation and world-region audit integrated. Existing flat
 ingested normal temporarily bound via MCP only to145398E2FC5B2FEA and
 F8CC33F333E700CD; current correction held,reference lighting/source2601 fixed.
