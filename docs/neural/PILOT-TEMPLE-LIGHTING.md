@@ -2,6 +2,17 @@
 
 ## Current restoration guidance (2026-09-12)
 
+Retained sword-hit test (practice-hit-lighting-a): source5458 from the corrected
+HUD run, fixed key0,0,1 and fill0/.3,120 frames each control/repeat/fill, all exit0.
+Baseline mod remains byte-identical. Repeat whole-image MAE0.456 versus fill23.377;
+this proves visible illumination change, not improvement. Viewed fill restores
+body readability but Sophitia face remains washed out. No candidate promotion.
+Isolated exposure diagnostic practice-hit-exposure-a holds exact packet, key,
+fill and materials fixed; disables auto exposure only in private supplied profile.
+Fixed/repeat exit0, baseline exact. Viewed arena becomes substantially darker
+while face remains washed out; reject as global fix. Next face source/material
+response. No live/global settings changed; no appearance promotion.
+
 Camera-light research (2026-09-12): NVIDIA distinguishes the Toolkit viewport's
 camera-attached visibility light from authored stage lights. Its runtime fallback
 light is explicitly a debugging aid, not the recommended shipping lighting.

@@ -7,11 +7,16 @@ standing and hit-counter extents present. Viewed5458 shows13 damage,1 HIT and
 native High effect. Host0/helper11 orderly,forced children none; handle56326
 terminal. Evidence practice-hit-hud-a; isolated host SHA256
 0591EC832B0F1C7A6AB512E0593695EAD7530C215FF247DE9D0BF1C35193C7F1.
-Next character light response with identical retained source inputs and repeat
-control, then stage transfer and1280 return latency. Dark bodies/bright faces
+Retained hit lighting test completed control/repeat/fill, all exit0, baseline
+exact; repeat MAE.456 versus fill23.377. Viewed face remains washed out.
+Isolated exposure test practice-hit-exposure-a completed fixed/repeat exit0:
+same packet/key/fill/materials, auto exposure disabled only in private profile.
+Viewed result darkens arena substantially while face remains washed out; reject
+as global fix. Next exact face source/material response, then stage transfer
+and1280 latency. Handle47239 terminal. Dark bodies/bright faces
 remain unacceptable. Earlier moving control/fill117/115 captures share113 frame
 numbers but zero equal source digests or packets; do not claim matched-input
-lighting causality. Prior isolated input remains backed up. No live process.
+lighting causality. Prior isolated input remains backed up. No live game or helper.
 
 Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115
