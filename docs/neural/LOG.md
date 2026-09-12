@@ -1,5 +1,38 @@
 # Neural rendering evidence log
 
+LOG941 character regression priority, temporal diagnosis and height control.
+User reports shimmer/apparent missing character textures and requires critical
+remaster-studio visual judgment before human review. BACKLOG standard amended.
+Read-only baseline audit:49 character asset references resolve; seven historical
+skin/cloth atlases have active PBRify replacements, four newer54C3/74909/B755/
+BEF atlases use originals when correction layer is off. Uneven upgrade coverage,
+not missing source files. Seven historical atlases bind height maps despite
+floor-only intent; binding alone was not treated as active displacement proof.
+Source-raster guidance on four newer atlases: median trusted fraction0 across
+26 BC7 moving captures; source2461 has46379 character pixels, all correspondence
+reason2. Consecutive captured draw audit110 pairs:110 state/texture matches,
+11 topology matches,5 UV matches,0 also matching public colour. These captured
+pairs need not equal last evaluated history; no guard relaxation authorized.
+Curved-export source varies silhouette subdivision before temporal capture.
+Uncurved/welded live diagnostic smooth-source captured27; trusted fraction still0
+(source2461:50757 correspondence-rejected pixels). Turning curves off is NOT a
+motion fix; keep remastered geometry objective, repair correspondence properly.
+Height control on seven historical character atlases through MCP: empty paths
+rejected422 before mutation. Existing scalar-zero BC4 diagnostic in height slot
+changes Kilik by6.190 RGB MAE vs repeat0.299 (whole0.964 vs0.183) and visibly
+adds dark triangular patches: REJECT visual result. Scalar-one control instead
+changes Kilik5.346 (whole0.857) and visibly removes patchy skin/cloth distortion,
+while albedo/normals/roughness remain unchanged. This supports a height-response
+regression and a cleaner correction direction; constant maps are not proof of
+material displacement disabled. Retained normal/height assets untouched.
+All120-frame frozen renders exit0; original PBRify layer restored byte-exact
+through MCP. No replacement promoted, source code change, temporal/performance
+or human visual acceptance. Evidence C:/Flycast-Evidence/character-regression-a/
+height-control, smooth-guidance.json, character-correspondence.json and
+guidance-character-coverage.json. Next bounded moving constant-one height
+comparison and supported scoped displacement-disable authoring; preserve weapon
+metal response and environment detail. Motion correspondence remains separate.
+
 LOG940 hair draw usage, mip control and fresh moving format pair.
 Read229 saved frames (203 pilot-layers-moving-a,26 weapon candidate),458
 BEF texture draws. Each frame has one opaque draw (wire256=no cutout) and one

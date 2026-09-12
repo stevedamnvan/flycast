@@ -1,19 +1,21 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG940: bounded hair-format investigation complete, not visual acceptance.
-BGRA8 base pixels exact to restored PBRify PNG. Minimal-option conversion has
-identical all11 mip payloads, so explicit flags caused no filtering change.
-BC7 differs at lower mips; don't claim base alpha equality proves moving edges.
-229 saved frames use BEF once opaque and once cutout128, neither blended.
-Fresh hair-moving BC7/BGRA8 captures26/27,24 exact-source matches; all HUD/
-composition mismatch counters0. Reviewed2461 no obvious missing hair; no fresh
-noise repeat,300-frame or shimmer acceptance. Baseline and old candidate
-restored byte-exact; new format remains isolated. Evidence material-union-a/.
-Next return higher-impact work to live skin/consumer separation and LOG911
-performance; do not repeat tiny hair pairs. Carry candidate into full gameplay
-review. Standard ToolkitPID24508, review open, capture extension disabled.
-Prior locked combined producer failure still unexplained, not fixed. PBRify
-union47 observed/42 cached sets; whole-game denominator and appearance open.
+Current LOG941: user character shimmer/regression is priority; studio-level
+visual rejection standard added to BACKLOG. No missing files among49 checked
+character refs; seven old atlases replaced, four newer ones baseline fallback.
+Four newer character atlases have median0 trusted motion coverage; disabling
+curved export in fresh27-frame diagnostic did NOT fix it. Don't drop motion
+identity safeguards or remove remastered geometry as a supposed fix.
+Concrete visual finding: seven older character height bindings affect Kilik.
+Constant-zero height creates dark triangle patches (rejected); constant-one
+removes patchy skin/cloth distortion with normal/albedo/roughness unchanged.
+Kilik ROI change5.346 vs repeat0.299. Next moving constant-one control and
+supported scoped displacement-disable authoring, preserving retained height
+assets. Original layer restored byte-exact; no candidate promoted. Evidence
+C:/Flycast-Evidence/character-regression-a/height-control/ and guidance audits.
+Toolkit standardPID24508, no game/helper running at last checkpoint. Hair BGRA8
+candidate remains isolated, prior bounded proof in material-union-a. No overall
+visual, temporal, performance or whole-game coverage acceptance.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate

@@ -89,6 +89,16 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 ### Playable path-traced remaster: current execution order
 
 User direction, 2026-09-12: serious path tracing and playable performance.
+Visual review standard (user direction, 2026-09-12): assess candidates as a
+critical remaster-studio reviewer before asking for human approval. Reject
+obvious shimmer, missing surfaces/detail, damaged artwork, plastic skin/hair,
+incoherent material response and lighting regressions. Review native, earlier
+baseline, Remix and combined stages in motion. Passing checks, changed pixels
+or increased sharpness do not establish improvement. Preserve failed evidence
+and restore earlier assets when a candidate regresses. Human visual approval
+remains separate; do not send visibly unacceptable candidates as ready for it.
+Current character regression takes priority over scaling material recipes.
+
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported
 Soulcalibur scene and two fighters first; disclose coverage limits.
