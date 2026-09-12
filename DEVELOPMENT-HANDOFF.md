@@ -1,14 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG961: bounded audio gap timestamps implemented and paired run0/0.
-Four builds/1053x3/SDK302/Python36 pass. Native3 startup gaps; combined135,
-68 around45..50s after init overlaps initial consumer-ready,8 after50s. All
-135 retained, no truncation. Cycle difference -0.8907%; no audio/full60fps pass.
-Baseline/config exact, no test live. Evidence audio-gap-timing-a logs and
-comparison/gap-summary.json; staged flycast-audio-gap-auto-a.exe incremental.
-Next isolate render/consumer startup stall process46..48s and later53s/63s
-gaps, fix verified blocking work. No blind buffer enlargement/reduction.
-Then manual playable combat/hair/coverage. No appearance acceptance implied.
+Current LOG962: existing max rebuild attempts0 temporary control removes
+scheduled later208ms stall. Audio gaps123 total/1 after50s vs135/8;199.618M
+cycles/s,1074/1080 fresh. Consumer logs success count1/60, not returned-image
+proof. Defaults unchanged, all configs/baseline byte-restored. No test live.
+Evidence audio-no-rebuild-a/summary.json and logs. Next repeat no-rebuild
+candidate and prove returned-image consumer contribution before opt-in adoption;
+then initial warmup stall, manual combat/hair/coverage. No full acceptance.
+Source remains LOG961 diagnostics; this slice docs only.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

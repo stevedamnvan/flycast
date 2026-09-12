@@ -246,8 +246,11 @@ whole session including startup/anchoring. Cycle difference -0.7629%, fresh
 1072/1080; audio continuity NOT accepted. Baseline/config exact.
 LOG961 bounded timing: native3 gaps at startup; combined135,68 clustered
 around initial consumer readiness,8 after50s from audio init. All135 retained.
-Next isolate blocking initialization around process46..48s and later53s/63s
-gaps, correct verified work, then retest; manual combat/hair/coverage follow.
+LOG962 existing max-rebuild-attempts0 control removes scheduled later stall:
+123 total gaps/1 after50s versus135/8,1074/1080 fresh,199.618Mcycles/s.
+Consumer reports evaluation success; exact image provenance still required.
+All configs/baseline restored. Next repeat and prove returned-image contribution
+before opt-in adoption, then initialization warmup/manual combat/hair/coverage.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 

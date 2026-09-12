@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG962 existing no-rebuild control isolates scheduled combat stall, base279332c3d.
+Prior log gaps: source2113 guidance257ms then initial submit926ms; source2115
+submit422ms; source2415 submit208ms coincides with compatibility rebuild.
+Supplied consumer text log confirms lazy registration and initial evaluation
+before later public-feature recreation. No proprietary binary inspection.
+D-019 explicitly defines300 evaluations as configurable default. Bounded test
+sets existing rend.NeuralDlss5RebuildMaxAttempts=0 in byte-restored emu.cfg;
+no source/default-policy change. Same corrected layer/structure0/selective route.
+Run0, baseline/reshade/emu all exact. No rebuild attempts, consumer logs report
+inline neural evaluation success count1 and60. This is runtime-reported success,
+not exact returned-image provenance or complete sustained consumer proof.
+Underruns123 total,1 after50s versus135 total/8 after50s in LOG961; clustered
+scheduled later stall absent. Cycles199618200/s versus prior native199798376/s
+(-0.09018%, historical paired native reference),1074/1080 fresh99.444%.
+P50/p95/p99ms15.352/24.824/28.694. Startup stalls persist and pacing unaccepted.
+Evidence C:/Flycast-Evidence/audio-no-rebuild-a scripts,scope,commands,summary,
+consumer/host logs and exact-restoration receipt. No test live.
+Next repeat no-rebuild candidate with exact returned-image/consumer provenance
+before selecting it for opt-in play; keep default compatibility safeguard.
+Then address initialization stall with explicit preflight/warmup ownership,
+not larger audio buffers; manual combat/hair/coverage remain in scope.
+
 LOG961 bounded underrun timestamps, base052fd6589 plus source changes.
 SDL backend stores first256 underrun offsets in fixed array, SDL tick delta
 from init; no callback logging/allocation. After device-close callback join,
