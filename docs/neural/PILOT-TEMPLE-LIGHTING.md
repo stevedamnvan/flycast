@@ -2,6 +2,37 @@
 
 ## Current restoration guidance (2026-09-12)
 
+Camera-light research (2026-09-12): NVIDIA distinguishes the Toolkit viewport's
+camera-attached visibility light from authored stage lights. Its runtime fallback
+light is explicitly a debugging aid, not the recommended shipping lighting.
+Our supplied helper distant light is a separate authored diagnostic, not that
+fallback option. Do not silently replace it with a continuously camera-following
+key as a character fix. Stage lighting should have a reproducible direction in
+the scene's supported coordinate space; world-space recovery here is still open.
+
+NVIDIA recommends primitive lights for scene illumination, distant lights for
+sun-like illumination, and modest radiance considered together with exposure.
+Tonemapper exposure affects all scenes globally. Therefore hold exposure policy,
+light direction/radiance and composed materials fixed in diagnostic comparisons;
+do not repair dark characters by globally washing out the user-liked arena.
+Use a fixed stage key and scene-motivated fill as an implementation hypothesis,
+then verify fighters turning, camera motion/cuts and stable weapon reflections.
+Any fill must survive both levels; no final numeric preset inferred from docs.
+
+Local evidence: practice-character-response-a renders source5302 unchanged and
+with character-only vertex RGB whitened, with repeat control; all120-frame runs
+exit0 and baseline exact. Unchanged standalone already lights fighters brightly,
+unlike live e. Logs show standalone direction(-.487995,-.284208,.82528) versus
+live retained(0,0,1). This establishes a comparison confound, not sole causality:
+accumulation/history and composition also differ. Next reproduce the live light
+direction in the same frozen source before judging material edits. Whitened RGB
+is diagnostic only; no texture,alpha,UV or normal replacement is promoted.
+
+Sources:
+- https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/latest/docs/howto/learning-lighting.html
+- https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/latest/docs/toolkitinterface/remix-toolkitinterface-viewport.html
+- https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/RtxOptions.md
+
 The user likes the current Practice arena and floor textures. Preserve that
 environment reference while correcting dark character lighting/material response;
 do not globally brighten exposure or remove floor detail as an assumed fix.

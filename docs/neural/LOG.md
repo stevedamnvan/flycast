@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG998 camera-light guidance and character-only vertex isolation. Source5302
+all12 character atlas matches exact;22992 vertex RGB values whitened in external
+diagnostic packet only,alpha/geometry/UV/normals/textures retained. Control,
+repeat,white each120 frames exit0,baseline exact; viewed control already bright
+versus live dark characters. Standalone light(-.487995,-.284208,.82528) differs
+from live(0,0,1),so no texture-only explanation or improvement claim. NVIDIA
+camera/fallback versus stage-light guidance integrated in PILOT-TEMPLE-LIGHTING.
+Next same-source explicit light-direction isolation,then stage-supported light
+ownership; no camera-following production key or global exposure workaround.
+User simplified goal verified ACTIVE through get_goal. Evidence under
+C:/Flycast-Evidence/practice-character-response-a. No live process or source
+change; attempted diagnostic source patch failed atomically before edits.
+
 LOG997 user-requested material/goal audit. Goal tool confirms ACTIVE full
 remaster objective. Rechecked489 cached paths in47-material union: none missing.
 Existing DDS map coverage42 albedo/normal/roughness,38 height,1 metallic;

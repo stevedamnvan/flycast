@@ -14,10 +14,10 @@ Do not create replacement FC IDs or another task-state system.
 > Deliver a beautiful, playable Soulcalibur RTX Remix and supplied DLSS 5 remaster by following docs/neural/BACKLOG.md. Continue its authoritative queue and preserve all scope, safety and acceptance gates until the full remaster is proven.
 
 User requested this shorter goal on2026-09-12 and GPT-6 Astra low (Astra light)
-for implementation. Detailed scope remains in this backlog. The active goal
-tool only permits completion/blocked status updates, not objective edits;
-the existing full objective remains active until edited through a supported
-app control. Do not falsely complete it to replace the wording.
+for implementation. Detailed scope remains in this backlog. The user replaced
+the tracker goal through /goal; get_goal now verifies ACTIVE: follow this
+backlog to deliver the full playable remaster, preserving scope, safety and
+acceptance gates. The reset does not reset project progress or completed work.
 
 User amended the goal on 2026-09-12 to restore visual quality as a required
 partner to performance: materials must respond convincingly to path-traced
