@@ -7,12 +7,10 @@ no convincing strand gain, BC7 hair alpha128 differs126 pixels. Baseline exact,
 diagnostic layer detached. No game/test/ingestion live. Next source-supported
 hair geometry/shading, no upscale/roughness loops. Audio parked.
 Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
-LOG972 duplicate control:58/66 UV keys have one exact geometric surface;
-8 have two, across116 frames. Use duplicate-collapsed continuity and existing
-source-witness export; no new format or across-cut identity claim.
-LOG971 occurrence count (superseded interpretation): only3/143 uniquely keyed in
-each of116 frames (66 keys, maximum multiplicity4). Next preserve and test
-source lineage before strand attachment; draw ordinal is not stable identity.
+LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
+draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
+Next existing source-witness identity validation, then bounded strand render.
+Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology
 116/116 consistent. Next source-triangle barycentric attachment prototype,
 prove moving stability before strand geometry; no recovered skeleton claim.

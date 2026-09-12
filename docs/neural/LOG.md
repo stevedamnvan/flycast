@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG973 offline barycentric hair-anchor feasibility, base5c33b6587.
+External hair-attachment-a/anchor_audit.py reuses packet parser and source DDS
+payload match; collapses exact position+UV duplicates, rejects multi-surface
+keys and degenerate UV keys. All58 eligible keys persist116 frames. Roots at
+weights[.2,.3,.5] remain on current triangles; reversing draw order returns
+identical surfaces. Camera-relative root displacement/source-frame p50/p95/
+p99/max=.004444/.030651/.044604/.057652; these are descriptive, no visual or
+anatomical threshold. Reports anchor-feasibility.json/anchor-trajectories.json.
+Eight ambiguous keys excluded only from this prototype, not full hair scope.
+No across-cut source identity, shading/alpha, or appearance acceptance.
+Next reuse source-witness capture to validate identity, then render a bounded
+strand candidate on proven surfaces; no further albedo-upscale loop.
+No production/assets changed; audio parked, full remaster gates open.
 LOG972 spatial duplicate control corrects interpretation of LOG971.
 Read-only spatial_audit.py/spatial-ambiguity.json under hair-attachment-a
 compare exact position+UV triangle sets within each quantized UV key.

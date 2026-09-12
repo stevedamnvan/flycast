@@ -277,12 +277,10 @@ or generation retry. LOG969 typed current-process MCP wrapper now proven live;
 4builds/1053x3/SDK302/Python37 pass. Candidate frozen render still clumped and
 BC7 hair alpha128 differs126 pixels; not promoted. Next source-supported hair
 geometry/shading assessment, no further upscale/roughness loop.
-LOG972 duplicate control:58/66 UV keys have one exact geometric surface;
-8 have two, across116 frames. Use duplicate-collapsed continuity and existing
-source-witness export; no new format or across-cut identity claim.
-LOG971 occurrence count (superseded interpretation): only3/143 uniquely keyed in
-each of116 frames (66 keys, maximum multiplicity4). Next preserve and test
-source lineage before strand attachment; draw ordinal is not stable identity.
+LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
+draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
+Next existing source-witness identity validation, then bounded strand render.
+Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts
 match. Next source-triangle barycentric attachment prototype and moving proof,
 not inferred skeleton or index-only binding. No new geometry accepted yet.
