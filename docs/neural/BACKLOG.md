@@ -217,8 +217,13 @@ Two1200-sample runs:1071/1072 fresh of1080 after120 warmup (99.167/99.259%),
 fresh62.11/62.27fps, p50~15.1ms,p95~22,p99~23.5; latency max5. Baseline/config
 exact. Gap/generation/unsupported resets retained. Freshness threshold met in
 this scope only; full gameplay/pacing/audio/visual/lifecycle gates remain open.
-Next moving corrected candidate/structure0 with existing selective capture flag,
-verify native invariants and continuity, then playable preset and full gates.
+LOG955 selective corrected moving116 frames2440..2559, all116 joins/native
+invariants pass, invalid motion0. Reviewed2453/2549 preserve skin/cloth/weapon
+corrections; hair glossy/clumped, no full temporal/appearance acceptance.
+Baseline/config exact. Policies align with benchmark except capture overhead.
+Next native/combined emulated-cycle advance versus wall time (within1% gate),
+using existing performance telemetry with minimal cycle endpoints if needed;
+then playable integration and hair. Preserve audio ownership and full gates.
 
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
 

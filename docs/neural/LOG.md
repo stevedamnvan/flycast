@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG955 faster supported-policy moving check, base1b8c401c7.
+Corrected25-range material candidate/structure0 plus selective capture flag,
+narrow observation, uncurved welded/cutout, default supported motion; no guarded
+shading-motion diagnostic. Same resource/material/motion policy as LOG954 timing,
+with synchronous capture overhead explicitly performance-ineligible.
+Requested120 sources2440..2559;116 retained, missing2441/2443/2445/2447.
+Launcher0, all116 source/helper/completed-Present joins pass, native HUD/world/
+backbuffer mismatch0, invalid motion0. Reviewed2453 sword swing and2549 close
+contact: corrected skin/clothes retained, weapons/native effects present; hair
+still glossy/clumped. No full temporal/shimmer/300-frame or visual acceptance.
+Baseline/config restored exactly; candidate inactive. Evidence
+C:/Flycast-Evidence/selective-corrected-moving-a receipt/moving-analysis/captures.
+Next paired native/combined emulated-cycle versus wall-time check (within1%
+existing gate), then playable integration and hair work. Existing performance
+samples do not record emulated-cycle interval; spg.cpp computes internal speed
+but does not publish suitable bounded telemetry. Add minimal performance-sample
+cycle endpoints through existing telemetry if no existing supported receipt
+supplies them; preserve emulation/audio ownership and use normal/OIT gates.
+No further texture or scalar sweep. No source changes; backlog contract checked.
+
 LOG954 guarded selective resource benchmark improves freshness, base256aaa53e.
 Added explicit --benchmark-selective-resource-refresh to existing launcher.
 Automatic anchored capture-free runs only; rejects manual/capture/CPU timing/
