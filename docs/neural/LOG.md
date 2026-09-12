@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1014 empty-source helper crash narrowed to unload lifetime.
+Windows Application Event1000 at2026-09-12 19:25:35 identifies
+remake-runtime-smoke PID0x7AB8, exception0xc0000005, faulting module
+d3d9.dll_unloaded, offset0x1f7e4e. Report23321bc5-a31d-4276-96ab-c21de5285aaa
+retained in helper-empty-shutdown-a/windows-event.json. This matches LOG1008
+run a's no-source channel closure, successful public Shutdown and module unload
+log, then access violation. It narrows the failure to unloaded-runtime lifetime;
+it does not identify the callback or prove the proper fix. Source retains
+ownedDevice/ownedD3D pointers without explicit Release before FreeLibrary;
+verify public registration/Shutdown ownership before altering cleanup order.
+No proprietary binary inspection, catch-and-ignore workaround or gate waiver.
+
 LOG1013 metal albedo relighting suitability, bounded visual review.
 practice-map-distinctness.json finds no cross-source identical RGB PNG maps
 between the two matched metal sets; this is not semantic alignment proof.
