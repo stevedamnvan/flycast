@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG1013 metal albedo relighting suitability, bounded visual review.
+practice-map-distinctness.json finds no cross-source identical RGB PNG maps
+between the two matched metal sets; this is not semantic alignment proof.
+Viewed source Practice10 and cached BCBC albedo, plus prior F645 preserved-alpha
+view: recognizable strip layout remains, but prominent fixed reflection bands
+remain baked in albedo. Do not accept these as delit base colour or try to cure
+the baked response merely by lowering roughness. Source-specific delighting
+review remains before stronger reflective response; cached normal/height kept
+pending alignment, originals untouched. Readiness ledger records this visual
+disposition. This does not identify the cause of character face washout.
+
 LOG1012 metal cache alpha gate, no asset mutation.
 material-union-a/practice-map-dimensions-alpha.json checks listed PNGs for
 Practice10/12 against exact source atlases. All listed PNG maps1024x1024.
