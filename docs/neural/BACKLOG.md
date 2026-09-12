@@ -75,6 +75,12 @@ it. The tracker carries the objective; this backlog carries the work plan.
 ### Ordered queue
 
 Current card: **FC-067 / M2-scene**.
+LOG1005 camera-lighting audit: key/fill direction is already held within each
+diagnostic anchor; world consistency across cuts remains unproven. Next bounded
+visual check inspects runtime fallback-light state and exposure during motion
+and hit flashes before any further fill tuning. Preserve arena appearance and
+native effects. This does not displace pending LOG911 CPU validation timing or
+expand the existing visual investigation into another preset sweep.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

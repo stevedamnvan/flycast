@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG1005 camera-lighting research and implementation audit (2026-09-12).
+NVIDIA runtime options document camera-relative fallback controls; its runtime
+guide recommends white-material lighting diagnostics. Remix post-processing
+documents median metering, bounded EV adaptation and center weighting. Epic's
+exposure guide separates fixed exposure diagnosis from local highlight/shadow
+adjustment. These are guidance, not verified installed-runtime settings:
+https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/RtxOptions.md
+https://github.com/NVIDIAGameWorks/rtx-remix/wiki/runtime-user-guide
+https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/1.4.0-0/docs/runtimeinterface/renderingtab/remix-runtimeinterface-rendering-postprocessing.html
+https://dev.epicgames.com/documentation/unreal-engine/auto-exposure-in-unreal-engine
+
+Current source narrows the hypothesis: remake_scene_lighting.h holds authored
+key/fill directions within diagnosticOrigin and reanchors on origin changes.
+remake_scene_tests.cpp already checks a later camera rotation does not rotate
+the temple key, and checks explicit cut reanchoring. D3D9PacketScene selects
+directions before material resource refresh. Do not implement this again or
+call the diagnostic anchor recovered world-space lighting. Remaining visual
+check: runtime fallback-light state, actual light direction across motion/cuts,
+and exposure response to hit flashes. Use retained same-input evidence and a
+baseline repeat; change one factor, preserve arena and native hit/HUD effects.
+No new render, lighting correction or visual acceptance is claimed here.
+
+Previous validation process89915 is no longer available. Its four build logs
+are terminal and three selftest logs report1092/0. Fresh SDK execution reports
+329/0. Identity-validation source change remains uncommitted pending measured
+CPU benefit; these checks alone do not justify performance promotion.
+
 LOG1004 current Practice material identity and bounded surface MCP operation.
 Current capture exports27 textures/68 dependencies; helper124 during15s linger
 AFTER End USD export, retained failure. MCP dry-run/import passes; all12 character
