@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG983 effective light control isolated. Helper passes radiance into CreateLight;
+old native-shading profile leaves exposure defaults. Explicit existing
+rtx.autoExposure.enabled=False in separate profile,confirmed runtime logs.
+MCP control3/control3/light2 each120 frames exit0,baseline exact. Fixed-exposure
+repeat MAE.99901,candidate13.57115,means89.777/76.220. Earlier default-exposure
+light change below repeat noise; supports exposure adaptation masking response.
+Viewed candidate:warm palette retained but floor/doorway too dark; not promoted.
+Evidence temple-light-fixed-exposure-a/renders. Next hold exposure policy fixed
+and improve light distribution/bright-dark balance with existing temple rig,
+checking materials jointly and four-character/two-stage set. No scalar sweep,
+no visual/perf acceptance. Audio parked; layers restored,no game live.
+
 LOG982 validation set and bounded light control. Four characters Kilik/Taki/
 Mitsurugi/Sophitia x temple/water establishes eight pairings; uncaptured remain
 pending,full-game scope unchanged. Active backlog consolidated in place.

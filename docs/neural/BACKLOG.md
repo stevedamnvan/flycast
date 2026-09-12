@@ -284,7 +284,9 @@ is separate. Reuse11 cached world map families; mixed atlases need used-region
 review. Newer character texture hashes do not occur in temple reference, so
 validate variants rather than aliasing bindings. Lock/repeat control, one
 LOG982 light3-to2 candidate below repeat noise; next trace effective lighting
-and tonemap path, then region-supported material change and moving proof.
+LOG983 fixed exposure reveals light response;lower intensity alone too dark.
+Next existing temple rig light distribution at fixed exposure, joint material
+review and moving proof across validation set.
 Validation set: Kilik, Taki, Mitsurugi, Sophitia across temple and water stage.
 Track all eight character/stage pairings; uncaptured pairings remain pending.
 Cover skin, cloth, armour/swords, hair/alpha, world surfaces, HUD/effects,
