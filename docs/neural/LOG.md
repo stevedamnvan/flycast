@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG932 user renewed persistent overall-quality goal (2026-09-12).
+Goal tool returned null; created and verified ACTIVE objective covering lighting
+and material-specific response first, natural skin and reflective weapons,
+then source-supported modern hair with community/official best practices.
+Existing queue, gates, full material coverage and budget controls retained.
+Sword tag test source2453:42217A1984A23AD2 colours guard/grip/tassel green,
+but blade remains unchanged. Do NOT classify entire atlas or blade from its
+thumbnail; blade identity remains open. Both temporary layer and baseline mod
+restored byte-exact via MCP. Evidence C:/Flycast-Evidence/sword-proof-a.
+Next identify actual blade material before reflection edits; no skin/hair change.
+
 LOG931 weapon-specific reflection candidate (2026-09-12).
 User clarified: preserve desirable shine on metal/weapons; do not globally
 matte materials. MCP colour-tag control on source2453 confirms C0FE1816E4150070

@@ -1,5 +1,10 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Standing goal renewed ACTIVE via goal tool (LOG932): use best judgment and
+community/official best practices, lighting/materials first, then modern hair.
+Sword tag42217 colours guard/grip/tassel, NOT blade; continue blade identity
+proof. Baseline restored; evidence sword-proof-a.
+
 Weapon checkpoint LOG931: PBRify-based gold-cap polished roughness saved in
 inactive character_correction layer. MCP tag test proves caps versus lacquer
 shaft. Metal response MAE13.244 versus repeat0.612 on1018 tagged pixels;
