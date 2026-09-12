@@ -7,6 +7,10 @@ no convincing strand gain, BC7 hair alpha128 differs126 pixels. Baseline exact,
 diagnostic layer detached. No game/test/ingestion live. Next source-supported
 hair geometry/shading, no upscale/roughness loops. Audio parked.
 Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
+LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology
+116/116 consistent. Next source-triangle barycentric attachment prototype,
+prove moving stability before strand geometry; no recovered skeleton claim.
+Evidence hair-geometry-audit-a. Baseline unchanged, no game/test live.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

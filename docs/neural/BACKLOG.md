@@ -277,6 +277,9 @@ or generation retry. LOG969 typed current-process MCP wrapper now proven live;
 4builds/1053x3/SDK302/Python37 pass. Candidate frozen render still clumped and
 BC7 hair alpha128 differs126 pixels; not promoted. Next source-supported hair
 geometry/shading assessment, no further upscale/roughness loop.
+LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts
+match. Next source-triangle barycentric attachment prototype and moving proof,
+not inferred skeleton or index-only binding. No new geometry accepted yet.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.

@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG970 hair geometry/motion audit, base1069377cc, no rendering changes.
+Source DDS matched232 draws across116 frames. Total16588 triangles,1044 have
+constant per-triangle normals (~6.29%); existing weld smoothing already active,
+so do not diagnose globally missing smooth normals. Each frame143 triangles.
+UV triangle multisets quantized1/4096 match first frame in116/116. Quantization
+is diagnostic only, not source identity/attachment acceptance. Read-only audit
+at C:/Flycast-Evidence/hair-geometry-audit-a geometry.json and uv-topology.json.
+Attribute-seam counts in geometry.json use float view of packed color and are
+not accepted evidence; only triangle/normal counts used. No source edits/assets.
+NVIDIA current asset replacement docs describe skeleton-dependent animated
+replacement/remapping: https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/latest/docs/howto/learning-assets.html
+Our stream is projected source triangles, no recovered skeleton; do not claim
+Toolkit skeleton support supplies one. Next bounded attachment prototype uses
+existing source triangle barycentric coordinates and original UV region; prove
+stable moving attachment before authoring strand geometry. Preserve existing
+hair silhouette/alpha, avoid index/order-only association and unsupported rig.
+No new renderer/models/generation loop. Full material coverage/quality gates
+remain, audio parked. No game/test live; baseline unchanged.
+
 LOG969 current-process ingestion wrapper proven; hair candidate not promoted.
 Based24a19520. Existing capture MCP now exposes flycast_ingest_diffuse_current_process,
 plain JSON string avoids unresolved executor enum in installed OpenAPI tool.
