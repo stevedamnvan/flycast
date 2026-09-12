@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG971 hair foundation audit, base f0db1de99. Read-only evidence:
+C:/Flycast-Evidence/hair-attachment-a/ambiguity.json:116 frames each have143
+triangles,66 quantized UV keys,only3 unique triangles,maximum multiplicity4.
+Reject UV-only attachment. Transport mesh.id uses list/ordinal; serialized
+vertices omit sourceVertex/transformSerial available in RemakeViewVertex.
+Neither draw order nor transform serial is proven persistent anatomy.
+Next preserve/test diagnostic source lineage across motion/reorder/cuts before
+barycentric strand authoring; reject ambiguous roots, no nearest-surface guess.
+Original first-pass input exact; recursive4x-to8x remains unaccepted foundation.
+No rendering/assets changed, no acceptance or paid generation. Audio parked.
+
 LOG970 hair geometry/motion audit, base1069377cc, no rendering changes.
 Source DDS matched232 draws across116 frames. Total16588 triangles,1044 have
 constant per-triangle normals (~6.29%); existing weld smoothing already active,

@@ -277,6 +277,9 @@ or generation retry. LOG969 typed current-process MCP wrapper now proven live;
 4builds/1053x3/SDK302/Python37 pass. Candidate frozen render still clumped and
 BC7 hair alpha128 differs126 pixels; not promoted. Next source-supported hair
 geometry/shading assessment, no further upscale/roughness loop.
+LOG971: UV-only attachment rejected: only3/143 triangles uniquely keyed in
+each of116 frames (66 keys, maximum multiplicity4). Next preserve and test
+source lineage before strand attachment; draw ordinal is not stable identity.
 LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts
 match. Next source-triangle barycentric attachment prototype and moving proof,
 not inferred skeleton or index-only binding. No new geometry accepted yet.

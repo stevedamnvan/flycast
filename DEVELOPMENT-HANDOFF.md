@@ -7,6 +7,9 @@ no convincing strand gain, BC7 hair alpha128 differs126 pixels. Baseline exact,
 diagnostic layer detached. No game/test/ingestion live. Next source-supported
 hair geometry/shading, no upscale/roughness loops. Audio parked.
 Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
+LOG971: UV-only attachment rejected: only3/143 triangles uniquely keyed in
+each of116 frames (66 keys, maximum multiplicity4). Next preserve and test
+source lineage before strand attachment; draw ordinal is not stable identity.
 LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology
 116/116 consistent. Next source-triangle barycentric attachment prototype,
 prove moving stability before strand geometry; no recovered skeleton claim.
