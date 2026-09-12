@@ -231,6 +231,21 @@ exactly. Same-source repeat variability exceeds original/refined differences;
 isolate convergence/capture variability before accepting gloss improvement,
 then moving combat. Use standard Toolkit MCP launch for ingestion, extension
 session for capture activation/binding; no paid generation or new models.
+LOG926 closes the variability diagnosis in two tranches: the two-state repeat
+noise (1.6 to 1.7 MAE) is the temporal denoiser state driven by wall-clock
+frame timing; pinning `rtx.timeDeltaBetweenFrames` (and auto exposure off)
+in a copied diagnostic profile gives a 0.16 floor (character box 0.22), the
+random seed is not a factor. Stills must run from the checkout root (mod
+discovery) at 1280x960 with the light-rig flags. Under that protocol the
+character candidate is measurable (box 1.4 against 0.3) and the frozen scene's
+16 uncovered materials (the mod's 26 PBRify materials belong to the source-2601
+capture; only 9 hashes are shared) are addressed: 12 environment materials
+generated locally, ingested and bound through the Toolkit MCP in the inactive
+opt-in `layers/env_correction.usda` (3.56 MAE effect, 18.7 percent of pixels).
+Source-2756 ledger: 9 reused, 16 candidates, 4 sky baseline, 0 rejected.
+Next: human review of `full-stable-r1.bmp` against `stable-r1.bmp`, reconcile
+the live water-stage scene's material set the same way, then moving combat
+with both layers active; no appearance gain is accepted yet.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not

@@ -1,5 +1,72 @@
 # Neural rendering evidence log
 
+LOG926 still-image repeat variability bounded, candidate materials now
+measurable, and the frozen scene's uncovered materials upgraded (2026-09-12).
+No production code changed; evidence under
+`C:/Flycast-Evidence/visual-repeat-b/` (profiles, stills, `*-ab-record.json`,
+`env-bind.json`, `texture-hash-mapping.json`, `env-pbrify/`). Still route:
+existing helper, `--live-artifact` on the saved curved-d source 2756 packet,
+120 frames, 1280x960, `--scene-light-radiance 1 --temple-light-rig
+--scene-light-anchor`, working directory the checkout root, `--assets` the
+evidence folder. Two pitfalls found first: the runtime discovers
+`rtx-remix/mods` relative to the working directory, so a still launched from
+another directory renders with no mod at all and no warning (the first two
+cohorts of this session, kept under `nomod/` and `nolight/`, are void), and
+the helper defaults to 640x480 unless `FLYCAST_REMAKE_OUTPUT_SIZE=1280x960`
+is set (`640x480/`). Tranche 1, frame timing: with the runtime's actual
+wall-clock frame delta (`control`, the LOG913 sky-classified profile) repeats
+fall into two states, 0.19 to 0.56 MAE within a state and 1.61 to 1.73
+(character box 3.1 to 3.3) across states, which reproduces LOG924's 1.62/2.99
+exactly; a copied profile that pins `rtx.timeDeltaBetweenFrames = 16.667`
+(`fixeddt`) gives 0.16 to 0.19 (box 0.23) over three repeats and one state,
+and adding `rtx.autoExposure.enabled = False` (`stable`) 0.15 to 0.16 (box
+0.22) over four. Tranche 2, random seed: `rtx.rngSeedWithFrameIndex = False`
+changes nothing (2.85 in the no-mod cohort against 2.76 to 3.42 control), so
+the variability is the temporal denoiser state driven by frame timing, not
+sampling. The reference accumulation mode is deterministic too (0.44) but is
+a different renderer path and is not the product look. `stable` is the
+diagnostic still protocol from here: noise floor about 0.16 full image and
+0.22 to 0.35 in the character box; it changes the look against `control`
+(27 MAE) and is for A/B only. Candidate materials under `stable`: the
+LOG924 character_correction layer (activated and removed through the Toolkit
+MCP, `remix_create_layer` insert at position 0, `remix_save_layer`, then
+`remix_remove_layer` and save; baseline mod bytes
+e3c0979057770020 verified after every run) changes the frozen image by 0.35
+MAE, character box 1.40 to 1.44 against 0.22 to 0.35 noise, concentrated on
+Xianghua, so the refined roughness is measurable now; whether it looks better
+is a separate human review. Root cause of "almost no RTX" on this scene: the
+mod's 26 PBRify materials came from the source-2601 capture (the other part
+of the stage); the current 29-material capture of source 2756 shares only 9
+hashes with it, and none of the other 20 current textures matches any old
+texture by pixels (nearest MAE 15 to 74 after RGB, BGR and flip tests,
+`texture-nearest-old.json`), so 16 of 29 materials in this scene had no
+replacement at all (walls, roofs, floor, railings; the four sky textures are
+baseline by LOG913). Disabling replacements changes only Kilik (0.72 MAE,
+left third of the frame). Package D slice: the twelve pending environment
+materials were generated locally with the existing ComfyUI PBRify chain (48
+maps, 1024, 3 to 4 s each, no paid calls, no new models), source alpha
+restored exactly on every albedo (`env-pbrify/alpha-preservation.json`),
+ingested through the existing Toolkit MCP in a standard session (all 48
+`validation_passed`, `assets/ingested/env_correction/`), then bound through
+the MCP in a capture-extension session (`flycast_activate_capture` on the
+imported capture, `remix_create_layer` beneath the mod, edit target verified,
+`remix_override_textures`, `remix_save_layer`, removed again and mod saved;
+`layers/env_correction.usda`: 12 materials, 36 opinions, albedo/normal/
+roughness only, no height by LOG800, no capture references). Effect under
+`stable`: env_correction alone 3.56/3.54 MAE (character box 4.0 to 4.1,
+18.7 percent of pixels change by more than 8) against 0.16 to 0.39 noise;
+env plus character 3.60/3.63; the walls, roofs, railings and floor carry the
+upgraded detail in the reviewed still (`full-stable-r1.bmp`). Both layers
+remain inactive; the baseline mod is byte-identical. Coverage ledger for
+source 2756: 9 reused, 4 character candidates, 12 environment candidates, 4
+sky baseline, 0 rejected; the live water-stage scene of the pilot sessions
+has its own material set and its coverage is not yet reconciled against the
+current textures. Accepted: the variability diagnosis and the measurement
+protocol. NOT accepted: any appearance gain (human review and moving combat
+pending). Toolkit sessions were restarted twice (standard for ingestion,
+extension for binding) after verifying the baseline; both layer files stay
+on disk for the next A/B.
+
 LOG925 playable-delivery planning amendment (2026-09-12).
 User requested backlog/plan update to reach playability. Added an ordered
 sequence in the existing BACKLOG: bounded visual diagnosis, live combat,

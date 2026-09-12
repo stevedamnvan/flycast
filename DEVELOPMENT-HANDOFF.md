@@ -1,5 +1,22 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current visual checkpoint (LOG926; docs only on source HEAD 55ad44c01): the
+still-image repeat variability is diagnosed (temporal denoiser state driven
+by wall-clock frame timing; a copied profile pinning
+`rtx.timeDeltaBetweenFrames` plus auto exposure off gives a 0.16 MAE floor;
+seed not a factor). Stills must run from the checkout root at 1280x960 with
+the light-rig flags or they render without the mod. The frozen source-2756
+scene had 16 of 29 materials unbound because the mod's PBRify set belongs to
+the source-2601 capture; 12 environment materials are now generated (local
+ComfyUI), ingested and bound through the Toolkit MCP in the inactive opt-in
+`layers/env_correction.usda` (3.56 MAE effect); the character candidate is
+measurable (box 1.4 against 0.3). Baseline mod bytes restored after every
+activation. Toolkit currently runs with the capture extension (PID 35764),
+imported capture active, review workfile open. Next: human review of
+`C:/Flycast-Evidence/visual-repeat-b/full-stable-r1.bmp` versus
+`stable-r1.bmp`, reconcile the live water-stage material set, moving combat
+with both layers, then performance from LOG911. No appearance gain accepted.
+
 Current visual/MCP checkpoint (LOG924; source HEAD cf535c044): four refined
 roughness maps generated deterministically with existing ComfyUI, ingested and
 validated through Toolkit MCP. Standard Toolkit launch fixes ingestion observed
