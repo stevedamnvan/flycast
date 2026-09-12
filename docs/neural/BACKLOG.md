@@ -351,6 +351,9 @@ LOG1001 live1280 produced no previews (fallback at5309);640 completed115 with
 6108 exact nativeHUD pixels each and visible fighters. Next controlled combat/
 turning input and stage transfer,plus1280 return-latency work. Do not generalize
 the reference-view fill vector to all anchors or call this performance accepted.
+LOG1002 native controlled attack proves13 damage and hit reaction; moving
+control/fill640 pair pending. Hit-counter glyph bbox grows to112 rather than96;
+verify nonempty live protection through that change before combat HUD acceptance.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

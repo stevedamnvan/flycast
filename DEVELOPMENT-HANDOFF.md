@@ -1,6 +1,14 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1001: fill1280 completed with no previews after
+Current resume checkpoint LOG1002: native30-frame sword attack verifies13 damage
+and Sophitia reaction. Paired control/fill640 live replay running outer handle45141
+(practice-sword-motion-a/run_live.py);poll same handle,driver archives host logs.
+Native hit counter expands glyph bbox y96->112; inspect live protection before
+combat HUD acceptance (existing certificate only96). Prior input retained in
+practice-sword-motion-a/prior-input.input; isolated script currentlycombat-input.
+No source edit yet;do not overwrite active helper/host binaries during pair.
+
+Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115
 captures,6108 exact nativeHUD pixels each,viewed fighters visible. No process
 remains on handles1989/90178;host logs archived. Next controlled combat/turning

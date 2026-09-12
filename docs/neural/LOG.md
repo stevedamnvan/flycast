@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1002 controlled sword-hit replay verified natively. Isolated replay advances
+Mitsurugi at cycles19350000000..19650000000,DC_X19750000000..19800000000,
+DC_Y20050000000..20100000000; prior input retained. Native30 frames5430..5459
+close cleanly. Viewed5430 approach,5445 attack,5459 Sophitia hit reaction and
+13 damage/1HIT. This is real controlled Practice contact,not full AI combat.
+Changing HUD atlas bbox extends y96 to112 at5459; native classifies it,existing
+new zero-history certificate only matches96. Check live hit-counter protection
+before declaring combat HUD restored; native-hud-layouts.json retains evidence.
+Existing launcher control/fill640 pair now running through outer handle45141
+under C:/Flycast-Evidence/practice-sword-motion-a/run_live.py. Poll same handle;
+it runs two sessions serially and archives each host log. Do not alter isolated
+replay or rebuild active binaries during comparison. No moving Remix verdict yet.
+
 LOG1001 live fill640 verifies visibility;1280 return gate remains failed.
 practice-remix-temple-fill-a ends host0/helper11 orderly,zero previews:
 current5309 candidate0 source0 latched fallback. Fill created correctly; no
