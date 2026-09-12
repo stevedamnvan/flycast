@@ -185,6 +185,12 @@ and moving hair/character result. Lost scalar opinions already resolve from
 weaker layers, so do not restore them blindly. Stale Toolkit state after disk
 pruning is a plausible mechanism, not reproduced proof. No broad generation.
 Retain structure0 candidate; then integrated combat/performance and modern hair.
+LOG950 completes MCP zero-range correction of remaining18, all25 reread from
+saved candidate; floor preserved, all maps unchanged, baseline exact. Frozen
+2461 reduces bright Kilik hair patching but remains coarse; no overall visual
+acceptance. Next fresh moving corrected candidate plus structure0, inspect
+hair/skin/weapon response and native invariants, then capture-free performance.
+Agent report finalized at C:/Flycast-Evidence/texture-regression-history-a/REVIEW.md.
 
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action

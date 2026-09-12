@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG950 remaining historical displacement correction through MCP, base0abb62f8a.
+Read finalized Astra extra-high report at
+C:/Flycast-Evidence/texture-regression-history-a/REVIEW.md. Derived18 remaining
+hashes from retained pre8x versus current layer and prior7 readbacks. Live MCP
+preflight all18 has height binding and unauthored ranges. Authored both ranges0
+in existing character_correction, saved through MCP. Reinserted saved layer and
+verified all25 affected ranges0; floor78918ECF7600A708 retained. All existing
+nonempty texture opinions equal. Candidate SHA256
+d0eaa4367bf9f5b7266abe86fbae703035df913f1ad3a3c26491bb9b6fc35fc3.
+Initial post-save verification compared parser dictionaries including new empty
+map dictionaries for range-only overrides and rejected; finally restored baseline.
+Retained failure explanation, corrected semantic check and independently reread
+saved composed values. No lost maps or blanket scalar restoration.
+Frozen source2461 same prior stable profile/120 helper frames completed0.
+Compared prior integrated image: bright patching on Kilik hair is reduced;
+hair remains coarse/clumped, overall appearance still CORRECTIONS_REQUIRED.
+No fresh repeat, moving or performance claim. Standalone excludes native water.
+MCP removal/save restores original mod SHAe3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340;
+candidate inactive. Evidence C:/Flycast-Evidence/height-history-correction-a
+plan/preflight/receipt/verification-correction and renders. No source change,
+new maps/models or paid generation. Backlog contract checked.
+Next fresh integrated moving combat with corrected25 ranges and structure0,
+review hair silhouettes/occlusions, skin and reflective weapons; then capture-free
+performance. Preserve acceptance and source-provenance requirements.
+
 LOG949 user-requested Astra extra-high history audit identifies height drift.
 Parent independently verified retained hair8x/pbrify_reimagined.before-8x.usda
 SHA ecfe701cedb228280804c7c14b87fe2a6e0b1c3ed60cc63cbc55f4cb697feae1:
