@@ -424,6 +424,8 @@ void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
 	overlayDrawCount_ = 0;
 	const auto currentCount = drawCounts_[currentBuffer_];
 	const auto referenceCount = drawCounts_[referenceBuffer_];
+	const int practiceGlyph = PracticeOverlayGlyphIndex(
+		{drawBuffers_[currentBuffer_].data(), currentCount}, renderWidth, renderHeight, overlayProfile_);
 	const float titleDepthScale = TitleOverlayDepthScale(
 		{drawBuffers_[currentBuffer_].data(), currentCount}, renderWidth, renderHeight, overlayProfile_);
 	struct Occurrence
@@ -541,7 +543,7 @@ void NeuralInstrumentation::ClassifyOverlays(std::uint32_t renderWidth,
 			if (IsHighConfidenceOverlay(current, currentCount, renderWidth, renderHeight,
 				stability, textureUses)
 				|| IsTitleSpecificOverlay(titleDraw, currentCount, renderWidth, renderHeight,
-					stability, overlayProfile_))
+					stability, overlayProfile_) || static_cast<int>(ci)==practiceGlyph)
 			{
 				overlayBuffer_[ci] = 1;
 				++overlayDrawCount_;

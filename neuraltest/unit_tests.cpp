@@ -2394,6 +2394,27 @@ int RunSelfTests()
 		header.flags=DrawScreenAligned;header.screenAlignedPrimitiveCount=23;
 		header.bboxMin[0]=28;header.bboxMin[1]=22;header.bboxMax[0]=577;header.bboxMax[1]=38;
 		const auto capturedHud=[](const DrawRecord& draw){return IsTitleSpecificOverlay(draw,20,640,480,0,OverlayProfile::SoulcaliburT1401nHudV1);};
+		{
+			DrawRecord practice[3]={header,header,header};
+			auto& glyph=practice[0];glyph.bboxMin[0]=40;glyph.bboxMin[1]=32;glyph.bboxMax[0]=506;glyph.bboxMax[1]=96;
+			glyph.zMin=glyph.zMax=2068.97f;glyph.screenAlignedPrimitiveCount=48;glyph.indexCount=239;
+			auto& panel=practice[1];panel.list=2;panel.texId=0;panel.indexCount=18;panel.vertexCount=12;panel.flags|=DrawTriangleList;panel.screenAlignedPrimitiveCount=3;
+			panel.bboxMin[0]=32;panel.bboxMin[1]=24;panel.bboxMax[0]=333;panel.bboxMax[1]=117;panel.zMin=panel.zMax=1896.55f;
+			const auto check=[&]{return PracticeOverlayGlyphIndex({practice,2},640,480,OverlayProfile::SoulcaliburT1401nHudV1);};
+			suite.Expect(check()==0,"Practice cohort protects glyph only without accepted history");
+			panel.flags&=~DrawTriangleList;suite.Expect(check()==-1,"Practice rejects list count with strip topology");
+			panel.indexCount=14;suite.Expect(check()==0,"Practice OIT strip panel certifies glyph without history");
+			panel.vertexCount=13;suite.Expect(check()==-1,"Practice rejects changed panel vertex coverage");panel.vertexCount=12;
+			panel.flags|=DrawTriangleList;suite.Expect(check()==-1,"Practice rejects strip count with list topology");panel.indexCount=18;
+			panel.zMin=panel.zMax=1000; suite.Expect(check()==-1,"Practice rejects incoherent panel depth");panel.zMin=panel.zMax=1896.55f;
+			glyph.texId++;suite.Expect(check()==-1,"Practice rejects other atlas");glyph.texId--;
+			glyph.list=2;suite.Expect(check()==-1,"Practice rejects translucent glyph impostor");glyph.list=4;
+			glyph.bboxMax[1]=200;suite.Expect(check()==-1,"Practice rejects world region");glyph.bboxMax[1]=96;
+			glyph.flags|=DrawRtt;suite.Expect(check()==-1,"Practice rejects RTT");glyph.flags&=~DrawRtt;
+			suite.Expect(PracticeOverlayGlyphIndex({practice,1},640,480,OverlayProfile::SoulcaliburT1401nHudV1)==-1,"Practice requires panel witness");
+			suite.Expect(PracticeOverlayGlyphIndex({practice,2},640,480,OverlayProfile::None)==-1,"Practice requires title identity");
+			practice[2]=glyph;suite.Expect(PracticeOverlayGlyphIndex({practice,3},640,480,OverlayProfile::SoulcaliburT1401nHudV1)==-1,"Practice rejects ambiguous glyph cohort");
+		}
 		suite.Expect(capturedHud(header),"captured Soulcalibur punch-through header survives animated history");
 		auto timer=header;timer.texId=696696496u;timer.bboxMin[0]=282;timer.bboxMin[1]=26;timer.bboxMax[0]=358;timer.bboxMax[1]=76;
 		suite.Expect(capturedHud(timer),"captured Soulcalibur timer atlas is protected");

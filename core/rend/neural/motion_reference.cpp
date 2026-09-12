@@ -320,6 +320,43 @@ bool IsTitleSpecificOverlay(const DrawRecord& draw, std::size_t drawCount,
 	return planar || boundedLayeredGlyph;
 }
 
+int PracticeOverlayGlyphIndex(ArrayView<DrawRecord> draws, std::uint32_t width,
+	std::uint32_t height, OverlayProfile profile) noexcept
+{
+	const int scale = width == 1280 && height == 960 && RemakeWidth() == 1280 ? 2 : 1;
+	if (profile != OverlayProfile::SoulcaliburT1401nHudV1 || width != 640u*scale || height != 480u*scale)
+		return -1;
+	int glyph = -1, panel = -1;
+	const auto bounds = [scale](const DrawRecord& d, int l, int t, int r, int b) {
+		return std::abs(d.bboxMin[0]-l*scale)<=scale && std::abs(d.bboxMin[1]-t*scale)<=scale
+			&& std::abs(d.bboxMax[0]-r*scale)<=scale && std::abs(d.bboxMax[1]-b*scale)<=scale;
+	};
+	for (std::size_t i=0;i<draws.size;++i) {
+		const auto& d=draws.data[i];
+		if (!d.indexCount || d.blend!=37 || (d.flags&(DrawRtt|DrawNaomi2|DrawDegenerate))
+			|| !(d.flags&DrawScreenAligned) || !d.screenAlignedPrimitiveCount
+			|| !std::isfinite(d.zMin) || !std::isfinite(d.zMax) || d.zMin<=0
+			|| std::abs(d.zMax-d.zMin)>d.zMin*.00001f) continue;
+		// Practice's text and translucent panel must coexist in this frame.
+		// Only glyph geometry is protected; never copy the bounding rectangle.
+		if (d.list==4 && d.texId==671530672u && d.screenAlignedPrimitiveCount>=8
+			&& bounds(d,40,32,506,96)) {
+			if (glyph!=-1) return -1;
+			glyph=static_cast<int>(i);
+		}
+		const bool panelTopology = d.vertexCount==12
+			&& ((d.flags&DrawTriangleList) ? d.indexCount==18 : d.indexCount==14);
+		if (d.list==2 && d.texId==0 && panelTopology && d.screenAlignedPrimitiveCount==3
+			&& bounds(d,32,24,333,117)) {
+			if (panel!=-1) return -1;
+			panel=static_cast<int>(i);
+		}
+	}
+	if (glyph<0 || panel<0) return -1;
+	const float ratio=draws.data[panel].zMin/draws.data[glyph].zMin;
+	return ratio>=.915f && ratio<=.918f ? glyph : -1;
+}
+
 float TitleOverlayDepthScale(ArrayView<DrawRecord> draws, std::uint32_t width,
 	std::uint32_t height, OverlayProfile profile) noexcept
 {

@@ -1,5 +1,24 @@
 # Opt-in temple lighting candidate
 
+## Current restoration guidance (2026-09-12)
+
+The user likes the current Practice arena and floor textures. Preserve that
+environment reference while correcting dark character lighting/material response;
+do not globally brighten exposure or remove floor detail as an assumed fix.
+The older rig results below are historical: LOG984 rejected the warm-key/cool-fill
+fixed-exposure candidate for harsher faces/contours. Do not treat it as a promoted
+lighting preset. LOG983 found exposure adaptation could hide a light-strength
+change; compare actual settings and repeated controls before drawing conclusions.
+
+The earlier character displacement correction (`character_displacement_review`)
+improved Kilik contours in its recorded moving comparison. Its seven material
+IDs are all absent from the Mitsurugi/Sophitia Practice packet5301 (manifest in
+C:/Flycast-Evidence/practice-remix-temple-b). Enabling that layer cannot transfer
+the fix to these variants. Audit their exact material identity, bindings and
+response first; never alias facial/hair textures by resemblance. Retain the
+existing correction for applicable sources and record active layers in every
+new comparison. These are scoped corrections, not full character acceptance.
+
 The PBRify pilot's diagnostic front light overexposes bright surfaces and
 flattens form. `--temple-light-rig --anchored-light` on remake_launch.py
 selects an authored warm key at radiance1 and cooler fill. Omission retains

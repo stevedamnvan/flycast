@@ -327,10 +327,13 @@ protected_pixels=0: zero mismatch is vacuous. Next a separate Practice layout/
 depth certificate with negative controls, not a generic HUD relaxation; then
 same-source light/material isolation. Material manifest matches12 textures to
 existing captures,17 unmatched; unmatched is not proof missing source pixels.
-LOG995: candidate builds/tests pass but live d has114 captures with zero protected
-pixels throughout. Patch unaccepted and uncommitted; inspect actual1280 live
-glyph/panel draws against native640 evidence before changing the certificate.
-Preserve failed evidence and stale/recovery guards; no performance claim.
+LOG995 failed d retained. LOG996 corrects OIT14-index strip versus normal18-index
+list panel certificate. e:116 frames,24432 protected pixels each,zero independent
+native/composite RGBA mismatches. Four builds/1067x3/SDK302/Python40 pass.
+Scoped Practice HUD restored; moving combat and performance remain open.
+User likes arena/floor: preserve environment reference; next exact current
+character material/lighting response. All seven earlier displacement-correction
+IDs absent from current pair,so layer activation alone is not a fix.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

@@ -1,5 +1,13 @@
 # Bounded experimental Remix launch
 
+Practice HUD restoration (LOG996): the panel witness differs by renderer:
+normal sorted triangles use18 indices; OIT strip uses14, both12 vertices.
+Do not certify the HUD from a zero mismatch counter alone: require nonempty
+native protection and inspect decoded mask/composite pixels. The116-frame
+Practice proof restores24432 pixels per frame exactly. This stationary evidence
+does not replace moving-combat or capture-free performance checks. Keep existing
+420s capture ceiling,8-frame stale limit and60-tick recovery unchanged.
+
 This runs the existing deterministic Soulcalibur OIT experiment, not an
 unrestricted interactive gameplay session. Camera coordinates remain diagnostic;
 the full working-pipeline checklist in BACKLOG.md is not complete.

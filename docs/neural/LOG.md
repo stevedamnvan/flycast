@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG996 Practice HUD restored in scoped stationary live sequence. OIT native960
+capture proves panel is14-index strip/12 vertices, while normal sorted capture
+has18-index triangle list. Certificate now accepts those exact topology forms,
+retaining title/atlas/layout/depth/unique-cohort checks and protecting glyph only.
+practice-remix-temple-e finishes116 captures: independently decoded masks each
+24432 pixels, native/composite RGBA mismatch0, bbox80,64..1011,187, text visibly
+restored. Host0/helper11 orderly, no forced children; source build executable
+SHA916a9d19cf69a2428a860f8978498a00663dfa68851378750f8a974ba25cbcc6.
+Four serial builds,1067 selftests x3,SDK302,Python40 pass. Initial Python calls
+failed on import path/default interpreter missing numpy; bundled runtime passes.
+Evidence practice-hud-native960-a/hud-cohort.json, practice-hud-certificate-b,
+practice-remix-temple-e/hud-pixel-validation.json and host-final.log. ACCEPTED
+Practice HUD restoration only; no moving-combat/performance/DLSS5 acceptance.
+User likes arena/floor: preserve environment reference, focus character response.
+All seven earlier displacement-correction IDs absent from current pair packet;
+prior-correction-coverage.json records why blindly enabling that layer cannot
+fix Mitsurugi/Sophitia. Preserve its applicable earlier-character correction.
+
 LOG995 Practice HUD candidate remains CORRECTIONS_REQUIRED. Four serial builds,
 1063 selftests x3, SDK302 and Python40 passed for the uncommitted cohort patch,
 but practice-remix-temple-d captures114 sources5301..5419 all have zero protected
