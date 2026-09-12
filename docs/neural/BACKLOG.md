@@ -282,7 +282,10 @@ draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
 LOG974 native witness run: partial candidate hair coverage35..37/164..166;
 LOG975 fixes disk palette generation per draw;3-frame material capture passes.
 LOG976 decoded hair atlas exact3/3; opaque hair129 vertices has zero witnesses.
-Next source-lineage diagnosis of confirmed opaque hair draw
+LOG977 retains all129 exact hair copies; transforms unmatched, not absent geometry.
+User appearance reference: reimagined final(height on floor only), middle image.
+Next recover its saved recipe and compare with current fixes; hair lineage remains
+a dependency for strands, not a reason to defer the overall appearance comparison
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts

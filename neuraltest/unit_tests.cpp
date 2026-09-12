@@ -1845,6 +1845,17 @@ int RunSelfTests()
 		 suite.Expect(wrote&&witness["vertices"].size()==3&&witness["transforms"].size()==1
 			&&witness["producer"][1]==2,"source witness retains frame identity and deduplicated transform bits");
 		 std::filesystem::remove(witnessPath);
+		 const auto savedOrigins=packet.sourceVertices[0].copy.xyzTransforms;
+		 packet.sourceVertices[0].copy.xyzTransforms={};
+		 packet.sourceVertices[0].copy.sourceAddress=0x8c002000;
+		 const bool wroteIncomplete=WritePvrSourceWitness(witnessPath,packet,witnessError);
+		 if(wroteIncomplete){std::ifstream input(witnessPath);input>>witness;}
+		 suite.Expect(wroteIncomplete&&witness["vertices"].size()==3
+			&&witness["vertices"][0]["origins"]==nlohmann::json::array({nullptr,nullptr,nullptr})
+			&&witness["vertices"][0]["copy_source_address"]==0x8c002000,
+			"source witness retains unmatched copies with explicit null origins");
+		 packet.sourceVertices[0].copy.xyzTransforms=savedOrigins;
+		 std::filesystem::remove(witnessPath);
 		 packet.sourceProducer={};
 		 suite.Expect(!WritePvrSourceWitness(witnessPath,packet,witnessError),"source witness rejects missing producer identity");
 		 suite.Expect(coverage.commonOriginVertices==3&&coverage.completeDraws==1,"source coverage requires every draw vertex");

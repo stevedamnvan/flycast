@@ -166,8 +166,8 @@ bool WritePvrSourceWitness(const std::filesystem::path& path,const PvrDecodedPac
  for(const auto& source:packet.sourceVertices) {
   const auto& copy=source.copy;
   if(copy.decodedVertex>=packet.vertices.size()) {error="source-witness-vertex-bound";return false;}
-  bool any=false;for(const auto& transform:copy.xyzTransforms)any|=transform.has_value();
-  if(!any)continue;
+  // Keep observed copies even when no upstream transform matched. Null origins
+  // distinguish incomplete lineage from an absent copy; neither proves a rig.
   if(comma)out<<',';comma=true;
   out<<"{\"vertex\":"<<copy.decodedVertex<<",\"child\":"<<source.child<<",\"xyz_bits\":[";
   const auto& vertex=packet.vertices[copy.decodedVertex];out<<Bits(vertex.x)<<','<<Bits(vertex.y)<<','<<Bits(vertex.z)<<"],\"origins\":[";
@@ -176,7 +176,15 @@ bool WritePvrSourceWitness(const std::filesystem::path& path,const PvrDecodedPac
    if(copy.xyzTransforms[i]) {const auto& t=*copy.xyzTransforms[i];out<<t.serial;transforms.emplace(t.serial,&t);}
    else out<<"null";
   }
-  out<<"]}";
+  out<<"],\"copy_generation\":"<<copy.generation<<",\"copy_source_address\":"<<copy.sourceAddress
+     <<",\"copy_writer_pc\":"<<copy.writerPc;
+  const auto words=[&](const char* name,const auto& values) {
+   out<<",\""<<name<<"\":[";bool sep=false;
+   for(auto value:values){if(sep)out<<',';sep=true;out<<value;}out<<']';
+  };
+  words("xyz_source_ram",copy.xyzSourceRam);words("xyz_read_pc",copy.xyzReadPc);
+  words("xyz_store_pc",copy.xyzStorePc);words("xyz_ram_producer_pc",copy.xyzRamProducerPc);
+  out<<'}';
  }
  out<<"],\"transforms\":[";comma=false;
  const auto bits=[&](const auto& values) {out<<'[';bool sep=false;for(float value:values){if(sep)out<<',';sep=true;out<<Bits(value);}out<<']';};

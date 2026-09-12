@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG977 retain unmatched source copies; user appearance reference adopted.
+Witness export now retains null-origin rows and observed copy/RAM metadata;
+no inferred transforms. Regression check added. Four builds,1054 selftests x3,
+SDK302,Python39 pass. hair-source-witness-e completes3 frames cleanly.
+Opaque hair129/129 copies exact in all3 frames,zero matched transforms; all
+1548 XYZ bytes have RAM provenance. Writer PCs8c03cc98/8c03ccf2, producer
+PCs8c03c9ca/cc/ce. Previous zero witness count was filtered lineage, not
+missing geometry. Evidence hair-copy-lineage-a and hair-source-witness-e.
+User prefers middle image labelled reimagined final(height on floor only).
+Treat as appearance reference, not blanket acceptance. Next recover exact
+saved layer/profile recipe and compare with recent material/normal/alpha fixes.
+Preserve warm wood/detail and reflective metal; address clipped skin and
+clumped hair. No full rollback, no promotion without moving proof. Source
+lineage diagnosis retained as hair dependency, audio parked. No game live.
+
 LOG976 decoded hair identity confirmed, basec10206959. Existing material_inspect
 validates3 frames,39 assets/40 previews first frame. Native BGRA asset2 decoded
 through existing decoder equals original26F0F098F66BA515 DDS RGBA exactly in
