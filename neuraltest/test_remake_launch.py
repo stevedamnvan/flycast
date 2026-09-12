@@ -9,6 +9,12 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_realtime_audio_requires_explicit_request(self):
+        with patch.dict(os.environ, {'FLYCAST_AUTOMATION_REALTIME_AUDIO': '1'}):
+            self.assertNotIn('FLYCAST_AUTOMATION_REALTIME_AUDIO', prepare(self.args)[2])
+            self.args.realtime_audio = True
+            self.assertEqual(prepare(self.args)[2]['FLYCAST_AUTOMATION_REALTIME_AUDIO'], '1')
+
     def test_selective_refresh_requires_capture_and_anchored_lights(self):
         with patch.dict(os.environ, {'FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH': '1'}):
             self.assertNotIn('FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH', prepare(self.args)[2])

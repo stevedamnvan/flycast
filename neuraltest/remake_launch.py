@@ -29,6 +29,9 @@ def prepare(args):
     if output_size not in ('640x480', '1280x960'):
         raise ValueError('Unsupported remake output size')
     env = os.environ.copy()
+    env.pop('FLYCAST_AUTOMATION_REALTIME_AUDIO', None)
+    if getattr(args, 'realtime_audio', False):
+        env['FLYCAST_AUTOMATION_REALTIME_AUDIO'] = '1'
     # Avoid accidentally inheriting capture, stale-input or negative controls.
     for key in list(env):
         if key.startswith('FLYCAST_REMAKE_'):
@@ -308,6 +311,8 @@ def main():
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--temple-light-rig', action='store_true', help='Opt-in authored warm key/cool fill, requires --anchored-light')
     p.add_argument('--output-size', choices=['640x480','1280x960'], default='640x480', help='Opt-in matching host/helper/neural extent; fresh session required')
+    p.add_argument('--realtime-audio', action='store_true',
+                   help='Opt automation into normal audio and audio-driven real-time pacing; audible output still requires review')
     p.add_argument('--manual-input', action='store_true',
                    help='Use player input instead of scripted replay; still a bounded test session')
     p.add_argument('--managed-session', action='store_true',
@@ -379,6 +384,7 @@ def main():
                   temple_light_rig=args.temple_light_rig,
                   output_size=args.output_size,
                   manual_input=args.manual_input,
+                  realtime_audio_requested=args.realtime_audio,
                   managed_session=args.managed_session,
                   comparison_lane='remix-only' if args.remix_only else 'returned-dlaa-requested' if args.returned_dlaa else 'combined-experimental',
                   locked_input_root=str(args.locked_input_root) if args.locked_input_root else None,

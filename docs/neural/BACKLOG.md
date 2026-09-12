@@ -231,6 +231,14 @@ SDK302,Python35 pass. Live pair identical cycle/ordinal endpoints: native
 nominal200MHz. Next inspect/test intended real-time limiter/audio policy equally
 on both lanes, then repeat matched-source cycle comparison; no gate relaxation.
 Telemetry validates submission cadence, not audible output. Baseline/config exact.
+LOG957 explicit automation real-time audio opt-in fixes muted pacing bypass.
+Production/silent defaults unchanged; launcher records request/clears ambient.
+4 builds,1053 selftests x3,SDK302,Python36 pass. First real-time native/combined
+pair199.80M/197.94Mcycles/s (-0.9269%, within1% narrowly),1074/1080 fresh99.444%.
+P95 native46.0ms/combined24.9ms; pacing and audible quality remain open.
+Next repeat real-time pair and inspect audio buffering/long intervals before
+tuning, then manual playable session/hair/coverage. Baseline/config exact.
+No overall60fps or full gate claim; muted benchmarks are throughput only.
 
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
 

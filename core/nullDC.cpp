@@ -19,6 +19,8 @@
 #include "oslib/i18n.h"
 #include "input/maplelink.h"
 #include <time.h>
+#include <cstdlib>
+#include <cstring>
 #ifdef TARGET_UWP
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.Foundation.h>
@@ -71,7 +73,10 @@ int flycast_init(int argc, char* argv[])
 #if defined(TEST_AUTOMATION)
 	setbuf(stdout, 0);
 	setbuf(stderr, 0);
-	settings.aica.muteAudio = true;
+	// Automation normally bypasses audio (and its pacing). Opt in explicitly
+	// when comparing real-time game cadence; production behavior is unchanged.
+	const char* realtimeAudio = std::getenv("FLYCAST_AUTOMATION_REALTIME_AUDIO");
+	settings.aica.muteAudio = !(realtimeAudio && std::strcmp(realtimeAudio, "1") == 0);
 #endif
 	try {
 		if (!addrspace::reserve())

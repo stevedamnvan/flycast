@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG957 automation audio pacing restored by explicit opt-in, base1db61ece5.
+Root cause: core/nullDC.cpp TEST_AUTOMATION unconditionally muted audio;
+sgc_if returns before WriteSample, bypassing backend pacing. New exact
+FLYCAST_AUTOMATION_REALTIME_AUDIO=1 opts automation into normal audio only;
+production and silent automation defaults unchanged. Launcher --realtime-audio
+clears inherited flag and records request. No new limiter or scheduler changes.
+Four serial builds,1053 selftests x3,SDK302,Python36 pass. Explicit/ambient
+launcher-control test passes. Newly built staged automation executable used.
+Paired1200 native/combined with normal audio requested, same scripted input,
+cycle endpoints9073227968..12673176320 after120 warmup. Native199796657 cycles/s,
+combined197944741 cycles/s, -0.9269%: first pair within1% gate, close to boundary;
+repeat required before robust timing acceptance. Combined1074 fresh/1080=99.444%.
+Native p50/p95/p99ms17.630/46.017/46.492, combined15.344/24.924/28.962;
+long intervals remain, mean/max latency3.862/4frames. No full60fps/pacing/normal-
+renderer/lifecycle/visual/provenance acceptance. Audio backend identity/physical
+listening not proven by these logs; normal cycle rate is not audible quality.
+Both runs0, baseline/config exact. Evidence C:/Flycast-Evidence/realtime-audio-a
+build/test/pair scripts, commands, native/moving reports, comparison.json,
+restoration receipt. No materials/generation changes. Incremental not exactSHA.
+Next repeat paired real-time cadence and inspect normal audio buffering/long
+intervals before any tuning. Preserve defaults/user configuration and all gates;
+then playable manual session, hair and coverage work. No more muted benchmark
+results presented as real-time gameplay.
+
 LOG956 owned cycle telemetry exposes native/combined timing mismatch.
 Base7e71f92ec. Performance mode now requests existing producer-owned accepted
 PVR stamps, including native. Renderer copies epoch/ordinal/cycle into CPU
