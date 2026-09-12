@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG984 temple rig appearance rejected following user contour/face regression.
+Existing warm-key/cool-fill rig at3,fixed exposure,same source2601/current
+correction layer renders120 frames exit0,baseline exact. Viewed rig-3.bmp:
+cheek/jaw/shoulder shading harsher,not promoted despite clearer architecture.
+Read-only source-normal audit:Kilik face7/280 triangles constant normals,
+torso36/1591,Taki face0/119. Thus globally missing smooth normals unsupported;
+identical source geometry/normals do not imply acceptable perceived contour.
+Evidence temple-rig-fixed-exposure-a including face-normal-audit.json. No
+new maps or geometry. Next isolate retained skin normal-map/baked shading
+response under reference lighting before further rig changes. Preserve
+recognizable faces;world-region subagent audit continues independently.
+Four-character/two-stage validation remains open,audio parked,no game live.
+
 LOG983 effective light control isolated. Helper passes radiance into CreateLight;
 old native-shading profile leaves exposure defaults. Explicit existing
 rtx.autoExposure.enabled=False in separate profile,confirmed runtime logs.

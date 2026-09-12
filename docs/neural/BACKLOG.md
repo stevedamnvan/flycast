@@ -285,7 +285,8 @@ review. Newer character texture hashes do not occur in temple reference, so
 validate variants rather than aliasing bindings. Lock/repeat control, one
 LOG982 light3-to2 candidate below repeat noise; next trace effective lighting
 LOG983 fixed exposure reveals light response;lower intensity alone too dark.
-Next existing temple rig light distribution at fixed exposure, joint material
+LOG984 temple rig rejected for face/contour appearance. Next isolate skin
+normal-map/baked shading under reference lighting, alongside world-region
 review and moving proof across validation set.
 Validation set: Kilik, Taki, Mitsurugi, Sophitia across temple and water stage.
 Track all eight character/stage pairings; uncaptured pairings remain pending.
