@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG990 isolated native roster route established. Subagent ROSTER-AUDIT.md warns
+record_input truncates adjacent replay; copied native exe/boot/VMU seed to
+scene-roster-inventory-a/native-workspace, hashes verified, original unchanged.
+Native snapshots menu-a..f establish title/menu and Mitsurugi name/portrait.
+mitsurugi-first-a frame3600 verifies HUD Mitsurugi/Astaroth on lava arena;
+geometry/material export present, knocked-down pose unsuitable face review.
+Practice-menu-a/b verifies available Practice; c selects Mitsurugi and opens
+opponent selection with Xianghua default. Captures exit0 clean_close=yes;
+retained input files and menu-observations.txt reproduce bounds. Temple/water
+target coverage not closed. Inspected pilot-temple-moving-v1 frame2948 is stage
+intro, not combat. Runtime cache observation separately confirms5 state entries
+and10 compiler threads, not full prewarm/performance benefit. Audio parked.
+
+
 LOG989 user prefers second masonry image as slightly more accurate, superseding
 the initial agent preference in LOG988. Retain candidate for moving comparison;
 no final appearance acceptance or baseline activation. Replay inventory across
@@ -9518,3 +9532,4 @@ LOG855 live diagnostic pilot-normal-effects-proof-a active44917,normal DX11
 1280x960,cpu-timing marks diagnostic. Staged automation executable
 flycast-pilot-normal-effects-proof.exe. Poll same handle;archive stage flycast.log
 before any further launch and inspect Normal effects proof lines. No acceptance.
+LOG990 follow-through: practice-menu-d frame3800 verifies Sophitia opponent name/portrait beside selected Mitsurugi; next confirm and inspect stage selection.

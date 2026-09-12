@@ -297,7 +297,12 @@ for moving comparison, inactive until tested; this is not final acceptance.
 No more masonry scalar sweeps.
 Next inventory and parse the missing character/stage captures before further
 appearance tuning. Existing Kilik/Taki temple and water evidence is reusable;
-Mitsurugi/Sophitia coverage is not yet established. Use the existing capture
+LOG990 isolated native replay now reaches Practice and verifies Mitsurugi by
+name/portrait, then opponent selection. Arcade capture verifies Mitsurugi versus
+Astaroth on lava arena, not temple/water. Existing pilot-temple-moving-v1 frame2948
+is a Kilik stage introduction, not combat coverage. Continue Practice opponent
+and stage selection from retained seed/replay; requested pairings remain pending.
+Use the existing capture
 and replay route, verify character/stage identity visually, and record bindings
 and close face/hair/weapon views. World lighting/material work proceeds alongside
 this coverage; hair attachment research must not serialize the whole remaster.
