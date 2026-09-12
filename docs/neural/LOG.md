@@ -1,5 +1,41 @@
 # Neural rendering evidence log
 
+LOG938 PBRify union and bounded downstream comparison.
+Cached validation follow-through: material-union-a/CANDIDATE-VALIDATION.md
+checks50 files;15/16 albedos exact source alpha,16/16 exact128 cutout coverage.
+BEF fringe restored PNG remains <=1/255, final BC7 DDS reaches6/255 error.
+This narrows historical alpha preservation to pre-ingestion PNG; no128
+silhouette regression shown. Inspect existing MCP ingestion compression before
+regeneration; no exact fractional-alpha approval. Scalars consistent; normals
+BC5 two-channel, not RGB-Z failure. Four character atlases and mixed guard atlas
+remain region exceptions. File/channel checks do not prove seams/appearance.
+User reconfirms PBRify as core material pipeline. Subagent read-only union audit
+at C:/Flycast-Evidence/material-union-a reconciles47 hashes (26+30-9), all
+source images found, no decoded-source conflicts;42 have cached albedo/normal/
+roughness/height. Other5 are4 sky and rejected atlas, not new generation jobs.
+489 cached files decoded;17 candidate materials carry50 texture opinions, all
+present1024x1024. No missing bound files. One explicit metallic map; absent
+metalness on other rows requires class decisions, not automatic mask jobs.
+File presence/dimensions are not alignment or appearance acceptance. Full-game
+denominator remains unknown. No generation, paid request or live binding change.
+Fresh locked-input Remix-only run skin-locked-remix-a completed launcher0,
+host orderly, helper11;19 matched sources/912 mesh-materials exact including
+camera/geometry, all returned RGBA bytes identical to LOG936 candidate archive.
+Compared with original combined captures, median final RGB MAE8.486; skin
+rectangles at2461 retain39.045/37.783 difference. Visually the Remix-only skin
+is lighter/smoother but still uneven and baked-shaded. No accepted quality
+winner. Native overlays preserved per each receipt; cross-session temporal
+history not proved equal, external_nr_proven remains false.
+Fresh combined attempt skin-locked-combined-a closed cleanly but captured ZERO:
+15 logged locked-replay-producer-not-found rejections. Exact source guard held;
+launcher success is not capture success. Retain failed-flycast.log and
+failed-ReShade.log. Do not relax identity matching or claim a fresh paired pass.
+Metrics C:/Flycast-Evidence/live-stage-review-a/locked-comparison.json.
+Next separate public returned-DLAA versus supplied consumer using existing
+hooks-disabled lane and source-qualified inputs; investigate failed producer
+join before another combined replay. Do not compensate with skin-map edits.
+Baseline unchanged; no source modification, performance or300-frame acceptance.
+
 LOG937 live skin stage attribution and executable full-set batch plan.
 Inspected source2461 returned-remix, neural-before-native-effects and evaluated
 images from LOG936. Uneven skin is already visible in returned Remix; the

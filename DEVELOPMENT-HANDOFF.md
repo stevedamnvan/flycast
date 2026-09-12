@@ -1,17 +1,19 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG937: live skin stage attribution saved under
-C:/Flycast-Evidence/live-stage-review-a/stage-metrics.json. Two interior skin
-patches change39.045/37.783 returned-to-pre-native-effects, then0 through
-native effects/HUD. Uneven skin already exists in Remix; downstream processing
-adds a separate change. external_nr_proven=false: no specific DLSS5 attribution.
-Next bounded locked-input downstream comparison using the fresh LOG936 archive;
-do not use that lane to claim newly rendered material differences.
-Package D actionable plan committed56e3e737b; subagent now reconciling47 observed
-hashes/cache into C:/Flycast-Evidence/material-union-a (no generation/ingestion).
-Lighting/skin and independent LOG911 performance retain engineering priority.
-LOG936 fresh pair remains24 exact-source matches,23 contiguous; no300 pass.
-Baseline mod restored and both candidate layers inactive at last verified run.
+Current LOG938: PBRify confirmed. material-union-a reconciles47 observed hashes;
+42 already have cached albedo/normal/roughness/height. Other5 sky/rejected,
+not generation jobs. Cached validation complete:15/16 albedos alpha exact,16/16 threshold128 exact.
+BEF fringe BC7 introduces up to6/255 alpha error after restored PNG <=1/255;
+inspect MCP compression options before regeneration. See CANDIDATE-VALIDATION.md.
+No material upgrade accepted merely from file existence.
+Frozen downstream experiment: skin-locked-remix-a19 exact matches against
+LOG936 candidate, returned pixels identical, final MAE8.486. Skin lighter in
+Remix-only, still uneven; no neural provenance or visual acceptance. Fresh
+skin-locked-combined-a captured0: locked-replay-producer-not-found. Failed logs
+retained. Do not repeat blindly or loosen source guard. Next investigate join
+and separate public returned-DLAA from supplied consumer with existing lanes.
+Evidence live-stage-review-a/locked-comparison.json. Both sessions terminal,
+baseline not mutated. Independent LOG911 performance remains ready.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate

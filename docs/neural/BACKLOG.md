@@ -359,6 +359,12 @@ extremes, then transfer against recorded Kilik-Taki/Hoko content; verify actual
 game-selection identities before adding a previously unrecorded fighter/stage.
 Do not publish a whole-game completion percentage without a denominator.
 
+LOG938 reconciliation completed at C:/Flycast-Evidence/material-union-a:
+47 observed hashes,42 with cached albedo/normal/roughness/height; remaining5
+are4 sky and rejected atlas. All50 inactive candidate bindings exist. Next
+validate cached alpha, class/region semantics and retained-map alignment;
+no regeneration justified by inventory alone. Whole-game denominator unknown.
+
 **Executable next batch: reconcile and validate existing assets, then scale
 each proven recipe.** No new generation is needed to begin this batch. Use
 `D:/Flycast-Evidence/package-d-preflight-20260911/inventory.json` (old26),
