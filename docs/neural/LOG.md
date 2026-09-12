@@ -1,5 +1,33 @@
 # Neural rendering evidence log
 
+LOG940 hair draw usage, mip control and fresh moving format pair.
+Read229 saved frames (203 pilot-layers-moving-a,26 weapon candidate),458
+BEF texture draws. Each frame has one opaque draw (wire256=no cutout) and one
+cutout128 draw, neither alpha-blended. Source id269419008; packet usage only,
+not proof of final consumer alpha overrides or sampled silhouettes.
+Decoded every mip: BC7 versus BGRA8 has zero base threshold128 differences,
+but mip1..6 have128/89/58/11/2/1 differing cutout texels; alpha delta reaches51.
+Original full-resolution preservation does not prove filtered edge equivalence.
+One existing MCP ingestion control uses only --format bgra8 --mip-gamma-correct
+in fresh character_alpha_minimal. All11 raw BGRA mip payloads byte-identical to
+explicit-flags BGRA8, differing only DDS header. Explicit mip-pre-alpha/mips/
+transfer tagging did not change filtered pixels. Do not add alpha scaling or
+change filters without evidence. No generation/model/payment involved.
+Fresh live format pair under material-union-a/hair-moving: BC7 captures26,
+BGRA8 captures27;24 exact-source/state/camera/geometry matches (1152 meshes).
+Only character candidate active; one BEF albedo binding changed through MCP.
+All captured HUD/world/backbuffer composition mismatch counters0. Median final
+RGB difference2.576, no fresh same-format repeat so not a format benefit claim.
+Reviewed source2461 pair: no obvious missing hair/opaque rectangle; limited
+image review not temporal shimmer or300-frame acceptance. Both launcher0,
+orderly helper close11, baseline and prior candidate restored byte-exact.
+BGRA8 remains isolated, not promoted. Evidence hair-draw-usage.json,
+alpha-mip-comparison.json, alpha-minimal-comparison.json and hair-moving/.
+Stop bounded format investigation here: corrected base ingestion is proven,
+full temporal/visual acceptance remains open. Return higher-impact work to
+live skin/consumer separation and LOG911 host performance, retaining this
+candidate for the existing whole-gameplay review instead of another tiny pair.
+
 LOG939 alpha-preserving Toolkit ingestion and source-identity diagnostic.
 Existing ConvertToDDS option bgra8 verified through installed public source,
 MCP schema and bundled exporter help; no new tool/model. Executed one MCP

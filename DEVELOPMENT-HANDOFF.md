@@ -1,19 +1,19 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG939: BEF hair alpha ingestion corrected in isolated BGRA8 candidate.
-Existing MCP pipeline, no regeneration. Final1024 DDS/11mips matches restored
-PNG RGBA byte-exact (zero added error); original PNG retains <=1byte source
-alpha difference. About4MiB additional stored mip-chain data for this atlas.
-120-frame BC7/BGRA8 frozen render smoke complete; old candidate binding and
-baseline restored byte-exact. New BGRA8 not promoted; moving alpha/threshold
-and sampled-format proof next. Evidence material-union-a/alpha-runtime/ and
-alpha-uncompressed-validation.json. Toolkit now standardPID24508, review open;
-capture extension disabled for ingestion. All loaded layer files backed up/saved
-before session restart, baseline hashes unchanged.
-Source identity diagnostic captured3 matching LOG936 sources (144 meshes exact);
-prior locked combined failure remains unexplained, not fixed. Live skin and
-public/supplied-consumer separation plus independent LOG911 remain in queue.
-PBRify union47 observed,42 cached sets; no whole-game denominator or bulk approval.
+Current LOG940: bounded hair-format investigation complete, not visual acceptance.
+BGRA8 base pixels exact to restored PBRify PNG. Minimal-option conversion has
+identical all11 mip payloads, so explicit flags caused no filtering change.
+BC7 differs at lower mips; don't claim base alpha equality proves moving edges.
+229 saved frames use BEF once opaque and once cutout128, neither blended.
+Fresh hair-moving BC7/BGRA8 captures26/27,24 exact-source matches; all HUD/
+composition mismatch counters0. Reviewed2461 no obvious missing hair; no fresh
+noise repeat,300-frame or shimmer acceptance. Baseline and old candidate
+restored byte-exact; new format remains isolated. Evidence material-union-a/.
+Next return higher-impact work to live skin/consumer separation and LOG911
+performance; do not repeat tiny hair pairs. Carry candidate into full gameplay
+review. Standard ToolkitPID24508, review open, capture extension disabled.
+Prior locked combined producer failure still unexplained, not fixed. PBRify
+union47 observed/42 cached sets; whole-game denominator and appearance open.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate
