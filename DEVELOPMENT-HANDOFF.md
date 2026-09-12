@@ -1,6 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG993 (supersedes the historical current paragraphs
+Current resume checkpoint LOG995: Practice HUD source candidate remains dirty
+in instrumentation.cpp, motion_reference.cpp/.h and unit_tests.cpp. Four builds,
+1063 selftests x3, SDK302/Python40 pass, but live practice-remix-temple-d finished
+with114 captures and zero protected pixels throughout. Source NOT accepted;
+do not commit it from unit tests alone. Evidence and host log archived there.
+Next inspect actual1280 live glyph/panel cohort versus native640 certificate,
+then isolate dark-character lighting and excessive floor height. No process
+remains on handle87863; no guard relaxation or performance acceptance.
+
+Previous resume checkpoint LOG993 (supersedes the historical current paragraphs
 below): roughness MCP source committed as2a9378a52, four builds/1054x3/SDK302/
 Python39 passed. Masonry candidate ingested and rendered, outside-region pixels
 exact; user prefers second masonry image as slightly more accurate. Retain for

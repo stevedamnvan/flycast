@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG995 Practice HUD candidate remains CORRECTIONS_REQUIRED. Four serial builds,
+1063 selftests x3, SDK302 and Python40 passed for the uncommitted cohort patch,
+but practice-remix-temple-d captures114 sources5301..5419 all have zero protected
+pixels. Zero HUD mismatches are vacuous. First composite still has dark fighters,
+harsh highlights and excessive floor relief. c had no captures; d widened only
+the diagnostic window to120 sources for existing recovery, preserving420s,
+8-frame stale and60-tick recovery safeguards. Host0/helper11, no forced children.
+Evidence: C:/Flycast-Evidence/practice-remix-temple-d/hud-validation.json and
+host-final.log. Source patch stays uncommitted/unaccepted. Next inspect the actual
+1280 live glyph/panel cohort against the native640 certificate; do not loosen
+thresholds from the failed image. Then isolate lighting/material response.
+Synchronous captures are not performance or supplied-DLSS5 evidence.
+
 LOG994 live Practice diagnosis: practice-remix-temple-a returned scene data but
 no images after presentation latched fallback at5053 (candidate0,lastsource5044).
 No capture-kind bug: remake-evaluated is a label. b uses existing exact-effect

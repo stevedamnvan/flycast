@@ -327,6 +327,10 @@ protected_pixels=0: zero mismatch is vacuous. Next a separate Practice layout/
 depth certificate with negative controls, not a generic HUD relaxation; then
 same-source light/material isolation. Material manifest matches12 textures to
 existing captures,17 unmatched; unmatched is not proof missing source pixels.
+LOG995: candidate builds/tests pass but live d has114 captures with zero protected
+pixels throughout. Patch unaccepted and uncommitted; inspect actual1280 live
+glyph/panel draws against native640 evidence before changing the certificate.
+Preserve failed evidence and stale/recovery guards; no performance claim.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,
