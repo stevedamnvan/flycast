@@ -6,6 +6,7 @@
 #include "stdclass.h"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <mutex>
 
@@ -20,6 +21,8 @@ class SDLAudioBackend : AudioBackend
 	unsigned sample_count = 0;
 	unsigned long long callback_count = 0;
 	unsigned long long underrun_count = 0;
+	Uint32 audio_start_ticks = 0;
+	std::array<Uint32, 256> underrun_offsets {};
 	SDL_AudioCVT audioCvt;
 
 	SDL_AudioDeviceID recorddev {};
@@ -39,6 +42,9 @@ class SDLAudioBackend : AudioBackend
 
 		if (backend->sample_count < islen)
 		{
+			// Fixed storage and no logging/allocation on the audio callback.
+			if (backend->underrun_count < backend->underrun_offsets.size())
+				backend->underrun_offsets[backend->underrun_count] = SDL_GetTicks() - backend->audio_start_ticks;
 			++backend->underrun_count;
 			// No data, just output a bit of silence for the underrun
 			memset(stream, 0, len);
@@ -86,6 +92,7 @@ public:
 		sample_buffer = new uint32_t[sample_buffer_size]();
 		sample_count = 0;
 		callback_count = underrun_count = 0;
+		audio_start_ticks = SDL_GetTicks();
 
 		// Support 44.1KHz (native) but also upsampling to 48KHz
 		SDL_AudioSpec wav_spec, out_spec;
@@ -167,6 +174,11 @@ public:
 			SDL_CloseAudioDevice(audiodev);
 			// Closing the device joins callbacks before reading their counters.
 			NOTICE_LOG(AUDIO, "SDL audio stopped: callbacks=%llu underruns=%llu (whole session, includes startup)", callback_count, underrun_count);
+			const size_t retained = size_t(std::min<unsigned long long>(underrun_count, underrun_offsets.size()));
+			for (size_t i = 0; i < retained; ++i)
+				NOTICE_LOG(AUDIO, "SDL audio underrun: index=%u since_init_ms=%u", unsigned(i), unsigned(underrun_offsets[i]));
+			if (underrun_count > retained)
+				NOTICE_LOG(AUDIO, "SDL audio underrun timing truncated: retained=%u total=%llu", unsigned(retained), underrun_count);
 			audiodev = SDL_AudioDeviceID();
 		}
 		delete [] sample_buffer;

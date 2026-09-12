@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG961 bounded underrun timestamps, base052fd6589 plus source changes.
+SDL backend stores first256 underrun offsets in fixed array, SDL tick delta
+from init; no callback logging/allocation. After device-close callback join,
+emits retained timestamps and explicit truncation if needed. Counts still total.
+Four serial builds,1053 selftests x3,SDK302,Python36 pass. Native/combined pair
+1200/120warmup retains identical cycle endpoints; relative -0.890688%.
+Native3 underruns at3.167..3.237s after audio init. Combined135, all retained,
+2.795..62.147s:59 before45s,68 in45..50s,7 in50..55s,1 in60..65s.
+First public-output-ready at process47.377s, audio-ready1.191s; initialization
+cluster overlaps initial consumer readiness, but eight later gaps remain.
+Timing origin is audio init (slightly before ready), not producer frame clock;
+coincidence is attribution lead, not proven blocking call. No truncation.
+Both exit0; baseline/config restored exactly. Evidence C:/Flycast-Evidence/
+audio-gap-timing-a contains builds/tests,commands,comparison,gap-summary and
+complete logs. Incremental staged flycast-audio-gap-auto-a.exe. No audio policy
+or buffer changes. Next inspect render/consumer initialization stall around
+46..48s and later gaps around53s/63s; optimize verified blocking work, then
+retest audio/cadence. Do not solve seconds-long startup via huge audio buffers.
+No full60fps/audio/visual acceptance. No test remains live.
+
 LOG960 instrumented matched combat audio pair, base6019e8229.
 Native/combined1200 samples,120 discarded,1080 steady denominator; exact cycles
 9073227968..12673176320. Native199798376cycles/s, combined198274052 (-0.76293%).

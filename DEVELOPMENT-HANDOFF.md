@@ -1,14 +1,14 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG960: instrumented pair completed0/0, baseline/config exact.
-Native1 underrun/2732 callbacks, combined133/2863; WHOLE SESSION includes
-startup/anchoring, cannot assign to steady combat yet. Both SDL/WASAPI44100Hz,
-1024 callback frames,2822 capacity. Cycle difference -0.7629%, fresh1072/1080;
-these do not prove audio continuity or smooth60fps. Evidence
-audio-combat-attribution-a/comparison.json and logs. No runtime test live.
-Next bounded underrun timing to separate startup/anchor and combat, then fix
-responsible stalls or justify a buffer tradeoff. Do not blindly lower callbacks.
-Source remains LOG959 diagnostics, all builds/tests passed; this slice docs only.
+Current LOG961: bounded audio gap timestamps implemented and paired run0/0.
+Four builds/1053x3/SDK302/Python36 pass. Native3 startup gaps; combined135,
+68 around45..50s after init overlaps initial consumer-ready,8 after50s. All
+135 retained, no truncation. Cycle difference -0.8907%; no audio/full60fps pass.
+Baseline/config exact, no test live. Evidence audio-gap-timing-a logs and
+comparison/gap-summary.json; staged flycast-audio-gap-auto-a.exe incremental.
+Next isolate render/consumer startup stall process46..48s and later53s/63s
+gaps, fix verified blocking work. No blind buffer enlargement/reduction.
+Then manual playable combat/hair/coverage. No appearance acceptance implied.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

@@ -244,8 +244,10 @@ Four builds/1053x3/SDK302/Python36 pass. No audio policy changed.
 LOG960 paired audio: native1/2732 callbacks underrun, combined133/2863,
 whole session including startup/anchoring. Cycle difference -0.7629%, fresh
 1072/1080; audio continuity NOT accepted. Baseline/config exact.
-Next locate underruns in startup versus combat before reducing buffers or
-choosing a stall correction; manual combat/hair/coverage follow.
+LOG961 bounded timing: native3 gaps at startup; combined135,68 clustered
+around initial consumer readiness,8 after50s from audio init. All135 retained.
+Next isolate blocking initialization around process46..48s and later53s/63s
+gaps, correct verified work, then retest; manual combat/hair/coverage follow.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 
