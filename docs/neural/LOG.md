@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG948 local structure0 candidate improves inspected skin, base79ab80710.
+One bounded run through existing control companion, NRLocalStructure=0 only;
+overall intensity/global tone/style remain defaults1/1/0. Requested field is
+not emitted in consumer active-settings log, so do not call it directly
+consumer-reported. Output changes provide behavioral evidence. Locked LOG946
+archive2540..2559;17 captures, launcher0, compared with LOG947 control16.
+15 common exact geometry/material/returned colour/depth pairs,14 also exact
+motion/bias. Native composition counters0 on common frames; history equality
+and external provenance not independently closed. Source2559 pre-effects
+whole-image difference6.053, final5.133; difference is not a beauty score.
+Visual inspection2559: local structure0 removes much of brown granular skin
+response, retains visible reflective staff and costume detail. Hair remains
+clumped upstream. Scoped candidate worth moving review, not whole-look or
+human approval. No fresh control repeat or temporal/performance acceptance.
+Original consumer configuration restored byte-exact SHA256
+222d059c727a683c8deace07c938002bdd6a69eb0dc9c908743e17a92b54efbc.
+Evidence C:/Flycast-Evidence/consumer-structure-a includes companion receipt,
+requested config, command, logs, comparison and restoration receipt. No maps
+or live baseline changed. No source changes; backlog contract checked.
+Next carry structure0 candidate into extended moving combat with integrated
+character correction, inspect multiple poses/occlusions and preservation of
+weapon/environment detail. Then capture-free performance and upstream hair;
+no additional scalar sweep. Preserve full300/600 and provenance gates.
+
 LOG947 supplied-consumer global-tone isolation, base6746dd67a.
 Stage reshade.ini contains no RenoDX.DLSS5 section; current matching consumer
 log reports intensity1/global_tone1/style0 despite Faithful host recommendation.

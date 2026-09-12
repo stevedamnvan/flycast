@@ -172,6 +172,14 @@ skin grain remains; tone alone rejected as fix. Configuration restored exactly.
 Next one bounded structure/detail control through existing companion/locked
 archive, preserving failed evidence, exact input checks and configuration
 rollback. No tone sweep or texture regeneration; no visual promotion.
+LOG948 structure0 candidate completed17 captures,15 common exact returned
+colour/depth/geometry/material pairs versus LOG947 control;14 exact motion/bias.
+Reviewed2559 skin markedly smoother, brown grain reduced; reflective staff and
+costume detail remain visible. Candidate merits moving review, not full visual
+approval. Field requested via companion, not directly active-log-reported.
+Config restored exactly. Next integrated character plus structure0 moving
+combat, multiple poses/occlusions and weapon/environment detail preservation;
+then capture-free performance and upstream hair. No more scalar sweep.
 
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action

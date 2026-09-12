@@ -1,13 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG947: global tone0 did not fix skin grain. Control16/candidate16,
-15 common exact returned colour/depth/geometry/material frames; 13 exact
-motion/bias. Actual log confirms intensity1/tone0/style0, original config
-restored SHA222d059c727a683c8deace07c938002bdd6a69eb0dc9c908743e17a92b54efbc.
-No material mutation. Evidence C:/Flycast-Evidence/consumer-tone-a.
-Next bounded structure/detail control with existing companion and fresh LOG946
-locked archive; no repeated tone sweep. Both runs terminal, no live test handle.
-Appearance/provenance/performance remain open. See LOG946 for material state.
+Current LOG948: structure0 reduces brown skin grain in inspected2559, unlike
+global-tone0. One17-capture candidate versus prior16 control,15 exact returned
+colour/depth/geometry/material pairs,14 exact motion/bias. Native mismatch0.
+Reflective staff/costume detail visible; hair still clumped. Candidate only,
+no moving quality/provenance/performance approval. Original config restored
+byte-exact; no live game/helper. Evidence C:/Flycast-Evidence/consumer-structure-a.
+Next extended moving review with integrated character correction and structure0,
+then capture-free performance and upstream hair. No more scalar sweep.
+Companion requested NRLocalStructure0; consumer active log does not report
+that field. Keep behavioral evidence distinct from active tuple proof.
 
 Current LOG946: integrated zero displacement in existing character_correction
 through MCP; existing map bindings preserved. Layer SHA256
