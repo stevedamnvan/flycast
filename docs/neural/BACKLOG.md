@@ -243,9 +243,16 @@ capture; only 9 hashes are shared) are addressed: 12 environment materials
 generated locally, ingested and bound through the Toolkit MCP in the inactive
 opt-in `layers/env_correction.usda` (3.56 MAE effect, 18.7 percent of pixels).
 Source-2756 ledger: 9 reused, 16 candidates, 4 sky baseline, 0 rejected.
-Next: human review of `full-stable-r1.bmp` against `stable-r1.bmp`, reconcile
-the live water-stage scene's material set the same way, then moving combat
-with both layers active; no appearance gain is accepted yet.
+LOG927 reconciled the live water-stage scene (30 materials: 9 baseline, 16
+covered by the two layers, 4 sky, 1 unbound gray tile 4E35880E8E86FC1E) and
+ran a live 40-capture A/B with both layers plus a control repeat: live noise
+2.50 MAE (character box 4.4); layers 5.04 to 5.08 (upper walls band 6.0
+against 2.25 noise, 18 percent of pixels above 8), concentrated on walls,
+roofs, railings and floor joints; the character layer's live effect (box 5.7)
+is marginal. Next: human review of the frame-2580 side-by-side and the frozen
+stills; bind or explicitly reject 4E35880E8E86FC1E; then the 300-frame moving
+comparison with both layers under player control. No appearance gain is
+accepted yet.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not

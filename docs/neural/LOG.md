@@ -1,5 +1,42 @@
 # Neural rendering evidence log
 
+LOG927 live A/B of both candidate layers on the water-stage scene, with a
+live control repeat (2026-09-12). No production code changed; evidence under
+`C:/Flycast-Evidence/pilot-layers-capture-a/` (`live-ab-record.json`,
+`live-ab-metrics.json`, 40 captures) and `pilot-bulkread-capture-b/` (control
+repeat, 40 captures); baseline `pilot-bulkread-capture-a` (LOG911). All three
+are managed launcher sessions with identical host arguments (1280x960, temple
+light rig, weld, alpha cutout, curved export, DLSS consumer profile, 40
+captures from source 2560); `compare_captures` reports identical source
+packets, cameras, meshes, scope and proof on every matched frame (38 and 39
+of 39), so only the mod state differs. The layered session activated
+`env_correction` and `character_correction` beneath the mod through the
+Toolkit MCP (insert, save, run, remove, save); baseline mod bytes
+e3c0979057770020 verified before and after. Coverage on this scene: the live
+frame-2564 capture has 30 materials, 29 of them the frozen source-2756 set
+(9 bound by the baseline mod, 16 by the two layers, 4 sky baseline) and one
+new opaque gray 256 tile 4E35880E8E86FC1E with no replacement. Live noise
+floor from the control repeat (capture a against b, 37 matched frames):
+composited MAE median 2.50 (range 2.05 to 4.49), top 30 percent band 2.25,
+character box 4.41, 6 percent of pixels change by more than 8. Layers against
+either control (38 and 39 frames): 5.04 and 5.08 (range 4.85 to 6.64), top
+band 6.00, water band 4.25, floor band 4.88, character box 5.7, 18 to 19
+percent of pixels above 8. The mean difference map is concentrated on the
+walls, roofs and railings of the upper third and on the floor stone joints,
+with the water band near the noise level, which is the twelve environment
+materials taking effect in motion; the character box moves from 4.4 to 5.7,
+so the refined character roughness is only marginally above live noise and
+its live effect is not claimed. Two earlier hair-cutout DLSS captures of the
+same frame range differ from every current session by 38 to 39 MAE and are
+not a control pair (different mod and profile state at the time). Cadence in
+the capture sessions (synchronous captures, not performance evidence): 745
+to 747 accepted evaluations, present p50 23.5 to 23.8 ms, 398 to 421
+worker-busy native fallbacks. Accepted: the live measurement pair and the
+environment-layer effect being above live noise. NOT accepted: any appearance
+gain (human review of the side-by-side at frame 2580 and of the frozen
+stills is pending), the character layer's live effect, and the unbound
+4E35880E8E86FC1E material. Both layers remain inactive on disk.
+
 LOG926 still-image repeat variability bounded, candidate materials now
 measurable, and the frozen scene's uncovered materials upgraded (2026-09-12).
 No production code changed; evidence under

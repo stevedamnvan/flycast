@@ -1,5 +1,16 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Live checkpoint (LOG927; docs only on source HEAD 55ad44c01): both candidate
+layers were activated through the Toolkit MCP for one managed 40-capture
+session on the water stage and removed again (baseline bytes verified). A
+control repeat bounds live session noise at 2.50 MAE; the layers change the
+same frames by 5.04 to 5.08, concentrated on the upper walls, roofs, railings
+and floor joints (16 of the scene's 30 materials are now covered by the
+layers, 9 by the baseline mod, 4 sky, 1 gray tile unbound). Character-layer
+live effect is marginal. Evidence `C:/Flycast-Evidence/pilot-layers-capture-a`
+and `pilot-bulkread-capture-b`. Next: human review, bind or reject
+4E35880E8E86FC1E, then the 300-frame moving comparison under player control.
+
 Current visual checkpoint (LOG926; docs only on source HEAD 55ad44c01): the
 still-image repeat variability is diagnosed (temporal denoiser state driven
 by wall-clock frame timing; a copied profile pinning
