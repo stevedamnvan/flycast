@@ -7,7 +7,10 @@ no convincing strand gain, BC7 hair alpha128 differs126 pixels. Baseline exact,
 diagnostic layer detached. No game/test/ingestion live. Next source-supported
 hair geometry/shading, no upscale/roughness loops. Audio parked.
 Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
-LOG971: UV-only attachment rejected: only3/143 triangles uniquely keyed in
+LOG972 duplicate control:58/66 UV keys have one exact geometric surface;
+8 have two, across116 frames. Use duplicate-collapsed continuity and existing
+source-witness export; no new format or across-cut identity claim.
+LOG971 occurrence count (superseded interpretation): only3/143 uniquely keyed in
 each of116 frames (66 keys, maximum multiplicity4). Next preserve and test
 source lineage before strand attachment; draw ordinal is not stable identity.
 LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology

@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG972 spatial duplicate control corrects interpretation of LOG971.
+Read-only spatial_audit.py/spatial-ambiguity.json under hair-attachment-a
+compare exact position+UV triangle sets within each quantized UV key.
+All116 frames:58 of66 keys contain one distinct surface;8 contain two.
+Thus only3 unique occurrences does not mean only3 usable surfaces: most
+repeated UV triangles are geometric duplicates. Eight keys remain ambiguous.
+No across-cut identity or strand attachment acceptance follows from this.
+Reuse existing WritePvrSourceWitness/quality_capture export for lineage;
+saved selective moving captures lack that witness. Do not add a competing
+capture format. Next test duplicate-collapsed surface continuity and reject
+the eight ambiguous keys, then use source witnesses for identity validation.
+No runtime or asset changes; full coverage remains required, audio parked.
+
 LOG971 hair foundation audit, base f0db1de99. Read-only evidence:
 C:/Flycast-Evidence/hair-attachment-a/ambiguity.json:116 frames each have143
 triangles,66 quantized UV keys,only3 unique triangles,maximum multiplicity4.
