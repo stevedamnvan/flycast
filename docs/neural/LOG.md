@@ -1,5 +1,65 @@
 # Neural rendering evidence log
 
+LOG924 roughness correction and MCP ingestion isolation (2026-09-12).
+Existing ComfyUI core nodes produced four deterministic roughness candidates,
+0.65*original+0.35*255, with unchanged dimensions and <=1 byte formula error.
+No inference, paid calls or new models. Median roughness97/107/104/106 became
+152/158/156/158. Ingestion failed twice with callback ReadTimeout (8057 then
+8014); forcing the parent HTTP port did not fix it. A standard Toolkit launch
+without the capture-extension flags ingested all four through the existing MCP;
+all four metadata validation_passed values true. This implicates inherited
+launch/dependency state, not a proven exact root cause. Installed files untouched.
+Restarted with capture extension, activated imported capture and bound four
+refined maps through MCP in the existing opt-in character_correction layer.
+Fresh five-image cohort at1280x960, sky-classified.conf, source2756: baseline,
+repeat, original candidate, refined candidate, layer-off. All120-frame runs
+exit0. Attempted600 frames rejected by helper's1..120 bound before rendering.
+Baseline-repeat MAE1.6214 (character box2.9904), original-refined1.3338
+(2.7065), baseline-layer-off1.8645 (3.2608). The coat looks less glossy in
+reviewed stills, but the measured change does not exceed repeat variability;
+CORRECTIONS_REQUIRED, no visual/performance acceptance. Baseline mod bytes
+restored exactly after MCP layer removal/save; refined candidate stays inactive.
+Evidence: C:/Flycast-Evidence/visual-regression-frozen-a/roughness-* including
+roughness-cohort-results.json and refined-bind.json. Next isolate capture
+convergence/repeat variability before accepting material changes, then moving
+combat. Hair orientation work remains open under LOG923.
+
+LOG923 combat-root coverage and fail-closed card prototype.
+The80 intro-selected UV roots each map to one distinct position in all12
+saved pilot-hair-cutout-b combat packets2560..2574. Same texture SHA as intro;
+148 selected cutout triangles per frame. This is a cross-run attachment audit,
+not exact-source visual A/B or a full gameplay/occlusion matrix. Evidence:
+hair-combat-root-coverage.json. A frozen surface-card prototype attempted to
+sample four corners per root with strict unique triangle hits and a small
+normal offset; it emitted0 cards (hair-surface-prototype.json/.bin, unchanged
+packet). Root inspection explains why position uniqueness was insufficient:
+coincident surfaces share positions but carry opposing normals (e.g.
+[-.910,.281,.304] versus[.841,-.466,-.274]). Do not silently choose the first
+triangle or invent an outward frame. Next orientation test must distinguish
+the scalp-facing side consistently from actual source surface evidence, then
+check moving roots; no hair geometry was installed and no appearance gain
+claimed. The material gloss and same-cohort rendering checks remain independent
+ready work; do not let this hair attachment dependency stall those fixes.
+
+LOG922 UV hair-root attachment audit rejects simplistic rigid replacement.
+Read-only saved packets,12 intro frames2756..2770, target texture269419008,
+cutout reference128; parsed positions/normals/UVs and indexed triangles with
+owned v4 layout. Sampled768 non-boundary UV points over u[0,.75],v[0,1].
+Each frame:491 outside the selected surface,80 uniquely mapped,197 mapped to
+multiple distinct3D positions (up to4 surfaces). Coverage counts do not vary
+across samples. Duplicate surface hits clustered only within1e-4 scene units.
+This audit samples UV space; it does not identify artist-authored strand roots.
+The80 always-unique roots fit a single rigid motion poorly: RMS3.4..7.8 percent
+of the first-frame root-cloud extent0.118566 scene units, with max residual
+0.01809. This is exported-scene behavior, not inferred physical head motion.
+Do not use a rigid fit or ambiguous UV lookup as stable head/bone attachment.
+Evidence hair-identity-sequence.json, hair-triangles-sequence.npz,
+hair-uv-attachment-audit.json, hair-uv-root-rigid-fit.json, hair-unique-roots.npz
+under visual-regression-frozen-a. Next surface-following roots need combat,
+missing/ambiguous-root rejection and measured card cost; source bones are an
+alternative requiring real recovery evidence. No hair geometry was installed.
+Backlog Package G amended in place; full goal and prior gates remain open.
+
 LOG921 hair attachment identity and MCP validation checkpoint.
 Across12 saved curved-d frames2756..2770, fringe texture content is identical
 (SHA2566a6ddcb79fb7d3edba9c083ad16734988b82d8be7466be0f2c9490c1699717d1),

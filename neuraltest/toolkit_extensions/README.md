@@ -38,3 +38,11 @@ establish visual acceptance, moving hair attachment, or performance.
 Disable by omitting the launch flags on the next start. Restart for code
 updates; hot-reloading registration is not supported. Preserve unsaved work
 before restarting Toolkit.
+
+Observed ingestion limitation (LOG924): launching with these extension flags
+caused ingestion-child progress callback timeouts; an explicit HTTP port did
+not resolve it. Standard Toolkit launch without these flags successfully
+ingested the same four assets through MCP. Until launch-argument inheritance
+is isolated, ingest in a standard session, preserve/save intended work, then
+restart with this extension for capture activation and bindings. Do not retry
+failed ingestion indefinitely or modify installed Toolkit files.

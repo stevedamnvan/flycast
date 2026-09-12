@@ -1,17 +1,23 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current visual/MCP checkpoint (LOG919-921): workspace extension
-flycast.capture.mcp provides capture import/activation on existing Toolkit MCP;
-PID17088 was last verified responsive. Capture import, prim discovery and12
-saved map bindings are proven. Candidate layer is inactive; baseline mod byte
-restoration verified after runtime A/B. Candidate visibly changes character
-materials but looks too glossy; fresh same-cohort convergence/repeat comparison
-still needed (old-baseline pixel restoration exceeded noise). All four builds,
-three selftests, SDK and31 Python tests pass for extension source. Hair texture
-identity is stable across12 intro samples, but fringe mesh ID/topology varies.
-Next verify UV-root attachment consistency before strand-shaped geometry;
-continue material gloss/alignment review and moving sky validation. See
-neuraltest/toolkit_extensions/README.md for MCP launch and layer safeguards.
+Current visual/MCP checkpoint (LOG924; source HEAD cf535c044): four refined
+roughness maps generated deterministically with existing ComfyUI, ingested and
+validated through Toolkit MCP. Standard Toolkit launch fixes ingestion observed
+with capture-extension launch flags; use separate ingestion and capture/binding
+sessions for now. No installed Toolkit files changed. Toolkit PID35828 last
+verified responsive with capture extension. Candidate layer inactive, baseline
+mod bytes restored exactly. Fresh120-frame cohort has high repeat variability
+(MAE1.6214; character2.9904), exceeding original/refined-map difference; no
+appearance gain accepted. Next isolate convergence/repeat variability before
+moving-combat review. Helper rejects600-frame still runs; retain120 bound.
+Evidence C:/Flycast-Evidence/visual-regression-frozen-a/roughness-cohort-results.json.
+LOG922/923:80 unique UV root positions across intro/combat; opposing coincident
+surface normals prevent trustworthy hair-card orientation (prototype0 cards).
+Resolve orientation from source surfaces before installing strand geometry.
+Four builds, three selftests, SDK and31 Python checks passed for cf535 source;
+current slice changes documentation and external candidate assets only.
+Goal tool on this resume reported BLOCKED, despite older ACTIVE text; work is
+continuing under user authorization, without falsely marking the goal complete.
 
 User visual-regression steering (LOG912; goal amended 2026-09-12): restore a
 convincing, performant path-traced remaster with verified external DLSS 5
