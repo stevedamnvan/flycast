@@ -1,15 +1,18 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1004: exact current12 character runtime hashes
-resolved; face0DCBE839C56F7DD2 binding proven with wrong-diffuse control. Face
-rectangle MAE11.494 vs repeat.444;460 pixels over30, viewed changed face. Original
-diffuse restored, candidate detached through MCP8001, baseline mod exactE3C09790...
-E8340. No helper/game running. Surface candidate still overbright; not accepted.
-MCP surface code now copies typed composed material then bounded scalar values.
-Four builds,1092 selftests x3,SDK323,Python42 plus actual USD functional test pass.
-Toolkit8000/PID34596 preserved unknown pending edits; temporary8001/PID27736 owns
-current test. Do not save stale8000 stage. Next refine light/material response on
-proven binding, preserving arena and native face detail; see LOG1004 evidence.
+Current resume checkpoint LOG1007, source commit a04f06c32 (fork verified).
+Identity validation avoids redundant matrix arithmetic after exact identity
+check; CPU-only alternating benchmark .716 to .452ms. Four serial builds,
+1092/0 selftests x3 and SDK329/0 pass. Whole-pipeline speed remains unproven.
+LOG1006 fallback-off result is at repeat noise; both ordinary and hit poses
+show face washout. Preserve native effects, welded normals and arena materials.
+Next: current-host whole-pipeline performance setup and bounded moving exposure
+proof. validation-pipeline-preflight-a passes using the OLD LOG911 host; it is
+not a current-build result. Replace that host in an isolated prepared workspace
+before running; retain supplied-consumer configuration and replay provenance.
+Toolkit PIDs27736/34596 still live at this check; preserve unknown pending edits
+on8000. Do not force-close for a benchmark or call a confounded run acceptance.
+No game/helper running. Baseline mod last checked exactE3C09790...E8340.
 
 Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115
@@ -1125,3 +1128,8 @@ not promoted. Materials/baseline unchanged. No active renderer. Lighting checks
 now rule against blindly flipping sRGB, undoing normals, or assuming binding
 failure. Follow BACKLOG bounded-investigation rule: record open appearance and
 advance ready playback/performance dependency rather than endless preset sweeps.
+
+Performance validation update: prior processes58625/89915 are terminal;
+source optimization and boundary tests are committed in a04f06c32. Evidence:
+validation-identity-boundaries-a and validation-identity-timing-a. No pending
+build or timing process. Source files clean; private/untracked assets preserved.
