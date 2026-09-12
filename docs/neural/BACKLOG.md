@@ -11,7 +11,7 @@ Do not create replacement FC IDs or another task-state system.
 
 ### Short standing goal
 
-> Deliver a beautiful, playable Soulcalibur RTX Remix and supplied DLSS 5 remaster by following docs/neural/BACKLOG.md. Continue its authoritative queue and preserve all scope, safeguards and acceptance gates until the full remaster is proven.
+> Deliver a beautiful, playable Soulcalibur RTX Remix and supplied DLSS 5 remaster by following docs/neural/BACKLOG.md. Continue its authoritative queue and preserve all scope, safety and acceptance gates until the full remaster is proven.
 
 User requested this shorter goal on2026-09-12 and GPT-6 Astra low (Astra light)
 for implementation. Detailed scope remains in this backlog. The active goal
