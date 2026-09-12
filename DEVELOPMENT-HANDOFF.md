@@ -925,3 +925,9 @@ LOG872 historical: geometry build/proof passed3 exact game sources2560..2562,inc
 previous native reference. Log archived. Cost run98758 active,
 pilot-normal-geometry-cost;poll same handle,measure source/object/time and
 archive stage log. Source uncommitted;no live normal composition claim.
+
+LOG967 latest: original albedo control does not fix clumps. Original-region
+PBRify candidate at C:/Flycast-Evidence/hair-source-region-a/candidate-preserved.png
+has exact alpha/outside pixels,1 local generation,no paid API. Raw export failure
+retained. Next inspect alignment, MCP ingestion and bounded rendering; not bound
+or accepted. No test/generation live. Audio remains parked.

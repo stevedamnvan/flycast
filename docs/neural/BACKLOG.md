@@ -266,6 +266,10 @@ LOG966 foundation: first-pass input matches original256 DDS; hair only64x64.
 8x recycles generated4x. New hair-region built-in output lost alpha/resized and
 changed locks: rejected, no retry/binding. Next original-region foundation,
 exact alpha/UV and retained-map compatibility before generation/integration.
+LOG967 original-albedo render still clumped. One local original64 hair-region
+PBRify candidate generated; exact alpha/outside restored deterministically,
+no regeneration. Next retained-normal alignment, MCP ingest and same-source/
+moving review; not accepted or bound. Evidence hair-source-region-a.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.

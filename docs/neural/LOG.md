@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG967 original-albedo control and original-region PBRify candidate.
+Basef8ae3bec9. MCP frozen2461 original-up4 albedo versus8x both0, baseline
+exact; inspected full images and nearest-neighbor inspection crops: broad glossy
+clumps remain. Generated albedo alone not established as main cause. Diagnostic
+layer detached. Evidence hair-original-albedo-a; source maps unchanged.
+Reused ComfyHTTP existing crop/upscale/composite/alpha nodes and installed
+4x-PBRify-UpscalerV4. One original64x64 hair tile ->256 model output ->512
+Lanczos, composited into2048 baseline; no recursive AI input, no new models.
+Prompt a90b4d7c-a553-4b55-bde6-9e3903678969 completed success. Raw export failed
+exact alpha/outside test. Deterministic preservation copies only candidate tile
+RGB into baseline bytes and retains original alpha everywhere; saved/reloaded
+2048RGBA now alpha/outside exact. No second generation; raw failure retained.
+Candidate SHA785f3adc8739f94cbf94376b6d481f43da79e3e35b8a705da50dc01060b89229.
+Evidence C:/Flycast-Evidence/hair-source-region-a workflow/submission/history,
+attempt ledger, raw and preserved outputs, validations. Paid API0, one local
+output, no retries. Not ingested/bound or visually accepted. Next inspect retained
+normal alignment and ingest candidate through existing Toolkit MCP for bounded
+same-source and moving review. Reject if it does not improve hair; no generation
+loop. Geometry/strand attachment/full coverage remain open; audio parked.
+
 LOG966 hair foundation trace and rejected strand candidate, base0423c2d75.
 User questions wrong foundation. Verified first-pass Comfy input pixel-exact to
 PIL-decoded original captured256x256 DDS. Hair is64x64 tile UV.5..75, with
