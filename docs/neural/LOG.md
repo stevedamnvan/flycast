@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG954 guarded selective resource benchmark improves freshness, base256aaa53e.
+Added explicit --benchmark-selective-resource-refresh to existing launcher.
+Automatic anchored capture-free runs only; rejects manual/capture/CPU timing/
+conflicting capture flag/scope-gate knobs. Existing helper compatibility/texture/
+gap/generation/failure logic unchanged; default full reset unchanged. Receipt
+records benchmark option separately. No bypass of original capture flag.
+35 Python tests pass (initial fixture restored absent field as None; corrected
+absence restoration). Four serial build checks pass,1053 selftests x3,SDK302.
+First build invocation quoting failed before compilation; corrected logs retained.
+Two1200-sample corrected-material/structure0 runs, same narrow/uncurved settings
+as LOG952. After120 warmup, fresh1071/1072 of1080 =99.167/99.259percent versus
+1024/1012 =94.815/93.704. Present rates62.634/62.737fps, fresh62.112/62.272fps.
+P50/P95/P99ms15.032/21.887/23.266 and15.107/22.056/23.516. Latency mean3.731/
+3.948frames,max5 both. Captured-output overhead disabled. Both launcher0,
+baseline/config exact.550/547 selective refreshes,13/14 source-gap full resets,
+7 other full refreshes each: unsupported transitions still reset. This meets
+fresh-share threshold only in this measured scope, not full600/normal-renderer,
+audio/emulation pacing, lifecycle, visual or external provenance acceptance.
+No current moving visual capture of this full combined benchmark configuration;
+LOG944 prior resource diagnostic is scoped evidence, not substitute. Incremental
+binaries not fresh exact-SHA. Current maps untouched; no paid work.
+Evidence C:/Flycast-Evidence/selective-reuse-benchmark-a/b, comparison.json in b.
+Next verify moving corrected material/structure0 plus selective reuse with
+existing capture flag, native invariants and scene continuity; then supported
+playable preset integration, pacing/audio and full gates. Keep hair modernization
+and whole captured-set completeness open. Do not declare overall60fps success.
+
 LOG953 correct preparation interpretation; resource rebuild cost correlation.
 Basefb6641a58. Source read shows prepare_ms is drawStart-receivedAt, where
 receivedAt can belong to a packet prefetched before previous-frame readback.

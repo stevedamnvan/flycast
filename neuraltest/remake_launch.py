@@ -98,6 +98,14 @@ def prepare(args):
     if args.managed_session:
         helper.append('--session-worker')
     capture_frames = getattr(args, 'capture_frames', 0)
+    benchmark_reuse = getattr(args, 'benchmark_selective_resource_refresh', False)
+    if benchmark_reuse:
+        if (not args.anchored_light or capture_frames or args.manual_input
+                or getattr(args, 'cpu_timing', False)
+                or getattr(args, 'selective_resource_refresh', False)
+                or getattr(args, 'scope_gates', None) or getattr(args, 'scope_parts', None)):
+            raise ValueError('Selective reuse benchmark requires anchored capture-free automatic timing without diagnostic scopes')
+        env['FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH'] = '1'
     if getattr(args, 'selective_resource_refresh', False):
         if not capture_frames or not args.anchored_light:
             raise ValueError('Selective resource refresh requires bounded capture and anchored light')
@@ -339,6 +347,8 @@ def main():
                    help='Diagnostic capture: match geometry across RGB shading changes with mandatory returned-colour rejection')
     p.add_argument('--selective-resource-refresh', action='store_true',
                    help='Diagnostic anchored capture: retain strictly compatible mesh resources when other slots change')
+    p.add_argument('--benchmark-selective-resource-refresh', action='store_true',
+                   help='Bounded automatic capture-free benchmark of the same strict anchored resource reuse; defaults unchanged')
     p.add_argument('--alpha-cutout', action='store_true',
                    help='Experimental (D-240): promoted alpha draws with cutout texture alpha travel as alpha-tested cutouts (FLYCAST_REMAKE_ALPHA_CUTOUT=1); the rest stay native')
     p.add_argument('--smooth-normals-weld', action='store_true',
@@ -391,6 +401,7 @@ def main():
                   alpha_cutout=args.alpha_cutout, curved_export=args.curved_export,
                   shading_aware_motion=args.shading_aware_motion,
                   selective_resource_refresh=args.selective_resource_refresh,
+                  benchmark_selective_resource_refresh=args.benchmark_selective_resource_refresh,
                   smooth_normals=args.smooth_normals, smooth_normals_weld=args.smooth_normals_weld,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,

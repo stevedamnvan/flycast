@@ -296,6 +296,26 @@ class LaunchPreflightTests(unittest.TestCase):
         self.assertEqual(helper.count('--diagnostic-capture-budget'), 1)
         self.assertLess(helper.index('--diagnostic-capture-budget'), helper.index('--source-wait-seconds'))
 
+    def test_selective_benchmark_is_explicit_and_capture_free(self):
+        self.args.anchored_light = True
+        self.args.benchmark_selective_resource_refresh = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH'], '1')
+        for field, value in [('anchored_light', False), ('capture_frames', 1),
+                             ('manual_input', True), ('cpu_timing', True),
+                             ('selective_resource_refresh', True),
+                             ('scope_gates', 'off'), ('scope_parts', 'none')]:
+            existed = hasattr(self.args, field)
+            previous = getattr(self.args, field, None)
+            setattr(self.args, field, value)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                prepare(self.args)
+            if existed:
+                setattr(self.args, field, previous)
+            else:
+                delattr(self.args, field)
+        self.args.benchmark_selective_resource_refresh = False
+        self.assertNotIn('FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH', prepare(self.args)[2])
+
     def test_remix_only_requires_capture(self):
         self.args.remix_only = True
         with self.assertRaises(ValueError):
