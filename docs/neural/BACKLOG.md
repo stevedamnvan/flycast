@@ -282,6 +282,12 @@ Weapon-angle evidence LOG935: six isolated saved-source renders reviewed;
 Not temporal acceptance. Next newly rendered contiguous candidate/control
 segment; do not use locked old returned pixels to claim new-material motion.
 
+LOG936 fresh live pair:24 exact-source/camera/geometry/material matches,
+23 contiguous2447..2469;27/26 saved from30 requested,300-frame gate open.
+Live blade dark/bright response observed with attack effects overlapping.
+Baseline restored. Next review live consumer exposure/skin response and resume
+independent LOG911 performance; no temporal or human visual acceptance yet.
+
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not
 another texture-resolution claim. In12 saved intro frames, UV-only roots are

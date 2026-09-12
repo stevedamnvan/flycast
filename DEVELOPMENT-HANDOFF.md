@@ -1,5 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG936: fresh live weapon pair completed,24 exact-source matches
+including23 contiguous frames2447..2469. Captured27/26 of requested30; no300
+pass. Live blade angle response visible, attack effects overlap. Baseline mod
+restored, candidate layers inactive. No performance/temporal quality acceptance.
+Evidence pilot-weapon-motion-control-a / pilot-weapon-motion-candidate-a.
+Next live consumer-profile exposure/skin review and independent LOG911 performance;
+do not repeat isolated stills as a substitute for gameplay quality.
+
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate
 segment next. LOG779 locked input reuses old returned pixels, so cannot create

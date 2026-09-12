@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG936 fresh live weapon-candidate/control capture pair.
+Both managed replay sessions completed launcher0/host clean close with existing
+1280 flags and exposure-probe-a-dlss.conf; requested30 captures from2440.
+control pilot-weapon-motion-control-a saved27, candidate saved26;24 common,
+exact producer/material/state/camera/geometry matches across1152 mesh-materials
+(remake_material_compare --exact-geometry). Common2445 and2447..2469;23-frame
+contiguous suffix, NOT a full30/300-frame gate. Median composited MAE5.199;
+includes all active candidate materials, not isolated weapon-only gain. No
+fresh control-repeat noise measured this cohort. Live2461/2453 inspected:
+blade dark/bright angle response survives combined path, native attack effects
+overlap blade. Temporal shimmer, human visual approval and performance remain
+unaccepted. Synchronous capture timing excluded from performance evidence.
+Both layers inserted/removed through MCP; baseline mod restored byte-exact.
+No source changes. Evidence roots C:/Flycast-Evidence/pilot-weapon-motion-*
+and weapon-poses-a/control-launch-command.json, live-restoration.json.
+Next inspect gaps and longer moving evidence only as needed; separate live
+consumer-profile exposure/skin look from the fixed diagnostic profile before
+accepting appearance. Continue performance work from LOG911 independently.
+
 LOG935 weapon-angle review and locked-route scope correction.
 Six saved-source renders2410/2490/2530/2570/2446/2461 all exit0, both candidate
 layers on, stable diagnostic1280x960/120 frames; restored baseline mod bytes
