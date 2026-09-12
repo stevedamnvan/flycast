@@ -199,6 +199,15 @@ Next capture-free supported-path timing: corrected materials/structure0, uncurve
 welded normals, LOG911 narrow observation. Guarded motion is capture-only; keep
 restriction and label timing as supported-path rather than diagnostic equivalence.
 Then measured bottleneck work and upstream hair; no more scalar or height loop.
+LOG952 capture-free pair complete,1200 samples each. After120 warmup,
+1024/1012 fresh of1080 (94.815/93.704%), presentations63.32/63.14fps,
+fresh60.04/59.16fps. p50~15.2ms,p95~21.9,p99~24; latency mean~3.9,max6/7.
+No99% or sustained60fresh pass, audio/provenance/lifecycle still open. Both
+baseline/config exact. Supported motion only, not exact LOG951 policy.
+Next helper scene preparation attribution (median7.05ms versus draw4.96),
+remove proven redundant update work preserving identity/cut/material guards;
+then repeat same denominator. Existing selective flag remains capture-only.
+VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
 
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action

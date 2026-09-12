@@ -1,5 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG952: capture-free corrected pair completed,1200 each. Steady
+fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.
+Pacing p50~15.2ms,p95~21.9,p99~24; latency mean3.9,max6/7. Gates not passed.
+Helper prepare median7.05ms,draw4.96,period16.0: next preparation attribution
+and safe redundant-update fix. No ring expansion/identity weakening. Current
+motion/resource diagnostics capture-only; performance uses supported path.
+Both baseline/config exact; no tests live. Evidence remaster-corrected-perf-a/b,
+paired-summary.json/helper-stage-summary.json in b. VRAM lifecycle/audio/
+provenance/fullquality remain open. No source changes in this checkpoint.
+
 Current LOG951: corrected material/structure0 moving completed116 captures,
 all116 joins/native invariants pass, invalid motion0. Reviewed2462/2557 smoother
 skin and coherent cloth, reflective weapons/effects preserved; hair clumped.

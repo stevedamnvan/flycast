@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG952 corrected supported-path performance pair, baseb19718263.
+Two1200-sample capture-free runs OIT1280x960, narrow observation, uncurved
+welded normals/cutout, corrected25-range candidate and structure0. Guarded
+shading motion omitted because capture-only; not identical LOG951 policy.
+Both launcher0, performance_eligible true, captures false, baseline/config exact.
+After allowed120-sample warmup:1080 eligible presents each; fresh1024/1012
+(94.815/93.704 percent), mean presentations63.324/63.135fps and fresh60.040/
+59.160fps over elapsed present intervals. Full-run p50/p95/p99ms15.208/21.982/
+23.716 and15.198/21.760/24.086. Latency mean3.894/3.927 frames,max6/7.
+Fails99percent freshness and does not establish sustained60freshfps, correct
+emulation/audio timing, full300/600 gates or external provenance. Incremental
+binaries retain stale embedded SHA; command/hashes in launch receipts authoritative.
+VRAM initial3.617/3.068GB to4.805GB; maximum owned objects204,final202 both.
+RunA phase samples rise near5.49GB then fall below4.8GB; endpoint growth alone
+is not a leak proof or lifecycle acceptance. Existing runtime disposal warning
+persists; no cleanup acceptance. No builds/generation during measurement.
+RunB existing helper logs after120 returns median prepare7.053ms,draw4.963,
+receive_wait2.430,period16.005,lock_wait3.534,return1.320,depth_convert0.840.
+Overlapping stages must not be summed as independent critical-path costs.
+Next bound scene preparation/resource update attribution and remove proven
+redundant work without weakening identity, cuts or material correctness; reuse
+existing selective diagnostic only in permitted scope. No unmeasured ring growth.
+Evidence C:/Flycast-Evidence/remaster-corrected-perf-{a,b}, paired-summary.json
+and helper-stage-summary.json in b. No source changes; backlog contract checked.
+
 LOG951 integrated corrected material/structure moving review, basee5886f94c.
 Existing character candidate25 zero displacement ranges plus companion requested
 NRLocalStructure0. Fresh requested120 sources2440..2559,1280x960 uncurved welded
