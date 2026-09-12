@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG925 playable-delivery planning amendment (2026-09-12).
+User requested backlog/plan update to reach playability. Added an ordered
+sequence in the existing BACKLOG: bounded visual diagnosis, live combat,
+measured performance, lifecycle/launch packaging and full visual closure.
+User then requested simplification around serious path tracing: final sequence
+now leads with controlled proof of geometry, shadows, indirect illumination and
+material response, followed by combat, performance and opt-in delivery. Plan
+distinguishes a testable candidate from standing-goal acceptance. Existing FC IDs, Package D full-set scope, paid-budget controls,
+300/600-frame gates and human visual approval unchanged. Historical LOG757
+next-action heading relabeled to prevent superseded routing. Docs only; no
+new gameplay, performance or visual pass claimed.
+
 LOG924 roughness correction and MCP ingestion isolation (2026-09-12).
 Existing ComfyUI core nodes produced four deterministic roughness candidates,
 0.65*original+0.35*255, with unchanged dimensions and <=1 byte formula error.

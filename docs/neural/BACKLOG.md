@@ -19,8 +19,9 @@ lighting, characters must retain detail and identity, and hair must survive
 moving-combat review. The goal tool returned no active goal in this turn; the
 amended objective was registered and verified ACTIVE. This changes immediate
 focus within the existing queue, not completed engineering or acceptance gates.
-Next: isolate replacement-material bindings, character curvature and hair
-handling using matched evidence before accepting further appearance changes.
+Next: execute the playable-delivery sequence below. Bound the visual-repeat
+investigation, then advance live combat and performance with the last verified
+baseline wherever candidate appearance remains unaccepted.
 
 Run with Astra low as requested. On 2026-09-08 the app reported no existing
 goal, and the short objective above was successfully registered as active.
@@ -84,6 +85,53 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG564 confirms28 consecutive exact-input external results after native effects/HUD and completed Present, including effect identity and marked/clean/OFF controls. Full moving quality matrix and upstream scene acceptance remain open; do not repeat this regression without a changed dependency |
 | FC-045, FC-054, FC-055, FC-063, FC-064 / combined hardening | todo | M4-DLSS5 | Capture/overlay/transition/failure/cadence checks on the changed route; asynchronous performance and repeatable launch. Satisfy the working-pipeline checklist below. | pending |
 | FC-067 / M5 and FC-065 / style expansion | todo | working pipeline; legal content where needed | Optional further art direction and title coverage. Not substitutes for making the combined route work, and not factory-default promotion without the existing quality gates. | pending |
+
+### Playable path-traced remaster: current execution order
+
+User direction, 2026-09-12: serious path tracing and playable performance.
+This sequence controls the existing FC-067 / A-H work. Older dated next-action
+notes are evidence, not competing assignments. Use the existing supported
+Soulcalibur scene and two fighters first; disclose coverage limits.
+
+1. **Prove the path-traced scene (M2-scene / M3-relighting, F-G).** Verify that
+   the actual fighters, hair surfaces and arena reach Remix with correct
+   geometry, normals, opacity and material bindings. Use controlled light and
+   material changes to demonstrate cast shadows, indirect illumination and
+   material-appropriate reflections. Pair runtime configuration/provenance
+   with visible responses; sharper textures or module activation are not proof.
+   Fix missing geometry, baked-light conflicts, exposure and plastic-looking
+   surfaces. Bound the current repeat-variability diagnosis to two causal
+   tranches, then pivot under the existing no-progress rule.
+2. **Make it hold up in combat (M4-presentation / M4-DLSS5, F-G).** Test player
+   input, moving fighters, occlusion, hair edges, camera/round transitions,
+   native HUD/effects and continuous audio. Verify actual supplied DLSS5
+   contribution separately from Remix path tracing. Use the existing300-frame
+   moving comparison and wrong-input controls; fix missing/stale output and
+   ghosting before adding more artwork. Keep safe fallback explicit.
+3. **Reach the performance target (H / combined hardening).** Resume measured
+   host/helper bottlenecks from LOG911, one proven slice at a time. Target
+   sustained60 fps at the recorded resolution with fresh rendered output,
+   stable pacing and bounded memory. Run existing600-frame normal/OIT gates:
+   >=99 percent steady eligible combined output, <=120 warmup, cycle/audio
+   agreement and latency/resource checks. Generated/repeated frames do not
+   establish fresh source cadence. No generation, builds or synchronous capture
+   during performance runs.
+4. **Deliver a reproducible opt-in build (F-H).** Existing launcher, one material
+   layer, tested disable/rollback, lifecycle/recovery checks and clear supported
+   content. Commit tested source and evidence, verify fork SHA, then obtain
+   human visual approval separately from technical acceptance.
+
+Package D still covers the ENTIRE captured material set with upgraded/reused/
+rejected accounting, baseline retention and approved numeric paid-budget gates.
+Use it to solve demonstrated material deficiencies. Strand hair requires stable
+source-supported attachment, appropriate shading and measured cost; another
+texture-generation pass cannot supply missing geometry. Keep this quality work
+in scope without blocking independent combat/performance fixes. No additional
+renderer, model installation or orchestration system is part of this plan.
+
+A playable checkpoint is useful, but the goal remains open until convincing
+path-traced visuals, verified neural contribution and all working-pipeline
+acceptance checks below pass. Do not lower gates to ship a cosmetic upscale.
 
 ### Pilot substeps (D-224): Soulcalibur Faithful RTX
 
@@ -297,7 +345,7 @@ Full-set D deliverable remains open; no further generation authorized by trial.
 
 ### Next-card bounds: FC-067 / M2-scene
 
-**Operational next action (LOG757, integration priority correction):** advance
+**Historical operational action (LOG757, superseded by the playable-delivery sequence):** advance
 the live camera/scene contract, not another comparison-tooling phase. Inspect
 `RemakeCameraAnchor` support changes against existing managed-session evidence:
 distinguish genuine scene cuts from visibility changes within the same arena.

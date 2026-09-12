@@ -8,8 +8,10 @@ sessions for now. No installed Toolkit files changed. Toolkit PID35828 last
 verified responsive with capture extension. Candidate layer inactive, baseline
 mod bytes restored exactly. Fresh120-frame cohort has high repeat variability
 (MAE1.6214; character2.9904), exceeding original/refined-map difference; no
-appearance gain accepted. Next isolate convergence/repeat variability before
-moving-combat review. Helper rejects600-frame still runs; retain120 bound.
+appearance gain accepted. Next follow BACKLOG playable-delivery sequence:
+prove actual path-traced geometry/lighting/material response, then stable
+combat, measured performance and reproducible opt-in delivery. Retain baseline when a
+candidate is unaccepted; helper still runs remain bounded to120 frames.
 Evidence C:/Flycast-Evidence/visual-regression-frozen-a/roughness-cohort-results.json.
 LOG922/923:80 unique UV root positions across intro/combat; opposing coincident
 surface normals prevent trustworthy hair-card orientation (prototype0 cards).

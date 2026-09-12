@@ -156,6 +156,31 @@ with zero ordinary-mode allocations/work. No renderer rewrite in M1.
   silhouettes, animation, effects and HUD stay original. Keep gameplay timing, readable UI and stable
   motion. Broad asset replacement and further titles remain later work.
 
+## What the playable remaster must deliver
+
+The current execution order is in BACKLOG; this plan defines the result.
+Actual fighters and arena must participate in path-traced lighting, with
+correct geometry, smooth normals, opacity and material response. Demonstrate
+cast shadows, indirect illumination and appropriate reflections through
+controlled scene changes and runtime provenance. Texture upgrades alone are
+insufficient. Preserve artwork identity and remove baked-light conflicts rather
+than amplifying them with generated normals or excessive gloss.
+
+The result must remain coherent during player-controlled combat: moving hair,
+occlusion, camera changes and round transitions, with native HUD/effects and
+uninterrupted audio/emulation. Verify supplied DLSS5 contribution separately;
+it does not establish that the upstream scene is correctly path traced.
+
+Target sustained60 fps with fresh output at the recorded resolution, measured
+pacing/latency and bounded resources. Preserve the existing300-frame visual and
+600-frame normal/OIT acceptance gates. Deliver through the existing reversible
+opt-in launcher/layer, with lifecycle tests and separate human visual approval.
+A testable intermediate build is not final acceptance.
+
+Keep Package D's full captured-set coverage and cost controls. Strand hair
+requires supported moving geometry attachment and measured rendering cost.
+Use the existing pipeline; the authoritative queue governs prioritization.
+
 ## Verification and handoff
 
 For code changes, build `build-neural-automation`, `build-neural-baseline`,
