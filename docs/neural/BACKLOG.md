@@ -81,6 +81,9 @@ visual check inspects runtime fallback-light state and exposure during motion
 and hit flashes before any further fill tuning. Preserve arena appearance and
 native effects. This does not displace pending LOG911 CPU validation timing or
 expand the existing visual investigation into another preset sweep.
+LOG1006 closes the retained-hit fallback diagnostic: explicit off is at baseline
+repeat noise (.698 versus .695 MAE), face still washed out; no fix promoted.
+Remaining check is ordinary versus hit-flash response and moving exposure.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

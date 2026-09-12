@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1006 explicit fallback-light negative control (2026-09-12).
+Evidence C:/Flycast-Evidence/practice-fallback-light-a: retained hit5458,
+control/repeat/fallback-off,120 presents each, all exit0. Same source, main3,
+fill.3, baseline materials,640x480; private candidate profile adds only
+rtx.fallbackLightMode=0. Saved runtime log confirms effective value0 in installed
+Remix1.5.2. Whole-image control-repeat MAE.694851, control-off.697903. Viewed
+control and off: facial washout persists. No evidence above this repeat floor
+that fallback lighting explains this retained hit; no appearance gain or moving
+camera/exposure conclusion. Baseline mod remains exactE3C09790...E8340.
+Existing40-undisposed-device-object shutdown warning remains; not lifecycle or
+performance acceptance. No source or live profile change, no active helper.
+Next visual evidence must distinguish ordinary face response from hit-flash
+response and exposure over a retained moving sequence, not another fallback sweep.
+
 LOG1005 camera-lighting research and implementation audit (2026-09-12).
 NVIDIA runtime options document camera-relative fallback controls; its runtime
 guide recommends white-material lighting diagnostics. Remix post-processing
