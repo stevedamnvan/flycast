@@ -26,12 +26,12 @@ void String(std::ostream& out,const std::string& value) {
  }
  out << '"';
 }
-void Texture(std::ostream& out,const BaseTextureCacheData* texture) {
+void Texture(std::ostream& out,const BaseTextureCacheData* texture,TCW draw) {
  if(!texture) {out << "null";return;}
  out << "{\"upload_generation\":" << texture->Updates << ",\"palette_hash\":";
  // This cache field is assigned only for paletted textures. Do not serialize
  // an indeterminate value for ordinary RGB textures as generation evidence.
- if(texture->tcw.PixelFmt==PixelPal4||texture->tcw.PixelFmt==PixelPal8) out<<texture->palette_hash;
+ if(texture->tcw.PixelFmt==PixelPal4||texture->tcw.PixelFmt==PixelPal8) out<<PvrDrawPaletteGeneration(*texture,draw);
  else out<<"null";
  out << ",\"rtt_generation\":" << texture->rttGeneration << '}';
 }
@@ -251,8 +251,8 @@ bool WritePvrScenePacket(const std::filesystem::path& path,const rend_context& c
     <<",\"count\":"<<p.count<<",\"tsp\":"<<p.tsp.full<<",\"tcw\":"<<p.tcw.full
     <<",\"pcw\":"<<p.pcw.full<<",\"isp\":"<<p.isp.full<<",\"tileclip\":"<<p.tileclip
     <<",\"tsp1\":"<<p.tsp1.full<<",\"tcw1\":"<<p.tcw1.full
-    <<",\"naomi2\":"<<(p.isNaomi2()?"true":"false")<<",\"texture\":";Texture(out,p.texture);
-   out<<",\"texture1\":";Texture(out,p.texture1);out<<'}';
+    <<",\"naomi2\":"<<(p.isNaomi2()?"true":"false")<<",\"texture\":";Texture(out,p.texture,p.tcw);
+   out<<",\"texture1\":";Texture(out,p.texture1,p.tcw1);out<<'}';
    ++ordinal;
   }
   ++listId;

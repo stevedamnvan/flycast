@@ -10,7 +10,8 @@ Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cach
 LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
 draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
 LOG974 native witness run: partial candidate hair coverage35..37/164..166;
-material readback rejects generation mismatch. Next isolate mismatch/coverage
+LOG975 fixes disk palette generation per draw;3-frame material capture passes.
+Next format-aware material identity join and partial hair witness coverage
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology

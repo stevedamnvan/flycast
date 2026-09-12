@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG975 disk palette provenance correction, base9f49251a7 plus working tree.
+Root cause found: disk Texture writer serialized cache palette_hash, while
+live snapshot/material validator use PvrDrawPaletteGeneration per draw.
+Shared GPU palette textures can select a different bank. Writer now receives
+TCW for both slots and uses existing draw-specific generation function.
+No guard suppression, wire schema/default/rendering changes.
+Four serial builds pass;1053 selftests x3,SDK302,Python37 pass. First SDK
+invocation used wrong cwd, corrected absolute invocation passed.
+Live same3-frame replay/material capture hair-source-witness-d now exit0,
+clean close and all3 material manifests present; prior b fails generation guard.
+Witness counts2462/2494/2494 unchanged from c. Evidence/build logs outside Git:
+C:/Flycast-Evidence/hair-palette-capture-fix-a and hair-source-witness-d.
+Direct DDS-to-raw byte search finds no hair match; native formats/palette must
+be decoded before identity conclusions. No missing-texture or appearance claim.
+Next material-format-aware hair identity join and partial transform coverage;
+retain offline anchor prototype, no inferred rig. Audio parked, no game live.
 LOG974 source-witness capture trust audit, base5a5adc66e. No source changes.
 C:/Flycast-Evidence/hair-source-witness-a completed3 frames but replay was off:
 wrong intro scene visually inspected, zero transform witnesses; rejected setup.
