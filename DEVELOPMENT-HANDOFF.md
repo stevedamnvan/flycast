@@ -1107,3 +1107,21 @@ lines750-753 explicitly assumes non-sRGB textures. Keep samplerFALSE; no source
 fix warranted from this evidence. Key-balance renders both exit0. Next face
 lighting/normal response, not repeated gamma or binding diagnostics. No active
 helper or candidate layer; baseline remains restored.
+
+Face-normal audit now complete, practice-face-normal-a/normal-audit.json:
+Mits296/Soph430 triangles, zero degenerates/opposed normals; medians.9687/.9723
+facet agreement, varied normals. Do not undo welded normals. Lighting/highlight
+response still open; no face geometry fix justified by this audit. No active run.
+
+Refined ACES diagnostic now runs outer94227 (practice-refined-aces-a/render.py).
+Public option docs identify useLegacyACES=true as luminance approximation that
+oversaturates highlights; current capture records true. Test sets only false
+in private supplied profile, same hit source/key3/fill.3/materials/local tonemap.
+Two renders refined/repeat pending. No live profile/layer change. Global tone
+map comparison deferred in favor of this single-option highlight test.
+
+Refined ACES/repeat terminal exit0; viewed face still insufficiently detailed,
+not promoted. Materials/baseline unchanged. No active renderer. Lighting checks
+now rule against blindly flipping sRGB, undoing normals, or assuming binding
+failure. Follow BACKLOG bounded-investigation rule: record open appearance and
+advance ready playback/performance dependency rather than endless preset sweeps.

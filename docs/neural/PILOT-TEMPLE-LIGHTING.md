@@ -105,3 +105,16 @@ Therefore helper SRGBTEXTURE=FALSE is consistent with this downstream path;
 do not flip it as an unproven brightness fix (would risk double conversion).
 Public source is not installed-binary provenance. Files retained colour-path-a.
 Source: https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/src/dxvk/shaders/rtx/concept/surface_material/opaque_surface_material_interaction.slangh
+
+Face-normal consistency (practice-face-normal-a, retained hit5458): Mitsurugi296
+triangles, Sophitia430; zero degenerate triangles and zero normals opposed to
+facet orientation. Normal/facet dot medians.9687/.9723, minima.7358/.6882;
+403/545 distinct rounded normals. No flattened/zero/inverted-normal evidence.
+Preserve welded normals. This does not prove anatomical geometry or world-space
+reconstruction. Next image response must not undo this established correction.
+
+Refined ACES single-option test practice-refined-aces-a completes two120-frame
+renders exit0, baseline exact. Legacy ACES false in private profile only; source
+key/fill/materials/local tone map fixed. Viewed face remains washed out; no
+promotion. Avoid further unbounded preset searches; appearance stays open while
+backlog playback/performance dependencies advance.
