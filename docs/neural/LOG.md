@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG947 supplied-consumer global-tone isolation, base6746dd67a.
+Stage reshade.ini contains no RenoDX.DLSS5 section; current matching consumer
+log reports intensity1/global_tone1/style0 despite Faithful host recommendation.
+Existing public control companion tested global-tone0 only, all other settings
+unchanged, in byte-restored scope. No proprietary binary inspection or edits.
+Fresh locked LOG946 source archive2540..2559, same executable/export flags;
+control16 and tone-zero16 captures, launcher exits0,15 common sources with
+exact geometry/materials/returned colour/depth. 13/15 also exact motion/bias;
+remaining input differences and temporal history prevent blanket exact-consumer
+input claims. Native mismatch counters0 on common frames. Active log confirms
+intensity1/global_tone0/style0. Reviewed2559 pair: brown grain remains; global
+tone alone does not resolve skin regression. No visual promotion or quantified
+shimmer improvement; no baseline repeat, external provenance or performance claim.
+Original configuration restored SHA256
+222d059c727a683c8deace07c938002bdd6a69eb0dc9c908743e17a92b54efbc.
+Evidence C:/Flycast-Evidence/consumer-tone-a: commands, requested configs,
+companion output, logs, comparison.json and receipt.json. No material mutation.
+Next one bounded structure/detail control using existing companion and locked
+archive; retain global-tone control as rejected skin fix, no tone sweep.
+
 LOG946 integrated character candidate and extended moving review.
 Base3fb9485cb. MCP merged seven LOG945 zero in/out ranges into existing
 character_correction.usda; prior asset bindings unchanged. Before SHA256

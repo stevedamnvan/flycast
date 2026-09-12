@@ -165,6 +165,14 @@ reduce the added skin grain while retaining meaningful contribution. Preserve
 Remix lighting and weapon maps. Treat upstream hair separately; no texture
 regeneration or further resource-reuse image loop. Then moving combat and
 capture-free performance, retaining the full300/600-frame acceptance gates.
+LOG947 global-tone0 isolation completed: control16/candidate16,15 common
+exact returned colour/depth and geometry/material frames; 13 also exact motion/bias.
+Active consumer confirms tone0 with intensity1/style0 unchanged. Reviewed2559
+skin grain remains; tone alone rejected as fix. Configuration restored exactly.
+Next one bounded structure/detail control through existing companion/locked
+archive, preserving failed evidence, exact input checks and configuration
+rollback. No tone sweep or texture regeneration; no visual promotion.
+
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported

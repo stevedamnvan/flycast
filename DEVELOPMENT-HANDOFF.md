@@ -1,5 +1,14 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG947: global tone0 did not fix skin grain. Control16/candidate16,
+15 common exact returned colour/depth/geometry/material frames; 13 exact
+motion/bias. Actual log confirms intensity1/tone0/style0, original config
+restored SHA222d059c727a683c8deace07c938002bdd6a69eb0dc9c908743e17a92b54efbc.
+No material mutation. Evidence C:/Flycast-Evidence/consumer-tone-a.
+Next bounded structure/detail control with existing companion and fresh LOG946
+locked archive; no repeated tone sweep. Both runs terminal, no live test handle.
+Appearance/provenance/performance remain open. See LOG946 for material state.
+
 Current LOG946: integrated zero displacement in existing character_correction
 through MCP; existing map bindings preserved. Layer SHA256
 bc4e369ff55fd1e303ce65a1efeb76240cf4996dc448bb7cf67d91a6ae3d5757.
