@@ -307,6 +307,13 @@ and replay route, verify character/stage identity visually, and record bindings
 and close face/hair/weapon views. World lighting/material work proceeds alongside
 this coverage; hair attachment research must not serialize the whole remaster.
 Then test the same material-class decisions across all eight pairings and motion.
+Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
+classifies twelve source atlas candidates from the extra Takamatsu Practice
+pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,
+F645D8A55F6EDF87). Other variants need their own source-aligned treatment,
+not approximate hash aliases. Resolve used-UV regions for mixed skin/hair/metal
+before applying material-class prompts. Three native frames validate40 assets;
+this is source integrity, not remake appearance or requested-stage acceptance.
 Shader caching: verify installed-runtime cache/prewarm behavior and cold/warm
 scene-transition evidence before changes; it is not a substitute for recurring
 CPU/drawing-cost fixes. Preserve existing caches and capture-free timing gates.
