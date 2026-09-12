@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1016 bounded unload experiment rejects premature lifetime change.
+Temporary retain-module switch passed four serial builds and1092/0 selftests
+x3. First launcher run stripped the inherited switch, so it is a normal-unload
+control only (host0/helper11). First direct publisher omitted1280 extent and
+could not attach; observation timed out, helper later ended with bounded receive
+timeout. Corrected direct-b passes identical extent to both processes: publisher0
+and helper11 for control and retain; candidate log confirms retention marker.
+Both preserve no-source failure, neither reproduces access violation. The prior
+Windows unloaded-module crash remains a real intermittent failure, not fixed.
+Temporary source switch removed; no runtime-lifetime policy change promoted.
+Evidence helper-empty-shutdown-{build-a,retain-a,direct-a,direct-b} retained.
+Automation helper binary needs rebuild after switch removal before next run.
+
 LOG1015 public ownership check rejects speculative manual-release fix.
 Public main src/dxvk/rtx_render/rtx_remix_api.cpp RegisterD3D9Device stores
 the device and obtains its D3D object; Shutdown repeatedly releases both until
