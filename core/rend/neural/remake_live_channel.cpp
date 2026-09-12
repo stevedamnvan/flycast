@@ -17,17 +17,24 @@
 namespace flycast::rend::neural {
 namespace {
 constexpr std::size_t capacity=72*1024*1024;
-// D-218: sources that may be outstanding (published, not yet returned) at once.
+// D-218: three sources outstanding (published, not yet returned) at once.
+// LOG911 tried four: the queue wait grew from 17 to 35 ms and presentation
+// stopped, so the ring stays at three and the helper's own cycle is shortened.
 constexpr unsigned kInFlight=3;
 constexpr LONG freeSlot=0,writingSlot=1,readySlot=2,readingSlot=3;
+// The performance counter is one clock for every process on the machine.
+std::int64_t performanceCounter() noexcept {LARGE_INTEGER c{};QueryPerformanceCounter(&c);return c.QuadPart;}
+std::int64_t performanceFrequency() noexcept {static const std::int64_t f=[]{LARGE_INTEGER q{};QueryPerformanceFrequency(&q);return q.QuadPart?q.QuadPart:1;}();return f;}
 struct alignas(64) Slot {
  volatile LONG state;std::uint32_t bytes;std::uint64_t sequence,digest;
+ std::int64_t publishedQpc; // LOG911: publisher's performance counter at publication.
  alignas(64) char payload[capacity];
 };
 struct ImageSlot {
  volatile LONG imageState;
  RemakeChannelReceipt imageSource;
  std::uint64_t imageFrame,imageEpoch,imageOrdinal,imageCycle,imageDigest;
+ std::int64_t sourceReceivedQpc,returnedQpc; // LOG911: consumer's counters at source receive and image return.
  unsigned char imagePixels[1280*960*4];
 	std::uint32_t depthCount;float nearPlane,farPlane;
 	std::uint64_t depthDigest;float depthPixels[1280*960];
@@ -105,7 +112,7 @@ bool RequestRemakeSession(const std::string& root,std::string& token,std::string
 struct RemakeLiveChannel::Impl {
  HANDLE mapping=nullptr,peer=nullptr;Shared* shared=nullptr;bool owner=false,publisherClaimed=false;
  std::uint64_t sequence=0,frame=0;ProducerIdentity producer;
- struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;};
+ struct Source {RemakeChannelReceipt receipt;std::uint64_t frame=0;ProducerIdentity producer;float nearPlane=0,farPlane=0;std::int64_t publishedQpc=0,receivedQpc=0;};
  Source sources[kInFlight];std::uint64_t returnedSequence=0;
  HANDLE publishedEvent=nullptr,returnedEvent=nullptr; // D-219 wake events (named, auto-reset).
  void openEvents(const std::wstring& path) {
@@ -136,7 +143,7 @@ bool RemakeLiveChannel::CreateConsumer(const std::string& token,std::string& err
  if(!p->mapping||GetLastError()==ERROR_ALREADY_EXISTS){error="channel-create-or-existing";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
  if(!p->shared){error="channel-map";return false;}
- p->owner=true;p->shared->magic=0x434d5246;p->shared->version=5;p->shared->ownerPid=GetCurrentProcessId();
+ p->owner=true;p->shared->magic=0x434d5246;p->shared->version=6;p->shared->ownerPid=GetCurrentProcessId();
  p->shared->width=RemakeWidth();p->shared->height=RemakeHeight();
  p->openEvents(path);
  // A newly created pagefile-backed mapping is zero-initialized; publish header last.
@@ -149,7 +156,7 @@ bool RemakeLiveChannel::OpenPublisher(const std::string& token,std::string& erro
  auto p=std::make_shared<Impl>();p->mapping=OpenFileMappingW(FILE_MAP_ALL_ACCESS,FALSE,path.c_str());
  if(!p->mapping){error="channel-consumer-unavailable";return false;}
  p->shared=static_cast<Shared*>(MapViewOfFile(p->mapping,FILE_MAP_ALL_ACCESS,0,0,sizeof(Shared)));
- if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=5){error="channel-header";return false;}
+ if(!p->shared||!p->live()||p->shared->magic!=0x434d5246||p->shared->version!=6){error="channel-header";return false;}
  if(!SelectedRemakeExtent().Valid()||p->shared->width!=RemakeWidth()||p->shared->height!=RemakeHeight()){error="channel-extent";return false;}
  p->peer=OpenProcess(SYNCHRONIZE,FALSE,p->shared->ownerPid);
  if(!p->peer||!p->live()){error="channel-consumer-ended";return false;}
@@ -246,9 +253,9 @@ RemakeChannelResult RemakeLiveChannel::Publish(const remake::Packet& packet,Rema
   if(impl_!=held||!held->live()){error="channel-consumer-closed";return RemakeChannelResult::Closed;}
   auto& p=*held;
   if(!ordered(p)){error="channel-source-order";return RemakeChannelResult::Invalid;}
-  slot->bytes=bytes;slot->sequence=p.sequence+1;slot->digest=hash;
+  slot->bytes=bytes;slot->sequence=p.sequence+1;slot->digest=hash;slot->publishedQpc=performanceCounter();
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;p.frame=packet.frame;p.producer=packet.producer;
-  p.sources[p.sequence%kInFlight]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane};
+  p.sources[p.sequence%kInFlight]={receipt,packet.frame,packet.producer,packet.camera.nearPlane,packet.camera.farPlane,slot->publishedQpc,0};
   guard.slot=nullptr;InterlockedExchange(&slot->state,readySlot);
   if(held->publishedEvent)SetEvent(held->publishedEvent);
   error.clear();return RemakeChannelResult::Published;
@@ -264,16 +271,24 @@ RemakeChannelResult RemakeLiveChannel::Receive(remake::Packet& output,RemakeChan
  if(!slot){error.clear();return RemakeChannelResult::Empty;}
  if(InterlockedCompareExchange(&slot->state,readingSlot,readySlot)!=readySlot){error="channel-read-owner";return RemakeChannelResult::Invalid;}
  SlotGuard guard{slot};
+ const auto digestStart=performanceCounter();
  if(!slot->bytes||slot->bytes>capacity||slot->sequence!=p.sequence+1||slot->digest!=digest(slot->payload,slot->bytes)) {
   error="channel-payload-integrity-or-sequence";return RemakeChannelResult::Invalid;
  }
  try {
   remake::Packet packet;
+  const auto deserializeStart=performanceCounter();
   if(!DeserializeRemakeViewPacket(slot->payload,slot->bytes,packet,error))return RemakeChannelResult::Invalid;
+  const auto deserializeEnd=performanceCounter();
+  const double toMs=1000.0/double(performanceFrequency());
+  lastReceiveCost_={double(deserializeStart-digestStart)*toMs,double(deserializeEnd-deserializeStart)*toMs,LastRemakeViewPacketValidateMs(),slot->bytes};
   receipt={slot->sequence,slot->digest,slot->bytes};p.sequence=slot->sequence;output=std::move(packet);
-  p.sources[p.sequence%kInFlight]={receipt,output.frame,output.producer,output.camera.nearPlane,output.camera.farPlane};
+  p.sources[p.sequence%kInFlight]={receipt,output.frame,output.producer,output.camera.nearPlane,output.camera.farPlane,slot->publishedQpc,performanceCounter()};
   error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
+}
+RemakeLiveChannel::ReceiveCost RemakeLiveChannel::LastReceiveCost() const noexcept {
+ std::lock_guard<std::mutex> lock(mutex_);return lastReceiveCost_;
 }
 namespace {
 bool sameReceipt(const RemakeChannelReceipt& a,const RemakeChannelReceipt& b) {
@@ -311,6 +326,7 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  if(InterlockedCompareExchange(&s.imageState,writingSlot,freeSlot)!=freeSlot){error="return-busy";return RemakeChannelResult::Busy;}
  s.imageSource=image.source;s.imageFrame=image.frame;s.imageEpoch=image.producer.epoch;
  s.imageOrdinal=image.producer.ordinal;s.imageCycle=image.producer.cycle;
+ s.sourceReceivedQpc=source.receivedQpc;s.returnedQpc=0;
 	s.depthCount=hasDepth?RemakePixels():0;s.nearPlane=image.nearPlane;s.farPlane=image.farPlane;s.depthDigest=0;
  struct Copy {ImageSlot& slot;const RemakeReturnedImage& image;std::size_t pixels;};
  Copy copy{s,image,RemakePixels()};
@@ -327,6 +343,7 @@ RemakeChannelResult RemakeLiveChannel::ReturnImage(const RemakeReturnedImage& im
  if(tasks)tasks->Run(color,&copy,depth,&copy);
  else {color(&copy);if(hasDepth)depth(&copy);}
  // Release publication follows both copies and both integrity digests.
+ s.returnedQpc=performanceCounter();
  p.returnedSequence=image.source.sequence;InterlockedExchange(&s.imageState,readySlot);
  if(p.returnedEvent)SetEvent(p.returnedEvent);
  error.clear();return RemakeChannelResult::Published;
@@ -376,6 +393,12 @@ RemakeChannelResult RemakeLiveChannel::ReceiveImage(RemakeReturnedImage& output,
 		RemakeCpuScope depthRangeTiming("return-channel-depth-range",s.imageFrame,depthRangeCount);
 		if(image.projectionDepth.Validity()!=RemakeDepthValidity::Valid){error="return-depth-integrity";return RemakeChannelResult::Invalid;}
 	}else if(s.nearPlane!=0||s.farPlane!=0||s.depthDigest!=0){error="return-depth-empty-header";return RemakeChannelResult::Invalid;}
+  {
+   const auto now=performanceCounter();const double ms=1000.0/double(performanceFrequency());
+   if(source.publishedQpc&&s.sourceReceivedQpc>=source.publishedQpc)image.queueWaitMs=double(s.sourceReceivedQpc-source.publishedQpc)*ms;
+   if(s.sourceReceivedQpc&&s.returnedQpc>=s.sourceReceivedQpc)image.helperMs=double(s.returnedQpc-s.sourceReceivedQpc)*ms;
+   if(s.returnedQpc&&now>=s.returnedQpc)image.transitMs=double(now-s.returnedQpc)*ms;
+  }
   output=std::move(image);p.returnedSequence=s.imageSource.sequence;error.clear();return RemakeChannelResult::Received;
  }catch(const std::exception& e){error=e.what();return RemakeChannelResult::Invalid;}
 }

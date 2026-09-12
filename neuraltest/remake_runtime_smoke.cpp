@@ -185,17 +185,24 @@ int wmain(int argc,wchar_t** argv) {
  std::chrono::steady_clock::time_point receivedAt{},previousReceivedAt{};double presentMs=0,readbackMs=0,depthReadbackMs=0,drawMs=0,lockWaitMs=0,depthLockWaitMs=0;
  double periodMs=0,receiveWaitMs=0,prepareMs=0; // Receive-to-receive period, time idle in receive, receive-to-draw preparation.
  double colorCopyMs=0,depthConvertMs=0,returnMs=0; // Locked-surface copies and the channel return call.
+ // LOG911 stage split of one consumer cycle: time inside channel.Receive (deserialization,
+ // not waiting), loop top to draw start, and the tail from the previous return to the loop top.
+ double receiveCallMs=0,loopToDrawMs=0,tailMs=0;std::chrono::steady_clock::time_point lastReturnEnd{},loopTop{};
+ double receiveDigestMs=0,receiveDeserializeMs=0,receiveValidateMs=0; // Inside channel.Receive: receipt digest and packet deserialization.
  const auto msSince=[](std::chrono::steady_clock::time_point since){return std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-since).count();};
  const auto receiveNext=[&](Packet& packet,unsigned waitMs) {
   const auto deadline=GetTickCount64()+waitMs;
   const auto receiveEntry=std::chrono::steady_clock::now();
   for(;;) {
    std::string error;flycast::rend::neural::RemakeChannelReceipt receipt;
+   const auto receiveCallStart=std::chrono::steady_clock::now();
    const auto result=channel.Receive(packet,receipt,error);
+   receiveCallMs+=msSince(receiveCallStart);
    if(result==flycast::rend::neural::RemakeChannelResult::Received) {
     previousReceivedAt=receivedAt;receivedAt=std::chrono::steady_clock::now();
     periodMs=previousReceivedAt.time_since_epoch().count()?std::chrono::duration<double,std::milli>(receivedAt-previousReceivedAt).count():0;
     receiveWaitMs=std::chrono::duration<double,std::milli>(receivedAt-receiveEntry).count();
+    {const auto cost=channel.LastReceiveCost();receiveDigestMs=cost.digestMs;receiveDeserializeMs=cost.deserializeMs;receiveValidateMs=cost.validateMs;}
     resolveTextureReferences(packet);
     activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
@@ -518,6 +525,9 @@ int wmain(int argc,wchar_t** argv) {
     TranslateMessage(&msg);DispatchMessageW(&msg);
    }
    if(quit) { outcome=10;break; }
+   loopTop=std::chrono::steady_clock::now();
+   tailMs=lastReturnEnd.time_since_epoch().count()?std::chrono::duration<double,std::milli>(loopTop-lastReturnEnd).count():0;
+   receiveCallMs=0;
    if(deferredLiveClip&&frame==0) {
     // D-220: deferred first source (see above); the same checks as the eager path.
     Packet p;
@@ -550,7 +560,15 @@ int wmain(int argc,wchar_t** argv) {
     }catch(const std::exception& e){std::cerr<<"live source failed: "<<e.what()<<'\n';outcome=11;break;}
    }
    const auto sequenceIndex=settledFrozen?2:frame<60?0:frame-60;
-   auto packet=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   // LOG911: the live route draws the received packet in place instead of
+   // copying it (about 2 MB per frame); only the diagnostic routes that rewrite
+   // the packet copy it. Measured neutral on the helper period (loop top to
+   // draw start 0.07 ms after); kept because it removes a copy, not as a gain.
+   const bool rewritesPacket=!snapshot||!sequence.empty()||legacyFrozenAttributes||reverseCamera||legacyColorMarker
+    ||skinning||affineReference||materialReplace||materialRepeat||gradientReference||reverseOrder;
+   Packet rewrittenPacket;
+   if(rewritesPacket)rewrittenPacket=!sequence.empty()?sequence.at(sequenceIndex):snapshot?*snapshot:Synthetic(frame+1,frames==1?0.f:float(frame)/float(frames-1)*.5f);
+   Packet& packet=rewritesPacket?rewrittenPacket:*snapshot;
    if(legacyFrozenAttributes) {
     const auto& first=sequence.front();
     for(std::size_t m=0;m<packet.meshes.size();++m) {
@@ -589,6 +607,7 @@ int wmain(int argc,wchar_t** argv) {
    if(!snapshot)packet.camera.aspect=float(client.right)/float(client.bottom);
    const auto drawStart=std::chrono::steady_clock::now();
    prepareMs=receivedAt.time_since_epoch().count()?std::chrono::duration<double,std::milli>(drawStart-receivedAt).count():0;
+   loopToDrawMs=std::chrono::duration<double,std::milli>(drawStart-loopTop).count();
    std::cerr<<"phase=submit begin frame="<<frame<<'\n'<<std::flush;
    Result submitted{false,"not-submitted"};
    if(legacyGame) {
@@ -824,7 +843,7 @@ int wmain(int argc,wchar_t** argv) {
 		if(liveChannel) {
 			const auto returnStart=std::chrono::steady_clock::now();
 			std::string error;const auto result=channel.ReturnImage(returnedFrame,error,true);
-			returnMs=msSince(returnStart);
+			returnMs=msSince(returnStart);lastReturnEnd=std::chrono::steady_clock::now();
 			std::cout<<"live_return sequence="<<returnedFrame.source.sequence<<" frame="<<returnedFrame.frame
 				<<" published="<<(result==flycast::rend::neural::RemakeChannelResult::Published)
 				<<" depth_values="<<returnedFrame.projectionDepth.size()<<" error="<<error
@@ -832,6 +851,8 @@ int wmain(int argc,wchar_t** argv) {
 				<<" depth_readback_ms="<<depthReadbackMs<<" depth_lock_wait_ms="<<depthLockWaitMs<<" turnaround_ms="<<msSince(receivedAt)
 				<<" period_ms="<<periodMs<<" receive_wait_ms="<<receiveWaitMs<<" prepare_ms="<<prepareMs
 				<<" color_copy_ms="<<colorCopyMs<<" depth_convert_ms="<<depthConvertMs<<" return_ms="<<returnMs
+				<<" receive_call_ms="<<receiveCallMs<<" loop_to_draw_ms="<<loopToDrawMs<<" tail_ms="<<tailMs
+				<<" receive_digest_ms="<<receiveDigestMs<<" receive_deserialize_ms="<<receiveDeserializeMs<<" receive_validate_ms="<<receiveValidateMs
 				<<" presentation_proven=false artifact_files="<<(returnOnly?"disabled":"enabled")<<"\n"<<std::flush;
 			if(result==flycast::rend::neural::RemakeChannelResult::Invalid) {
 				// Per-source rejection: the host keeps native for this source and

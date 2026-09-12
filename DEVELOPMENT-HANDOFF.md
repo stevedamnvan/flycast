@@ -52,8 +52,11 @@ accepted, narrow present p50 18.28/18.04 ms (about 55 fps); GPU at 40
 percent, so the remaining cost is host-side. LOG910: pooled overlay
 snapshot copies accepted, narrow present p50 17.45/17.20 ms (about 57
 fps), but accepted evaluations fall and output repeats rise because the
-helper (period about 23 ms) now paces fresh output. Next,
-in order: (1) the helper's per-returned-frame cost (draw 8 ms with curved geometry, prepare 5.5 ms) and the remaining host items (view-scene, returned-evaluate, present flush), each accepted only on a whole-frame or fresh-share gain, then a matched narrow capture proof; (2) human
+helper (period about 23 ms) now paces fresh output. LOG911: the
+helper's 8 ms receive was packet deserialization, cut to 2.8 ms by a
+bulk vertex reader; fresh share 75 to 83 percent at the same present
+period (17.6 ms); a four-slot ring was tried and rejected. Next,
+in order: (1) the host present period (view-scene, returned-evaluate, present flush) and the helper's digest, validation and draw, each accepted only on a whole-frame or fresh-share gain, then a matched narrow capture proof; (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog

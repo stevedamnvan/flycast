@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "remake_view_transport.h"
 #include <array>
+#include <chrono>
+#include <cstring>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -125,6 +127,7 @@ bool identityPose(const remake::Camera& c) {
   &&c.forward.x==0&&c.forward.y==0&&c.forward.z==1;
 }
 void require(bool yes,const char* why){if(!yes)throw std::runtime_error(why);}
+thread_local double lastValidateMs=0; // LOG911 diagnostic: the packet validation share of the last read.
 struct Wire {
  std::istream* input=nullptr;std::ostream* output=nullptr;
  // Raw in-memory input (live channel): no stream sentry per word.
@@ -196,17 +199,39 @@ void packet(Wire& wire,remake::Packet& p) {
   if(wire.reading())data.resize(length);if(length)wire.bytes(data.data(),length);
   const auto vertices=wire.count(mesh.vertices.size(),unsigned(remake::Limits{}.vertices-vertexTotal));vertexTotal+=vertices;
   if(wire.reading())mesh.vertices.resize(vertices);
-  for(auto& vertex:mesh.vertices) {
+  if(wire.rawInput) {
+   // LOG911: raw in-memory reader of the writer's 36-byte vertex records
+   // (eight little-endian floats and one color word), one copy per vertex
+   // instead of nine word reads through the byte budget; the same bytes,
+   // the same finite checks, verified byte-identical by the round-trip tests.
+   static_assert(std::numeric_limits<float>::is_iec559&&sizeof(float)==4,"vertex record");
+   for(auto& vertex:mesh.vertices) {
+    unsigned char record[36];wire.bytes(record,36);
+    float reals[8];std::memcpy(reals,record,32);
+    for(float r:reals)require(std::isfinite(r),"view-wire-nonfinite");
+    vertex.position={reals[0],reals[1],reals[2]};vertex.normal.emplace(remake::Vec3{reals[3],reals[4],reals[5]});
+    vertex.u=reals[6];vertex.v=reals[7];
+    vertex.publicColor=std::uint32_t(record[32])|(std::uint32_t(record[33])<<8)|(std::uint32_t(record[34])<<16)|(std::uint32_t(record[35])<<24);
+   }
+  } else for(auto& vertex:mesh.vertices) {
    wire.vector(vertex.position);if(wire.reading())vertex.normal.emplace();require(vertex.normal.has_value(),"view-wire-normal-required");
    wire.vector(*vertex.normal);wire.real(vertex.u);wire.real(vertex.v);wire.word(vertex.publicColor);
   }
   const auto indices=wire.count(mesh.indices.size(),unsigned(262144-indexTotal));indexTotal+=indices;
-  if(wire.reading())mesh.indices.resize(indices);for(auto& index:mesh.indices)wire.word(index);
+  if(wire.reading())mesh.indices.resize(indices);
+  if(wire.rawInput) {
+   std::vector<unsigned char> words(mesh.indices.size()*4);if(!words.empty())wire.bytes(words.data(),words.size());
+   for(std::size_t i=0;i<mesh.indices.size();++i)
+    mesh.indices[i]=std::uint32_t(words[i*4])|(std::uint32_t(words[i*4+1])<<8)|(std::uint32_t(words[i*4+2])<<16)|(std::uint32_t(words[i*4+3])<<24);
+  } else for(auto& index:mesh.indices)wire.word(index);
  }
  require(p.producer.Available()&&p.game=="T1401N"&&p.frame!=0,"view-wire-identity");
+ const auto validateStart=std::chrono::steady_clock::now();
  auto checked=remake::ReadyForDiagnosticAdapter(p,p.frame,p.game,true);require(checked.ok,checked.reason.c_str());
+ lastValidateMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-validateStart).count();
 }
 }
+double LastRemakeViewPacketValidateMs() noexcept {return lastValidateMs;}
 // Read-only writer: never duplicate the owned texture payload to serialize it.
 namespace {
 struct ConstWire {

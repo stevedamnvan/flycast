@@ -1,5 +1,55 @@
 # Neural rendering evidence log
 
+LOG911 helper cycle located and its packet read shortened; the ring stays
+at three. Code (committed with this entry): the helper
+(`remake-runtime-smoke`) reports a stage split of one consumer cycle in
+its `live_return` line (`receive_call_ms` time inside the channel's
+Receive, `loop_to_draw_ms`, `tail_ms` from the previous return to the
+loop top, and the channel's `LastReceiveCost()` split `receive_digest_ms`,
+`receive_deserialize_ms`, `receive_validate_ms`); the channel stamps the
+shared performance counter at publish, consumer receive and return so the
+host's `Remake async return` line carries `queue_wait_ms` (publish to
+consumer receive), `helper_ms` (receive to return) and `transit_ms`
+(return to host receive) (shared-memory header version 6); the raw
+in-memory packet reader reads the writer's 36-byte vertex records and the
+index words with one copy each instead of nine word reads per vertex
+through the byte budget (same bytes, same finite checks, stream reader
+unchanged, round-trip tests unchanged); the live route of the helper draws
+the received packet in place instead of copying it (measured neutral,
+kept because it removes a copy). Evidence, narrow runs with the LOG907
+flags, no capture, no timing. Round trip before (`pilot-transit-a`):
+queue wait 17 ms, helper 27.5 ms, transit 2.4 ms, so a source spent about
+2.7 host frames from publish to return and the three-slot ring refused
+credit on about 270 of 1200 frames. Four slots tried
+(`pilot-inflight4-{a,b}`, `pilot-helper-stages-a`): queue wait 35 ms,
+latency 5.8 frames, presentation stopped four to five times, remake
+presents 746 to 859 of about 1170; rejected, the ring stays at three and
+the tests are unchanged (D-243 not taken). Helper cycle
+(`pilot-helper-stages-{a,b}`): the 8.2 ms `receive_wait` was not idle,
+it was 8.15 ms inside Receive, of which the receipt digest over the
+2.2 MB payload 1.7 ms and the deserialization 7.05 ms (validation 1.6 ms
+of that); loop top to draw 0.07 ms, draw 7.9, present 0.3, lock 1.0,
+copies 1.2, return 1.3, tail 0.4, so the helper was busy for its whole
+21 to 22 ms period and paced fresh output. After the bulk reader
+(`pilot-helper-bulkread-{b,c}`, ring at three): Receive 4.57/4.53 ms
+(digest 1.72, deserialize 2.79/2.78 of which validate 1.61), helper
+period 20.5/20.4 ms, queue wait 8.8/8.5 ms, helper 27.2 ms, transit
+3.9 ms; host present p50/p95 17.65/23.71 and 17.55/23.60 ms against
+17.45/25.27 and 17.20/25.43 (LOG910), the same period within the run
+spread; accepted evaluations 969/968 of 1170/1173 remake presents (877/853
+in LOG910), output repeats 209/211 (303/324), no-return-credit 210/211,
+worker-busy 4/5, anchor rejections 0, presentation never stopped. Accepted
+on the fresh share (75 to 83 percent of presents carry a fresh evaluated
+image, repeats 27 to 18 percent), not on the present period. Remaining
+helper items, in order: the receipt digest (byte-serial FNV, 1.7 ms;
+the locked archives persist it, so a word-wise digest needs a receipt
+version, not a silent change), the validation projection (1.6 ms per
+packet, a certificate, so any change must keep the same rejections),
+the draw (8 ms with curved geometry). The host present period, about
+17.6 ms, is now the 60 fps gate again (view-scene, returned-evaluate,
+present flush, LOG908). Not performance evidence: capture and timing
+runs.
+
 LOG910 pooled overlay snapshot copies accepted. Code (committed with
 this entry): `CaptureRemakeOverlay` takes an optional native resource
 pool (LOG895's `NativeResourcePool`, now shared by the overlay copies

@@ -2782,9 +2782,9 @@ void DX11Renderer::drainRemakeReturns(std::uint64_t currentFrame,const flycast::
 			&&returned.producer.epoch==producer.epoch
 			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,currentFrame,producer)
 			&&prepared.wellFormed;
-		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false",
+		NOTICE_LOG(RENDERER,"Remake async return: source=%llu producer=%llu sequence=%llu current=%llu retained=%d presentation=false queue_wait_ms=%.1f helper_ms=%.1f transit_ms=%.1f",
 			(unsigned long long)returned.frame,(unsigned long long)returned.producer.ordinal,
-			(unsigned long long)returned.source.sequence,(unsigned long long)currentFrame,accepted);
+			(unsigned long long)returned.source.sequence,(unsigned long long)currentFrame,accepted,returned.queueWaitMs,returned.helperMs,returned.transitMs);
 		if(!accepted)continue;
 		if(remakeHistoryResetPending&&returned.frame>remakeHistoryResetAfterFrame) {
 			// D-221: first return of a post-cut source: retire the pre-cut histories
