@@ -20,7 +20,10 @@ LOG979 unmatched water views classified:8 HUD/effect,1 panorama,1 water.
 Temple source2601 separately matches26/26 exported materials. Next current
 LOG980 current correction rendered on exact temple packet: warm look retained,
 trouser gloss reduced; skin/architecture remain harsh. Next controlled lighting
-adjustment then moving whole-scene comparison; hair lineage remains
+LOG981 world audit integrated:reuse11 cached families,region-specific atlas
+review; lock/repeat control then lighting-only candidate and material adjustment.
+World coverage runs alongside character work. New character maps absent from
+temple packet,so no benefit claim for those variants; hair lineage remains
 a dependency for strands, not a reason to defer the overall appearance comparison
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.

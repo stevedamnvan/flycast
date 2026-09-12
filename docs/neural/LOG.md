@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG981 world audit integrated and character coverage corrected. Read-only
+subagent report scene-audit-reference-a/WORLD-REVIEW.md:11 cached world map
+families reusable; mixed atlas3D62046ADCBFE6E7 contains masonry/wood/ornament/
+faces/metal, so whole-atlas class assumptions are insufficient. Mixed bronze
+metallic.80 needs region review. Preserve lacquer/weapon/metal reflections.
+Floor grain retained; patch boundaries/relief require moving check, not more
+height. Bright architecture/dark doorway remain appearance corrections.
+Root binding audit:five newer character map overrides absent from temple2601;
+only259014235DE60F8A roughness override matches,others scalar/height. LOG980
+cannot establish benefit of those newer character maps. Source variant RGB
+distances high; no hash alias authorized by visual similarity/opaque alpha.
+Next lock current control and repeat,one lighting-only candidate preserving
+warmth,then one used-region material adjustment with lighting fixed. Continue
+world coverage beside character variants/hair; moving combat and capture-free
+performance remain required. No generation/spend,subagent made no live edits.
+
 LOG980 same temple source render with current correction layer completed.
 Toolkit MCP inserts/removes existing character_correction layer; baseline
 restored byte-exact. temple-reference-current-a receipt exit0,120 frames,
