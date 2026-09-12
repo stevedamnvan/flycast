@@ -177,9 +177,14 @@ colour/depth/geometry/material pairs versus LOG947 control;14 exact motion/bias.
 Reviewed2559 skin markedly smoother, brown grain reduced; reflective staff and
 costume detail remain visible. Candidate merits moving review, not full visual
 approval. Field requested via companion, not directly active-log-reported.
-Config restored exactly. Next integrated character plus structure0 moving
-combat, multiple poses/occlusions and weapon/environment detail preservation;
-then capture-free performance and upstream hair. No more scalar sweep.
+Config restored exactly. History correction LOG949 takes priority before that moving review: retained
+pre8x layer has only floor height, current has26.25 resurrected bindings minus
+7 corrected leaves18, including hair/cutouts. Restore historical no-displacement
+intent through MCP while preserving new maps and floor; verify composed ranges
+and moving hair/character result. Lost scalar opinions already resolve from
+weaker layers, so do not restore them blindly. Stale Toolkit state after disk
+pruning is a plausible mechanism, not reproduced proof. No broad generation.
+Retain structure0 candidate; then integrated combat/performance and modern hair.
 
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action

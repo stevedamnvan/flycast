@@ -1,5 +1,14 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG949: history agent found verified asset height regression, parent
+checked backup/current counts and SHA. Pre8x only floor height; current26.
+Seven zero overrides leave18 reintroduced heights unresolved, including hair.
+Next MCP restore no-displacement intent on remaining18, preserve floor/new maps;
+inspect hair and moving coverage, then structure0 integrated combat/performance.
+Removed scalar/class opinions already match weaker layers; no speculative edits.
+Report being finalized C:/Flycast-Evidence/texture-regression-history-a/REVIEW.md.
+No runtime or material changes in this audit slice; baseline remains preserved.
+
 Current LOG948: structure0 reduces brown skin grain in inspected2559, unlike
 global-tone0. One17-capture candidate versus prior16 control,15 exact returned
 colour/depth/geometry/material pairs,14 exact motion/bias. Native mismatch0.

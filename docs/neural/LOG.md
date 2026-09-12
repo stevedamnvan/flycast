@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG949 user-requested Astra extra-high history audit identifies height drift.
+Parent independently verified retained hair8x/pbrify_reimagined.before-8x.usda
+SHA ecfe701cedb228280804c7c14b87fe2a6e0b1c3ed60cc63cbc55f4cb697feae1:
+1 height binding,26 class/encoding/metallic opinions. Current baseline layer
+SHA556e77ef152aa8e07337d255417bebdb854494c607f706f434d3ac63b8d88218:
+26 heights, zero such scalar/class opinions. Actual asset-state regression;
+not proof of a particular renderer-code regression. LOG800/1e1529422 removed
+nonfloor heights after atlas fringes; LOG906/0b921e32c later8x work records
+heights retained. Agent finds pbrify driver disk pruning after MCP save and
+later MCP save as a plausible stale in-memory resurrection mechanism, not
+confirmed causal reproduction. LOG914/a5f372849 only corrected manifest parsing.
+Agent checked weaker-layer fallback: all removed scalar/class values already
+resolve identically; do not restore them speculatively.25 reintroduced height
+bindings minus7 zero-range overrides leave18, including hair/cutout surfaces.
+Current parent file-reference audit found no missing nonempty referenced
+texture files in checked layers; this is not complete draw/material coverage.
+Next prioritize MCP restoration of historical no-displacement intent on remaining
+18 materials, preserve all current8x maps and floor height, inspect hair first
+with controlled poses then moving coverage. Keep structure0 skin candidate,
+but no new scalar sweep or broad regeneration while fixing this asset drift.
+External agent report is being finalized under texture-regression-history-a;
+this entry records delivered findings and independently checked counts only.
+
 LOG948 local structure0 candidate improves inspected skin, base79ab80710.
 One bounded run through existing control companion, NRLocalStructure=0 only;
 overall intensity/global tone/style remain defaults1/1/0. Requested field is
