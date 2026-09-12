@@ -1,5 +1,10 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
+six stills reviewed, baseline restored. Need fresh contiguous moving candidate
+segment next. LOG779 locked input reuses old returned pixels, so cannot create
+new material evidence; do not treat it as a capture-overhead shortcut.
+
 Texture scaling LOG934: user-authorized read-only subagent audit complete;
 47 observed runtime hashes across reviewed sets, not whole-game denominator.
 Package D now contains shared class recipes, validation gates and next capture

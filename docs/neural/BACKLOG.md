@@ -254,7 +254,9 @@ is marginal. LOG928 rejects 4E35880E8E86FC1E with evidence (one off-frame
 192-frame replay moving A/B over sources 2401 to 2596: 4.90 MAE against 2.50
 noise, stable per window, following walls, roofs, railings and floor joints;
 300 synchronous 1280 captures exceed the launcher's 420 s ceiling, so an
-exact 300-frame lane needs the LOG779 locked-source route. Next: controlled lighting proof under the current execution order. First
+LOG935 correction: LOG779 reuses frozen returned images and cannot render
+new material changes. Obtain fresh candidate sequence before locked replay;
+short fresh contiguous segments can advance quality without claiming300 frames. Next: controlled lighting proof under the current execution order. First
 run the same frozen source with candidate layers, fixed diagnostic timing and
 light radiance0/1/repeat1/3; inspect actual response before selecting a fix.
 This isolates authored-light contribution, not indirect-only path tracing.
@@ -274,6 +276,11 @@ repeat noise on tagged metal. Baseline restored. LOG933 confirms Xianghua blade 
 metallic/polished candidate saved inactive, dark at source2453 and unaccepted.
 Next moving weapon-angle/reflection review, not global matting. Preserve metallic
 versus lacquer/wrap/cloth distinctions and all performance/visual gates.
+
+Weapon-angle evidence LOG935: six isolated saved-source renders reviewed;
+2446 shows dark blade/blue glint,2461 bright edge reflection. Baseline restored.
+Not temporal acceptance. Next newly rendered contiguous candidate/control
+segment; do not use locked old returned pixels to claim new-material motion.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not

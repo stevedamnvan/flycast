@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG935 weapon-angle review and locked-route scope correction.
+Six saved-source renders2410/2490/2530/2570/2446/2461 all exit0, both candidate
+layers on, stable diagnostic1280x960/120 frames; restored baseline mod bytes
+through MCP. Initial four samples partly occlude/crop blade. Packet projection
+ranking selected2446/2461 by in-frame summed triangle area (not a visibility
+or occlusion oracle); actual images reviewed: dark face with blue highlight at
+2446, bright narrow reflection at2461. Supports angle-dependent readability,
+not temporal stability or human acceptance. No skin/hair/geometry changes.
+Evidence C:/Flycast-Evidence/weapon-poses-a, record/ranked-record and ranking.
+Re-read LOG779: locked-input lane reuses frozen returned Remix pixels. It can
+prove presentation consistency but cannot generate a new material candidate
+from an old returned-image archive. Prior LOG928 suggestion must not be used
+as a shortcut to fresh candidate temporal evidence. Need newly rendered
+candidate sequence (bounded live capture segment or revised evidence approach)
+before locked replay of that candidate; retain420s ceiling and300-frame gate.
+Next fresh short contiguous moving candidate segment with matched source
+control, then capture-overhead diagnosis if necessary for full300-frame lane.
+Do not call these six independent120-frame stills a moving-combat pass.
+
 LOG934 user-authorized texture-coverage subagent and reusable recipes.
 Read-only audit found47 observed runtime hashes: package-d-preflight26 +
 water30 - shared9; frozen29 subset water30. Not whole-game or content-deduped.
