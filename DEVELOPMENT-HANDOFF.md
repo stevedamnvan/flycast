@@ -1,5 +1,16 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current resume checkpoint LOG988 (supersedes the historical current paragraphs
+below): roughness MCP source committed as2a9378a52, four builds/1054x3/SDK302/
+Python39 passed. Masonry candidate ingested and rendered, outside-region pixels
+exact; no convincing appearance gain, inactive, baseline restored byte-exact.
+Next inspect existing replay/session metadata and fill missing Mitsurugi/Sophitia
+temple/water capture coverage before further single-pair tuning. World and
+character work proceed together; hair lineage must not block scene inventory.
+Use close face/hair/weapon views; preserve all eight pairings and full-game scope.
+Shader cache/prewarm verification is a bounded performance investigation, not a
+proven fix for steady frame costs. Audio remains parked. No overall acceptance.
+
 Validation set: Kilik, Taki, Mitsurugi, Sophitia x temple and water stage.
 All eight pairings required; uncaptured pairings pending. Full-game scope retained.
 World materials/lighting proceed beside character iteration (LOG981).

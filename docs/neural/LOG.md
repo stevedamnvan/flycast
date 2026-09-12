@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG988 masonry diagnostic reviewed and cross-scene inventory prioritized.
+Ingested roughness is DXGI80 BC4_UNORM, region191/255; decoded outside region
+exact against original ingested map. Evidence masonry-roughness-a/
+ingested-validation.json and outside-ingested.json. temple-masonry-a control
+and masonry120-frame renders exit0; receipt baseline_exact:true. Both viewed:
+no convincing masonry improvement, bright faces/architecture and uneven floor
+relief remain. Candidate inactive; stills do not prove moving or visual acceptance.
+Next missing Mitsurugi/Sophitia temple/water inventories using existing capture
+route, alongside world/character iteration; all eight pairings remain required.
+Filename search across both evidence roots and repository character-name search
+found no named Mitsurugi/Sophitia capture evidence; this is not proof generic
+captures contain neither character. Inspect existing replay/session metadata next.
+User slight improvement remains relative preference, not acceptance. Audio parked.
+
+
 LOG987 typed roughness MCP ingestion implemented and proven live. Existing
 request guard now takes internal DIFFUSE/ROUGHNESS semantic; separate roughness
 tool preserves old diffuse-only API. Semantic mismatch/unsupported type tests

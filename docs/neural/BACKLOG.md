@@ -288,9 +288,20 @@ LOG983 fixed exposure reveals light response;lower intensity alone too dark.
 LOG984 temple rig rejected for face/contour appearance. Next isolate skin
 LOG985 flat-face normal test inconclusive at distance,not promoted. Next closer
 matched face views alongside LOG986 validated masonry roughness candidate.
-LOG987 roughness MCP operation proven live,candidate cached/unbound.
-Next format/region verification then isolated controlled masonry render;
-review and moving proof across validation set.
+LOG987 roughness MCP operation proven live. LOG988 verifies linear BC4 and
+unchanged decoded pixels outside the masonry quadrant; control/candidate both
+rendered successfully and baseline restored byte-exact. No convincing visual
+gain at this view; candidate stays inactive, no more masonry scalar sweeps.
+Next inventory and parse the missing character/stage captures before further
+appearance tuning. Existing Kilik/Taki temple and water evidence is reusable;
+Mitsurugi/Sophitia coverage is not yet established. Use the existing capture
+and replay route, verify character/stage identity visually, and record bindings
+and close face/hair/weapon views. World lighting/material work proceeds alongside
+this coverage; hair attachment research must not serialize the whole remaster.
+Then test the same material-class decisions across all eight pairings and motion.
+Shader caching: verify installed-runtime cache/prewarm behavior and cold/warm
+scene-transition evidence before changes; it is not a substitute for recurring
+CPU/drawing-cost fixes. Preserve existing caches and capture-free timing gates.
 Validation set: Kilik, Taki, Mitsurugi, Sophitia across temple and water stage.
 Track all eight character/stage pairings; uncaptured pairings remain pending.
 Cover skin, cloth, armour/swords, hair/alpha, world surfaces, HUD/effects,
