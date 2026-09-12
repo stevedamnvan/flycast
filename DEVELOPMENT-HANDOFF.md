@@ -1089,3 +1089,21 @@ Runtime binding not independently proven. Candidate detached via MCP8001 and
 mod saved; verify original hash. No helper active. Next positive binding control
 before further scalar tuning; retain rejected appearance. Temporary Toolkit8001
 remains open for this test; old8000 untouched. Source still uncommitted.
+
+Key-balance diagnostic practice-hit-key-balance-a: same hit source/materials,
+main radiance1 versus3, fill.3 and exposure policy fixed. Viewed reduced harshness
+but face still lacks detail; not accepted. Outer53526 runs key-one/repeat; check
+terminal receipt. Next verify helper texture colour interpretation (SRGBTEXTURE
+FALSE) against runtime legacy sampling before any source change; no bug claimed.
+
+Colour-path research: public dxvk-remix main d3d9_rtx.cpp1102-1103 selects
+GetSampleView(srgb) using D3DSAMP_SRGBTEXTURE; helper hardcodesFALSE. Files
+retained colour-path-a. No bug or installed-binary equivalence claimed; need
+trace subsequent legacy material/shader conversion before sampler A/B.
+Main-key-one/repeat completed exit0, candidate not accepted. No active render.
+
+Colour conversion traced to opaque shader gammaToLinear(albedo), public main
+lines750-753 explicitly assumes non-sRGB textures. Keep samplerFALSE; no source
+fix warranted from this evidence. Key-balance renders both exit0. Next face
+lighting/normal response, not repeated gamma or binding diagnostics. No active
+helper or candidate layer; baseline remains restored.

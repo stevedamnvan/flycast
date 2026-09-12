@@ -97,3 +97,11 @@ the run. Existing40-object shutdown warning remains. No fresh external
 neural provenance, full combat stability, performance, or world-lighting
 acceptance is claimed. Continue F's full live extent contract; later G must
 repeat the combat/HUD comparison with the actual final candidate.
+
+Colour-path check (2026-09-12): public dxvk-remix main d3d9_rtx.cpp selects
+GetSampleView from SRGBTEXTURE, but opaque_surface_material_interaction.slangh
+lines750-753 explicitly applies gammaToLinear(albedo), assuming non-sRGB textures.
+Therefore helper SRGBTEXTURE=FALSE is consistent with this downstream path;
+do not flip it as an unproven brightness fix (would risk double conversion).
+Public source is not installed-binary provenance. Files retained colour-path-a.
+Source: https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/src/dxvk/shaders/rtx/concept/surface_material/opaque_surface_material_interaction.slangh
