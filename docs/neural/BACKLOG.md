@@ -89,6 +89,11 @@ not the sole cause. Identity validation shortcut measures .716 to .452ms in an
 alternating CPU-only benchmark, with boundary parity and required build/tests.
 Next performance proof remains an eligible whole-pipeline run; microbenchmark
 improvement does not close H or claim60fps.
+LOG1008 exploratory current automation pipeline completes, but steady fresh
+share74.35 percent and max latency7 fail to establish acceptance. Two Toolkit
+sessions remained open; no controlled speedup claim. Prior non-automation route
+failed scene anchor and helper access violation, retained. Next H work targets
+freshness/latency and clean measurement, not another local speed claim.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

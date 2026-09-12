@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG1008 current pipeline exploratory failure and build-route correction.
+validation-pipeline-current-a used current build-neural-baseline/flycast.exe
+in a copied supplied-consumer workspace. Host exited0 but rejected scene
+publication with estimated-view-missing-observed-anchor; helper exited
+3221225477 (access violation), launcher1, no forced children. This is neither
+rendered-pipeline performance nor lifecycle acceptance. Preserve all logs.
+CMakeCache confirms this host TEST_AUTOMATION=OFF while the existing successful
+Practice host route uses automation. Causality is not proven by that difference.
+Current automation binary BD21C733F9EAAF190B2C078F0E44A787C9228C9974098E52942CFA09AB713EED
+is now running in fresh validation-pipeline-current-b/workspace, same copied
+original saves/replay/configuration. Outer process8814 completed. Toolkit sessions
+remain preserved, so this is exploratory even if the launcher labels its flags
+performance_eligible. No originals or live external settings were modified.
+Run b terminal launcher0, host0/helper11 orderly, no forced children.1200
+presents:1167 remake/33 native,300 output repeats, zero identity mismatches;
+latency mean4.85/max7. Present interval P50/P95/P99=17.6596/25.3005/29.561ms.
+After first120 samples,1080 remake presents contain803 changed output IDs and
+277 repeats (74.35 percent fresh over all1080). steady-summary.json records
+the calculation. Owned objects149->204, range139..210; this single run does
+not establish leak or acceptable saturation. Embedded git_sha=4e43b3565 is
+stale; identify artifacts by recorded hashes, not exact-SHA build claims.
+The automation run publishes observed camera/scene packets; build-route choice
+is implicated in a's failure but not a proven explanation of its helper crash.
+No whole-pipeline gain accepted. Next: helper freshness/latency attribution and
+clean benchmark setup, retaining pending Toolkit edits and all prior failures.
+
 LOG1007 identity-validation CPU measurement and ordinary-face evidence.
 Retained practice-stage-fill-a/fill.bmp (ordinary5302,1280) also visibly loses
 Sophitia facial detail. Hit5458 at640 is not same-input/resolution evidence;
