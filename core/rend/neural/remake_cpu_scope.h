@@ -43,6 +43,16 @@ struct SourceHookCycles {
 #endif
 	}
 };
+// LOG908 diagnostics: the frame handoff between the render thread finishing
+// a frame and the next frame starting to render, split at the emulation
+// thread's wake and its enqueue (steady-clock nanoseconds; frame=0 lines).
+inline std::atomic<long long> RemakeHandoffFinishedNs{0},RemakeHandoffWokeNs{0},RemakeHandoffEnqueuedNs{0};
+inline long long RemakeHandoffNow() noexcept { return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+inline void ReportRemakeHandoff(const char* label,long long fromNs,long long toNs,unsigned& count) {
+	const char* value=std::getenv("FLYCAST_REMAKE_CPU_TIMING");
+	if(!ReportRemakeCpuScope||!value||std::strcmp(value,"1")!=0||count>=600||!RemakeFrameTimingActive.load(std::memory_order_relaxed)||!fromNs||toNs<fromNs)return;
+	++count;ReportRemakeCpuScope(0,label,double(toNs-fromNs)/1e6);
+}
 // Bounded, opt-in elapsed CPU diagnostics (FLYCAST_REMAKE_CPU_TIMING=1, at
 // most 600 samples per stage). Includes driver blocking; never GPU time and
 // never performance evidence.

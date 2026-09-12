@@ -41,8 +41,14 @@ scenes); the clean pair `pilot-scope-{full,narrow}-digest-b` gives
 22.75 versus 18.93 ms present p50 (about 53 fps) with identical anchor
 pose; the render thread (frame-render about 16 ms) and no-return-credit
 skips are the remaining 60 fps items, and the matched narrow capture
-proof is open because capture runs cannot hold presentation. Next,
-in order: (1) the render-thread cost on the narrow route (return-motion-stream, returned-evaluate) with a matched narrow capture proof; (2) human
+proof is open because capture runs cannot hold presentation. LOG908:
+the render thread is the gate (emulator waits 97 percent of frames);
+an evaluating frame costs about 19.6 ms of which the D3D11on12 present
+flush is 2.4 ms, returned-evaluate 6.2, scene-feed 3.3, display
+composite 1.5 (a texture created per frame), capture geometry 1.1; no
+single item remains, so 60 fps needs about 3 ms across several items
+(ordered candidates in LOG908). Next,
+in order: (1) the LOG908 render-thread candidates, each accepted only on a whole-frame gain, then a matched narrow capture proof; (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog

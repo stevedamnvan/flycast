@@ -207,6 +207,13 @@ private:
 		TA_context *taContext = DequeueRender();
 		if (taContext == nullptr)
 			return;
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(!taContext->rend.isRTT) {
+			using namespace flycast::rend::neural;
+			static unsigned dequeueCount=0;
+			ReportRemakeHandoff("handoff-enqueue-to-dequeue",RemakeHandoffEnqueuedNs.load(std::memory_order_relaxed),RemakeHandoffNow(),dequeueCount);
+		}
+#endif
 
 		// tile clipping is used to calculate framebuffer size in RTT below
 		setTileClipping(taContext->rend);
@@ -589,6 +596,15 @@ void rend_start_render()
 		palette_update();
 		pend_rend = true;
 		pvrQueue.enqueue(PvrMessageQueue::Render);
+#ifdef FLYCAST_ENABLE_NEURAL
+		{
+			using namespace flycast::rend::neural;
+			static unsigned enqueueCount=0;
+			const auto enqueued=RemakeHandoffNow();
+			RemakeHandoffEnqueuedNs.store(enqueued,std::memory_order_relaxed);
+			ReportRemakeHandoff("handoff-queue-to-enqueue",RemakeHandoffWokeNs.load(std::memory_order_relaxed),enqueued,enqueueCount);
+		}
+#endif
 		if (!config::DelayFrameSwapping && !ctx->rend.isRTT && !config::EmulateFramebuffer)
 			pvrQueue.enqueue(PvrMessageQueue::Present);
 	}

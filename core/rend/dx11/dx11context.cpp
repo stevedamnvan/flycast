@@ -306,7 +306,13 @@ void DX11Context::Present()
 		&& pendingNeuralOutputFrameId >= static_cast<std::uint64_t>(
 			std::max(0, config::NeuralDlss5EvidenceStartFrame.get())))
 		captureNeuralEvidenceBackBuffer(pendingNeuralOutputFrameId);
-	releaseWrappedBackBuffer();
+	{
+		// LOG908 diagnostics: the D3D11on12 release of the wrapped back buffer
+		// flushes the frame's D3D11 commands into D3D12 on this thread.
+		static thread_local unsigned releaseCount=0;
+		flycast::rend::neural::RemakeCpuScope timing("present-release-backbuffer",0,releaseCount);
+		releaseWrappedBackBuffer();
+	}
 #endif
 	bool swapOnVSync = !settings.input.fastForwardMode && config::VSync;
 	HRESULT hr;
@@ -373,8 +379,11 @@ void DX11Context::Present()
 			pendingRemakeHeldNative?"held-native":pendingRemakeEvaluated?"remake-evaluated":"remake",hr==S_OK,unsigned(hr));
 		pendingRemakeSource=0;pendingRemakeCurrent=0;
 	}
-	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET)
+	if (hr != DXGI_ERROR_DEVICE_REMOVED && hr != DXGI_ERROR_DEVICE_RESET) {
+		static thread_local unsigned acquireCount=0;
+		flycast::rend::neural::RemakeCpuScope timing("present-acquire-backbuffer",0,acquireCount);
 		acquireWrappedBackBuffer();
+	}
 #endif
 }
 

@@ -93,6 +93,14 @@ bool QueueRender(TA_context* ctx)
 			flycast::rend::neural::RemakeCpuScope timing("emu-wait-frame-finished",0,emuWaitFrameFinishedCount);
 #endif
 			frame_finished.Wait();
+#ifdef FLYCAST_ENABLE_NEURAL
+			{
+				using namespace flycast::rend::neural;
+				static unsigned wakeCount=0;
+				const auto woke=RemakeHandoffNow();
+				ReportRemakeHandoff("handoff-finish-to-wake",RemakeHandoffFinishedNs.load(std::memory_order_relaxed),woke,wakeCount);
+			}
+#endif
 		}
 	}
 
@@ -167,6 +175,7 @@ bool QueueRender(TA_context* ctx)
 #endif
 	rqueue = ctx;
 #ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::RemakeHandoffWokeNs.store(flycast::rend::neural::RemakeHandoffNow(),std::memory_order_relaxed);
 	if(flycast::rend::neural::RemakeFrameTimingActive.load(std::memory_order_relaxed)) {
 		const auto now=std::chrono::steady_clock::now();
 		if(emuLastQueued.time_since_epoch().count()&&emuFramePeriodCount<600)
@@ -248,6 +257,9 @@ void FinishRender(TA_context* ctx)
 		tactx_Recycle(ctx);
 	}
 	frame_finished.Set();
+#ifdef FLYCAST_ENABLE_NEURAL
+	flycast::rend::neural::RemakeHandoffFinishedNs.store(flycast::rend::neural::RemakeHandoffNow(),std::memory_order_relaxed);
+#endif
 }
 
 static std::mutex mtx_pool;

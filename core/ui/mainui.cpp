@@ -26,6 +26,9 @@
 #include "emulator.h"
 #include "imgui_driver.h"
 #include "profiler/fc_profiler.h"
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/remake_cpu_scope.h"
+#endif
 #include "oslib/i18n.h"
 #if defined(_WIN32) && defined(FLYCAST_ENABLE_NEURAL)
 #include "rend/dx11/dx11context.h"
@@ -242,8 +245,22 @@ bool mainui_rend_frame()
 {
 	FC_PROFILE_SCOPE;
 
+#ifdef FLYCAST_ENABLE_NEURAL
+	// LOG908 diagnostics: the per-iteration host work on the render thread
+	// between two emulated frames (event pump, input polling, overlay present).
+	static unsigned eventsCount=0,inputCount=0;
+	{
+		flycast::rend::neural::RemakeCpuScope timing("mainui-events",0,eventsCount);
+		os_DoEvents();
+	}
+	{
+		flycast::rend::neural::RemakeCpuScope timing("mainui-input",0,inputCount);
+		os_UpdateInputState();
+	}
+#else
 	os_DoEvents();
 	os_UpdateInputState();
+#endif
 
 	if (gui_is_open())
 	{
@@ -311,6 +328,10 @@ void mainui_loop(bool forceStart)
 		if (mainui_rend_frame() && imguiDriver != nullptr)
 		{
 			try {
+#ifdef FLYCAST_ENABLE_NEURAL
+				static unsigned presentCount=0;
+				flycast::rend::neural::RemakeCpuScope timing("mainui-imgui-present",0,presentCount);
+#endif
 				imguiDriver->present();
 			} catch (const FlycastException& e) {
 				forceReinit = true;

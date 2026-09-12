@@ -1,5 +1,47 @@
 # Neural rendering evidence log
 
+LOG908 render-thread budget on the narrowed route: the frame handoff is
+not idle time, it is the D3D11on12 present flush. Diagnostics added
+(committed with this entry, all under `--cpu-timing`): the frame handoff
+split `handoff-finish-to-wake` (render thread's FinishRender to the
+emulation thread leaving its wait), `handoff-queue-to-enqueue` (queueing
+to the Render message) and `handoff-enqueue-to-dequeue` (message to the
+render thread dequeuing it); the main loop's `mainui-events`,
+`mainui-input` and `mainui-imgui-present`; and inside DX11Context::Present
+`present-release-backbuffer` and `present-acquire-backbuffer`. Runs
+`C:/Flycast-Evidence/pilot-scope-narrow-cpu-{b,c,d,e}` (narrow scope,
+same flags as LOG907, present p50 19.0 to 19.4 ms). Findings, medians:
+the emulation thread waits for the renderer in 97 percent of frames
+(emu-wait-frame-finished 7.1 ms, emu-frame-period 19.2 ms), so the
+render thread is the gate; its frame is bimodal: frames that evaluate a
+returned image (81 percent) render in 16.8 ms, frames without one in
+7.7 ms. The 4.0 ms `frame-gap` between two renders is not waiting: the
+emulation thread wakes 0.005 ms after FinishRender and enqueues 0.03 ms
+later, but the render thread dequeues 2.7 ms after that because it first
+runs the main loop's ImGui present (2.76 ms), of which the D3D11on12
+release of the wrapped back buffer with its Flush is 2.36 ms (p10 0.11,
+p90 3.46) and the swap-chain present 0.30 ms; the event pump and input
+polling cost 0.002 and 0.014 ms; TA processing (`frame-process`) is
+0.88 ms. Corrected budget of an evaluating frame (about 19.6 ms):
+frame-render 15.65 (frame-submit-neural 11.35: returned-evaluate 6.2 of
+which input-upload 0.96, motion raster 1.38, consumer submit 0.93,
+input release 0.20, output own 0.65 exclusive, native-effects-compose
+1.25 (the `evaluate-output-own` scope encloses the composition, so its
+1.9 ms in LOG907 double counted it); scene-feed 3.3: source-snapshot
+0.62, view-scene 1.3, overlay copy 0.75; capture geometry 1.08; render
+exports 0.65), PVR draw 1.6, display composite 1.5 (display-create-target
+1.05 creates and uploads a 1280x960 BGRA texture per composited frame),
+plus the present flush 2.36, present 0.30, TA processing 0.88 and the
+handoff 0.4. Reading: no single item remains; 60 fps needs about 3 ms
+off the render thread across several 1 ms items or fewer D3D11 commands
+to translate at the flush (the flush is the frame's command translation,
+paid where the flush happens: moving it does not remove it). Ordered
+candidates, each to be accepted only on a whole-frame gain (LOG845):
+pool the display composite target (allocation per frame), the
+capture-geometry classification on the remake lane, view-scene onto the
+feed worker (13.5 ms per frame there, so bounded), and the exclusive
+output-own copy. Not performance evidence: diagnostic runs.
+
 LOG907 narrowed observation scope (D-242) implemented, timeline hazard
 found and fixed, clean pair measured. Code (committed with this entry):
 `core/rend/neural/source_hook_attribution.h` (per-PC hook tallies and the
