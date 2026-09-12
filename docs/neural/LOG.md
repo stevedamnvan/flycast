@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG965 bounded hair roughness comparison through MCP, base87fbb8947.
+Matched source DDS payload for26F0F098F66BA515 across116 moving captures;
+232 draws all UV inside hair tile[.5,.5]..[.75,.75]. Evidence UV coverage in
+hair-material-audit-a/uv-coverage.json. Scope limited to this scene/sequence.
+Created transient diagnostic layer via Toolkit MCP, binding retained4x roughness
+only above corrected candidate; all8x albedo/normal/alpha retained. Same frozen
+2461 control8x then roughness4x both0. Baseline restored byte-exact; diagnostic
+layer detached, existing candidate not edited. No new maps/models/generation.
+Viewed both1280x960 outputs: no convincing gameplay-scale improvement, broad
+clumps persist. Whole-image MAE.221, hair-box.637; no fresh noise-repeat, so
+not appearance-gain evidence. Reject promotion; no scalar/map sweep. This is
+standalone frozen Remix helper evidence, not full compositor/water/HUD proof.
+Evidence C:/Flycast-Evidence/hair-roughness-compare-a run.py,renders/receipt.json,
+control8x.bmp,roughness4x.bmp,difference.json; diagnostic USD remains inactive.
+Next strand-detail/shading structure and source-supported attachment, preserve
+silhouette/alpha/UV and retained normals; avoid another whole-atlas upscale.
+Full captured-material coverage remains queued. Audio parked. No test live.
+
 LOG964 Kilik hair map audit, base0ed52eb8b, no asset mutation.
 Inspected 26F0F098F66BA515 current8x albedo/roughness visually and retained4x
 maps. Hair occupies UV[.5,.5]..[.75,.75] in mixed atlas; much of remaining atlas

@@ -258,8 +258,10 @@ loops and initialization tuning. Next playable visual review: hair and character
 material completeness, then full coverage. Keep compatibility default unchanged;
 no-rebuild remains an experimental candidate, not a prerequisite for visuals.
 LOG964 hair audit: second-pass8x source roughness median.341 versus4x.369
-on opaque Kilik hair tile; broad locks remain. Next isolated existing-map
-hair roughness comparison through MCP, then strand/attachment and coverage.
+on opaque Kilik hair tile; broad locks remain. LOG965 MCP4x roughness
+comparison shows no convincing improvement; not promoted, no further sweep.
+232 draws/116 frames sample hair tile only. Next strand-detail/shading structure
+and source-supported attachment, then full material coverage.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
