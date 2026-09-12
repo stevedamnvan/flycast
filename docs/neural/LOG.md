@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG937 live skin stage attribution and executable full-set batch plan.
+Inspected source2461 returned-remix, neural-before-native-effects and evaluated
+images from LOG936. Uneven skin is already visible in returned Remix; the
+pre-native-effects stage darkens and changes its texture further. Across26
+saved candidate captures median RGB MAE is9.987 returned-to-pre-effects,
+7.769 pre-effects-to-evaluated and1.116 evaluated-to-final. These are stage
+changes, not appearance gains or causal proof of a specific neural feature.
+Two hand-selected interior skin rectangles at2461 (Kilik chest390,422..415,449;
+Xianghua thigh812,636..834,667) change39.045/37.783 in the first transition,
+then exactly0 in both native-effect and final-HUD transitions. Rectangle scope
+only, not material segmentation or whole-character proof. Source inspection
+quality_capture.cpp and dx11_renderer.cpp confirms the saved pre-effects image
+is the owned neural-stage output before ComposeEffects. Capture receipt still
+says external_nr_proven=false; do not label this a verified DLSS5 effect.
+Evidence C:/Flycast-Evidence/live-stage-review-a/stage-metrics.json; no runtime
+or material mutation. Next use the fresh LOG936 archive for a bounded locked
+returned-input presentation comparison; unlike material generation, that lane
+can isolate downstream processing without changing the source image. Keep
+public/combined provenance and temporal-history limitations explicit.
+User-requested subagent expanded Package D in place, committed56e3e737b:
+shared class recipes,47-hash reconciliation, per-map disposition, legacy unsafe
+file-count cache/direct-baseline-bind exclusion, one MCP opt-in deliverable.
+Contract check passes. Reconciliation now assigned using existing cached assets;
+no generation, new models or paid execution authorized by this checkpoint.
+
 LOG936 fresh live weapon-candidate/control capture pair.
 Both managed replay sessions completed launcher0/host clean close with existing
 1280 flags and exposure-probe-a-dlss.conf; requested30 captures from2440.

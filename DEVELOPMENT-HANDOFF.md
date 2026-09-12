@@ -1,12 +1,17 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG936: fresh live weapon pair completed,24 exact-source matches
-including23 contiguous frames2447..2469. Captured27/26 of requested30; no300
-pass. Live blade angle response visible, attack effects overlap. Baseline mod
-restored, candidate layers inactive. No performance/temporal quality acceptance.
-Evidence pilot-weapon-motion-control-a / pilot-weapon-motion-candidate-a.
-Next live consumer-profile exposure/skin review and independent LOG911 performance;
-do not repeat isolated stills as a substitute for gameplay quality.
+Current LOG937: live skin stage attribution saved under
+C:/Flycast-Evidence/live-stage-review-a/stage-metrics.json. Two interior skin
+patches change39.045/37.783 returned-to-pre-native-effects, then0 through
+native effects/HUD. Uneven skin already exists in Remix; downstream processing
+adds a separate change. external_nr_proven=false: no specific DLSS5 attribution.
+Next bounded locked-input downstream comparison using the fresh LOG936 archive;
+do not use that lane to claim newly rendered material differences.
+Package D actionable plan committed56e3e737b; subagent now reconciling47 observed
+hashes/cache into C:/Flycast-Evidence/material-union-a (no generation/ingestion).
+Lighting/skin and independent LOG911 performance retain engineering priority.
+LOG936 fresh pair remains24 exact-source matches,23 contiguous; no300 pass.
+Baseline mod restored and both candidate layers inactive at last verified run.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate
