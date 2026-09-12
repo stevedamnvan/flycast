@@ -1,5 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Lighting checkpoint LOG929: six controlled frozen renders prove authored-light
+and secondary-bounce contribution above repeat noise. Both candidate layers
+remain inactive; baseline restored byte-exact through MCP. Diagnostic profiles
+are not live presets. Evidence C:/Flycast-Evidence/lighting-proof-a.
+Next isolate character normal-map and roughness response with retained artwork
+and alpha, then moving lighting/reflection proof and combat/performance.
+Human visual approval remains separate, not an engineering prerequisite.
+
 Moving checkpoint (LOG928; docs only on source HEAD 55ad44c01): a 192-frame
 replay moving A/B (sources 2401 to 2596, control and both layers, identical
 packets) changes the composited image by 4.90 MAE against 2.50 live noise,

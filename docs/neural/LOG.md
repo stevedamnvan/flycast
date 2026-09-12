@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG929 controlled authored-light and secondary-bounce proof (2026-09-12).
+User authorized corrections. Existing helper, source2756,1280x960,120 frames,
+stable diagnostic profile, both candidate layers activated/restored via MCP.
+Radiance0/1/repeat1/3 all exit0; light0 removes most fighter/arena illumination,
+light3 substantially brightens skin/cloth. Relative to1: MAE39.62 and29.86,
+repeat0.527 (character0.870). This proves authored-light contribution, not
+world-light recovery or appearance acceptance. Public NVIDIA dxvk-remix
+rtx_options.h documents enableDirectLighting and enableSecondaryBounces;
+copied diagnostic profiles disable each separately. Both runs exit0 and runtime
+logs confirm effective settings. Reviewed no-secondary image loses shadow-area
+illumination/reflected colour; no-direct retains a darker indirect contribution.
+Metrics and images: C:/Flycast-Evidence/lighting-proof-a. Baseline mod restored
+byte-exact after both MCP sweeps; candidates inactive. This is actual bounded
+indirect-lighting evidence, not just texture activation; separate reflection
+material proof, moving shadows, character material correction and performance
+remain open. Do not promote the fixed-time/exposure diagnostic profile to live.
+Next isolate character normals versus roughness through existing MCP overrides
+on retained source/albedo/alpha, one controlled comparison each; preserve maps.
+No production source changed, no paid/model work. Public source reference:
+https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/src/dxvk/rtx_render/rtx_options.h
+
 LOG928 moving A/B of both candidate layers over the replay combat window and
 the unbound water-stage material dispositioned (2026-09-12). No production
 code changed. Unbound material 4E35880E8E86FC1E (water-stage capture

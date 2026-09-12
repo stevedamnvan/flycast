@@ -254,10 +254,15 @@ is marginal. LOG928 rejects 4E35880E8E86FC1E with evidence (one off-frame
 192-frame replay moving A/B over sources 2401 to 2596: 4.90 MAE against 2.50
 noise, stable per window, following walls, roofs, railings and floor joints;
 300 synchronous 1280 captures exceed the launcher's 420 s ceiling, so an
-exact 300-frame lane needs the LOG779 locked-source route. Next: human review
-of the frame-2453 and frame-2580 pairs; player-controlled combat with both
-layers (manual session); then the consumer-profile look decision and
-performance from LOG911. No appearance gain is accepted yet.
+exact 300-frame lane needs the LOG779 locked-source route. Next: controlled lighting proof under the current execution order. First
+run the same frozen source with candidate layers, fixed diagnostic timing and
+light radiance0/1/repeat1/3; inspect actual response before selecting a fix.
+This isolates authored-light contribution, not indirect-only path tracing.
+LOG929 now proves authored-light and secondary-bounce contribution above
+repeat noise with supported controls; baseline restored. Next isolate character
+normal-map versus roughness response, then moving reflection/shadow proof and proceed
+to player-controlled combat and LOG911 performance. Human visual approval
+remains separate and does not block engineering. No appearance gain accepted.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not
