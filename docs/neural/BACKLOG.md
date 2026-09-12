@@ -11,7 +11,7 @@ Do not create replacement FC IDs or another task-state system.
 
 ### Short standing goal
 
-> Follow docs/neural/BACKLOG.md to deliver a visually excellent, highly performant, playable Soulcalibur path-traced remaster with verified RTX Remix lighting and supplied DLSS 5 contribution. Use best judgment and researched community/official best practices. First improve lighting and material-specific response: reflective metal weapons, natural skin, appropriate cloth and lacquer. Then modernize hair with supported moving attachment, strand appearance and stable shading/alpha. Preserve identity, UVs, native HUD/effects/audio, rollback, full material coverage, budget controls and existing gates. Target sustained60 fps with fresh output, pacing, latency and bounded resources; require moving combat and separate technical acceptance and human visual approval. Continue autonomously.
+> Follow docs/neural/BACKLOG.md to deliver a convincing, performant, playable Soulcalibur path-traced remaster with verified RTX Remix and supplied DLSS 5. Use best judgment and community best practices: lighting and materials first, then modern hair. Preserve reflective weapons, natural skin, identity, UVs, HUD/effects/audio, rollback, safety and budget gates. Target sustained60 fps with fresh output and bounded resources. Require moving combat and separate technical acceptance and human visual approval. Continue autonomously.
 
 User amended the goal on 2026-09-12 to restore visual quality as a required
 partner to performance: materials must respond convincingly to path-traced

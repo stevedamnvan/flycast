@@ -1,6 +1,8 @@
 # Neural rendering evidence log
 
 LOG932 user renewed persistent overall-quality goal (2026-09-12).
+Initial docs check rejected oversized goal text; concise correction also
+needed the required safety term. Corrected without changing acceptance gates.
 Goal tool returned null; created and verified ACTIVE objective covering lighting
 and material-specific response first, natural skin and reflective weapons,
 then source-supported modern hair with community/official best practices.
