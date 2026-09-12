@@ -2,7 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from remix_capture_mcp import capture_destination, displacement_request, ingestion_request
+from remix_capture_mcp import capture_destination, displacement_request, ingestion_request, surface_request
 
 
 class CaptureDestinationTests(unittest.TestCase):
@@ -16,6 +16,14 @@ class CaptureDestinationTests(unittest.TestCase):
         for bad in ('/Other/Shader', shader + '/Child', 'relative', shader.replace('145398E2FC5B2FEA', 'bad')):
             with self.assertRaises(ValueError):
                 displacement_request(bad, 0, 0)
+
+    def test_surface_constants_reject_invalid_values(self):
+        shader = '/RootNode/Looks/mat_0DCBE839C56F7DD2/Shader'
+        self.assertEqual(surface_request(shader, .7, 0), {'reflection_roughness_constant': .7, 'metallic_constant': 0.0})
+        for bad in (True, None, -0.01, 1.01, float('nan'), float('inf'), '0'):
+            with self.assertRaises(ValueError): surface_request(shader, bad, 0)
+            with self.assertRaises(ValueError): surface_request(shader, .7, bad)
+        with self.assertRaises(ValueError): surface_request('/Other/Shader', .7, 0)
 
     def test_collision_is_rejected_without_changing_capture(self):
         with tempfile.TemporaryDirectory() as d:

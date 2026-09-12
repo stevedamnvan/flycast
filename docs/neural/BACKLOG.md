@@ -361,6 +361,10 @@ including hit-counter layout. Host0/helper11 orderly, no forced children. Scoped
 HUD correction accepted; character lighting and full combat acceptance remain
 open. Earlier pair has113 shared frame numbers but no equal source digests;
 next lighting comparison must use identical retained inputs and repeat control.
+LOG1004 exact current capture resolves all12 Practice runtime material hashes.
+Face0DCBE839C56F7DD2 runtime replacement proven by wrong-diffuse control; original
+restored and candidate detached, baseline exact. Explicit surface candidate still
+overbright, not accepted. Next lighting/material response on this proven binding.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

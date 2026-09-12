@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1004 current Practice material identity and bounded surface MCP operation.
+Current capture exports27 textures/68 dependencies; helper124 during15s linger
+AFTER End USD export, retained failure. MCP dry-run/import passes; all12 character
+atlas decoded hashes match runtime IDs. Sophitia face0DCBE839C56F7DD2 has intact
+source detail; legacy snapshot defaults.7/.1 differ from captured MDL.5/0, not
+resolved per-surface proof. Exposure-off and neutral vertexRGB do not restore face.
+Surface MCP validates0..1, isolated layer, rollback; copies exact composed typed
+Material/Shader before scalar authoring. Initial untyped candidate rejected.
+Four serial builds,1092 selftests x3,SDK323,Python42 pass; installed USD functional
+test verifies typed copy/root rejection/rollback. Candidate .7 roughness/0 metallic
+still visually overbright. Wrong diffuse control changes face rectangle MAE11.494
+versus candidate repeat.444;460 pixels exceed30 channel difference. Viewed face
+change confirms runtime binding. Control texture restored, candidate detached via
+MCP8001, baseline mod E3C097905777002034A4983A166E061A6278CA4D70DB9686F5DCD49F263E8340.
+Evidence practice-current-capture-a,practice-face-surface-typed-a,practice-face-binding-a.
+Toolkit8000 preserved pending edits despite seven layer saves; temporary8001 handles
+test. No appearance/full-combat/performance acceptance. Next lighting/material
+response on proven binding; keep native detail and user-liked arena.
+
+
 LOG1003 Practice hit-counter HUD correction ACCEPTED in controlled sword sequence.
 Observed native glyph bbox[40,32,506,112] extends standing96; preserve existing
 atlas, planarity, panel topology, depth and uniqueness certificate. Add explicit

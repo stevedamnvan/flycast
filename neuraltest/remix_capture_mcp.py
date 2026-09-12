@@ -22,6 +22,15 @@ def displacement_request(shader_path, displace_in=None, displace_out=None):
     return {name: float(value) for name, value in values.items() if value is not None}
 
 
+def surface_request(shader_path, roughness, metallic):
+    displacement_request(shader_path)
+    values = {'reflection_roughness_constant': roughness, 'metallic_constant': metallic}
+    for value in values.values():
+        if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or not 0 <= value <= 1:
+            raise ValueError('Surface constants must be finite numbers in 0..1')
+    return {name: float(value) for name, value in values.items()}
+
+
 def capture_destination(project_file, capture_file):
     project, source = Path(project_file), Path(capture_file)
     if not project.is_absolute() or not source.is_absolute():
@@ -155,6 +164,54 @@ def register(mcp):
                 attr = prim.CreateAttribute('inputs:' + name, Sdf.ValueTypeNames.Float, custom=False)
                 if not attr.Set(value):
                     raise RuntimeError('Displacement authoring failed')
+        except Exception:
+            layer.ImportFromString(snapshot)
+            raise
+        return dict(shader=shader_path, authored=values, layer=layer.identifier, saved=False)
+
+    @mcp.tool(name='flycast_set_surface_constants')
+    async def set_surface_constants(shader_path: str, roughness: float, metallic: float) -> dict:
+        """Author bounded roughness and metallic constants in an existing project layers/ edit target.
+
+        Does not save or alter textures. Requires a non-baseline opt-in layer;
+        rejects original baseline layers and restores layer content on failure.
+        """
+        import omni.usd
+        from pxr import Sdf
+        values = surface_request(shader_path, roughness, metallic)
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open the intended project first')
+        prim = stage.GetPrimAtPath(shader_path)
+        if not prim or prim.GetTypeName() != 'Shader':
+            raise ValueError('Existing Shader required')
+        root, layer = stage.GetRootLayer(), stage.GetEditTarget().GetLayer()
+        if not root.realPath or not layer.realPath:
+            raise ValueError('Saved project and edit layer required')
+        allowed = (Path(root.realPath).parent / 'layers').resolve()
+        target = Path(layer.realPath).resolve()
+        if target.parent != allowed or target.name in {
+                'pbrify_cloth_refined_v2.usda', 'pbrify_reimagined.usda', 'curated_pbr.usda', 'ai_pbr_draft.usda'}:
+            raise ValueError('Select a separate opt-in project layers/ layer')
+        for name in values:
+            attr = prim.GetAttribute('inputs:' + name)
+            if attr and attr.GetTypeName() != Sdf.ValueTypeNames.Float:
+                raise ValueError('Existing surface input must be Float')
+        material = prim.GetParent()
+        if material.GetTypeName() != 'Material':
+            raise ValueError('Existing parent Material required')
+        # Flatten resolves referenced assets; copy only this material, never scene geometry.
+        composed = stage.Flatten()
+        material_path = material.GetPath()
+        snapshot = layer.ExportToString()
+        try:
+            Sdf.CreatePrimInLayer(layer, material_path.GetParentPath())
+            if not Sdf.CopySpec(composed, material_path, layer, material_path):
+                raise RuntimeError('Material definition copy failed')
+            for name, value in values.items():
+                attr = prim.CreateAttribute('inputs:' + name, Sdf.ValueTypeNames.Float, custom=False)
+                if not attr.Set(value):
+                    raise RuntimeError('Surface authoring failed')
         except Exception:
             layer.ImportFromString(snapshot)
             raise

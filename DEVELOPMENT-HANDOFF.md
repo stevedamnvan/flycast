@@ -1,22 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1003: Practice hit-counter HUD correction verified.
-Four serial builds,1092 selftests x3,SDK323 pass. Corrected control completed115
-captures: minimum6108 protected pixels, zero native/composite RGBA mismatches,
-standing and hit-counter extents present. Viewed5458 shows13 damage,1 HIT and
-native High effect. Host0/helper11 orderly,forced children none; handle56326
-terminal. Evidence practice-hit-hud-a; isolated host SHA256
-0591EC832B0F1C7A6AB512E0593695EAD7530C215FF247DE9D0BF1C35193C7F1.
-Retained hit lighting test completed control/repeat/fill, all exit0, baseline
-exact; repeat MAE.456 versus fill23.377. Viewed face remains washed out.
-Isolated exposure test practice-hit-exposure-a completed fixed/repeat exit0:
-same packet/key/fill/materials, auto exposure disabled only in private profile.
-Viewed result darkens arena substantially while face remains washed out; reject
-as global fix. Next exact face source/material response, then stage transfer
-and1280 latency. Handle47239 terminal. Dark bodies/bright faces
-remain unacceptable. Earlier moving control/fill117/115 captures share113 frame
-numbers but zero equal source digests or packets; do not claim matched-input
-lighting causality. Prior isolated input remains backed up. No live game or helper.
+Current resume checkpoint LOG1004: exact current12 character runtime hashes
+resolved; face0DCBE839C56F7DD2 binding proven with wrong-diffuse control. Face
+rectangle MAE11.494 vs repeat.444;460 pixels over30, viewed changed face. Original
+diffuse restored, candidate detached through MCP8001, baseline mod exactE3C09790...
+E8340. No helper/game running. Surface candidate still overbright; not accepted.
+MCP surface code now copies typed composed material then bounded scalar values.
+Four builds,1092 selftests x3,SDK323,Python42 plus actual USD functional test pass.
+Toolkit8000/PID34596 preserved unknown pending edits; temporary8001/PID27736 owns
+current test. Do not save stale8000 stage. Next refine light/material response on
+proven binding, preserving arena and native face detail; see LOG1004 evidence.
 
 Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115
@@ -1019,3 +1012,80 @@ LOG968 current next: candidate ingestion failed on Toolkit child timeout, then
 executor0 unresolved MCP schema reference. No output/binding. Add typed wrapper
 to existing capture MCP for supported existing ingestion API executor0; preserve
 Toolkit state before reload. PID2772 open, no game/test. Candidate unchanged.
+
+Current capture follow-through: MCP dry-run validates68 dependencies; import
+succeeded without saving project or changing baseline mod. All12 Practice atlas
+identities now matched exactly in character-runtime-matches.json; union extension
+updated. Sophitia0DCBE839C56F7DD2 MCP texture query returns only diffuse, no
+roughness/normal texture. Scalar material values not inspected yet. Imported
+capture is selected in Toolkit; no material change yet. Next inspect scalar
+response and test a separate opt-in face material correction. All handles terminal.
+
+Face scalar inspection complete: capture material USDC decoded read-only using
+installed Toolkit Python/USD libraries (face-material-readable.usda). No authored
+scalar inputs. Captured legacy options roughness.7, metallic.1, emissive disabled;
+not proof of final per-surface values. Next explicit nonmetallic face material
+via separate MCP opt-in layer; do not globally change legacy metal/roughness.
+USD standalone needs DLL directories and short process-local PATH; no install
+or Toolkit project mutation used for reading. face-scalar-inspection.json retained.
+
+Uncommitted MCP surface controls: surface_request validates shader and finite
+roughness/metallic0..1; flycast_set_surface_constants follows separate-layer
+protection and rollback of displacement tool.5 focused Python tests pass. Four
+serial builds pass; three selftests running handle9492 (practice-face-surface-a).
+New method not yet registered in running Toolkit or used. Captured MDL defaults
+metallic0,roughness.5 differ from legacy options.1/.7; do not claim actual face
+metallicity from snapshot alone. Next finish checks, reload existing extension,
+then explicit face candidate through MCP. No candidate material authored yet.
+
+Surface validation completed: four builds,1092 selftests x3,SDK323,Python42 pass.
+Saved current workfile through MCP (backup practice-face-surface-a/workfile-before.usda),
+baseline mod SHA remains E3C09790...E8340. Graceful close returned true but
+Toolkit remained alive; saved owned session28016 stopped, relaunched same args
+as PID34596. Check MCP startup and new surface tool, open saved project if
+needed. No candidate authored yet. Source/docs uncommitted; preserve them.
+
+Live surface tool registered, project reopened. MCP authored face .7 roughness/0
+metallic into practice_face_surface.usda. Inspection finds untyped overs only;
+not runtime-complete for new material. Candidate detached through MCP and parent
+saved. Next fix surface authoring to define typed Material/Shader and required
+MDL/source diffuse binding in isolated layer, then rerun tests and reload.
+Do not render/promote ignored overrides. Authored receipt practice-face-surface-a.
+
+Typed surface fix implemented: flatten composed stage, copy only exact parent
+Material spec into isolated layer before setting values. Installed USD-library
+functional test proves typed Material/Shader, scalar, root rejection and failure
+rollback. Test script practice-face-surface-a/test_surface_usd.py. Focused5 Python
+tests pass. Required matrix running in external build driver; inspect tool session
+from current turn (practice-face-surface-typed-a/build.py). Live Toolkit still
+has old method; reload only after checks. Candidate detached, baseline restored.
+
+Typed operation regression terminal: four builds and1092 selftests x3 pass.
+Restart currently deferred: Toolkit34596 close_project reports pending edits
+even after all seven listed layers were backed up and saved via MCP. Backups
+practice-face-surface-typed-a/pre-restart. Baseline mod remains exact. Installed
+layer_manager core uses context.has_pending_edit; do not discard unknown session
+edits. Next inspect/preserve remaining dirty/session state before reloading.
+No game/helper running; new typed method not yet loaded. All tool sessions terminal.
+
+Pending session preserved in Toolkit34596/port8000. Typed-operation test will
+use temporary second installed Toolkit instance with MCP port8001, port fallback
+disabled; launch issued this turn. Verify readiness/PID and open saved workfile
+through8001 before authoring. Avoid saving from old session. No extra install,
+models or renderer introduced; close temporary instance after test and restore
+candidate-off baseline. This avoids discarding unknown old session edits.
+
+Typed candidate now authored successfully through temporary MCP8001. Saved layer
+practice_face_surface.usda has typed Material/Shader, exact absolute source DDS
+and MDL, roughness.7/metallic0. Candidate attached to mod for bounded render.
+Renderer outer handle28685 runs candidate/repeat in practice-face-surface-typed-a.
+DO NOT stop before detaching via MCP8001 and saving mod, verifying original
+E3C097905777002034A4983A166E061A6278CA4D70DB9686F5DCD49F263E8340.
+Old Toolkit8000 still preserved; do not save its stale stage. Temporary PID27736.
+
+Typed face candidate/repeat completed exit0; visually still washed out. MAE
+repeat.4365,candidate-vs-prior.9672; face rectangle.4444 vs1.124 (not segmentation).
+Runtime binding not independently proven. Candidate detached via MCP8001 and
+mod saved; verify original hash. No helper active. Next positive binding control
+before further scalar tuning; retain rejected appearance. Temporary Toolkit8001
+remains open for this test; old8000 untouched. Source still uncommitted.

@@ -54,3 +54,8 @@ ingested the same four assets through MCP. Until launch-argument inheritance
 is isolated, ingest in a standard session, preserve/save intended work, then
 restart with this extension for capture activation and bindings. Do not retry
 failed ingestion indefinitely or modify installed Toolkit files.
+
+`flycast_set_surface_constants(shader_path, roughness, metallic)` authors only
+reflection_roughness_constant and metallic_constant, finite floats0..1, using
+the same separate project layer restriction and rollback as displacement. It
+does not save, change textures, or establish runtime/visual acceptance.
