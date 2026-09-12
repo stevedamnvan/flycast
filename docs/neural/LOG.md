@@ -1,5 +1,54 @@
 # Neural rendering evidence log
 
+LOG906 curved export clip guard and camera pose, three
+performance-eligible runs, hair option 2 (8x tiles) captured. Code
+(committed with this entry): the curved gate and the midpoint clip test
+now use the packet camera pose (after D-211 anchoring the packet is in
+anchored pose space, not camera-relative), and a PN patch whose edge
+midpoint would leave the packet clip range stays flat and is counted as
+`clipped_triangles` in the curved-export notice; unit test "curved export
+keeps a facet flat when its patch would leave the clip range" added.
+Performance-eligible runs (no capture, no ComfyUI, `--output-size
+1280x960 --temple-light-rig --smooth-normals-weld --alpha-cutout
+--curved-export`, DLSS consumer profile `exposure-probe-a-dlss.conf`,
+evidence `C:/Flycast-Evidence/pilot-curved-perf-{a,b,c}`): perf-a
+(origin-camera gate) present p50/p95 21.81/26.95 ms, helper draw p50
+8.05 ms, output repeats 114 of 1107 presents, 49 `temporal-source/clip-
+unsupported`; perf-b (clip guard, origin camera) 21.67/27.11 ms, 37
+clipped triangles per frame but still 49 clip-unsupported; perf-c
+(packet camera pose) 21.70/26.97 ms, draw 8.00 ms, 0 clipped, 1 clip-
+unsupported, 120 repeats of 1162 presents, no-return-credit 114,
+worker-busy fallbacks 2, projection mismatches 11. Reading: the clip
+skips were a curved-gate coordinate error, now gone; present time did
+not move (about 46 fps), so the host emulator thread remains the gate
+(LOG897/LOG898) and the helper draw cost with curved geometry (8.0 ms
+versus 2.2 ms flat, about 29k vertices) remains open. Hair option 2:
+ComfyUI 8x PBRify pass (`C:/Flycast-Evidence/hair8x/hair8x_generate.py`)
+produced albedo/normal/roughness/height at 2048 for the three hair
+atlases 26F0F098F66BA515, 2F49B33516DFD5F9, 62BCD7B9D1AEBDB5 under the
+project's `assets/textures_pbrify8`; the Toolkit MCP ingested the nine
+albedo/normal/roughness maps into `assets/ingested/pbrify8` (the Toolkit
+ingest tool now rejects its own `executor` field with a broken schema
+reference; the field is dropped and the queue accepts the job) and the
+bindings in `layers/pbrify_reimagined.usda` were rewritten by
+`remix_override_textures` (backup of the previous layer text in the
+hair8x evidence folder; the 4x height maps stay bound). Capture
+`pilot-hair8x-a` (same flags plus `--capture-frames 12
+--capture-start-source 2560`, capture window drifted to 2753-2766 as in
+LOG905) at present frame 2765 against pilot-curved-d's same frame: the
+8x albedo carries finer strand structure in the tile
+(`hair8x/taki-hair-tile-src-4x-8x.png`), but at this water-stage camera
+distance the heads cover roughly 40x60 pixels and the composited
+difference is marginal (`hair8x/xianghua-head-4x-vs-8x.png`,
+`hair8x/kilik-head-4x-vs-8x.png`); the 8x albedo has clear alpha under
+the strand tips where the 4x tile was opaque, and a few green-cyan
+specks appear at Kilik's hairline in the 8x frame that need a close
+camera to judge. Run health identical to pilot-curved-d (279 worker-busy
+fallbacks under capture, draw p50 13.2 ms). No acceptance; the 8x
+bindings are a candidate the user reviews at a close camera (Hoko stage
+A/B pending). Unit selftests, SDK contract and launcher tests rerun with
+this entry's commit; ComfyUI stopped before the runs.
+
 LOG905 curved export (D-241 candidate) and the smoothing pass: the user
 judged the characters "blocks" after LOG904; the block look is the
 polygon silhouette of the source meshes (about 1.4k triangles per

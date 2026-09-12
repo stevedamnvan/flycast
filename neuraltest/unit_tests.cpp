@@ -442,6 +442,10 @@ int RunSelfTests()
 			auto bounded=before;auto boundReport=CurveRemakePacket(bounded,11);
 			suite.Expect(!boundReport.applied&&std::string(boundReport.reason)=="vertex-bound"&&bounded.meshes[0].vertices.size()==3,
 				"curved export applies nothing when the vertex bound would be exceeded");
+			remake::Packet nearClip;nearClip.camera.nearPlane=1.99f;nearClip.camera.farPlane=100;nearClip.meshes={tri({-s,0,-t},{s,0,-t},{-s,0,-t})};
+			auto clipReport=CurveRemakePacket(nearClip);
+			suite.Expect(clipReport.applied&&clipReport.clippedTriangles==1&&clipReport.verticesAfter==3&&nearClip.meshes[0].vertices.size()==3,
+				"curved export keeps a facet flat when its patch would leave the clip range");
 			remake::Packet blended;blended.meshes={tri({-s,0,-t},{s,0,-t},{-s,0,-t},true)};
 			auto blendReport=CurveRemakePacket(blended);
 			suite.Expect(!blendReport.applied&&blended.meshes[0].vertices.size()==3,"curved export never touches blended meshes");

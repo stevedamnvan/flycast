@@ -2902,9 +2902,9 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 			NOTICE_LOG(RENDERER,"Remake alpha ownership: source=%llu excluded_native_draws=%u source-qualified=true",
 				(unsigned long long)fed.frame,unsigned(fed.overlay.alphaEffectSelections.size()));
 		if(fed.curvedExport)
-			NOTICE_LOG(RENDERER,"Remake curved export: source=%llu applied=%d reason=%s meshes=%u curved_triangles=%u flat_triangles=%u vertices=%u->%u scope=experimental",
+			NOTICE_LOG(RENDERER,"Remake curved export: source=%llu applied=%d reason=%s meshes=%u curved_triangles=%u flat_triangles=%u clipped_triangles=%u vertices=%u->%u scope=experimental",
 				(unsigned long long)fed.frame,fed.curved.applied,fed.curved.reason,unsigned(fed.curved.meshes),unsigned(fed.curved.curvedTriangles),
-				unsigned(fed.curved.flatTriangles),unsigned(fed.curved.verticesBefore),unsigned(fed.curved.verticesAfter));
+				unsigned(fed.curved.flatTriangles),unsigned(fed.curved.clippedTriangles),unsigned(fed.curved.verticesBefore),unsigned(fed.curved.verticesAfter));
 		if(fed.alphaCutout)
 			NOTICE_LOG(RENDERER,"Remake alpha cutout promotion: source=%llu promoted=%u kept_native=%u undecoded=%u reference=%u max_mid=0.5 scope=experimental",
 				(unsigned long long)fed.frame,fed.cutout.promoted,fed.cutout.keptNative,fed.cutout.undecoded,unsigned(flycast::rend::neural::RemakeAlphaCutoutReference));

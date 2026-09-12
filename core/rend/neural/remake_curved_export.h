@@ -13,6 +13,7 @@
 #include "remake_scene.h"
 #include "remake_chunk_workers.h"
 #include <algorithm>
+#include <atomic>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -21,6 +22,7 @@ namespace flycast::rend::neural {
 struct RemakeCurvedExportReport {
  bool applied=false; // False when no triangle qualified or the bound would be exceeded.
  std::size_t meshes=0,curvedTriangles=0,flatTriangles=0,verticesBefore=0,verticesAfter=0;
+ std::size_t clippedTriangles=0; // Curved patches that would leave the clip range; kept flat.
  const char* reason="";
 };
 namespace curved_detail {
@@ -76,13 +78,15 @@ inline std::uint32_t LerpColor(std::uint32_t a,std::uint32_t b,std::uint32_t c,f
 // smoothly from the smoothed normals and would only add vertices.
 constexpr float RemakeCurvedExportCosine=0.9397f;
 constexpr float RemakeCurvedExportGrazing=0.5f;
-inline bool RemakeTriangleIsCurved(const remake::Vertex& a,const remake::Vertex& b,const remake::Vertex& c) {
+// The packet may already carry the anchored camera pose (D-211), so the
+// camera ray is taken from the packet camera's position, never the origin.
+inline bool RemakeTriangleIsCurved(const remake::Camera& camera,const remake::Vertex& a,const remake::Vertex& b,const remake::Vertex& c) {
  using namespace curved_detail;
  if(!a.normal||!b.normal||!c.normal||!Finite(*a.normal)||!Finite(*b.normal)||!Finite(*c.normal))return false;
  if(!Finite(a.position)||!Finite(b.position)||!Finite(c.position))return false;
  const auto na=Normalize(*a.normal),nb=Normalize(*b.normal),nc=Normalize(*c.normal);
  if(Dot(na,nb)>=RemakeCurvedExportCosine&&Dot(nb,nc)>=RemakeCurvedExportCosine&&Dot(na,nc)>=RemakeCurvedExportCosine)return false;
- const auto grazing=[](const remake::Vertex& v,remake::Vec3 n){return std::abs(Dot(n,Normalize(v.position)))<RemakeCurvedExportGrazing;};
+ const auto grazing=[&](const remake::Vertex& v,remake::Vec3 n){return std::abs(Dot(n,Normalize(Sub(v.position,camera.position))))<RemakeCurvedExportGrazing;};
  return grazing(a,na)||grazing(b,nb)||grazing(c,nc);
 }
 // Curves the expanded triangle lists of every opaque or cutout mesh in place.
@@ -99,7 +103,7 @@ inline RemakeCurvedExportReport CurveRemakePacket(remake::Packet& packet,std::si
   for(std::size_t i=0;plain&&i<mesh.indices.size();++i)plain=mesh.indices[i]==i;
   if(!plain){after+=mesh.vertices.size();continue;}
   std::size_t curved=0;
-  for(std::size_t i=0;i+2<mesh.vertices.size();i+=3)curved+=RemakeTriangleIsCurved(mesh.vertices[i],mesh.vertices[i+1],mesh.vertices[i+2]);
+  for(std::size_t i=0;i+2<mesh.vertices.size();i+=3)curved+=RemakeTriangleIsCurved(packet.camera,mesh.vertices[i],mesh.vertices[i+1],mesh.vertices[i+2]);
   eligible[m]=curved>0;report.curvedTriangles+=curved;report.flatTriangles+=mesh.vertices.size()/3-curved;
   after+=mesh.vertices.size()+curved*9;
  }
@@ -108,11 +112,12 @@ inline RemakeCurvedExportReport CurveRemakePacket(remake::Packet& packet,std::si
  if(after>vertexBound){report.reason="vertex-bound";return report;}
  // Meshes are independent: the chunk workers take them round-robin; the
  // per-mesh result is identical whichever thread produced it.
+ std::atomic<std::size_t> clippedLocal{0};
  const auto curveMesh=[&](std::size_t m) {
   auto& mesh=packet.meshes[m];std::vector<remake::Vertex> out;out.reserve(mesh.vertices.size()*4);
   for(std::size_t i=0;i+2<mesh.vertices.size();i+=3) {
    const auto& a=mesh.vertices[i];const auto& b=mesh.vertices[i+1];const auto& c=mesh.vertices[i+2];
-   if(!RemakeTriangleIsCurved(a,b,c)){out.push_back(a);out.push_back(b);out.push_back(c);continue;}
+   if(!RemakeTriangleIsCurved(packet.camera,a,b,c)){out.push_back(a);out.push_back(b);out.push_back(c);continue;}
    const Patch patch=MakePatch(a.position,b.position,c.position,Normalize(*a.normal),Normalize(*b.normal),Normalize(*c.normal));
    const auto at=[&](float u,float v){
     remake::Vertex x;const float w=1-u-v;
@@ -120,7 +125,14 @@ inline RemakeCurvedExportReport CurveRemakePacket(remake::Packet& packet,std::si
     x.u=a.u*w+b.u*u+c.u*v;x.v=a.v*w+b.v*u+c.v*v;x.publicColor=LerpColor(a.publicColor,b.publicColor,c.publicColor,w,u,v);
     return x;};
    // Corners keep their exact source attributes; edge midpoints lie on the patch.
+   // A midpoint bulging outside the packet's clip range would fail the scene
+   // contract downstream, so such a facet stays flat and is counted.
    const auto A=a,B=b,C=c;auto AB=at(.5f,0),BC=at(.5f,.5f),CA=at(0,.5f);
+   const auto inside=[&](const remake::Vertex& v){
+    if(!Finite(v.position))return false;
+    const auto d=Sub(v.position,packet.camera.position);const float depth=Dot(d,packet.camera.forward);
+    return depth>0&&depth>=packet.camera.nearPlane&&depth<=packet.camera.farPlane;};
+   if(!inside(AB)||!inside(BC)||!inside(CA)){clippedLocal.fetch_add(1,std::memory_order_relaxed);out.push_back(a);out.push_back(b);out.push_back(c);continue;}
    const remake::Vertex tris[12]={A,AB,CA, AB,B,BC, CA,BC,C, AB,BC,CA};
    out.insert(out.end(),std::begin(tris),std::end(tris));
   }
@@ -132,6 +144,6 @@ inline RemakeCurvedExportReport CurveRemakePacket(remake::Packet& packet,std::si
  const unsigned chunks=workers?unsigned(std::min<std::size_t>(4,std::max<std::size_t>(1,work.size()))):1u;
  if(chunks>1)workers->Run(chunks,[&](unsigned index){for(std::size_t i=index;i<work.size();i+=chunks)curveMesh(work[i]);});
  else for(auto m:work)curveMesh(m);
- report.verticesAfter=after;report.applied=true;report.reason="applied";return report;
+ report.clippedTriangles=clippedLocal.load();report.verticesAfter=after-report.clippedTriangles*9;report.applied=true;report.reason="applied";return report;
 }
 }
