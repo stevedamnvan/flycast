@@ -241,8 +241,11 @@ fresh99.259%. Same cycle endpoints; both exits0, baseline/config exact.
 LOG959 release diagnostics identify SDL2/WASAPI44100Hz,1024 callback frames,
 2822 buffer frames; short native run454 callbacks/2 underruns including startup.
 Four builds/1053x3/SDK302/Python36 pass. No audio policy changed.
-Next same-source real-time pair with backend/underrun telemetry, then supported
-configuration comparison if warranted; manual combat/hair/coverage follow.
+LOG960 paired audio: native1/2732 callbacks underrun, combined133/2863,
+whole session including startup/anchoring. Cycle difference -0.7629%, fresh
+1072/1080; audio continuity NOT accepted. Baseline/config exact.
+Next locate underruns in startup versus combat before reducing buffers or
+choosing a stall correction; manual combat/hair/coverage follow.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.
 

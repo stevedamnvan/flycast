@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG960 instrumented matched combat audio pair, base6019e8229.
+Native/combined1200 samples,120 discarded,1080 steady denominator; exact cycles
+9073227968..12673176320. Native199798376cycles/s, combined198274052 (-0.76293%).
+Combined1072 fresh/1080=99.259%; native p50/p95/p99ms16.117/45.934/46.417,
+combined15.368/25.154/28.689. Both SDL2/WASAPI44100Hz,1024 callback frames,
+2822 buffer frames,no resampling. Native2732 callbacks/1 underrun; combined
+2863 callbacks/133 underruns. These are WHOLE SESSION counts, include startup
+and anchoring; not proof of133 steady-combat gaps. Nevertheless audio continuity
+cannot be accepted from cycle-rate gate. Both0, baseline/config exact, no test
+live. Evidence C:/Flycast-Evidence/audio-combat-attribution-a scripts, commands,
+comparison.json, native/moving-flycast.log and restoration receipt. Native log
+is append-only; analysis explicitly selects last startup/shutdown pair and
+retains earlier lines, not conflating prior short test with current run.
+Official SDL guidance https://wiki.libsdl.org/SDL2/SDL_OpenAudioDevice confirms
+smaller callback sizes trade latency for underflow risk. Do not reduce callbacks
+blindly with these results. Next distinguish startup/anchor versus combat gaps
+using bounded underrun timing; then correct responsible stall or justify buffer
+tradeoff. No new full60fps/audio/visual acceptance, no source changes this slice.
+
 LOG959 audio backend attribution, base7df17f508 plus source changes.
 Release diagnostics now report successful backend, SDL obtained driver/rate/
 callback/buffer and whole-session callback/underrun counts on device close.
