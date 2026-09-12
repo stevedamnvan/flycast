@@ -117,6 +117,11 @@ matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.
 Normalize dimension-prefixed versus pixel-only hash conventions before cache
 joins; retain dimensions/UV/alpha checks and all generation budget gates.
+LOG1012 raw cached albedos for both matched metal strips fail source-alpha
+preservation (48706 pixels each). F645's existing alpha-preserved version passes
+alpha only; use that candidate for subsequent review, not the raw output.
+BCBC needs a source-alpha-preserving candidate before direct reuse. No runtime
+appearance defect is inferred solely from the file audit; baseline stays intact.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

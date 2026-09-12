@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1012 metal cache alpha gate, no asset mutation.
+material-union-a/practice-map-dimensions-alpha.json checks listed PNGs for
+Practice10/12 against exact source atlases. All listed PNG maps1024x1024.
+Both source alphas are255 everywhere. Raw BCBC/F645 PBRify albedos each differ
+at48706 alpha pixels; reject direct reuse of these versions under preservation
+gate. Existing F645_albedo_alpha_preserved.png has zero alpha mismatches.
+Viewed that corrected image: recognizable repeated metal strips with strong
+baked highlights; delighting/UV/moving appearance acceptance remains open.
+Readiness ledger now records per-file alpha disposition. Do not equate a cached
+map/file-hash pass with ingestion or visual acceptance. Runtime impact depends
+on material alpha mode and is not established here. Originals unchanged.
+
 LOG1011 current Practice map readiness reconciled without generation.
 material-union-a/practice-map-readiness.json joins current12 source atlases
 against the existing47-material inventory by freshly decoded DDS pixels.
