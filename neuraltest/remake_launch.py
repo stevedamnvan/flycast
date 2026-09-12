@@ -146,8 +146,28 @@ def prepare(args):
             # Per-hook time-stamp-counter accounting on the emulation thread
             # (D-218); inflates the emulated frame period by several ms.
             env['FLYCAST_REMAKE_HOOK_CYCLES'] = '1'
+        if getattr(args, 'hook_attribution', False):
+            # Per-block hook attribution (D-240 groundwork): which guest code the
+            # hooks run from and which feeds complete observations; counting only.
+            env['FLYCAST_REMAKE_HOOK_ATTRIBUTION'] = '1'
     if getattr(args, 'depth_rgba32f', False):
         env['FLYCAST_REMAKE_DEPTH_RGBA32F'] = '1'
+    if getattr(args, 'guest_frame_digest', False):
+        # Per-frame hash of the raw TA bytes with the producer cycle: a guest-only
+        # signal for matching scenes across runs (LOG907); diagnostic only.
+        env['FLYCAST_REMAKE_GUEST_FRAME_DIGEST'] = '1'
+    # D-240 narrowed observation scope (experimental, default full): hooks run
+    # only in guest code regions that fed complete observations, discovered at runtime.
+    if getattr(args, 'observation_scope', 'full') == 'narrow':
+        env['FLYCAST_REMAKE_OBSERVATION_SCOPE'] = 'narrow'
+        # Diagnostic knobs (attribution of a behaviour difference to one hook
+        # site or bookkeeping part); never a performance or acceptance setting.
+        if getattr(args, 'scope_gates', None):
+            env['FLYCAST_REMAKE_OBSERVATION_SCOPE_GATES'] = args.scope_gates
+        if getattr(args, 'scope_parts', None):
+            env['FLYCAST_REMAKE_OBSERVATION_SCOPE_PARTS'] = args.scope_parts
+    elif getattr(args, 'scope_gates', None) or getattr(args, 'scope_parts', None):
+        raise ValueError('--scope-gates/--scope-parts require --observation-scope narrow')
     if getattr(args, 'verify_depth_format', False):
         if not getattr(args, 'cpu_timing', False) or getattr(args, 'depth_rgba32f', False):
             raise ValueError('Depth format verification requires CPU timing and R32F selection')
@@ -314,6 +334,16 @@ def main():
                    help='Experimental: average exported face normals per source vertex (60 degree crease); default off')
     p.add_argument('--hook-cycles', action='store_true',
                    help='With --cpu-timing: per-hook cycle accounting on the emulation thread (D-218); diagnostic only')
+    p.add_argument('--observation-scope', choices=['full', 'narrow'], default='full',
+                   help='Experimental (D-240): narrow the source observation hooks to the guest code regions that fed complete observations, discovered at runtime; default full')
+    p.add_argument('--scope-gates', default=None,
+                   help='Diagnostic with --observation-scope narrow: comma list of hook sites that carry the gate (entry,arith,read,store,sq,ftrv,after,load); "off" gates nothing')
+    p.add_argument('--scope-parts', default=None,
+                   help='Diagnostic with --observation-scope narrow: comma list of bookkeeping parts that run (note,ta,ctrl,reg); "none" runs nothing')
+    p.add_argument('--guest-frame-digest', action='store_true',
+                   help='Log a per-frame hash of the raw TA bytes with the producer cycle (guest-only scene identity); diagnostic only')
+    p.add_argument('--hook-attribution', action='store_true',
+                   help='With --cpu-timing: per-block source hook attribution report every 120 frames (D-240 groundwork); diagnostic only')
     p.add_argument('--frame-budget-ms', type=float, default=None,
                    help='Render-thread remake budget per emulated frame in ms (D-216); default unlimited')
     p.add_argument('--consumer-config', type=Path, default=None,
@@ -339,6 +369,10 @@ def main():
                   depth_rgba32f=args.depth_rgba32f,
                   verify_depth_format=args.verify_depth_format,
                   hook_cycles=args.cpu_timing and args.hook_cycles,
+                  hook_attribution=args.cpu_timing and args.hook_attribution,
+                  guest_frame_digest=args.guest_frame_digest,
+                  observation_scope=args.observation_scope,
+                  scope_gates=args.scope_gates, scope_parts=args.scope_parts,
                   renderer=args.renderer,
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
                   alpha_cutout=args.alpha_cutout, curved_export=args.curved_export,

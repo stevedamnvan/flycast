@@ -1,5 +1,81 @@
 # Neural rendering evidence log
 
+LOG907 narrowed observation scope (D-242) implemented, timeline hazard
+found and fixed, clean pair measured. Code (committed with this entry):
+`core/rend/neural/source_hook_attribution.h` (per-PC hook tallies and the
+contributing-PC set; `--hook-attribution` with `--cpu-timing`),
+`core/rend/neural/source_observation_scope.h` (scope controller, block
+registry, per-block flag table, contributor noting), recompiler gates in
+`core/rec-x64/rec_x64.cpp` (block-entry flag load; gates at the block-entry
+validation, arithmetic begin, read begin/finish, store, PREF, FTRV and
+post-op hook sites; block registration after compile; a
+`Neural source observation: recompiler cache reset` notice), contributor
+noting in `ta.cpp` (complete records) and `source_arithmetic.h`/boundary
+hook (live origins), the frame controller and attribution report in
+`ta_ctx.cpp`, launcher flags `--hook-attribution`, `--observation-scope
+narrow`, diagnostic `--scope-gates`/`--scope-parts` (narrow only) and
+`--guest-frame-digest`; eleven unit tests (region merge, Observed,
+discovery/narrow/widen/exhaust, flag-slot collision, discovery-only
+noting, attribution summary); selftest 1037/0. Attribution evidence
+(`C:/Flycast-Evidence/pilot-hook-attribution-b`, LOG897 scene): about
+3900 compiled blocks carry hooks, about 195 hold a contributing PC; the
+contributing blocks account for 22 percent of store hooks, 15 percent of
+reads, 49 percent of arithmetic, 44 percent of block entries, 20 percent
+of SQ writes and 80 percent of FTRV; one copy loop at 8c03cc68 alone is
+58 percent of store plus read hooks and never contributes. Hazard: the
+first narrow runs (`pilot-scope-narrow-{a,capture,capture-b}`) followed a
+different observation timeline than full runs at the same producer
+cycle (fed-frame vertex counts, `PVR live source join` copies and
+`PVR transform arithmetic` counts differ from producer 1201 on, before any
+narrowing), and the bisection through `--scope-gates` showed that any
+emitted gate changed the timeline while gates-off bookkeeping did not
+(`pilot-scope-gates-{off-parts-all,arith-after,read-store}`,
+`pilot-scope-parts-none-c`). The launcher strips inherited
+`FLYCAST_REMAKE_*` variables, so the earlier env-only bisection runs
+(`pilot-scope-gate-*`, `pilot-scope-parts-none{,-b}`) were plain narrow
+runs and are void; the launcher now carries the knobs and flycast logs
+`Remake observation scope requested: gates=... parts=...`. Cause: the
+gates changed compiled block sizes, so the recompiler's code-cache resets
+(seven per run, now logged) fell on different guest frames in the two
+modes and observations in flight at a reset were lost on different
+frames; the guest itself never diverged. Fix: the gates are emitted
+whenever source observation is enabled, in full and narrow mode alike
+(every flag stays set in full mode), so both modes compile byte-identical
+blocks. Proof, `--guest-frame-digest` (new diagnostic: FNV hash of the raw
+TA bytes per frame with the producer cycle, guest-only): the clean pair
+`pilot-scope-full-digest-b` and `pilot-scope-narrow-digest-b` (no
+capture, `--output-size 1280x960 --temple-light-rig
+--smooth-normals-weld --alpha-cutout --curved-export`, DLSS consumer
+profile) agree on all 3304 guest digests, on all 870 fed-frame vertex
+counts and on the anchored camera pose, origin and generation of all 870
+observed-camera frames; two full runs agree on 3303 of 3303 digests. The
+scope narrowed at producer 1259 (162 regions, 13654 bytes, 221 of 7551
+blocks watched) and never widened; copies per frame fall from about
+14800 to 3002 (only writers of complete chains stay observed), anchor
+support points differ, the pose does not. Timing: full 22.75/28.38 ms
+present p50/p95 (emulated frame period about 22.7 ms), narrow
+18.93/24.73 ms (about 18.4 ms), so the narrowed scope removes about
+3.8 ms per frame and reaches about 53 fps, not 60; no-return-credit
+skips 90 versus 261, output repeats 83 versus 260 of about 1175
+presents, projection mismatches 6 versus 7, anchor rejections 0 in both.
+Full mode with the gates costs 22.75 ms against 21.70 ms in LOG906 perf-c
+(capture-free, same flags), which is within the run-to-run spread seen
+so far but must be watched. Capture runs are not performance evidence:
+the bounded preview capture keeps the feed worker busy for the whole
+session (worker-busy skips 291/430 against 3/4 without capture) and the
+narrow capture run `pilot-scope-narrow-digest-a` lost presentation at
+frame 2252 (the 8-frame freshness bound of the presentation latch,
+LOG900) without recovering, so it captured nothing; the emulated frame
+period inside a capture window is about 700 ms. Reading: the emulator
+thread is no longer the gate at 1280x960 (emu-wait-frame-finished
+7.5 ms in `pilot-scope-narrow-cpu`); the render thread's frame-render
+(about 16 ms: return-motion-stream 7.5 ms, returned-evaluate 6.2 ms)
+and the no-return-credit skips are the remaining 60 fps items. D-240's
+acceptance is partly met (differential tests, identical anchor pose on
+the matched scene, clean run); the exact moving source and HUD proof on
+a matched narrow capture is still open because the capture route cannot
+hold presentation at narrow speed.
+
 LOG906 curved export clip guard and camera pose, three
 performance-eligible runs, hair option 2 (8x tiles) captured. Code
 (committed with this entry): the curved gate and the midpoint clip test

@@ -12,6 +12,8 @@
 #include "rend/neural/remake_camera_anchor.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_curved_export.h"
+#include "rend/neural/source_hook_attribution.h"
+#include "rend/neural/source_observation_scope.h"
 #include "remake_smoothing_reference.h"
 #include "rend/neural/remake_return_worker.h"
 #include "rend/neural/remake_frame_budget.h"
@@ -412,6 +414,103 @@ int RunSelfTests()
 		auto flats=PromoteRemakeAlphaCutouts(flat,cache);
 		suite.Expect(flats.promoted==1&&flats.keptNative==1&&flat.meshes.size()==1&&flat.meshes[0].id==tilted.id,
 			"alpha cutout keeps a constant-depth screen message native");
+		{
+			// D-240 groundwork: source hook attribution summary and gating.
+			const auto kind=[](SourceHookKind k){return unsigned(k);};
+			SourceHookPcTallies tallies;SourceHookContributors contributors;
+			tallies[0x8c001000u].calls[kind(SourceHookKind::Store)]=10;
+			tallies[0x8c001004u].calls[kind(SourceHookKind::Read)]=5;
+			tallies[0x8c002000u].calls[kind(SourceHookKind::Store)]=100;
+			tallies[0x8c009000u].calls[kind(SourceHookKind::Ftrv)]=1;
+			contributors={0x8c001004u,0x8c009000u};
+			const auto blockOf=[](std::uint32_t pc)->std::uint32_t{return pc<0x8c003000u?(pc&~0xfffu):0u;};
+			const auto s=SummarizeSourceHookAttribution(tallies,contributors,blockOf,2);
+			suite.Expect(s.pcs==4&&s.blocks==3&&s.contributingPcs==2&&s.contributingBlocks==2
+				&&s.total[kind(SourceHookKind::Store)]==110&&s.fromContributingPcs[kind(SourceHookKind::Store)]==0&&s.fromContributingBlocks[kind(SourceHookKind::Store)]==10
+				&&s.fromContributingPcs[kind(SourceHookKind::Read)]==5&&s.fromContributingBlocks[kind(SourceHookKind::Read)]==5
+				&&s.fromContributingBlocks[kind(SourceHookKind::Ftrv)]==1&&s.fromContributingPcs[kind(SourceHookKind::Ftrv)]==1
+				&&s.topBlocks.size()==2&&s.topBlocks[0].start==0x8c002000u&&!s.topBlocks[0].contributing
+				&&s.topBlocks[1].start==0x8c001000u&&s.topBlocks[1].contributing&&s.topBlocks[1].calls==15,
+				"hook attribution sums calls per kind by contributing PC and by contributing block");
+			const bool wasEnabled=SourceHookAttributionEnabled;
+			SourceHookAttributionEnabled=false;sourceHookPcTallies.clear();sourceHookContributingPcs.clear();
+			AttributeSourceHook(SourceHookKind::Store,0x8c001000u);NoteSourceHookContributor(0x8c001000u);
+			suite.Expect(sourceHookPcTallies.empty()&&sourceHookContributingPcs.empty(),"hook attribution counts nothing unless enabled");
+			SourceHookAttributionEnabled=true;
+			AttributeSourceHook(SourceHookKind::Store,0x8c001000u);AttributeSourceHook(SourceHookKind::Store,0);NoteSourceHookContributor(0);
+			suite.Expect(sourceHookPcTallies.size()==1&&sourceHookPcTallies[0x8c001000u].calls[kind(SourceHookKind::Store)]==1&&sourceHookContributingPcs.empty(),
+				"hook attribution ignores a zero PC");
+			SourceHookAttributionEnabled=wasEnabled;sourceHookPcTallies.clear();
+			sourceObservationBlocks.clear();RegisterSourceObservationBlock(0x8c001000u,16);RegisterSourceObservationBlock(0x8c001010u,4);RegisterSourceObservationBlock(0,8);RegisterSourceObservationBlock(0x8c002000u,0);
+			suite.Expect(SourceHookBlockOf(0x8c001000u)==0x8c001000u&&SourceHookBlockOf(0x8c00100eu)==0x8c001000u&&SourceHookBlockOf(0x8c001012u)==0x8c001010u
+				&&SourceHookBlockOf(0x8c001014u)==0&&SourceHookBlockOf(0x8c000ffeu)==0&&SourceHookBlockOf(0x8c002000u)==0&&sourceObservationBlocks.size()==2,
+				"hook attribution resolves an interior PC to its registered block and nothing outside one");
+			sourceObservationBlocks.clear();
+		}
+		{
+			// D-240 narrowed observation scope: regions, controller and flags.
+			SourceObservationScope scope;
+			suite.Expect(scope.RecordRegion(0x8c001000u,0x8c001040u)&&scope.RecordRegion(0x8c001020u,0x8c001080u)&&!scope.RecordRegion(0x8c001010u,0x8c001030u)
+				&&scope.RecordRegion(0x8c001080u,0x8c0010a0u)&&scope.RecordRegion(0x8c002000u,0x8c002010u)&&scope.regions.size()==2
+				&&scope.regions.begin()->first==0x8c001000u&&scope.regions.begin()->second==0x8c0010a0u&&scope.RegionBytes()==0xa0+0x10
+				&&scope.Contains(0x8c00109eu)&&!scope.Contains(0x8c0010a0u),"observation scope merges overlapping and adjacent regions");
+			suite.Expect(scope.Observed(0x8c000f00u,8)&&scope.Observed(0x8c003000u,4),"observation scope watches every block while full");
+			scope.mode=SourceObservationScopeMode::Narrow;
+			suite.Expect(scope.Observed(0x8c001090u,0x40)&&scope.Observed(0x8c000ff0u,0x20)&&!scope.Observed(0x8c000ff0u,0x10)&&!scope.Observed(0x8c0010a0u,0x100)
+				&&scope.Observed(0x8c001ff0u,0x20)&&!scope.Observed(0x8c001000u,0),"observation scope watches only blocks overlapping a region while narrow");
+			SourceObservationScope ctrl;bool quiet=true;
+			ctrl.RecordRegion(0x8c001000u,0x8c001040u);
+			for(unsigned f=0;f<SourceObservationScope::DiscoveryFrames-1;++f)quiet=quiet&&ctrl.EndFrame(10,20)==SourceObservationScopeEvent::None;
+			suite.Expect(quiet&&ctrl.mode==SourceObservationScopeMode::Full&&ctrl.stableFrames==SourceObservationScope::DiscoveryFrames-2,
+				"observation scope stays full through discovery");
+			suite.Expect(ctrl.EndFrame(10,20)==SourceObservationScopeEvent::Narrow&&ctrl.mode==SourceObservationScopeMode::Narrow&&ctrl.narrowings==1,
+				"observation scope narrows once discovery is long enough and the regions stable");
+			SourceObservationScope late;late.RecordRegion(0x8c001000u,0x8c001040u);
+			for(unsigned f=0;f<SourceObservationScope::DiscoveryFrames-50;++f)late.EndFrame(10,20);
+			late.RecordRegion(0x8c002000u,0x8c002040u);quiet=true;
+			for(unsigned f=0;f<SourceObservationScope::StableFrames;++f)quiet=quiet&&late.EndFrame(10,20)==SourceObservationScopeEvent::None;
+			suite.Expect(quiet&&late.EndFrame(10,20)==SourceObservationScopeEvent::Narrow,"observation scope restarts the stability count when a region is added");
+			SourceObservationScope idle;idle.RecordRegion(0x8c001000u,0x8c001040u);quiet=true;
+			for(unsigned f=0;f<SourceObservationScope::DiscoveryFrames+SourceObservationScope::StableFrames+5;++f)quiet=quiet&&idle.EndFrame(0,20)==SourceObservationScopeEvent::None;
+			suite.Expect(quiet&&idle.mode==SourceObservationScopeMode::Full,"observation scope never narrows without complete observations");
+			quiet=true;
+			for(unsigned f=0;f<SourceObservationScope::WidenAfterEmptyFrames-1;++f)quiet=quiet&&ctrl.EndFrame(0,20)==SourceObservationScopeEvent::None;
+			quiet=quiet&&ctrl.EndFrame(0,0)==SourceObservationScopeEvent::None&&ctrl.EndFrame(5,20)==SourceObservationScopeEvent::None&&ctrl.emptyFrames==0;
+			for(unsigned f=0;f<SourceObservationScope::WidenAfterEmptyFrames-1;++f)quiet=quiet&&ctrl.EndFrame(0,20)==SourceObservationScopeEvent::None;
+			suite.Expect(quiet&&ctrl.EndFrame(0,20)==SourceObservationScopeEvent::Widen&&ctrl.mode==SourceObservationScopeMode::Full&&ctrl.widened==1&&ctrl.framesObserved==0,
+				"observation scope widens after thirty submitting frames without a complete observation");
+			for(unsigned cycle=1;cycle<SourceObservationScope::WidenBound;++cycle) {
+				for(unsigned f=0;f<SourceObservationScope::DiscoveryFrames;++f)ctrl.EndFrame(10,20);
+				for(unsigned f=0;f<SourceObservationScope::WidenAfterEmptyFrames;++f)ctrl.EndFrame(0,20);
+			}
+			suite.Expect(ctrl.widened==SourceObservationScope::WidenBound&&ctrl.mode==SourceObservationScopeMode::Full&&!ctrl.exhausted,"observation scope counts each widening");
+			for(unsigned f=0;f<SourceObservationScope::DiscoveryFrames;++f)ctrl.EndFrame(10,20);
+			for(unsigned f=0;f<SourceObservationScope::WidenAfterEmptyFrames;++f)ctrl.EndFrame(0,20);
+			quiet=ctrl.exhausted&&ctrl.mode==SourceObservationScopeMode::Full;
+			for(unsigned f=0;f<2*SourceObservationScope::DiscoveryFrames;++f)quiet=quiet&&ctrl.EndFrame(10,20)==SourceObservationScopeEvent::None;
+			suite.Expect(quiet&&ctrl.narrowings==SourceObservationScope::WidenBound+1,"observation scope stays full for the session after the widening bound");
+			// Flag table: a slot collision keeps a block watched, never unwatches it.
+			const auto savedScope=sourceObservationScope;sourceObservationScope=SourceObservationScope{};
+			ResetSourceObservationBlocks();sourceObservationScope.RecordRegion(0x8c001000u,0x8c001040u);
+			RegisterSourceObservationBlock(0x8c001030u,0x20);RegisterSourceObservationBlock(0x8c005000u,0x20);RegisterSourceObservationBlock(0x8c021030u,0x20);
+			const auto slot=[](std::uint32_t start){return sourceObservationFlags.flags[SourceObservationFlagSlot(start)];};
+			const bool fullFlags=slot(0x8c001030u)==1&&slot(0x8c005000u)==1&&sourceObservationWatchedBlocks==3;
+			sourceObservationScope.mode=SourceObservationScopeMode::Narrow;ApplySourceObservationScopeFlags();
+			const bool narrowFlags=slot(0x8c001030u)==1&&slot(0x8c005000u)==0&&slot(0x8c021030u)==1&&sourceObservationWatchedBlocks==1;
+			RegisterSourceObservationBlock(0x8c001100u,0x10);RegisterSourceObservationBlock(0x8c003000u,0x10);
+			const bool lateFlags=slot(0x8c001100u)==0&&slot(0x8c003000u)==0&&SourceObservationFlagSlot(0x8c001030u)==SourceObservationFlagSlot(0x8c021030u);
+			sourceObservationScope.mode=SourceObservationScopeMode::Full;ApplySourceObservationScopeFlags();
+			suite.Expect(fullFlags&&narrowFlags&&lateFlags&&slot(0x8c005000u)==1&&sourceObservationWatchedBlocks==5,
+				"observation scope flags follow region overlap while narrow and are all set while full");
+			// Discovery notes the block holding a contributing PC while full only.
+			sourceObservationScope=SourceObservationScope{};ResetSourceObservationBlocks();ForgetSourceObservationContributorCache();
+			RegisterSourceObservationBlock(0x8c001000u,0x40);
+			NoteSourceObservationContributor(0x8c001020u);NoteSourceObservationContributor(0x8c009000u);
+			const bool noted=sourceObservationScope.regions.size()==1&&sourceObservationScope.Contains(0x8c00103eu)&&!sourceObservationScope.Contains(0x8c001040u);
+			sourceObservationScope.mode=SourceObservationScopeMode::Narrow;RegisterSourceObservationBlock(0x8c002000u,0x40);NoteSourceObservationContributor(0x8c002010u);
+			suite.Expect(noted&&sourceObservationScope.regions.size()==1,"observation scope records contributing blocks during discovery only");
+			sourceObservationScope=savedScope;ResetSourceObservationBlocks();ForgetSourceObservationContributorCache();
+		}
 		{
 			// D-241 candidate: curved PN-triangle export.
 			const auto tri=[](remake::Vec3 n0,remake::Vec3 n1,remake::Vec3 n2,bool blend=false){

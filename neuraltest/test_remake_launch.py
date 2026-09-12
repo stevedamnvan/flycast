@@ -210,10 +210,31 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.hook_cycles = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_HOOK_CYCLES'], '1')
         self.args.hook_cycles = False
+        self.assertNotIn('FLYCAST_REMAKE_HOOK_ATTRIBUTION', prepare(self.args)[2])
+        self.args.hook_attribution = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_HOOK_ATTRIBUTION'], '1')
         self.args.cpu_timing = False
         self.args.hook_cycles = True
         self.assertNotIn('FLYCAST_REMAKE_HOOK_CYCLES', prepare(self.args)[2])
+        self.assertNotIn('FLYCAST_REMAKE_HOOK_ATTRIBUTION', prepare(self.args)[2])
         self.args.hook_cycles = False
+        self.args.hook_attribution = False
+        self.assertNotIn('FLYCAST_REMAKE_GUEST_FRAME_DIGEST', prepare(self.args)[2])
+        self.args.guest_frame_digest = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_GUEST_FRAME_DIGEST'], '1')
+        self.args.guest_frame_digest = False
+        self.assertNotIn('FLYCAST_REMAKE_OBSERVATION_SCOPE', prepare(self.args)[2])
+        self.args.observation_scope = 'narrow'
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_OBSERVATION_SCOPE'], 'narrow')
+        self.args.observation_scope = 'full'
+        self.assertNotIn('FLYCAST_REMAKE_OBSERVATION_SCOPE', prepare(self.args)[2])
+        self.args.scope_gates = 'off'
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+        self.args.observation_scope = 'narrow'; self.args.scope_parts = 'none'
+        env = prepare(self.args)[2]
+        self.assertEqual((env['FLYCAST_REMAKE_OBSERVATION_SCOPE_GATES'], env['FLYCAST_REMAKE_OBSERVATION_SCOPE_PARTS']), ('off', 'none'))
+        self.args.scope_gates = None; self.args.scope_parts = None; self.args.observation_scope = 'full'
         self.assertNotIn('FLYCAST_REMAKE_FRAME_BUDGET_MS', default[2])
         self.args.frame_budget_ms = 4.0
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_FRAME_BUDGET_MS'], '4.0')

@@ -1,5 +1,34 @@
 # Neural rendering decisions
 
+## D-242: the narrowed observation scope watches less code, not less of each observation
+
+LOG907. `--observation-scope narrow` (FLYCAST_REMAKE_OBSERVATION_SCOPE=narrow,
+experimental, default full) implements the D-240 authorisation. The
+recompiler still emits every source-observation hook; each hooked block
+loads one flag at entry and its hooks branch on it. The gate code is emitted
+whenever source observation is enabled, in full mode too (every flag stays
+set there), so both modes compile byte-identical blocks and share one
+code-cache reset schedule; LOG907 found that mode-dependent block sizes
+moved the resets and with them the observations lost in flight. Discovery runs with every flag
+set and records the compiled blocks whose hooks fed a complete copy
+observation (SQ writer, XYZ store, read and RAM-producer PCs, the FTRV
+transform PC, and the arithmetic and boundaries that carried a live origin)
+from the process's own execution, never from a configuration. After 300
+frames with complete observations and a region set stable for 60 frames,
+only blocks overlapping a region keep their hooks; 30 submitting frames
+without a complete observation widen the scope again and discovery restarts
+with the union, bounded to eight widenings, after which the scope stays full
+for the session. Nothing an observation asserts changes: records, byte and
+value checks, transform equality and the anchor's rejections are the same
+code; a vertex whose chain ran unwatched has no observation and the anchor
+treats it as before (insufficient support falls back natively). What the
+user accepted is the robustness cost: guest code that first contributes
+after narrowing is seen only through the widening rule. Acceptance stays
+D-240's: differential tests, the exact moving source proof on a matched
+scene, identical anchor outcomes on that scene, and a clean
+performance-eligible run. The hook attribution diagnostic
+(`--hook-attribution`, counting only) is the evidence that justified it.
+
 ## D-241: curved point-normal export is an opt-in shaping of exported geometry, not source geometry
 
 LOG905. `--curved-export` replaces silhouette facets of the exported opaque

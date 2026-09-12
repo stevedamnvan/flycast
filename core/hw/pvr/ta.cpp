@@ -4,6 +4,7 @@
 #include "pvr_mem.h"
 #ifdef FLYCAST_ENABLE_NEURAL
 #include "rend/neural/source_sq_scope.h"
+#include "rend/neural/source_hook_attribution.h"
 #include "hw/sh4/sh4_sched.h"
 #endif
 
@@ -556,6 +557,7 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 	const auto& source = flycast::rend::neural::currentSourceSq;
 	if (source.serial != 0)
 	{
+		++flycast::rend::neural::sourceObservationFrameSubmissions;
 		try
 		{
 			if (!ta_ctx->sourceObservations)
@@ -589,6 +591,18 @@ static void DYNACALL ta_thd_data32_i(const simd256_t *data)
 					for(unsigned i=component*4;i<component*4+4;++i)witnessed=witnessed&&record.xyzStorePc[i];
 					if(witnessed)record.xyzTransforms[component]=flycast::rend::neural::sourceSqTransforms[(source.address&32)/4+1+component];
 					else record.xyzTransforms[component].reset();
+				}
+				// Hook attribution diagnostic: the PCs a complete observation rests on.
+				if(record.xyzTransforms[0]&&record.xyzTransforms[1]&&record.xyzTransforms[2]
+				   &&(flycast::rend::neural::SourceHookAttributionEnabled||(flycast::rend::neural::SourceObservationScopeRequested()&&flycast::rend::neural::SourceObservationScopePartEnabled(flycast::rend::neural::ScopePartTa)))) {
+					using namespace flycast::rend::neural;
+					++sourceObservationFrameComplete;
+					NoteSourceHookContributor(record.writerPc);
+					for(unsigned i=0;i<12;++i) {
+						NoteSourceHookContributor(record.xyzStorePc[i]);NoteSourceHookContributor(record.xyzReadPc[i]);
+						NoteSourceHookContributor(record.xyzRamProducerPc[i]);
+					}
+					for(const auto& transform:record.xyzTransforms)NoteSourceHookContributor(transform->pc);
 				}
 				ta_ctx->sourceObservations->Commit();
 			}

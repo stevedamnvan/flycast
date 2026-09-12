@@ -13,6 +13,8 @@
 #include "rend/neural/source_sq_scope.h"
 #include "rend/neural/source_transform.h"
 #include "rend/neural/source_arithmetic.h"
+#include "rend/neural/source_hook_attribution.h"
+#include "rend/neural/source_observation_scope.h"
 #endif
 
 #include <mutex>
@@ -113,6 +115,43 @@ bool QueueRender(TA_context* ctx)
 	for (TA_context* child = ctx; child != nullptr; child = child->nextContext)
 		if (child->sourceObservations)
 			child->sourceObservations->Seal(ctx->rend.captureProducer, child->sourceObservations->Size());
+	// Diagnostic guest-frame digest (FLYCAST_REMAKE_GUEST_FRAME_DIGEST=1): a
+	// hash of the raw TA bytes the guest submitted for this frame with its
+	// producer cycle. It depends only on the emulated guest, never on an
+	// observation, so two runs whose digests agree at the same cycle showed the
+	// same guest scene; a difference elsewhere is then host-side bookkeeping.
+	{
+		static const bool guestDigest=[](){const char* v=std::getenv("FLYCAST_REMAKE_GUEST_FRAME_DIGEST");return v&&std::strcmp(v,"1")==0;}();
+		if(guestDigest&&!ctx->rend.isRTT) {
+			std::uint64_t h=1469598103934665603ull;std::size_t bytes=0;
+			for (TA_context* child = ctx; child != nullptr; child = child->nextContext) {
+				const u8* b=child->tad.thd_root;const u8* e=child->tad.End();
+				for(const u8* p=b;p<e;++p){h^=*p;h*=1099511628211ull;}
+				bytes+=std::size_t(e-b);
+			}
+			NOTICE_LOG(RENDERER,"Remake guest frame digest: producer=%llu cycle=%llu ta_bytes=%u digest=%016llx diagnostic=true",
+				(unsigned long long)ctx->rend.captureProducer.ordinal,(unsigned long long)sh4_sched_now64(),unsigned(bytes),(unsigned long long)h);
+		}
+	}
+	if(flycast::rend::neural::SourceObservationScopeRequested()) {
+		static bool announced=false;
+		if(!announced) {
+			announced=true;
+			const char* gates=std::getenv("FLYCAST_REMAKE_OBSERVATION_SCOPE_GATES");const char* parts=std::getenv("FLYCAST_REMAKE_OBSERVATION_SCOPE_PARTS");
+			NOTICE_LOG(RENDERER,"Remake observation scope requested: gates=%s parts=%s (diagnostic knobs; absent means all)",gates?gates:"<all>",parts?parts:"<all>");
+		}
+	}
+	if(flycast::rend::neural::SourceObservationScopeRequested()&&flycast::rend::neural::SourceObservationScopePartEnabled(flycast::rend::neural::ScopePartCtrl)) {
+		using namespace flycast::rend::neural;
+		auto& scope=sourceObservationScope;
+		static unsigned scopeFrames=0;
+		const auto event=scope.EndFrame(TakeSourceHookCount(sourceObservationFrameComplete),TakeSourceHookCount(sourceObservationFrameSubmissions));
+		if(event!=SourceObservationScopeEvent::None){ApplySourceObservationScopeFlags();ForgetSourceObservationContributorCache();}
+		if(event!=SourceObservationScopeEvent::None||++scopeFrames%600==0)
+			NOTICE_LOG(RENDERER,"Remake observation scope: event=%s mode=%s regions=%u region_bytes=%u watched_blocks=%u/%u frames_observed=%u stable_frames=%u widened=%u narrowings=%u exhausted=%d scope=experimental",
+				SourceObservationScopeEventName(event),SourceObservationScopeName(scope.mode),unsigned(scope.regions.size()),unsigned(scope.RegionBytes()),
+				unsigned(sourceObservationWatchedBlocks),unsigned(sourceObservationBlocks.size()),scope.framesObserved,scope.stableFrames,scope.widened,scope.narrowings,int(scope.exhausted));
+	}
 	if(ctx->sourceObservations && ctx->rend.captureProducer.Available() && flycast::rend::neural::sourceTransforms) {
 		const auto serial=flycast::rend::neural::sourceTransformSerial;
 		NOTICE_LOG(RENDERER,"PVR transform arithmetic: producer=%llu observed=%llu rejected=%llu",
@@ -158,6 +197,33 @@ bool QueueRender(TA_context* ctx)
 					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookInvalidateCalls),
 					(unsigned long long)flycast::rend::neural::TakeSourceHookCount(flycast::rend::neural::SourceHookBoundaryCalls));
 			}
+		// D-240 groundwork: per-block hook attribution, reported every 120
+		// emulated frames (at most ten reports); counting only, diagnostic.
+		if(const char* attribution=std::getenv("FLYCAST_REMAKE_HOOK_ATTRIBUTION");attribution&&std::strcmp(attribution,"1")==0) {
+			using namespace flycast::rend::neural;
+			SourceHookAttributionEnabled=true;
+			static unsigned attributionFrames=0,attributionReports=0;
+			if(++attributionFrames>=120&&attributionReports<10) {
+				const auto summary=SummarizeSourceHookAttribution(sourceHookPcTallies,sourceHookContributingPcs,
+					[](std::uint32_t pc){return SourceHookBlockOf(pc);},16);
+				std::string kinds;
+				for(unsigned k=0;k<SourceHookKindCount;++k)
+					kinds+=std::string(SourceHookKindName(k))+"="+std::to_string(summary.total[k])+"/"+std::to_string(summary.fromContributingPcs[k])
+						+"/"+std::to_string(summary.fromContributingBlocks[k])+" ";
+				NOTICE_LOG(RENDERER,"Remake source hook attribution: frames=%u pcs=%u blocks=%u contributing_pcs=%u contributing_blocks=%u %s(total/from_contributing_pcs/from_contributing_blocks) diagnostic=true",
+					attributionFrames,unsigned(summary.pcs),unsigned(summary.blocks),unsigned(summary.contributingPcs),unsigned(summary.contributingBlocks),kinds.c_str());
+				for(std::size_t i=0;i<summary.topBlocks.size();++i) {
+					const auto& b=summary.topBlocks[i];
+					NOTICE_LOG(RENDERER,"Remake source hook block: rank=%u start=%08x calls=%llu contributing=%d stores=%llu reads=%llu arithmetic=%llu block_entries=%llu boundaries=%llu sq_writes=%llu ftrv=%llu diagnostic=true",
+						unsigned(i+1),b.start,(unsigned long long)b.calls,int(b.contributing),
+						(unsigned long long)b.byKind[unsigned(SourceHookKind::Store)],(unsigned long long)b.byKind[unsigned(SourceHookKind::Read)],
+						(unsigned long long)b.byKind[unsigned(SourceHookKind::Arithmetic)],(unsigned long long)b.byKind[unsigned(SourceHookKind::BlockEntry)],
+						(unsigned long long)b.byKind[unsigned(SourceHookKind::Boundary)],(unsigned long long)b.byKind[unsigned(SourceHookKind::SqWrite)],
+						(unsigned long long)b.byKind[unsigned(SourceHookKind::Ftrv)]);
+				}
+				sourceHookPcTallies.clear();attributionFrames=0;++attributionReports;
+			}
+		}
 		emuLastQueued=now;
 	}
 #endif

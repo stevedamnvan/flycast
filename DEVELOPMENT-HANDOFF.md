@@ -34,8 +34,15 @@ scope authorised) and hair option 1; `--alpha-cutout` is implemented and
 evidenced on the water stage (`C:\Flycast-Evidence\pilot-hair-cutout-b`;
 D: is full). LOG905/D-241: `--curved-export` rounds the fighters'
 silhouettes (feed worker 14.1 ms with it) and the DLSS consumer profile
-smooths edges; `pilot-curved-d`. Next,
-in order: (1) the 60 fps observation-scope decision (LOG897/LOG898); (2) human
+smooths edges; `pilot-curved-d`. LOG907/D-242: `--observation-scope
+narrow` is implemented (gates emitted in both modes after a code-cache
+reset timeline hazard; `--guest-frame-digest` proves identical guest
+scenes); the clean pair `pilot-scope-{full,narrow}-digest-b` gives
+22.75 versus 18.93 ms present p50 (about 53 fps) with identical anchor
+pose; the render thread (frame-render about 16 ms) and no-return-credit
+skips are the remaining 60 fps items, and the matched narrow capture
+proof is open because capture runs cannot hold presentation. Next,
+in order: (1) the render-thread cost on the narrow route (return-motion-stream, returned-evaluate) with a matched narrow capture proof; (2) human
 visual review of the composited pilot output; returned-output
 integration with alpha ownership and resource accounting (LOG859 next
 item); lifecycle/budget contract review for the 120 s helper watchdog

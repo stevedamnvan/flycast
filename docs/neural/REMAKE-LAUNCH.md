@@ -106,7 +106,30 @@ performance evidence. `--hook-cycles` (with `--cpu-timing`) adds a per-frame
 `Remake source hook cycles` line with the time spent inside each
 source-observation hook on the emulation thread; it costs two time-stamp
 reads per hook call and inflates the emulated frame period by several
-milliseconds, so it is a separate opt-in. The helper's `live_return` lines
+milliseconds, so it is a separate opt-in. `--hook-attribution` (with
+`--cpu-timing`) reports every 120 emulated frames (at most ten reports)
+`Remake source hook attribution` (per hook kind: total calls, calls from PCs
+that fed a complete copy observation, calls from compiled blocks holding such
+a PC) and the sixteen busiest blocks as `Remake source hook block` lines;
+counting only, no hook is skipped (D-240 groundwork). `--observation-scope
+narrow` (experimental, default `full`, D-240) keeps every hook compiled but
+each hooked block reads one flag at entry: after 300 frames of discovery with
+complete observations and a region set stable for 60 frames, only blocks
+overlapping the guest code regions that fed complete observations keep their
+hooks; 30 frames of submissions without a complete observation widen the scope
+again (bounded to eight widenings, then full for the session). The log carries
+`Remake observation scope` lines at each transition and every 600 frames.
+It narrows which code is watched, not what an observation asserts. The gate
+code is emitted in full mode too, so both modes run the same compiled
+blocks (LOG907). `--scope-gates LIST` (comma list of entry, arith, read,
+store, sq, ftrv, after, load; `off`) and `--scope-parts LIST` (note, ta,
+ctrl, reg; `none`) are diagnostics that accept only with `narrow`; flycast
+logs `Remake observation scope requested: gates=... parts=...` so a run
+proves which knobs reached it (inherited `FLYCAST_REMAKE_*` variables never
+do). `--guest-frame-digest` logs `Remake guest frame digest` per frame (a
+hash of the raw TA bytes with the producer cycle, depending only on the
+emulated guest) so two runs can be shown to have rendered the same guest
+scene at the same cycle before any observation-level comparison. The helper's `live_return` lines
 carry `period_ms` (receive to receive), `receive_wait_ms` (idle in receive)
 and `prepare_ms` (receive to draw), plus `color_copy_ms`, `depth_convert_ms`
 and `return_ms` (D-219). The live channel keeps three sources in flight

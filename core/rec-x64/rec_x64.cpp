@@ -27,7 +27,26 @@ using namespace Xbyak::util;
 #include "rend/neural/source_transform.h"
 #include "rend/neural/source_arithmetic.h"
 #include "rend/neural/remake_cpu_scope.h"
+#include "rend/neural/source_hook_attribution.h"
+#include "rend/neural/source_observation_scope.h"
 #include <cstdlib>
+// Diagnostic only: FLYCAST_REMAKE_OBSERVATION_SCOPE_GATES limits which hook
+// sites carry the narrowed-scope gate (comma list of entry, arith, read,
+// store, sq, ftrv, after, load; default all). Used to attribute a behaviour
+// difference to one site; never a performance or acceptance setting.
+enum SourceScopeGate : unsigned { GateEntry=1, GateArith=2, GateRead=4, GateStore=8, GateSq=16, GateFtrv=32, GateAfter=64, GateLoad=128 };
+static unsigned sourceScopeGateMask() {
+	static const unsigned mask=[](){
+		const char* v=std::getenv("FLYCAST_REMAKE_OBSERVATION_SCOPE_GATES");
+		if(!v)return 255u;
+		unsigned m=0;const std::string list=v;
+		if(list.find("entry")!=std::string::npos)m|=GateEntry;if(list.find("arith")!=std::string::npos)m|=GateArith;
+		if(list.find("read")!=std::string::npos)m|=GateRead;if(list.find("store")!=std::string::npos)m|=GateStore;
+		if(list.find("sq")!=std::string::npos)m|=GateSq;if(list.find("ftrv")!=std::string::npos)m|=GateFtrv;
+		if(list.find("after")!=std::string::npos)m|=GateAfter;if(list.find("load")!=std::string::npos)m|=GateLoad;
+		return m;}();
+	return mask;
+}
 static bool sourceSqObservationEnabled() {
 	static const bool enabled=[](){const char* value=std::getenv("FLYCAST_NEURAL_SOURCE_OBSERVATION");
 		return value && std::string(value)=="1";}();
@@ -35,6 +54,7 @@ static bool sourceSqObservationEnabled() {
 }
 static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
 	++flycast::rend::neural::SourceHookSqWriteCalls;
+	flycast::rend::neural::AttributeSourceHook(flycast::rend::neural::SourceHookKind::SqWrite,pc);
 	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookSqWriteCycles);
 	flycast::rend::neural::SourceSqScope observation(pc,address);
 	static bool reported=false;
@@ -43,6 +63,7 @@ static void DYNACALL observedSourceSqWrite(u32 address,Sh4Context* ctx,u32 pc) {
 }
 static void DYNACALL observedSourceSqStore(u32 address,u32 pc,u32 size,u64 value) {
 	++flycast::rend::neural::SourceHookStoreCalls;
+	flycast::rend::neural::AttributeSourceHook(flycast::rend::neural::SourceHookKind::Store,pc);
 	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookStoreCycles);
 	flycast::rend::neural::RefreshSourceSqWriters();
 	// D-217: for 4-byte register stores the storing register (+1) rides in the
@@ -84,6 +105,7 @@ static void DYNACALL invalidateSourceSqWriters() {
 static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 	using namespace flycast::rend::neural;
 	++SourceHookBoundaryCalls;
+	AttributeSourceHook(SourceHookKind::Boundary,pc);
 	SourceHookCycles cycles(SourceHookBoundaryCycles);
 	if(!sourceArithmeticLive)return; // D-217: no live origin to report or kill.
 	unsigned live=opcode==UINT32_MAX?sourceArithmeticLive:0;
@@ -91,6 +113,7 @@ static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 		const auto& origin=sourceArithmeticOrigins[reg+i];
 		live+=origin.epoch==sourceArithmeticEpoch&&origin.transform.has_value();
 	}
+	if(live)NoteSourceHookContributor(pc); // A boundary that kills or reports a live origin is part of the chain.
 	static std::array<u64,64> reported{};static unsigned used=0;
 	const u64 key=(static_cast<u64>(pc)<<32)|opcode;
 	if(live&&opcode!=shop_readm&&opcode!=shop_mov32&&used<reported.size()&&std::find(reported.begin(),reported.begin()+used,key)==reported.begin()+used) {
@@ -100,9 +123,10 @@ static void DYNACALL sourceOriginBoundary(u32 pc,u32 opcode,u32 reg,u32 count) {
 	}
 	if(opcode==UINT32_MAX)ClearSourceArithmeticOrigins();else KillSourceArithmeticOrigin(reg,count);
 }
-static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
+static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx,u32 blockStart) {
 	using namespace flycast::rend::neural;
 	++SourceHookBlockEntryCalls;
+	AttributeSourceHook(SourceHookKind::BlockEntry,blockStart);
 	SourceHookCycles cycles(SourceHookBlockEntryCycles);
 	RefreshSourceSqWriters();
 	if(!sourceArithmeticLive)return;
@@ -117,6 +141,7 @@ static void DYNACALL validateSourceBlockEntry(Sh4Context* ctx) {
 static void DYNACALL beginSourceRead(u32 address,u32 pc,u32 slot) {
 	using namespace flycast::rend::neural;
 	SourceHookCycles cycles(SourceHookReadCycles);
+	AttributeSourceHook(SourceHookKind::Read,pc);
 	RefreshSourceSqWriters();
 	sourceRegisterReads[slot].Begin(address,pc);
 }
@@ -130,6 +155,7 @@ static void DYNACALL finishSourceRead(u32 value,u32 slot) {
 static void (*sourceOriginalFtrv)(float*,const float*,const float*);
 static void observedSourceFtrv(float* output,const float* input,const float* matrix,u64 identity) {
 	++flycast::rend::neural::SourceHookFtrvCalls;
+	flycast::rend::neural::AttributeSourceHook(flycast::rend::neural::SourceHookKind::Ftrv,static_cast<u32>(identity));
 	flycast::rend::neural::SourceHookCycles cycles(flycast::rend::neural::SourceHookFtrvCycles);
 	flycast::rend::neural::KillSourceArithmeticOrigin(static_cast<u32>(identity>>48),4);
 	flycast::rend::neural::SourceTransform observed;
@@ -282,6 +308,20 @@ public:
 #ifdef FLYCAST_ENABLE_NEURAL
 		std::vector<int> sourceReadForStore;
 		const bool observeTransformArithmetic=sourceSqObservationEnabled()&&!mmu_enabled();
+		// D-240 narrowed scope: each hooked site branches on a flag loaded once
+		// at block entry. The gates are emitted whenever observation is on, in
+		// full and narrow mode alike (every flag is set in full mode), so both
+		// modes compile byte-identical blocks: the recompiler's code-cache
+		// resets then fall on the same guest frames and the two modes replay
+		// the same emulated timeline (LOG907).
+		const bool scopeGated=sourceSqObservationEnabled();
+		const auto gated=[&](unsigned bit){return scopeGated&&(sourceScopeGateMask()&bit)!=0;};
+		const auto gate=[&](Xbyak::Label& skip){
+			mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceObservationBlockActive));cmp(byte[rax],0);je(skip,T_NEAR);};
+		if(gated(GateLoad)) {
+			mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceObservationFlags.flags[flycast::rend::neural::SourceObservationFlagSlot(block->vaddr)]));
+			mov(al,byte[rax]);mov(rcx,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceObservationBlockActive));mov(byte[rcx],al);
+		}
 		std::vector<u32> sourceTransformForStore;
 		std::array<bool,256> sourceReadNeeded{};
 		if(sourceSqObservationEnabled()&&!mmu_enabled()) {
@@ -300,8 +340,9 @@ public:
 			if(mmu_enabled())GenCall(invalidateSourceSqWriters);
 			else {
 				Xbyak::Label noLiveOrigin;
+				if(gated(GateEntry))gate(noLiveOrigin);
 				mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceArithmeticLiveFlag));cmp(dword[rax],0);je(noLiveOrigin,T_NEAR);
-				mov(call_regs64[0],reinterpret_cast<uintptr_t>(&sh4ctx));GenCall(validateSourceBlockEntry);
+				mov(call_regs64[0],reinterpret_cast<uintptr_t>(&sh4ctx));mov(call_regs[1],block->vaddr);GenCall(validateSourceBlockEntry);
 				L(noLiveOrigin);
 			}
 		}
@@ -318,12 +359,15 @@ public:
 			const u32 arithmeticKind=op.op==shop_fadd?1:op.op==shop_fsub?2:op.op==shop_fmul?3:op.op==shop_fdiv?4:0;
 			const bool observeArithmetic=observeTransformArithmetic&&arithmeticKind&&op.rd.is_r32()
 				&&(op.rs1.is_r32()||op.rs1.is_imm())&&(op.rs2.is_r32()||op.rs2.is_imm());
+			Xbyak::Label skipBeginArithmetic;
 			if(observeArithmetic) {
+				if(gated(GateArith))gate(skipBeginArithmetic);
 				const auto regId=[](const shil_param& p)->u32{return p.is_reg()?static_cast<u32>(p._reg):255;};
 				const u32 layout=arithmeticKind|(regId(op.rd)<<8)|(regId(op.rs1)<<16)|(regId(op.rs2)<<24);
 				shil_param_to_host_reg(op.rs1,call_regs[2]);shil_param_to_host_reg(op.rs2,call_regs[3]);
 				mov(call_regs[0],sourceCurrentPc);mov(call_regs[1],layout);
 				GenCall(flycast::rend::neural::BeginSourceArithmetic);
+				L(skipBeginArithmetic);
 			}
 #endif
 
@@ -392,7 +436,8 @@ public:
 				if(current_opid<256&&sourceReadNeeded[current_opid]) {
 					shil_param_to_host_reg(op.rs1,call_regs[0]);
 					if(!op.rs3.is_null()) {shil_param_to_host_reg(op.rs3,call_regs[1]);add(call_regs[0],call_regs[1]);}
-					mov(call_regs[1],block->vaddr+op.guest_offs);mov(call_regs[2],static_cast<u32>(current_opid));GenCall(beginSourceRead);
+					{Xbyak::Label skipRead;if(gated(GateRead))gate(skipRead);
+					mov(call_regs[1],block->vaddr+op.guest_offs);mov(call_regs[2],static_cast<u32>(current_opid));GenCall(beginSourceRead);L(skipRead);}
 				}
 #endif
 				if (!GenReadMemImmediate(op, block))
@@ -431,7 +476,8 @@ public:
 				}
 #ifdef FLYCAST_ENABLE_NEURAL
 				if(current_opid<256&&sourceReadNeeded[current_opid]) {
-					shil_param_to_host_reg(op.rd,call_regs[0]);mov(call_regs[1],static_cast<u32>(current_opid));GenCall(finishSourceRead);
+					{Xbyak::Label skipRead;if(gated(GateRead))gate(skipRead);
+					shil_param_to_host_reg(op.rd,call_regs[0]);mov(call_regs[1],static_cast<u32>(current_opid));GenCall(finishSourceRead);L(skipRead);}
 				}
 #endif
 				break;
@@ -472,6 +518,7 @@ public:
 				if(sourceSqObservationEnabled() && !mmu_enabled()) {
 					const bool derivedRegister=observeTransformArithmetic&&op.rs2.is_r32()&&op.size==4&&op.rs2._reg<255;
 					Xbyak::Label notSq;
+					if(gated(GateStore))gate(notSq);
 					shil_param_to_host_reg(op.rs1,call_regs[0]);
 					if(!op.rs3.is_null()) {shil_param_to_host_reg(op.rs3,call_regs[1]);add(call_regs[0],call_regs[1]);}
 					Xbyak::Label observedMemory;
@@ -590,8 +637,19 @@ public:
 					{
 					#ifdef FLYCAST_ENABLE_NEURAL
 						if(sourceSqObservationEnabled()) {
+							Xbyak::Label plainSq,sqDone;
+							const bool sqGated=gated(GateSq);
+							if(sqGated)gate(plainSq);
 							mov(call_regs[2],block->vaddr+op.guest_offs);
 							GenCall(observedSourceSqWrite);
+							if(sqGated) {
+								jmp(sqDone,T_NEAR);L(plainSq);
+								mov(rax, (size_t)&sh4ctx.doSqWrite);
+								saveXmmRegisters();
+								call(qword[rax]);
+								restoreXmmRegisters();
+								L(sqDone);
+							}
 						} else
 					#endif
 						{
@@ -684,6 +742,12 @@ public:
 				break;
 			}
 #ifdef FLYCAST_ENABLE_NEURAL
+			Xbyak::Label skipAfterOp;
+			// Gate only where the ungated code emits a hook, so the emitted
+			// register use after every other op is exactly as before.
+			const bool afterOpHooked=observeArithmetic||(observeTransformArithmetic&&op.op!=shop_ftrv
+				&&(op.op==shop_frswap||op.op==shop_sync_fpscr||op.op==shop_sync_sr||op.rd.is_reg()||op.rd2.is_reg()));
+			if(gated(GateAfter)&&afterOpHooked)gate(skipAfterOp);
 			if(observeArithmetic) {
 				shil_param_to_host_reg(op.rd,call_regs[0]);GenCall(flycast::rend::neural::EndSourceArithmetic);
 			}
@@ -716,6 +780,7 @@ public:
 					L(noLiveOrigin);
 				}
 			}
+			L(skipAfterOp);
 #endif
 			regalloc.OpEnd(&op);
 		}
@@ -792,6 +857,13 @@ public:
 
 		block->code = (DynarecCodeEntryPtr)getCode();
 		block->host_code_size = getSize();
+#ifdef FLYCAST_ENABLE_NEURAL
+		{
+			static const bool attribution=[](){const char* v=std::getenv("FLYCAST_REMAKE_HOOK_ATTRIBUTION");return v&&std::string(v)=="1";}();
+			if(attribution||flycast::rend::neural::SourceObservationScopeRequested())
+				flycast::rend::neural::RegisterSourceObservationBlock(block->vaddr,block->sh4_code_size);
+		}
+#endif
 
 		codeBuffer.advance(getSize());
 	}
@@ -873,8 +945,12 @@ public:
 #ifdef FLYCAST_ENABLE_NEURAL
 		if(sourceSqObservationEnabled()&&op.op==shop_ftrv&&regused==3) {
 			sourceOriginalFtrv=reinterpret_cast<void (*)(float*,const float*,const float*)>(function);
+			Xbyak::Label plainFtrv,ftrvDone;
+			const bool ftrvGated=(sourceScopeGateMask()&GateFtrv)!=0;
+			if(ftrvGated){mov(rax,reinterpret_cast<uintptr_t>(&flycast::rend::neural::sourceObservationBlockActive));cmp(byte[rax],0);je(plainFtrv,T_NEAR);}
 			mov(call_regs64[3],static_cast<u64>(sourceCurrentPc)|(current_opid<256?(static_cast<u64>(current_opid+1)<<32):0)|(static_cast<u64>(op.rd._reg)<<48));
 			GenCall(observedSourceFtrv);
+			if(ftrvGated){jmp(ftrvDone,T_NEAR);L(plainFtrv);GenCall((void (*)())function);L(ftrvDone);}
 		} else
 #endif
 		GenCall((void (*)())function);
@@ -1652,6 +1728,13 @@ public:
 	void reset() override
 	{
 		unwinder.clear();
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(sourceSqObservationEnabled())
+			NOTICE_LOG(DYNAREC,"Neural source observation: recompiler cache reset registered_blocks=%u scope=%s",
+				unsigned(flycast::rend::neural::sourceObservationBlocks.size()),flycast::rend::neural::SourceObservationScopeName(flycast::rend::neural::sourceObservationScope.mode));
+		flycast::rend::neural::ResetSourceObservationBlocks();
+		flycast::rend::neural::ForgetSourceObservationContributorCache();
+#endif
 		// Avoid generating the main loop more than once
 		if (::mainloop != nullptr && ::mainloop != codeBuffer->get())
 			return;

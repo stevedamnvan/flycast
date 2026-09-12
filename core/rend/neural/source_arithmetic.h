@@ -8,6 +8,7 @@
 #include <new>
 #include <optional>
 #include "source_transform.h"
+#include "source_hook_attribution.h"
 #include "remake_cpu_scope.h"
 namespace flycast::rend::neural {
 struct SourceArithmetic {
@@ -109,6 +110,7 @@ inline thread_local std::unique_ptr<std::array<SourceArithmetic,4096>> sourceAri
 inline thread_local std::uint64_t sourceArithmeticSerial=0,sourceArithmeticRejected=0;
 inline void BeginSourceArithmetic(std::uint32_t pc,std::uint32_t layout,std::uint32_t lhs,std::uint32_t rhs) noexcept {
  ++SourceHookArithmeticCalls;
+ AttributeSourceHook(SourceHookKind::Arithmetic,pc);
  SourceHookCycles cycles(SourceHookArithmeticCycles);
  pendingSourceArithmetic={0,pc,layout,lhs,rhs};
  if(!sourceArithmeticLive){pendingArithmeticOrigin.reset();return;} // D-217: no origin can propagate.
@@ -116,6 +118,7 @@ inline void BeginSourceArithmetic(std::uint32_t pc,std::uint32_t layout,std::uin
  const auto right=GetSourceArithmeticOrigin(layout>>24,rhs);
  pendingArithmeticOrigin=left?left:right;
  if(left&&right&&left->serial!=right->serial)pendingArithmeticOrigin.reset();
+ if(pendingArithmeticOrigin)NoteSourceHookContributor(pc); // Arithmetic carrying a live origin is part of the chain.
 }
 inline void EndSourceArithmetic(std::uint32_t result) noexcept {
  SourceHookCycles cycles(SourceHookArithmeticCycles);
