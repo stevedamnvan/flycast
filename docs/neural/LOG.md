@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG939 alpha-preserving Toolkit ingestion and source-identity diagnostic.
+Existing ConvertToDDS option bgra8 verified through installed public source,
+MCP schema and bundled exporter help; no new tool/model. Executed one MCP
+DIFFUSE ingestion from existing BEF7B3CA57719AF1 restored-alpha PNG to isolated
+assets/ingested/character_alpha_uncompressed. DXGI87 BGRA8,1024x1024,11mips,
+5592552 bytes. Base RGBA is byte-exact to PNG: zero added alpha/RGB error,
+versus BC7's up-to6/255 alpha error. Original PNG's <=1/255 source restoration
+bound remains; no exact original fractional-alpha claim. About4MiB extra file
+storage including mips for this one exception; not a reason to expand globally.
+Both BC7 and BGRA8 bounded120-frame frozen renders exit0 and show the scene;
+new texture temporarily bound through MCP, old candidate binding and baseline
+mod restored byte-exact. Image inspected, no blank/error texture seen; not
+moving-opacity or sampled-format acceptance. No production binding promotion.
+Evidence material-union-a/alpha-uncompressed-validation.json and alpha-runtime/.
+Toolkit changed from capture-extensionPID3352 to standard ingestionPID24508.
+MCP refused ordinary close due dirty session state; all seven loaded file layers
+backed up and saved through MCP, bytes unchanged, then session force-closed.
+Review workfile initial backup and session-save/receipt.json retained. Current
+standard session has review project open; capture extension not enabled.
+Separate skin-source-identity-a diagnostic captured3 of5 requested sources;
+all3 match original LOG936 producer/state/camera/geometry (144 mesh-materials).
+At2447 epoch3/ordinal2446/cycle9823912000 is identical. This rules out persistent
+archive corruption for those samples but does not explain the prior zero-capture
+locked run; do not label it fixed or retry blindly. No performance acceptance.
+Next moving source-supported fringe/opacity check for BGRA8 before promotion;
+keep live skin/public-versus-supplied-consumer diagnosis and LOG911 active.
+
 LOG938 PBRify union and bounded downstream comparison.
 Cached validation follow-through: material-union-a/CANDIDATE-VALIDATION.md
 checks50 files;15/16 albedos exact source alpha,16/16 exact128 cutout coverage.

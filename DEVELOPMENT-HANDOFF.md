@@ -1,19 +1,19 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG938: PBRify confirmed. material-union-a reconciles47 observed hashes;
-42 already have cached albedo/normal/roughness/height. Other5 sky/rejected,
-not generation jobs. Cached validation complete:15/16 albedos alpha exact,16/16 threshold128 exact.
-BEF fringe BC7 introduces up to6/255 alpha error after restored PNG <=1/255;
-inspect MCP compression options before regeneration. See CANDIDATE-VALIDATION.md.
-No material upgrade accepted merely from file existence.
-Frozen downstream experiment: skin-locked-remix-a19 exact matches against
-LOG936 candidate, returned pixels identical, final MAE8.486. Skin lighter in
-Remix-only, still uneven; no neural provenance or visual acceptance. Fresh
-skin-locked-combined-a captured0: locked-replay-producer-not-found. Failed logs
-retained. Do not repeat blindly or loosen source guard. Next investigate join
-and separate public returned-DLAA from supplied consumer with existing lanes.
-Evidence live-stage-review-a/locked-comparison.json. Both sessions terminal,
-baseline not mutated. Independent LOG911 performance remains ready.
+Current LOG939: BEF hair alpha ingestion corrected in isolated BGRA8 candidate.
+Existing MCP pipeline, no regeneration. Final1024 DDS/11mips matches restored
+PNG RGBA byte-exact (zero added error); original PNG retains <=1byte source
+alpha difference. About4MiB additional stored mip-chain data for this atlas.
+120-frame BC7/BGRA8 frozen render smoke complete; old candidate binding and
+baseline restored byte-exact. New BGRA8 not promoted; moving alpha/threshold
+and sampled-format proof next. Evidence material-union-a/alpha-runtime/ and
+alpha-uncompressed-validation.json. Toolkit now standardPID24508, review open;
+capture extension disabled for ingestion. All loaded layer files backed up/saved
+before session restart, baseline hashes unchanged.
+Source identity diagnostic captured3 matching LOG936 sources (144 meshes exact);
+prior locked combined failure remains unexplained, not fixed. Live skin and
+public/supplied-consumer separation plus independent LOG911 remain in queue.
+PBRify union47 observed,42 cached sets; no whole-game denominator or bulk approval.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;
 six stills reviewed, baseline restored. Need fresh contiguous moving candidate
