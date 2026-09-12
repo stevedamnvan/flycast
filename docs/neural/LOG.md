@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG979 scene audit classification. scene-audit-reference-a/unmatched-classification
+records10 unmatched native previews:8 HUD/name/effect views,1 background
+panorama,1 water. Contact-sheet classification plus draw bindings only; not
+proof of screen ownership. Native capture is WATER stage, reference is TEMPLE;
+do not infer regression from their different inventories. Original temple
+source2601 packet now inventoried with existing material manifest:26 materials
+match captured payloads,zero unmatched. This covers exported packet materials,
+not omitted geometry or full gameplay. Evidence temple-manifest.json. Next
+render current corrections on this exact temple packet and compare with saved
+reference; preserve separate water/HUD/effects audit and capture-free perf.
+No assets changed, no appearance acceptance, audio parked.
+
 LOG978 whole-scene audit started; preferred reference recovered exactly as
 D:/Flycast-Evidence/pilot-curated/final-taki.png. Middle render receipt at
 pbrify-final-1280x960-native/run.json:source2601 smoothed packet,1280x960,

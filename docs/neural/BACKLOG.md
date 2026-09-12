@@ -286,7 +286,9 @@ LOG977 retains all129 exact hair copies; transforms unmatched, not absent geomet
 User appearance reference: reimagined final(height on floor only), middle image.
 LOG978 reference image/receipt recovered; whole-scene audit now first.
 40 native previews:30 captured matches,9 baseline replacements,0 missing bound files.
-Next classify unmatched views and restore reference recipe for controlled A/B; hair lineage remains
+LOG979 unmatched water views classified:8 HUD/effect,1 panorama,1 water.
+Temple source2601 separately matches26/26 exported materials. Next current
+corrections on exact temple packet vs saved reference; hair lineage remains
 a dependency for strands, not a reason to defer the overall appearance comparison
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
