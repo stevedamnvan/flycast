@@ -1,5 +1,35 @@
 # Neural rendering evidence log
 
+LOG942 moving character-height control and actionable motion-contract evidence.
+Fresh baseline/constant-one height sessions:25/27 captures,24 exact producer/
+material/state/camera/geometry matches (1152 mesh-materials). All HUD/world/
+backbuffer mismatch counters0; both launcher0, orderly helper11. Median whole
+RGB difference3.270,Kilik rectangle7.913; no fresh same-state repeat noise, not
+300-frame or performance acceptance. Viewed2461 constant-one: cloth distortion
+reduced, but skin grain/hair/overall temporal quality remains unacceptable for
+studio review. Prior PBRify layer restored byte-exact and mod unchanged. No
+candidate promoted. Evidence character-regression-a/height-moving/.
+Official NVIDIA material docs give displacement as
+(height*(displace_in+displace_out)-displace_in)*factor*UV_to_world; therefore
+constant-one is NOT universally neutral without verified material ranges.
+https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/1.3.6-2/docs/howto/learning-materials.html#pixel-depth-calculation
+Public docs explain the control, not installed runtime parameter verification.
+Subagent uncurved audit:27 captures,24 adjacent pairs,120 character transitions.
+All120 have unique same-state candidates with exact counts/indices/UV ordering;
+all120 change publicColor. BEF48 transitions include24 cutout-reactive; other
+three atlases and BEF opaque account for96 otherwise structurally stable pairs.
+Other MatchDraws ambiguity/motion/depth checks not established by this audit.
+Evidence character-regression-a/smooth-correspondence-audit.json.
+Next source slice: explicitly separate geometric matching from shading changes,
+retaining per-pixel colour history rejection and unique identity/generation/UV/
+topology/depth/disocclusion safeguards. Keep cutout conservative. Existing
+FLYCAST_REMAKE_COLOR_CONSISTENCY path offers returned-colour rejection but is
+currently launcher-disabled; do not simply delete publicColor check. Prove an
+opt-in joint contract with translated/deforming positive cases and colour/UV/
+identity/depth/ambiguity negative controls, then required four serial builds,
+three selftests, SDK/Python and real moving evidence. Curved topology stability
+remains separate; disabling curved export alone already failed LOG941.
+
 LOG941 character regression priority, temporal diagnosis and height control.
 User reports shimmer/apparent missing character textures and requires critical
 remaster-studio visual judgment before human review. BACKLOG standard amended.
