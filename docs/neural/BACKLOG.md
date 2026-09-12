@@ -279,7 +279,9 @@ BC7 hair alpha128 differs126 pixels; not promoted. Next source-supported hair
 geometry/shading assessment, no further upscale/roughness loop.
 LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
 draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
-Next existing source-witness identity validation, then bounded strand render.
+LOG974 native witness run: partial candidate hair coverage35..37/164..166;
+material readback rejects generation mismatch. Next isolate mismatch/coverage
+before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts
 match. Next source-triangle barycentric attachment prototype and moving proof,

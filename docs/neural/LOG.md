@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG974 source-witness capture trust audit, base5a5adc66e. No source changes.
+C:/Flycast-Evidence/hair-source-witness-a completed3 frames but replay was off:
+wrong intro scene visually inspected, zero transform witnesses; rejected setup.
+Run b enabled existing replay, material readback repeatedly rejected
+material-generation-mismatch. Closed owned game normally, exit1 retained.
+Run c isolates existing packet/witness export without material readback:
+3 frames2461..2463, exit0 clean close; all2462/2494/2494 recorded XYZ joins
+exact against source packet. Common origins2455/2487/2487; scene16017..16027
+vertices, so partial coverage. TCW268861104 plus UV[.5,.75] candidate hair
+region has164/166/166 vertices, only35/37/37 witnessed common origins.
+Texture address/UV is provisional identity, not pixel-payload confirmation.
+No rig/attachment acceptance. Existing staged executable embeds4e43b3565,
+not an exact current-SHA build. Evidence scripts and receipts retained outside
+Git; initial inspect.py shadowed stdlib inspect, renamed coverage_audit.py.
+Next isolate material-generation mismatch and missing hair witness coverage;
+do not suppress guard or infer identity for unwitnessed vertices. Existing
+58-surface offline prototype retained, full hair/material scope unchanged.
+No game/test live; no layer/config edits; audio remains parked.
 LOG973 offline barycentric hair-anchor feasibility, base5c33b6587.
 External hair-attachment-a/anchor_audit.py reuses packet parser and source DDS
 payload match; collapses exact position+UV duplicates, rejects multi-surface

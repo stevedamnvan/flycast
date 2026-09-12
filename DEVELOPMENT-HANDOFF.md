@@ -9,7 +9,9 @@ hair geometry/shading, no upscale/roughness loops. Audio parked.
 Evidence hair-ingest-wrapper-a and hair-region-render-a. Preserve candidate/cache.
 LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
 draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
-Next existing source-witness identity validation, then bounded strand render.
+LOG974 native witness run: partial candidate hair coverage35..37/164..166;
+material readback rejects generation mismatch. Next isolate mismatch/coverage
+before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970 latest:143 triangles/frame,6.29% flat normals; quantized UV topology
 116/116 consistent. Next source-triangle barycentric attachment prototype,
