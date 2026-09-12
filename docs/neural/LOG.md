@@ -1,5 +1,51 @@
 # Neural rendering evidence log
 
+LOG945 supported character displacement correction through Toolkit MCP.
+Base207423729. Extended existing capture MCP module with
+flycast_inspect_displacement/flycast_set_displacement, no second server.
+Captured Shader paths only, float0..0.2 matching installed MDL hard range,
+separate project layers/ target only; known baseline layers rejected, typed
+existing inputs checked, unsaved authoring with layer snapshot rollback.
+Readback reports absent USD opinions as null, not inferred runtime defaults.
+Live first inspection exposed older USD GetPropertyStack requiring an explicit
+TimeCode; fixed and restarted before authoring. Initial client positional-args
+error made no request. Seven file layers backed up/saved byte-exact before
+Toolkit restart; transient-session403 required force close after file save.
+Toolkit nowPID2772 with extension enabled (45 tools); ingestion still belongs
+in a standard session under LOG924 constraints.
+All seven ranges were unauthored before this change. Installed
+AperturePBR_Opacity.mdl declares defaults0.05/0 and hard range0..0.2; these
+defaults are not falsely reported as queried runtime values. Authored both0
+in inactive layers/character_displacement_review.usda for
+145398E2FC5B2FEA,9B77ABF12EC53A38,F8CC33F333E700CD,940953E6DC0A196B,
+98BAA87877E1587B,A9FE1461748274D9,D8C38119A5E41BD1. Height/albedo/normal/
+roughness maps unchanged. Live baseline-authoring negative control rejected;
+seven composed readbacks0 verified. Layer SHA256
+c217025ae9f50e9af7fb7f47cbd0fb9e4fe5831d34d8ddce413ac78c0832ae63.
+Frozen source2461 same stable profile and120 helper frames: baseline/repeat/
+zero-range all exit0. Whole MAE0.851 versus0.184 repeat; Kilik4.705 versus
+0.299, skin rectangle6.687 versus0.527. Viewed pairs: zero-range removes
+warped cloth/boot detail and skin edge patches. Stronger causal evidence than
+the old constant-one map guess, not overall visual acceptance.
+Fresh moving displacement-control/zero27/26 captures,26 exact producer,
+geometry/camera/state/material pairs; all53 helper/source/completed-Present
+joins and HUD/world/backbuffer mismatch counters0. Launcher0/helper11 orderly
+both; no forced children. Median whole difference3.082,Kilik7.839; no fresh
+moving repeat, so do not turn this into a quantified temporal improvement.
+Reviewed2453/2461 cleaner Kilik contours/clothing. Remaining skin grain/tone,
+hair and full remaster appearance still CORRECTIONS_REQUIRED. Native water/
+effects remain separately composited; standalone frozen image lacks them.
+MCP removal/save restores baseline mod exactly after still and moving tests;
+SHA e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340.
+Four serial build checks (no C++ changes),1053/0 selftests x3,SDK302/0,
+Python34/0 pass. No new models/generation/paid attempts. Source integration
+ACCEPTED and scoped displacement fix retained as candidate; human appearance,
+300/600-frame, performance and broader temporal acceptance remain open.
+Evidence C:/Flycast-Evidence/character-regression-a/displacement-* plus
+render-displacement.py, moving-displacement.py, compare-displacement.py.
+Next use this correction in the existing character candidate and inspect
+remaining upstream versus downstream skin/hair defects with proper motion.
+
 LOG944 upstream selective resource refresh, diagnostic allocation contract.
 Base71f50e08b. Adjacent saved-packet audit22 pairs:12 first compatibility
 failures are ID changes in final eight slots; one first failure changes vertex

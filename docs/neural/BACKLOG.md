@@ -132,6 +132,23 @@ displace_in/out defaults0.05/0; inspect resolved attributes before authoring.
 Live41-tool MCP lacks scalar read/write; extend the existing integration with
 bounded typed material attributes, preserving saved project/layers and rollback.
 Buffer reuse does not establish runtime instance identity or temporal improvement.
+Displacement MCP bounds: existing captured Shader paths only, finite float
+in/out ranges0..0.2 (installed MDL hard range), edits restricted to separate project layers/ targets with
+known baseline layers rejected. Readback distinguishes absent USD opinions from
+MDL defaults. No automatic save; snapshot rollback on authoring failure.
+LOG945 completes live MCP inspection/authoring and zero-range candidate on
+seven historical skin/cloth atlases. Baseline write negative control rejected;
+all ranges read back0 from separate character_displacement_review.usda.
+Frozen source2461: Kilik difference4.705 versus0.299 repeat; reviewed cloth/
+boot/skin distortion visibly reduced. Moving control27/candidate26,26 exact
+source/geometry/material pairs,53 source/Present joins and native composition
+exact. Reviewed2453/2461 cleaner, but remaining skin shading/hair unacceptable;
+no full temporal/appearance acceptance. Baseline restored byte-exact, candidate
+inactive. Four build checks,1053 selftests x3,SDK302,Python34 pass.
+Next carry this scoped correction into the existing character candidate and
+assess remaining returned-Remix versus downstream skin/hair defects with
+shading-aware motion, then moving combat/performance. Do not regenerate maps
+or repeat neutral-height guesses. Preserve full coverage and300/600-frame gates.
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported

@@ -5,7 +5,20 @@ The rebased capture owns no copied material/mesh files, avoiding hash-name
 collisions with captures already linked to the project.
 """
 import hashlib
+import math
+import re
 from pathlib import Path
+
+
+def displacement_request(shader_path, displace_in=None, displace_out=None):
+    if not re.fullmatch(r'/RootNode/Looks/mat_[0-9A-Fa-f]{16}/Shader', shader_path):
+        raise ValueError('Expected one captured material shader path')
+    values = {'displace_in': displace_in, 'displace_out': displace_out}
+    for value in values.values():
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (float, int))
+                                  or not math.isfinite(value) or not 0 <= value <= 0.2):
+            raise ValueError('Displacement ranges must be finite numbers in 0..0.2')
+    return {name: float(value) for name, value in values.items() if value is not None}
 
 
 def capture_destination(project_file, capture_file):
@@ -27,6 +40,69 @@ def capture_destination(project_file, capture_file):
 
 
 def register(mcp):
+    @mcp.tool(name='flycast_inspect_displacement')
+    async def inspect_displacement(shader_path: str) -> dict:
+        """Read composed USD displacement values and their authored layer sources.
+
+        An absent value is null, not an inferred MDL/runtime default.
+        """
+        import omni.usd
+        from pxr import Usd
+        displacement_request(shader_path)
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open the intended project first')
+        prim = stage.GetPrimAtPath(shader_path)
+        if not prim or prim.GetTypeName() != 'Shader':
+            raise ValueError('Existing Shader required')
+        result = {}
+        for name in ('displace_in', 'displace_out', 'height_texture'):
+            attr = prim.GetAttribute('inputs:' + name)
+            value = attr.Get() if attr else None
+            result[name] = dict(value=str(value) if name == 'height_texture' and value is not None else value,
+                                authored=bool(attr and attr.HasAuthoredValueOpinion()),
+                                layers=[s.layer.identifier for s in attr.GetPropertyStack(Usd.TimeCode.Default())] if attr else [])
+        return dict(shader=shader_path, inputs=result, runtime_defaults_verified=False)
+
+    @mcp.tool(name='flycast_set_displacement')
+    async def set_displacement(shader_path: str, displace_in: float, displace_out: float) -> dict:
+        """Author bounded displacement ranges in an existing project layers/ edit target.
+
+        Does not save or alter textures. Requires a non-baseline opt-in layer;
+        rejects original baseline layers and restores layer content on failure.
+        """
+        import omni.usd
+        from pxr import Sdf
+        values = displacement_request(shader_path, displace_in, displace_out)
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open the intended project first')
+        prim = stage.GetPrimAtPath(shader_path)
+        if not prim or prim.GetTypeName() != 'Shader':
+            raise ValueError('Existing Shader required')
+        root, layer = stage.GetRootLayer(), stage.GetEditTarget().GetLayer()
+        if not root.realPath or not layer.realPath:
+            raise ValueError('Saved project and edit layer required')
+        allowed = (Path(root.realPath).parent / 'layers').resolve()
+        target = Path(layer.realPath).resolve()
+        if target.parent != allowed or target.name in {
+                'pbrify_cloth_refined_v2.usda', 'pbrify_reimagined.usda', 'curated_pbr.usda', 'ai_pbr_draft.usda'}:
+            raise ValueError('Select a separate opt-in project layers/ layer')
+        for name in values:
+            attr = prim.GetAttribute('inputs:' + name)
+            if attr and attr.GetTypeName() != Sdf.ValueTypeNames.Float:
+                raise ValueError('Existing displacement input must be Float')
+        snapshot = layer.ExportToString()
+        try:
+            for name, value in values.items():
+                attr = prim.CreateAttribute('inputs:' + name, Sdf.ValueTypeNames.Float, custom=False)
+                if not attr.Set(value):
+                    raise RuntimeError('Displacement authoring failed')
+        except Exception:
+            layer.ImportFromString(snapshot)
+            raise
+        return dict(shader=shader_path, authored=values, layer=layer.identifier, saved=False)
+
     @mcp.tool(name='flycast_activate_capture')
     async def activate_capture(capture_file: str) -> dict:
         """Select an existing capture in this project's linked capture directory.

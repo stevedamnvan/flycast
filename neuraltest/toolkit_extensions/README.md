@@ -1,8 +1,16 @@
 # Capture import on the existing Toolkit MCP server
 
 User-authorized integration extension, loaded from this checkout. It registers
-two tools on NVIDIA's existing `lightspeed.trex.mcp.core` server; it does not
+capture and displacement tools on NVIDIA's existing `lightspeed.trex.mcp.core` server; it does not
 start another server or modify the installed Toolkit files.
+
+`flycast_inspect_displacement(shader_path)` reports composed USD in/out ranges,
+height binding and authored layer sources. Null means no composed USD value;
+it does not invent MDL/runtime defaults. `flycast_set_displacement` accepts
+finite in/out floats0..0.2 (installed MDL hard range) on captured material Shader paths. Select a separate
+project layers/ edit target first: root/capture/external and known baseline
+layers are rejected. Authoring is unsaved and rolls back layer content on
+failure. Save and layer-off restoration use the existing Toolkit MCP tools.
 
 Launch the installed `kit.exe` with its existing `lightspeed.app.trex.kit`, plus:
 

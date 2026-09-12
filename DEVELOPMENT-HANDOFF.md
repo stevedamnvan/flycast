@@ -1,5 +1,20 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG945: displacement MCP extension works live. Seven character atlas
+in/out ranges explicitly0 in inactive character_displacement_review.usda;
+original PBRify maps retained. Frozen source shows cleaner cloth/boots/skin;
+moving27/26 captures,26 exact-source pairs,53 source/Present joins and native
+composition exact. Reviewed2453/2461 improve distortion, but skin tone/grain
+and hair still need work; no whole-remaster/temporal acceptance. Baseline
+restored byte-exact. Four build checks,1053 selftests x3,SDK302,Python34 pass.
+Next carry scoped zero-range correction into existing character candidate,
+then remaining Remix-versus-downstream skin/hair with guarded motion and
+moving combat/performance; no more neutral-height or generation loop.
+ToolkitPID2772, extension session,45 tools including inspect/set displacement;
+use standard session for ingestion if needed. All seven file layers backed up
+and saved before restart. No game/helper running. Evidence displacement-* in
+C:/Flycast-Evidence/character-regression-a. Full goal and gates remain open.
+
 Current LOG944: selective helper resource refresh diagnostic complete. Four
 builds,1053 selftests x3,SDK302,Python33 pass. Control/candidate/repeat26/27/27
 captures,80 source/Present joins and native composition exact. Typical refresh
