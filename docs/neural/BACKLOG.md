@@ -260,9 +260,19 @@ light radiance0/1/repeat1/3; inspect actual response before selecting a fix.
 This isolates authored-light contribution, not indirect-only path tracing.
 LOG929 now proves authored-light and secondary-bounce contribution above
 repeat noise with supported controls; baseline restored. Next isolate character
-normal-map versus roughness response, then moving reflection/shadow proof and proceed
+normal-map versus roughness response (LOG930 complete: flat normals weak,
+rough255 measurable, baked albedo highlights persist). Whole-atlas built-in
+delit edit rejected for layout/artwork drift; no retry or binding. Next constrain
+delighting by material region and verify alignment; moving reflection/shadow proof proceeds
 to player-controlled combat and LOG911 performance. Human visual approval
 remains separate and does not block engineering. No appearance gain accepted.
+
+Weapon finish steering (LOG931): shiny metal is desired. MCP tags prove staff
+shaft versus gold caps. Existing PBRify-based polished roughness is ingested
+and bound only for caps in inactive character_correction; response exceeds
+repeat noise on tagged metal. Baseline restored. Next moving weapon reflection
+review and sword-blade material identity, not global matting. Preserve metallic
+versus lacquer/wrap/cloth distinctions and all performance/visual gates.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):
 individual-strand appearance requires a geometry/material attachment test, not

@@ -1,5 +1,50 @@
 # Neural rendering evidence log
 
+LOG931 weapon-specific reflection candidate (2026-09-12).
+User clarified: preserve desirable shine on metal/weapons; do not globally
+matte materials. MCP colour-tag control on source2453 confirms C0FE1816E4150070
+is staff shaft (green),259014235DE60F8A end caps (magenta). Tags and rough0/255
+controls restored byte-exact in baseline pbrify_reimagined layer. Existing
+curated gold metallic_constant0.9 retained; lacquer remains nonmetallic.
+NVIDIA reflectivity guidance: lower roughness sharpens reflections, metallic
+and dielectric behavior must be distinguished. No universal best value claimed.
+https://docs.omniverse.nvidia.com/materials-and-rendering/latest/templates/parameters/OmniPBR_Reflectivity.html
+Existing ComfyUI core nodes remap retained PBRify gold roughness to
+0.15+0.25*source (actual min/median/max0.180/0.251/0.345, <=0.75byte formula
+error,1024 unchanged). One deterministic output, no new inference/model/API.
+Standard Toolkit MCP ingestion passed; restarted capture-extension session,
+activated imported capture and bound only the gold roughness in existing
+character_correction opt-in layer. Baseline/candidate/repeat all exit0 at
+1280x960,120-frame stable diagnostic source2453.1018 magenta-tag-derived metal
+pixels: before/candidate MAE13.244 versus repeat0.612 (whole image0.510/0.370).
+Actual metal response is measurable; moving appearance and performance not
+accepted. Both candidate layers inactive; baseline mod restored byte-exact.
+Toolkit PID33192 last responsive. Evidence C:/Flycast-Evidence/weapon-proof-a
+includes workflow, ingestion, validation, render commands/images and metrics.
+Next verify glints/reflections during weapon movement and identify sword blade
+material independently; keep lacquer, wraps, skin and cloth material-specific.
+
+LOG930 character normal/roughness isolation and rejected delit edit.
+Existing MCP flat-normal and rough255 diagnostic assets applied only to four
+candidate character materials, with retained albedo/alpha and fixed lighting.
+Source2756, stable diagnostic profile,1280x960,120 frames, all five runs exit0.
+Flat normal character-box MAE0.728 versus repeat0.528: weak evidence, not main
+cause established. Rough255 character MAE1.987 versus repeat0.516; highlights
+reduce but shiny-looking painted features remain. Viewed albedo74909B4BBB03A72B
+contains baked highlights/shadows in cloth/skin/hair. This motivates delighting,
+not a blanket fully-rough production material. Candidate and baseline mod both
+restored byte-exact through MCP; no diagnostic maps left bound.
+One built-in image_gen delit attempt (no API fallback/new models) requested
+unchanged1024 atlas, artwork/UV/alpha with baked lighting removed. Output
+redrew ornamentation, trim and layout and changed dimensions; REJECTED before
+ingestion. No retry. Attempt/output/metrics retained at
+C:/Flycast-Evidence/character-normal-proof-a. Built-in model ID and monetary
+charge not exposed; no paid API call made, numeric API budget remains unapproved.
+Next use material-region-constrained delighting with explicit alignment checks
+and existing tooling; do not rerun unconstrained whole-atlas generation. Keep
+independent moving-lighting/combat/performance work progressing. No appearance
+acceptance or production source change claimed.
+
 LOG929 controlled authored-light and secondary-bounce proof (2026-09-12).
 User authorized corrections. Existing helper, source2756,1280x960,120 frames,
 stable diagnostic profile, both candidate layers activated/restored via MCP.

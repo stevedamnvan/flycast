@@ -1,11 +1,21 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Weapon checkpoint LOG931: PBRify-based gold-cap polished roughness saved in
+inactive character_correction layer. MCP tag test proves caps versus lacquer
+shaft. Metal response MAE13.244 versus repeat0.612 on1018 tagged pixels;
+no moving acceptance. Baseline restored byte-exact. Toolkit PID33192.
+Next moving weapon reflection review and separate sword-blade binding proof.
+User wants reflective metal; do not globally remove shine. Evidence weapon-proof-a.
+
 Lighting checkpoint LOG929: six controlled frozen renders prove authored-light
 and secondary-bounce contribution above repeat noise. Both candidate layers
 remain inactive; baseline restored byte-exact through MCP. Diagnostic profiles
 are not live presets. Evidence C:/Flycast-Evidence/lighting-proof-a.
-Next isolate character normal-map and roughness response with retained artwork
-and alpha, then moving lighting/reflection proof and combat/performance.
+LOG930: flat normals have weak effect; fully rough material changes highlights
+but baked albedo shading remains. One built-in whole-atlas delit edit rejected
+for artwork/layout drift, never ingested; no retries. Both candidate and baseline
+restored byte-exact. Next region-constrained delighting/alignment, alongside
+moving lighting/reflection proof and combat/performance.
 Human visual approval remains separate, not an engineering prerequisite.
 
 Moving checkpoint (LOG928; docs only on source HEAD 55ad44c01): a 192-frame
