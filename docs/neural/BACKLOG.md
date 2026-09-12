@@ -270,6 +270,10 @@ LOG967 original-albedo render still clumped. One local original64 hair-region
 PBRify candidate generated; exact alpha/outside restored deterministically,
 no regeneration. Next retained-normal alignment, MCP ingest and same-source/
 moving review; not accepted or bound. Evidence hair-source-region-a.
+LOG968 ingestion blocked by executor1 child timeout and executor0 unresolved
+MCP schema reference. Next narrow typed wrapper in existing MCP extension to
+existing ingestion API/current-process executor; no installed-package changes
+or generation retry. Then ingest/render retained candidate.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.

@@ -931,3 +931,8 @@ PBRify candidate at C:/Flycast-Evidence/hair-source-region-a/candidate-preserved
 has exact alpha/outside pixels,1 local generation,no paid API. Raw export failure
 retained. Next inspect alignment, MCP ingestion and bounded rendering; not bound
 or accepted. No test/generation live. Audio remains parked.
+
+LOG968 current next: candidate ingestion failed on Toolkit child timeout, then
+executor0 unresolved MCP schema reference. No output/binding. Add typed wrapper
+to existing capture MCP for supported existing ingestion API executor0; preserve
+Toolkit state before reload. PID2772 open, no game/test. Candidate unchanged.

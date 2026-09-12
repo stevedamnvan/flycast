@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG968 hair candidate ingestion exposes Toolkit MCP executor schema defect.
+Base0de9cd8a8. Candidate inspected; exact alpha/outside preservation retained.
+Existing remix_ingest_material_asset default executor1 returns500: validator
+subprocess update to127.0.0.1:8060 times out. No asset output or binding.
+Installed Apache2 source confirms supported CurrentProcessExecutor=0, avoiding
+child request. Passing executor0 fails in MCP before operation: PointerToNowhere
+/components/schemas/Executors absent from exported tool schema. Second failure
+is not an image validation rejection. No more default-executor attempts.
+Read installed MCP source: FastMCP.from_fastapi mounts omni.services.core.main
+app. Next add narrow typed ingestion wrapper to existing capture MCP module,
+forward to existing material ingestion API with executor0; validate local source/
+project destination, no new server/nodepack or installed-package edits. Preserve
+saved/unsaved Toolkit state before extension reload; test and verify live output.
+Evidence hair-source-region-a ingest requests/ingestion-failures.json; Toolkit
+kit_20260912_124434.log retains external timeout. Candidate unchanged/unbound,
+no generation retry/spending, no game/test live. ToolkitPID2772 remains open.
+Hair rendering/normal alignment still require proof, no appearance acceptance.
+
 LOG967 original-albedo control and original-region PBRify candidate.
 Basef8ae3bec9. MCP frozen2461 original-up4 albedo versus8x both0, baseline
 exact; inspected full images and nearest-neighbor inspection crops: broad glossy
