@@ -352,8 +352,15 @@ LOG1001 live1280 produced no previews (fallback at5309);640 completed115 with
 turning input and stage transfer,plus1280 return-latency work. Do not generalize
 the reference-view fill vector to all anchors or call this performance accepted.
 LOG1002 native controlled attack proves13 damage and hit reaction; moving
-control/fill640 pair pending. Hit-counter glyph bbox grows to112 rather than96;
-verify nonempty live protection through that change before combat HUD acceptance.
+control/fill640 pair completed exit0 each; fill visibility improves but facial
+highlights remain harsh, not accepted. Hit-counter glyph bbox grows to112 rather
+than96. Correction includes both observed layouts with existing cohort checks;
+four builds/1092 selftests x3/SDK323 pass. LOG1003 corrected control completed115
+captures in practice-hit-hud-a: all nonempty protected masks,zero RGBA mismatches,
+including hit-counter layout. Host0/helper11 orderly, no forced children. Scoped
+HUD correction accepted; character lighting and full combat acceptance remain
+open. Earlier pair has113 shared frame numbers but no equal source digests;
+next lighting comparison must use identical retained inputs and repeat control.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1003 Practice hit-counter HUD correction ACCEPTED in controlled sword sequence.
+Observed native glyph bbox[40,32,506,112] extends standing96; preserve existing
+atlas, planarity, panel topology, depth and uniqueness certificate. Add explicit
+112 alternative, negative104/116/RTT tests. Four serial builds pass;1092 selftests
+x3,SDK323 pass. Live practice-hit-hud-a/control115 captures all nonempty masks,
+minimum6108 pixels and zero independent native/composite RGBA mismatches; mask
+extents[40,32,505,93] and[40,32,505,108]. Viewed5458:13 damage,1 HIT,High effect.
+Host0/helper11 orderly,forced[]. No performance,DLSS5,whole-combat or appearance
+acceptance. Earlier control/fill117/115 captures have113 common frame numbers
+but zero equal packets/digests; zero-HUD counts69/67. Retain as observation only.
+Next source-locked lighting/repeat control; bodies dark and faces harsh persist.
+
+
 LOG1002 controlled sword-hit replay verified natively. Isolated replay advances
 Mitsurugi at cycles19350000000..19650000000,DC_X19750000000..19800000000,
 DC_Y20050000000..20100000000; prior input retained. Native30 frames5430..5459

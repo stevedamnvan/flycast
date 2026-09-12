@@ -2404,6 +2404,12 @@ int RunSelfTests()
 			suite.Expect(check()==0,"Practice cohort protects glyph only without accepted history");
 			panel.flags&=~DrawTriangleList;suite.Expect(check()==-1,"Practice rejects list count with strip topology");
 			panel.indexCount=14;suite.Expect(check()==0,"Practice OIT strip panel certifies glyph without history");
+			glyph.bboxMax[1]=112;glyph.indexCount=309;glyph.vertexCount=248;glyph.screenAlignedPrimitiveCount=62;
+			suite.Expect(check()==0,"Practice captured hit counter retains glyph protection");
+			glyph.bboxMax[1]=104;suite.Expect(check()==-1,"Practice rejects unobserved intermediate text layout");
+			glyph.bboxMax[1]=116;suite.Expect(check()==-1,"Practice rejects text beyond captured hit layout");
+			glyph.bboxMax[1]=112;glyph.flags|=DrawRtt;suite.Expect(check()==-1,"Practice hit counter rejects RTT");glyph.flags&=~DrawRtt;
+			glyph.bboxMax[1]=96;glyph.indexCount=239;glyph.screenAlignedPrimitiveCount=48;
 			panel.vertexCount=13;suite.Expect(check()==-1,"Practice rejects changed panel vertex coverage");panel.vertexCount=12;
 			panel.flags|=DrawTriangleList;suite.Expect(check()==-1,"Practice rejects strip count with list topology");panel.indexCount=18;
 			panel.zMin=panel.zMax=1000; suite.Expect(check()==-1,"Practice rejects incoherent panel depth");panel.zMin=panel.zMax=1896.55f;

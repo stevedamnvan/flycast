@@ -1,12 +1,17 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1002: native30-frame sword attack verifies13 damage
-and Sophitia reaction. Paired control/fill640 live replay running outer handle45141
-(practice-sword-motion-a/run_live.py);poll same handle,driver archives host logs.
-Native hit counter expands glyph bbox y96->112; inspect live protection before
-combat HUD acceptance (existing certificate only96). Prior input retained in
-practice-sword-motion-a/prior-input.input; isolated script currentlycombat-input.
-No source edit yet;do not overwrite active helper/host binaries during pair.
+Current resume checkpoint LOG1003: Practice hit-counter HUD correction verified.
+Four serial builds,1092 selftests x3,SDK323 pass. Corrected control completed115
+captures: minimum6108 protected pixels, zero native/composite RGBA mismatches,
+standing and hit-counter extents present. Viewed5458 shows13 damage,1 HIT and
+native High effect. Host0/helper11 orderly,forced children none; handle56326
+terminal. Evidence practice-hit-hud-a; isolated host SHA256
+0591EC832B0F1C7A6AB512E0593695EAD7530C215FF247DE9D0BF1C35193C7F1.
+Next character light response with identical retained source inputs and repeat
+control, then stage transfer and1280 return latency. Dark bodies/bright faces
+remain unacceptable. Earlier moving control/fill117/115 captures share113 frame
+numbers but zero equal source digests or packets; do not claim matched-input
+lighting causality. Prior isolated input remains backed up. No live process.
 
 Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115

@@ -340,7 +340,7 @@ int PracticeOverlayGlyphIndex(ArrayView<DrawRecord> draws, std::uint32_t width,
 		// Practice's text and translucent panel must coexist in this frame.
 		// Only glyph geometry is protected; never copy the bounding rectangle.
 		if (d.list==4 && d.texId==671530672u && d.screenAlignedPrimitiveCount>=8
-			&& bounds(d,40,32,506,96)) {
+			&& (bounds(d,40,32,506,96) || bounds(d,40,32,506,112))) {
 			if (glyph!=-1) return -1;
 			glyph=static_cast<int>(i);
 		}
