@@ -11,7 +11,13 @@ Do not create replacement FC IDs or another task-state system.
 
 ### Short standing goal
 
-> Follow docs/neural/BACKLOG.md to deliver a convincing, performant, playable Soulcalibur path-traced remaster with verified RTX Remix and supplied DLSS 5. Use best judgment and community best practices: lighting and materials first, then modern hair. Preserve reflective weapons, natural skin, identity, UVs, HUD/effects/audio, rollback, safety and budget gates. Target sustained60 fps with fresh output and bounded resources. Require moving combat and separate technical acceptance and human visual approval. Continue autonomously.
+> Deliver a beautiful, playable Soulcalibur RTX Remix and supplied DLSS 5 remaster by following docs/neural/BACKLOG.md. Continue its authoritative queue and preserve all scope, safeguards and acceptance gates until the full remaster is proven.
+
+User requested this shorter goal on2026-09-12 and GPT-6 Astra low (Astra light)
+for implementation. Detailed scope remains in this backlog. The active goal
+tool only permits completion/blocked status updates, not objective edits;
+the existing full objective remains active until edited through a supported
+app control. Do not falsely complete it to replace the wording.
 
 User amended the goal on 2026-09-12 to restore visual quality as a required
 partner to performance: materials must respond convincingly to path-traced
