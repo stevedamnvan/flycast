@@ -359,6 +359,71 @@ extremes, then transfer against recorded Kilik-Taki/Hoko content; verify actual
 game-selection identities before adding a previously unrecorded fighter/stage.
 Do not publish a whole-game completion percentage without a denominator.
 
+**Executable next batch: reconcile and validate existing assets, then scale
+each proven recipe.** No new generation is needed to begin this batch. Use
+`D:/Flycast-Evidence/package-d-preflight-20260911/inventory.json` (old26),
+`C:/Flycast-Evidence/visual-repeat-b/water/water-coverage.json` (water30), and
+the corrected source2756 manifest; reconcile all47 observed hashes into the
+existing inventory, preserving the source ledgers and their evidence. Write
+new evidence under C:/Flycast-Evidence. The old67-output estimate covers only
+old26 and must not become the full-union job count or budget by extrapolation.
+
+1. Reuse `remake_material_manifest.py --packet ... --capture-textures ...
+   --project ... --capture-name ... --out ...` on the recorded packets where
+   joins need refreshing. Compare the already captured control/candidate
+   sets with `remake_material_compare.py ... ... --exact-geometry`. Reconcile
+   runtime aliases using decoded content plus dimensions/channel format;
+   preserve distinct draw/UV usage even when source images are identical.
+2. For every material and each albedo/roughness/metallic/normal/height map,
+   record upgraded, reused or rejected, the currently bound fallback, and
+   separate candidate, technical-acceptance and human-approval fields. Pending
+   candidates leave the delivered map reused; rejected attempts retain their
+   rejection record. Missing retained normals/height are an explicit exception,
+   never silently regenerated. Four sky materials remain classified/reused;
+   rejected 4E35880E8E86FC1E retains its baseline and visibility/decode reason.
+3. Reuse the existing 12 environment and four character candidate material
+   assets before requesting outputs. Validate environmental tiling and class
+   assignment independently of the active live skin/exposure diagnosis. Keep
+   character atlases in the exception lane until sampled skin/cloth/hair
+   regions and retained-map alignment are established. LOG930's rejected
+   whole-atlas delit output is not a new input or a retry opportunity.
+4. Carry the two verified metal examples into the metal recipe evidence:
+   staff caps259014235DE60F8A and bladeF645D8A55F6EDF87. Retain lacquer shaft
+   C0FE1816E4150070 and guard/grip/tassel42217A1984A23AD2 as separate regions.
+   Existing polished workflows are candidates, not universal numeric settings:
+   use their retained PBRify variation and moving-angle evidence, with a fresh
+   control repeat before claiming benefit. LOG936's24 exact-source frames
+   demonstrate a live difference, not class acceptance or a300-frame pass.
+5. Expand only technically proven class recipes to eligible rows, using one
+   required candidate per map and the existing local ComfyUI HTTP workflow.
+   Shared prompt text must request intrinsic base colour without illumination,
+   unchanged artwork/UV islands/seams, and class-specific roughness (linear,
+   black smooth/white rough); metallic masks describe actual exposed metal.
+   Record map resolution, albedo colour space, scalar linear channels and
+   normal convention explicitly. Restore source alpha exactly at the agreed
+   resolution and verify cutout coverage; preserve the baseline on any failure.
+   Retain normal/height bytes; retaining height does not authorize enabling
+   displacement on character atlases or previously disabled surfaces.
+
+Existing driver review: `D:/Flycast-Evidence/pilot-curated/pbrify_run.py`
+already has local model workflows and durable budget accounting, but its
+legacy `generate` shortcut checks four files rather than content/cache identity,
+and its `bind` path targets the established baseline and directly authors USD.
+Do not run its all26 defaults or legacy bind for this batch. Reuse its workflow
+construction with explicit missing-map jobs, verified cache hashes and the
+existing MCP ingestion/binding operations; any required driver correction is
+a separately tested slice. Paid dispatch remains deliberately disabled pending
+the budget/transport gates below. No new orchestration system is needed.
+
+Batch readiness: inventory reconciliation and cached-map validation are ready;
+automatic bulk generation/acceptance is not. The final deliverable is still one
+opt-in layer: existing env_correction and character_correction are diagnostic
+candidates, not that packaging gate. Assemble only validated opinions into the
+single deliverable through MCP after class checks, preserve both diagnostics,
+and prove layer-off restores the byte-identical baseline. Hair geometry,
+lighting/performance work and human visual review keep their existing priority
+and acceptance requirements; none is marked complete by this batch plan.
+
 **Dry-run and budget gate before paid execution.** Verify the official model
 ID, availability for the intended route/account, and current official pricing;
 record sources and verification date. Do not assume "Sunburst" is a valid API
