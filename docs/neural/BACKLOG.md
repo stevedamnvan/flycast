@@ -191,6 +191,14 @@ saved candidate; floor preserved, all maps unchanged, baseline exact. Frozen
 acceptance. Next fresh moving corrected candidate plus structure0, inspect
 hair/skin/weapon response and native invariants, then capture-free performance.
 Agent report finalized at C:/Flycast-Evidence/texture-regression-history-a/REVIEW.md.
+LOG951 corrected25-range/structure0 moving run complete:116 captures2441..2559,
+all116 source/receipt/Present joins, native mismatches0, invalid motion0. Reviewed
+2462/2557 smoother skin, cleaner contours, preserved weapons/effects; hair still
+clumped. Baseline/config exact. No full temporal/appearance/provenance/perf pass.
+Next capture-free supported-path timing: corrected materials/structure0, uncurved
+welded normals, LOG911 narrow observation. Guarded motion is capture-only; keep
+restriction and label timing as supported-path rather than diagnostic equivalence.
+Then measured bottleneck work and upstream hair; no more scalar or height loop.
 
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action

@@ -1,5 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current LOG951: corrected material/structure0 moving completed116 captures,
+all116 joins/native invariants pass, invalid motion0. Reviewed2462/2557 smoother
+skin and coherent cloth, reflective weapons/effects preserved; hair clumped.
+Baseline/config restored exactly. No runtime test live. Evidence
+C:/Flycast-Evidence/remaster-corrected-moving-a. No full appearance/perf approval.
+Next capture-free timing with corrected material/structure0, uncurved welded
+normals and narrow observation. Guarded motion remains capture-only; do not
+bypass restriction or call timing identical to diagnostic route. Then bottleneck
+fixes and hair. No new scalar/height sweep. Full gates remain unchanged.
+
 Current LOG950: remaining18 displacement ranges zeroed through MCP; saved
 character_correction now25 verified zero pairs, floor retained, maps unchanged.
 Candidate SHAd0eaa4367bf9f5b7266abe86fbae703035df913f1ad3a3c26491bb9b6fc35fc3.

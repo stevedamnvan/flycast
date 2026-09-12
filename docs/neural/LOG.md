@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG951 integrated corrected material/structure moving review, basee5886f94c.
+Existing character candidate25 zero displacement ranges plus companion requested
+NRLocalStructure0. Fresh requested120 sources2440..2559,1280x960 uncurved welded
+normals/cutout, guarded shading motion, full observation, unchanged420s ceiling.
+116 retained captures2441..2559; missing requested2440/2442/2444/2447. Launcher0.
+All116 helper/source/completed-Present joins pass; native HUD/world/backbuffer
+mismatches0, invalid motion0. Reviewed2462 sword attack and2557 close-contact
+pose: smoother skin and coherent cloth/boots, native attack effect/HUD/water
+present, reflective staff retained. Hair remains broadly clumped/highlighted.
+No full temporal, appearance,300-frame, external provenance or performance pass.
+No fresh moving baseline repeat; reviewed improvements are scoped observations.
+Baseline mod and consumer config restored byte-exact; no candidate default change.
+Evidence C:/Flycast-Evidence/remaster-corrected-moving-a command/logs/receipt,
+moving-analysis.json and captures. No source changes; backlog contract checked.
+Next capture-free supported-path timing with same corrected materials/structure0,
+uncurved welded normals and LOG911 narrowed observation. Guarded shading motion
+is currently capture-only: do not silently bypass that restriction or claim timing
+of the exact diagnostic route. Measure existing supported path, then decide
+whether guarded motion promotion requires a separate tested source slice.
+Preserve fresh-share/pacing/latency/audio/resource/300/600/provenance gates.
+
 LOG950 remaining historical displacement correction through MCP, base0abb62f8a.
 Read finalized Astra extra-high report at
 C:/Flycast-Evidence/texture-regression-history-a/REVIEW.md. Derived18 remaining
