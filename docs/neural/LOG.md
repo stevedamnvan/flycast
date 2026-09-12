@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG933 Xianghua blade identity and metal-specific candidate.
+Projected source2453 packet triangles isolate mesh2372 (222 vertices), texture
+403571200, UV u.0028..2463/v.0041..0481. Existing pixel-identity manifest joins
+this texture to F645D8A55F6EDF87. MCP magenta tag colours ONLY the blade;
+42217 remains guard/grip/tassel. Blade was included in env_correction batch,
+with no explicit metalness opinion. Corrected candidate with a white metallic
+map and polished roughness derived deterministically from retained PBRify
+(0.8*38/255+0.2*source), using existing ComfyUI nodes. Both ingested via MCP
+and bound in existing inactive character_correction layer, no new layer.
+Original albedo/normal and character skin/hair unchanged. Before/metal/repeat
+at source2453,1280x960,120-frame stable diagnostic all exit0. Blade darkens at
+this angle; appearance NOT accepted. Inspect multiple weapon poses before
+changing albedo/exposure to force brightness. Baseline restored byte-exact.
+Evidence C:/Flycast-Evidence/sword-proof-a includes blade-region-meshes,
+blade-tagged.bmp, workflow, ingestion, metal-record and metal-metrics.
+Next moving-angle/reflection review; then live combat/performance. Toolkit3352
+last responsive with capture extension. No production source or paid generation.
+
 LOG932 user renewed persistent overall-quality goal (2026-09-12).
 Initial docs check rejected oversized goal text; concise correction also
 needed the required safety term. Corrected without changing acceptance gates.

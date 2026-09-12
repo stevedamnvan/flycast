@@ -270,8 +270,9 @@ remains separate and does not block engineering. No appearance gain accepted.
 Weapon finish steering (LOG931): shiny metal is desired. MCP tags prove staff
 shaft versus gold caps. Existing PBRify-based polished roughness is ingested
 and bound only for caps in inactive character_correction; response exceeds
-repeat noise on tagged metal. Baseline restored. Next moving weapon reflection
-review and sword-blade material identity, not global matting. Preserve metallic
+repeat noise on tagged metal. Baseline restored. LOG933 confirms Xianghua blade F645D8A55F6EDF87 via geometry/tag control;
+metallic/polished candidate saved inactive, dark at source2453 and unaccepted.
+Next moving weapon-angle/reflection review, not global matting. Preserve metallic
 versus lacquer/wrap/cloth distinctions and all performance/visual gates.
 
 Hair quality follow-through under existing Package G / FC-067 (LOG922):

@@ -1,5 +1,11 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Blade checkpoint LOG933: F645D8A55F6EDF87 verified as Xianghua blade through
+packet projection and MCP magenta tag. Metallic/polished PBRify-based maps
+saved in inactive character_correction; baseline restored. Blade darkens at
+source2453; no appearance acceptance. Next test several weapon angles for
+reflected environment/light before changing albedo/exposure. ToolkitPID3352.
+
 Standing goal renewed ACTIVE via goal tool (LOG932): use best judgment and
 community/official best practices, lighting/materials first, then modern hair.
 Sword tag42217 colours guard/grip/tassel, NOT blade; continue blade identity
