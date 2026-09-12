@@ -55,6 +55,18 @@ inline std::optional<Vec3> ParseSceneLightDirection(std::wstring_view text) {
  if(!std::isfinite(length)||std::abs(length-1.f)>1e-5f)return {};
  return d;
 }
+struct SceneFill { Vec3 direction; float radiance=0; };
+inline std::optional<SceneFill> ParseSceneFill(std::wstring_view text) {
+ if(text.empty()||text.size()>128)return {};
+ std::wistringstream stream{std::wstring(text)};stream.imbue(std::locale::classic());
+ SceneFill fill;
+ if(!(stream>>fill.direction.x>>fill.direction.y>>fill.direction.z>>fill.radiance))return {};
+ stream>>std::ws;if(!stream.eof())return {};
+ const auto& d=fill.direction;const float length=d.x*d.x+d.y*d.y+d.z*d.z;
+ if(!std::isfinite(length)||std::abs(length-1.f)>1e-5f
+  ||!std::isfinite(fill.radiance)||fill.radiance<0||fill.radiance>3)return {};
+ return fill;
+}
 inline std::optional<float> ParseSceneLightRadiance(std::wstring_view text) {
  if(text.empty() || text.size()>12)return {};
  double value=0,place=.1;

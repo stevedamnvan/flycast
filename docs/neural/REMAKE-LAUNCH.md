@@ -1,5 +1,12 @@
 # Bounded experimental Remix launch
 
+Independent fill diagnostic: `--scene-fill="X Y Z radiance" --anchored-light`
+on the launcher requires bounded capture. XYZ must be unit length and radiance
+0..3; temple rig conflicts. The helper accepts the same value before
+`--scene-light-anchor` (after explicit main direction,if supplied). It adds one
+fixed12-degree white distant fill without replacing the main key. LOG1000's
+source5302 candidate is not a universal stage preset or performance profile.
+
 For same-source helper light diagnosis, append
 `--scene-light-direction "0 0 1" --scene-light-anchor` to the existing
 `remake-runtime-smoke` capture command. The vector must be finite and unit length;

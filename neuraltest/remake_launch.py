@@ -12,6 +12,7 @@ import time
 import uuid
 import mmap
 import struct
+import math
 
 
 def prepare(args):
@@ -96,6 +97,19 @@ def prepare(args):
         if not args.anchored_light:
             raise ValueError('Temple light rig requires anchored light')
         helper.extend(['--scene-light-radiance', '1', '--temple-light-rig'])
+    fill = getattr(args, 'scene_fill', None)
+    if fill is not None:
+        try:
+            values = [float(v) for v in fill.split()]
+        except ValueError:
+            values = []
+        if (len(values) != 4 or not all(math.isfinite(v) for v in values)
+                or abs(sum(v*v for v in values[:3])-1) > 1e-5
+                or not 0 <= values[3] <= 3 or not args.anchored_light
+                or getattr(args, 'temple_light_rig', False)
+                or not getattr(args, 'capture_frames', 0)):
+            raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture and anchored light without temple rig')
+        helper.extend(['--scene-fill', fill])
     if args.anchored_light:
         helper.append('--scene-light-anchor')
     if args.managed_session:
@@ -314,6 +328,7 @@ def main():
     for name in ('flycast', 'harness', 'helper', 'runtime', 'game', 'out'):
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--anchored-light', action='store_true')
+    p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
     p.add_argument('--temple-light-rig', action='store_true', help='Opt-in authored warm key/cool fill, requires --anchored-light')
     p.add_argument('--output-size', choices=['640x480','1280x960'], default='640x480', help='Opt-in matching host/helper/neural extent; fresh session required')
     p.add_argument('--realtime-audio', action='store_true',

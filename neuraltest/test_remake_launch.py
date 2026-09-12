@@ -9,6 +9,23 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_scene_fill_is_bounded_capture_only(self):
+        self.args.scene_fill = '0 0 1 0.3'
+        with self.assertRaisesRegex(ValueError, 'Scene fill requires'):
+            prepare(self.args)
+        self.args.capture_frames = 3
+        self.args.anchored_light = True
+        helper = prepare(self.args)[4]
+        self.assertEqual(helper[helper.index('--scene-fill')+1], '0 0 1 0.3')
+        for value in ('0 0 1', '0 0 0 1', '0 0 1 4', 'nan 0 1 1', '0 0 1 -1'):
+            self.args.scene_fill = value
+            with self.assertRaisesRegex(ValueError, 'Scene fill requires'):
+                prepare(self.args)
+        self.args.scene_fill = '0 0 1 0.3'
+        self.args.temple_light_rig = True
+        with self.assertRaisesRegex(ValueError, 'Scene fill requires'):
+            prepare(self.args)
+
     def test_late_capture_warmup_cannot_change_performance_defaults(self):
         host = prepare(self.args)[3]
         self.assertEqual(host[host.index('--warmup')+1], '2100')

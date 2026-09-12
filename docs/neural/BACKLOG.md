@@ -345,6 +345,11 @@ with0,0,1; camera-direction control overlights skin. Four builds/1078x3/SDK313,
 three negative CLI checks and three120-frame renders pass in diagnostic scope.
 Next stage-light distribution/anchor ownership with fixed exposure policy,
 preserving arena/floor; verify moving camera and fighters before promotion.
+LOG1000 fixed secondary fill.3 improves source5302 fighter readability while
+retaining main key; face highlights remain. Four builds/1088x3/SDK323/Python41.
+Live practice-remix-temple-fill-a pending; verify before promotion,then moving
+combat and stage transfer. Do not generalize the reference-view fill vector to
+all coordinate anchors or mistake unchanged materials for unchanged lighting.
 Character inventory: scene-roster-inventory-a/CHARACTER-MATERIAL-AUDIT.md
 classifies twelve source atlas candidates from the extra Takamatsu Practice
 pair; only assets10/12 exactly match scanned source caches (BCBC713835472B28,

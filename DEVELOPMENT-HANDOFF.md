@@ -1,6 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG999: same-source light-direction isolation confirms
+Current resume checkpoint LOG1000: independent fixed fill.3 restores body/cloth/
+weapon readability in source5302 still; main key unchanged,face highlights still
+harsh. Four builds/1088x3/SDK323/Python41 pass. Live diagnostic
+practice-remix-temple-fill-a running on handle1989; poll same handle and archive
+isolated host log at completion. Do not restart from lack of preview files.
+Candidate remains unaccepted until live/combat/transfer review; no material edits.
+
+Previous resume checkpoint LOG999: same-source light-direction isolation confirms
 0,0,1 reproduces dark fighters; current-camera direction overlights them. New
 helper explicit unit-direction option preserves defaults. Four builds/1078x3/
 SDK313 and three CLI negatives pass; three120-frame renders exit0,baseline exact.

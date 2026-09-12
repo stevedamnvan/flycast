@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1000 independent fixed fill candidate restores fighter readability in still.
+Existing helper accepts --scene-fill "X Y Z radiance" (unit direction,0..3,
+anchor required,no temple rig); independent12-degree white fill leaves primary
+key unchanged. Launcher exposes it only with bounded image capture. Source5302
+key0,0,1/radiance3 fixed; fill(-.487994879,-.284207851,.825279772)/.3 versus0
+and0 repeat: all120 frames exit0,baseline exact. Viewed candidate restores
+clothing,body,sword/shield; face highlights still harsh. Full MAE18.205 versus
+repeat.708; fighter rectangles39.156/41.154 versus.555/.679; floor7.513 versus
+.730. Arena/floor also change through lighting; no pixel-exact environment claim.
+Promising candidate,not visual acceptance. Four builds/1088selftests x3/SDK323/
+Python41 pass; three CLI negatives reject2. Live practice-remix-temple-fill-a
+started on handle1989; preserve/poll it,archive host log before another launch.
+No live outcome yet. Evidence practice-stage-fill-a. Native HUD/alpha,smooth
+normals,420s/8-frame/60-tick guards unchanged. No generation,paid requests or
+Toolkit material edits. Next verify live candidate then combat/stage transfer.
+
 LOG999 light direction causes dark-character failure in controlled source5302.
 Existing helper gains explicit --scene-light-direction "X Y Z" before
 --scene-light-anchor. Requires finite unit vector,anchor and no temple rig;
