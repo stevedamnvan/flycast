@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1011 current Practice map readiness reconciled without generation.
+material-union-a/practice-map-readiness.json joins current12 source atlases
+against the existing47-material inventory by freshly decoded DDS pixels.
+Two matches: BCBC713835472B28 and F645D8A55F6EDF87; ten have no exact source
+match in this inventory, not proof of absence everywhere. All listed cached
+files for the two matches exist and match recorded file SHA256. Albedo,
+roughness, normals and height are cached for both; a metallic map is listed
+only for F645. No generation, ingestion, binding or appearance acceptance.
+reconcile.py hashes little-endian uint32 width,height before RGBA; the Practice
+source key hashes pixels only. Both old hashes reproduced exactly with that
+prefix. This is a convention mismatch, not changed texture content. Evidence
+now names both conventions; compare dimensions explicitly for pixel-only joins.
+Retain existing PBRify normals/height and review UV/alpha alignment before use.
+
 LOG1010 background GPU load measured with game/helper stopped.
 RTX5090 nvidia-smi snapshot66% GPU,9867MiB,315.55W. Two Windows GPU Engine
 samples attribute3D activity to Toolkit PID27736 about43% and PID34596 about16%.

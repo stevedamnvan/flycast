@@ -112,6 +112,11 @@ Installed Toolkit shared viewport code supports updates_enabled=False while
 minimized when /app/renderer/skipWhileMinimized is enabled; verify the measured
 load actually falls rather than assuming minimization worked. Keep pending
 projects open. No new orchestration system or game setting change is needed.
+LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
+matches in the existing47 inventory, with verified cached PBRify maps; ten
+require further source-specific work. This is not the full-game denominator.
+Normalize dimension-prefixed versus pixel-only hash conventions before cache
+joins; retain dimensions/UV/alpha checks and all generation budget gates.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,
