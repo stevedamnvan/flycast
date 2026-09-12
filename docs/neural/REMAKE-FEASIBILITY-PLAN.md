@@ -180,6 +180,11 @@ A testable intermediate build is not final acceptance.
 Keep Package D's full captured-set coverage and cost controls. Strand hair
 requires supported moving geometry attachment and measured rendering cost.
 Use the existing pipeline; the authoritative queue governs prioritization.
+Package D now defines reusable material-class recipes and a coverage audit for
+whole-game expansion. Validate a class with controlled and moving evidence,
+then reuse it across captured batches; do not wait for hair geometry before
+expanding supported texture classes. Unknown fighter/stage content remains a
+coverage gap, and mixed atlases require region-specific treatment.
 
 ## Verification and handoff
 

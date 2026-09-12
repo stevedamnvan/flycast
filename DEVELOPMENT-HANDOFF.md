@@ -1,5 +1,10 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Texture scaling LOG934: user-authorized read-only subagent audit complete;
+47 observed runtime hashes across reviewed sets, not whole-game denominator.
+Package D now contains shared class recipes, validation gates and next capture
+batch. Reconcile existing inventory; keep main weapon/lighting work moving.
+
 Blade checkpoint LOG933: F645D8A55F6EDF87 verified as Xianghua blade through
 packet projection and MCP magenta tag. Metallic/polished PBRify-based maps
 saved in inactive character_correction; baseline restored. Blade darkens at

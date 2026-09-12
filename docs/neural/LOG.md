@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG934 user-authorized texture-coverage subagent and reusable recipes.
+Read-only audit found47 observed runtime hashes: package-d-preflight26 +
+water30 - shared9; frozen29 subset water30. Not whole-game or content-deduped.
+Existing inventory D:/Flycast-Evidence/package-d-preflight-20260911/inventory.json
+and C:/Flycast-Evidence/visual-repeat-b/water/water-coverage.json remain reusable.
+coverage-job-inventory.json frozen-source statuses need reconciliation. Added
+material-class recipes and readiness/exception criteria under existing Package D;
+no new queue, generation, spending, application mutation or roster assumptions.
+Next capture coverage batch recorded there; hair completion is not a prerequisite
+for independent texture coverage. Docs contract passed; acceptance gates unchanged.
+
 LOG933 Xianghua blade identity and metal-specific candidate.
 Projected source2453 packet triangles isolate mesh2372 (222 vertices), texture
 403571200, UV u.0028..2463/v.0041..0481. Existing pixel-identity manifest joins

@@ -306,6 +306,46 @@ rejected, with per-map disposition and reasons for eligibility, reuse or
 rejection. Retain baseline assets for every failed/rejected map or material;
 no material may silently disappear from the coverage ledger.
 
+**Reusable recipe and whole-game expansion (user direction, 2026-09-12).**
+Use shared material-class recipes across the full captured union; the current
+water-stage ledger is not a whole-game inventory. A delegated read-only audit
+may reconcile existing captures and identify missing fighters/stages while the
+main engineering lane validates the recipe. Do not wait for completed hair
+geometry to inventory or upgrade independently supported materials.
+
+| Material class | Reusable treatment | Required exceptions/checks |
+|---|---|---|
+| Exposed metal / blades / fittings | Explicit metalness on confirmed metal, polished roughness retaining useful PBRify variation; neutral intrinsic base colour for steel, appropriate tint for coloured metal | Prove mesh/UV identity. Exclude grip, wrapping, lacquer and skin. Moving-angle reflections must read correctly; a dark reflection is not automatically an exposure defect. |
+| Lacquer / painted wood | Nonmetallic substrate with controlled gloss; retain paint grain/design | Separate exposed metal fittings; do not classify by brightness alone. |
+| Cloth / leather | Nonmetallic, roughness appropriate to weave or finish; preserve embroidery and seams | Silk and polished leather may retain sheen. Do not globally matte everything. |
+| Skin | Nonmetallic, restrained natural highlights and preserved colour/detail | No uniform metal response or invented facial detail; avoid waxy/oily appearance in moving lighting. |
+| Hair | Preserve colour, alpha and strand direction; controlled directional sheen where supported | Texture work does not replace attachment/geometry modernization. Keep existing skin/hair baseline until its own checks pass. |
+| Stone / plaster / wood | Nonmetallic, material-specific roughness, retained useful normal/height detail | Reject baked-highlight amplification and excessive displacement; preserve joints and tiling. |
+| Mixed atlas / sky / effects / uncertain decode | Classify by actual sampled UV regions; retain baseline where truth is missing | Never assign one metallic value to a mixed atlas. Keep native alpha/HUD/effect safeguards; revisit off-frame rejects when they enter view. |
+
+Recipe readiness for scaling requires representative same-source controls,
+confirmed colour/channel conventions, preserved UV/seams/alpha and moving
+lighting evidence for each supported class. Reuse validated classes across
+new inventory batches; route exceptions to explicit review rather than retry
+loops. Log recipe version, source/content hash, capture identity, character/
+stage context, sampled UV domain, map status and acceptance evidence in the
+existing ledger. Keep generation candidates distinct from accepted upgrades.
+Whole-game completion also requires a fighter/stage/transition coverage matrix;
+unknown or uncaptured content remains missing, never counted as reused.
+No new tooling stack or paid execution authority is introduced.
+
+Delegated audit (LOG934): reviewed old26 and water30 share9 runtime hashes,
+giving47 observed hashes; source2756's29 are a subset of water30. This is a
+lower bound, not content-deduplicated or a whole-game denominator. Reconcile
+stale coverage-job-inventory statuses against the newer water ledger. Extend
+existing package-d-preflight inventory with runtime-hash/content-SHA aliases,
+verified fighter/stage/costume/weapon context and uncaptured/candidate/accepted
+states using remake_material_manifest.py and remake_material_compare.py.
+Next coverage batch: existing Kilik-Xianghua water-stage attacks/turns/camera
+extremes, then transfer against recorded Kilik-Taki/Hoko content; verify actual
+game-selection identities before adding a previously unrecorded fighter/stage.
+Do not publish a whole-game completion percentage without a denominator.
+
 **Dry-run and budget gate before paid execution.** Verify the official model
 ID, availability for the intended route/account, and current official pricing;
 record sources and verification date. Do not assume "Sunburst" is a valid API
