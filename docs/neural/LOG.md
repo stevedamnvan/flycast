@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1015 public ownership check rejects speculative manual-release fix.
+Public main src/dxvk/rtx_render/rtx_remix_api.cpp RegisterD3D9Device stores
+the device and obtains its D3D object; Shutdown repeatedly releases both until
+zero then clears pointers and shuts down Sentry. Thus un-released local raw
+pointers alone do not establish a leak; adding releases before/after Shutdown
+could invalidate registered objects. No such patch made. Public source copies
+retained in helper-empty-shutdown-a/public-api.cpp and public-example.cpp.
+Fetching the runtime-reported68edea01 public revision returned404, so main is
+reference evidence, not proof of installed implementation. Next bounded test
+must isolate explicit module unload on empty-source shutdown and preserve its
+failure exit; never hide crashes with a success code or extend watchdogs.
+Source: https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/src/dxvk/rtx_render/rtx_remix_api.cpp
+
 LOG1014 empty-source helper crash narrowed to unload lifetime.
 Windows Application Event1000 at2026-09-12 19:25:35 identifies
 remake-runtime-smoke PID0x7AB8, exception0xc0000005, faulting module
