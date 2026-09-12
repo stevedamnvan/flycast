@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG978 whole-scene audit started; preferred reference recovered exactly as
+D:/Flycast-Evidence/pilot-curated/final-taki.png. Middle render receipt at
+pbrify-final-1280x960-native/run.json:source2601 smoothed packet,1280x960,
+120 helper frames,native-shading.conf (upscaler0,resolutionScale1),no exposure
+probe. Historical inherited runtime/layer state still requires reconstruction.
+Current first-frame decoded scene inventory:40 texture/palette previews,30
+match saved capture DDS after RGBA decoding,9 have baseline replacement-map
+bindings,zero missing bound files. Ten unmatched previews are unclassified,
+not evidence of missing rendering. Text binding audit is not live USD resolution.
+Toolkit layers inspected through MCP; evidence scene-audit-reference-a.
+Next classify unmatched views and reconstruct reference layer/settings for
+same-source current/reference A/B, then moving scene audit and separate
+capture-free performance. User requested whole scene before further hair-only
+refinement. Preserve recent source fixes,baseline,alpha/HUD/audio and fullscope.
+
 LOG977 retain unmatched source copies; user appearance reference adopted.
 Witness export now retains null-origin rows and observed copy/RAM metadata;
 no inferred transforms. Regression check added. Four builds,1054 selftests x3,

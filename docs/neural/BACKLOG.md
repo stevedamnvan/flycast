@@ -284,7 +284,9 @@ LOG975 fixes disk palette generation per draw;3-frame material capture passes.
 LOG976 decoded hair atlas exact3/3; opaque hair129 vertices has zero witnesses.
 LOG977 retains all129 exact hair copies; transforms unmatched, not absent geometry.
 User appearance reference: reimagined final(height on floor only), middle image.
-Next recover its saved recipe and compare with current fixes; hair lineage remains
+LOG978 reference image/receipt recovered; whole-scene audit now first.
+40 native previews:30 captured matches,9 baseline replacements,0 missing bound files.
+Next classify unmatched views and restore reference recipe for controlled A/B; hair lineage remains
 a dependency for strands, not a reason to defer the overall appearance comparison
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
