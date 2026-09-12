@@ -1,0 +1,11 @@
+[package]
+version = "0.1.0"
+title = "Flycast Capture Import for Toolkit MCP"
+description = "Adds a bounded capture import operation to the existing Toolkit MCP server."
+
+[dependencies]
+"lightspeed.trex.mcp.core" = {}
+"lightspeed.trex.capture.core.shared" = {}
+
+[[python.module]]
+name = "flycast_capture_extension"

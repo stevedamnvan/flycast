@@ -1,5 +1,18 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Current visual/MCP checkpoint (LOG919-921): workspace extension
+flycast.capture.mcp provides capture import/activation on existing Toolkit MCP;
+PID17088 was last verified responsive. Capture import, prim discovery and12
+saved map bindings are proven. Candidate layer is inactive; baseline mod byte
+restoration verified after runtime A/B. Candidate visibly changes character
+materials but looks too glossy; fresh same-cohort convergence/repeat comparison
+still needed (old-baseline pixel restoration exceeded noise). All four builds,
+three selftests, SDK and31 Python tests pass for extension source. Hair texture
+identity is stable across12 intro samples, but fringe mesh ID/topology varies.
+Next verify UV-root attachment consistency before strand-shaped geometry;
+continue material gloss/alignment review and moving sky validation. See
+neuraltest/toolkit_extensions/README.md for MCP launch and layer safeguards.
+
 User visual-regression steering (LOG912; goal amended 2026-09-12): restore a
 convincing, performant path-traced remaster with verified external DLSS 5
 contribution. BACKLOG remains the single authority. Current diagnostic source
@@ -13,9 +26,19 @@ identity. Still-image seam removed; lighting changes, moving review pending.
 Current captured29-material manifest has replacement bindings for9; no missing
 files/wrong suffixes among those bindings. LOG914-915 identify uncovered character and graded-alpha fringe atlases;
 the manifest now honors Toolkit override layers (all required checks pass).
-Next test character height-map bindings in a copied layer: they are present
-again despite the prior atlas-parallax fix. Verify image causality before
-acceptance; preserve distinct opaque/fringe identities and alpha.
+LOG916 displacement-factor test changes pixels but does not resolve character
+defects. Four uncovered character atlases now have16 local PBRify candidate
+maps in visual-regression-frozen-a/character-pbrify, no bindings yet. LOG917 restored opaque alpha exactly through ComfyUI; fringe cutout128 mask
+is exact with at most1/255 intermediate-alpha error. All12 albedo/normal/
+roughness assets ingested via Toolkit MCP and validated in separate directory
+assets/ingested/character_correction. No gameplay binding changed. LOG918 created the opt-in character_correction layer via MCP; inserting new
+capture beneath it exposes the material prims. No maps bound: earlier request
+was rejected with absent prims; next session timed out during initialization.
+Toolkit PID11444 remains live; inspect MCP before resubmitting. On-disk layer
+is empty and unsaved in-memory capture dependency must not enter runtime mod.
+Next bind12 maps, remove captured-geometry dependence and run same-source A/B
+plus layer-off restoration. Character height stays unbound.
+ComfyUI resumed on7860; no paid calls, retries, or new models.
 Preserve accepted performance work; require moving combat, fresh-output cadence
 and separate human visual approval. Evidence and candidate profile are under
 C:/Flycast-Evidence/visual-regression-frozen-a; no live configuration changed.

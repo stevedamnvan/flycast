@@ -1,5 +1,124 @@
 # Neural rendering evidence log
 
+LOG921 hair attachment identity and MCP validation checkpoint.
+Across12 saved curved-d frames2756..2770, fringe texture content is identical
+(SHA2566a6ddcb79fb7d3edba9c083ad16734988b82d8be7466be0f2c9490c1699717d1),
+but promoted fringe mesh ID varies8589934775..8589934860 and vertex count
+894..1110; opaque draw1072 also changes801..1116 vertices. Thus a static
+replacement keyed only by draw ordinal is not stable even in this short intro.
+This is not proof of stable head attachment or full combat. Next bounded hair
+check: fixed UV attachment coverage and motion consistency on the captured
+surface, with fail-closed behavior for missing/ambiguous roots. No strand
+geometry or directional hair shading implementation is claimed.
+Extension source validation: four serial builds, three enabled selftests,
+SDK contract and31 Python tests pass. README records loaded-extension setup,
+real MCP validation, edit-target/parent-save pitfalls and baseline restoration.
+No native renderer code changed by this slice. Existing MCP extension uses
+Toolkit's Apache-2.0 public Python APIs; no proprietary binary inspection or
+new models. Full visual/performance/lifecycle acceptance remains open.
+
+LOG920 runtime material contribution established, quality not accepted.
+Through MCP inserted character_correction under mod, saved parent, rendered
+frozen source2756 at1280x960 with sky-classified profile, then removed layer
+through MCP and saved parent. Baseline mod restored byte-for-byte. Viewed
+character-layer-on.bmp: costume, hair and skin visibly change, with excessive
+gloss in places. Full-image MAE2.0134 and character crop4.2301 versus older sky
+baseline. Viewed character-layer-off.bmp returns original-looking character;
+MAE versus older baseline is1.9497 (character3.1614), above the earlier repeat
+noise, so pixel-level restoration across these run cohorts is NOT proven.
+Do not present those MAEs as quality or clean isolated contribution magnitude.
+A fresh matched baseline/repeat/candidate cohort with stable convergence is
+required. Candidate roughness atlas medians97..107/255, and mixed skin/cloth/
+hair semantics require review; no global material fix accepted. No performance
+claim from frozen diagnostics. Candidate is inactive; generated maps retained.
+
+LOG919 user-authorized extension of existing MCP, real capture import and bindings.
+Root cause of prior hang: Toolkit validate_project repeatedly reordered two
+capture layers. Owned test session restarted after preserving disk workfiles;
+no ingestion repeated. External capture references are normalized to the linked
+capture directory by Toolkit, explaining silent removal. Added repository-owned
+remix_capture_mcp.py plus workspace extension flycast.capture.mcp registering
+flycast_import_capture / flycast_activate_capture on the EXISTING MCP server.
+Protected Program Files write was denied; no installed source modification.
+Extension is loaded with --ext-folder neuraltest/toolkit_extensions --enable
+flycast.capture.mcp. Live Toolkit PID17088. Two local path/collision tests pass;
+full required build/test validation of this new source remains pending.
+Dry-run checked72 asset references, then MCP imported a hash-named rebased
+capture via Toolkit Capture Setup.import_capture_layer. Dependencies remain
+absolute references to original files; no material-name collision or overwrite.
+MCP prim queries confirm all4 new material IDs. Correction layer must be a
+child of replacement mod (workfile child triggers edit-target redirection).
+After verifying edit target,12 bindings were authored and saved through MCP.
+Verified saved character_correction.usda has12 map opinions, no height or
+captured geometry references. Toolkit saved its parent insertion as a side
+effect; removed that insertion via MCP and saved mod. Baseline byte comparison
+against toolkit-recovery/mod-before.usda: True. Candidate exists
+but is not active by default. Runtime material definitions and actual same-
+source output still require verification; an override-only layer is not yet
+proven standalone replacement content. Source/full acceptance remains open.
+
+LOG918 Toolkit correction-layer setup, binding not completed.
+MCP generic insertion with explicit workfile parent is rejected by Toolkit's
+layer validator; setting layer_type hits an unresolved LayerType schema ref.
+Neither rejection changed bindings. Root-default insertion returned OK but the
+capture was absent on subsequent get_layers/prim query; do not trust that OK
+alone. Created layers/character_correction.usda through MCP. Inserting the
+new source2756 capture beneath this correction layer succeeds; prim query now
+returns /RootNode/Looks/mat_74909B4BBB03A72B. Earlier texture override was
+rejected because the material was absent, and no map was bound. Retried binding
+session timed out during initialize BEFORE sending mutations. Toolkit PID11444
+still exists (~6.4GB working set); the45-second read-only retry also timed
+out during initialize and Windows reports Responding=False. No request remains
+running from that retry. On-disk correction layer remains empty (unsaved scene
+capture dependency). Do not deploy or save this capture-containing layer as a
+runtime mod. Next recover MCP responsiveness without repeating ingestion, bind
+12 maps, make the correction layer independent of captured scene geometry and
+validate layer-off restoration before any gameplay experiment.
+
+LOG917 source-alpha preservation and Toolkit ingestion of character candidates.
+Used installed ComfyUI core nodes via HTTP (LoadImage mask, nearest-exact4x,
+JoinImageWithAlpha, SaveImage); no inference rerun, new models or paid requests.
+Saved sibling *_albedo_alpha_preserved.png files; original candidates retained.
+Validation: RGB identical to generated albedo for all4; source alpha exact for
+three opaque atlases; fringe intermediate alpha differs by at most1/255 due
+float conversion, source128 cutout classification exact at every4x texel.
+This preserves source cutout geometry, not improved antialiasing or visual approval.
+Viewed costume normal atlas: embroidery and trim follow source atlas regions;
+rendered appearance/seams still require same-source review. Existing Toolkit
+MCP discovery succeeded; loaded project remains soulcalibur/soulcalibur.usda.
+Ingested12 assets through remix_ingest_material_asset: corrected albedo,
+NORMAL_OGL normals converted to runtime encoding, roughness for4 atlases.
+All12 .meta files report validation_passed=true, recorded in
+visual-regression-frozen-a/character-ingestion-validation.json. Assets live in
+remix-projects/soulcalibur/assets/ingested/character_correction, separate from
+baseline. No height ingested/bound; no runtime mod or gameplay binding changed.
+Next make new-source material prims available through Toolkit and bind these
+12 maps in ONE separate opt-in correction layer, then same-source A/B with
+sky correction and layer-off proof. Ingestion is not acceptance.
+
+LOG916 displacement isolation and local character PBRify candidates.
+Frozen source2756 with sky classification: repeated baseline MAE0.2035,
+character crop0.2529; copied profile displacementFactor=0 gives MAE0.6775,
+character0.4892. Runtime logs effective factor0. Viewed image changes do not
+resolve the main character defects; do not call height removal the full fix.
+No live configuration changed. Existing Toolkit MCP probe succeeds on8000;
+ComfyUI was stopped and restarted with existing venv/models on7860 (PID33308).
+Inventory coverage-job-inventory.json records all29 current-source materials:
+9 reused bindings,4 baseline sky,16 pending upgrades/64 local map outputs.
+This is not full multi-scene closure; paid API execution remains unauthorized.
+Reused existing pbrify_run.prompt_for/generate with separate capture/output
+paths for four known character atlases:74909B4BBB03A72B,54C3A2076C5A9764,
+B7552C1791289693,BEF7B3CA57719AF1. Sixteen1024 maps generated locally,
+zero paid calls/retries; per-material attempt markers record source/workflow
+cache identity and model names. Originals untouched; no bindings changed.
+Viewed fringe albedo and validated map dimensions/modes. Validation catches
+opaque-source alpha255 becoming232..255 in the three opaque albedos. Fringe
+retains0..255 but edge alignment is not yet established. Candidates NOT_ACCEPTED:
+restore source alpha through the established asset workflow, validate source
+alignment, inspect normal/roughness, then ingest via Toolkit MCP into one opt-in
+correction layer; leave character height unbound. Evidence remains under
+C:/Flycast-Evidence/visual-regression-frozen-a/character-pbrify and validation JSON.
+
 Validation checkpoint: material-manifest correction passes four serial builds,
 three enabled selftests, SDK contract and29 Python tests; backlog consistency
 and whitespace checks pass. Initial build invocation quoting failed before
