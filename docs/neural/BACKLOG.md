@@ -281,7 +281,8 @@ LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
 draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
 LOG974 native witness run: partial candidate hair coverage35..37/164..166;
 LOG975 fixes disk palette generation per draw;3-frame material capture passes.
-Next format-aware material identity join and partial hair witness coverage
+LOG976 decoded hair atlas exact3/3; opaque hair129 vertices has zero witnesses.
+Next source-lineage diagnosis of confirmed opaque hair draw
 before treating source lineage as strand identity; no guard suppression.
 Offline geometry feasibility is not visual or across-cut acceptance.
 LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts

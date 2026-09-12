@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG976 decoded hair identity confirmed, basec10206959. Existing material_inspect
+validates3 frames,39 assets/40 previews first frame. Native BGRA asset2 decoded
+through existing decoder equals original26F0F098F66BA515 DDS RGBA exactly in
+all3 frames. Prior raw-byte mismatch was channel order, not missing texture.
+Full hair-region draws cover150/149/145 source vertices;21/20/16 witnessed.
+Opaque draw list0 ordinal44 has129 vertices and zero witnesses in frame2461.
+This localizes missing transform coverage to the opaque hair foundation; do
+not claim recovered rig from transparent fringes. Next inspect source lineage
+for this confirmed opaque draw, retaining the surface-anchor prototype.
+Evidence hair-source-witness-d/decoded-hair-identity.json and material-validation.
+No assets/runtime changed, no visual acceptance. Audio parked.
+
 LOG975 disk palette provenance correction, base9f49251a7 plus working tree.
 Root cause found: disk Texture writer serialized cache palette_hash, while
 live snapshot/material validator use PvrDrawPaletteGeneration per draw.
