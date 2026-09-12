@@ -77,6 +77,7 @@ void PerformanceTracker::Reset()
 	initialVramUsage_ = 0;
 	written_ = false;
 	currentNeuralMode_ = 0;
+	currentProducer_ = {};
 }
 
 bool PerformanceTracker::CreateQueries(ID3D11Device *device)
@@ -289,7 +290,7 @@ void PerformanceTracker::EndFrame(ID3D11DeviceContext *context, const StageStats
 	current.rendererResourceObjects=rendererResourceObjects;current.backendResourceObjects=stats.backendResourceObjects;
 	current.vramUsageBytes=QueryVram(device_).first; // One adapter query per sample; diagnostic attribution, not a wait.
 	if(samples_.size()<targetSamples_) {
-		Sample sample;sample.sequence=current.sequence;sample.sourceFrameId=current.sourceFrameId;
+		Sample sample;sample.producer=currentProducer_;sample.sequence=current.sequence;sample.sourceFrameId=current.sourceFrameId;
 		sample.acceptedFrameId=current.acceptedFrameId;sample.outputFrameId=current.outputFrameId;
 		sample.presentationKind=current.presentationKind;sample.neuralMode=current.neuralMode;
 		sample.resetHistory=current.resetHistory;sample.rendererResourceObjects=rendererResourceObjects;
@@ -310,6 +311,7 @@ void PerformanceTracker::RecordPresent() noexcept
 		lastPresentIntervalMs_ = std::chrono::duration<double, std::milli>(now - lastPresent_).count();
 	lastPresent_ = now;
 	if(lastEndedSample_<samples_.size()) {
+		samples_[lastEndedSample_].presentWallSeconds=std::chrono::duration<double>(now.time_since_epoch()).count();
 		samples_[lastEndedSample_].presented=true;
 		samples_[lastEndedSample_].presentIntervalMs=lastPresentIntervalMs_;
 		lastEndedSample_=static_cast<std::size_t>(-1);
@@ -441,6 +443,8 @@ void PerformanceTracker::WriteReport()
 		<< "\",\n  \"api\": \"" << Json(api_)
 		<< "\",\n  \"renderer\": \"" << Json(renderer_)
 		<< "\",\n  \"neural_mode\": " << neuralMode_
+		<< ",\n  \"producer_clock_scope\": \"SH4 cycles at accepted PVR submission; zero identity unavailable\""
+		<< ",\n  \"wall_clock_scope\": \"steady seconds at Present; use within-run same-epoch deltas only\""
 		<< ",\n  \"failure_injection\": " << failureInjection_
 		<< ",\n  \"failure_injection_count\": " << failureInjectionCount_
 		<< ",\n  \"failure_injection_after_accepted\": " << failureInjectionAfter_
@@ -545,6 +549,10 @@ void PerformanceTracker::WriteReport()
 		report << ", \"composite\": ";gpuValue(s.compositeMs);
 		report << ", \"total\": ";gpuValue(s.totalGpuMs);
 		report << ", \"present_interval\": " << s.presentIntervalMs
+			<< ", \"producer_epoch\": " << s.producer.epoch
+			<< ", \"producer_ordinal\": " << s.producer.ordinal
+			<< ", \"producer_cycle\": " << s.producer.cycle
+			<< ", \"present_wall_seconds\": " << s.presentWallSeconds
 			<< ", \"presented\": " << (s.presented ? "true" : "false")
 			<< ", \"source_frame_id\": " << s.sourceFrameId
 			<< ", \"accepted_frame_id\": " << s.acceptedFrameId

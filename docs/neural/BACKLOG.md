@@ -224,6 +224,13 @@ Baseline/config exact. Policies align with benchmark except capture overhead.
 Next native/combined emulated-cycle advance versus wall time (within1% gate),
 using existing performance telemetry with minimal cycle endpoints if needed;
 then playable integration and hair. Preserve audio ownership and full gates.
+LOG956 cycle telemetry implemented using existing producer-owned stamp and
+Present steady time; no timing ownership changes.4 builds,1053 selftests x3,
+SDK302,Python35 pass. Live pair identical cycle/ordinal endpoints: native
+300.25Mcycles/s vs combined207.16M, -31.00%; within1% gate FAILS. Both exceed
+nominal200MHz. Next inspect/test intended real-time limiter/audio policy equally
+on both lanes, then repeat matched-source cycle comparison; no gate relaxation.
+Telemetry validates submission cadence, not audible output. Baseline/config exact.
 
 VRAM rises then falls; final4.805GB/202objects both, cleanup warning unresolved.
 

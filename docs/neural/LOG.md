@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG956 owned cycle telemetry exposes native/combined timing mismatch.
+Base7e71f92ec. Performance mode now requests existing producer-owned accepted
+PVR stamps, including native. Renderer copies epoch/ordinal/cycle into CPU
+performance sample; RecordPresent attaches steady-clock seconds. No scheduler
+read from render thread, synchronization wait, timing or audio policy change.
+Report labels clock domains; unavailable identities remain zero. Async GPU
+resolution only updates timing fields, preserving CPU producer metadata.
+Four serial builds,1053 selftests x3,SDK302,Python35 pass. Live native/combined
+1200-sample reports on newly built automation copy have valid monotonic stamps.
+After120 warmup both endpoints exactly ordinal2221..3300 and cycles9073227968..
+12673176320, same epoch3. Native elapsed11.989682s =>300253864cycles/s;
+combined17.377376s =>207162943cycles/s, relative -31.004%. Within1% gate FAILS.
+Both exceed nominal200MHz; native test is not real-time-paced. Do not reinterpret
+this as synchronized gameplay or weaken gate. Next establish intended real-time
+pacing/audio policy for BOTH paired lanes and repeat same matched source range;
+inspect existing limiter/audio settings before changing scheduler behavior.
+Telemetry proves accepted-PVR cycle cadence only, not audible output or every
+emulated vblank. Full-source checkpoints/latency and lifecycle gates remain open.
+Combined uses selective reuse/corrected maps/structure0, original motion path.
+Baseline/config exact. Evidence C:/Flycast-Evidence/cycle-telemetry-a build logs,
+native and moving reports, cycle-comparison.json, receipt. Initial metadata patch
+context mismatch made no edit; corrected. No generation or runtime binary edits.
+Source copy has new binary but incremental embedded SHA stale; not exact-SHA build.
+
 LOG955 faster supported-policy moving check, base1b8c401c7.
 Corrected25-range material candidate/structure0 plus selective capture flag,
 narrow observation, uncurved welded/cutout, default supported motion; no guarded

@@ -1,13 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG955: selective corrected moving check116 captures, all116 joins/
-native invariants pass, invalid motion0. Reviewed2453/2549 skin/cloth/weapon
-corrections retained; hair still glossy/clumped. Baseline/config exact, no test
-live. Evidence selective-corrected-moving-a. No full appearance/temporal pass.
-Next paired native/combined cycle advance per wall time within1% gate; existing
-performance samples lack cycle endpoints, inspect/add minimal owned telemetry
-without changing timing ownership. Then playable integration/hair/full gates.
-LOG954 freshness pair remains valid scoped evidence, not overall60fps approval.
+Current LOG956: performance cycle telemetry implemented/built/tested. Existing
+producer-owned stamp -> CPU performance sample plus Present steady seconds.
+4 builds,1053 selftests x3,SDK302,Python35 pass. Native/combined same cycle and
+ordinal endpoints measured300.25M vs207.16Mcycles/s (-31%): timing gate FAILS.
+Both above nominal200MHz; next inspect real-time limiter/audio settings equally
+for native/combined and repeat matched-source comparison. No gate relaxation.
+Evidence cycle-telemetry-a; new staged flycast-cycle-telemetry-auto-a.exe.
+Baseline/config exact, no runtime live. No audible-output/overall60fps approval.
 
 Current LOG952: capture-free corrected pair completed,1200 each. Steady
 fresh1024/1012 of1080 (94.8/93.7%), presentations63.3/63.1fps, fresh60.0/59.2.

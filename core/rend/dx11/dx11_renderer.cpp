@@ -2376,6 +2376,8 @@ void DX11Renderer::beginNeuralPerformanceFrame()
 		static_cast<std::uint32_t>(std::clamp(
 			config::NeuralFailureInjectionAfter.get(), 0, 10000)));
 	neuralPerformance.BeginFrame(deviceContext);
+	neuralPerformance.RecordProducer(rendContext ? rendContext->captureProducer
+		: flycast::rend::neural::ProducerIdentity{});
 }
 
 void DX11Renderer::markNeuralPvrEnd()

@@ -3,6 +3,7 @@
 
 #include "neural_stage.h"
 #include "presentation_cadence.h"
+#include "producer_identity.h"
 #include <d3d11.h>
 #include "windows/comptr.h"
 #include <array>
@@ -36,6 +37,7 @@ public:
 		int failureInjection, std::uint32_t failureInjectionCount,
 		std::uint32_t failureInjectionAfter);
 	void BeginFrame(ID3D11DeviceContext *context);
+	void RecordProducer(ProducerIdentity producer) noexcept { currentProducer_ = producer; }
 	void Mark(ID3D11DeviceContext *context, GpuTimingPoint point);
 	void RecordEvaluation(std::uint64_t frameId, bool accepted,
 		bool resetHistory) noexcept;
@@ -68,6 +70,8 @@ private:
 		double presentIntervalMs = 0.;
 	};
 	struct Sample {
+		ProducerIdentity producer;
+		double presentWallSeconds = 0.;
 		bool gpuTimingValid = false;
 		double pvrMs = 0.;
 		double guidanceMs = 0.;
@@ -88,6 +92,7 @@ private:
 		std::uint64_t vramUsageBytes = 0;
 	};
 	Slot cpuOnlySlot_;
+	ProducerIdentity currentProducer_;
 	bool cpuOnlyActive_ = false;
 	std::size_t lastEndedSample_ = static_cast<std::size_t>(-1);
 	struct BackendEvaluateSample {

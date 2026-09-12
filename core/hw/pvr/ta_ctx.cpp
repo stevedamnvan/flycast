@@ -118,7 +118,8 @@ bool QueueRender(TA_context* ctx)
 	ctx->rend.captureProducer = {};
 #ifdef FLYCAST_ENABLE_NEURAL
 	const auto* asyncRemake = std::getenv("FLYCAST_REMAKE_ASYNC_CHANNEL");
-	if ((config::NeuralCaptureFrames.get() > 0 || (asyncRemake && *asyncRemake)) && !ctx->rend.isRTT && !settings.platform.isNaomi2())
+	if ((config::NeuralCaptureFrames.get() > 0 || !config::NeuralPerformanceDirectory.get().empty()
+		|| (asyncRemake && *asyncRemake)) && !ctx->rend.isRTT && !settings.platform.isNaomi2())
 		ctx->rend.captureProducer = captureProducerClock.Stamp(sh4_sched_now64());
 	for (TA_context* child = ctx; child != nullptr; child = child->nextContext)
 		if (child->sourceObservations)
