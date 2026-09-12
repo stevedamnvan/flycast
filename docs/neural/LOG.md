@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG980 same temple source render with current correction layer completed.
+Toolkit MCP inserts/removes existing character_correction layer; baseline
+restored byte-exact. temple-reference-current-a receipt exit0,120 frames,
+1280x960,same smooth2 source2601 and native-shading profile as saved reference.
+Viewed current.bmp and original pbrify-final final-color.png: warm stage/wood
+detail retained; Kilik trousers visibly less glossy. Skin/architecture remain
+harshly bright. Historical inherited settings not fully locked; no causal
+claim for individual maps or appearance acceptance. Helper still logs40
+undisposed objects at exit; not lifecycle/performance proof. Next controlled
+lighting/exposure adjustment retaining this reference palette and floor detail,
+then moving whole-scene comparison. No new generation/assets, audio parked.
+
 LOG979 scene audit classification. scene-audit-reference-a/unmatched-classification
 records10 unmatched native previews:8 HUD/name/effect views,1 background
 panorama,1 water. Contact-sheet classification plus draw bindings only; not
