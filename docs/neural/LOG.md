@@ -13,6 +13,12 @@ provide a state-preserving viewport-pause route or preserve all pending state
 and close normally. No renderer regression or pipeline improvement follows from
 the recent confounded timings alone. Continue independent source/visual work
 while resolving this measurement prerequisite; no acceptance gates relaxed.
+Installed lightspeed.trex.viewports.shared.widget/setup_ui.py
+_set_viewport_api_updates_enabled reads /app/renderer/skipWhileMinimized and
+sets viewport_api.updates_enabled=False on the minimized event. This offers
+a possible UI-only pause preserving project state; not yet verified live.
+User asked to minimize both windows because current MCP exposes no such action.
+Do not assume the setting is enabled or that GPU load fell without measuring.
 
 LOG1009 benchmark-policy audit corrects LOG1008 interpretation.
 LOG1008 run b inherited old LOG911 flags, omitting the existing LOG954

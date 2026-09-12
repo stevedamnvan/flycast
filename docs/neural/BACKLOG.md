@@ -104,6 +104,14 @@ LOG1010 measures substantial Toolkit GPU activity with game stopped (~43%/~16%
 normal close after pending-state preservation; MCP close403 preserved edits.
 Recent exploratory runs do not establish a renderer regression. Do not force
 discard, suspend GPU processes, or repeat confounded acceptance runs.
+Benchmark setup correction (LOG1010): use the verified automation host in the
+isolated supplied-consumer workspace, retain LOG954's explicit selective reuse
+option, and record executable hashes rather than trusting stale embedded SHA.
+Measure background GPU activity with game/helper stopped before dispatch.
+Installed Toolkit shared viewport code supports updates_enabled=False while
+minimized when /app/renderer/skipWhileMinimized is enabled; verify the measured
+load actually falls rather than assuming minimization worked. Keep pending
+projects open. No new orchestration system or game setting change is needed.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,
