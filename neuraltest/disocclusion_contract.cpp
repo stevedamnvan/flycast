@@ -468,6 +468,7 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
  // merely because alpha differs. Exercise the production shader on both APIs.
  for(unsigned mode=0;mode<3;++mode) {
   RemakeMotionStream stream;stream.indices={0,1,2};
+  stream.requiresColorValidation=true;
   stream.vertices={{{100,100,10},{100,100,10},1,1,1},{{500,100,10},{500,100,10},1,1,1},{{100,400,10},{100,400,10},1,1,1}};
   std::fill(current.begin(),current.end(),projection(10));previous=current;
   std::vector<unsigned char> now(640*480*4,100),before=now;
@@ -477,6 +478,9 @@ bool RunRemakeMotionRasterFixture(bool on12,std::string& error)
   ComPtr<ID3D11ShaderResourceView> view;if(!idView(1,view))return false;
   RemakeRasterOutput output;
   if(!raster.Render(surface.context.Get(),stream,current,previous,view.Get(),1,100,.1f,0,output,error,&now,&before))return false;
+  RemakeRasterOutput missing;
+  if(raster.Render(surface.context.Get(),stream,current,previous,view.Get(),1,100,.1f,0,missing,error)
+   ||error!="remake-raster-color-required"||missing.textures[0])return false;
   std::uint32_t motion=0,bias=0,reason=0;
   if(!read(output.textures[0].Get(),4,motion)||!read(output.textures[3].Get(),1,bias)
    ||!read(output.textures[4].Get(),2,reason))return false;

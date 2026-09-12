@@ -49,6 +49,13 @@ void os_VideoRoutingTermDX();
 #include "rend/neural/remake_cpu_scope.h"
 using flycast::rend::neural::RemakeCpuScope;
 namespace {
+bool remakeShadingAwareMotionRequested() {
+ for(const char* name:{"FLYCAST_REMAKE_SHADING_AWARE_MOTION","FLYCAST_REMAKE_COLOR_CONSISTENCY","FLYCAST_REMAKE_TEMPORAL_RASTER"}) {
+  const auto* value=std::getenv(name);
+  if(!value||std::strcmp(value,"1")!=0)return false;
+ }
+ return true;
+}
 const bool remakeCpuReporterInstalled=[] {
  flycast::rend::neural::ReportRemakeCpuScope=[](std::uint64_t frame,const char* label,double ms) {
   NOTICE_LOG(RENDERER,"Remake CPU scope: frame=%llu stage=%s elapsed_ms=%.6f includes_driver_wait=true diagnostic=true",
@@ -2962,7 +2969,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	}
 	// D-214: the return worker receives and prepares returned images itself;
 	// a closed channel is handled here exactly as the synchronous receive did.
-	remakeReturnWorker.Start();remakeReturnWorker.Attach(&remakeAsyncChannel);
+	remakeReturnWorker.Start(remakeShadingAwareMotionRequested());remakeReturnWorker.Attach(&remakeAsyncChannel);
 	if(!remakeFrameBudgetConfigured) {
 		remakeFrameBudgetConfigured=true;
 		if(const auto* budget=std::getenv("FLYCAST_REMAKE_FRAME_BUDGET_MS");budget&&*budget) {
@@ -3271,6 +3278,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 		const auto temporal=remakeAsyncAcceptedOverlay.temporalScene;
 		const auto* rasterRequest=std::getenv("FLYCAST_REMAKE_TEMPORAL_RASTER");
 		const bool rasterRequested=rasterRequest&&std::strcmp(rasterRequest,"1")==0;
+		const bool shadingAwareMotion=remakeShadingAwareMotionRequested();
 		if(rasterRequested&&!temporal)return;
 		RemakeMotionStream stream;
 		RemakeRasterOutput rasterOutput;
@@ -3304,6 +3312,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			&&remakePreparedReturn->sequence==source.source.sequence;
 		const auto* lastAccepted=remakeTemporalHistory.Last();
 		const bool preparedStream=prepared&&remakePreparedReturn->temporal&&bool(temporal)
+			&&remakePreparedReturn->stream.requiresColorValidation==shadingAwareMotion
 			&&remakePreparedReturn->previousFrame==(lastAccepted?lastAccepted->frame:0);
 		if(temporal) {
 			std::string error;
@@ -3313,7 +3322,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 			else {
 				static thread_local unsigned count=0;
 				RemakeCpuScope timing("evaluate-motion-stream",frame.frameId,count);
-				streamReady=BuildRemakeMotionStream(previous,*temporal,stream,error);
+				streamReady=BuildRemakeMotionStream(previous,*temporal,stream,error,shadingAwareMotion);
 			}
 			NOTICE_LOG(RENDERER,"Remake return preparation: source=%llu stream=%s input=%s",(unsigned long long)source.frame,
 				preparedStream?"worker":prepared?"rebuilt-history-advanced":"render-thread",prepared&&remakePreparedReturn->inputReady?"worker":"render-thread");

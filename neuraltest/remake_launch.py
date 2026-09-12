@@ -98,6 +98,11 @@ def prepare(args):
     if args.managed_session:
         helper.append('--session-worker')
     capture_frames = getattr(args, 'capture_frames', 0)
+    if getattr(args, 'shading_aware_motion', False):
+        if not capture_frames or getattr(args, 'remix_only', False):
+            raise ValueError('Shading-aware motion requires bounded combined capture')
+        env['FLYCAST_REMAKE_SHADING_AWARE_MOTION'] = '1'
+        env['FLYCAST_REMAKE_COLOR_CONSISTENCY'] = '1'
     capture_start = getattr(args, 'capture_start_source', 0)
     remix_only = getattr(args, 'remix_only', False)
     if remix_only and not capture_frames:
@@ -326,6 +331,8 @@ def main():
                    help='A/B control: the helper draws opaque meshes with alpha one (FLYCAST_REMAKE_OPAQUE_ALPHA_ONE=1)')
     p.add_argument('--curved-export', action='store_true',
                    help='Experimental (D-241): curved PN-triangle export of the smoothed geometry (FLYCAST_REMAKE_CURVED_EXPORT=1); requires smoothed normals')
+    p.add_argument('--shading-aware-motion', action='store_true',
+                   help='Diagnostic capture: match geometry across RGB shading changes with mandatory returned-colour rejection')
     p.add_argument('--alpha-cutout', action='store_true',
                    help='Experimental (D-240): promoted alpha draws with cutout texture alpha travel as alpha-tested cutouts (FLYCAST_REMAKE_ALPHA_CUTOUT=1); the rest stay native')
     p.add_argument('--smooth-normals-weld', action='store_true',
@@ -376,6 +383,7 @@ def main():
                   renderer=args.renderer,
                   alpha_combined_off=args.alpha_combined_off, opaque_alpha_one=args.opaque_alpha_one,
                   alpha_cutout=args.alpha_cutout, curved_export=args.curved_export,
+                  shading_aware_motion=args.shading_aware_motion,
                   smooth_normals=args.smooth_normals, smooth_normals_weld=args.smooth_normals_weld,
                   frame_budget_ms=args.frame_budget_ms,
                   consumer_config=str(args.consumer_config.resolve()) if args.consumer_config else None,

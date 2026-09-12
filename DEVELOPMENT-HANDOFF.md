@@ -1,12 +1,28 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current LOG942: moving constant-one height control completed25/27 captures,
+Current LOG943: guarded --shading-aware-motion diagnostic implemented/tested.
+Four serial builds,1053 selftests x3,SDK302,Python32 pass. Fresh control/
+candidate/repeat26/28/26 captures; all80 source/receipt/Present joins and native
+composition exact. Four tracked atlas median geometry coverage0 ->24243.5,
+colour-unbiased11534.5; appearance change2.649 MAE versus repeat2.374 is not
+a visual win. Still character cloth/skin/hair unacceptable. Defaults unchanged.
+Incremental binary hashes/commands recorded; generated version embeds old SHA,
+so not fresh exact-SHA evidence. Initial non-automation launch failed0 captures,
+retained; corrected automation runs all orderly. No game/helper running.
+Next: upstream resource refresh audit (18 global rebuilds across27 submitted
+scenes2440..2469); prove compatible per-mesh identity/reuse without weakening
+cuts/generations. Also supported material displacement disable/range check on
+seven historical character atlases. Read external Astra extra-high course
+review C:/Flycast-Evidence/remaster-course-review-a/REVIEW.md. Keep actual
+Remix versus downstream consumer defects separate; no new generation loop.
+
+Prior LOG942: moving constant-one height control completed25/27 captures,
 24 exact-source matches, zero HUD/composition mismatches. Kilik cloth cleaner,
 but overall skin/hair/temporal result fails studio visual standard. Original
 PBRify layer restored byte-exact; mod unchanged; no candidate promoted.
 Constant-one is not universally neutral without verified displacement ranges.
 Evidence character-regression-a/height-moving/ and LOG942 official source.
-Next source work: uncurved audit120 transitions retains exact unique topology/
+Source motivation: uncurved audit120 transitions retains exact unique topology/
 UV/state, but publicColor changes in all120 and blocks geometric correspondence.
 Separate geometry matching from shading history with mandatory colour-change
 rejection and existing identity/depth/disocclusion guards; don't merely delete
@@ -14,7 +30,7 @@ a check. Keep cutout conservative; curved topology stability remains open.
 Existing returned-colour consistency path is launcher-disabled and can inform
 an explicit opt-in joint contract. Positive/negative fixtures, four serial
 builds,3 selftests,SDK/Python and moving evidence required before source commit.
-No game/helper running; Toolkit standardPID24508. Baseline preserved. Full
+Toolkit standardPID24508 at LOG942 checkpoint. Baseline preserved. Full
 visual/performance/coverage goal remains open; no more tiny texture-pair loop.
 
 Current LOG935: weapon angles2446/2461 show dark/bright reflection response;

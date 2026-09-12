@@ -1,5 +1,47 @@
 # Neural rendering evidence log
 
+LOG943 guarded RGB-shading-aware geometry motion, diagnostic contract only.
+Source base c0a978a98 plus explicitly staged motion/worker/raster/launcher/test
+changes. --shading-aware-motion requires bounded capture and enables existing
+returned-colour consistency. RGB lighting may change while geometry matches;
+vertex alpha, cutout/blend, full generations, UV/index order, ambiguity, source
+gaps and depth/disocclusion guards remain. Streams require colour buffers or
+raster fails closed. Worker policy immutable while running; renderer reuses
+only matching policy and accepted history. Default strict policy unchanged.
+Analytic translation/deformation and negative controls, worker policy, missing
+colour GPU controls: four serial builds pass,1053 selftests/0 x3 including
+D3D11/D3D11On12 fixtures,SDK302/0,Python32/0. Incremental builds, NOT fresh
+exact-SHA: generated core/version.h still embeds4e43b3565. Tested/staged host
+SHA256 f83b124c43c21c9ec5919cf3aeb9ec53e10739f5122fc3921b0bb9413e350071
+is recorded with launcher commands and build logs under
+C:/Flycast-Evidence/character-regression-a/shading-*.
+Initial shading-control incorrectly staged non-automation binary: zero captures,
+launcher1/helper11 before first source, retained. Corrected automation runs
+shading-control-auto/candidate/repeat:26/28/26 captures, all launcher0/helper11
+orderly.24 candidate and25 repeat exact-source/material/state/camera/geometry
+pairs. Four tracked character atlas IDs: median geometric-trusted pixels
+0 ->24243.5; colour-unbiased history0 ->11534.5; repeat remains0. Returned
+colour changes retain geometric motion with current-frame bias, not stale-light
+permission. All80 helper/source/completed-Present joins verified and native
+HUD/world/backbuffer mismatch counters0. Existing handover verifier invocation
+rejects single-session captures (expected scope mismatch); its receipt verify
+function and explicit Present joins reused without relaxing the handover gate.
+Candidate whole-image MAE2.649 versus repeat2.374; this does not establish
+visual benefit. Viewed2453/2461: costume relief, skin and hair still below studio
+standard. No material candidate or default promoted, no300/600-frame or new
+external-neural provenance/performance acceptance. Baseline mod SHA256 remains
+e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340.
+Disposition ACCEPTED for explicit guarded diagnostic correspondence contract;
+CORRECTIONS_REQUIRED for remaster appearance. Evidence compare-shading.py and
+shading-comparison.json preserve per-frame reasons and invariants.
+User-requested Astra extra-high read-only course review identifies upstream
+all-scene resource refresh as next falsifiable target:18 rebuilds across27
+submitted scenes2440..2469. Buffer reuse alone is not proof of stable Remix
+instance/history identity. Preserve real cuts and incompatible resources.
+Also inspect supported per-material character displacement disable/ranges;
+do not repeat constant-map guesses. Review report external at
+C:/Flycast-Evidence/remaster-course-review-a/REVIEW.md; no new roadmap.
+
 LOG942 moving character-height control and actionable motion-contract evidence.
 Fresh baseline/constant-one height sessions:25/27 captures,24 exact producer/
 material/state/camera/geometry matches (1152 mesh-materials). All HUD/world/

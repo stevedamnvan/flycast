@@ -119,6 +119,8 @@ public:
   auto fail=[&](const char* why){error=why;return false;};
   static thread_local unsigned validateCount=0,uploadCount=0,drawCount=0;
   RemakeCpuScope validateTiming("raster-validate",0,validateCount);
+  if(stream.requiresColorValidation&&(!currentColor||!previousColor))
+   return fail("remake-raster-color-required");
   if(bool(currentColor)!=bool(previousColor)||(currentColor
    &&(currentColor->size()!=flycast::rend::neural::RemakePixels()*4||previousColor->size()!=flycast::rend::neural::RemakePixels()*4)))
    return fail("remake-raster-color-bound");

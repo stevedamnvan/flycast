@@ -9,6 +9,23 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_shading_motion_requires_explicit_capture_and_colour_check(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_SHADING_AWARE_MOTION': '1',
+                                    'FLYCAST_REMAKE_COLOR_CONSISTENCY': '1'}):
+            env = prepare(self.args)[2]
+            self.assertNotIn('FLYCAST_REMAKE_SHADING_AWARE_MOTION', env)
+            self.assertEqual(env['FLYCAST_REMAKE_COLOR_CONSISTENCY'], '0')
+        self.args.shading_aware_motion = True
+        with self.assertRaisesRegex(ValueError, 'requires bounded combined capture'):
+            prepare(self.args)
+        self.args.capture_frames = 30
+        env = prepare(self.args)[2]
+        self.assertEqual(env['FLYCAST_REMAKE_SHADING_AWARE_MOTION'], '1')
+        self.assertEqual(env['FLYCAST_REMAKE_COLOR_CONSISTENCY'], '1')
+        self.args.remix_only = True
+        with self.assertRaisesRegex(ValueError, 'requires bounded combined capture'):
+            prepare(self.args)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

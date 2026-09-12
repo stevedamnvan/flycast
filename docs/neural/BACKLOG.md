@@ -98,6 +98,22 @@ or increased sharpness do not establish improvement. Preserve failed evidence
 and restore earlier assets when a candidate regresses. Human visual approval
 remains separate; do not send visibly unacceptable candidates as ready for it.
 Current character regression takes priority over scaling material recipes.
+LOG943 bounded source slice: explicit diagnostic
+`--shading-aware-motion` separates stable geometry matching from vertex-colour
+changes only with mandatory returned-colour consistency. Worker and renderer
+must agree on policy and accepted history; missing colour buffers fail closed.
+Retains identity/generation/UV/topology/ambiguity/depth/cutout guards. Four
+serial builds,1053 selftests x3 (including both GPU APIs),SDK302,Python32 pass.
+Fresh control/candidate/repeat26/28/26 captures restore tracked-character
+geometric coverage from median0 to24243.5 pixels;11534.5 pass colour history.
+24 exact-source pairs; candidate MAE2.649 versus repeat2.374 is not an
+appearance win. All80 source/receipt/Present joins and native composition pass.
+Diagnostic contract accepted only; defaults unchanged, visual promotion denied.
+Next: audit upstream global resource rebuilds (18 across27 submitted scenes
+2440..2469 in this control) and actual character displacement ranges/disable.
+Preserve real cuts/identity, smooth normals and cached maps; don't merely
+suppress resets or assume constant-one height is neutral. Review upstream
+Remix and downstream consumer separately. Adaptive curved topology remains open.
 
 This sequence controls the existing FC-067 / A-H work. Older dated next-action
 notes are evidence, not competing assignments. Use the existing supported

@@ -305,6 +305,22 @@ int RunSelfTests()
 		ok=BuildRemakeMotionStream(&previous,camera,stream,error);
 		suite.Expect(ok&&stream.trustedVertices==3&&std::abs(stream.vertices[0].previousScreen.x-stream.vertices[0].currentScreen.x-4)<.0001f,
 			"returned geometry camera motion uses prior and current camera poses");
+		for(const auto& pose:{translated,deformed}) {
+			auto shaded=pose;
+			for(auto& v:shaded.meshes[0].vertices)v.publicColor^=0x00374219u;
+			RemakeMotionStream reference;
+			bool same=BuildRemakeMotionStream(&previous,pose,reference,error)
+				&&BuildRemakeMotionStream(&previous,shaded,stream,error,true)
+				&&stream.requiresColorValidation&&stream.trustedVertices==3;
+			for(unsigned i=0;same&&i<3;++i) {
+				const auto& a=stream.vertices[i];const auto& b=reference.vertices[i];
+				same=a.previousScreen.x-a.currentScreen.x==b.previousScreen.x-b.currentScreen.x
+					&&a.previousScreen.y-a.currentScreen.y==b.previousScreen.y-b.currentScreen.y;
+			}
+			suite.Expect(same,"shading-aware translation and deformation retain analytic geometry with required colour validation");
+			suite.Expect(BuildRemakeMotionStream(&previous,shaded,stream,error)&&!stream.requiresColorValidation
+				&&stream.trustedVertices==0,"default motion still rejects changed vertex shading");
+		}
 		for(unsigned mutation=0;mutation<8;++mutation) {
 			auto bad=current;
 			if(mutation==0)bad.meshes[0].texture.generation=(1ull<<32)|4; // Same folded32-bit key as5.
@@ -314,11 +330,36 @@ int RunSelfTests()
 			if(mutation==7)bad.frame+=20;
 			ok=BuildRemakeMotionStream(&previous,bad,stream,error);
 			suite.Expect(ok&&stream.trustedVertices==0&&stream.maximumMotion==0,"returned generation UV topology alpha color or source gap cannot invent trusted motion");
+			if(mutation!=6)suite.Expect(BuildRemakeMotionStream(&previous,bad,stream,error,true)
+				&&stream.trustedVertices==0,"shading-aware motion preserves identity topology UV alpha and gap rejection");
+		}
+		for(bool shadingAware:{false,true}) {
+			RemakeReturnWorker worker;worker.Start(shadingAware);
+			worker.Start(!shadingAware); // A running worker keeps its original policy.
+			auto shaded=translated;shaded.meshes[0].vertices[0].publicColor^=1;
+			RemakeReturnJob job;job.previous=std::make_shared<RemakeTemporalScene>(previous);
+			job.overlay.temporalScene=std::make_shared<RemakeTemporalScene>(shaded);
+			bool dispatched=worker.Dispatch(std::move(job));
+			for(int i=0;i<2000&&worker.Ready()==0;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			auto result=worker.Next();
+			suite.Expect(dispatched&&result&&result->streamReady&&result->previousFrame==previous.frame
+				&&result->stream.requiresColorValidation==shadingAware
+				&&result->stream.trustedVertices==(shadingAware?3u:0u),
+				"return worker preserves immutable shading policy and accepted-history identity");
+		}
+		for(unsigned mutation=0;mutation<2;++mutation) {
+			auto bad=current;
+			if(mutation==0)bad.meshes[0].vertices[0].publicColor^=0x01000000u;
+			else bad.meshes[0].alphaReference=128;
+			suite.Expect(BuildRemakeMotionStream(&previous,bad,stream,error,true)&&stream.trustedVertices==0,
+				"shading-aware motion rejects vertex alpha and cutout changes");
 		}
 		auto repeated=previous;repeated.meshes.push_back(mesh);repeated.meshes.back().id=2;
 		auto ambiguous=repeated;++ambiguous.frame;++ambiguous.producer.ordinal;
 		ok=BuildRemakeMotionStream(&repeated,ambiguous,stream,error);
 		suite.Expect(ok&&stream.trustedVertices==0&&stream.ambiguousDraws==2,"returned identical repeated objects remain ambiguous despite draw ordinal");
+		suite.Expect(BuildRemakeMotionStream(&repeated,ambiguous,stream,error,true)&&stream.trustedVertices==0
+			&&stream.ambiguousDraws==2,"shading-aware matching cannot resolve ambiguous geometry");
 		for(auto& v:repeated.meshes[0].vertices)v.position.x-=3;
 		for(auto& v:repeated.meshes[1].vertices)v.position.x+=3;
 		auto reordered=repeated;++reordered.frame;++reordered.producer.ordinal;std::swap(reordered.meshes[0],reordered.meshes[1]);

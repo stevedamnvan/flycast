@@ -17,6 +17,8 @@ struct RemakeMotionStream {
  std::vector<std::uint32_t> indices;
  std::uint32_t trustedDraws=0,reactiveDraws=0,ambiguousDraws=0,trustedVertices=0;
  float maximumMotion=0;
+ // Geometry matched across shading changes must never bypass returned-colour validation.
+ bool requiresColorValidation=false;
 };
 namespace remake_motion_detail {
 inline void hash(std::uint32_t& h,std::uint32_t value) {
@@ -24,13 +26,15 @@ inline void hash(std::uint32_t& h,std::uint32_t value) {
 }
 inline std::uint32_t bits(float x){std::uint32_t out;std::memcpy(&out,&x,4);return out;}
 inline std::uint32_t generation(std::uint64_t x){return std::uint32_t(x)^std::uint32_t(x>>32);}
-inline bool exact(const RemakeTemporalMesh& a,const RemakeTemporalMesh& b) {
+inline bool exact(const RemakeTemporalMesh& a,const RemakeTemporalMesh& b,bool allowShadingChanges) {
  if(a.texture.known!=b.texture.known||a.texture.id!=b.texture.id||a.texture.generation!=b.texture.generation
   ||a.texture.paletteGeneration!=b.texture.paletteGeneration||a.texture.rttGeneration!=b.texture.rttGeneration
   ||a.sourceTsp!=b.sourceTsp||a.alphaReference!=b.alphaReference||a.alphaBlend!=b.alphaBlend
   ||a.indices!=b.indices||a.vertices.size()!=b.vertices.size())return false;
  for(std::size_t i=0;i<a.vertices.size();++i)
-  if(a.vertices[i].u!=b.vertices[i].u||a.vertices[i].v!=b.vertices[i].v||a.vertices[i].publicColor!=b.vertices[i].publicColor)return false;
+  if(a.vertices[i].u!=b.vertices[i].u||a.vertices[i].v!=b.vertices[i].v
+   ||((a.vertices[i].publicColor^b.vertices[i].publicColor)&0xff000000u)
+   ||(!allowShadingChanges&&a.vertices[i].publicColor!=b.vertices[i].publicColor))return false;
  return true;
 }
 inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& out,
@@ -79,7 +83,7 @@ inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& ou
 // This produces geometry candidates only; returned-depth/disocclusion and GPU
 // interpolation still decide per-pixel trust before neural history is enabled.
 inline bool BuildRemakeMotionStream(const RemakeTemporalScene* previous,const RemakeTemporalScene& current,
- RemakeMotionStream& output,std::string& error) {
+ RemakeMotionStream& output,std::string& error,bool allowShadingChanges=false) {
  try {
   if(previous&&!CompatibleRemakeTemporalReference(*previous,current))previous=nullptr;
   std::vector<DrawRecord> before,now;std::vector<std::vector<remake::Vec3>> oldScreen,newScreen;
@@ -87,11 +91,12 @@ inline bool BuildRemakeMotionStream(const RemakeTemporalScene* previous,const Re
    ||(previous&&!remake_motion_detail::records(*previous,before,oldScreen))) {error="remake-motion-source-bound";return false;}
   const auto matches=MatchDraws({before.data(),before.size()},{now.data(),now.size()});
   RemakeMotionStream result;
+  result.requiresColorValidation=allowShadingChanges;
   for(std::size_t i=0;i<now.size();++i) {
    const auto& match=matches[i];const auto prior=match.prevOrdinal;const auto& mesh=current.meshes[i];
    bool trusted=previous&&match.tier==1&&match.confidence>=.5f&&prior<before.size()
     &&(!std::isfinite(match.secondBestCost)||match.secondBestCost-match.bestCost>=1.f)
-    &&remake_motion_detail::exact(previous->meshes[prior],mesh)&&!IsReactive(now[i]);
+    &&remake_motion_detail::exact(previous->meshes[prior],mesh,allowShadingChanges)&&!IsReactive(now[i]);
    if(trusted)for(std::size_t v=0;v<mesh.vertices.size();++v) {
     const auto a=oldScreen[prior][v],b=newScreen[i][v];
     if(!ClassifyMotion(match,{a.x-b.x,a.y-b.y},false,false).trusted){trusted=false;break;}
