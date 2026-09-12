@@ -94,6 +94,11 @@ share74.35 percent and max latency7 fail to establish acceptance. Two Toolkit
 sessions remained open; no controlled speedup claim. Prior non-automation route
 failed scene anchor and helper access violation, retained. Next H work targets
 freshness/latency and clean measurement, not another local speed claim.
+LOG1009 corrects run policy: LOG1008 omitted LOG954 selective reuse. With the
+existing guarded benchmark option restored, exploratory fresh share is85.00%
+(918/1080), present median17.475ms, latency max7. Better than full-reset control,
+still not99% or clean acceptance. Preserve this option in subsequent supported
+benchmarks; separate runtime/environment load before further source changes.
 Usable camera contract: **pending**.
 Statuses: `todo`, `doing`, `blocked(reason -> next action)`, `done`.
 A blocked card does not block independent rows. "Done" requires linked evidence,

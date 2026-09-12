@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1009 benchmark-policy audit corrects LOG1008 interpretation.
+LOG1008 run b inherited old LOG911 flags, omitting the existing LOG954
+--benchmark-selective-resource-refresh option. Its74.35 percent fresh result
+is a full-reset control, not the latest supported reuse policy. Do not redo the
+completed reuse implementation or treat this as a demonstrated regression.
+Existing helper log medians (766 returns after120 warmup): period23.41ms,
+draw7.66, color lock wait6.21, receive4.24 including digest1.73/deserialize2.48
+and validation1.30. prepare10.18 includes packet age (LOG953), not CPU work;
+these nested medians must not be summed. helper-timing-summary.json retained.
+Fresh isolated run validation-pipeline-current-c enables only the explicit
+benchmark reuse option, same current binary and restored original seed/replay.
+Outer40603 terminal launcher0, host0/helper11. After120 warmup,918 fresh of1080
+(85.00 percent),162 repeats, no other presentations. Full1200-sample present
+interval P50/P95/P99=17.475/23.759/26.895ms; latency mean4.37/max7, zero identity
+mismatches. Reuse improves this exploratory comparison but remains below99%.
+Existing Toolkit state preserved; not clean acceptance or isolated attribution
+to the identity-validation optimization. Summary and script retained in run c.
+Next separate runtime/environment load from helper cost before another source
+optimization; do not claim LOG954 performance reproduced under these conditions.
+
 LOG1008 current pipeline exploratory failure and build-route correction.
 validation-pipeline-current-a used current build-neural-baseline/flycast.exe
 in a copied supplied-consumer workspace. Host exited0 but rejected scene
