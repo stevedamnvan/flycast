@@ -277,29 +277,23 @@ or generation retry. LOG969 typed current-process MCP wrapper now proven live;
 4builds/1053x3/SDK302/Python37 pass. Candidate frozen render still clumped and
 BC7 hair alpha128 differs126 pixels; not promoted. Next source-supported hair
 geometry/shading assessment, no further upscale/roughness loop.
-LOG973:58 duplicate-collapsed surface anchors persist116 frames and are
-draw-reorder invariant; eight ambiguous UV keys excluded from prototype only.
-LOG974 native witness run: partial candidate hair coverage35..37/164..166;
-LOG975 fixes disk palette generation per draw;3-frame material capture passes.
-LOG976 decoded hair atlas exact3/3; opaque hair129 vertices has zero witnesses.
-LOG977 retains all129 exact hair copies; transforms unmatched, not absent geometry.
-User appearance reference: reimagined final(height on floor only), middle image.
-LOG978 reference image/receipt recovered; whole-scene audit now first.
-40 native previews:30 captured matches,9 baseline replacements,0 missing bound files.
-LOG979 unmatched water views classified:8 HUD/effect,1 panorama,1 water.
-Temple source2601 separately matches26/26 exported materials. Next current
-LOG980 current correction rendered on exact temple packet: warm look retained,
-trouser gloss reduced; skin/architecture remain harsh. Next controlled lighting
-LOG981 world audit integrated:reuse11 cached families,region-specific atlas
-review; lock/repeat control then lighting-only candidate and material adjustment.
-World coverage runs alongside character work. New character maps absent from
-temple packet,so no benefit claim for those variants; hair lineage remains
-a dependency for strands, not a reason to defer the overall appearance comparison
-before treating source lineage as strand identity; no guard suppression.
-Offline geometry feasibility is not visual or across-cut acceptance.
-LOG970:143 hair triangles/frame,only6.29% flat;116/116 quantized UV layouts
-match. Next source-triangle barycentric attachment prototype and moving proof,
-not inferred skeleton or index-only binding. No new geometry accepted yet.
+Current execution: whole-scene materials and lighting alongside character work.
+Use preferred reimagined-final floor-only-height temple look as art reference.
+LOG978..981: temple source2601 matches26 exported materials; water inventory
+is separate. Reuse11 cached world map families; mixed atlases need used-region
+review. Newer character texture hashes do not occur in temple reference, so
+validate variants rather than aliasing bindings. Lock/repeat control, one
+LOG982 light3-to2 candidate below repeat noise; next trace effective lighting
+and tonemap path, then region-supported material change and moving proof.
+Validation set: Kilik, Taki, Mitsurugi, Sophitia across temple and water stage.
+Track all eight character/stage pairings; uncaptured pairings remain pending.
+Cover skin, cloth, armour/swords, hair/alpha, world surfaces, HUD/effects,
+motion stability, and separate capture-free pacing/latency/resource checks.
+This is a cross-scene validation set, not a reduction of full-game material scope.
+Hair dependency retained:58 offline anchors persist116 frames; no anatomical
+identity proof. LOG977 records129 exact opaque-hair copies but no matched
+transforms. No inferred skeleton, no further upscale loop; preserve silhouette.
+Audio parked. No overall visual, lifecycle, DLSS5 or60fps acceptance claimed.
 Mixed atlas: preserve other regions, alpha/UV/normals and reflective weapons.
 Evidence audio-backend-attribution-a; no third uninstrumented timing repeat.
 No overall60fps or full gate claim; muted benchmarks are throughput only.

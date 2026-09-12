@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG982 validation set and bounded light control. Four characters Kilik/Taki/
+Mitsurugi/Sophitia x temple/water establishes eight pairings; uncaptured remain
+pending,full-game scope unchanged. Active backlog consolidated in place.
+First light attempt temple-light-controlled-a rejected CLI argument order
+before rendering,baseline restored. Corrected b:control3/control3/candidate2
+radiance,each120 frames exit0,same source/materials/profile;MCP baseline exact.
+Control repeat RGB MAE.97718,candidate vscontrol.92424 (0..255). Candidate
+does not exceed control noise,visual inspection no highlight recovery; not
+promoted. Next trace effective light/tonemap contribution rather than scalar
+sweep. Stored runs,comparison,receipt in temple-light-controlled-b. No
+performance/appearance acceptance; native audio untouched. No game live.
+
 LOG981 world audit integrated and character coverage corrected. Read-only
 subagent report scene-audit-reference-a/WORLD-REVIEW.md:11 cached world map
 families reusable; mixed atlas3D62046ADCBFE6E7 contains masonry/wood/ornament/

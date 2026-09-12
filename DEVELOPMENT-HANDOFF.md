@@ -1,5 +1,9 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
+Validation set: Kilik, Taki, Mitsurugi, Sophitia x temple and water stage.
+All eight pairings required; uncaptured pairings pending. Full-game scope retained.
+World materials/lighting proceed beside character iteration (LOG981).
+
 Current LOG969: typed current-process ingestion MCP wrapper proven live,
 4builds/1053x3/SDK302/Python37 pass. Toolkit restarted safely PID20588 after
 seven layers saved byte-exact. Candidate ingested/rendered but not promoted:
