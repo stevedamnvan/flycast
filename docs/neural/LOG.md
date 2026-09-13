@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1029 face albedo candidates ingested through existing Toolkit MCP.
+Local PBRify candidates from character agent, assets2/6 current exact identities,
+source-alpha-preserved PNGs. MCP8001 flycast_ingest_diffuse_current_process
+completed both into separate project assets/ingested/face_albedo_review_b_HASH
+folders, no live bindings. face-albedo-review-b retains requests/responses and
+dds-validation.json. Both1024x1024 DDS decode exactly to candidate PNG RGBA:
+zero alpha mismatches,RGB MAE0. DDS SHA aabfb2166b5c2dbbebbfd0127646e3e2ddd7403a892843caf522b702d925457b
+and a59af673716d0360788b640f45d8c51668884431a1464dac63d7209d80d364b8.
+Technical ingestion only, baked shading and face appearance remain unaccepted.
+Next bind diffuse only via MCP in one isolated opt-in candidate layer and run
+same-source control/repeat/candidate, preserving liked arena/floor. No face
+normal/height binding; generated normals emboss painted details. No paid API.
+Other character and world set work continues with coordinated local GPU batches.
+
 LOG1028 excluded translucent draw footprints present in native effect evidence.
 Decoded native-effect-identity.bin for exact5430/5432, checked header/word count,
 source ordinal5429/5431, full307200 heads and exact end consumption. OIT source

@@ -1,9 +1,12 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1028: native effect exclusion footprints verified.
+Current resume checkpoint LOG1029: two face albedos ingested, unbound.
 Four serial builds/1102x3 pass. scene-coverage-live-a JSON failure retained;
 corrected live-b terminal launcher0, two retained frames5430/5432 from request3.
 Both exact frame/mesh-ID census checks pass:47 nonempty draws,41 exported.
+Next bind face albedos2/6 via MCP in isolated candidate layer, then exact-source
+control/repeat/candidate. face-albedo-review-b ingestion/decoded DDS checks pass
+exact RGBA1024; no current binding, no face normals/height.
 TR0/2/5/62 present in exact native effect chains; footprints retained in
 scene-coverage-live-b/effect-footprints.json. Next OP0 source state and effect
 occlusion review, then face albedo-only A/B via MCP. Highlights visibly washed

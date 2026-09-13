@@ -115,6 +115,9 @@ missing-translucency diagnosis. Next OP0 state classification and effect
 occlusion review, then albedo-only face candidate A/B through MCP. Washed-out
 character response remains visually evident; geometry inclusion alone is not
 scene/appearance acceptance.
+LOG1029 face albedos2/6 ingested by MCP, DDS/PNG RGBA exact, no binding yet.
+Next single opt-in diffuse-only layer and same-source control/repeat/candidate;
+face normals/height remain unbound and no appearance gain accepted.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded
