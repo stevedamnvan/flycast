@@ -1,10 +1,10 @@
-Current checkpoint LOG1044: sync texture upload still blurry; diagnostic
-neverDowngradeTextures restores visible stone detail in same-packet source-art
-replacement, exit0. Public loader branch requestsMAX_MIPS. Residency/promotion
-is next causal target; no production force-all policy or pixel equality claim.
-Next normal feedback/promotion investigation and generated-candidate review
-with verified residency. Evidence shrine-sampling-a/all-mips.bmp. Source layer
-detached, baseline exact, all parent processes terminal. MCP8002 Shrine unsaved.
+Current checkpoint LOG1045: feedback-off/neverDowngrade-off fixed5301 render
+exit0 restores visible stone detail. Candidate for moving/memory validation,
+not default/performance acceptance. Generated tiles also detailed with all-mips.
+Baseline exact, layers detached; parent processes terminal. World agent now
+owns GPU for Ostrheinsburg gameplay + remaining extraction. Parent CPU work
+until coordination. Evidence shrine-sampling-a/no-feedback and shrine-resident-tiles-a.
+MCP8002 Shrine workfile unsaved, preserve old8001 state.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

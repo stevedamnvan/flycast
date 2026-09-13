@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1045 sampler-feedback-off restores detail without forced residency.
+Source-art replacement fixed5301 render, samplerFeedbackEnable=False and
+neverDowngradeTextures=False, unchanged other settings, terminal0. Runtime
+logs both options. Viewed fine stone detail returns, as with all-mips control.
+Implicates feedback-driven mip promotion; does not prove installed internal
+bug or budget/performance safety. Existing budget untouched, forced residency
+off. Next opt-in moving-scene/memory validation before default promotion.
+Earlier generated tile all-mips test also exit0 with visible detail return;
+shrine-resident-tiles-a comparison corrects prior artwork-softness assessment.
+No tile appearance acceptance yet. All layers detached and baseline exact.
+Evidence shrine-sampling-a/no-feedback BMP/log/receipt and feedback-layer-off.
+World agent owns remaining extraction, including confirmed Ostrheinsburg
+selector; parent released GPU for its next gameplay capture. Character agent
+CPU findings MIP-PROMOTION-REVIEW.md support test selection, public-main scope.
+
 LOG1044 replacement residency control restores visible stone detail.
 Same5301 original-art replacement layer: alwaysWaitForAsyncTextures=True exit0
 still blurry. Public rtx_texture_manager.cpp scheduleTextureLoad only makes

@@ -76,6 +76,13 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 Current card: **FC-067 / M2-scene**.
 
+**Current delegation (user correction):** world agent owns the remaining level
+extraction routes and coverage-ledger updates, including the already-running
+Ostrheinsburg observation in full-world-ostrheinsburg-a. Parent owns critical
+replacement mip-promotion and character-lighting correction. Character agent
+provides bounded CPU streaming research. Serialize GPU ownership explicitly;
+do not restart an inherited live capture. Extraction is not full-game acceptance.
+
 **Full-set agent assignment (2026-09-12).** The world and character agents
 cover the entire game world and character set, including uncaptured levels,
 roster and costumes. The four-character/two-level matrix below is an initial
@@ -166,8 +173,10 @@ is not sole cause. LOG1043 mip pixels valid; private nativeMipBias=-2
 logged but no visible recovery, rejected. LOG1044 synchronous upload still
 blurry; neverDowngradeTextures diagnostic restores visible stone detail,
 implicating residency/promotion. Not production policy or pixel-faithful match.
-Next streaming feedback/promotion inspection and generated-candidate review
-with verified residency before normals or regeneration. Lighting balance
+LOG1045 samplerFeedbackEnable=False with neverDowngrade=False restores
+visible detail, implicating feedback-driven promotion. Generated tiles also
+retain detail with all-mips control. Next opt-in moving/memory validation of
+feedback-off candidate before defaults; no artwork acceptance or regeneration. Lighting balance
 and moving validation remain.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.
