@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1172 existing MCP uncompressed hair ingestion passes base-level RGBA.
+Installed nvtt_export --help confirms bgra8. Existing diffuse ingestion request
+changed only diffuse conversion format bc7->bgra8 and fresh output directory
+assets/ingested/hair_band_current_bgra_a; mip-gamma-correct retained.
+MCP8002 completed; ingest-bgra-request/result.json retained under
+C:/Flycast-Evidence/hair-band-correction-a. DDS256x256,349652bytes, decoded base
+RGBA differs0 pixels from candidate-exact-alpha.png (dds-bgra-validation.json).
+No added generation, model, download, global config or binding. Existing BC7
+failure retained. First local request preparation failed KeyError before submission;
+corrected guarded mapping, single MCP BGRA request. All jobs terminal.
+This proves base-level export preservation only, not mip appearance, runtime
+sampling or acceptance. Next isolated opt-in layer binding through MCP, controlled
+same-source lighting-fixed comparison and moving review. Keep originals intact.
+
 LOG1171 matching hair capture imported through MCP; lossy ingestion held.
 hair-band-correction-a/capture-import-dryrun.json and capture-import.json record
 67 dependencies, source SHA d45e3fbc8ec987be89af8a820f51cbc384517ff4efe47906aea84d959fce5d54.
