@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1089 Ivy verified-replay runtime acquisition and fixed-owned-packet export
+both terminal0, actualsource5300/39meshes, baselineexact. Original replay
+9e4ce071b71a734bd471ac37529d86e165ab0e94fc648a509dd4be6a225c59ec and
+original seeds reverified before isolated launch.26fixed-exportDDS checked,
+seven exact dimension+RGBA character matches; original PNG keys and DDS SHA
+checked before appending existing ledger aliases with backup preserved.
+Character50/67runtimejoined,17pending; world137/154unchanged. Ivy IDs
+BF9D145FD54D975E,42B44C45992DA7F8,291BD34B482B2726,C575D749B5C77599,
+D513ABFD4333A72B,5C5452DA5B0F0744,8B60DEA8F6D8E65B. Evidence
+character-ivy-runtime-a and character-ivy-fixed-export-a; character-texture-
+readiness-b/ivy-runtime-joins-root.json and ivy-runtime-joins-applied.json.
+Shared asset26 remains unmatched in Ivy/Nightmare; corrected sorted native
+Nightmare5300 audit finds196submitted/nondegenerate triangles, vertexalpha255.
+UsedUV includes hair-like lower-strip region; full atlas noise alone cannot
+justify rejecting source. No unused-surface or physical material claim.
+shared26-topology-root.json retains actual ranges/UVs. Next exclusion diagnosis
+requires footprint/alpha/native ownership evidence, not same-capture retry.
+No generation/binding/appearance acceptance; GPUfree, model approval pending.
+
 LOG1088 Nightmare acquisition terminal0, baselineexact, actual owned5300packet
 39meshes, SHA4fed4e507de054deda236f7bd9d2efcb6959c648667f663d75535ef241ad631d.
 Seven unmatched character identities match exact dimension+RGBA payloads.

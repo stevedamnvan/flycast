@@ -6,6 +6,12 @@ Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
 Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
 Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
 Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
+Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
+character50/67joined,17pending; world137/154unchanged. Baselineexact/GPUfree.
+Shared26Ivy/Nightmare source has196native submitted triangles; don't call unused.
+Exclusion diagnosis pending; no repeated same capture. Both agents terminal,
+model approval pending. See ivy-runtime-joins-applied.json for exact IDs.
+Historical LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
 terminal0 establishes7character aliases, now43/67joined,24pending. World137/154.
 Baselineexact/GPUfree; no live captures, no bindings/generation/appearance claims.
 Evidence character-texture-readiness-b/nightmare-runtime-joins-applied.json.

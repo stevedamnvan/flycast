@@ -307,6 +307,10 @@ LOG1088 Nightmare actual5300owned39meshes, fixed export26DDS terminal0,
 seven exact character aliases verified/ledger updated. Character43/67joined,
 24pending; world137/154unchanged. Baselineexact/GPUfree; no appearance claim.
 Do not repeat same Nightmare route. Missing cohort member needs usage evidence.
+LOG1089 Ivy5300run/fixedexport both0, seven exact aliases added: character50/67,
+17pending; world137/154unchanged. Baselineexact/GPUfree. Shared26native sorted
+196triangles confirms source usage; runtime exclusion remains open. No same-
+capture retry, generation or binding. Next remaining fighters/exclusion evidence.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.
