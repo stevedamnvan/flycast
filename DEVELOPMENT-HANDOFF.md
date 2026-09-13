@@ -13,6 +13,11 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1104:19frame full-stack hair sequence/control/repeat terminal0,
+headchange4.282 vs0.815noise. Hair present beginning/middle/end; only0.3sec,
+not full moving/appearance acceptance. Next triangle-fallback CPUcost then
+longer moving combat. Existing cleanup warning remains. Baselineexact/GPUfree.
+Evidence shrine-hair-sequence-a,57BMPs and receipts. No source mutation.
 Latest LOG1103: fresh Shrine terminal0/26captures shared26promoted, native
 effects/HUD/composition exact;5908native byte-identical old. Full-stack1280
 still restores fringe/side-hair over exposed face. Next moving full-stack head

@@ -368,6 +368,10 @@ zero composition mismatches;5908native exact to old run. Full-stack1280still
 restores fringe/side-hair covering exposed face. No full visual acceptance.
 Isolated live run lacks mod mount; standalone review uses repo mod junction.
 Next moving full-stack restored-head review and triangle-fallback CPU cost.
+LOG1104 full-stack19source sequence/control/repeat all terminal0; head local
+change4.282MAE vs0.815noise. Viewed beginning/middle/end hair stays present.
+Only0.3seconds, no full combat/temporal/performance acceptance. Next measure
+triangle-fallback CPU cost then longer moving combat. Baselineexact.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

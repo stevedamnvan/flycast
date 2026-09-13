@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1104 restored hair short-sequence comparison. Existing packet-sequence
+helper rendered19consecutive sources5911..5929 after60warmup at1280x960:
+control omits only shared26, repeat identical control, candidate retains it.
+All3runs exit0,79presents each; same remaining mesh bytes/camera/anchor,
+full saved mod stack, feedbackoff, fill0.3, baseline mod byte-identical.
+Headbox970:1200,310:460 median candidate/control MAE4.282 vs repeat0.815;
+whole0.447 vs0.563. Viewed candidate beginning/middle/end: fringe and side hair
+remain present through these poses. Local restoration supported, not full
+modern hair appearance acceptance. Only19frames/about0.3seconds; no full
+combat/temporal/performance/lifecycle pass. Existing common-device-object
+cleanup warning persists. No native HUD in standalone sequence.
+Evidence shrine-hair-sequence-a/packet-proof.json,receipts.json,comparison.json
+and57BMPs. Next triangle-fallback CPU cost assessment then longer full-stack
+moving combat under existing source/ownership safeguards. GPUfree.
+
 LOG1103 fresh Shrine cutout capture restores missing head coverage.
 Current host/reused Shrine replay/verified original seeds; launcher terminal0,
 baselineexact. 26captures: shared26 promoted throughout, native effects applied,
