@@ -43,6 +43,13 @@ struct RemakeOverlaySnapshot {
   if(bool(effects)==bool(normalEffects))return false;
   return effects?effects->Matches(source):normalEffects->Matches(source);
  }
+ bool ReadEffectIdentityForEvidence(ID3D11Device* device,ID3D11DeviceContext* context,
+  const ProducerIdentity& source,std::vector<std::uint32_t>& identity,std::string& error)const {
+  identity.clear();
+  if(!EffectsMatch(source)){error="effect-identity-snapshot-kind-or-source";return false;}
+  return effects?effects->ReadIdentityForEvidence(device,context,source,identity,error)
+   :normalEffects->ReadIdentityForEvidence(device,context,source,identity,error);
+ }
  bool ComposeEffects(ID3D11Device* device,ID3D11DeviceContext* context,
   const ProducerIdentity& source,ID3D11Texture2D* input,
   ComPtr<ID3D11Texture2D>& output,ComPtr<ID3D11ShaderResourceView>& view)const {

@@ -3267,7 +3267,7 @@ void DX11Renderer::evaluateRemakeAsync(flycast::rend::neural::NeuralFrame frame)
 				++remakeEffectReplayAttempts;
 				std::vector<std::uint32_t> identity;
 				std::ifstream evidence(matchedDirectory/"native-effect-identity.bin",std::ios::binary);
-				if(!remakeAsyncAcceptedOverlay.effects||!remakeAsyncAcceptedOverlay.effects->ReadIdentityForEvidence(device,deviceContext,returned.producer,identity,error)
+				if(!remakeAsyncAcceptedOverlay.ReadEffectIdentityForEvidence(device,deviceContext,returned.producer,identity,error)
 					||!MatchEffectIdentity(evidence,identity,error)) {
 					NOTICE_LOG(RENDERER,"Remake effect replay rejected: source=%llu reason=%s",(unsigned long long)returned.frame,error.c_str());return;
 				}
@@ -3791,7 +3791,7 @@ void DX11Renderer::displayFramebuffer()
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
-				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken,previewOverlay.captureTransport.get());
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken,previewOverlay.captureTransport.get(),previewOverlay.normalEffects.get());
 			if(captured&&previewOverlay.captureCoverage) {
 				const auto coveragePath=std::filesystem::path(directory)/("frame-"+std::to_string(previewSource->frame)
 					+"-present-"+std::to_string(currentNeuralSourceFrameId))/"source-draw-coverage.json";

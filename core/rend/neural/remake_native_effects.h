@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "remake_native_draw.h"
+#include "remake_native_identity.h"
 #include "remake_native_context.h"
 #include "producer_identity.h"
 #include "remake_alpha_ownership.h"
@@ -77,6 +78,44 @@ public:
  bool Matches(const ProducerIdentity& source)const noexcept {
   return valid&&sealed&&source.Available()&&source.epoch==producer.epoch
    &&source.ordinal==producer.ordinal&&source.cycle==producer.cycle;
+ }
+ bool ReadIdentityForEvidence(ID3D11Device* device,ID3D11DeviceContext* context,
+  const ProducerIdentity& source,std::vector<std::uint32_t>& output,std::string& error)const {
+  output.clear();
+  const auto fail=[&](const char* why){error=why;return false;};
+  if(!Matches(source)||device!=static_cast<ID3D11Device*>(owner)||!NativeCaptureContextMatches(device,context,depth)
+   ||draws.size()!=drawOrdinals.size()||draws.size()>8192||nativeParameters.size()>8192)
+   return fail("normal-identity-source-contract");
+  try {
+   NativeIdentitySink sink;
+   sink.Add(0x3145464eu); // NFE1, distinct from OIT identity version1.
+   for(auto v:{source.epoch,source.ordinal,source.cycle}){sink.Add(static_cast<std::uint32_t>(v));sink.Add(static_cast<std::uint32_t>(v>>32));}
+   const auto raster=RasterDescription();
+   for(auto v:{raster.Width,raster.Height,raster.MipLevels,raster.ArraySize,static_cast<UINT>(raster.Format),raster.SampleDesc.Count,raster.SampleDesc.Quality})sink.Add(v);
+   sink.Add(static_cast<UINT>(colorView.Format));sink.Add(static_cast<UINT>(colorView.ViewDimension));
+   if(colorView.ViewDimension==D3D11_RTV_DIMENSION_TEXTURE2D)sink.Add(colorView.Texture2D.MipSlice);
+   else if(colorView.ViewDimension==D3D11_RTV_DIMENSION_TEXTURE2DARRAY){sink.Add(colorView.Texture2DArray.MipSlice);sink.Add(colorView.Texture2DArray.FirstArraySlice);sink.Add(colorView.Texture2DArray.ArraySize);}
+   else return fail("normal-identity-color-view-unsupported");
+   sink.Add(static_cast<UINT>(depthView.Format));sink.Add(static_cast<UINT>(depthView.ViewDimension));sink.Add(depthView.Flags);
+   if(depthView.ViewDimension==D3D11_DSV_DIMENSION_TEXTURE2D)sink.Add(depthView.Texture2D.MipSlice);
+   else if(depthView.ViewDimension==D3D11_DSV_DIMENSION_TEXTURE2DARRAY){sink.Add(depthView.Texture2DArray.MipSlice);sink.Add(depthView.Texture2DArray.FirstArraySlice);sink.Add(depthView.Texture2DArray.ArraySize);}
+   else return fail("normal-identity-depth-view-unsupported");
+   NativeEvidenceTexture retainedDepth;
+   if(!ReadNativeEvidenceTexture(device,context,depth,retainedDepth,sink.remainingBytes()))return fail("normal-identity-depth-read");
+   EncodeNativeIdentityTexture(sink,retainedDepth);
+   sink.Add(static_cast<UINT>(nativeParameters.size()));
+   for(const auto& p:nativeParameters){sink.Add(p.primary);sink.Add(p.secondary);}
+   sink.Add(static_cast<UINT>(draws.size()));
+   for(std::size_t i=0;i<draws.size();++i){
+    std::vector<std::uint32_t> words;
+    if(!draws[i]||!EncodeNativeDrawIdentity(*draws[i],context,words,error))return false;
+    sink.Add(drawOrdinals[i]);sink.Add(static_cast<UINT>(words.size()));
+    for(auto word:words)sink.Add(word);
+    if(!sink.ok)return fail("normal-identity-size-bound");
+   }
+   if(!sink.ok)return fail("normal-identity-size-bound");
+   output=std::move(sink.words);error.clear();return true;
+  }catch(...){return fail("normal-identity-allocation");}
  }
  ComPtr<ID3D11Texture2D> ReplayNative(ID3D11DeviceContext* context,
   const ProducerIdentity& source)const {

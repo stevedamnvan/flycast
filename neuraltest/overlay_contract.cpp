@@ -17,6 +17,7 @@
 #include "rend/dx11/neural_coverage_blend.h"
 #include "rend/dx11/oit/native_effect_blend.h"
 #include "rend/neural/remake_native_readback.h"
+#include "rend/neural/remake_native_effects.h"
 #include <cmath>
 
 template<typename T> using WrlComPtr = Microsoft::WRL::ComPtr<T>;
@@ -226,6 +227,9 @@ bool RunOverlayContractFixture(bool d3d11On12,
 		static_cast<UINT>(std::size(elements)), vsCode->GetBufferPointer(),
 		vsCode->GetBufferSize(), layout.GetAddressOf());
 	if (FAILED(hr)) { error = HrText("create overlay pipeline", hr); return false; }
+	if(!flycast::rend::neural::AttachNativeShaderProvenance(vs.Get(),flycast::rend::neural::NativeProvenanceKind::VertexShader,vsCode->GetBufferPointer(),vsCode->GetBufferSize())
+		||!flycast::rend::neural::AttachNativeShaderProvenance(ps.Get(),flycast::rend::neural::NativeProvenanceKind::PixelShader,psCode->GetBufferPointer(),psCode->GetBufferSize())
+		||!flycast::rend::neural::AttachNativeLayoutProvenance(layout.Get(),elements,2,vsCode->GetBufferPointer(),vsCode->GetBufferSize()))return false;
 
 	result.original = {Width, Height, {}};
 	result.neural = {Width, Height, {}};
@@ -311,6 +315,38 @@ bool RunOverlayContractFixture(bool d3d11On12,
 	surface.context->PSSetShaderResources(0,2,views);
 	ID3D11SamplerState *samplerPtr=sampler.Get();
 	surface.context->PSSetSamplers(0,1,&samplerPtr);
+	{
+		using namespace flycast::rend::neural;
+		const std::uint16_t values[]={0,1,2,3,77,99};
+		D3D11_BUFFER_DESC desc{};desc.ByteWidth=sizeof(values);desc.BindFlags=D3D11_BIND_INDEX_BUFFER;
+		D3D11_SUBRESOURCE_DATA initial{values,0,0};WrlComPtr<ID3D11Buffer> indices;
+		if(FAILED(surface.device->CreateBuffer(&desc,&initial,indices.GetAddressOf())))return false;
+		surface.context->IASetIndexBuffer(indices.Get(),DXGI_FORMAT_R16_UINT,0);
+		auto draw=NativeEffectDraw::Capture(surface.device.Get(),surface.context.Get(),4,0,0);
+		auto twin=NativeEffectDraw::Capture(surface.device.Get(),surface.context.Get(),4,0,0);
+		std::vector<std::uint32_t> a,b;
+		if(!draw||!twin||!EncodeNativeDrawIdentity(*draw,surface.context.Get(),a,error)
+			||!EncodeNativeDrawIdentity(*twin,surface.context.Get(),b,error)||a!=b){error="normal identity allocation independent draw";return false;}
+		twin->stencilRef^=1;
+		if(!EncodeNativeDrawIdentity(*twin,surface.context.Get(),b,error)||a==b){error="normal identity misses draw state mutation";return false;}
+		const std::uint16_t tailChanged[]={0,1,2,3,12,34};
+		surface.context->UpdateSubresource(indices.Get(),0,nullptr,tailChanged,0,0);
+		auto paddingOnly=NativeEffectDraw::Capture(surface.device.Get(),surface.context.Get(),4,0,0);
+		if(!paddingOnly||!EncodeNativeDrawIdentity(*paddingOnly,surface.context.Get(),b,error)||a!=b){error="normal identity included unused index allocation";return false;}
+		D3D11_TEXTURE2D_DESC dd{};dd.Width=Width;dd.Height=Height;dd.MipLevels=1;dd.ArraySize=1;dd.Format=DXGI_FORMAT_D32_FLOAT;dd.SampleDesc.Count=1;dd.BindFlags=D3D11_BIND_DEPTH_STENCIL;
+		WrlComPtr<ID3D11Texture2D> depth;WrlComPtr<ID3D11DepthStencilView> dsv;
+		if(FAILED(surface.device->CreateTexture2D(&dd,nullptr,depth.GetAddressOf()))
+			||FAILED(surface.device->CreateDepthStencilView(depth.Get(),nullptr,dsv.GetAddressOf())))return false;
+		surface.context->ClearDepthStencilView(dsv.Get(),D3D11_CLEAR_DEPTH,0.25f,0);
+		ProducerIdentity source{7,8,9};
+		auto snapshot=NativeEffectSnapshot::Begin(surface.device.Get(),surface.context.Get(),source,outputTarget.Get(),dsv.Get());
+		if(!snapshot||!snapshot->Append(surface.context.Get(),4,0,0)||!snapshot->Seal(1)
+			||!snapshot->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),source,a,error))return false;
+		surface.context->ClearDepthStencilView(dsv.Get(),D3D11_CLEAR_DEPTH,0.75f,0);
+		if(!snapshot->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),source,b,error)||a!=b){error="normal identity changed with original depth mutation";return false;}
+		if(snapshot->ReadIdentityForEvidence(surface.device.Get(),surface.context.Get(),ProducerIdentity{7,8,10},b,error)||!b.empty()){error="normal identity accepts wrong producer";return false;}
+		error.clear();
+	}
 	surface.context->Draw(4,0);
 	ID3D11ShaderResourceView *nullViews[2]{};
 	surface.context->PSSetShaderResources(0,2,nullViews);

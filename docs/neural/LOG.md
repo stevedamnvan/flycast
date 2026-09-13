@@ -1,5 +1,33 @@
 # Neural rendering evidence log
 
+LOG1131 normal exact-effect identity capture integrated and short live proof.
+Separate NFE1 snapshot/NID1 draw encoding includes producer,depth,target views,
+ordered native parameters/draws,exact shader/layout provenance,active indexed
+vertex bytes,null/bound slots,constants,SRV descriptors/all sampled resource
+mips and slices,samplers,blend/depth/raster/viewports/scissors. No pointers or
+unused index/vertex allocation tails serialized. Unsupported layouts/formats
+and aggregate64MiB bounds reject. Capture and locked replay dispatch by exactly
+one source-qualified normal/OIT snapshot;pre-effects and alpha gates unchanged.
+Four serial builds and1159selftests x3 pass at normal-effect-identity-build-c.
+Initial build-a const-owner compile failure corrected. Probe-a failed on native
+BGRA8 vertex colors;declared MainLayout/NeuralLayout prove exact4-byte fields,
+support and regression added,then full build/test matrix rerun. Failed evidence
+retained;no rejection threshold weakened.
+Final nativeD3D11/On12 fixtures both0:allocation-independent identity,draw-state
+mutation,unused index tail exclusion,retained depth after source mutation and
+wrong producer rejection. Existing composition controls pass. Evidence:
+normal-effect-identity-gpu-b/identity-proof.json.
+Live shrine-normal-effect-identity-b exits0/11,baselineexact;all3requested
+sources5300..5302 captured. Normal identity sizes10,771,128/10,771,672/11,058,696
+bytes;full producer tuples agree with source packets,helper receipts/returns and
+completed Present joined,v3 archives validate,HUD/world/backbuffer mismatches0.
+Evidence C:/Flycast-Evidence/shrine-normal-effect-identity-b/identity-capture-audit.json.
+Inspected composited5300;no appearance approval or external-NR processing proof.
+Synchronous diagnostic remains ineligible for performance. OIT-only fragment
+census correctly rejects the distinct normal format;generic exact file compares
+remain valid. Next short live locked-source replay/provenance check,then300frame
+moving active-combat review. Full scene,visual,performance and lifecycle gates open.
+
 LOG1130 bounded retained-resource evidence readback implemented and GPU-tested.
 New diagnostic-only helpers read exact buffer spans and every mip/array slice
 of supported retained Texture2D resources. Row padding is excluded;BC formats

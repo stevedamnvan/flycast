@@ -21,6 +21,7 @@ struct rend_context;
 
 namespace flycast::rend::neural {
 class RemakeOitEffects;
+class NativeEffectSnapshot;
 // Only called inside the existing bounded synchronous preview capture.
 bool CaptureNativeEffectProof(const std::filesystem::path& root,ID3D11Device*,ID3D11DeviceContext*,
  std::uint64_t source,ID3D11Texture2D* native,ID3D11Texture2D* replay,std::string& error);
@@ -37,7 +38,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device*,
 	ID3D11Texture2D* evaluated = nullptr, const remake::Packet* scene = nullptr,
 	std::uint64_t replayOriginalFrame = 0, ID3D11Texture2D* preEffects = nullptr,
 	const RemakeOitEffects* effects = nullptr,const std::vector<AlphaEffectSelection>& alphaSelections = {},
-	const std::string& sessionToken = {},const remake::Packet* transport = nullptr);
+	const std::string& sessionToken = {},const remake::Packet* transport = nullptr,const NativeEffectSnapshot* normalEffects = nullptr);
 
 enum class CaptureGpuTimingPoint : std::uint8_t {
 	PvrBegin,

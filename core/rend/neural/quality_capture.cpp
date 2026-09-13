@@ -7,6 +7,7 @@
 #include "version.h"
 #include "remake_input_replay.h"
 #include "remake_oit_effects.h"
+#include "remake_native_effects.h"
 
 #include <stb/stb_image_write.h>
 
@@ -460,7 +461,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections,const std::string& sessionToken,const remake::Packet* transport)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections,const std::string& sessionToken,const remake::Packet* transport,const NativeEffectSnapshot* normalEffects)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -481,8 +482,9 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		if(scene&&!WriteLockedRemakeInput(directory,*scene,returned,error,transport))return false;
 		if(RemakeEffectEvidenceRequested()) {
 			std::vector<std::uint32_t> identity;
-			if(!effects||!preEffects) {error="effect evidence requires evaluated source effects";return false;}
-			if(!effects->ReadIdentityForEvidence(device,context,returned.producer,identity,error))return false;
+			if(bool(effects)==bool(normalEffects)||!preEffects) {error="effect evidence requires exactly one evaluated source effects snapshot";return false;}
+			if(!(effects?effects->ReadIdentityForEvidence(device,context,returned.producer,identity,error)
+				:normalEffects->ReadIdentityForEvidence(device,context,returned.producer,identity,error)))return false;
 			std::ofstream out(directory/"native-effect-identity.bin",std::ios::binary);
 			if(!WriteEffectIdentity(out,identity)) {error="effect evidence write failed";return false;}
 			out.close();if(!out) {error="effect evidence close failed";return false;}

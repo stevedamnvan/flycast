@@ -523,8 +523,11 @@ LOG1129 exact shader/layout provenance retained for evidence runs only;
 fourbuilds/1145selftests x3 pass. Capture/replay connection still unresolved.
 LOG1130 bounded retained resource readback passes fourbuilds/1153selftests x3
 and nativeD3D11/D3D11On12 mutation,RGBA mip/array,BC3 and span GPU checks.
-Next canonical complete draw-state/active-geometry/resource identity and
-capture/locked-replay dispatch,then a short GPU probe before repeating300.
+LOG1131 complete normal draw/resource encoding and capture/replay dispatch
+implemented. Fourbuilds/1159selftests x3 and both GPU identity fixtures pass.
+Live5300..5302 normal effect records,full source archives,helper/Present joins
+and native mismatch checks pass. No appearance/performance acceptance.
+Next short live locked-source replay check,then300frame moving combat review.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require

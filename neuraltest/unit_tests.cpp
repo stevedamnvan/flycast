@@ -126,6 +126,25 @@ int RunSelfTests()
 {
 	Suite suite;
 	{
+		NativeEffectSnapshot empty;std::vector<std::uint32_t> words{1};std::string why;
+		suite.Expect(!empty.ReadIdentityForEvidence(nullptr,nullptr,{1,2,3},words,why)&&words.empty(),"unsealed normal snapshot cannot yield identity");
+		RemakeOverlaySnapshot overlay;
+		suite.Expect(!overlay.ReadEffectIdentityForEvidence(nullptr,nullptr,{1,2,3},words,why)&&words.empty(),"effect identity rejects absent snapshot kind");
+		NativeIdentitySink a,b;
+		a.Bytes({1,2,3});b.Bytes({1,2,3,0});
+		suite.Expect(a.words!=b.words,"normal identity byte lengths distinguish zero padded payloads");
+		std::vector<std::uint8_t> proof;const std::uint8_t code[]={1,2,3};
+		D3D11_INPUT_ELEMENT_DESC element{"POSITION",0,DXGI_FORMAT_R32G32_FLOAT,0,4,D3D11_INPUT_PER_VERTEX_DATA,0};
+		std::vector<NativeIdentityElement> elements;
+		suite.Expect(EncodeNativeLayoutProvenance(&element,1,code,3,proof)&&NativeIdentityLayoutElements(proof,elements)
+			&&elements.size()==1&&elements[0].offset==4&&elements[0].size==8,"normal identity extracts exact declared vertex bytes");
+		element.AlignedByteOffset=D3D11_APPEND_ALIGNED_ELEMENT;
+		suite.Expect(EncodeNativeLayoutProvenance(&element,1,code,3,proof)&&!NativeIdentityLayoutElements(proof,elements),"normal identity rejects unsupported implicit vertex layout");
+		element.AlignedByteOffset=12;element.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+		suite.Expect(EncodeNativeLayoutProvenance(&element,1,code,3,proof)&&NativeIdentityLayoutElements(proof,elements)
+			&&elements.size()==1&&elements[0].offset==12&&elements[0].size==4,"normal identity preserves native BGRA vertex colors");
+	}
+	{
 		NativeEvidenceLayout layout{};std::vector<std::uint8_t> bytes;
 		suite.Expect(NativeEvidenceFormatLayout(DXGI_FORMAT_R8G8B8A8_UNORM,3,2,layout)
 			&&layout.rowBytes==12&&layout.rows==2&&layout.bytes==24,"native evidence RGBA layout exact");

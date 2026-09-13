@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1130; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1131; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -17,8 +17,13 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   creation provenance implemented for explicit evidence only,fourbuilds and
   1145selftests x3 pass. LOG1130 retained readback helpers now pass fourbuilds/
   1153selftests x3 and nativeD3D11/On12 GPU mutation,mip/array,BC3,span checks.
-  Next canonical complete draw-state/active-geometry/resource identity plus
-  writer/replay dispatch;short complete identity probe before300repeat.
+  LOG1131 complete normal draw/resource identity and writer/replay dispatch
+  implemented,fourbuilds/1159selftests x3 and nativeD3D11/On12 GPU fixtures pass.
+  Live shrine-normal-effect-identity-b sources5300..5302 complete,v3/helper/
+  Present/full producer joins pass,native mismatches0,baselineexact,terminal0/11.
+  BGRA vertex support corrected after rejected probe-a;all evidence retained.
+  Next short live locked replay using b/captures,then300frame combat review.
+  No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
   Do not substitute pointer hashes/output equality for exact input identity.
   Failure evidence shrine-capture-reference-moving-a/failure-audit.json.
