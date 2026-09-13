@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1037 Shrine managed capture and failed runtime export retained.
+Managed session terminal host0/helper11, orderly shutdown, no forced children;
+retained one source5301/present5308 packet of requested3. Composite viewed:
+both lower bodies unacceptably dark, no visual acceptance. Runtime export from
+exact retained packet submits120/presents120 and writes USD plus102files,
+26texture files; then helper timeout124 during15000ms linger. NOT a clean
+export pass. Do not restart based on missing observation: handle was terminal.
+full-world-shrine-a/runtime-export/failed-export-inventory.json records partial
+run assets; baseline SHA exactE3C09790...E8340. CPU identity audit can inspect
+retained artifacts with failed-run provenance, but lifecycle remains open.
+World CPU native audit adds12 new world identities; ledger now133 sources:
+72world/44character-like/17HUD-effects. Shrine tiles14/15 dry-run only, no jobs.
+Next exact retained runtime joins, and diagnose dark lower-body response using
+source bindings/normals/light occlusion before promoting any scene materials.
+
 LOG1036 Shrine of Eurydice native scene capture expands level coverage.
 Prepared route replayed in new full-world-shrine-a/workspace with copied
 verified original NVRAM/VMUs; originals preserved. Observe4700 exit0; viewed

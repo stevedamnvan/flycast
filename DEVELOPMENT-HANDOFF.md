@@ -1,11 +1,11 @@
-Current checkpoint LOG1036: Shrine of Eurydice observed selector4700 and native
-Mitsurugi/Sophitia gameplay5300..5302 verified. Three complete frames31 assets
-each; world agent CPU census pending. Evidence full-world-shrine-a commands,
-seed receipt, capture-audit and images. Built executable reports4e43b3565,
-not current exact-SHA evidence. No running parent capture; both exit0.
-Next Shrine exact-source Remix runtime join and remaining six stage routes;
-material-light response remains open. Wood candidate inactive, baseline exact
-at LOG1035. MCP8002 authoritative; preserve pending old8001 without saving.
+Current checkpoint LOG1037: Shrine managed run terminal host0/helper11, orderly,
+one capture5301-present5308 of requested3. Viewed composite: lower bodies too
+dark; no acceptance. Runtime-export wrote102files/26textures then timeout124
+during linger. Failed run retained, not clean success; no live parent process.
+Baseline exact. Next CPU exact texture joins from retained export with failure
+provenance, then dark lower-body light/occlusion diagnosis. World ledger now
+72world/44character-like/17HUD-effects;12 new Shrine world textures. Tiles14/15
+dry-run only. Evidence full-world-shrine-a; MCP8002 authoritative, preserve8001.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
