@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1160 corrected resource reuse retains fresh-output gain; full moving launched.
+mesh-resource-benchmark-a/corrected terminal0/baselineexact,1200 sources5302..6501,
+synchronous capture false.1198 accepted/2repeats, zero missing/identity mismatches;
+mean/max latency3.0075/5frames versus old3.8033/6, old repeats152. Corrected
+p50/p95/p99 11.3548/16.0193/19.4484ms; old11.2253/16.5418/19.6893ms.
+No median speed gain claimed. Host objects939->1180 (+241), final lower than old
+1202 but initial differs; not lifecycle closure. Host VRAM growth-139739136bytes.
+Reported budget differs old26089193472 versus corrected/reuse32945209344bytes;
+four Toolkit process allocation observations unchanged. Budget variation is an
+uncontrolled condition, so repeat under matched conditions before broad causal
+performance acceptance. Current data supports scoped throughput investigation.
+shrine-resource-reuse-moving-a full-quality300frame5300..5599 comparison launched
+session87049/launcher21360; same prior host, corrected helper and light cadence.
+Poll existing run. C:101208662016bytes free before launch. No capture-quality cut.
+resource_reuse_review agent preparing production-used pending-resource ownership
+helper and fake-reference rollback tests in new files only; parent integration
+pending. No agent GPU/build activity. Real driver fault behavior remains separate.
+
 LOG1159 restoring light lifetime substantially reduces unintended appearance change.
 shrine-resource-light-lifetime-a terminal0/baselineexact,11/11 sources5370..5380,
 all capture integrity checks pass;9common fresh-control packets semantically exact.
