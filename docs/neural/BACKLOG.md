@@ -243,7 +243,9 @@ four mixed/baked-light maps; panels15/16 native6300 UV quadrant checks pass.
 Two MCP BC4 roughness conversions exceeded conservative local check. LOG1070
 existing BGRA8 linear conversion exactly preserves both scalar maps; guarded
 MCP bindings saved in existing five-material opt-in layer, inactive/baseline exact.
-Next existing Palgaea FTRV lookup then same-source panel test and moving review.
+LOG1071 bounded109-root lookup found no reusable FTRV; explicit helper received-
+packet persistence added/tested, live source6301 saved baselineexact. Next verify
+owned texture identities then same-source panel test and moving review.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack

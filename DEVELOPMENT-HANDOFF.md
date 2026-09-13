@@ -1,4 +1,11 @@
-Current checkpoint LOG1070: both Palgaea panel roughness maps converted via
+Current checkpoint LOG1071: explicit diagnostic received-packet persistence
+added to existing launcher/helper.32Python, four builds,1108selftests x3 pass,
+five invalid CLI cases rejected. Live full-world-palgaea-packet-c terminal0,
+received-view.bin saved source6301/sequence97,13753446bytes, baselineexact.
+Next verify packet texture identity (world agent CPU task) then panel A/B with
+existing helper; candidate remains inactive. No host/visual/performance claim.
+
+Prior checkpoint LOG1070: both Palgaea panel roughness maps converted via
 existing MCP BGRA8 linear route, exact sourceR. Saved two guarded bindings in
 existing shrine_roughness_review_a (nowfive materials), detached/baseline exact.
 Evidence palgaea-panel-ingestion-bgra-a. No visual acceptance. Next find existing

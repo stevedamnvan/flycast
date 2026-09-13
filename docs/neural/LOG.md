@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1071 Owned diagnostic live-packet retention unblocks Palgaea same-source test.
+Bounded search109 evidence roots found no reusable panel packet; native TA
+material exports are not FTRV. Existing launcher now offers --save-received-packet
+only for bounded managed capture. Helper saves one owned copy at/after source
+threshold, resolving cached textures without changing live input; existing-file
+and wrong-mode guards. Launcher fails if requested file absent. Default unchanged.
+32Python tests, four serial builds and1108selftests x3 pass; five invalid CLI
+cases reject before runtime. Evidence received-packet-extension-a. Live Palgaea
+packet-c saves source6301/sequence97,13753446bytes; launcher0/orderly shutdown,
+baseline exact, no forced children. Consumer receipt digest13891819874719117565.
+This is diagnostic persistence, not performance/host acceptance/lifecycle proof.
+Next exact texture validation of received-view.bin, then existing same-source
+control/candidate/repeat helper render with panels in inactive opt-in layer.
+
 LOG1070 Palgaea panels lossless scalar conversion and guarded candidate binding.
 Existing MCP TextureImporter conversion_args selects bgra8/no-mip-gamma-correct
 for roughness only, fresh palgaea-panel-ingestion-bgra-a cache. Both1024maps

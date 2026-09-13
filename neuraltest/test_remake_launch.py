@@ -10,6 +10,19 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_received_packet_is_bounded_managed_capture_only(self):
+        self.args.save_received_packet = True
+        with self.assertRaisesRegex(ValueError, 'Received packet'):
+            prepare(self.args)
+        self.args.capture_frames = 3
+        self.args.capture_start_source = 6300
+        self.args.managed_session = True
+        _, out, _, _, helper = prepare(self.args)
+        self.assertEqual(helper[-3:], ['--save-received-packet', str(out/'received-view.bin'), '6300'])
+        self.args.manual_input = True
+        with self.assertRaises(ValueError):
+            prepare(self.args)
+
     def test_isolated_output_routes_only_helper_and_preserves_preflight(self):
         for managed, run, isolated in ((False, True, True), (True, True, True),
                                        (False, False, True), (False, True, False)):

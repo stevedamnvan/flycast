@@ -247,6 +247,17 @@ not the target-native PVR DLAA lane. The launcher never edits hook policy.
 
 ## Offline exact-packet motion comparison (LOG1063)
 
+When accepted host captures are unavailable, `--save-received-packet` on the
+existing launcher saves one owned `received-view.bin` under `--out`, from the
+first helper receipt at or after `--capture-start-source`. It requires bounded
+managed capture and is diagnostic only. The helper copies texture references
+from its session cache into the saved packet without modifying the live packet.
+It refuses an existing output; the launcher fails if the requested file is absent.
+The log records actual source frame, receipt sequence/digest/size. Hash and
+validate the saved packet before use; it is not evidence of returned-image
+acceptance. Direct helper syntax is a final `--save-received-packet PATH SOURCE`
+option, restricted to diagnostic live session workers, with a new absolute path.
+
 For live runtime asset export, `remake_launch.py --isolated-runtime-output`
 runs every helper generation in a fresh `runtime-output` directory under
 `--out`. The host keeps its existing working directory and managed-session

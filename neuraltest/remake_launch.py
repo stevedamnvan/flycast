@@ -261,6 +261,10 @@ def prepare(args):
         if '--diagnostic-capture-budget' not in helper:
             helper.append('--diagnostic-capture-budget')
         helper.extend(['--source-wait-seconds', '180'])
+    if getattr(args, 'save_received_packet', False):
+        if not capture_frames or not args.managed_session or args.manual_input:
+            raise ValueError('Received packet requires bounded managed capture')
+        helper.extend(['--save-received-packet', str(out/'received-view.bin'), str(capture_start)])
     return paths, out, env, host, helper
 
 
@@ -349,6 +353,8 @@ def main():
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--isolated-runtime-output', action='store_true',
                    help='Run the helper in a new runtime-output subdirectory of --out, isolating runtime captures and logs')
+    p.add_argument('--save-received-packet', action='store_true',
+                   help='Diagnostic managed capture: save one owned helper packet at or after capture-start-source')
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
     p.add_argument('--benchmark-warmup', type=int, default=0,
@@ -433,6 +439,7 @@ def main():
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   helper_working_directory=str(helper_cwd),
                   isolated_runtime_output=args.isolated_runtime_output,
+                  save_received_packet=args.save_received_packet,
                   temple_light_rig=args.temple_light_rig,
                   output_size=args.output_size,
                   manual_input=args.manual_input,
@@ -504,8 +511,9 @@ def main():
                 child.wait(timeout=10)
                 forced.append(child.pid)
         record['forced_children'] = forced
+        record['received_packet_present'] = (out/'received-view.bin').is_file() if args.save_received_packet else None
         (out/'launch.json').write_text(json.dumps(record, indent=2))
-    return 0 if (record.get('exit_codes') == [0, 0] or record.get('orderly_host_shutdown', False)) and not forced else 1
+    return 0 if (record.get('exit_codes') == [0, 0] or record.get('orderly_host_shutdown', False)) and not forced and record['received_packet_present'] is not False else 1
 
 
 if __name__ == '__main__':

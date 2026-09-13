@@ -54,6 +54,18 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
+ std::optional<std::filesystem::path> receivedPacketPath;
+ unsigned long long receivedPacketStart=0;bool receivedPacketSaved=false;
+ if(argc>=4&&std::wstring(argv[argc-3])==L"--save-received-packet") {
+  receivedPacketPath=std::filesystem::path(argv[argc-2]);
+  const std::wstring number=argv[argc-1];
+  if(number.empty()||number.size()>8||number.find_first_not_of(L"0123456789")!=std::wstring::npos){std::cerr<<"invalid received packet source\n";return 2;}
+  receivedPacketStart=std::stoull(number);argc-=3;
+  if(!receivedPacketStart||receivedPacketStart>10000000||!receivedPacketPath->is_absolute()
+    ||std::filesystem::exists(*receivedPacketPath)||!std::filesystem::is_directory(receivedPacketPath->parent_path())) {
+   std::cerr<<"received packet requires new absolute file and bounded source\n";return 2;
+  }
+ }
  std::optional<std::filesystem::path> packetSequenceList;
  if(argc>=3&&std::wstring(argv[argc-2])==L"--packet-sequence-list") {
   packetSequenceList=std::filesystem::path(argv[argc-1]);argc-=2;
@@ -151,6 +163,9 @@ int wmain(int argc,wchar_t** argv) {
  const bool liveChannelAsync=argc>=12 && std::wstring(argv[5])==L"--live-channel-async";
  const bool liveChannel=liveChannelAsync || (argc>=12 && std::wstring(argv[5])==L"--live-channel");
  const bool liveArtifact=liveChannel || (argc>=12 && std::wstring(argv[5])==L"--live-artifact");
+ if(receivedPacketPath&&(!liveChannel||!sessionWorker||!diagnosticCaptureBudget||packetSequenceList)) {
+  std::cerr<<"received packet requires diagnostic live session worker\n";return 2;
+ }
  flycast::rend::neural::RemakeLiveChannel channel;
  flycast::rend::neural::RemakeChannelReceipt activeSourceReceipt;
  // D-212 texture references: bytes registered by the host for this channel
@@ -231,6 +246,23 @@ int wmain(int argc,wchar_t** argv) {
     receiveWaitMs=std::chrono::duration<double,std::milli>(receivedAt-receiveEntry).count();
     {const auto cost=channel.LastReceiveCost();receiveDigestMs=cost.digestMs;receiveDeserializeMs=cost.deserializeMs;receiveValidateMs=cost.validateMs;}
     resolveTextureReferences(packet);
+    if(receivedPacketPath&&!receivedPacketSaved&&packet.frame>=receivedPacketStart) {
+     // Snapshot only in this explicit diagnostic. The live packet/cache stay unchanged.
+     Packet owned=packet;
+     for(auto& mesh:owned.meshes)if(mesh.textureWire==flycast::rend::neural::remake::TextureWire::Referenced) {
+      const auto bytes=resolveTextureReference(mesh);
+      if(!bytes||!mesh.material)throw std::runtime_error("received packet texture missing");
+      mesh.material->sourceDdsBytes=*bytes;mesh.material->sourceDds.clear();
+      mesh.textureWire=flycast::rend::neural::remake::TextureWire::Carried;
+     }
+     const auto result=OwnDiagnosticTextures(owned);
+     if(!result.ok)throw std::runtime_error(result.reason);
+     std::string writeError;
+     if(!flycast::rend::neural::WriteRemakeViewPacket(*receivedPacketPath,owned,writeError))throw std::runtime_error(writeError);
+     receivedPacketSaved=true;
+     std::cout<<"diagnostic_received_packet_saved source_frame="<<owned.frame<<" sequence="<<receipt.sequence
+      <<" received_digest="<<receipt.digest<<" received_bytes="<<receipt.bytes<<" performance_eligible=false\n"<<std::flush;
+    }
     activeSourceReceipt=receipt;
     std::cout<<"live_receive sequence="<<receipt.sequence<<" frame="<<packet.frame<<" producer="<<packet.producer.ordinal
      <<" bytes="<<receipt.bytes<<" digest="<<receipt.digest<<" registered_textures="<<registeredMeshes<<" referenced_textures="<<referencedMeshes
