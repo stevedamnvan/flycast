@@ -139,6 +139,10 @@ LOG1033 five lobe-isolation renders implicate direct diffuse contribution in
 face washout; reflections and indirect diffuse alone are not the explanation.
 Next correct direct-light/material response with full lighting retained; no
 disabled-lobe profile is a proposed remaster look. Not more albedo-only trials.
+LOG1034 oblique key rejected: skin washout and brighter floor. Stop global
+light sweeps. Temple17 wood runtime31EB60D1111B005D live MCP binding confirmed;
+candidate ingested RGBA exact, not bound. Next guarded opt-in wood A/B and
+per-material diffuse-response investigation.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
 candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 

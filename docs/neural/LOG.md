@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1034 oblique key rejected; temple wood ingestion advances full-set work.
+Same5458 packet120frames, key direction0.577350269,-0.577350269,0.577350269,
+original radiance3/fill0.3 and all lobes retained: exit0, baseline exact.
+Viewed lighting-oblique-a/oblique.bmp: shadows change but skin still washes out
+and liked floor becomes brighter. Do not promote or continue global light
+sweeps. Next inspect per-material diffuse/light response before another look.
+World agent exact source match31EB60D1111B005D confirmed through live MCP8002
+material-texture query in current capture. MCP ingested existing temple17
+alpha-preserved candidate to assets/ingested/temple_wood_review_a_31EB60D1111B005D.
+DDS1024x1024 RGBA exactly matches candidate; SHA a15845529ed9405e024c4f95c29e20a825f917bea2e90a3f03929bfcb2e19b93.
+Evidence temple-wood-integration-a request/result/validation. No binding yet,
+no generated retries or paid calls; baseline mod exactE3C09790...E8340.
+Next guarded opt-in wood layer, same-source A/B then layer-off verification;
+height off, original liked floor unchanged. Ingestion is not acceptance.
+
 LOG1033 direct diffuse contribution isolates character washout.
 Five same5458/120-frame helper renders completed exit0: control, no specular,
 no diffuse, no direct diffuse, no indirect diffuse. Official public RtxOptions

@@ -1,4 +1,10 @@
-Current checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
+Current checkpoint LOG1034: oblique key rejected (skin still washed out, floor
+brighter). Temple17 wood31EB60D1111B005D live MCP identity confirmed; albedo
+ingested and RGBA exact, not bound. Next guarded opt-in wood A/B and per-material
+diffuse response inspection; stop global light sweeps. temple-wood-integration-a
+has request/result/validation, lighting-oblique-a has rejected render.
+
+Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
 viewed. Direct diffuse contribution drives face washout in retained5458 pose;
 no-specular and no-indirect-diffuse still wash out. Do not ship disabled lobes.
 Next bounded direct-light/material-response correction, preserve liked arena
