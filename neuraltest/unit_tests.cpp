@@ -19,6 +19,7 @@
 #include "rend/neural/remake_frame_budget.h"
 #include "rend/neural/remake_depth_upload.h"
 #include "rend/neural/remake_native_effects.h"
+#include "rend/neural/remake_native_provenance.h"
 #include <d3d11.h>
 #include <atomic>
 #include <functional>
@@ -123,6 +124,37 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		const std::vector<std::uint8_t> code{0,1,2,0,255},copy=code;
+		std::vector<std::uint8_t> a,b;
+		suite.Expect(EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,code.data(),code.size(),a)
+			&&EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,copy.data(),copy.size(),b)&&a==b
+			&&ValidateNativeProvenance(a,NativeProvenanceKind::VertexShader),"shader provenance is exact and allocation independent");
+		const auto original=a;auto changed=code;changed.back()^=1;
+		suite.Expect(EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,changed.data(),changed.size(),b)&&b!=original
+			&&!ValidateNativeProvenance(original,NativeProvenanceKind::PixelShader),"shader bytecode mutation and stage mismatch are distinguished");
+		b=original;b.push_back(0);
+		suite.Expect(!ValidateNativeProvenance(b,NativeProvenanceKind::VertexShader),"shader provenance rejects trailing bytes");
+		b=original;b.pop_back();
+		suite.Expect(!ValidateNativeProvenance(b,NativeProvenanceKind::VertexShader),"shader provenance rejects truncation");
+		suite.Expect(!EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,nullptr,5,b)
+			&&!EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,code.data(),0,b)
+			&&!EncodeNativeShaderProvenance(NativeProvenanceKind::VertexShader,code.data(),1024u*1024+1,b),"shader provenance rejects missing and oversized code");
+		D3D11_INPUT_ELEMENT_DESC element{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0};
+		char semantic[]="POSITION";auto equivalent=element;equivalent.SemanticName=semantic;
+		suite.Expect(EncodeNativeLayoutProvenance(&element,1,code.data(),code.size(),a)
+			&&EncodeNativeLayoutProvenance(&equivalent,1,code.data(),code.size(),b)&&a==b
+			&&ValidateNativeProvenance(a,NativeProvenanceKind::InputLayout),"layout provenance uses semantic contents not string addresses");
+		const auto layout=a;equivalent.AlignedByteOffset=4;
+		suite.Expect(EncodeNativeLayoutProvenance(&equivalent,1,code.data(),code.size(),b)&&b!=layout
+			&&!ValidateNativeProvenance(layout,NativeProvenanceKind::VertexShader),"layout offset mutation and shader layout type mismatch differ");
+		equivalent=element;equivalent.SemanticName="NORMAL";
+		suite.Expect(EncodeNativeLayoutProvenance(&equivalent,1,code.data(),code.size(),b)&&b!=layout
+			&&EncodeNativeLayoutProvenance(&element,1,changed.data(),changed.size(),b)&&b!=layout,"layout semantic and signature bytecode changes are retained");
+		suite.Expect(!EncodeNativeLayoutProvenance(nullptr,1,code.data(),code.size(),b)
+			&&!EncodeNativeLayoutProvenance(&element,33,code.data(),code.size(),b),"layout provenance rejects missing or oversized element list");
+		suite.Expect(!ReadNativeProvenance(nullptr,NativeProvenanceKind::VertexShader,b),"missing shader provenance fails closed");
+	}
 	{
 		// LOG895: retired native-effect copies of an identical shape are reused
 		// across captures on the same device; a live snapshot keeps exclusive

@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1128; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1129; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -13,8 +13,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   Hair copper-bright and character response dark:visual acceptance still open.
   LOG1128 longer exact-effect run attempted all5300..5599 but0complete previews:
   normal snapshot is absent from OIT-only identity capture/replay checks.
-  300partial archives retained;no moving acceptance. Next implement normal
-  source-qualified effect evidence,then short probe before300repeat.
+  300partial archives retained;no moving acceptance. LOG1129 shader/layout
+  creation provenance implemented for explicit evidence only,fourbuilds and
+  1145selftests x3 pass. Next retained draw/resource evidence plus writer/replay
+  dispatch;short GPU provenance/mutation probe before300repeat.
   Do not substitute pointer hashes/output equality for exact input identity.
   Failure evidence shrine-capture-reference-moving-a/failure-audit.json.
   Evidence C:/Flycast-Evidence/shrine-capture-reference-a/integration-audit.json.

@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1129 normal effect shader/layout provenance foundation implemented.
+Exact VS/PS bytecode and input-layout signature/semantic/field content are
+retained through bounded versioned D3D private data at creation, only when
+explicit effect evidence is requested. Ordinary gameplay does not retain it.
+Reader validates length,version,type and content layout;missing provenance
+rejects. No COM address hashes,object ownership cycles or proprietary inspection.
+Attachment failure does not interrupt rendering;it cannot produce valid evidence.
+CPU tests prove allocation independence,byte/signature/semantic/offset changes,
+stage/type rejection,truncation,trailing bytes and input bounds. Four serial
+builds and1145selftests x3 pass. Evidence C:/Flycast-Evidence/normal-provenance-build-a.
+This is an input-provenance prerequisite,not complete normal effect identity.
+No live acquisition was rerun;the LOG1128 capture rejection remains unresolved.
+Next canonical retained draw/resource readback and both writer/locked-reader
+dispatches,then short GPU mutation/probe tests before300repeat. Review details:
+world-material-qa-20260913-a/NORMAL-EFFECT-IDENTITY-REVIEW.md.
+Root inspected normal constant layouts:VertexConstants144,PixelConstants96,
+PixelPolyConstants48;all three current upload values are zero-initialized and
+copied in full. These bounded logical extents may avoid allocation padding in
+the next evidence reader;do not generalize to unknown shaders/buffers.
+Money Pit retained basis diagnosis delegated CPU-only;no scene/material changes.
+
 LOG1128 normal exact-effect moving capture exposes an evidence integration gap.
 Executed shrine-capture-reference-moving-a with300requested sources5300..5599,
 60frame pre-roll,warmup5000,compact transport,exact effect identity,unchanged

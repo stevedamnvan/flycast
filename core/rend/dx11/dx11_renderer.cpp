@@ -30,6 +30,7 @@
 #include "rend/neural/pvr_scene_capture.h"
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_input_replay.h"
+#include "rend/neural/remake_native_provenance.h"
 #endif
 
 #include <chrono>
@@ -106,8 +107,16 @@ bool DX11Renderer::Init()
 	bool success = (bool)shaders->getVertexShader(true, true);
 	ComPtr<ID3DBlob> blob = shaders->getVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(MainLayout, std::size(MainLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &mainInputLayout.get()));
+#ifdef FLYCAST_ENABLE_NEURAL
+	if(mainInputLayout&&flycast::rend::neural::RemakeEffectEvidenceRequested())
+		flycast::rend::neural::AttachNativeLayoutProvenance(mainInputLayout,MainLayout,static_cast<UINT>(std::size(MainLayout)),blob->GetBufferPointer(),blob->GetBufferSize());
+#endif
 	blob = shaders->getMVVertexShaderBlob();
 	success = success && SUCCEEDED(device->CreateInputLayout(ModVolLayout, std::size(ModVolLayout), blob->GetBufferPointer(), blob->GetBufferSize(), &modVolInputLayout.get()));
+#ifdef FLYCAST_ENABLE_NEURAL
+	if(modVolInputLayout&&flycast::rend::neural::RemakeEffectEvidenceRequested())
+		flycast::rend::neural::AttachNativeLayoutProvenance(modVolInputLayout,ModVolLayout,static_cast<UINT>(std::size(ModVolLayout)),blob->GetBufferPointer(),blob->GetBufferSize());
+#endif
 
 	// Constants buffers
 	{
@@ -2506,6 +2515,8 @@ bool DX11Renderer::syncNeuralMode()
 				"neural input-layout allocation failed");
 			return false;
 		}
+		if(RemakeEffectEvidenceRequested())
+			AttachNativeLayoutProvenance(neuralInputLayout,NeuralLayout,static_cast<UINT>(std::size(NeuralLayout)),blob->GetBufferPointer(),blob->GetBufferSize());
 	}
 	if (requestedMode == static_cast<int>(NeuralMode::Dlss5Experimental)
 		&& config::NeuralDlss5EvidenceCapture.get())

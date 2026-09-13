@@ -519,9 +519,11 @@ not performance acceptance. Hair remains copper-bright,character shading dark.
 LOG1128 attempted all300sources5300..5599 with exact effects:0complete previews,
 300partial archives. Normal snapshot lacks the OIT-only exact-effect identity
 capture/replay connection; do not count archives as images or remove the gate.
-Next implement source-qualified normal effect evidence and locked-replay checks,
-then a short probe before repeating300. Preserve full input-state provenance,
-including shader/layout content where needed;no pointer identity substitute.
+LOG1129 exact shader/layout provenance retained for evidence runs only;
+fourbuilds/1145selftests x3 pass. Capture/replay connection still unresolved.
+Next canonical retained draw/resource evidence and locked-replay dispatch,
+then a short GPU probe before repeating300. Preserve full input-state provenance,
+active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require
 new matched source frames, not repeated4900export. LOG1128 proves host reached
 7105 but anchor publication stopped4992 as ambiguous-source-basis; diagnose

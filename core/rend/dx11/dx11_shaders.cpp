@@ -21,6 +21,10 @@
 #include "stdclass.h"
 #include "dx11_naomi2.h"
 #include <xxhash.h>
+#ifdef FLYCAST_ENABLE_NEURAL
+#include "rend/neural/remake_native_provenance.h"
+#include "rend/neural/remake_oit_effects.h"
+#endif
 
 const char * const VertexShader = R"(
 #if pp_Gouraud == 1
@@ -893,6 +897,10 @@ ComPtr<ID3D11VertexShader> DX11Shaders::compileVS(const char* source, const char
 	{
 		if (FAILED(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &shader.get())))
 			ERROR_LOG(RENDERER, "Vertex shader creation failed");
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(shader&&flycast::rend::neural::RemakeEffectEvidenceRequested())
+			flycast::rend::neural::AttachNativeShaderProvenance(shader,flycast::rend::neural::NativeProvenanceKind::VertexShader,blob->GetBufferPointer(),blob->GetBufferSize());
+#endif
 	}
 
 	return shader;
@@ -906,6 +914,10 @@ ComPtr<ID3D11PixelShader> DX11Shaders::compilePS(const char* source, const char*
 	{
 		if (FAILED(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &shader.get())))
 			ERROR_LOG(RENDERER, "Pixel shader creation failed");
+#ifdef FLYCAST_ENABLE_NEURAL
+		if(shader&&flycast::rend::neural::RemakeEffectEvidenceRequested())
+			flycast::rend::neural::AttachNativeShaderProvenance(shader,flycast::rend::neural::NativeProvenanceKind::PixelShader,blob->GetBufferPointer(),blob->GetBufferSize());
+#endif
 	}
 
 	return shader;
