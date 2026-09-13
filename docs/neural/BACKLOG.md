@@ -286,6 +286,10 @@ repair. External classifiers incorrectly indexed sorted native vertex ranges;
 use actual submitted sorted TRIANGLELIST ranges.137exact texture aliases stay
 valid. Castle38 actually samples constant opaque texels with vertexalpha127,
 not the noisy atlas region. World agent re-audits all24original gap rows CPU-only.
+LOG1084 correction complete, four independent topology checks pass. Remaining
+17=11no submitted triangles in sample+6on-screen-candidate cases;137exact
+aliases unchanged. Money one changed-bound acquisition4900 underway, based
+on previouslast4992; actual-source identity required, no5900comparison claim.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

@@ -1,6 +1,12 @@
 Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
 Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
+Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
+17gaps=11no submitted triangles in sample+6on-screen candidates. World agent
+owns Money4900 changed-bound acquisition in full-world-money-packet4900-a;
+prior5900request was never reached(last4992). Poll inherited handle, no restart.
+Actual source must be recorded, not relabeled5900. Model approval pending.
+Historical LOG1083:137exact texture joins valid; prior17gap geometry split is
 superseded because external classifiers mishandled sorted vertex ranges.
 World agent correcting all24original gap rows CPU-only. Castle38 sorted138
 actually samples constant opaqueRGBA140/173/132/255 with vertexalpha127;

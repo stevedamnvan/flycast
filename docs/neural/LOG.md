@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1084 topology correction reviewed and regression checked. Agent corrected
+all24original gap identities, ten affected by vertex-range handling, retained
+SUPERSEDED-range-space reports/scripts. Sorted translucent ranges use submitted
+triangle lists bypoly_index; ordinary draws use restart-aware index strips;
+texture slots deduplicated. Remaining17 runtime gaps are11with no submitted
+triangles in sampled native frame and6on-screen-candidate cases: Castle38,
+water34,historicalPalgaea28,Money25base+palettevariant,Money30. None of the17
+has the old offscreen disposition;137exact runtime aliases remain valid.
+Root tested isolated audit function without ledger mutations: sorted-list
+wrong-index negative control, sourcegeometry with no submitted batch, strip
+restart, and real Castle13813triangles/exactUV/alpha127;4checks pass. Evidence
+world-texture-completion-b/gap-topology-correction.json and
+gap-topology-root-verification.json. No full visibility or live correspondence
+claim; no sourcecode changes/builds needed for external evidence repair.
+Next Money packet acquisition uses same verified route but4900minimum instead
+of unreachable5900; priorlast4992 justifies changed bound. Fresh evidence
+full-world-money-packet4900-a. Actual frame must be retained, not called5900.
+World agent owns live capture; no duplicate launch. Model approval pending.
+
 LOG1083 root review found a range-space error in external gap classifiers.
 classify_missing_world.py and classify_other_world_gaps.py sliced scene.indices
 for every draw, including range_space=vertices. Native DX11 sorted translucency
