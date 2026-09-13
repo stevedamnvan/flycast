@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1145 native fringe candidates decoded from retained identity; texture copy exact.
+visual-review/NATIVE-CANDIDATES.md and native-draw-prefix-5375.json decode full
+NFE1 container and six candidate NID1 draw records through exact EOF. Submitted
+owners129,126,123,124,125,122 have POSITION bounds in the head ROI; this is spatial
+candidacy, not shader-evaluated pixel ownership. Twelve footprint-rejected owners
+include merged-away entries; do not infer twelve submitted draws. All six use
+source-alpha/inverse-source-alpha ADD and GREATER_EQUAL depth without writes.
+Native SRV0 BGRA8 mip0 decoded toRGBA matches all five exported DDS payloads exactly,
+including alpha. Pillow/direct DDS148byte-offset checks agree. Thus the unusual
+atlas preview is not exporter corruption for this texture. Shader proof is compiled
+bytecode, not macro strings. Existing source gates remain authoritative.
+Next measure conservative triangle-footprint opaque/clear/mid fractions per rejected
+owner before changing cutout qualification. Agent owns read-only external audit;
+no new capture, source/material/lighting changes or visual acceptance this slice.
+
 LOG1144 remaining fringe artifact localized to native-effect restoration.
 Existing sorted-alpha-moving-a frames5370..5380 inspected at fixed head/hand ROI
 (375,158)-(466,249), original pixels retained; nearest-neighbor stage contact sheet

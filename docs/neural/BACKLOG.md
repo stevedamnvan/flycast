@@ -566,7 +566,10 @@ checks pass. Existing mesh/camera/material data exact across300 prior-source pai
 dark cheeks and panel-like hair remain. Next5370..5380 closeup/source-mesh diagnosis
 before global lighting changes. LOG1144 all11stage closeups localize bright patches
 to native-effect restoration (evaluated==final ROI). Next decode retained NFE1
-native draw data for exact alpha ownership; DDS visualization needs format check.
+native draw data for exact alpha ownership. LOG1145 six native submitted candidates
+decoded in head ROI; source-alpha blend/depth confirmed. Native texture equals
+exported DDS exactly. Next conservative per-owner alpha footprint fractions;
+exact pixel ownership and appearance remain unproven.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
 No strip reconstruction

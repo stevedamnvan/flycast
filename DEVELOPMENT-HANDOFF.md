@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1144; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1145; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -16,7 +16,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   LOG1144 consecutive5370..5380 stage inspection places bright patches in native
   effect restoration, not final HUD compositor. Next existing NFE1 decode for
   rejected native draw ownership; agent moving_surface_review owns bounded5375
-  parser investigation. Verify unexpected DDS visualization before decoder claims.
+  parser investigation completed LOG1145: six submitted head-ROI candidates decoded;
+  native BGRA->RGBA equals exportedDDS. Next per-owner conservative alpha footprint
+  fractions; moving_surface_review owns external read-only audit. No pixel ownership
+  or cutout-policy correction claimed yet.
   Evidence moving-audit.json,retained-scene-comparison.json,visual-review/REVIEW.md.
   Fourbuilds/1135selftests x3,43launcher tests pass. Live diagnostic exits0/11;
   sources5901..5903 full10.52MB archives/1.08MB wire,all v3/wire checks pass,
