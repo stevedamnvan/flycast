@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1174. This is a summary
+Updated 2026-09-13, evidence through LOG1175. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -73,7 +73,11 @@ Current-foundation candidate has exact base RGBA, isolated MCP binding and exact
 layer-off restoration (LOG1170-1173); remains muted, moving review pending.
 Old26F foundation must not be transplanted onto E0786. Cached PBRify height repeats
 painted band and stays rejected. Preserve current arena/floor and native alpha.
-Next use retained native/returned stages and exact inputs to locate the face issue;
+LOG1175 retained stages locate additional eye darkening at returned->evaluated
+(median signed-27.115); subsequent native-effect/final stages change0 in eye ROI.
+Raw return remains soft/shaded. Next inspect evaluation boundary and existing
+non-neural Remix comparison lane with identical sources; do not blame lights alone.
+Use exact inputs to locate the face issue;
 generation/capture completion is not appearance acceptance. All sessions terminal.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.

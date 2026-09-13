@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1175 retained face-stage comparison separates added evaluation darkening.
+C:/Flycast-Evidence/face-stage-followup-a/stage_compare.py, stage-deltas.json,
+all-stages.png and native-return-final.png retained. Five control sources5595..5599;
+fixed eye ROI508,184..533,199, head490,166..553,220. Median eye RGB signed change
+native->returned+24.111 (MAE37.391), returned->evaluated-27.115 (MAE28.247),
+evaluated->pre-native-effects0 and pre-effects->final0. Source quality_capture.cpp
+confirms labels; preview says evaluated=true, neural_evaluation_skipped=false,
+external_nr_proven=false. This localizes additional darkening to evaluation-stage
+boundary, not native-effect restoration. It does not uniquely attribute algorithm
+or prove external consumer provenance. Raw return also looks soft/shaded; separate
+raw-return face/fringe issue remains. Earlier shorthand eye band already returned
+must not obscure this additional downstream change. Root viewed stage montage.
+Initial script name inspect.py shadowed Python stdlib and failed median printing;
+renamed stage_compare.py, rerun complete. No renderer/settings/material mutation.
+Next inspect EvaluateRemakeReturned pipeline and use existing non-neural Remix
+comparison lane on same source to distinguish evaluation from raw-return shading;
+no blind light sweep, no removal of full combined-output goal or acceptance gates.
+
 LOG1174 hair-band live control/repeat/candidate complete; limited response.
 C:/Flycast-Evidence/hair-band-live-a retains three isolated unchanged-launcher
 setups, absolute runtime mod wrappers, commands, logs, captures and audits.
