@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1090 shared26 source-alpha diagnosis, CPU-only. Corrected native sorted
+draw footprints for Nightmare5300:11submitted draw groups/196triangles,
+all submitted vertexalpha255. Existing cutout texture thresholds applied to
+their UV rectangles:4qualify(53,73,74,88),7fail. Therefore wholetexture cutout
+ineligibility is not established; no mask changes or forced promotion justified.
+Native ordinals remain distinct from live OIT. Actual live5300 log reports
+5promoted/1kept_native/0undecoded, but lacks per-rejected-mesh reason. Owned
+packet contains no textureTCW269419008 (shared26nativeTCW); does not prove
+which live omission accounts for source, or source address persistence.
+Evidence character-texture-readiness-b/shared26-alpha-root.json and existing
+character-nightmare-runtime-a/workspace/flycast.log source5300. Next bounded
+diagnostic needs per-mesh exclusion provenance before another capture; keep
+native composition/alpha gates, no threshold sweep. No GPU/build/source edits.
+
 LOG1089 Ivy verified-replay runtime acquisition and fixed-owned-packet export
 both terminal0, actualsource5300/39meshes, baselineexact. Original replay
 9e4ce071b71a734bd471ac37529d86e165ab0e94fc648a509dd4be6a225c59ec and

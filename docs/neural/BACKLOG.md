@@ -311,6 +311,10 @@ LOG1089 Ivy5300run/fixedexport both0, seven exact aliases added: character50/67,
 17pending; world137/154unchanged. Baselineexact/GPUfree. Shared26native sorted
 196triangles confirms source usage; runtime exclusion remains open. No same-
 capture retry, generation or binding. Next remaining fighters/exclusion evidence.
+LOG1090 shared26native footprints4/11meet texture-alpha criteria, so blanket
+cutout rejection unsupported. Live5300logs5promoted/1native/0undecoded without
+per-mesh reason; correspondence unresolved. Next exclusion provenance needs
+per-mesh identity/reason, not another unchanged capture or threshold sweep.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

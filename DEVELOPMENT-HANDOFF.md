@@ -7,6 +7,11 @@ Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
 Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
 Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
 Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
+Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
+5promoted/1native/0undecoded but no per-rejected identity/reason. No blanket
+ineligibility claim; add bounded exclusion provenance before repeat capture.
+Counts remain character50/67,world137/154;baseline untouched/GPUfree.
+Historical LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
 character50/67joined,17pending; world137/154unchanged. Baselineexact/GPUfree.
 Shared26Ivy/Nightmare source has196native submitted triangles; don't call unused.
 Exclusion diagnosis pending; no repeated same capture. Both agents terminal,
