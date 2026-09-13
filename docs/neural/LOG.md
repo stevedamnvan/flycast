@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1138 second blade pose, no visual promotion.
+blade-metal-review-b uses retained moving source5400. Independent source-uv-proof
+matches exact51B4 fullRGBA key and all218 mesh2357 UV triangle multisets to5900;
+texture-state fields also match. Control/candidate/repeat exits0/0/0; separate MCP
+metallic-only layer removed,baseline byte-exact. No other surface inputs changed.
+Root viewed close combat control/candidate. No convincing visible gain, candidate
+inactive and appearance unaccepted. WholeMAE0.88553 vs repeat0.25732; blade box
+[270:441,208:246]1.77829 vs0.40520, not appearance quality proof. Two poses are not
+moving acceptance. Do not spend a300frame moving lane promoting an unconvincing
+candidate. Retain mask/ingestion capability; next visual priority character light/
+hair response and scene completeness, using liked arena/floor unchanged. Weapon
+roughness/albedo response may later need material-qualified work; no generic gloss.
+
 LOG1137 live typed DDS preservation and first blade metal still comparison.
 Existing extension hot-reloaded after timestamp-only update to its entrypoint;
 MCP8002 now discovers typed tools without restarting Toolkit. Scalar fixture

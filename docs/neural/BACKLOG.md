@@ -548,8 +548,10 @@ pass. Generic attempts failed subprocess callback and dangling enum schema, not
 proven DDS rejection. Next load existing extension and one typed fixture ingest;
 LOG1137 typed import preserves5fixture/9blade mips with legitimate metadata.
 First MCP blade-only metallic still A/B completes0/0/0 and restores baselineexact;
-visible gain subtle/unaccepted. Candidate inactive. Next another source-qualified
-pose and moving review; conservative mip distance tradeoff remains open;
+LOG1138 second source5400 pose and218UV triangles verified; gain still unconvincing.
+Candidate inactive, no visual promotion. Do not launch300frame lane for this look.
+Next character lighting/hair response and scene-completion queue; retain weapon
+mask ingestion capability for later material-qualified work. Mip tradeoff remains;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
