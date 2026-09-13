@@ -549,7 +549,10 @@ proven DDS rejection. Next load existing extension and one typed fixture ingest;
 LOG1137 typed import preserves5fixture/9blade mips with legitimate metadata.
 First MCP blade-only metallic still A/B completes0/0/0 and restores baselineexact;
 LOG1138 second source5400 pose and218UV triangles verified; gain still unconvincing.
-Candidate inactive, no visual promotion. Do not launch300frame lane for this look.
+Candidate inactive, no visual promotion. LOG1139 fixed-source key-angle sweep
+confirms lighting strongly changes blade response in baseline and candidate.
+Prior no-gain verdict is rig-specific, not general material rejection. Next
+coordinate character/weapon lighting, then separate roughness/albedo response.
 Next character lighting/hair response and scene-completion queue; retain weapon
 mask ingestion capability for later material-qualified work. Mip tradeoff remains;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.

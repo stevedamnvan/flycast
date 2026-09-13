@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1139 user lighting confound tested with fixed source/material.
+blade-light-angle-a repeats source5400 baseline/candidate/control-repeat under
+unit key directions +/-0.707106781,0,0.707106781; original0,0,1 from review-b.
+Only key direction varies;fill,radiance,material,geometry,camera,resolution fixed.
+All6new renders exit0;both layer removals restore baselineexact. Root viewed left
+control/candidate and right candidate. Left angle visibly brightens blade in both
+materials; right remains darker. Fixed blade-neighborhood RGB mean baseline
+85.41reference/177.79left/95.54right;candidate85.54/177.50/95.35. Box includes nearby
+pixels,not segmented blade radiometry. Per-angle candidate MAE1.87/2.17/1.83 vs
+repeat0.41/0.53/0.56 does not establish visual improvement.
+Correction: LOG1138 no convincing gain is limited to tested original lighting;
+not general material rejection. Lighting demonstrably controls visible blade
+response; mask-specific advantage still unproven. Candidate stays inactive.
+Next assess character/weapon light response together, preserving liked arena/floor;
+separate roughness/albedo variables before any material rejection or promotion.
+No diagnostic angle promoted to gameplay;no moving/performance acceptance.
+
 LOG1138 second blade pose, no visual promotion.
 blade-metal-review-b uses retained moving source5400. Independent source-uv-proof
 matches exact51B4 fullRGBA key and all218 mesh2357 UV triangle multisets to5900;

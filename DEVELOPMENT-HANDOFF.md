@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1138; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1139; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -41,7 +41,9 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   still test0/0/0,baselineexact. Candidate inactive; subtle effect not accepted.
   LOG1138 second pose source5400/218UV exact,0/0/0,baselineexact;still no convincing
   visual gain. Keep inactive;no300frame promotion. Next character light/hair and
-  scene completeness. Evidence blade-metal-review-b.
+  scene completeness. LOG1139 user lighting concern confirmed:6angle renders pass,
+  blade brightens strongly in both materials;prior verdict rig-specific. Baselineexact.
+  No diagnostic light promotion. Evidence blade-light-angle-a/comparison.json.
   Evidence weapon-used-uv-a. Shield absent from current Toolkit stage.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
