@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG1114 capture-free attack benchmark removes presentation interruption.
+Existing supplied-consumer setup copied with verified binary hashes, current
+built host and original seed/replay, baseline mod exact. 640x480 OIT, feedbackoff,
+selective refresh, fill0.3, warmup5000; no images or CPU instrumentation.
+Evidence C:/Flycast-Evidence/shrine-attacks-performance-a: terminal0/11 orderly,
+1200samples5002..6201, all1200remake-evaluated,3output repeats,0native/identity
+mismatches, latencymax5. PresentP50/P95/P99=14.9196/17.4817/22.2554ms.
+After120samples:1080evaluated,2within-window repeats, latencymax5. Exact source
+window5300..5599 has300evaluated presents,0within-window repeats,latencymax3,
+median14.9107ms,cycles19312562752..20310138688 spanning replay attacks.
+Host-owned objects initial/final198,growth0; hostVRAM delta-147718144bytes.
+No visual or combined-provenance gate inferred from timing. GPU timing fields
+invalid; CPU present intervals only. Existing supplied imagery/provenance and
+cleanup limitations remain; no native speed denominator or repeated/fullmatrix
+acceptance. This is one640OIT run, not whole-game60fps or lifecycle proof.
+Retained capture return audit:5000..5299=119returns/99retained/20age>8;
+5300..5483=80/76/4;5484..5599=113/113/0. Logs omit full candidate stream.
+Capture-free attack continuity strongly implicates diagnostic-path overhead;
+do not weaken production recovery or keep adjusting pre-roll. Next repeat the
+capture-free attack lane for reproducibility, then1280/normal matrix; address
+synchronous evidence collection separately to obtain the still-open visual gate.
+
 LOG1113 pre-roll live experiment completes orderly but fails coverage hypothesis.
 Fresh verified seed/config/replay copies and current built host; full baseline
 mod unchanged, repository mod mount preserved. Evaluation5000, preview5300..5599,

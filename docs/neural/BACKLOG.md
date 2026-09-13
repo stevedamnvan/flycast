@@ -463,6 +463,10 @@ LOG1113 fresh live run terminal0/orderly:113previews5484..5599, longest110,
 all native mismatch counts0. Pre-roll alone failed to recover attack interval.
 Next retained candidate-continuity audit and capture-free timing; no repeated
 earlier warmup or relaxed recovery. Full300combat/performance remain open.
+LOG1114 capture-free640OIT:1200evaluated/3repeats,14.92ms median; exact attack
+sources5300..5599 all300evaluated/0repeats/latencymax3. No visual gate from timing.
+Next repeat then1280/normal matrix; diagnostic capture overhead is separate,
+not a reason to loosen production policy or repeat pre-roll sweeps.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

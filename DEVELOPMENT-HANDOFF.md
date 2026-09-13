@@ -3,9 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1113; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1114; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1114 capture-free640OIT attack run TERMINAL0/11 orderly:1200evaluated,
+  3repeats,median14.92ms; exact5300..5599 all300evaluated/0repeats/maxage3.
+  Native fallback/identity errors0,owned-object growth0,baselineexact. Next repeat
+  then1280/normal matrix. Diagnostic image overhead remains separate; no visual
+  acceptance or complete performance claim. Evidence shrine-attacks-performance-a.
 - LOG1113: pre-roll run TERMINAL0/orderly, no forced children. 113previews
   5484..5599, longest110; native HUD/world/backbuffer mismatch0 throughout.
   Viewed5484 confirms attack feedback, swords/shield; not moving acceptance.
