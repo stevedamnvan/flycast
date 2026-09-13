@@ -13,6 +13,12 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1103: fresh Shrine terminal0/26captures shared26promoted, native
+effects/HUD/composition exact;5908native byte-identical old. Full-stack1280
+still restores fringe/side-hair over exposed face. Next moving full-stack head
+review and triangle CPU cost. Live isolated runtime has no mods mount, so
+coverage-only; standalone repo cwd/mod junction verifies review setup.
+Evidence shrine-cutout-current-a; baselineexact/GPUfree. No full acceptance.
 Latest LOG1102: old Shrine5908 face-review packet lacks shared26. Fresh1280
 inspection vs native shows head occlusion difference; do not tune skin from
 incomplete packet. Face normals aligned across both retained sources. Next

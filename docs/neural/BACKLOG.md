@@ -363,6 +363,11 @@ LOG1102 old Shrine5908 face-review packet lacks recovered shared26, viewed
 native/reconstruction head occlusion differs. Do not tune skin from incomplete
 packet. Next fresh post-fix Shrine capture using existing replay/seed, verify
 native head coverage first. Face normals align with triangles, no flip fix.
+LOG1103 fresh Shrine current-host capture verifies shared26 promotion and
+zero composition mismatches;5908native exact to old run. Full-stack1280still
+restores fringe/side-hair covering exposed face. No full visual acceptance.
+Isolated live run lacks mod mount; standalone review uses repo mod junction.
+Next moving full-stack restored-head review and triangle-fallback CPU cost.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

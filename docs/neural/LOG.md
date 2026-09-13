@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1103 fresh Shrine cutout capture restores missing head coverage.
+Current host/reused Shrine replay/verified original seeds; launcher terminal0,
+baselineexact. 26captures: shared26 promoted throughout, native effects applied,
+zero HUD/world/backbuffer composition mismatches. Source5908 native PNG
+byte-identical to old5908. Full-stack1280 standalone replay terminal0 and
+viewed: fringe/side hair now cover the previously exposed face. This supports
+missing geometry contribution to apparent face regression; do not tune skin
+against the old incomplete packet. No complete appearance acceptance.
+Important provenance: isolated live runtime-output has no mods mount; its
+captures establish coverage/native safeguards only. Standalone review ran in
+repository cwd with existing mod junction, replacement enabled, feedbackoff,
+fill0.3. Never label isolated replacement-enabled flag as loaded-mod proof.
+Next review restored head through a short moving full-stack sequence and
+measure triangle-fallback CPU cost; retain current natural-alpha safeguards.
+Hair strand quality, source lighting and overall playable acceptance remain open.
+Evidence shrine-cutout-current-a/verification.json,review-receipt.json,
+review1280.bmp, copy-receipt.json. No active layer/material mutation. GPUfree.
+
 LOG1102 retained face review is incomplete for head-occlusion acceptance.
 Normals audit: source5300 Sophitia430, Shrine5908 Mitsurugi296/Sophitia430
 nondegenerate triangles all align with average vertex normal (min dots0.794,
