@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <map>
+#include <set>
 
 namespace flycast::rend::neural {
 // Deliberately camera-relative diagnostic geometry, not recovered world space.
@@ -222,6 +224,30 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
 			converted[i]=out;++result.estimatedVertices;
 		}
 	}
+ // Submitted sorted lists are indexed triples, unlike their source PolyParam
+ // vertex ranges. Index once so merged owners are not expanded or duplicated.
+ std::map<std::uint32_t,std::vector<std::pair<std::size_t,std::size_t>>> sortedRanges;
+ if(includeAlpha) {
+  std::set<std::uint32_t> owners;
+  for(const auto& draw:packet.draws)if(draw.list==2&&draw.vertexRange) {
+   if(!owners.insert(draw.ordinal).second)return fail("view-sorted-owner");
+  }
+  if(!owners.empty()) {
+   if(!packet.sortedOrderCaptured)return fail("view-sorted-provenance");
+   if(packet.sortedTriangles.size()>262144)return fail("view-reference-work-bound");
+   std::size_t end=0,work=0;
+   for(const auto& range:packet.sortedTriangles) {
+    if(!owners.count(range.polyIndex))return fail("view-sorted-owner");
+    if(range.count%3||range.first>packet.indices.size()||range.count>packet.indices.size()-range.first
+     ||(range.count&&range.first<end))return fail("view-sorted-range");
+    if(range.count>262144-work)return fail("view-reference-work-bound");
+    work+=range.count;
+    for(std::size_t i=range.first;i<std::size_t(range.first)+range.count;++i)
+     if(packet.indices[i]==UINT32_MAX||packet.indices[i]>=converted.size())return fail("view-sorted-index");
+    if(range.count){end=std::size_t(range.first)+range.count;sortedRanges[range.polyIndex].push_back({range.first,range.count});}
+   }
+  }
+ }
  std::size_t totalVertices=0,totalReferences=0;
  for(const auto& draw:packet.draws) {
   if(!draw.state.count)continue;
@@ -233,24 +259,33 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
    &&state.tsp.FogCtrl!=3&&state.tcw.PixelFmt!=PixelBumpMap;
   if(cutout&&!packet.sourceAlphaReference)return fail("view-cutout-source-alpha-missing");
   if(cutout&&(state.tsp.ShadInstr!=3||state.tsp.FilterMode>1||state.tsp.FogCtrl==3||state.tcw.PixelFmt==PixelBumpMap)) {++result.omittedDraws;continue;}
-  if((draw.list!=0&&!cutout&&!alpha) || draw.vertexRange || state.isNaomi2() || state.pcw.Volume
+  if((draw.list!=0&&!cutout&&!alpha) || (draw.vertexRange&&!alpha) || state.isNaomi2() || state.pcw.Volume
    || state.texture || state.texture1 || draw.texture1 || (state.isp.ZWriteDis&&!alpha)
    || (state.pcw.Texture && !draw.texture)) {++result.omittedDraws;continue;}
-  if(state.first>packet.indices.size() || state.count>packet.indices.size()-state.first)
-   return fail("view-draw-range");
-  if(state.count>262144-totalReferences)return fail("view-reference-work-bound");
-  totalReferences+=state.count;
+  std::vector<std::pair<std::size_t,std::size_t>> ranges;
+  if(draw.vertexRange)ranges=sortedRanges[draw.ordinal];
+  else {
+   if(state.first>packet.indices.size() || state.count>packet.indices.size()-state.first)return fail("view-draw-range");
+   ranges.push_back({state.first,state.count});
+  }
   bool complete=true;
-  for(std::size_t i=state.first;i<std::size_t(state.first)+state.count;++i) {
-   const auto vertex=packet.indices[i];if(vertex==UINT32_MAX)continue;
-   if(vertex>=converted.size())return fail("view-index-bound");
-   complete=complete&&converted[vertex].has_value();
+  for(const auto& range:ranges) {
+   if(range.second>262144-totalReferences)return fail("view-reference-work-bound");
+   totalReferences+=range.second;
+   for(std::size_t i=range.first;i<range.first+range.second;++i) {
+    const auto vertex=packet.indices[i];if(vertex==UINT32_MAX)continue;
+    if(vertex>=converted.size())return fail("view-index-bound");
+    complete=complete&&converted[vertex].has_value();
+   }
   }
   if(!complete){++result.omittedDraws;continue;}
   RemakeViewMesh mesh;mesh.sourceDraw=draw;if(cutout)mesh.sourceAlphaReference=packet.sourceAlphaReference;
   mesh.sourceAlphaBlend=alpha;
   std::uint32_t previous[2]{};std::size_t stripLength=0;
-  for(std::size_t i=state.first;i<std::size_t(state.first)+state.count;++i) {
+  for(const auto& range:ranges) {
+  stripLength=0;
+  for(std::size_t i=range.first;i<range.first+range.second;++i) {
+   if(draw.vertexRange&&(i-range.first)%3==0)stripLength=0;
    const auto vertex=packet.indices[i];
    if(vertex==UINT32_MAX){stripLength=0;continue;}
    if(stripLength>=2) {
@@ -267,6 +302,7 @@ inline bool BuildRemakeViewScene(const PvrDecodedPacket& packet,
     }
    }
    previous[0]=previous[1];previous[1]=vertex;++stripLength;
+  }
   }
   if(mesh.vertices.empty()){++result.omittedDraws;continue;}
   if(!deferSmoothing&&RemakeSmoothNormalsEnabled())SmoothRemakeViewNormals(mesh);

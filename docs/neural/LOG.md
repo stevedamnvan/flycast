@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG1141 sorted translucent export corrected and same-source recovery proved.
+BuildRemakeViewScene now consumes captured sortedTriangles indexed triples by
+polyIndex for eligible vertexRange alpha draws. Preserves exact winding/order,
+merged ownership, gates,bounds and unsorted/OIT strip path. Invalid provenance,
+owner,range,triple,restart rejects before output assignment. New focused tests;
+fourbuilds/1175selftests x3 pass at sorted-alpha-build-a. Ownership review confirms
+normal snapshot excludes every matching submitted batch by ordinal; merged-away
+owners export nothing. Monotonic range check matches native ValidateContext.
+shrine-normal-sorted-alpha-a terminal0 baselineexact;2complete5400/5401 of3requested.
+Both archives/helper returns/producer identities/completedPresent/native pixel
+invariants pass via capture-audit.json.5402 absent: feed worker-busy-native-fallback
+at01:12.195;no3frame/moving acceptance. Initial audit usedPython lackingnumpy,
+rerun with installed bundledPython;no evidence altered.
+Independent5400.json: exact sourceproducer frame/epoch/ordinal/cycle matches prior;
+35->50meshes,15recoveredalpha/194triangles/4exacttexturegroups. All35old geometry/UV
+payloads unchanged,none removed. ExactE0786RGBA recovered in owners114,117,126,138,
+152,153:104triangles. This proves prior export omission,not wholehair completeness.
+Root viewed new full composite; appearance remains unaccepted. Next bounded
+complete-frame capture/moving review of recovered surfaces and character contours;
+resolve diagnostic worker-busy capture gap without altering gameplay scheduling.
+Baseline materials/lighting unchanged. Source fix accepted only for tested topology
+and2live frames;full playability/performance/cross-scene gates remain open.
+
 LOG1140 source-qualified character foundation and sorted-alpha omission audit.
 Character foundation5400/5900 source textures for face91446/0DCB and mixedhair65EE/6874
 match exactRGBA. Four active baseline layers contain no direct overrides for these

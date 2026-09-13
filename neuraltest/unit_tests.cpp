@@ -11,6 +11,7 @@
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
 #include "remake_anchor_basis_diagnostics_tests.h"
+#include "remake_sorted_alpha_tests.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_curved_export.h"
 #include "rend/neural/source_hook_attribution.h"
@@ -781,6 +782,7 @@ int RunSelfTests()
 		suite.Expect(BuildRemakeViewScene(p,p.sourceProducer,7,view,error) && view.meshes.size()==1
 			&& view.meshes[0].vertices.size()==3 && view.meshes[0].sourceDraw.ordinal==18,
 			"live view converts witnessed triangle with source draw identity");
+		TestRemakeSortedAlpha(suite,p);
 		if(!view.meshes.empty()) {
 			const auto& v=view.meshes[0].vertices[0];
 			suite.Expect(Near(v.position[0],-1)&&Near(v.position[1],1)&&Near(v.position[2],10)

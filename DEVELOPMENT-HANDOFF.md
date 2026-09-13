@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1140; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1141; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -46,7 +46,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   No diagnostic light promotion. LOG1140 normal5400 native155alpha/export0;
   sorted vertexRange rejected. Agent implementing submitted TRIANGLELIST ranges
   under existing gates in viewheader/newtest only. Root test integration/live proof next.
-  Surface inspector live passes;default values unverified. Hair shading on hold.
+  LOG1141 sorted fix4builds/1175tests x3;live2/3frames5400/5401 exact invariants.
+  Same5400 +15meshes/+194triangles incl104E0786;35oldmeshes unchanged.
+  Missing5402workerbusy fallback. Next complete-frame/moving contour review.
+  Evidence shrine-normal-sorted-alpha-a/independent5400.json;no visual acceptance.
   Evidence weapon-used-uv-a. Shield absent from current Toolkit stage.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
