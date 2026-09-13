@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1167 current hair UV region bounded; old workflow is upscale, not delighting.
+late-face-uv-a/uv-audit.json source5597: six same-atlas meshes,184triangles wholly
+inside box117,187..179,248;12others. Rasterized hair union3545texels:1848opaque,
+1311partial alpha,386zero. Rasterized other triangles overlap0, expanded one texel
+also0. This single-frame raster check is not verified mip/aniso footprint, exact
+returned pixel ownership or full-game semantic mask. No source pixel changed.
+Agent extending checks across300retained frames into late-face-uv-moving-a; preserve
+foundation report and failures, no GPU run. Next require stable source/hash and
+region separation before a bounded current-foundation correction.
+Read existing hair-source-region-a/workflow.json: crop old26F tile, PBRify upscale,
+resize/composite/rejoin alpha. It does not remove baked highlights by construction;
+do not claim that simply rerunning it on current atlas produces delit hair.
+Existing pbrify_run.py local four-map workflow remains reusable after correct source
+preparation; do not invoke its old default26-material batch or bind old layers.
+No new model/node downloads, generation, paid request or MCP writes this slice.
+
 LOG1166 cached hair foundation mismatch verified; no transplant.
 Agent exact decoded current key0717f6309d9a78ed6809d22111fbe42306bae943b620331788fcb9fc5b4ed701
 matches nightmare-triangle-material-export-a runtime textureE0786D8691604967.dds,

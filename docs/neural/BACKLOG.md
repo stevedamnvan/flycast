@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1166. This is a summary
+Updated 2026-09-13, evidence through LOG1167. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -67,7 +67,9 @@ not reserve space or guarantee runtime writes. Failed attack evidence remains.
 **Next deliverable:** inspect exact late face/hair surface inputs and returned-image
 softening (LOG1165): source hair region retains painted highlights and tapered alpha;
 cached26F hair foundation mismatches current E0786 alpha/UV (LOG1166). Validate
-current-source used-region mask before correction; no transplant. Fill pair5/5 passes but eye band remains;
+current-source used-region mask before correction;5597UV audit separates sampled
+region,300-frame check delegated (LOG1167). Old workflow upscale is not delighting.
+No transplant. Fill pair5/5 passes but eye band remains;
 no lighting promotion or further blind sweep. Preserve current arena/floor.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.

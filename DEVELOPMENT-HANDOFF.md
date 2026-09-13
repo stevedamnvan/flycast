@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1166; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1167; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 late-face-fill-direction-a BOTH COMPLETE5/5, input/native exact, terminal0/baselineexact.
@@ -12,7 +12,10 @@ Source hair region inspected: painted highlight and tapered alpha; LOG1165.
 Cached hair mismatch CONFIRMED: current E0786 decoded key differs old26F atlas;
 alpha59516/65536 different, UV regions differ. No cached maps for current foundation.
 MCP read verifies old26F authored maps only. Next current-source used-UV/alpha mask
-validation before bounded correction. No asset/settings modified.
+validation before bounded correction.5597UV audit:184triangles/3545texels,
+1311partial alpha; no other-triangle overlap with1texel expansion. Agent extending
+across300frames. Existing old crop workflow only upscales, not delits.
+No asset/settings modified.
 World recount137/154 correct,17unresolved; no new joins. No live capture/benchmark.
 Existing raw device cleanup remains ownership-dependent (LOG545/1014); no blind Release.
 
