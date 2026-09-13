@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1070 Palgaea panels lossless scalar conversion and guarded candidate binding.
+Existing MCP TextureImporter conversion_args selects bgra8/no-mip-gamma-correct
+for roughness only, fresh palgaea-panel-ingestion-bgra-a cache. Both1024maps
+decoded R exactly equal original PNG R (MAE/p95/max0); original medians137/136.
+DDS uses legacy32bit BGRA masks, not DX10 header; first QA header assumption
+failed then format parsing corrected, pixel criterion unchanged. Each full-mip
+file5592532bytes. This is a diagnostic memory tradeoff, not default promotion.
+MCP verified original diffuse paths, guarded edit target, authored roughness0.5/
+metallic0 and two roughness textures in existing shrine_roughness_review_a.
+Saved/read back both, detached layer and saved mod; baseline exact. Existing
+layer nowfive materials, inactive. No generated albedo/normal/height change.
+Binding/restoration and prior failed BC4 receipts retained. Physical appearance
+and moving seams remain unaccepted; next find existing Palgaea FTRV packet for
+same-source render (native TA material export is not that packet). Current
+Palgaea runtime export proves texture identity, not host image acceptance.
+Voldo native5700..5702 verified against selection, four new groups; total67
+character groups/ten fighters. Source strip8 reused. Mixed skin/cloth/metal/
+jewellery/clawweapon requires masks, no blanketmetallic; costumes unknown.
+Evidence character-texture-readiness-b/left4-fighter-extraction. GPU released.
+
 LOG1069 Palgaea six-material visual/UV review and two unbound conversions.
 Viewed world-texture-completion-b/palgaea-six-material-readiness.png: generated
 albedo retains painted lighting; normal maps track painted ornament/light.

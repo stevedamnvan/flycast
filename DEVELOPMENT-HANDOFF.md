@@ -1,4 +1,12 @@
-Current checkpoint LOG1069: reviewed all six Palgaea maps. Four held for mixed
+Current checkpoint LOG1070: both Palgaea panel roughness maps converted via
+existing MCP BGRA8 linear route, exact sourceR. Saved two guarded bindings in
+existing shrine_roughness_review_a (nowfive materials), detached/baseline exact.
+Evidence palgaea-panel-ingestion-bgra-a. No visual acceptance. Next find existing
+Palgaea FTRV packet for same-source test; world agent CPU lookup active. Native
+TA exports are not helper FTRV. Voldo capture5700..5702 verified, four newgroups;
+67groups/ten fighters. GPU free; mixed masks/costumes/hidden content open.
+
+Prior checkpoint LOG1069: reviewed all six Palgaea maps. Four held for mixed
 regions/painted lighting; panels15/16 pass native6300 UV quadrant check only.
 Two roughness maps MCP ingested, unbound: BC4 p95error3/max13,14 exceeds local
 conservative check. Next inspect existing lossless scalar conversion support
