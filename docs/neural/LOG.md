@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1165 late hair source-region audit and world coverage recount.
+late-face-surface-a/surface-inventory.json parses source5597 control packet and
+all7 prior input-XY candidates (not returned pixel owners). Six use texture269419008,
+DDS84e109e20530276bae203992478e71af4eb410498cea42d7f9df42496d8ce833,256x256;
+remaining candidate28 uses269238784 with low vertex alpha. Hair candidate96 region
+bounds approximatelyx117..179,y187..248: viewed source RGB has strong painted
+horizontal highlight, alpha has fine tapered fringe. Source atlas is not a delit
+hair foundation; no map alteration/binding/generation performed. Hair-region RGB/
+alpha contact sheet retained. Exact covered triangles and runtime pixel ownership
+still needed before assigning eye-band cause or replacing maps.
+Initial analysis used wrong vertex field order; malformed UV/alpha report retained
+surface-inventory-wrong-vertex-layout.json. Corrected against remake_view_transport.cpp
+218 (position/normal/UV/color), full byte consumption, correct finite UV/alpha.
+World agent recount confirms154/137/17, source/native hashes reverified, no new joins;
+world-coverage-followup-a/AUDIT.md. Older WORLD-COVERAGE-GAPS prose is stale, not
+queue authority. Agent now checking cached hair assets for exact source/alpha/UV
+lineage; no generation or MCP writes authorized by this lookup. Next reuse only a
+proven foundation, otherwise retain baseline and bound the required correction.
+
 LOG1164 late face fill-direction trial complete; not an eye-band correction.
 late-face-fill-direction-a control/mirrored both terminal0/baselineexact,5/5
 sources5595..5599 each, all capture integrity checks pass. comparison.json20stage

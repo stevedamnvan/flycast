@@ -3,13 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1164; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1165; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 late-face-fill-direction-a BOTH COMPLETE5/5, input/native exact, terminal0/baselineexact.
 Mirrored fill does not remove eye band in inspected5597; no lighting promotion.
-Next exact face/hair surface and returned-softening inspection. World coverage
-agent read-only followup underway. No live capture/benchmark.
+Source hair region inspected: painted highlight and tapered alpha; LOG1165.
+Agent checking cached hair exact DDS/source/UV/alpha lineage before reuse.
+World recount137/154 correct,17unresolved; no new joins. No live capture/benchmark.
 Existing raw device cleanup remains ownership-dependent (LOG545/1014); no blind Release.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
