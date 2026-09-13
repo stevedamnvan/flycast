@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG1081 six world runtime gaps resolved from retained owned packets, no gameplay
+recapture. Castle5300 and Proving6001 fixed exports both terminal0, baseline
+exact, GPU released. Exact payload joins: Castle29=40DEAECC05DCCD47,
+27=AA68599C9BE6C860,19=E10AB681BE35678F; Proving19=33F1E50A172B2AC7,
+18=358D497B420D9402,29=BE9FC6926BAD0A50. Existing coverage ledgers updated
+136/154runtime matches,18remaining,0appearanceaccepted. Evidence
+world-texture-completion-b/fixed-export-six-gap-result.json plus castle-fixed-
+source-join.json/proving-fixed-source-join.json; fresh full-world-castle-fixed-
+export-a and full-world-proving-fixed-export-a terminal receipts.
+Castle38 native5300 dx11 draws138/139 have all15vertex alphas127, UseAlpha,
+4/5blend, ShadInstr3/filter1/fog1, vertex ranges. Existing scene builder excludes
+vertexRange; cutout promotion independently requires vertex alpha>=250. This
+supports preserving native translucency, not forcing opaque material promotion.
+Live OIT5300 coverage only reaches list2ordinal132: different draw enumeration,
+so native138/139 cannot establish exact live exclusion causality. Remains held.
+Native preview is mostly noisy atlas; not a safe generation source without
+decode/usage validation. No claim of corrected missing in-game surface.
+PBRFusion4 followup: exact76MB weight has no documented architecture/verified
+Spandrel route in inspected primary sources. Author's Klein albedo Space uses
+a distinct named LoRA/FLUX model; do not conflate or auto-download. Report:
+character-texture-readiness-b/pbrfusion4-albedo-research/REPORT.md.
+Next world agent classifies remaining12other-stage joins CPU-only; aligned
+de-light capability remains unproven, prior generation/installation limits stay.
+
 LOG1080 upstream de-lighting capability recheck, read-only. PBRify author's
 EXTRA_INFO.md explicitly describes missing de-lighting and the resulting height
 map limitations. This corroborates LOG1078; preserve liked floor, do not enable

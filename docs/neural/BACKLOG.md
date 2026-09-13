@@ -277,6 +277,12 @@ Vertical Up/Down observations retain Kilik and the default row; GPU released.
 LOG1080 primary-source recheck found separate76MB PBRFusion4 albedo weight;
 existing Comfy generator still depth/normal only. Agent checks documented
 compatibility read-only; no download/inference or de-lighting capability claim.
+LOG1081 six fixed-packet exact joins raise world coverage to136/154,18remaining.
+No gameplay recapture/binding/appearance acceptance. World agent classifies
+remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
+translucent; exact OIT correspondence unproven, do not force cutout promotion.
+Albedo followup finds no documented architecture for exact76MB file; author's
+Klein demo uses a different model. No verified existing-loader route claimed.
 Next supported aligned de-lighting capability evaluation within existing tools;
 do not flip transfer curves, scale these as delit albedo or lower PackageD gates.
 Default10character slots covered; remaining labels need unlock/mode access audit.

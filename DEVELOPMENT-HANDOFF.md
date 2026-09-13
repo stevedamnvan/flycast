@@ -7,6 +7,12 @@ de-lighting evaluation; no raw-albedo scaling or blind mask/roughness sweeps.
 LOG1080 separate76MB PBRFusion4 albedo weight exists upstream; existing Comfy
 generator remains depth/normal only. Character agent investigates documented
 compatibility read-only, no model download or inference authorized by this check.
+LOG1081 both Castle5300/Proving6001 fixed exports terminal0, six exact joins
+resolved, world136/154 with18remaining, baselineexact/GPUfree. World agent now
+classifies remaining12other-stage gaps CPU-only. Native Castle38 alpha127
+supports native hold; live OIT draw correspondence unresolved. No force promotion.
+Albedo report finds no documented76MB architecture/verified existing loader;
+author's Klein Space uses different weights. Capability gap remains open.
 Default10character row captured; remaining10labels/unlocks/costumes unproven.
 Vertical selection probe Up/Down both retained Kilik/default row, terminal0;
 no extra row found in current seed. No more menu guessing. World agent owns
