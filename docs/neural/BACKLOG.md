@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1169. This is a summary
+Updated 2026-09-13, evidence through LOG1170. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -73,6 +73,9 @@ draft produced; height repeats baked band and is rejected for binding. Address b
 before acceptance; upscale is not delighting. LOG1169 band correction RGB draft
 reduces stripe but alpha changed14260 texels by -1: rejected for binding. Preserve
 source alpha exactly during packaging; reuse cached RGB, no regeneration.
+LOG1170 packaging now passes exact alpha/outside RGBA and cached RGB checks.
+MCP current stage lacks E0786 shader; next activate/import matching capture through
+existing MCP before opt-in binding and controlled comparison. Appearance pending.
 No transplant. Fill pair5/5 passes but eye band remains;
 no lighting promotion or further blind sweep. Preserve current arena/floor.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests

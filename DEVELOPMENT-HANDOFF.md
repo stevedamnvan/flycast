@@ -3,13 +3,16 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1169; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1170; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1169 hair-band-correction-a completed one local Comfy output, cost0. Crop
 reduces baked band but alpha14260 texels changed by -1; REJECTED for binding.
 Outside-region RGB exact. Next byte-exact source-alpha packaging of cached RGB
-and visual validation; no generation retry. No baseline/layer/settings changes.
+and visual validation; no generation retry. LOG1170 exact-alpha packaging now
+passes all pixel invariants. MCP8002 current stage lacks E0786 shader; next
+activate/import matching capture via existing MCP, then opt-in comparison.
+No baseline/layer/settings changes.
 
 late-face-fill-direction-a BOTH COMPLETE5/5, input/native exact, terminal0/baselineexact.
 Mirrored fill does not remove eye band in inspected5597; no lighting promotion.

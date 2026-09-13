@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1170 cached hair RGB packaged with byte-exact source alpha.
+C:/Flycast-Evidence/hair-band-correction-a/package_alpha.py preserves cached
+Comfy RGB and restores the original source alpha without another generation.
+packaging-validation.json:256x256, alpha differences0, RGB differences from
+Comfy0, outside correction-region RGBA differences0. Output
+candidate-exact-alpha.png SHA256
+17d820316b377aa4df24f25f223c972f2e34acde384d1a1f6c87961f256d8ffb.
+Original failed output/validation retained. Zero added generation requests/cost.
+This closes packaging invariants only; crop previously inspected shows reduced
+painted stripe, not physically proven delighting or appearance acceptance.
+Toolkit MCP8002 discovery succeeded. flycast_inspect_surface for
+/RootNode/Looks/mat_E0786D8691604967/Shader returned Existing Shader required:
+current open stage lacks this shader. No ingestion/binding or stage mutation.
+Next use existing MCP capture import/activation for the verified E0786 capture,
+then a separate opt-in candidate layer and same-source controlled comparison.
+Do not substitute old26F hair foundation or change arena/floor/lighting.
+
 LOG1169 deterministic hair-band draft rejected by exact-alpha check.
 C:/Flycast-Evidence/hair-band-correction-a retains workflow, scope, submission,
 history, candidate, validation and review. Existing Comfy prompt
