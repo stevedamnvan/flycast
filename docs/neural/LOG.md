@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1143 sorted-alpha recovery verified across300 captured combat frames.
+shrine-normal-sorted-alpha-moving-a completed sources5300..5599,300/300,
+terminal0/baselineexact. moving-audit.json: all full v3 archives/helper receipts,
+producer/completedPresent joins and protected native pixel checks pass,errors0.
+Retained full-quality PNGs and source identity evidence; no capture-quality reduction.
+retained-scene-comparison.json compares previous shrine-normal-effect-moving-a:
+all300 producer identities exact, no removed or changed existing meshes including
+material/state/generation/camera/geometry bytes;5..18 added alpha meshes per frame.
+Changed exported scenes are not identical-input pixel comparisons or repeated-noise
+controls. This proves scoped moving export/integrity, not temporal visual acceptance.
+Independent visual-review/REVIEW.md inspected5300/5325/5350/5375 full-resolution
+pairs: more continuous Sophitia hair, but broad panels, dark cheeks and bright
+stippled fringe/hand overlap remain. Root inspected5375 and concurs that corrections
+remain required. No obvious large arena/floor regression in those four samples;
+not a full visual stability claim. Next inspect consecutive5370..5380 closeups and
+bind the offending fringe/overlap to exact source mesh/alpha/material before any
+global light adjustment. Preserve liked floor/arena and inactive blade candidate.
+Fourbuilds/1183selftests x3 fromLOG1142 remain source validation; this is docs/evidence
+only. Appearance, performance and supplied external neural acceptance stay open.
+
 LOG1142 bounded diagnostic feed wait restores complete short capture.
 DispatchForCapture waits for pending-slot ownership, preserving FIFO and caller
 ownership on timeout/cancellation; Stop/ResetAnchor wake waiters. API clamps to

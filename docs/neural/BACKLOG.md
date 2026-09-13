@@ -560,7 +560,11 @@ invariants pass;5402busy fallback missing. Same5400 recovers15meshes/194triangle
 104E0786cutout triangles,all35old meshes unchanged. Next complete-frame/moving
 contour review. LOG1142 bounded diagnostic100ms slot wait passes four builds and
 1183selftests x3; sorted-alpha-b completes5400..5402 with all capture checks passing,
-baselineexact. Short worker-busy gap resolved; next300-frame moving combat review.
+baselineexact. LOG1143 moving capture completes300/300 sources5300..5599;all integrity
+checks pass. Existing mesh/camera/material data exact across300 prior-source pairs,
+5..18alpha meshes added. Four visual samples show fuller hair but fringe sparkle,
+dark cheeks and panel-like hair remain. Next5370..5380 closeup/source-mesh diagnosis
+before global lighting changes. Preserve arena/floor; no temporal visual acceptance.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
 No strip reconstruction
 or claim every native draw eligible. Read-only MCP surface inspector verified.
