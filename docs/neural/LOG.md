@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1059 live control exposes cross-session anchor mismatch.
+shrine-roughness-combat-control-a exits0,86captures vs84candidate;82common
+sources with pixel-exact native images and zero protected mismatch sums.
+All82 packet digests/bytes differ. Wire-v4 camera parse: projection fields
+exact82, pose/origin exact0; source5900 max difference0.0256101. Thus median
+image MAE4.054 is NOT isolated roughness effect. Viewed paired contact sheet;
+character brightness variation present both. Baseline unchanged exact. Reject
+causal material/temporal acceptance; do not repeat confounded live A/B.
+Next exact-packet face RGB diagnostic prepared by agent under character-texture-
+readiness-b/face-vertex-diagnostic: two exact face materials only,5577changed
+RGB bytes; alpha/normal/UV/DDS/geometry and all other bytes unchanged. Render
+against exact source/control repeat before considering any implementation.
+Deterministic anchor comparison remains open; no physical camera claim.
+
 LOG1058 fresh same-source combat roughness comparison.
 shrine-combat-fresh-ab-a: sources5900/5939/5989 control/candidate plus5900repeat,
 seven exits0; exact source packet/config/exe hashes retained before each render.

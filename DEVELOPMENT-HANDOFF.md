@@ -1,9 +1,11 @@
-Current checkpoint LOG1058: fresh combat roughness A/B three exact poses plus
-control repeat, seven renders0, baseline restored. Evidence shrine-combat-fresh-ab-a.
-Modest floor response; character lighting issue in both versions. No temporal
-shimmer/look acceptance. Next paired live temporal control and targeted lighting;
-Hoko wood roughness ready after MCP live-binding check. GPU released.
-Character seven fighters/50 sources; next selector ready, costume coverage open.
+Current checkpoint LOG1059: live control86 vs candidate84,82common native-exact
+frames but all exported packet camera poses/origins differ. Comparison cannot
+isolate material shimmer. Evidence shrine-roughness-combat-control-a; baseline
+unchanged exact. Do not repeat cross-session A/B without anchor equivalence.
+Next render prepared face-only RGB diagnostic against its exact source/control
+repeat: character-texture-readiness-b/face-vertex-diagnostic. GPU released.
+No duplicate helper lighting defect found; painted lighting remains unresolved.
+Hoko roughness ready after MCP binding check; roster/costumes/joins remain open.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.
