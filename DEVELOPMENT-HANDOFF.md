@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1139; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1140; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -43,7 +43,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   visual gain. Keep inactive;no300frame promotion. Next character light/hair and
   scene completeness. LOG1139 user lighting concern confirmed:6angle renders pass,
   blade brightens strongly in both materials;prior verdict rig-specific. Baselineexact.
-  No diagnostic light promotion. Evidence blade-light-angle-a/comparison.json.
+  No diagnostic light promotion. LOG1140 normal5400 native155alpha/export0;
+  sorted vertexRange rejected. Agent implementing submitted TRIANGLELIST ranges
+  under existing gates in viewheader/newtest only. Root test integration/live proof next.
+  Surface inspector live passes;default values unverified. Hair shading on hold.
   Evidence weapon-used-uv-a. Shield absent from current Toolkit stage.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.

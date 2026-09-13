@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1140 source-qualified character foundation and sorted-alpha omission audit.
+Character foundation5400/5900 source textures for face91446/0DCB and mixedhair65EE/6874
+match exactRGBA. Four active baseline layers contain no direct overrides for these
+aliases. New read-only flycast_inspect_surface reports composed values+authoring
+layers; liveMCP8002 verifies loaded Mitsu face/hair andblade have diffuse only,
+no authored scalar/normal/height inputs. Soph aliases absent in loaded Castle
+capture; no defaults invented.7Python tests,4builds/1167selftests x3 pass at
+surface-inspector-build-a. This inspector changes no stage/material state.
+Source5400 native census155translucent draws/export0, emptycutout decisions.
+5900 E0786 cutout absent5400 exportedtexture; absent alias alone cannot prove
+culling versus omission. Full remake archive is full exported scene, not all
+omitted native inputs. Do not call5900 completewholehair from one cutout.
+Source review establishes exporter unconditionally rejects vertexRange, while
+normal DX11 submits sortedTriangles indexedTRIANGLELIST with merged polyIndex
+ownership. Rebuilding source strips is wrong. Next bounded implementation consumes
+retained submitted triples by owner under existing alpha gates; preserve OITstrip
+behavior, bounds and exactsource. Agent owns viewheader/newtests;root integration.
+Live normal same-source proof remains mandatory; no claim all155draws are eligible.
+Evidence weapon-used-uv-a/missing-cutout5400-bounded.json,sorted-alpha-design.json,
+character-surface-inspect-a/surfaces.json. Hair shading waits for completeness proof.
+
 LOG1139 user lighting confound tested with fixed source/material.
 blade-light-angle-a repeats source5400 baseline/candidate/control-repeat under
 unit key directions +/-0.707106781,0,0.707106781; original0,0,1 from review-b.

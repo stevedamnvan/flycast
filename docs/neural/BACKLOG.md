@@ -553,7 +553,11 @@ Candidate inactive, no visual promotion. LOG1139 fixed-source key-angle sweep
 confirms lighting strongly changes blade response in baseline and candidate.
 Prior no-gain verdict is rig-specific, not general material rejection. Next
 coordinate character/weapon lighting, then separate roughness/albedo response.
-Next character lighting/hair response and scene-completion queue; retain weapon
+LOG1140 normal5400 census155translucent/export0 reveals sorted vertexRange rejection.
+Next consume native submitted sorted triangle ranges under existing alpha gates,
+then same-source live completeness proof before hair shading. No strip reconstruction
+or claim every native draw eligible. Read-only MCP surface inspector verified.
+Retain weapon
 mask ingestion capability for later material-qualified work. Mip tradeoff remains;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,

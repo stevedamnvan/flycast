@@ -280,6 +280,29 @@ def register(mcp):
         """
         return await ingest_current_process(request_json, 'METALLIC')
 
+    @mcp.tool(name='flycast_inspect_surface')
+    async def inspect_surface(shader_path: str) -> dict:
+        """Read composed surface inputs and authored layers; absent values are not runtime defaults."""
+        import omni.usd
+        from pxr import Usd
+        displacement_request(shader_path)
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open intended project first')
+        prim = stage.GetPrimAtPath(shader_path)
+        if not prim or prim.GetTypeName() != 'Shader':
+            raise ValueError('Existing Shader required')
+        result = {}
+        for name in ('reflection_roughness_constant', 'metallic_constant',
+                     'diffuse_texture', 'reflectionroughness_texture', 'metallic_texture',
+                     'normalmap_texture', 'height_texture', 'displace_in', 'displace_out'):
+            attr = prim.GetAttribute('inputs:' + name)
+            value = attr.Get() if attr else None
+            result[name] = dict(value=str(value) if name.endswith('_texture') and value is not None else value,
+                                authored=bool(attr and attr.HasAuthoredValueOpinion()),
+                                layers=[x.layer.identifier for x in attr.GetPropertyStack(Usd.TimeCode.Default())] if attr else [])
+        return dict(shader=shader_path, inputs=result, read_only=True, runtime_defaults_verified=False)
+
     @mcp.tool(name='flycast_inspect_displacement')
     async def inspect_displacement(shader_path: str) -> dict:
         """Read composed USD displacement values and their authored layer sources.
