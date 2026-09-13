@@ -1,5 +1,12 @@
 # Neural rendering evidence log
 
+LOG1105 user-requested delivery status/forecast added inside BACKLOG. Existing
+FC queue and exit gates preserved. Captured coverage, acceptance gaps, next
+deliverable and weekly velocity baseline explicit. No defensible delivery ETA
+yet;2026-09-20 is forecast review checkpoint only, not deadline/automation.
+Comparable accepted units, bounded remaining scope and dependencies required
+before date ranges; diagnostic activity is not accepted throughput. Docs only.
+
 LOG1104 restored hair short-sequence comparison. Existing packet-sequence
 helper rendered19consecutive sources5911..5929 after60warmup at1280x960:
 control omits only shared26, repeat identical control, candidate retains it.

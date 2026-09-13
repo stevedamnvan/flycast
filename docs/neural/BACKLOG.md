@@ -35,6 +35,60 @@ Use the goal tools to verify current state; this document is not live app
 telemetry. Do not falsely complete an objective or edit app storage to replace
 it. The tracker carries the objective; this backlog carries the work plan.
 
+### Delivery status and forecast
+
+Updated 2026-09-13, evidence through LOG1104 (`e80f43a64`). This is a summary
+of the existing queue, not a new roadmap or a replacement acceptance contract.
+Overall: implementation and scoped verification in progress; no release date
+committed. Current engineering priority remains FC-067 / M2-scene.
+
+| Delivery area / existing owner | Verified position | Work left / completion evidence |
+| --- | --- | --- |
+| Character completeness / FC-067 M2-scene | 10 default fighters captured; 51/67 captured material groups runtime-matched | 16 joins; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
+| Arena completeness / FC-067 M2-scene, Package D | 154 captured world groups; 137 runtime-matched; 10 named stage groups plus one unidentified group sampled | 17 joins or evidenced dispositions; remaining scene regions/variants/levels; no whole-game completeness claim |
+| Material upgrades / Package D, FC-067 M3-relighting | 19 world material candidates; 15 character PBRify sets/60 maps; zero newly appearance-accepted upgrades in audited expansion ledgers | Classify held mixed atlases; delit albedo/roughness/metal masks as eligible; validate alignment/alpha and retained maps; MCP opt-in binding; technical and human visual approval recorded separately |
+| Hair and character response / FC-067 M2-scene, M3-relighting | Missing fringe/side-hair surface recovered; 26 live composition checks and 19-frame full-stack sequence support scoped restoration | Triangle CPU cost, longer combat, natural skin/hair response and contour review; 19 frames is not the required moving gate |
+| Lighting/camera / FC-067 M2-camera, M3-relighting | Path-traced review exists; liked arena reference retained; fill/profile and source/anchor provenance recorded | Stable supported camera/occlusion; material-specific light response and cross-level checks; retain parked strict-replay failure |
+| Remix + supplied DLSS 5 / FC-067 M4-presentation, M4-DLSS5 | Scoped combined presentation and protection evidence exists | Synchronized native/public DLAA/Remix/combined evidence over 300 consecutive gameplay frames, current consumer settings/provenance and negative controls |
+| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Required four builds and 1117 selftests x3 passed for cutout source; no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
+| Delivery / standing-goal exit | Backlog, LOG and handoff maintained; proven slices pushed | Reproducible opt-in launch, known limitations, full evidence index and all applicable working-pipeline gates together |
+
+Counts use captured material groups, not entire-game percentages. Runtime
+identity is not live binding, generation is not acceptance, and technical
+acceptance is not human visual approval. Existing baseline artwork stays intact.
+
+**Next deliverable:** triangle-footprint CPU cost evidence, followed by longer
+full-stack moving hair/combat review. Do not turn generation or capture activity
+into a completion milestone without its acceptance evidence.
+
+| Forecast | Target date / confidence | Basis and next revision |
+| --- | --- | --- |
+| Playable review build, with explicitly bounded content | Not yet estimable / low | Critical-path performance, moving combined-output and lifecycle gates remain open; estimate after comparable accepted milestones establish throughput |
+| Complete requested Soulcalibur remaster | Not yet estimable / low | Hidden content/costume/scene denominator unknown and expansion has no appearance-accepted throughput yet |
+| Forecast review checkpoint | 2026-09-20, or sooner after 3 comparable accepted milestones | Planning review date only, not a delivery promise or scheduled automation |
+
+**Velocity ledger:** begin tracking weekly windows here; do not infer a rate
+from commits, tokens, generated outputs or diagnostic runs. In the current
+observed checkpoint interval LOG1099..1104, character joins increased50->51,
+world joins stayed137, one hair-coverage defect gained scoped sequence evidence,
+and newly accepted material upgrades stayed0. This mixed partial-day interval
+cannot support a days-to-completion extrapolation.
+
+| Window | Comparable accepted units | Remaining units | Forecast use |
+| --- | --- | --- | --- |
+| Initial snapshot 2026-09-13 / LOG1104 | Material visual approvals: 0; no measured weekly acceptance rate | Captured runtime joins: character16/world17; acceptance workload and uncaptured content still unbounded | Establish baseline only; no ETA calculation |
+
+Update this section after each material milestone, changed coverage denominator,
+regression, blocker or forecast revision; retain earlier weekly rows so trends
+remain auditable. Each accepted unit needs its date, existing card, comparable
+unit type, evidence reference and any reopening. With at least3 comparable
+accepted units over a measured working interval and a bounded remaining scope,
+report optimistic/likely/conservative ranges using observed throughput and
+explicit dependency/rework assumptions. Record human-review and external wait
+time separately. If prerequisites are missing, keep the ETA unestimated rather
+than inventing a date. The checkpoint date above is reviewed when work runs;
+it does not create an unattended reminder.
+
 ### Current checkpoint
 
 - Resumed 2026-09-09 ("proceed from here"). The frame3099 boundary is a measured
