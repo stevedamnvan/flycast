@@ -1,9 +1,10 @@
-Current checkpoint LOG1043: original-art DDS mip pixels valid, base exact and
-lower-level differences modest. Private nativeMipBias=-2 test exit0/logged,
-still blurry. Bias rejected, source-control layer removed, baseline exact.
-Next replacement texture streaming/resident mip and sampler inspection;
-no regeneration or normals to hide softness. shrine-sampling-a evidence.
-All parent processes terminal; MCP8002 Shrine capture remains unsaved.
+Current checkpoint LOG1044: sync texture upload still blurry; diagnostic
+neverDowngradeTextures restores visible stone detail in same-packet source-art
+replacement, exit0. Public loader branch requestsMAX_MIPS. Residency/promotion
+is next causal target; no production force-all policy or pixel equality claim.
+Next normal feedback/promotion investigation and generated-candidate review
+with verified residency. Evidence shrine-sampling-a/all-mips.bmp. Source layer
+detached, baseline exact, all parent processes terminal. MCP8002 Shrine unsaved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

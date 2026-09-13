@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1044 replacement residency control restores visible stone detail.
+Same5301 original-art replacement layer: alwaysWaitForAsyncTextures=True exit0
+still blurry. Public rtx_texture_manager.cpp scheduleTextureLoad only makes
+upload synchronous; trackTexture branch neverDowngradeTextures requestsMAX_MIPS.
+Separate private neverDowngradeTextures=True render exit0 restores visible fine
+stone detail. This implicates replacement mip residency/promotion, not artwork
+or merely async upload completion. Installed runtime visual evidence supports
+control effect; public main source is explanatory, not installed build proof.
+All-mips is diagnostic, not production policy/performance acceptance. Pixel MAE
+to legacy baseline stays large (floor14.81 vs14.89 blurry), so do not claim
+pixel-faithful restoration. Viewed detail return is the bounded result.
+Evidence shrine-sampling-a sync-textures/all-mips BMPs/logs/receipts, retained
+public source and residency-comparison.json. Source layer detached, baseline
+exact. Next inspect normal streaming feedback/promotion and test generated
+candidates with verified residency before rejecting their artwork. Preserve
+memory/performance and moving appearance gates; no blanket VRAM saturation.
+
 LOG1043 mip pixel inspection and bias negative control.
 Decoded every original256 DDS mip and ingested original-art DDS mip using
 verified RGBA/BGRA masks, exact file bounds. Base pixels exact; lower mip MAE
