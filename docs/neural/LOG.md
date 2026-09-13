@@ -1,5 +1,15 @@
 # Neural rendering evidence log
 
+LOG1060 face-only vertex diagnostic has no useful visual gain.
+face-vertex-render-a verifies agent packet5577 RGB-only byte changes, renders
+exact source/control, whitened two-face candidate and repeat; all3exit0.
+Whole MAE0.388 vs repeat0.274; faceboxes0.818/0.805 vs0.455/0.427. Viewed pair:
+no useful correction. Baseline unchanged. Do not ship or sweep vertex whitening;
+this falsifies a strong useful effect for these face meshes/pose only.
+Next audit cross-session anchor/reference selection and whether fixed lights
+change physically or only coordinate gauge. First-publish ownership alone is
+not proof of a lighting bug. Agent source audit active; no repeated live A/B.
+
 LOG1059 live control exposes cross-session anchor mismatch.
 shrine-roughness-combat-control-a exits0,86captures vs84candidate;82common
 sources with pixel-exact native images and zero protected mismatch sums.

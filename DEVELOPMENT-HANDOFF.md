@@ -1,11 +1,9 @@
-Current checkpoint LOG1059: live control86 vs candidate84,82common native-exact
-frames but all exported packet camera poses/origins differ. Comparison cannot
-isolate material shimmer. Evidence shrine-roughness-combat-control-a; baseline
-unchanged exact. Do not repeat cross-session A/B without anchor equivalence.
-Next render prepared face-only RGB diagnostic against its exact source/control
-repeat: character-texture-readiness-b/face-vertex-diagnostic. GPU released.
-No duplicate helper lighting defect found; painted lighting remains unresolved.
-Hoko roughness ready after MCP binding check; roster/costumes/joins remain open.
+Current checkpoint LOG1060: face-only RGB whitening exact packet test3renders0,
+no useful gain; close this branch, no shipping edit. Evidence face-vertex-render-a.
+Baseline unchanged. Next source audit anchor reference selection versus light
+coordinate gauge; world agent active CPU-only. No new live A/B until controlled.
+LOG1059 baseline/candidate82native-exact but camera pose/origin differs82.
+GPU free. Hoko roughness and next character selector remain prepared.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

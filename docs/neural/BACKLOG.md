@@ -224,7 +224,8 @@ LOG1057 approach/contact verified damage19; combined roughness capture84/90,
 protected mismatch0, baseline restored. LOG1058 fresh three-pose A/B and repeat
 seven renders0; floor effect above noise, character issue on both sides. Next
 LOG1059 live control native-exact82 but camera poses differ82; no causal
-material comparison. Next exact-packet face RGB diagnostic and anchor
+material comparison. LOG1060 face RGB diagnostic3renders0, no useful gain;
+close whitening branch. Next anchor/reference-versus-light-space audit and
 equivalence before further live A/B;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
