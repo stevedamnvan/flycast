@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1121 receipt digest micro-optimization rejected by measurement.
+External optimized C++ audit of retained normal5971packet10,522,482bytes:
+20interleaved measured pairs after4warmups, byte-serial original median8.08885ms,
+unrolled8.07545ms (~0.17percent difference, not meaningful). Digest
+8472717654022872833 matches saved remake-return.json; prefix lengths0..64 also
+match. Compiler/O2 harness/result at C:/Game Dev/Emulators/digest-cost-audit.
+GPUfree, no proprietary inspection, no production changes. This is an isolated
+CPU mechanism measurement, not frame timing. Do not replace persisted FNV,
+cache by texture alone (prefix differs), or repeat equivalent unroll probes.
+WriteLockedRemakeInput recomputes exact complete packet digest and compares
+sequence/bytes/hash before writing; bypassing it would weaken source evidence.
+Next isolate normal rendering using capture-free diagnostic transport at the
+same late scene; current launcher needs a bounded diagnostic warmup/fill route
+because benchmark-warmup rejects CPU instrumentation, while normal-effects
+requires it. Implement that narrow route with rejection tests, then diagnose
+normal presentation without full-texture archive traffic. Visual moving capture
+remains separate/open; no scope reduction or archive-identity waiver.
+
 LOG1120 serializer streams immutable texture spans after validation.
 ConstWire stages metadata/geometry and records source-owned texture spans;
 flush writes them in original order after all packet validation. Eliminates

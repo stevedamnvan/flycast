@@ -489,7 +489,11 @@ presents. Next remaining packet/digest cost; full normal/visual gate still open.
 LOG1120 immutable texture spans retain exact wire bytes and all validation,
 serialization8.93->2.62ms, three previews native invariants exact;351/1200remake
 presents still fails continuity. Fourbuilds/three selftests/two packet parity pass.
-Next unchanged byte-serial digest (~8.3ms) cost; preserve archive hashes.
+LOG1121 digest original8.09/unrolled8.08ms isolated; no useful gain, unchanged.
+Next bounded late capture-free normal diagnostic warmup/fill route with strict
+rejection checks; normal-effects keeps diagnostic restriction, archives keep
+exact digest. Isolate normal integration from capture transport before further
+optimization. Full visual evidence still required; no more digest unroll probes.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

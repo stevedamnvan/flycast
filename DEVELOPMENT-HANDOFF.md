@@ -3,9 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1120; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1121; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1121 isolated digest original8.09/unrolled8.08ms: no useful improvement;
+  retained5971hash exact. No source change. Next bounded late capture-free normal
+  diagnostic warmup/fill route (normal-effects still requires CPU timing), then
+  isolate normal presentation from archive transport. Keep full visual gate and
+  saved digest unchanged. Audit C:/Game Dev/Emulators/digest-cost-audit.
 - LOG1120 immutable texture span serialization implemented; exact5484/5900
   wire parity, fourbuilds/three selftests pass. Diagnostic-d terminal0/11,
   serialization2.62ms vs8.93c;digest8.30ms remains.351/1200remake presents,
