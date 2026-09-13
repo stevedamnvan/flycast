@@ -570,6 +570,21 @@ native draw data for exact alpha ownership. LOG1145 six native submitted candida
 decoded in head ROI; source-alpha blend/depth confirmed. Native texture equals
 exported DDS exactly. Next conservative per-owner alpha footprint fractions;
 exact pixel ownership and appearance remain unproven.
+Bounded correction in progress: five5375 conservative footprints124/125/127/129/137
+contain only alpha255 (three actually submitted). Add a separate exact-opaque
+qualification, preserving existing cutout/gradient criteria and alpha ownership.
+Require exact vertex opacity for the new branch when source vertex alpha is used.
+Validate255/254/gradient and vertex-alpha controls, four serial builds/three
+selftests, then same-source live5370..5380 review before claiming a visual gain.
+Candidate result: opaque-alpha-footprint-build-a fourbuilds/1195selftests x3 pass;
+shrine-opaque-alpha-footprint-a11/11 integrity checks pass,baselineexact. All five
+target5375 owners promote, but fringe/neck artifacts persist and coat appears
+darker/mottled. Appearance CORRECTIONS_REQUIRED; candidate parked in capture
+source-candidate with exact source/test copies and tracked.patch, not accepted as
+shimmer fix. Tracked source restored; build outputs still candidate until rebuild.
+Captured shader projection confirms six tested draws do not cover neck patch.
+Next isolate remaining blended draw pixel contribution across all native draws;
+do not expand promotion or adjust global lighting based on this failed visual hypothesis.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
 No strip reconstruction

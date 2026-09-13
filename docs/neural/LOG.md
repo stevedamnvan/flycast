@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1146 opaque-footprint hypothesis tested, parked; neck patch is different draws.
+Exact255 conservative qualification candidate passed fourbuilds/1195selftests x3
+at opaque-alpha-footprint-build-a. Live shrine-opaque-alpha-footprint-a captures
+5370..5380,11/11 integrity pass,terminal0/baselineexact. Five target owners now
+promote, but root/agent visual review finds persistent fringe/neck artifacts and
+darker/mottled coat. CORRECTIONS_REQUIRED, not a shimmer fix. Exact source/tests
+and reversible tracked.patch preserved in capture/source-candidate. Root reversed
+only owned tracked candidate edits; new untracked test retained. Build outputs
+still contain candidate until rebuilt; do not mistake them for restored source.
+Captured own Flycast VS disassembly/constants/viewport projection confirms prior
+six candidates end above neck patch (CPU screen error<0.000011pixels). Agent full
+53draw NFE1 decode and geometric neckbox intersection identifies seven submissions:
+92,116,102,95,19,98,95. Dominant116/102/95/98 share another native texture and have
+no cutout decision entries. Existing six hair candidates have zero neckbox overlap.
+Evidence original moving capture visual-review/all-native-region-5375.json and
+native-projection-check-5375.json. Geometry overlap is not GPU pixel ownership.
+Next identify export eligibility/shading state for this different subgroup before
+another source correction. Full remaster acceptance remains open.
+
 LOG1145 native fringe candidates decoded from retained identity; texture copy exact.
 visual-review/NATIVE-CANDIDATES.md and native-draw-prefix-5375.json decode full
 NFE1 container and six candidate NID1 draw records through exact EOF. Submitted
