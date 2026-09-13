@@ -3,13 +3,15 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1148; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1149; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
-LOG1148 next run ACTIVE: shrine-blended-alpha-moving-a, sources5300..5599,
-root exec session41270/launcher37264. Poll existing process; do not restart on timeout.
-Ten-sample visual review confirms reduced neck/fringe artifact, coat retained;
-explicit alpha-state transition audit passes. Full moving/appearance gates pending.
+LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
+terminal0/baselineexact; all integrity and explicit alpha-state transition checks pass.
+Sample review supports reduced sparkle but late dark brow/eye band and panel hair
+remain. Next capture-free cost of candidate plus late face/fringe shading diagnosis.
+Lossless review animation generation session92234; poll before claiming completion.
+Full appearance/performance gates pending; no defaults promoted.
 
 Current diagnostic follow-up: shrine-blended-alpha-review-a removes only
 --alpha-cutout from private restored-source launch. Terminal0/baselineexact;

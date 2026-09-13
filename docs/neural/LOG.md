@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1149 blended-alpha moving interval complete; character appearance still open.
+shrine-blended-alpha-moving-a completes300/300 sources5300..5599,terminal0,
+baselineexact. moving-audit.json: all archive/helper/source/Present/protected-native
+checks pass. alpha-state-transition-audit.json:300 exact producer/retainedgeometry/
+camera/texture comparisons,3255expected cutout-to-blend changes,zero unexpected
+transitions or removed meshes. Full-quality captures retained; not performance proof.
+Agent visual-review/REVIEW.md inspects seven distributed pairs,5373..5377 closeups
+and5595..5599 late poses. Neck/fringe sparkle reduction persists in inspected samples;
+no obvious large arena/coat/hitgraphic regression. Late dark brow/eye-band and broad
+panel-like hair remain CORRECTIONS_REQUIRED. Root inspected5450/5599 full composites.
+Not full temporal/human visual acceptance. Next measure capture-free cost of this
+existing candidate route while investigating late face/fringe shading; retain prior
+baseline and parked opaque-footprint attempt. No source/default/layer promotion.
+
 LOG1148 existing blended-alpha path reduces bright character patches in10samples.
 Restored source; private shrine-blended-alpha-review-a removes only --alpha-cutout.
 Terminal0/baselineexact;10/11 sources5370..5380 complete,missing5371. All10 capture

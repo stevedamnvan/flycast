@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1104 (`e80f43a64`). This is a summary
+Updated 2026-09-13, evidence through LOG1149. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -47,10 +47,10 @@ committed. Current engineering priority remains FC-067 / M2-scene.
 | Character completeness / FC-067 M2-scene | 10 default fighters captured; 67/67 captured material groups runtime-matched (LOG1126) | No pending joins within captured set; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
 | Arena completeness / FC-067 M2-scene, Package D | 154 captured world groups; 137 runtime-matched; 10 named stage groups plus one unidentified group sampled | 17 joins or evidenced dispositions; remaining scene regions/variants/levels; no whole-game completeness claim |
 | Material upgrades / Package D, FC-067 M3-relighting | 19 world material candidates; 15 character PBRify sets/60 maps; zero newly appearance-accepted upgrades in audited expansion ledgers | Classify held mixed atlases; delit albedo/roughness/metal masks as eligible; validate alignment/alpha and retained maps; MCP opt-in binding; technical and human visual approval recorded separately |
-| Hair and character response / FC-067 M2-scene, M3-relighting | Missing fringe/side-hair surface recovered; 26 live composition checks and 19-frame full-stack sequence support scoped restoration | Triangle CPU cost, longer combat, natural skin/hair response and contour review; 19 frames is not the required moving gate |
+| Hair and character response / FC-067 M2-scene, M3-relighting | Sorted-alpha recovery has 300-frame capture integrity evidence (LOG1143); blended-alpha variant reduces neck/fringe artifacts in 10 samples (LOG1148) | Complete moving visual review of blended variant, natural skin/hair response, contour/alpha stability and cross-scene checks; capture integrity is not appearance acceptance |
 | Lighting/camera / FC-067 M2-camera, M3-relighting | Path-traced review exists; liked arena reference retained; fill/profile and source/anchor provenance recorded | Stable supported camera/occlusion; material-specific light response and cross-level checks; retain parked strict-replay failure |
 | Remix + supplied DLSS 5 / FC-067 M4-presentation, M4-DLSS5 | Scoped combined presentation and protection evidence exists | Synchronized native/public DLAA/Remix/combined evidence over 300 consecutive gameplay frames, current consumer settings/provenance and negative controls |
-| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Required four builds and 1117 selftests x3 passed for cutout source; no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
+| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Restored source passes four builds and 1183 selftests x3 (LOG1147); no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
 | Delivery / standing-goal exit | Backlog, LOG and handoff maintained; proven slices pushed | Reproducible opt-in launch, known limitations, full evidence index and all applicable working-pipeline gates together |
 
 Counts use captured material groups, not entire-game percentages. Runtime
@@ -64,9 +64,9 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** full-stack active-attack interval review (LOG1108 covered
-idle motion only:296retained/292consecutive), then capture-free
-end-to-end timing. LOG1107 exported-cutout aggregate adds0.32..0.35ms across
+**Next deliverable:** blended-alpha active-attack interval review (LOG1148;
+300-frame integrity complete, late brow/eye shading still open), then capture-free end-to-end timing with the reviewed
+configuration. Earlier LOG1107 exported-cutout aggregate adds0.32..0.35ms across
 26poses; native rejected draw/other worker stages remain outside this measurement. Do not turn generation or capture activity
 into a completion milestone without its acceptance evidence.
 
@@ -595,6 +595,10 @@ hair, floor/arena transparency and native invariants. Not a default/profile prom
 LOG1148 ten samples show neckpatch removed/fringe reduced,coat retained;all10integrity
 and explicit alpha-transition identity checks pass. Missing5371;no full interval
 acceptance. Next300frame5300..5599 blended review running shrine-blended-alpha-moving-a.
+LOG1149 run complete300/300,all integrity/state-transition checks pass,baselineexact.
+Distributed/close/late sample review supports reduced sparkle; dark late brow/eye
+band and panel hair remain. Next capture-free route cost plus late character shading
+diagnosis; candidate not promoted and full visual acceptance remains open.
 do not expand promotion or adjust global lighting based on this failed visual hypothesis.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
