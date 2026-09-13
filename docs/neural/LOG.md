@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1109 active-attack capture failed; storage exhausted. Existing replay
+source5300..5599 full-stack run terminal launcher1, host0/helper11,
+orderly_host_shutdown=false. Baselineexact; no children currently running.
+First retained5487 image shows HIGH13/1HIT feedback; usable metadata pairs106
+through5595, but5596 source-draw-coverage JSON is truncated. File count is not
+complete-capture proof. Readable metadata protection counters zero only.
+D: free0bytes, C: about3.17GB at inspection. Stop further capture/generation
+writes until evidence capacity is restored; preserve failed files, no deletion.
+Cannot attribute launcher failure solely to storage without further evidence,
+but truncation invalidates a clean validation claim. No combat/performance pass.
+Audit saved outside evidence tree: C:/Game Dev/Emulators/shrine-attacks-storage-audit.json.
+Next resolve evidence capacity, inspect retained files/readiness; do not blindly
+repeat capture or waive missing early frames. CPU/source read-only work remains
+possible, so standing goal is not declared blocked/complete.
+
 LOG1108 full-stack300-source requested capture terminal0/baselineexact.
 shrine-hair-combat300-a retains296frames5900..6199, missing5901/5903/5905/5907;
 longest consecutive292. All296 native effects applied, HUD/world/backbuffer

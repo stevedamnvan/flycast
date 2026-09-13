@@ -3,16 +3,16 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1108; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1109; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
-- Latest LOG1108: full-stack Shrine capture terminal0,296retained/292consecutive,
-  all native composition checks zero/shared26promoted. Baseline unchanged.
-  Evidence `C:/Flycast-Evidence/shrine-hair-combat300-a`; no active run.
-  Actual cycles show idle motion AFTER attacks; not combat acceptance.
-- Next: existing replay attack interval around sources5300..5599, verify native
-  cycles/actions, full mod stack. Then capture-free performance. Do not repeat
-  the5900idle window or count292consecutive as the300-frame gate.
+- Latest LOG1109: attack run terminal1, no active capture processes. Evidence
+  `C:/Flycast-Evidence/shrine-hair-attacks-a`;106readable metadata pairs, truncated
+ 5596coverage JSON. D:full/C:~3.17GB. Stop new captures/generation until capacity
+  restored. Preserve failed evidence; no deletion/cleanup authorized.
+- Next restore evidence capacity and inspect retained failures before another
+  live run; read-only/source work remains possible. Full goal stays active.
+  Audit: `C:/Game Dev/Emulators/shrine-attacks-storage-audit.json`.
 - Mod discovery uses repository cwd and its existing Soulcalibur junction.
   Isolated runtime-output has no mod mount; do not use it for full-look claims.
 - Last completed evidence:19pose matched full-stack hair sequence, plus

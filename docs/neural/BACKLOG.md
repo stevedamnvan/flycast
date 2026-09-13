@@ -57,6 +57,10 @@ Counts use captured material groups, not entire-game percentages. Runtime
 identity is not live binding, generation is not acceptance, and technical
 acceptance is not human visual approval. Existing baseline artwork stays intact.
 
+**Immediate blocker (LOG1109):** evidence drive D: full; capture metadata truncated.
+No new captures/generation until capacity restored. Preserve all private evidence;
+no cleanup authorized. Read-only and bounded source work remain available.
+
 **Next deliverable:** full-stack active-attack interval review (LOG1108 covered
 idle motion only:296retained/292consecutive), then capture-free
 end-to-end timing. LOG1107 exported-cutout aggregate adds0.32..0.35ms across
@@ -440,6 +444,10 @@ LOG1108 full-stack296/300retained,292consecutive; all native composition
 checks pass, shared26present throughout. Cycle interval is after attack inputs:
 idle-motion only. Next source5300..5599 existing replay attack interval with
 actual cycle/native verification. No300consecutive/combat/performance acceptance.
+LOG1109 attack capture terminal1, truncated5596metadata; D:full/C:~3.17GB.
+106readable metadata pairs are not complete visual proof. Stop capture and
+generation writes; preserve evidence. Restore storage capacity before next run.
+Read-only/source work may continue; no full-goal blocked/completed claim.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
