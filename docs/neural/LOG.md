@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1169 deterministic hair-band draft rejected by exact-alpha check.
+C:/Flycast-Evidence/hair-band-correction-a retains workflow, scope, submission,
+history, candidate, validation and review. Existing Comfy prompt
+ d267d2d3-524d-4603-ac67-f44383dd90c2 completed successfully; recovered its
+history after truncated observation without resubmission. One requested output,
+no models, no retries, paid API cost0. Neutral encoded-RGB row-envelope multiply
+reduces the painted band in the inspected crop; not physically proven delighting.
+256x256 dimensions preserved; outside-region RGB changed0; inside changed2009.
+Alpha changed14260 texels, all exactly -1; candidate REJECTED for binding.
+Installed JoinImageWithAlpha computes1-mask and SaveImage truncates255*float to
+uint8. This is consistent with float roundtrip quantization; original alpha must
+be restored byte-exact through existing asset packaging before any ingestion.
+Do not regenerate the RGB correction or change Comfy globally. Preserve failed
+candidate. No Toolkit layer, runtime material, baseline or lighting change.
+Next preserve exact source alpha in a separately validated packaged candidate,
+then assess colour/strand detail and same-source moving response before promotion.
+Blade assessment must separate binding/normals/material checks from light/shadow
+response; do not brighten blade albedo to compensate for dark reflections.
+
 LOG1168 current hair UV300 passes; one local PBRify draft generated, height held.
 late-face-uv-moving-a/audit.json and REPORT.md: all300 sources5300..5599 same
 DDS/decoded foundation, region present throughout, no other-triangle overlap or
