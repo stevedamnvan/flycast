@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1091 bounded alpha-cutout exclusion provenance implemented. Existing
+promotion accepts optional diagnostic flag, enabled only by captureScene;
+records mesh/textureID and first failing rule(alpha-plane-unavailable,
+texture-alpha-footprint,vertex-alpha,no-depth-extent) or promoted. Source draw
+coverage JSON includes alpha_cutout_decisions from same owned feed job.
+Opaque/already-cutout meshes untouched; ordinary calls retain no decisions,
+same threshold ordering and native ownership decisions. Does not describe
+draws excluded before promotion or prove native/OIT correspondence.
+Four serial builds pass,1112selftests x3 pass; focused checks cover diagnostic
+off, cache-miss identity, vertex-alpha vs promoted, constant-depth exclusion.
+Evidence alpha-exclusion-provenance-a/builds.json and build/selftest logs.
+No live capture yet; next stage freshly built host and run bounded Nightmare
+source5300 diagnostic to inspect actual decisions. Reuse exact replay/seed;
+this distinct provenance hypothesis permits one new capture, not threshold
+sweep. No baseline material, paid generation or appearance acceptance change.
+
 LOG1090 shared26 source-alpha diagnosis, CPU-only. Corrected native sorted
 draw footprints for Nightmare5300:11submitted draw groups/196triangles,
 all submitted vertexalpha255. Existing cutout texture thresholds applied to

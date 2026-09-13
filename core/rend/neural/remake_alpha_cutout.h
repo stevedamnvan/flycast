@@ -103,22 +103,28 @@ inline bool RemakeDrawHasDepthExtent(const remake::Mesh& mesh) {
  return hi-lo>1e-4f*std::max(std::abs(hi),1e-6f);
 }
 struct RemakeAlphaCutoutPromotion {
+ struct Decision { std::uint64_t mesh,texture; const char* reason; };
  unsigned promoted=0,keptNative=0,undecoded=0; // Per packet; keptNative meshes are removed from the packet.
  std::vector<std::uint64_t> promotedIds;
+ std::vector<Decision> decisions; // Populated only for bounded diagnostic captures.
 };
 // Rewrites the built packet in place: qualifying promoted alpha meshes become
 // cutouts (blend off, reference set); the others are removed so their native
 // composition is untouched. Opaque and already-cutout meshes are never changed.
-inline RemakeAlphaCutoutPromotion PromoteRemakeAlphaCutouts(remake::Packet& packet,RemakeAlphaPlaneCache& cache) {
+inline RemakeAlphaCutoutPromotion PromoteRemakeAlphaCutouts(remake::Packet& packet,RemakeAlphaPlaneCache& cache,bool diagnostic=false) {
  RemakeAlphaCutoutPromotion result;std::vector<remake::Mesh> kept;kept.reserve(packet.meshes.size());
  for(auto& mesh:packet.meshes) {
   if(!mesh.sourceAlphaBlend||mesh.sourceAlphaReference){kept.push_back(std::move(mesh));continue;}
   std::shared_ptr<const RemakeAlphaPlane> plane;
   if(mesh.material&&!mesh.material->sourceDdsBytes.empty()&&mesh.texture.known)plane=cache.Remember(mesh.texture,mesh.material->sourceDdsBytes);
   else if(mesh.texture.known)plane=cache.Find(mesh.texture);
-  if(!plane){++result.undecoded;++result.keptNative;continue;}
+  const auto record=[&](const char* reason){if(diagnostic)result.decisions.push_back({mesh.id,mesh.texture.id,reason});};
+  if(!plane){record("alpha-plane-unavailable");++result.undecoded;++result.keptNative;continue;}
   const auto stats=MeasureRemakeAlphaCutout(*plane,mesh);
-  if(!RemakeAlphaCutoutQualifies(stats)||!RemakeVertexAlphaOpaque(mesh)||!RemakeDrawHasDepthExtent(mesh)){++result.keptNative;continue;}
+  const char* reason=!RemakeAlphaCutoutQualifies(stats)?"texture-alpha-footprint":
+   !RemakeVertexAlphaOpaque(mesh)?"vertex-alpha":!RemakeDrawHasDepthExtent(mesh)?"no-depth-extent":nullptr;
+  if(reason){record(reason);++result.keptNative;continue;}
+  record("promoted");
   mesh.sourceAlphaBlend=false;mesh.sourceAlphaReference=RemakeAlphaCutoutReference;
   ++result.promoted;result.promotedIds.push_back(mesh.id);kept.push_back(std::move(mesh));
  }

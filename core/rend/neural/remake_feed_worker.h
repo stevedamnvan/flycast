@@ -103,7 +103,7 @@ class RemakeFeedWorker {
    if(job.alphaOwnership) {
     r.alphaOwnership=true;
     std::vector<std::uint64_t> promoted;
-    if(job.alphaCutout){r.alphaCutout=true;r.cutout=PromoteRemakeAlphaCutouts(job.packet,alphaPlanes);promoted=r.cutout.promotedIds;}
+    if(job.alphaCutout){r.alphaCutout=true;r.cutout=PromoteRemakeAlphaCutouts(job.packet,alphaPlanes,job.captureScene);promoted=r.cutout.promotedIds;}
     for(const auto& mesh:job.packet.meshes)if(mesh.sourceAlphaBlend||std::find(promoted.begin(),promoted.end(),mesh.id)!=promoted.end()) {
      const auto ordinal=std::uint32_t(mesh.id)-1;const auto found=job.alphaParams.find(ordinal);
      if((mesh.id>>32)!=2||found==job.alphaParams.end()) {
@@ -181,6 +181,12 @@ class RemakeFeedWorker {
      <<",\"protected_overlay\":"<<(draw.protectedOverlay?"true":"false")
      <<",\"textured\":"<<(draw.texture?"true":"false")
      <<",\"exported\":"<<(exported.count(id)?"true":"false")<<"}";
+   }
+   census<<"],\"alpha_cutout_decisions\":[";first=true;
+   for(const auto& decision:r.cutout.decisions) {
+    if(!first)census<<",";first=false;
+    census<<"{\"mesh\":"<<decision.mesh<<",\"texture_id\":"<<decision.texture
+     <<",\"reason\":\""<<decision.reason<<"\"}";
    }
    census<<"]}";r.overlay.captureCoverage=std::make_shared<const std::string>(census.str());
    r.capturedPacket=std::make_shared<remake::Packet>(std::move(job.packet));

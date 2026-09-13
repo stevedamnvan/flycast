@@ -315,6 +315,10 @@ LOG1090 shared26native footprints4/11meet texture-alpha criteria, so blanket
 cutout rejection unsupported. Live5300logs5promoted/1native/0undecoded without
 per-mesh reason; correspondence unresolved. Next exclusion provenance needs
 per-mesh identity/reason, not another unchanged capture or threshold sweep.
+LOG1091 diagnostic-only alpha_cutout_decisions added to existing source-draw
+coverage: mesh/textureID/first exclusion reason, no changed promotion criteria.
+Four builds and1112selftests x3 pass. Next fresh-host Nightmare5300 capture
+for live provenance; no claim this source change already fixes appearance.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

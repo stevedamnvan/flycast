@@ -469,6 +469,7 @@ int RunSelfTests()
 		auto shaded=gradient;shaded.material->sourceDdsBytes=atlas;
 		packet.meshes={opaque,carried,shaded,referenced,unknown};
 		auto promotion=PromoteRemakeAlphaCutouts(packet,cache);
+		suite.Expect(promotion.decisions.empty(),"ordinary alpha promotion retains no diagnostic decisions");
 		suite.Expect(promotion.promoted==2&&promotion.keptNative==2&&promotion.undecoded==1&&packet.meshes.size()==3&&cache.Size()==1
 			&&packet.meshes[0].id==opaque.id&&!packet.meshes[0].sourceAlphaReference
 			&&packet.meshes[1].id==carried.id&&!packet.meshes[1].sourceAlphaBlend&&packet.meshes[1].sourceAlphaReference==RemakeAlphaCutoutReference
@@ -476,21 +477,28 @@ int RunSelfTests()
 			&&promotion.promotedIds==std::vector<std::uint64_t>{carried.id,referenced.id},
 			"alpha cutout promotes carried and held-reference strands, removes the gradient and the unknown texture, leaves opaque meshes");
 		RemakeAlphaPlaneCache empty;remake::Packet later;later.meshes={referenced};
-		auto miss=PromoteRemakeAlphaCutouts(later,empty);
+		auto miss=PromoteRemakeAlphaCutouts(later,empty,true);
+		suite.Expect(miss.decisions.size()==1&&miss.decisions[0].mesh==referenced.id
+			&&std::string(miss.decisions[0].reason)=="alpha-plane-unavailable","diagnostic alpha cache miss retains rejected mesh identity");
 		suite.Expect(miss.promoted==0&&miss.undecoded==1&&later.meshes.empty(),"alpha cutout keeps a by-reference draw native when its plane was never seen");
 		auto sheet=strands;sheet.id=(2ull<<32)|6;sheet.sourceTsp=*sheet.sourceTsp|(1u<<20);sheet.material->sourceDdsBytes=atlas;
 		for(auto& v:sheet.vertices)v.publicColor=0x80ffffffu;
 		auto opaqueVertex=sheet;opaqueVertex.id=(2ull<<32)|7;for(auto& v:opaqueVertex.vertices)v.publicColor=0xffffffffu;
 		auto ignoredVertex=sheet;ignoredVertex.id=(2ull<<32)|8;ignoredVertex.sourceTsp=*ignoredVertex.sourceTsp&~(1u<<20);
 		remake::Packet vertexAlpha;vertexAlpha.meshes={sheet,opaqueVertex,ignoredVertex};
-		auto sheets=PromoteRemakeAlphaCutouts(vertexAlpha,cache);
+		auto sheets=PromoteRemakeAlphaCutouts(vertexAlpha,cache,true);
+		suite.Expect(sheets.decisions.size()==3&&sheets.decisions[0].mesh==sheet.id
+			&&std::string(sheets.decisions[0].reason)=="vertex-alpha"
+			&&std::string(sheets.decisions[1].reason)=="promoted","diagnostic distinguishes vertex translucency from promoted cutouts");
 		suite.Expect(sheets.promoted==2&&sheets.keptNative==1&&vertexAlpha.meshes.size()==2&&vertexAlpha.meshes[0].id==opaqueVertex.id
 			&&vertexAlpha.meshes[1].id==ignoredVertex.id,"alpha cutout keeps a vertex-alpha translucent sheet native");
 		auto message=strands;message.id=(2ull<<32)|9;message.material->sourceDdsBytes=atlas;
 		for(auto& v:message.vertices)v.position.z=1.f;
 		auto tilted=message;tilted.id=(2ull<<32)|10;tilted.vertices[2].position.z=1.01f;
 		remake::Packet flat;flat.meshes={message,tilted};
-		auto flats=PromoteRemakeAlphaCutouts(flat,cache);
+		auto flats=PromoteRemakeAlphaCutouts(flat,cache,true);
+		suite.Expect(flats.decisions.size()==2&&std::string(flats.decisions[0].reason)=="no-depth-extent",
+			"diagnostic identifies flat native effect exclusion");
 		suite.Expect(flats.promoted==1&&flats.keptNative==1&&flat.meshes.size()==1&&flat.meshes[0].id==tilted.id,
 			"alpha cutout keeps a constant-depth screen message native");
 		{

@@ -8,6 +8,12 @@ Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
 Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
 Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
 Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
+Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
+source-draw coverage. Four serial builds/1112selftests x3 pass. Next fresh host
+Nightmare5300 capture with exact existing seed/replay to inspect reasons;
+copy current built host, not stale Palgaea stagedhost. No live capture yet.
+Baseline untouched/GPUfree; model approval pending.
+Historical LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
 5promoted/1native/0undecoded but no per-rejected identity/reason. No blanket
 ineligibility claim; add bounded exclusion provenance before repeat capture.
 Counts remain character50/67,world137/154;baseline untouched/GPUfree.
