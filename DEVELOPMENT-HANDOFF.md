@@ -1,4 +1,9 @@
-# Flycast experimental Remix + external DLSS 5 development handoff
+Guarded binder source complete (LOG1031); six Python tests, four builds and
+1102 selftests x3 pass. NOT live-validated/loaded. Existing extension README
+explains failure: candidate must be beneath replacement mod, not workfile;
+Toolkit auto-switches target for workfile children. No hot reload supported.
+Preserve pending state/reconcile baseline memory before restart. Do not repeat
+root candidate placement. Correct disk baseline remains exact.
 
 Current resume checkpoint: face binding attempt rejected; recovery required.
 MCP create_layer(set_edit_target=True), override_textures and save_layer returned

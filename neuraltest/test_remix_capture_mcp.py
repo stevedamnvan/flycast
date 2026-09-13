@@ -2,10 +2,27 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from remix_capture_mcp import capture_destination, displacement_request, ingestion_request, surface_request
+from remix_capture_mcp import capture_destination, displacement_request, ingestion_request, surface_request, diffuse_binding_request
 
 
 class CaptureDestinationTests(unittest.TestCase):
+    def test_diffuse_binding_requires_isolated_ingested_target(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d); project = root / 'review.usda'; project.write_text('project')
+            (root / 'layers').mkdir(); (root / 'assets/ingested/faces').mkdir(parents=True)
+            layer = root / 'layers/candidate.usda'; layer.write_text('candidate')
+            texture = root / 'assets/ingested/faces/face.dds'; texture.write_bytes(b'dds')
+            shader = '/RootNode/Looks/mat_91446E8A159E8C2F/Shader'
+            with self.assertRaises(ValueError): diffuse_binding_request(project, layer, shader, texture)
+            Path(str(texture)+'.meta').write_text('ingested')
+            self.assertEqual(diffuse_binding_request(project, layer, shader, texture), (layer.resolve(), texture.resolve()))
+            for name in ['mod.usda', 'layers/pbrify_reimagined.usda']:
+                bad = root / name; bad.write_text('baseline')
+                with self.assertRaises(ValueError): diffuse_binding_request(project, bad, shader, texture)
+                self.assertEqual(bad.read_text(), 'baseline')
+            outside = root / 'face.dds'; outside.write_bytes(b'dds'); Path(str(outside)+'.meta').write_text('meta')
+            with self.assertRaises(ValueError): diffuse_binding_request(project, layer, shader, outside)
+
     def test_displacement_bounds_and_shader_scope(self):
         shader = '/RootNode/Looks/mat_145398E2FC5B2FEA/Shader'
         self.assertEqual(displacement_request(shader, 0, 0), {'displace_in': 0.0, 'displace_out': 0.0})

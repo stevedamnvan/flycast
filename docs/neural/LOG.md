@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1031 explicit-layer binding guard implemented; activation pending.
+New flycast_bind_diffuse_in_layer validates linked isolated layer and project
+ingested DDS+metadata, uses explicit Usd.EditContext, copies only the composed
+material definition, verifies target spec and unchanged baseline memory/disk,
+rolls candidate back on failure, never saves. Six Python tests pass; four serial
+builds/1102 selftests x3 pass (explicit-binding-build-a). This proves local
+request validation/build compatibility, not live USD authoring/recovery.
+Existing toolkit_extensions/README already explains root cause: candidates
+under workfile can trigger automatic edit-target switch to mod; use mod child.
+Prior attempt violated this placement guidance. Do not repeat root placement.
+Extension explicitly does not support hot reload; preserve pending state before
+restart. Baseline disk exact, stale in-memory overrides remain unresolved.
+Next preserve current project/layers, reconcile only unexpected face opinions,
+restart with updated extension, then test correctly parented candidate and
+verify layer-off exact baseline before rendering. No appearance acceptance.
+
 LOG1030 candidate texture binding rejected; baseline disk recovered.
 MCP create_layer(set_edit_target=True), override_textures and save returnedOK,
 but face_albedo_review_b.usda stayed empty and mod acquired two face overrides.

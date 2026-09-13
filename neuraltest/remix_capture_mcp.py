@@ -31,6 +31,22 @@ def surface_request(shader_path, roughness, metallic):
     return {name: float(value) for name, value in values.items()}
 
 
+def diffuse_binding_request(project_file, layer_file, shader_path, texture_file):
+    displacement_request(shader_path)
+    project, layer, texture = map(Path, (project_file, layer_file, texture_file))
+    if not all(p.is_absolute() and p.is_file() for p in (project, layer, texture)):
+        raise ValueError('Existing absolute project, layer and texture required')
+    root = project.resolve().parent
+    if layer.resolve().parent != root / 'layers' or layer.name in {
+            'pbrify_cloth_refined_v2.usda', 'pbrify_reimagined.usda', 'curated_pbr.usda', 'ai_pbr_draft.usda'}:
+        raise ValueError('Separate opt-in layer required')
+    if texture.suffix.lower() != '.dds' or root / 'assets/ingested' not in texture.resolve().parents:
+        raise ValueError('Project ingested DDS required')
+    if not Path(str(texture) + '.meta').is_file():
+        raise ValueError('Ingestion metadata required')
+    return layer.resolve(), texture.resolve()
+
+
 def capture_destination(project_file, capture_file):
     project, source = Path(project_file), Path(capture_file)
     if not project.is_absolute() or not source.is_absolute():
@@ -216,6 +232,51 @@ def register(mcp):
             layer.ImportFromString(snapshot)
             raise
         return dict(shader=shader_path, authored=values, layer=layer.identifier, saved=False)
+
+    @mcp.tool(name='flycast_bind_diffuse_in_layer')
+    async def bind_diffuse_in_layer(layer_file: str, shader_path: str, texture_file: str) -> dict:
+        """Bind one ingested diffuse explicitly in a candidate layer, without saving.
+
+        Never relies on the UI edit target; rolls back target content on failure.
+        Rejects baseline and unlinked layers. Other stage layers remain untouched.
+        """
+        import omni.usd
+        from pxr import Sdf, Usd
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open the intended project first')
+        target, texture = diffuse_binding_request(stage.GetRootLayer().realPath, layer_file, shader_path, texture_file)
+        layer = next((x for x in stage.GetLayerStack() if x.realPath and Path(x.realPath).resolve() == target), None)
+        if layer is None:
+            raise ValueError('Candidate layer must be in current stage')
+        prim = stage.GetPrimAtPath(shader_path)
+        if not prim or prim.GetTypeName() != 'Shader' or prim.GetParent().GetTypeName() != 'Material':
+            raise ValueError('Existing captured Material and Shader required')
+        baseline = Sdf.Layer.FindOrOpen(str(Path(stage.GetRootLayer().realPath).parent / 'mod.usda'))
+        if baseline is None:
+            raise ValueError('Existing baseline required')
+        baseline_text = baseline.ExportToString()
+        baseline_bytes = Path(baseline.realPath).read_bytes()
+        snapshot = layer.ExportToString()
+        composed = stage.Flatten()
+        path = prim.GetParent().GetPath()
+        try:
+            with Usd.EditContext(stage, layer):
+                Sdf.CreatePrimInLayer(layer, path.GetParentPath())
+                if not Sdf.CopySpec(composed, path, layer, path):
+                    raise RuntimeError('Material copy failed')
+                attr = stage.GetPrimAtPath(shader_path).CreateAttribute('inputs:diffuse_texture', Sdf.ValueTypeNames.Asset, custom=False)
+                if not attr.Set(Sdf.AssetPath(str(texture))):
+                    raise RuntimeError('Diffuse write failed')
+            spec = layer.GetAttributeAtPath(shader_path + '.inputs:diffuse_texture')
+            if not spec or spec.default != Sdf.AssetPath(str(texture)):
+                raise RuntimeError('Explicit layer verification failed')
+            if baseline.ExportToString() != baseline_text or Path(baseline.realPath).read_bytes() != baseline_bytes:
+                raise RuntimeError('Baseline changed during candidate binding')
+        except Exception:
+            layer.ImportFromString(snapshot)
+            raise
+        return dict(layer=str(target), shader=shader_path, texture=str(texture), saved=False, baseline_unchanged=True)
 
     @mcp.tool(name='flycast_activate_capture')
     async def activate_capture(capture_file: str) -> dict:

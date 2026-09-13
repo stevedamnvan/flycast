@@ -59,3 +59,10 @@ failed ingestion indefinitely or modify installed Toolkit files.
 reflection_roughness_constant and metallic_constant, finite floats0..1, using
 the same separate project layer restriction and rollback as displacement. It
 does not save, change textures, or establish runtime/visual acceptance.
+
+`flycast_bind_diffuse_in_layer(layer_file, shader_path, texture_file)` adds an
+explicit target guard for ingested diffuse candidates. It rejects baseline,
+unlinked and external targets, authors in Usd.EditContext, verifies the target
+spec and baseline memory/disk invariants, and does not save. Runtime activation
+and rollback behavior still require a preserved-state Toolkit restart and live
+validation; passing path tests is not proof of live integration.
