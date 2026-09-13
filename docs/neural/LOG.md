@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1051 corrected supplied-host paired streaming benchmark,640x480.
+shrine-streaming-benchmark-b reuses hash-verified6 supplied files from
+motion-cache-live-b plus current automation executable and Shrine seed/replay.
+Both feedback states enable established benchmark selective refresh, neutral
+fill0.3, baseline materials. Each1200 samples source5902..7101, capturesoff,
+1200remaster/evaluated presents,0native/repeats/identity errors, latency3.
+Feedback on/off present P50=14.962/14.939ms; P95=17.482/16.998; P99=21.418/21.171.
+No meaningful slowdown observed in this pair; no statistically established gain.
+Host measured VRAM growth0 both; sampled helper main-adapter allocation peaks
+2.205/2.173GB decimal, not texture residency or long-session leak proof. Three
+Toolkit background allocations unchanged, activity not controlled. Helper40
+undisposed objects warning persists. Both terminal0/11 orderly, baseline exact.
+Effective feedback options verified. Consumer contract evaluated; addon hook
+warning remains and supplied neural imagery independently unconfirmed.
+Keep feedback-off explicit candidate for detail preservation; next1280 bounded
+comparison and longer lifecycle, alongside character direct-diffuse correction.
+No global default promotion,60fps/full-game acceptance, or automatic asset
+acceptance. External comparison.json, verification.json, commands/hashes and
+telemetry retained; original incomplete-host run remains rejected LOG1050.
+
 LOG1050 late benchmark reaches stage but supplied host setup incomplete.
 shrine-streaming-benchmark-a/on terminal launcher0,host0/helper11, orderly.
 1200 samples begin source5902, no synchronous capture; all1200 presents native,

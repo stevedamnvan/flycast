@@ -1,13 +1,13 @@
-Current checkpoint LOG1050: late benchmark window reaches source5902, but
-all1200 presents native because root copied plain executable without supplied
-runtime chain. NGX availability0/BAD00004; terminal0/11 orderly. Reject run,
-do not execute prepared off pair. Next reuse verified supplied host/config
-and established benchmark selective refresh in NEW paired directories.
-No source bug/renderer regression inferred. Baseline exact; helper120s retained.
-World GPU released:10/10 visible Practice slots captured,154world sources;
-hidden/alternate views, runtime joins and appearance acceptance remain open.
-Character agent audits authoritative supplied host reuse CPU-only.
-MCP8002 Shrine unsaved; preserve old8001 stale pending state.
+Current checkpoint LOG1051: corrected supplied-chain feedback on/off benchmark
+both terminal0/11,1200remaster presents source5902..7101,0native/identity errors.
+640 P50=14.962/14.939ms, host VRAM growth0; no meaningful slowdown in this pair.
+Next1280 and longer lifecycle validation, then direct-diffuse character lighting.
+Feedback-off remains explicit candidate; no default/global acceptance. Toolkit
+background preserved and helper40-object cleanup warning persists. Supplied
+consumer contract evaluated, neural image processing independently unconfirmed.
+Failed plain-host attempt LOG1050 retained. Baseline mod exact. World agent CPU
+full154-material inventory; GPU currently root/released after pair. MCP8002
+Shrine unsaved; old8001 stale pending state must not be saved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
