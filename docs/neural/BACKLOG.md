@@ -469,7 +469,11 @@ Next repeat then1280/normal matrix; diagnostic capture overhead is separate,
 not a reason to loosen production policy or repeat pre-roll sweeps.
 LOG1115 repeat640 and first1280 OIT both steady1080/1080fresh, attack300/300fresh,
 maxsteady latency3,owned-object growth0. Medians15.17/16.18ms; tails remain
-21.81/21.86ms P95. Next repeat1280 then normal renderer; sustained60fps unproven.
+21.81/21.86ms P95. LOG1116 repeat1280 steady1080/1080fresh,median16.31ms,P9520.13ms.
+Normal native-effects remains diagnostic-only in launcher: next prove current
+normal integration/provenance at the selected scene before a performance gate.
+Resolve bounded late diagnostic reachability; do not measure menus or remove
+guards for a passing metric. No further unchanged OIT repeats;60fps unproven.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

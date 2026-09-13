@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG1116 1280 capture-free repeat; normal-renderer prerequisite corrected.
+shrine-attacks-performance-1280-b terminal0/11 orderly, baselineexact.1200samples
+5002..6201 all evaluated/fresh, no native/fallback/identity errors; maximum age4.
+After120warmup1080/1080fresh/maxage3; attack5300..5599 all300fresh/maxage3.
+PresentP50/P95/P99=16.3141/20.1316/25.1654ms; prior1280a16.1755/21.8624/24.0766.
+Owned objects204->200 (growth-4), not a full lifetime proof. CPU intervals,
+GPU timings invalid. Two1280 runs establish scoped continuity, not sustained
+60fps, native-relative speed, supplied-image contribution or visual acceptance.
+Read current normal route before launching: remake_launch --normal-effects
+requires dx11 AND cpu-timing. DX11Renderer::drawStrips only builds normal
+snapshot with explicit FLYCAST_REMAKE_NORMAL_EFFECTS; current source carries it
+through overlay/Compose/resource accounting, but historical LOG859 acceptance
+is only native replay mechanism. A bare --renderer dx11 benchmark is not the
+intended normal-effects path and would mislead. Do not remove diagnostic guard
+merely to collect a passing number. No normal benchmark launched.
+Next bounded normal-effects integration/provenance diagnostic at the selected
+scene, retaining current snapshot ownership/alpha/composition safeguards; then
+capture-free normal gate only when that path is proven. Existing launcher late
+benchmark warmup rejects CPU timing, so resolve bounded diagnostic reachability
+before dispatch rather than silently measuring early menus. No repeated OIT
+runs needed without new change/question. Visual/combat/camera/lifecycle remain.
+
 LOG1115 capture-free attack repeat and1280 OIT progression.
 Two sequential terminal0/11 orderly runs, baseline exact, no capture/build/
 generation overlap: shrine-attacks-performance-b and shrine-attacks-performance-1280-a.

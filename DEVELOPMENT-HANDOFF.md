@@ -3,9 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1115; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1116; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1116 repeat1280 TERMINAL0/11,1200fresh/evaluated,steady1080fresh/maxage3,
+  median16.31ms,P9520.13ms. Baselineexact. No more unchanged OIT repeats.
+  Normal-effects launcher remains diagnostic-only; bare dx11 timing is not the
+  intended path. Next bounded late-scene normal integration/provenance check;
+  resolve diagnostic reachability before launching. No normal run dispatched.
 - LOG1115 repeat640/first1280 OIT TERMINAL0/11, baselineexact. Steady1080/1080
   fresh,attack300/300fresh,maxsteady age3 both;owned-object growth0. Median
   15.17/16.18ms,P9521.81/21.86ms. Next repeat1280 then normal renderer coverage.
