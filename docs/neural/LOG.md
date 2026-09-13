@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1096 bounded triangle-alpha footprint candidate implemented in existing
+opt-in cutout path. Only rejected rectangle footprints evaluated; passing
+rectangles unchanged. Conservative expanded triangle halfspaces include one
+texel filtering margin, union texels counted once. Existing alpha thresholds,
+vertex-alpha/depth guards and native fallback preserved. Wrapping/invalid,
+degenerate-empty, >1024square texel count, >65536indices or >4Mrectangle-test
+work return prior rectangle result. No model/texture changes.
+Four serial builds pass,1117selftests x3 pass. New checks cover disconnected
+atlas islands vs genuine gradients, invalid/degenerate/wrapped inputs and work
+cap. Evidence alpha-triangle-footprint-a/builds.json and selftest logs.
+Candidate not appearance/performance accepted: next fresh-host Nightmare5300
+same-source capture, compare against retained character-nightmare-footprint-a
+baseline and verify native effects/HUD ownership. Prior diagnostic host is
+preserved there; no need to rebuild old baseline. Require moving review and
+CPU cost assessment before treating this as a remaster improvement.
+
 LOG1095 live rejected footprint matches native alpha hypothesis. Fresh host
 Nightmare footprint capture terminal0/baselineexact, sources5300/5302.
 Both mesh8589934632/TCW269419008 alpha dimensions+FNV match retained native

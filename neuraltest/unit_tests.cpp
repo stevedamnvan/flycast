@@ -462,6 +462,33 @@ int RunSelfTests()
 		RemakeAlphaCutoutStatistics uniform;uniform.decoded=true;uniform.texels=100;uniform.opaque=100;
 		suite.Expect(!RemakeAlphaCutoutQualifies(uniform)&&!RemakeAlphaCutoutQualifies({}),"alpha cutout needs both opaque and clear texels");
 		RemakeAlphaPlaneCache cache;remake::Packet packet;packet.frame=9;
+		{
+			RemakeAlphaPlane islands;islands.width=islands.height=64;islands.alpha.assign(4096,128);
+			for(unsigned y=0;y<64;++y)for(unsigned x=0;x<64;++x)
+				if((x<18&&y<18)||(x>=46&&y>=46))islands.alpha[y*64+x]=((x+y)&1)?255:0;
+			auto mesh=quad(2.f/64,14.f/64,2.f/64,14.f/64,99,true);
+			auto second=quad(50.f/64,62.f/64,50.f/64,62.f/64,99,true);
+			mesh.vertices.insert(mesh.vertices.end(),second.vertices.begin(),second.vertices.end());mesh.indices={0,1,2,3,4,5};
+			const auto box=MeasureRemakeAlphaCutout(islands,mesh);
+			const auto unionStats=MeasureRemakeAlphaTriangles(islands,mesh,box);
+			suite.Expect(!RemakeAlphaCutoutQualifies(box)&&RemakeAlphaCutoutQualifies(unionStats),
+				"triangle footprint excludes unrelated gradient between disconnected atlas islands");
+			auto gradientPlane=islands;std::fill(gradientPlane.alpha.begin(),gradientPlane.alpha.end(),128);
+			suite.Expect(!RemakeAlphaCutoutQualifies(MeasureRemakeAlphaTriangles(gradientPlane,mesh,MeasureRemakeAlphaCutout(gradientPlane,mesh))),
+				"triangle footprint preserves actual gradient rejection");
+			auto invalid=mesh;invalid.indices[0]=999;
+			auto degenerate=mesh;degenerate.indices={0,0,0};
+			auto wrappedMesh=mesh;wrappedMesh.vertices[0].u=-1;
+			suite.Expect(MeasureRemakeAlphaTriangles(islands,invalid,box).texels==box.texels
+				&&MeasureRemakeAlphaTriangles(islands,degenerate,box).texels==box.texels
+				&&MeasureRemakeAlphaTriangles(islands,wrappedMesh,box).texels==box.texels,
+				"triangle footprint invalid degenerate and wrapping inputs keep prior result");
+			auto costly=quad(0,1,0,1,99,true);costly.indices.clear();
+			for(unsigned i=0;i<1100;++i)costly.indices.insert(costly.indices.end(),{0,1,2});
+			const auto costlyBox=MeasureRemakeAlphaCutout(islands,costly);
+			suite.Expect(MeasureRemakeAlphaTriangles(islands,costly,costlyBox).texels==costlyBox.texels,
+				"triangle footprint work cap keeps prior full rectangle result");
+		}
 		auto opaque=quad(0,.5f,0,1,(0ull<<32)|1,false);
 		auto carried=strands;carried.material->sourceDdsBytes=atlas;
 		auto referenced=quad(0,.5f,0,1,(2ull<<32)|4,true);referenced.textureWire=remake::TextureWire::Referenced;

@@ -67,6 +67,51 @@ constexpr std::uint8_t RemakeAlphaCutoutReference=128;
 inline bool RemakeAlphaCutoutQualifies(const RemakeAlphaCutoutStatistics& s) {
  return s.decoded&&s.texels>=4&&s.Opaque()>=.02&&s.Clear()>=.02&&s.Mid()<=.5;
 }
+// A combined atlas draw may enclose unrelated alpha between UV islands.
+// Measure a conservative triangle union only after its rectangle fails. The
+// expanded edge tests include a texel-square plus one texel filtering margin.
+// Invalid, wrapping, oversized or expensive footprints retain the old result.
+inline RemakeAlphaCutoutStatistics MeasureRemakeAlphaTriangles(const RemakeAlphaPlane& plane,
+ const remake::Mesh& mesh,const RemakeAlphaCutoutStatistics& fallback) {
+ if(!fallback.decoded||fallback.wholeTexture||RemakeAlphaCutoutQualifies(fallback)
+  ||plane.alpha.size()>1024*1024||mesh.indices.empty()||mesh.indices.size()%3
+  ||mesh.indices.size()>65536)return fallback;
+ std::vector<std::uint8_t> covered(plane.alpha.size());std::size_t work=0;
+ constexpr std::size_t workLimit=4*1024*1024;
+ for(std::size_t i=0;i<mesh.indices.size();i+=3) {
+  std::array<std::array<double,2>,3> p;
+  for(unsigned j=0;j<3;++j) {
+   const auto index=mesh.indices[i+j];if(index>=mesh.vertices.size())return fallback;
+   const auto& v=mesh.vertices[index];
+   if(!std::isfinite(v.u)||!std::isfinite(v.v)||v.u<0||v.u>1||v.v<0||v.v>1)return fallback;
+   p[j]={double(v.u)*plane.width,double(v.v)*plane.height};
+  }
+  const auto edge=[](const auto& a,const auto& b,double x,double y){return (b[0]-a[0])*(y-a[1])-(b[1]-a[1])*(x-a[0]);};
+  const double area=edge(p[0],p[1],p[2][0],p[2][1]);if(std::abs(area)<1e-12)continue;
+  if(area<0)std::swap(p[1],p[2]);
+  const int x0=std::max(0,int(std::floor(std::min({p[0][0],p[1][0],p[2][0]})-1)));
+  const int y0=std::max(0,int(std::floor(std::min({p[0][1],p[1][1],p[2][1]})-1)));
+  const int x1=std::min(int(plane.width),int(std::ceil(std::max({p[0][0],p[1][0],p[2][0]})+1)));
+  const int y1=std::min(int(plane.height),int(std::ceil(std::max({p[0][1],p[1][1],p[2][1]})+1)));
+  const auto cost=std::size_t(x1-x0)*std::size_t(y1-y0);if(cost>workLimit-work)return fallback;work+=cost;
+  for(int y=y0;y<y1;++y)for(int x=x0;x<x1;++x) {
+   bool inside=true;
+   for(unsigned j=0;j<3;++j) {
+    const auto& a=p[j];const auto& b=p[(j+1)%3];
+    const double margin=1.5*(std::abs(b[0]-a[0])+std::abs(b[1]-a[1]));
+    if(edge(a,b,x+.5,y+.5)<-margin){inside=false;break;}
+   }
+   if(inside)covered[std::size_t(y)*plane.width+x]=1;
+  }
+ }
+ RemakeAlphaCutoutStatistics result;
+ for(std::size_t i=0;i<covered.size();++i)if(covered[i]) {
+  ++result.texels;const auto a=plane.alpha[i];
+  if(a>=240)++result.opaque;else if(a<=16)++result.clear;else ++result.mid;
+ }
+ if(!result.texels)return fallback;
+ result.decoded=true;return result;
+}
 // Alpha planes by texture identity for meshes whose bytes travel by reference
 // (D-212). Bounded; a miss keeps the draw native and is counted, never guessed.
 class RemakeAlphaPlaneCache {
@@ -137,7 +182,8 @@ inline RemakeAlphaCutoutPromotion PromoteRemakeAlphaCutouts(remake::Packet& pack
    result.decisions.push_back(std::move(decision));
   };
   if(!plane){record("alpha-plane-unavailable");++result.undecoded;++result.keptNative;continue;}
-  const auto stats=MeasureRemakeAlphaCutout(*plane,mesh);
+  const auto rectangle=MeasureRemakeAlphaCutout(*plane,mesh);
+  const auto stats=MeasureRemakeAlphaTriangles(*plane,mesh,rectangle);
   const char* reason=!RemakeAlphaCutoutQualifies(stats)?"texture-alpha-footprint":
    !RemakeVertexAlphaOpaque(mesh)?"vertex-alpha":!RemakeDrawHasDepthExtent(mesh)?"no-depth-extent":nullptr;
   if(reason){record(reason,true);++result.keptNative;continue;}

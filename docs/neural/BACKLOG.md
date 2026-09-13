@@ -336,6 +336,10 @@ rectangle69.6percentmid vs covered30.4percent;1/2texel margins still pass.
 Next implement bounded triangle-footprint candidate with filtering margin,
 unchanged thresholds/native fallback and wrap/work guards; focused negative
 tests/four builds/three selftests then same-source/moving review. GPUfree.
+LOG1096 bounded triangle-footprint candidate implemented, unchanged thresholds
+and native guards; four builds/1117selftests x3 pass. Next liveNightmare5300
+compare to retained footprint-a baseline, verify ownership and inspect visuals;
+then moving/CPU cost. No appearance/performance acceptance yet. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.
