@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1130 bounded retained-resource evidence readback implemented and GPU-tested.
+New diagnostic-only helpers read exact buffer spans and every mip/array slice
+of supported retained Texture2D resources. Row padding is excluded;BC formats
+retain compressed blocks unchanged. Constant buffers use whole staging copies
+but return only requested logical bytes. Unsupported/planar/MSAA inputs reject;
+device/context/range and64MiB aggregate bounds enforced;failure clears output.
+No live rendering or capture dispatch uses these helpers yet.
+Four serial builds and1153selftests x3 pass. Initial compile attempts exposed
+Windows min/max macros and a fixture COM-pointer alias collision;both corrected,
+failed logs retained at normal-readback-build-a/b;passing matrix at build-c.
+Native D3D11 andD3D11On12 overlay fixtures both exit0 on current automation
+binary. Added checks verify retained buffer/texture after source mutation,
+exact logical buffer spans,all2mips/2slices,BC3mips,aggregate budget rejection
+and constant-buffer span. Existing protected pixels33,mismatches0,negative33
+checks pass for both. Evidence C:/Flycast-Evidence/normal-readback-gpu-a/
+readback-proof.json and normal-readback-build-c. Supported format tables do
+not imply GPU testing of every format;BC3 andRGBA tested here.
+Next canonical complete draw-state/active-geometry/resource identity and
+capture/locked-replay dispatch. LOG1128 exact-normal-effect failure stays open;
+these primitive tests are not a300-frame or game appearance acceptance.
+
 LOG1129 normal effect shader/layout provenance foundation implemented.
 Exact VS/PS bytecode and input-layout signature/semantic/field content are
 retained through bounded versioned D3D private data at creation, only when

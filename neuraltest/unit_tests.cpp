@@ -20,6 +20,7 @@
 #include "rend/neural/remake_depth_upload.h"
 #include "rend/neural/remake_native_effects.h"
 #include "rend/neural/remake_native_provenance.h"
+#include "rend/neural/remake_native_readback.h"
 #include <d3d11.h>
 #include <atomic>
 #include <functional>
@@ -124,6 +125,26 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	{
+		NativeEvidenceLayout layout{};std::vector<std::uint8_t> bytes;
+		suite.Expect(NativeEvidenceFormatLayout(DXGI_FORMAT_R8G8B8A8_UNORM,3,2,layout)
+			&&layout.rowBytes==12&&layout.rows==2&&layout.bytes==24,"native evidence RGBA layout exact");
+		std::array<std::uint8_t,32> source{};for(unsigned i=0;i<source.size();++i)source[i]=static_cast<std::uint8_t>(i);
+		suite.Expect(PackNativeEvidenceRows(source.data(),16,layout,bytes)&&bytes.size()==24
+			&&bytes[11]==11&&bytes[12]==16&&bytes.back()==27,"native evidence omits mapped row padding");
+		const auto packed=bytes;source[12]=99;source[31]=88;
+		suite.Expect(PackNativeEvidenceRows(source.data(),16,layout,bytes)&&bytes==packed,"native evidence ignores padding-only changes");
+		suite.Expect(!PackNativeEvidenceRows(source.data(),11,layout,bytes)&&bytes.empty()
+			&&!PackNativeEvidenceRows(source.data(),16,layout,bytes,23)&&bytes.empty(),"native evidence rejects short row pitch and exhausted budget");
+		suite.Expect(NativeEvidenceFormatLayout(DXGI_FORMAT_BC1_UNORM,7,5,layout)
+			&&layout.rowBytes==16&&layout.rows==2&&layout.bytes==32,"native evidence BC1 covers partial edge blocks");
+		suite.Expect(NativeEvidenceFormatLayout(DXGI_FORMAT_BC7_UNORM,1,1,layout)
+			&&layout.rowBytes==16&&layout.rows==1&&layout.bytes==16,"native evidence smallest BC7 mip retains one block");
+		suite.Expect(!NativeEvidenceFormatLayout(DXGI_FORMAT_NV12,4,4,layout)
+			&&!NativeEvidenceFormatLayout(DXGI_FORMAT_UNKNOWN,4,4,layout)
+			&&!NativeEvidenceFormatLayout(DXGI_FORMAT_R8_UNORM,0,4,layout),"native evidence rejects planar unknown and empty layouts");
+		suite.Expect(!ReadNativeEvidenceBuffer(nullptr,nullptr,nullptr,0,16,bytes)&&bytes.empty(),"native evidence rejects missing buffer ownership");
+	}
 	{
 		const std::vector<std::uint8_t> code{0,1,2,0,255},copy=code;
 		std::vector<std::uint8_t> a,b;

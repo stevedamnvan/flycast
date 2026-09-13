@@ -521,8 +521,11 @@ LOG1128 attempted all300sources5300..5599 with exact effects:0complete previews,
 capture/replay connection; do not count archives as images or remove the gate.
 LOG1129 exact shader/layout provenance retained for evidence runs only;
 fourbuilds/1145selftests x3 pass. Capture/replay connection still unresolved.
-Next canonical retained draw/resource evidence and locked-replay dispatch,
-then a short GPU probe before repeating300. Preserve full input-state provenance,
+LOG1130 bounded retained resource readback passes fourbuilds/1153selftests x3
+and nativeD3D11/D3D11On12 mutation,RGBA mip/array,BC3 and span GPU checks.
+Next canonical complete draw-state/active-geometry/resource identity and
+capture/locked-replay dispatch,then a short GPU probe before repeating300.
+Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require
 new matched source frames, not repeated4900export. LOG1128 proves host reached

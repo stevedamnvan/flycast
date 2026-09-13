@@ -16,9 +16,10 @@
 #include <sstream>
 #include "rend/dx11/neural_coverage_blend.h"
 #include "rend/dx11/oit/native_effect_blend.h"
+#include "rend/neural/remake_native_readback.h"
 #include <cmath>
 
-using Microsoft::WRL::ComPtr;
+template<typename T> using WrlComPtr = Microsoft::WRL::ComPtr<T>;
 
 namespace neuraltest {
 namespace {
@@ -28,10 +29,10 @@ constexpr UINT Height = 8;
 
 struct QuadVertex { float position[2]; float uv[2]; };
 struct Surface {
-	ComPtr<ID3D11Device> device;
-	ComPtr<ID3D11DeviceContext> context;
-	ComPtr<ID3D12Device> device12;
-	ComPtr<ID3D12CommandQueue> queue12;
+	WrlComPtr<ID3D11Device> device;
+	WrlComPtr<ID3D11DeviceContext> context;
+	WrlComPtr<ID3D12Device> device12;
+	WrlComPtr<ID3D12CommandQueue> queue12;
 	std::string name;
 	std::string adapter;
 };
@@ -46,8 +47,8 @@ std::string HrText(const char *operation, HRESULT hr)
 
 std::string AdapterName(ID3D11Device *device)
 {
-	ComPtr<IDXGIDevice> dxgi;
-	ComPtr<IDXGIAdapter> adapter;
+	WrlComPtr<IDXGIDevice> dxgi;
+	WrlComPtr<IDXGIAdapter> adapter;
 	DXGI_ADAPTER_DESC desc{};
 	if (FAILED(device->QueryInterface(IID_PPV_ARGS(dxgi.GetAddressOf())))
 		|| FAILED(dxgi->GetAdapter(adapter.GetAddressOf()))
@@ -110,7 +111,7 @@ bool Readback(ID3D11Device *device, ID3D11DeviceContext *context,
 	source->GetDesc(&desc);
 	desc.Usage = D3D11_USAGE_STAGING; desc.BindFlags = 0;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	ComPtr<ID3D11Texture2D> staging;
+	WrlComPtr<ID3D11Texture2D> staging;
 	HRESULT hr = device->CreateTexture2D(&desc, nullptr, staging.GetAddressOf());
 	if (SUCCEEDED(hr)) context->CopyResource(staging.Get(), source);
 	D3D11_MAPPED_SUBRESOURCE mapped{};
@@ -134,6 +135,53 @@ bool RunOverlayContractFixture(bool d3d11On12,
 {
 	Surface surface;
 	if (!CreateSurface(d3d11On12, surface, error)) return false;
+	// Read only retained copies; later producer writes must not change evidence.
+	{
+		using namespace flycast::rend::neural;
+		const auto fail=[&](const char* why){error=why;return false;};
+		std::array<std::uint8_t,32> original{};for(unsigned i=0;i<original.size();++i)original[i]=static_cast<std::uint8_t>(i);
+		D3D11_BUFFER_DESC bd{};bd.ByteWidth=32;bd.Usage=D3D11_USAGE_DEFAULT;bd.BindFlags=D3D11_BIND_VERTEX_BUFFER;
+		D3D11_SUBRESOURCE_DATA initial{};initial.pSysMem=original.data();
+		WrlComPtr<ID3D11Buffer> source;
+		if(FAILED(surface.device->CreateBuffer(&bd,&initial,source.GetAddressOf())))return fail("evidence test buffer create");
+		auto retained=CopyNativeEffectBuffer(surface.device.Get(),surface.context.Get(),source.Get());
+		std::array<std::uint8_t,32> changed{};changed.fill(255);
+		surface.context->UpdateSubresource(source.Get(),0,nullptr,changed.data(),0,0);
+		std::vector<std::uint8_t> bytes;
+		if(!ReadNativeEvidenceBuffer(surface.device.Get(),surface.context.Get(),retained.get(),4,12,bytes)
+			||bytes!=std::vector<std::uint8_t>(original.begin()+4,original.begin()+16))return fail("retained buffer span changed after producer mutation");
+		if(ReadNativeEvidenceBuffer(surface.device.Get(),surface.context.Get(),retained.get(),31,2,bytes)
+			||!bytes.empty())return fail("evidence out of range buffer accepted");
+		// Two array slices, two mips. Distinct payloads catch subresource omission.
+		D3D11_TEXTURE2D_DESC td{};td.Width=4;td.Height=4;td.MipLevels=2;td.ArraySize=2;
+		td.Format=DXGI_FORMAT_R8G8B8A8_UNORM;td.SampleDesc.Count=1;td.Usage=D3D11_USAGE_DEFAULT;td.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+		std::array<std::vector<std::uint8_t>,4> pixels;
+		std::array<D3D11_SUBRESOURCE_DATA,4> data{};
+		for(unsigned i=0;i<4;++i){const unsigned width=i%2?2:4;pixels[i].assign(width*width*4,static_cast<std::uint8_t>(17+i));data[i].pSysMem=pixels[i].data();data[i].SysMemPitch=width*4;}
+		WrlComPtr<ID3D11Texture2D> texture;
+		if(FAILED(surface.device->CreateTexture2D(&td,data.data(),texture.GetAddressOf())))return fail("evidence test texture create");
+		auto saved=CopyNativeEffectTexture(surface.device.Get(),surface.context.Get(),texture.Get());
+		std::array<std::uint8_t,64> overwrite{};
+		surface.context->UpdateSubresource(texture.Get(),0,nullptr,overwrite.data(),16,0);
+		NativeEvidenceTexture read;
+		if(!ReadNativeEvidenceTexture(surface.device.Get(),surface.context.Get(),saved.get(),read))return fail("evidence texture readback");
+		if(read.subresources.size()!=4)return fail("evidence texture subresource count");
+		for(unsigned i=0;i<4;++i)if(read.subresources[i].bytes!=pixels[i])return fail("retained texture content or subresource order mismatch");
+		if(ReadNativeEvidenceTexture(surface.device.Get(),surface.context.Get(),saved.get(),read,159))return fail("evidence texture aggregate budget accepted");
+		// Real block-compressed mips exercise mapped block-row handling.
+		td.Format=DXGI_FORMAT_BC3_UNORM;td.ArraySize=1;
+		pixels[0].assign(16,42);pixels[1].assign(16,91);
+		for(unsigned i=0;i<2;++i){data[i].pSysMem=pixels[i].data();data[i].SysMemPitch=16;}
+		texture.Reset();
+		if(FAILED(surface.device->CreateTexture2D(&td,data.data(),texture.GetAddressOf()))
+			||!ReadNativeEvidenceTexture(surface.device.Get(),surface.context.Get(),texture.Get(),read)
+			||read.subresources.size()!=2||read.subresources[0].bytes!=pixels[0]
+			||read.subresources[1].bytes!=pixels[1])return fail("evidence BC3 mip readback mismatch");
+		bd.BindFlags=D3D11_BIND_CONSTANT_BUFFER;source.Reset();
+		if(FAILED(surface.device->CreateBuffer(&bd,&initial,source.GetAddressOf()))
+			||!ReadNativeEvidenceBuffer(surface.device.Get(),surface.context.Get(),source.Get(),4,12,bytes)
+			||bytes!=std::vector<std::uint8_t>(original.begin()+4,original.begin()+16))return fail("evidence constant buffer logical span mismatch");
+	}
 	result.surface = surface.name; result.adapter = surface.adapter;
 	std::ifstream input(std::string(NEURAL_SOURCE_DIR)
 		+ "/core/rend/dx11/dx11_shaders.cpp", std::ios::binary);
@@ -148,9 +196,9 @@ bool RunOverlayContractFixture(bool d3d11On12,
 		return false;
 	}
 	D3D_SHADER_MACRO macros[] = {{"ROTATE", "0"}, {nullptr, nullptr}};
-	ComPtr<ID3DBlob> vsCode;
-	ComPtr<ID3DBlob> psCode;
-	ComPtr<ID3DBlob> diagnostics;
+	WrlComPtr<ID3DBlob> vsCode;
+	WrlComPtr<ID3DBlob> psCode;
+	WrlComPtr<ID3DBlob> diagnostics;
 	HRESULT hr = D3DCompile(vertexSource.data(), vertexSource.size(), "overlay-vs", macros,
 		nullptr, "main", "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0,
 		vsCode.GetAddressOf(), diagnostics.GetAddressOf());
@@ -163,8 +211,8 @@ bool RunOverlayContractFixture(bool d3d11On12,
 			diagnostics->GetBufferSize()) : HrText("compile overlay shaders", hr);
 		return false;
 	}
-	ComPtr<ID3D11VertexShader> vs;
-	ComPtr<ID3D11PixelShader> ps;
+	WrlComPtr<ID3D11VertexShader> vs;
+	WrlComPtr<ID3D11PixelShader> ps;
 	hr = surface.device->CreateVertexShader(vsCode->GetBufferPointer(), vsCode->GetBufferSize(),
 		nullptr, vs.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreatePixelShader(psCode->GetBufferPointer(),
@@ -173,7 +221,7 @@ bool RunOverlayContractFixture(bool d3d11On12,
 		{"POSITION",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
 		{"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,8,D3D11_INPUT_PER_VERTEX_DATA,0},
 	};
-	ComPtr<ID3D11InputLayout> layout;
+	WrlComPtr<ID3D11InputLayout> layout;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateInputLayout(elements,
 		static_cast<UINT>(std::size(elements)), vsCode->GetBufferPointer(),
 		vsCode->GetBufferSize(), layout.GetAddressOf());
@@ -204,7 +252,7 @@ bool RunOverlayContractFixture(bool d3d11On12,
 	}
 
 	auto createTexture = [&](DXGI_FORMAT format, UINT bind, const void *data, UINT pitch,
-		ComPtr<ID3D11Texture2D>& texture) {
+		WrlComPtr<ID3D11Texture2D>& texture) {
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width=Width; desc.Height=Height; desc.MipLevels=1; desc.ArraySize=1;
 		desc.Format=format; desc.SampleDesc.Count=1; desc.BindFlags=bind;
@@ -212,18 +260,18 @@ bool RunOverlayContractFixture(bool d3d11On12,
 		return surface.device->CreateTexture2D(&desc, data ? &initial : nullptr,
 			texture.GetAddressOf());
 	};
-	ComPtr<ID3D11Texture2D> originalTexture;
-	ComPtr<ID3D11Texture2D> maskTexture;
-	ComPtr<ID3D11Texture2D> outputTexture;
+	WrlComPtr<ID3D11Texture2D> originalTexture;
+	WrlComPtr<ID3D11Texture2D> maskTexture;
+	WrlComPtr<ID3D11Texture2D> outputTexture;
 	hr = createTexture(DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_SHADER_RESOURCE,
 		result.original.rgba.data(), Width * 4, originalTexture);
 	if (SUCCEEDED(hr)) hr = createTexture(DXGI_FORMAT_R8_UNORM, D3D11_BIND_SHADER_RESOURCE,
 		maskValues.data(), Width, maskTexture);
 	if (SUCCEEDED(hr)) hr = createTexture(DXGI_FORMAT_R8G8B8A8_UNORM, D3D11_BIND_RENDER_TARGET,
 		result.neural.rgba.data(), Width * 4, outputTexture);
-	ComPtr<ID3D11ShaderResourceView> originalView;
-	ComPtr<ID3D11ShaderResourceView> maskView;
-	ComPtr<ID3D11RenderTargetView> outputTarget;
+	WrlComPtr<ID3D11ShaderResourceView> originalView;
+	WrlComPtr<ID3D11ShaderResourceView> maskView;
+	WrlComPtr<ID3D11RenderTargetView> outputTarget;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateShaderResourceView(originalTexture.Get(), nullptr,
 		originalView.GetAddressOf());
 	if (SUCCEEDED(hr)) hr = surface.device->CreateShaderResourceView(maskTexture.Get(), nullptr,
@@ -237,14 +285,14 @@ bool RunOverlayContractFixture(bool d3d11On12,
 	vertexDesc.ByteWidth=sizeof(vertices); vertexDesc.Usage=D3D11_USAGE_IMMUTABLE;
 	vertexDesc.BindFlags=D3D11_BIND_VERTEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA vertexData{vertices,0,0};
-	ComPtr<ID3D11Buffer> vertexBuffer;
+	WrlComPtr<ID3D11Buffer> vertexBuffer;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateBuffer(&vertexDesc, &vertexData,
 		vertexBuffer.GetAddressOf());
 	D3D11_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter=D3D11_FILTER_MIN_MAG_MIP_POINT;
 	samplerDesc.AddressU=samplerDesc.AddressV=samplerDesc.AddressW=D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.MaxLOD=D3D11_FLOAT32_MAX;
-	ComPtr<ID3D11SamplerState> sampler;
+	WrlComPtr<ID3D11SamplerState> sampler;
 	if (SUCCEEDED(hr)) hr = surface.device->CreateSamplerState(&samplerDesc, sampler.GetAddressOf());
 	if (FAILED(hr)) { error = HrText("create overlay resources", hr); return false; }
 
@@ -294,19 +342,19 @@ bool RunOverlayContractFixture(bool d3d11On12,
 	// channels to one, then draw zero into coverage slots. MAX must preserve red;
 	// the deliberately wrong overwrite state must erase it.
 	const char* coverageSource = "struct O{float a:SV_TARGET1;float b:SV_TARGET5;}; O main(){O o;o.a=0;o.b=0;return o;}";
-	ComPtr<ID3DBlob> coverageCode;
-	ComPtr<ID3D11PixelShader> coverageShader;
+	WrlComPtr<ID3DBlob> coverageCode;
+	WrlComPtr<ID3D11PixelShader> coverageShader;
 	hr=D3DCompile(coverageSource,std::strlen(coverageSource),"coverage",nullptr,nullptr,"main","ps_5_0",0,0,
 		coverageCode.GetAddressOf(),diagnostics.ReleaseAndGetAddressOf());
 	if(SUCCEEDED(hr))hr=surface.device->CreatePixelShader(coverageCode->GetBufferPointer(),coverageCode->GetBufferSize(),nullptr,coverageShader.GetAddressOf());
-	std::array<ComPtr<ID3D11Texture2D>,2> coverageTextures;
-	std::array<ComPtr<ID3D11RenderTargetView>,2> coverageTargets;
+	std::array<WrlComPtr<ID3D11Texture2D>,2> coverageTextures;
+	std::array<WrlComPtr<ID3D11RenderTargetView>,2> coverageTargets;
 	for(unsigned i=0;i<2&&SUCCEEDED(hr);++i) {
 		hr=createTexture(DXGI_FORMAT_R8G8B8A8_UNORM,D3D11_BIND_RENDER_TARGET,nullptr,0,coverageTextures[i]);
 		if(SUCCEEDED(hr))hr=surface.device->CreateRenderTargetView(coverageTextures[i].Get(),nullptr,coverageTargets[i].GetAddressOf());
 	}
 	auto coverageDesc=NeuralCoverageBlendDescription();
-	ComPtr<ID3D11BlendState> unionState,wrongState;
+	WrlComPtr<ID3D11BlendState> unionState,wrongState;
 	if(SUCCEEDED(hr))hr=surface.device->CreateBlendState(&coverageDesc,unionState.GetAddressOf());
 	coverageDesc.RenderTarget[1].BlendEnable=coverageDesc.RenderTarget[5].BlendEnable=FALSE;
 	if(SUCCEEDED(hr))hr=surface.device->CreateBlendState(&coverageDesc,wrongState.GetAddressOf());
@@ -338,8 +386,8 @@ float4 main(float4 pos:SV_Position):SV_Target0 {
  float4 dst=index<64?float4(.8,.3,.1,.75):float4(.4,.8,.7,.125);
  return nativeEffectBlend(src,dst,int(index%8),int((index/8)%8));
 })";
-	ComPtr<ID3DBlob> effectCode;
-	ComPtr<ID3D11PixelShader> effectShader;
+	WrlComPtr<ID3DBlob> effectCode;
+	WrlComPtr<ID3D11PixelShader> effectShader;
 	hr=D3DCompile(effectSource.data(),effectSource.size(),"native-effect-blend",nullptr,nullptr,
 		"main","ps_5_0",D3DCOMPILE_ENABLE_STRICTNESS,0,effectCode.GetAddressOf(),diagnostics.ReleaseAndGetAddressOf());
 	if(SUCCEEDED(hr))hr=surface.device->CreatePixelShader(effectCode->GetBufferPointer(),effectCode->GetBufferSize(),nullptr,effectShader.GetAddressOf());
@@ -372,3 +420,4 @@ float4 main(float4 pos:SV_Position):SV_Target0 {
 }
 
 } // namespace neuraltest
+

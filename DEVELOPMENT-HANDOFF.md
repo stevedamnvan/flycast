@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1129; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1130; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -15,8 +15,11 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   normal snapshot is absent from OIT-only identity capture/replay checks.
   300partial archives retained;no moving acceptance. LOG1129 shader/layout
   creation provenance implemented for explicit evidence only,fourbuilds and
-  1145selftests x3 pass. Next retained draw/resource evidence plus writer/replay
-  dispatch;short GPU provenance/mutation probe before300repeat.
+  1145selftests x3 pass. LOG1130 retained readback helpers now pass fourbuilds/
+  1153selftests x3 and nativeD3D11/On12 GPU mutation,mip/array,BC3,span checks.
+  Next canonical complete draw-state/active-geometry/resource identity plus
+  writer/replay dispatch;short complete identity probe before300repeat.
+  Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
   Do not substitute pointer hashes/output equality for exact input identity.
   Failure evidence shrine-capture-reference-moving-a/failure-audit.json.
   Evidence C:/Flycast-Evidence/shrine-capture-reference-a/integration-audit.json.
