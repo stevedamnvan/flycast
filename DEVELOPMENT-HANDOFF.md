@@ -1,8 +1,12 @@
-Current checkpoint LOG1034: oblique key rejected (skin still washed out, floor
-brighter). Temple17 wood31EB60D1111B005D live MCP identity confirmed; albedo
-ingested and RGBA exact, not bound. Next guarded opt-in wood A/B and per-material
-diffuse response inspection; stop global light sweeps. temple-wood-integration-a
-has request/result/validation, lighting-oblique-a has rejected render.
+Current checkpoint LOG1035: wood candidate same-source A/B completed, three
+renders exit0. Guarded MCP binding and exact layer-off verified; candidate
+inactive. Visible post-localized change above noise, no appearance acceptance.
+Evidence temple-wood-integration-a receipts/BMPs/comparison. Baseline exact.
+Next expand scene captures using world-texture-completion-b/COMPLETE-WORLD-HANDOFF.md
+and seven prepared routes; inspect each selector before confirmation. Correct
+per-material diffuse response in parallel, no further global lighting sweeps.
+MCP8002 authoritative; old8001 pending state preserved, do not save it.
+
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
 viewed. Direct diffuse contribution drives face washout in retained5458 pose;

@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1035 temple wood candidate binding and same-source isolation verified.
+MCP8002 creates temple_wood_review_a beneath mod; guarded binder targets
+31EB60D1111B005D diffuse only and verifies baseline authoring invariant.
+Saved typed material inspected. Candidate120frames exit0; MCP removes layer,
+saves mod and exactE3C09790...E8340 restored. Control/repeat120frames both exit0.
+Viewed candidate and difference: change localizes to left wooden posts, not
+liked floor. Candidate/repeat MAE whole1.167/0.512, posts5.579/0.409,
+floor0.530/0.340. This proves visible binding effect, not appearance gain;
+bright post lighting limits texture judgment. No normals/roughness/height
+bound yet; albedo remains inactive pending response/moving review. Resource
+cleanup warning still present. temple-wood-integration-a holds receipts,
+three BMPs, difference-x5.png and comparison.json. No original overwrite.
+Full-world agent now records10 visible stage slots,6 named/4 unknown, seven
+unexecuted capture routes with verified seed copies, and26/60 world runtime
+source joins. Full-game/hidden-level denominator remains unknown, not complete.
+Next use prepared uncaptured-level routes to advance scene coverage while
+correcting per-material lighting; avoid additional global light sweeps.
+
 LOG1034 oblique key rejected; temple wood ingestion advances full-set work.
 Same5458 packet120frames, key direction0.577350269,-0.577350269,0.577350269,
 original radiance3/fill0.3 and all lobes retained: exit0, baseline exact.

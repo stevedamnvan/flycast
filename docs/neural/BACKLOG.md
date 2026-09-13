@@ -141,8 +141,10 @@ Next correct direct-light/material response with full lighting retained; no
 disabled-lobe profile is a proposed remaster look. Not more albedo-only trials.
 LOG1034 oblique key rejected: skin washout and brighter floor. Stop global
 light sweeps. Temple17 wood runtime31EB60D1111B005D live MCP binding confirmed;
-candidate ingested RGBA exact, not bound. Next guarded opt-in wood A/B and
-per-material diffuse-response investigation.
+LOG1035 wood candidate bound/rendered then detached; baseline exact. Posts
+change above repeat noise (5.579 versus0.409 MAE); floor near noise. No visual
+acceptance. Next prepared uncaptured-level capture routes and per-material
+diffuse-response correction; seven routes unexecuted,26/60 world runtime joins.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
 candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 
