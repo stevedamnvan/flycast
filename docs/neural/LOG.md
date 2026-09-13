@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1162 corrected resource reuse full moving integrity complete.
+shrine-resource-reuse-moving-a terminal0/baselineexact,300/300 sources5300..5599,
+no missing/unexpected. moving-audit.json all helper receipts/archive/producer/
+completed Present/native protection checks pass. same-source-scenes.json verifies
+all300 parsed producer/camera/geometry/material records equal prior blended-moving
+reference. Scope is source integrity, not pixel equality or appearance approval.
+Root viewed final5599: arena/floor and separated fighters present; natural face/hair
+quality remains unresolved. resource_reuse_review agent owns sampled moving visual
+review including attacks/fringe/lateface in visual-review. No runtime active.
+Capture used copied pre-ownership-refactor helper; newer helper has1205selftests
+and same allocation semantics, not falsely labeled captured. Agent source review
+found only nonthrowing shared_ptr assignment reordered before indices copy;
+COM acquisition/rollback semantics unchanged. Real driver faults remain separate.
+Next finish visual review then remaining representative playability/lifecycle gates;
+retain old fresh-output comparison and GPU budget variation caveat from LOG1160.
+No full-scene appearance or whole-game acceptance inferred from300 successful inputs.
+
 LOG1161 pending resource ownership tested through production-used helper.
 Extracted existing temporary resource collection into LegacyPendingResources;
 RefreshMatchingResources now uses its Retain and destructor directly. Same AddRef/

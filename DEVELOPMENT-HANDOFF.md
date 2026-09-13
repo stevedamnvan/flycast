@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1161; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1162; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
@@ -34,8 +34,8 @@ shrine-resource-light-lifetime-a COMPLETE11/11 integrity; floorMAE9.801->3.570,
 full median7.229->3.146 against fresh control; input exact on9common.
 Corrected timing COMPLETE:1198accepted/2repeats,mean age3.0075,max5.
 Budget differed from old; no broad causal/performance acceptance.
-shrine-resource-reuse-moving-a ACTIVE session87049/launcher21360,300frames5300..5599.
-Poll existing run; ownership-test helper being prepared by resource_reuse_review agent.
+shrine-resource-reuse-moving-a COMPLETE300/300 integrity and exact parsed scene pairs.
+No runtime active. resource_reuse_review agent reviewing sampled moving visuals.
 Ownership helper integrated; fourbuilds/1205selftests x3 pass (LOG1161).
 Moving run uses earlier copied helper; preserve provenance. Real driver faults
 remain separate; no promotion.
