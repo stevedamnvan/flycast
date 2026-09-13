@@ -1,4 +1,12 @@
-Current checkpoint LOG1066: Palgaea requested packet acquisition has0captures
+Current checkpoint LOG1067: launcher --isolated-runtime-output tested;31Python
+checks, four serial builds and three selftests pass. Effective helper cwd is
+recorded; host cwd/session ownership unchanged. Next run isolated Palgaea
+runtime auto-export, correlate helper counter/source and join six materials.
+No export yet. Character coverage63groups/nine fighters; eleven roster labels
+still lack extraction. Next-left4 selector prepared with name gate before any
+shifted gameplay confirmation. Full roster/costumes/hidden content remain open.
+
+Prior checkpoint LOG1066: Palgaea requested packet acquisition has0captures
 although launcher0; all1200host presents native, helper renders from5191.
 Evidence full-world-palgaea-runtime-a, baseline unchanged. Do not repeat same
 acquisition. Next audit existing runtime auto-capture directly from helper,

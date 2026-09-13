@@ -247,6 +247,16 @@ not the target-native PVR DLAA lane. The launcher never edits hook policy.
 
 ## Offline exact-packet motion comparison (LOG1063)
 
+For live runtime asset export, `remake_launch.py --isolated-runtime-output`
+runs every helper generation in a fresh `runtime-output` directory under
+`--out`. The host keeps its existing working directory and managed-session
+ownership is unchanged. Preflight reports the effective helper directory but
+creates nothing. Without the flag, the existing working directory is retained.
+Runtime capture frame counters refer to helper presentations, not native source
+ordinals; correlate exports with consumer logs before claiming source identity.
+`--assets` alone does not select the runtime export directory. Asset export is
+diagnostic work and is not performance or visual-acceptance evidence.
+
 The existing `remake-runtime-smoke` helper accepts a final
 `--packet-sequence-list ABSOLUTE_UTF8_TEXT_FILE` option with its
 `--live-artifact FIRST_PACKET --assets DIRECTORY --clips NEAR FAR

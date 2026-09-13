@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1067 Isolated helper runtime output option, before Palgaea export.
+Existing launcher adds --isolated-runtime-output: fresh out/runtime-output
+is the helper working directory in both managed and ordinary sessions. Host
+cwd, generation ownership and watchdogs remain unchanged; default unchanged.
+Receipt records effective helper directory. Read-only preflight creates none.
+31 launcher tests pass, including host/helper separation, managed forwarding,
+default compatibility and preflight. Four serial incremental builds exit0;
+three selftests exit0. Evidence C:/Flycast-Evidence/runtime-output-isolation-a.
+No runtime export or visual acceptance claimed by these checks. Next use the
+existing Palgaea seed/replay with runtime auto-capture in the isolated directory,
+correlate helper counter with native source, then exact DDS joins for six maps.
+Character CPU audit confirms63groups/nine fighters,33runtime aliases/30pending;
+eleven roster labels lack fighter-qualified extraction. Costume/hidden coverage
+unknown. Next-left4 selector is prepared; shift its confirmation suffix only
+after the visual name gate. No generation or Toolkit mutation in this slice.
+
 LOG1066 Palgaea packet acquisition failed; Nightmare extraction completed.
 full-world-palgaea-runtime-a reuses verified selector/seed, requests6300..6302.
 Launcher0 but no preview captures; all1200host presents native. Helper renders

@@ -276,7 +276,7 @@ def orderly_host_shutdown(host_code, helper_code, log):
             ' published=1 ' in log)
 
 
-def managed_run(out, env, host, helper, record, children):
+def managed_run(out, env, host, helper, record, children, helper_cwd=None):
     root = env['FLYCAST_REMAKE_ASYNC_CHANNEL']
     # Only the renderer increments generation. Mapping creation is launcher-owned.
     with mmap.mmap(-1, 16, tagname='Local\\FlycastRemake-'+root+'-control') as control:
@@ -312,7 +312,7 @@ def managed_run(out, env, host, helper, record, children):
                     command = helper.copy()
                     command[command.index('--live-channel-async')+1] = root+'-g'+str(requested)
                     log = (out/('consumer-g'+str(requested)+'.log')).open('x'); logs.append(log)
-                    current = subprocess.Popen(command, cwd=Path(__file__).resolve().parent.parent,
+                    current = subprocess.Popen(command, cwd=helper_cwd or Path(__file__).resolve().parent.parent,
                         env=env, stdout=log, stderr=subprocess.STDOUT,
                         creationflags=subprocess.CREATE_NO_WINDOW)
                     children.append(current)
@@ -347,6 +347,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('flycast', 'harness', 'helper', 'runtime', 'game', 'out'):
         p.add_argument('--'+name, type=Path, required=True)
+    p.add_argument('--isolated-runtime-output', action='store_true',
+                   help='Run the helper in a new runtime-output subdirectory of --out, isolating runtime captures and logs')
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
     p.add_argument('--benchmark-warmup', type=int, default=0,
@@ -426,8 +428,11 @@ def main():
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
+    helper_cwd = out/'runtime-output' if args.isolated_runtime_output else Path(__file__).resolve().parent.parent
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
+                  helper_working_directory=str(helper_cwd),
+                  isolated_runtime_output=args.isolated_runtime_output,
                   temple_light_rig=args.temple_light_rig,
                   output_size=args.output_size,
                   manual_input=args.manual_input,
@@ -474,16 +479,18 @@ def main():
         print(json.dumps(record, indent=2))
         return 0
     out.mkdir(parents=True, exist_ok=False)
+    if args.isolated_runtime_output:
+        helper_cwd.mkdir(exist_ok=False)
     # Preserve only known log files; never move configurations or runtime files.
     archive_logs(paths['flycast'].parent, out)
     children = []
     try:
         if args.managed_session:
-            managed_run(out, env, host, helper, record, children)
+            managed_run(out, env, host, helper, record, children, helper_cwd)
         else:
           with (out/'publisher.log').open('x') as pub, (out/'consumer.log').open('x') as con:
-            for command, log in ((host, pub), (helper, con)):
-                children.append(subprocess.Popen(command, cwd=Path(__file__).resolve().parent.parent, env=env,
+            for command, log, cwd in ((host, pub, Path(__file__).resolve().parent.parent), (helper, con, helper_cwd)):
+                children.append(subprocess.Popen(command, cwd=cwd, env=env,
                     stdout=log, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW))
             deadline = time.monotonic()+int(host[host.index('--timeout-ms')+1])/1000+30
             for child in children:

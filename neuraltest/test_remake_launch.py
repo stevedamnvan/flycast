@@ -4,11 +4,50 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+import remake_launch
 from remake_launch import prepare, expected_retirement, orderly_host_shutdown, archive_logs
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_isolated_output_routes_only_helper_and_preserves_preflight(self):
+        for managed, run, isolated in ((False, True, True), (True, True, True),
+                                       (False, False, True), (False, True, False)):
+            with self.subTest(managed=managed, run=run, isolated=isolated), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                binary = root/'input.exe'
+                binary.write_bytes(b'test executable')
+                out = root/'new-run'
+                argv = ['remake_launch.py']
+                for name in ('flycast', 'harness', 'helper', 'runtime', 'game'):
+                    argv.extend(['--'+name, str(binary)])
+                argv.extend(['--out', str(out)])
+                if isolated: argv.append('--isolated-runtime-output')
+                if managed: argv.append('--managed-session')
+                if run: argv.append('--run')
+                host = ['host', '--timeout-ms', '1000']
+                helper = ['helper']
+                process = MagicMock(returncode=0)
+                process.poll.return_value = 0
+                def managed_stub(out, env, host, helper, record, children, cwd):
+                    self.assertEqual(cwd, out/'runtime-output')
+                    self.assertTrue(cwd.is_dir())
+                    record['exit_codes'] = [0, 0]
+                paths = {name: binary for name in ('flycast', 'harness', 'helper', 'runtime', 'game')}
+                with patch('sys.argv', argv), patch('builtins.print'), \
+                     patch('remake_launch.prepare', return_value=(paths, out, {}, host, helper)), \
+                     patch('remake_launch.archive_logs'), \
+                     patch('remake_launch.managed_run', side_effect=managed_stub), \
+                     patch('remake_launch.subprocess.Popen', return_value=process) as launch:
+                    self.assertEqual(remake_launch.main(), 0)
+                if not run:
+                    self.assertFalse(out.exists())
+                    launch.assert_not_called()
+                elif not managed:
+                    repo = Path(remake_launch.__file__).resolve().parent.parent
+                    self.assertEqual(launch.call_args_list[0].kwargs['cwd'], repo)
+                    self.assertEqual(launch.call_args_list[1].kwargs['cwd'], out/'runtime-output' if isolated else repo)
+
     def test_late_benchmark_preserves_capture_free_route(self):
         self.args.benchmark_warmup = 5900
         self.args.anchored_light = self.args.managed_session = True
