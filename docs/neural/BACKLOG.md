@@ -58,7 +58,7 @@ identity is not live binding, generation is not acceptance, and technical
 acceptance is not human visual approval. Existing baseline artwork stays intact.
 
 **Storage update (LOG1110):** C: capacity restored; user-authorized exact-duplicate
-capture deduplication recovered14.7GB, ending167.6GBfree. D:remains full.
+capture deduplication recovered14.7GB, ending167.6GBfree. LOG1111 refresh: C:171.4GB/D:27.3GB free.
 All evidence paths/content retained via hardlinks; no unique evidence deleted.
 Captures are immutable: edit private copies, never overwrite linked data in place.
 Launcher capture preflight now estimates capacity before launching; this does
@@ -454,6 +454,10 @@ Read-only/source work may continue; no full-goal blocked/completed claim.
 LOG1110 capacity restored/C:167.6GBfree after14.7GBduplicate cleanup; all paths
 preserved. Capture storage preflight added/tested. Next retained attack-frame
 admission/shutdown diagnosis and capture-free performance, not blind recapture.
+LOG1111 identifies startup presentation latch at5309 and recovery5485 despite
+92early retained returns. Next bounded evaluation pre-roll/locked-source route
+review, keeping requested preview sources and production age/reentry safeguards.
+Header-native synthetic mechanism probe passes; no runtime fix yet.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

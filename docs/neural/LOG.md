@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1111 attack capture gap attributed to presentation startup/reentry.
+Read-only retained logs: presentation latches at current5309/candidate0,
+resumes at5485/candidate5477 after60fresh ticks; first saved preview5487.
+Return admission audit before5487:94returns,92retained,2age>8. Retained and
+composed output precedes capture: do not attribute missing187sources chiefly
+to return latency or relax age/ownership guards. Header-native C++ mechanism
+probe at C:/Game Dev/Emulators/presentation-boundary-audit/audit.cpp passes:
+captureBoundary with no candidate times out at+9; a fresh candidate remains
+fallback until60consecutive fresh calls, then native-hold reentry. No-boundary
+control stays idle then warms. This synthetic probe verifies policy mechanism,
+not exact live candidate replay or a fix. Audit JSON: attack-return-admission-audit.json
+beside repository. Source code unchanged; truncated shutdown remains unexplained.
+Next bounded implementation: separate diagnostic evaluation pre-roll from
+requested preview interval, retaining bounded end, source ownership, eight-frame
+age and production reentry policy. Review existing locked-source route before
+changing launcher; prove startup with focused negative controls before recapture.
+Storage refreshed: C:171.4GB/D:27.3GB free; no additional deletion this turn.
+No combat, appearance, performance or full-goal acceptance.
+
 LOG1110 storage capacity restored and user-authorized duplicate cleanup.
 Live check found C:155.7GB free before cleanup work, D:still0; prior immediate
 C:capacity blocker cleared. Read-only audit confirmed C:/Flycast-Evidence and
