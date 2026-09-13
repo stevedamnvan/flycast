@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1134 weapon source-qualified UV and live MCP readiness.
+weapon-used-uv-a retains exact source5900 packet SHA, full triangle UVs and source
+images:51B4B028A25C0B1E mesh2357/218triangles, F99F377520942C9F mesh2415/358.
+Root viewed contact-sheet: blade/ornament and lower wrapped grip share atlas;
+shield paint/trim/back/grip share triangles. Coverage masks are diagnostic only,
+not metallic maps. Proposed blade interior x4..96/y4..58 has8triangles wholly
+inside and36crossing; scalar region mask and mip/filter checks needed. Four-pixel
+inset alone cannot guarantee minification safety. F99F narrow trim remains held.
+Toolkit MCP port8002 discovery and read-only calls verify existing character-review
+project, baseline mod as current edit target, and blade diffuse bound from Castle
+capture. Current DDS dimensions/RGBA exactly match retained source5900 texture;
+current-blade-source-proof.json records file SHA. Shield absent in current stage.
+No baseline or bindings changed; select separate opt-in edit target before edits.
+Next actual blade mask/filter validation and controlled same-source material test;
+preserve albedo, normals, height, alpha and wrapped grip. No physical/visual acceptance.
+Ten previously PNG-backed character aliases independently matched retained runtime
+DDS by dimensions/exactRGBA (ten-alias-runtime-verification.json in readiness refresh).
+Combined refresh now67/67 captured character source/runtime identities; this does
+not prove full roster, current live bindings or appearance approval.
+
 LOG1133 Money Pit diagnostic terminal and existing material readiness correction.
 One money-basis-diagnostic-a run used tested402635f48-tree host, verified original
 seed/replay, private host/harness/helper snapshots and unchanged3-frame/420s bounds.

@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1133; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1134; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -30,7 +30,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   LOG1133 Money run ended launcher1/host0/helper11,no previews,baselineexact.
   First32 logs exhaust before5900:earlier unsupported split proven,target unproven.
   No unchanged retry. Parallel agents now inspect weapon UV masks and10PNG-backed
-  alias proofs; readiness105stale fields corrected,134existing outputs intact.
+  alias proofs completed:67/67 DDS identities verified;134existing maps intact.
+  LOG1134 weapon UV and live MCP blade source identity verified. No masks/bindings
+  yet. Next actual mask and mip/filter validation; separate opt-in target required.
+  Evidence weapon-used-uv-a. Shield absent from current Toolkit stage.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
   Do not substitute pointer hashes/output equality for exact input identity.

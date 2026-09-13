@@ -537,8 +537,10 @@ First32 logs prove earlier unsupported splits but exhaust before5900; target bra
 unproven. No unchanged retry. Next weapon used-UV/mask evidence and selected existing
 roughness continuation; camera needs target-qualified evidence before behavior edits.
 134existing generated maps intact;105stale readiness fields corrected with receipts.
-Keep67character/137world historic joins bounded; alias refresh verifies57DDS plus
-10PNG-backed aliases still needing separate runtime proof.
+LOG1134 alias refresh now independently verifies all67character DDS identities;
+world137/154 unchanged. Weapon source5900 UV evidence and live MCP blade texture
+identity pass. Next actual blade region mask/mip validation before opt-in binding;
+shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require
