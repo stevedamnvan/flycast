@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1087 parent selected Nightmare for next bounded runtime acquisition: eight
+unmatched character groups in verified right3capture, tied largest remaining
+cohort. Fresh character-nightmare-runtime-a reuses exact gameplay replaySHA
+cb706aa5d1c4bcff151089425c28f5c7b85bfc093913abb81fda8daba4fd35f4,
+original verified seeds and existing managed launcher/owned-packet route.
+Threshold5300, replacements disabled, no generation or binding. Source, seed
+and executable hashes retained in copy-receipt.json; actual received source
+must be checked, not inferred from threshold. Active parent exec34930,
+launcherPID31980; helper38588 and harness30172 verified live. Poll inherited
+handle/attempt.json; do not restart while live or treat timeout as terminal.
+External FULL-CHARACTER-COVERAGE.md stale33/34counts and unfinished menu
+instructions corrected to36/31 and completed Astaroth/UpDown probes.
+No new appearance/runtime identity claim until terminal exact-payload review.
+
 LOG1086 parent completed bounded saved-export character identity pass after
 agent usage-limit failures.344retained DDS files in full-world evidence roots
 decoded without errors and compared by dimensions+exactRGBA against34unmatched

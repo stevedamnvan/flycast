@@ -4,6 +4,11 @@ Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
 Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
 Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
 Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
+Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
+helper38588/harness30172 verified live. Evidence character-nightmare-runtime-a;
+poll same handle/attempt.json, never duplicate active run. Threshold5300 only,
+actual source and exact eight-group payload matches pending. GPU owned by run.
+Historical LOG1086: parent recovered3character runtime identities from344savedDDS,
 now36/67joined,31pending; exact originalPNG keys checked, ledger backup retained.
 World137/154 unchanged. No GPU/binding/generation; baseline unchanged. Both
 agents terminal usage-limit errors, no active captures. Model approval pending.
