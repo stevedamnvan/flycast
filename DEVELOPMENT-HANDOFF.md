@@ -5,6 +5,12 @@ Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
 Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
 Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
 Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
+Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
+terminal0 establishes7character aliases, now43/67joined,24pending. World137/154.
+Baselineexact/GPUfree; no live captures, no bindings/generation/appearance claims.
+Evidence character-texture-readiness-b/nightmare-runtime-joins-applied.json.
+Do not repeat same Nightmare route; model approval remains pending.
+Historical LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
 helper38588/harness30172 verified live. Evidence character-nightmare-runtime-a;
 poll same handle/attempt.json, never duplicate active run. Threshold5300 only,
 actual source and exact eight-group payload matches pending. GPU owned by run.

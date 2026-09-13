@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1088 Nightmare acquisition terminal0, baselineexact, actual owned5300packet
+39meshes, SHA4fed4e507de054deda236f7bd9d2efcb6959c648667f663d75535ef241ad631d.
+Seven unmatched character identities match exact dimension+RGBA payloads.
+One fixed-packet runtime export terminal0 in character-nightmare-fixed-export-a
+produced26DDS, all decoded without errors; seven exact runtime IDs established:
+BC31E0E97FE752C4(shared source),07BD01B3A3E395D5,2644F8D1634C6D62,
+0269414FCDACD07C,33094B480F506048,4D0B61AB2E49BCBD,F3858A0257D02C72.
+Original PNG keys and DDS hashes independently checked before existing ledger
+alias updates; prior ledger preserved. Character43/67runtimejoined,24pending;
+world137/154unchanged. Exact packet mesh IDs retained in nightmare-owned-packet-
+root.json, runtime proof in nightmare-runtime-joins-root.json/applied.json under
+character-texture-readiness-b. No material binding/generation/appearance claim.
+Both captures terminal/GPUfree; do not repeat Nightmare5300route. One earlier
+Nightmare-associated group not found; require source/usage evidence before retry.
+Model approval pending, both agents remain terminal usage-limit failures.
+
 LOG1087 parent selected Nightmare for next bounded runtime acquisition: eight
 unmatched character groups in verified right3capture, tied largest remaining
 cohort. Fresh character-nightmare-runtime-a reuses exact gameplay replaySHA

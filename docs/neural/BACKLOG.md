@@ -303,6 +303,10 @@ LOG1087 Nightmare one managed runtime acquisition active, eight unmatched
 groups targeted via verified replay/original seeds. character-nightmare-runtime-a,
 exec34930/launcher31980. Poll same run; no overlap/retry. Baseline replacements
 disabled, no generation; actual packet frame and exact joins await completion.
+LOG1088 Nightmare actual5300owned39meshes, fixed export26DDS terminal0,
+seven exact character aliases verified/ledger updated. Character43/67joined,
+24pending; world137/154unchanged. Baselineexact/GPUfree; no appearance claim.
+Do not repeat same Nightmare route. Missing cohort member needs usage evidence.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.
