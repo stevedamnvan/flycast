@@ -9,6 +9,12 @@ Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
 Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
 Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
 Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
+Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
+texture269419008/mesh8589934632 for texture-alpha-footprint. Combined OITdraw39
+count393 differs from native sorted groups. Next exact combined footprint and
+sample correspondence; no relaxed thresholds. Baselineexact/GPUfree/counts same.
+Evidence character-nightmare-exclusions-a/exclusion-verdict.json.
+Historical LOG1091: diagnostic-only alpha exclusion records implemented in same-job
 source-draw coverage. Four serial builds/1112selftests x3 pass. Next fresh host
 Nightmare5300 capture with exact existing seed/replay to inspect reasons;
 copy current built host, not stale Palgaea stagedhost. No live capture yet.

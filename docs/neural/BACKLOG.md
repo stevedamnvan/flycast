@@ -319,6 +319,10 @@ LOG1091 diagnostic-only alpha_cutout_decisions added to existing source-draw
 coverage: mesh/textureID/first exclusion reason, no changed promotion criteria.
 Four builds and1112selftests x3 pass. Next fresh-host Nightmare5300 capture
 for live provenance; no claim this source change already fixes appearance.
+LOG1092 live5300/5302 diagnostic identifies TCW269419008/mesh8589934632 rejected
+texture-alpha-footprint, OITordinal39count393. Native sorted granularity differs.
+Next combined footprint/sample correspondence, no threshold relaxation. Both
+capture/host terminal0,baselineexact/GPUfree; appearance/counts unchanged.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

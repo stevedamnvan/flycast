@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1092 fresh diagnostic Nightmare run terminal0, baselineexact. Staged host
+matches builtSHA09b7cb1532968256dae5c14220c0d90a7718fd98eadc1577b2d8ef5596e7f382.
+Same-job captures5300/5302 both identify mesh8589934632,textureTCW269419008
+rejected texture-alpha-footprint;5others promoted. Source OITlist2ordinal39
+count393 exportedfalse. Native sorted smaller draws differ in granularity,
+so four native passing rectangles do not contradict combined live rejection.
+No cache-miss/depth/vertex-alpha root cause claimed for this rejected mesh.
+Evidence character-nightmare-exclusions-a/exclusion-verdict.json retains both
+coverageJSON hashes and decisions. Diagnostic provenance works in live capture;
+does not prove exact cross-renderer source bytes or fix appearance. Original
+shared26PNG and combined OIT footprint still need exact correspondence proof.
+Next evaluate combined UV footprint versus actual sampled triangles; no relaxed
+thresholds or forced opaque promotion. Capture/GPU terminal, baseline preserved.
+Character50/67,world137/154 unchanged. Model approval still pending.
+
 LOG1091 bounded alpha-cutout exclusion provenance implemented. Existing
 promotion accepts optional diagnostic flag, enabled only by captureScene;
 records mesh/textureID and first failing rule(alpha-plane-unavailable,
