@@ -232,8 +232,9 @@ LOG1062 candidate/repeat on exact sequence pass, effect above noise; next
 LOG1063 helper sequence3..300 implemented;4builds/1108x3selftests pass,
 79source control renders/readbacks0. LOG1064 same-list candidate/repeat all0,
 79outputs each; sampled tile pattern retained, full motion/human approval open.
-Next prepared Hoko wood MCP binding/integration while character lighting remains
-open; no production scheduling change;
+LOG1065 Hoko wood MCP ingestion/binding verified in same opt-in layer;
+fresh5302 candidate signal below repeatnoise, no appearance acceptance. Next
+existing generated-world runtime joins; character lighting remains open; no production scheduling change;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 

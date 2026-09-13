@@ -1,10 +1,11 @@
-Current checkpoint LOG1064:79-source exact packet control/candidate/repeat all0,
-79outputs each, baseline restored, packet hashes unchanged. Evidence
-packet-sequence-extension-a/long-comparison.json and long-comparison.gif.
-Six sampled pairs retain tile pattern, no obvious popping there; full motion/
-human acceptance remains open. Candidate inactive. Next Hoko wood roughness
-MCP live-binding check/integration; character lighting still open. Eightfighters/
-57groups, next selector prepared,24runtime joins pending, costumes unknown.
+Current checkpoint LOG1065: Hoko wood roughness ingested/bound viaMCP, readback
+verified in existing opt-in roughness layer (3materials total), baseline exact
+restored and layer inactive. Evidence hoko-wood-integration-a; fresh5302 A/B
+three runs0 but candidate signal below repeatnoise, no visual acceptance.
+Next missing runtime joins for existing generated world candidates; do not
+repeat inconclusive Hoko pose. Character lighting/full motion remain open.
+Toolkit8002 now existing Hoko capture7a8bcb9a32d75af9 unsaved selection. Old8001
+stale state untouched. Eight fighters/57groups; next selector prepared.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

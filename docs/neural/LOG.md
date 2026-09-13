@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1065 Hoko wood roughness integrated through existing MCP layer.
+hoko-wood-integration-a: initial Shrine lookup422; attempted import refuses
+existing destination; reused Hoko capture7a8bcb9a32d75af9 viaactivate_capture.
+Live texture31EB60D1111B005D and instanceA01906F0D048CAA3 reference checked.
+Existing PBRify roughness ingestedBC4linear1024: rawR MAE0.469,p951,max7,
+median113exact. Same opt-in shrine_roughness_review_a now3materials, no newlayer;
+woodmetal0, roughnessfallback0.5, originaldiffuse retained. Readback verified,
+baseline exact restored, candidate inactive. No new generation/paid execution.
+Hoko source5302 pixel payload exact, DDS headers differ (not full-byte identity).
+hoko-wood-fresh-ab-a control/candidate/repeat all0; whole MAE2.030 vsrepeat2.490.
+Viewed pair inconclusive; no render-gain/moving/human acceptance. Stop repeating
+this pose. Next existing world candidate runtime joins, character lighting open.
+Toolkit8002 now Hoko unsaved selection; old8001 stale state untouched.
+
 LOG1064 79-source exact-packet roughness A/B/repeat complete.
 packet-sequence-extension-a: all3runs exit0/79readbacks each, sources5911..5989;
 source packet hashes unchanged after runs, baseline restored exact viaMCP.
