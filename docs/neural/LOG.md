@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1156 resource reuse short capture integrity passes; visual equivalence open.
+shrine-mesh-resource-reuse-a terminal0/baselineexact,11/11 sources5370..5380,
+all archive/helper/producer/completed Present/protected-native checks pass.
+capture-audit.json, same-source-review.json: retained packet semantics exact
+against blended-moving reference all11. Root inspected pair-5375.png: broadly
+similar character/arena layout, no obvious gross missing mesh, not visual acceptance.
+Candidate/reference moving MAE6.60..7.37; candidate/old-short6.48..7.48 over10
+common frames, while old-short/old-moving3.14..3.82. These are history-different
+runs, not proof of a pixel-invariant optimization. Do not dismiss difference as noise.
+Fresh prior-helper control shrine-mesh-resource-control-a running session49874,
+launcher31856, same short capture settings; helper copied from alpha-draw-scopes-a.
+Next verify exact source/control capture integrity and inspect differences before
+moving/performance promotion. Initial audit invocation on std Python failed missing
+numpy; bundled analysis Python succeeded. No dependency installation or evidence loss.
+
 LOG1155 exact-compatible resource matching implemented under selective gate.
 D3D9PacketScene now builds incoming-order one-to-one matching across mesh count
 and order changes using unchanged LegacyResourceCompatible plus exact SameTexture.
