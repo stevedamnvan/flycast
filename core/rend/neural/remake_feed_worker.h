@@ -39,6 +39,8 @@ struct RemakeFeedJob {
  std::uint64_t frame=0;ProducerIdentity producer;
  PvrDecodedPacket snapshot;RemakeViewScene scene;remake::Packet packet;RemakeOverlaySnapshot overlay;
  bool anchored=false,temporal=false,managed=false,captureScene=false;
+ bool compactCaptureTransport=false;
+ std::size_t sentTextureBytes=0; // Session registration budget snapshot.
  // Geometry and texture selection are already owned; smoothing changes only
  // normals and can precede packet creation without device/context access.
  bool smoothNormals=false;
@@ -86,6 +88,7 @@ class RemakeFeedWorker {
  RemakeFeedResult process(RemakeFeedJob& job) {
   const auto start=std::chrono::steady_clock::now();
   RemakeFeedResult r;r.frame=job.frame;r.producer=job.producer;r.overlay=std::move(job.overlay);r.anchored=job.anchored;
+  r.overlay.captureTransport.reset(); // Only this job's successful publication may supply it.
   std::string error;RemakeCameraAnchor proposed;
   if(job.smoothNormals)for(auto& mesh:job.scene.meshes)SmoothRemakeViewNormals(mesh);
   if(job.buildPacket) {
@@ -95,7 +98,7 @@ class RemakeFeedWorker {
     bytes=found->second;return true;
    };
    RemakeTextureSent sent;
-   if(job.byReference){auto held=job.sent;sent=[held](const remake::TextureIdentity& t){return held&&held->count({t.id,t.generation,t.paletteGeneration,t.rttGeneration})!=0;};}
+   if(job.byReference&&!job.compactCaptureTransport){auto held=job.sent;sent=[held](const remake::TextureIdentity& t){return held&&held->count({t.id,t.generation,t.paletteGeneration,t.rttGeneration})!=0;};}
    if(!BuildRemakeViewPacket(job.scene,reader,job.packet,error,sent)) {
     r.stage="packet";r.error=error;r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();return r;
    }
@@ -134,6 +137,49 @@ class RemakeFeedWorker {
    if(r.support.available&&!r.support.rejected&&(r.support.rotationFromLastDegrees>20||r.support.translationFromLast>1))r.viewCut=true;
   }
   if(job.curvedExport){const auto curvedStart=elapsed();r.curvedExport=true;r.curved=CurveRemakePacket(job.packet,remake::Limits{}.vertices,&chunkWorkers);r.curvedMs=elapsed()-curvedStart;}
+  std::shared_ptr<remake::Packet> compact;
+  if(job.compactCaptureTransport) {
+   const remake::Limits limits;
+   const auto failCompact=[&](const char* why) {
+    r.stage="capture-transport";r.error=why;r.workerMs=elapsed();
+   };
+   if(!job.captureScene||(job.sent&&job.sent->size()>limits.textureReferences)
+    ||job.sentTextureBytes>limits.textureReferenceBytes) {
+    failCompact("capture-transport-contract");return r;
+   }
+   // Copy only this finished owned scene. The original remains carried for
+   // the archive; publication never borrows a later frame or live texture.
+   compact=std::make_shared<remake::Packet>(job.packet);
+   std::map<std::array<std::uint64_t,4>,const std::vector<unsigned char>*> added;
+   std::size_t registeredCount=job.sent?job.sent->size():0,registeredBytes=job.sentTextureBytes;
+   for(auto& mesh:compact->meshes) {
+    if(mesh.textureWire!=remake::TextureWire::Carried) {
+     failCompact("capture-source-not-carried");return r;
+    }
+    if(!mesh.texture.known)continue;
+    if(!mesh.material||mesh.material->sourceDdsBytes.empty()||!mesh.material->sourceDds.empty()) {
+     failCompact("capture-source-texture-missing");return r;
+    }
+    const std::array<std::uint64_t,4> key={mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration};
+    if(job.sent&&job.sent->count(key)) {
+     mesh.textureWire=remake::TextureWire::Referenced;
+     std::vector<unsigned char>().swap(mesh.material->sourceDdsBytes);
+    }else if(job.registerMore) {
+     const auto bytes=mesh.material->sourceDdsBytes.size();
+     if(const auto found=added.find(key);found!=added.end()) {
+      if(*found->second!=mesh.material->sourceDdsBytes) {
+       failCompact("capture-texture-identity-conflict");return r;
+      }
+      mesh.textureWire=remake::TextureWire::Registered;
+     }
+     else if(registeredCount<limits.textureReferences&&bytes<=limits.textureReferenceBytes-registeredBytes) {
+      added.emplace(key,&mesh.material->sourceDdsBytes);++registeredCount;registeredBytes+=bytes;
+      mesh.textureWire=remake::TextureWire::Registered;
+     }
+    }
+   }
+  }
+  const auto& publishedPacket=compact?*compact:job.packet;
   // Temporal capture and publish both only read the finished packet, so they
   // run side by side on the chunk workers; the temporal outcome is still
   // judged first, exactly as when they ran in sequence.
@@ -146,7 +192,7 @@ class RemakeFeedWorker {
   };
   const auto publishPacket=[&]{
    const auto publishStart=elapsed();
-   result=job.publish?job.publish(job.packet,receipt,publishError):RemakeChannelResult::Invalid;
+   result=job.publish?job.publish(publishedPacket,receipt,publishError):RemakeChannelResult::Invalid;
    r.publishMs=elapsed()-publishStart;
   };
   if(job.temporal)chunkWorkers.Run(2,[&](unsigned index){if(index==0)publishPacket();else captureTemporal();});
@@ -165,10 +211,13 @@ class RemakeFeedWorker {
    r.support=anchor.LastSupportReport();r.projection=anchor.LastProjectionReport();r.generation=anchor.Generation();
   }
   r.cameraPosition=job.packet.camera.position;
-  for(const auto& mesh:job.packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered&&mesh.material) {
+  RemakeSentTextureSet countedRegistrations;
+  for(const auto& mesh:publishedPacket.meshes)if(mesh.textureWire==remake::TextureWire::Registered&&mesh.material) {
+   if(compact&&!countedRegistrations.insert({mesh.texture.id,mesh.texture.generation,mesh.texture.paletteGeneration,mesh.texture.rttGeneration}).second)continue;
    r.registeredTextures.push_back(mesh.texture);r.registeredBytes+=mesh.material->sourceDdsBytes.size();
   }
   if(job.captureScene) {
+   if(compact)r.overlay.captureTransport=std::move(compact);
    // Capture-only: source and export share this owned job, never adjacent frames.
    std::set<std::uint64_t> exported;for(const auto& mesh:job.packet.meshes)exported.insert(mesh.id);
    std::ostringstream census;census.imbue(std::locale::classic());census.precision(9);census<<"{\"frame\":"<<job.packet.frame<<",\"producer_ordinal\":"<<job.packet.producer.ordinal

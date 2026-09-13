@@ -10,6 +10,28 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_capture_references_opt_in_and_inherited_flag_removed(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_CAPTURE_REFERENCES': '1'}):
+            self.assertNotIn('FLYCAST_REMAKE_CAPTURE_REFERENCES', prepare(self.args)[2])
+        self.args.capture_references = True
+        self.args.capture_frames = 3
+        self.args.managed_session = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CAPTURE_REFERENCES'], '1')
+
+    def test_capture_references_reject_non_live_or_unbounded(self):
+        self.args.capture_references = True
+        self.args.capture_frames = 3
+        self.args.managed_session = True
+        for name, value in [('capture_frames', 0), ('capture_frames', 301),
+                            ('managed_session', False), ('manual_input', True),
+                            ('locked_input_root', Path('archive'))]:
+            with self.subTest(name=name, value=value):
+                old = getattr(self.args, name, None)
+                setattr(self.args, name, value)
+                with self.assertRaisesRegex(ValueError, 'Capture references'):
+                    prepare(self.args)
+                setattr(self.args, name, old)
+
     def test_received_packet_is_bounded_managed_capture_only(self):
         self.args.save_received_packet = True
         with self.assertRaisesRegex(ValueError, 'Received packet'):

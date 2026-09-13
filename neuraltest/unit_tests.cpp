@@ -881,6 +881,71 @@ int RunSelfTests()
 				built=builder.Drain();
 				suite.Expect(built.size()==1&&built[0].stage=="packet"&&built[0].error=="texture-not-staged","unstaged texture is an explicit packet skip");
 			}
+			{
+				// Compact capture transports retain a separately verifiable full archive.
+				const auto makeCapture=[&] {
+					RemakeFeedJob capture;capture.frame=first.frame;capture.packet=first;
+					capture.packet.meshes[0].textureWire=remake::TextureWire::Carried;
+					capture.captureScene=true;capture.compactCaptureTransport=true;
+					capture.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};
+					return capture;
+				};
+				const auto execute=[](RemakeFeedJob capture) {
+					RemakeFeedWorker feed;feed.Start();
+					if(!feed.Dispatch(std::move(capture)))return std::vector<RemakeFeedResult>{};
+					for(int i=0;i<2000&&feed.Completed()<1;++i)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					return feed.Drain();
+				};
+				auto held=std::make_shared<RemakeSentTextureSet>();
+				held->insert({identity.id,identity.generation,identity.paletteGeneration,identity.rttGeneration});
+				auto capture=makeCapture();capture.sent=held;capture.sentTextureBytes=dds.size();
+				auto result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage.empty()&&result[0].capturedPacket&&result[0].overlay.captureTransport
+					&&result[0].capturedPacket->meshes[0].material->sourceDdsBytes==dds
+					&&result[0].capturedPacket->meshes[0].textureWire==remake::TextureWire::Carried
+					&&result[0].overlay.captureTransport->meshes[0].textureWire==remake::TextureWire::Referenced
+					&&result[0].overlay.captureTransport->meshes[0].material->sourceDdsBytes.empty()
+					&&result[0].registeredTextures.empty()
+					&&VerifyRemakeCaptureTransport(*result[0].capturedPacket,*result[0].overlay.captureTransport,why),
+					"compact capture retains exact full DDS and verifiable referenced transport");
+				capture=makeCapture();
+				capture.overlay.captureTransport=std::make_shared<remake::Packet>(first);
+				capture.publish=[](const remake::Packet&,RemakeChannelReceipt&,std::string&){return RemakeChannelResult::Busy;};
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage=="publish"&&!result[0].overlay.captureTransport
+					&&!result[0].capturedPacket&&result[0].registeredTextures.empty()&&result[0].registeredBytes==0,
+					"failed compact publish exposes no stale proof or registrations");
+				capture=makeCapture();capture.sentTextureBytes=remake::Limits{}.textureReferenceBytes;
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage.empty()&&result[0].overlay.captureTransport
+					&&result[0].overlay.captureTransport->meshes[0].textureWire==remake::TextureWire::Carried
+					&&result[0].registeredBytes==0,"compact capture byte budget keeps full carried texture");
+				auto fullSet=std::make_shared<RemakeSentTextureSet>();
+				for(std::size_t i=0;i<remake::Limits{}.textureReferences;++i)fullSet->insert({i,0,0,999});
+				capture=makeCapture();capture.sent=fullSet;
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage.empty()&&result[0].overlay.captureTransport
+					&&result[0].overlay.captureTransport->meshes[0].textureWire==remake::TextureWire::Carried
+					&&result[0].registeredTextures.empty(),"compact capture count budget keeps full carried texture");
+				capture=makeCapture();capture.packet.meshes.push_back(capture.packet.meshes[0]);
+				++capture.packet.meshes.back().id;
+				capture.packet.meshes.back().material->sourceDdsBytes.back()^=1;
+				bool publishedConflict=false;
+				capture.publish=[&](const remake::Packet&,RemakeChannelReceipt&,std::string&){publishedConflict=true;return RemakeChannelResult::Published;};
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].error=="capture-texture-identity-conflict"&&!publishedConflict
+					&&!result[0].overlay.captureTransport,"compact capture rejects conflicting registration bytes before publication");
+				capture=makeCapture();capture.packet.meshes.push_back(capture.packet.meshes[0]);++capture.packet.meshes.back().id;
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage.empty()&&result[0].registeredTextures.size()==1
+					&&result[0].registeredBytes==dds.size(),"compact capture counts repeated registration identity once");
+				capture=makeCapture();capture.compactCaptureTransport=false;capture.sent=held;
+				result=execute(std::move(capture));
+				suite.Expect(result.size()==1&&result[0].stage.empty()&&!result[0].overlay.captureTransport&&result[0].capturedPacket
+					&&result[0].capturedPacket->meshes[0].material->sourceDdsBytes==dds
+					&&result[0].capturedPacket->meshes[0].textureWire==remake::TextureWire::Carried,
+					"default capture stays carried without compact proof");
+			}
 			RemakeFeedWorker worker;worker.Start();
 			RemakeFeedJob job;job.frame=first.frame;job.packet=first;
 			job.publish=[](const remake::Packet&,RemakeChannelReceipt& receipt,std::string&){receipt={1,7,9};return RemakeChannelResult::Published;};

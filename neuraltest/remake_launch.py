@@ -219,6 +219,11 @@ def prepare(args):
             raise ValueError('Shading-aware motion requires bounded combined capture')
         env['FLYCAST_REMAKE_SHADING_AWARE_MOTION'] = '1'
         env['FLYCAST_REMAKE_COLOR_CONSISTENCY'] = '1'
+    if getattr(args, 'capture_references', False):
+        if (not 1 <= capture_frames <= 300 or not args.managed_session or args.manual_input
+                or getattr(args, 'locked_input_root', None)):
+            raise ValueError('Capture references require bounded automatic managed live capture')
+        env['FLYCAST_REMAKE_CAPTURE_REFERENCES'] = '1'
     capture_start = getattr(args, 'capture_start_source', 0)
     evaluation_start = capture_evaluation_start(args)
     remix_only = getattr(args, 'remix_only', False)
@@ -437,6 +442,7 @@ def main():
                    help='Developer-only restart injection at main frame 1..10000')
     p.add_argument('--capture-frames', type=int, default=0,
                    help='Developer image capture 1..300; excludes this run from performance evidence')
+    p.add_argument('--capture-references', action='store_true', help='Opt-in compact transport with complete version3 capture archives; no quality reduction')
     p.add_argument('--capture-start-source', type=int, default=0)
     p.add_argument('--capture-preroll', type=int, default=0,
                    help='Live exact-effects evaluation 1..300 sources before previews; host warmup must precede it')
@@ -506,6 +512,7 @@ def main():
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   capture_storage=storage,
+                  capture_references=args.capture_references,
                   capture_preroll=args.capture_preroll,
                   capture_evaluation_start=capture_evaluation_start(args),
                   helper_working_directory=str(helper_cwd),

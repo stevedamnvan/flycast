@@ -3,14 +3,19 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1126; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1127; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
-- LOG1126 archivev3 writer/reader linkage tested,fourbuilds/1128selftests x3.
-  Live capture unchanged; next feed/overlay propagation and opt-in live proof.
-  Character original-seed opponent acquisition/export0,all6exact joins applied:
-  67/67captured groups,0pending;root ledger hash verified. Full game/visual open.
-  GPUfree;both subagents completed their bounded tasks.
+- LOG1127 compact live transport integrated behind --capture-references.
+  Fourbuilds/1135selftests x3,43launcher tests pass. Live diagnostic exits0/11;
+  sources5901..5903 full10.52MB archives/1.08MB wire,all v3/wire checks pass,
+  native mismatches0.1200remake presents,85repeats,maxage5;not performance proof.
+  Hair copper-bright and character response dark:visual acceptance still open.
+  Next full-quality moving active-combat review using opt-in transport.
+  Evidence C:/Flycast-Evidence/shrine-capture-reference-a/integration-audit.json.
+  Character67/67captured joins;world137/154. Next Money Pit three variants need
+  new matching source frames;world17-next-acquisition.json under character audit.
+  Diagnostic ended;existing Toolkit sessions preserved;subagent tasks completed.
 - LOG1125 capture transport/full-source linkage oracle implemented,unconnected.
   Fourbuilds/1124selftests x3 pass; next versioned archive writer/reader checks
   before live transport changes. Full-quality captures/legacy compatibility intact.

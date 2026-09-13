@@ -1,5 +1,35 @@
 # Neural rendering evidence log
 
+LOG1127 opt-in compact live capture transport preserves full-quality archives.
+Feed builds the complete carried packet, projects registration/reference modes
+after source transforms, and retains both full source and exact published packet
+through the overlay into the v3 archive. Session count/byte limits, publication
+failure and conflicting registration identities are guarded. Default remains off;
+launcher --capture-references requires bounded automatic managed live capture.
+Four serial builds pass;1135selftests x3 and43launcher tests pass. Evidence:
+C:/Flycast-Evidence/capture-reference-integration-build-a.
+Live shrine-capture-reference-a exits0/11 orderly, baseline hash unchanged.
+Sources5901..5903 have complete10,522,482-byte archives and1,080,262-byte
+transport packets. All three pass the v3 reader/linkage and exact wire parity,
+35meshes each;640x480 color/depth and native HUD/composition mismatch counts0.
+Initial reader call incorrectly supplied a frame directory; producer lookup
+rejected it. Correct capture root validates all three; no contract relaxed.
+CPU diagnostic medians:feed13.14ms,publish2.62ms,serialize1.70ms,digest0.84ms.
+Prior full-transport diagnostic-d digest8.30ms. This is attribution, not a
+performance gate: synchronous capture and CPU scopes remain enabled.
+1200/1200 evaluated remake presents,85 repeated outputs,maxage5,no native
+fallback or frame identity mismatches. Three retained frames do not close the
+300-frame moving gate. Visual inspection still shows copper-bright hair and
+dark character response; no appearance acceptance or new supplied-NR proof.
+Detailed proof:shrine-capture-reference-a/integration-audit.json.
+Parallel world audit remains137/154:81 new character-export DDS add no joins.
+Money Pit's three palette/atlas variants need newly observed matching frames;
+11 other gaps lack submitted triangles, Castle38 needs translucency ownership
+diagnosis, water34/lava28 retain dynamic-native holds. Next acquisition evidence:
+character-coverage-audit-c/world17-next-acquisition.json. No material binding.
+Next extend the full-quality moving active-combat review using the proven opt-in
+transport; retain visual/performance/lifecycle gates and natural hair/skin work.
+
 LOG1126 version3 full-quality archive linkage and character join completion.
 Archive writer optionally accepts actual transport packet, verifies derivation
 from full carried source, checks actual live receipt, and writes compact wire

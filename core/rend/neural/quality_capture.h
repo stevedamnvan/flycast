@@ -37,7 +37,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device*,
 	ID3D11Texture2D* evaluated = nullptr, const remake::Packet* scene = nullptr,
 	std::uint64_t replayOriginalFrame = 0, ID3D11Texture2D* preEffects = nullptr,
 	const RemakeOitEffects* effects = nullptr,const std::vector<AlphaEffectSelection>& alphaSelections = {},
-	const std::string& sessionToken = {});
+	const std::string& sessionToken = {},const remake::Packet* transport = nullptr);
 
 enum class CaptureGpuTimingPoint : std::uint8_t {
 	PvrBegin,

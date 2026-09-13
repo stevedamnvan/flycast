@@ -3150,9 +3150,14 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	job.snapshot=std::move(snapshot);job.scene=std::move(scene);job.packet=std::move(packet);job.overlay=std::move(overlay);
 	job.smoothNormals=RemakeSmoothNormalsEnabled();
 	job.anchored=anchored;job.temporal=temporalRequested;job.managed=managed&&std::strcmp(managed,"1")==0;
-	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;
+	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;job.sentTextureBytes=remakeSentTextureBytes;
 	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);job.alphaCutout=alphaCombined&&alphaCutout;job.curvedExport=curvedExport;
 	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
+ const auto* compactCapture=std::getenv("FLYCAST_REMAKE_CAPTURE_REFERENCES");
+ const auto* lockedCapture=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
+ job.compactCaptureTransport=job.captureScene&&compactCapture&&std::strcmp(compactCapture,"1")==0
+  &&!(lockedCapture&&*lockedCapture)&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
+  &&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0;
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
 	};
@@ -3775,7 +3780,7 @@ void DX11Renderer::displayFramebuffer()
 				currentNeuralSourceFrameId,previewOverlay.color,previewOverlay.mask,
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
-				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken);
+				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken,previewOverlay.captureTransport.get());
 			if(captured&&previewOverlay.captureCoverage) {
 				const auto coveragePath=std::filesystem::path(directory)/("frame-"+std::to_string(previewSource->frame)
 					+"-present-"+std::to_string(currentNeuralSourceFrameId))/"source-draw-coverage.json";

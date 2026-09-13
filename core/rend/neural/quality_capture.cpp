@@ -460,7 +460,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 	ID3D11DeviceContext* context, const RemakeReturnedImage& returned, std::uint64_t current,
 	ID3D11Texture2D* original, ID3D11Texture2D* mask,
 	ID3D11Texture2D* composite, ID3D11Texture2D* backbuffer, std::string& error, ID3D11Texture2D* evaluated,
-	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections,const std::string& sessionToken)
+	const remake::Packet* scene,std::uint64_t replayOriginalFrame,ID3D11Texture2D* preEffects,const RemakeOitEffects* effects,const std::vector<AlphaEffectSelection>& alphaSelections,const std::string& sessionToken,const remake::Packet* transport)
 {
 	try {
 		if(!root.is_absolute()||!returned.frame||returned.frame>current||current-returned.frame>8
@@ -478,7 +478,7 @@ bool CaptureRemakePreview(const std::filesystem::path& root, ID3D11Device* devic
 		const auto directory=root/("frame-"+std::to_string(returned.frame)+"-present-"+std::to_string(current));
 		std::filesystem::create_directories(root);
 		if(!std::filesystem::create_directory(directory)) {error="preview directory exists";return false;}
-		if(scene&&!WriteLockedRemakeInput(directory,*scene,returned,error))return false;
+		if(scene&&!WriteLockedRemakeInput(directory,*scene,returned,error,transport))return false;
 		if(RemakeEffectEvidenceRequested()) {
 			std::vector<std::uint32_t> identity;
 			if(!effects||!preEffects) {error="effect evidence requires evaluated source effects";return false;}

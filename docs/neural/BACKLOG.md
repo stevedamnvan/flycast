@@ -511,9 +511,15 @@ x3,corruption controls. Not connected to runtime/archive yet. Next versioned
 archive verification before capture references;full quality/legacy reads retained.
 LOG1126 original3600route acquired actual3603; all6verified/applied:67/67
 captured character joins,0pending. Whole roster/costume and visual acceptance open.
-Version3 archive linkage writer/reader implemented,fourbuilds/1128selftests x3
-pass. Next feed/overlay transport propagation and opt-in live capture proof;
-current live path unchanged,full-quality bytes and legacy archives preserved.
+LOG1127 opt-in live capture transport integrated:fourbuilds/1135selftests x3,
+43launcher tests pass. Three live sources5901..5903 retain full10.52MB archives
+with1.08MB transport; v3 linkage/wire parity pass and native mismatches0.
+1200evaluated remake presents,85repeats,maxage5; synchronous CPU diagnostic,
+not performance acceptance. Hair remains copper-bright,character shading dark.
+Next full-quality moving active-combat review with --capture-references;
+keep the300-frame gate and separate appearance/performance acceptance.
+World137/154 unchanged; next Money Pit three palette/atlas acquisitions require
+new matched source frames, not repeated4900export. See LOG1127 world audit.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
