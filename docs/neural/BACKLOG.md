@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1162. This is a summary
+Updated 2026-09-13, evidence through LOG1163. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,19 +64,11 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** validate implemented exact-compatible resource reuse (LOG1155).
-Four builds/1200selftests x3 pass;11/11 capture integrity and packet semantics pass.
-Fresh control9/11 integrity passes; differences persist, region review delegated.
-Timing old/reuse repeats152/2; p9516.54/14.47ms (LOG1158). Floor change unresolved.
-Prior light cadence restored;11/11 integrity passes, floor error9.80->3.57 (LOG1159).
-Corrected timing1198accepted/2repeats; budget varied, scoped result only (LOG1160).
-Full300moving integrity and exact scene pairs pass (LOG1162); sampled visual review
-complete: no obvious sampled geometry loss, eye band/panel hair remain open.
-Production-used ownership rollback tests pass,
-fourbuilds/1205selftests x3 (LOG1161). Driver faults remain separate; no promotion.
-Preserved DDS equality, incoming order, current uploads, reset and ownership gates.
-Next inspect same-source output, moving integrity, live failure cleanup and paired
-capture-free timing/resource growth before promotion.
+**Next deliverable:** late-face directional-fill attribution (LOG1163), sources5595..5599.
+Control running; mirrored fill direction prepared. Preserve key/radiance/maps and
+liked arena. Compare exact inputs and returned eye-band response before correction.
+Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
+pass1205x3. Full driver/lifecycle and representative performance gates remain open.
 Both capture-free runs completed1200 identical source IDs; median about11.2ms,
 but returned repeats46->143 and p99 19.37->20.82ms. No candidate promotion or
 60fps acceptance. Moving300-frame integrity complete; sampled neck/fringe improvement

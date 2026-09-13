@@ -3,8 +3,13 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1162; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1163; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
+
+Current run: late-face-fill-direction-a/control session46033/launcher23772.
+Poll terminal then run prepared mirrored via run_one.py; only fill X sign differs,
+5595..5599. No source/default change. Compare native/returned eye-band response.
+Existing raw device cleanup remains ownership-dependent (LOG545/1014); no blind Release.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
 terminal0/baselineexact; all integrity and explicit alpha-state transition checks pass.

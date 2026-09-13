@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1163 late face directional-fill attribution started; cleanup ownership guarded.
+Existing LOG545/1014 warns registered device/factory may be released by public
+Shutdown; do not add blind Release to raw pointers. Exact installed1.5.2 ownership
+and40-object warning remain open, not disproven by fake-reference tests.
+Next bounded character diagnostic late-face-fill-direction-a requests5595..5599,
+control versus fill X sign mirrored only. Same corrected helper, native replay,
+key/radiance/maps, capture settings; no scene-light promotion or albedo edits.
+Uses existing launcher --scene-fill, no new controls or systems. Test asks whether
+late eye band changes with directional illumination; geometry/texture causality
+remains unproven if response weak. No global-light compensation of arena accepted.
+Control running session46033/launcher23772; mirrored prepared/unlaunched. Poll
+control terminal before mirrored. Both full-source integrity and same-source
+comparison needed; prior300capture provides context, not matched-noise substitute.
+Standing full remaster and remaining performance/lifecycle gates unchanged.
+
 LOG1162 corrected resource reuse full moving integrity complete.
 shrine-resource-reuse-moving-a terminal0/baselineexact,300/300 sources5300..5599,
 no missing/unexpected. moving-audit.json all helper receipts/archive/producer/
