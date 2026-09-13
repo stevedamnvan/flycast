@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1137 live typed DDS preservation and first blade metal still comparison.
+Existing extension hot-reloaded after timestamp-only update to its entrypoint;
+MCP8002 now discovers typed tools without restarting Toolkit. Scalar fixture
+inprocess import c completes, exact5mips/fullDDS SHA preserved with real metadata.
+Actual256x256binary blade mask encoded BC4 with9conservative mips; independent
+block decode equals every source mip texel. Typed import blade_conservative_metal_a
+preserves all9mip payloads. Source metadata/requests/results under scalar-mip-fixture-a
+and weapon-mask-filter-a. This proves these ingestion instances, not all DDS inputs.
+blade-metal-review-a uses retained exact source5900 and existing render/profile route:
+control/candidate/repeat all0. Separate MCP layer authors only metallic_texture for
+51B4B028A25C0B1E, then removed and parent saved; baseline byte-exact. Albedo,normal,
+height,roughness and alpha not authored. Saved layer and requests retained.
+Root viewed both640x480renders. Blade gain subtle, not accepted. Whole RGB MAE
+candidate0.47188 vs repeat0.29882; blade box[210:345,170:255]0.54620 vs0.28340.
+These are noisy independent path-traced stills, not exact-output equality or moving
+approval. Candidate inactive; no appearance/performance/hair/lighting acceptance.
+Next evaluate blade response in another source-qualified pose and moving review;
+retain conservative mip distance limitation and native wrap/paint baseline.
+
 LOG1136 authored scalar DDS probe and typed in-process ingestion adapter.
 Existing remix_capture_mcp.py now validates bounded full-chain DX10 BC4_UNORM
 2D scalar DDS, hashes every mip and compares isolated typed ingested outputs

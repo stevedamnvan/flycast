@@ -546,7 +546,10 @@ existing MCP adapter before controlled runtime test; do not disable mipmaps.
 LOG1136 typed scalar DDS adapter implemented,7Python tests/fourbuilds/1167selftests x3
 pass. Generic attempts failed subprocess callback and dangling enum schema, not
 proven DDS rejection. Next load existing extension and one typed fixture ingest;
-verify every mip and legitimate metadata before binding;
+LOG1137 typed import preserves5fixture/9blade mips with legitimate metadata.
+First MCP blade-only metallic still A/B completes0/0/0 and restores baselineexact;
+visible gain subtle/unaccepted. Candidate inactive. Next another source-qualified
+pose and moving review; conservative mip distance tradeoff remains open;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
