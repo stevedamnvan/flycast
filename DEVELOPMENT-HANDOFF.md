@@ -1,11 +1,10 @@
-Current checkpoint LOG1038: Shrine legs black before native effects, and both
-baseline/replacements-off no-fill renders reproduce. Existing neutral fill0.3
-restores leg detail in baseline still (all three exit0), also brightens floor;
-face overbrightness persists. Candidate only, no production profile changes.
-Next live/moving neutral-fill validation with arena review; classify world draw
-0/2901 exported=false. Agent CPU review pending. Eleven/12 Shrine world joins
-from failed-export assets; timeout124 provenance remains. Evidence
-shrine-leg-isolation-a. No parent GPU job live. MCP8002 authoritative.
+Current checkpoint LOG1039: live Shrine fill candidate terminal host0/helper11,
+orderly. One5301 capture of3; legs detailed, floor brighter/faces overlit.
+HUD invariants exact. Different packet SHA/digest across sessions, not exact
+live A/B; fixed-packet standalone attribution remains. OP2901 zero triangles,
+expected exclusion. World agent owns GPU generation for Shrine tiles14/15,
+8outputs local only. No parent GPU work until release. Next tile QA, lighting
+balance and moving validation. Evidence shrine-live-fill-a. MCP8002 authoritative.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

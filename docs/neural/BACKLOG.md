@@ -152,7 +152,11 @@ wrote102files/26textures then helper timeout124; retain failed provenance.
 LOG1038 dark legs reproduce without replacements and before native-effects.
 Neutral fill0.3 restores leg detail in same-source still but brightens floor;
 faces still too bright. Candidate only. Next live/moving fill validation and
-classify excluded world draw0/2901. Eleven of12 Shrine world runtime joins.
+LOG1039 live fill restores leg detail in one retained frame; packet identity
+differs across sessions, so no exact-input live A/B. World draw0/2901 has zero
+triangles, expected exclusion. Eleven renderable Shrine world runtime joins.
+World agent owns local tile14/15 generation queue (8outputs); parent GPU tests
+wait for release. Next tile QA, lighting balance and moving validation.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world

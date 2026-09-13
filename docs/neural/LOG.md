@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1039 live neutral fill and expected Shrine exclusion.
+shrine-live-fill-a terminal host0/helper11 orderly/no forced children. One
+5301/present5308 capture retained of requested3. Viewed composed output: leg
+armor/cloth detail restored with neutral fill0.3; floor brighter, faces still
+overlit. HUD6108 protected pixels, zero recorded HUD/world/backbuffer mismatch.
+Same replay/source ordinal as no-fill session, but source digest and packet SHA
+differ; NOT exact-input live A/B. Prior standalone fixed-packet attribution
+remains bounded evidence. No moving combat or broad visual acceptance.
+Agent exclusion classification verified against source: OP2901 indices split
+into strips2/1/1, zero triangles; current exporter omits empty mesh. Expected
+5301 exclusion, not a visible missing-texture regression. Eleven renderable
+Shrine world source identities matched retained export, whose timeout124 stays
+open. Agent now owns local GPU queue for prepared tiles14/15 eight outputs;
+no paid calls/retries/installs. Parent GPU tests paused until queue released.
+Next generated tile QA and character illumination/arena balance, then genuine
+moving validation; retain unchanged baseline and all acceptance gates.
+
 LOG1038 Shrine dark-leg attribution and neutral-fill candidate.
 Viewed same5301 pre-native-effects image: legs already black, so native effect
 restoration is not cause. Standalone baseline/no-fill and replacement-off/no-fill
