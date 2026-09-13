@@ -1,5 +1,34 @@
 # Neural rendering evidence log
 
+LOG1019 supported selective-reuse CPU diagnostic completes.
+Added --diagnostic-selective-resource-refresh: requires anchored automatic
+capture-free CPU timing and rejects benchmark/capture reuse combinations.
+Existing benchmark exclusions and helper history/resource guards unchanged.
+Launch tests28 pass; four serial builds and selftests1092/0 x3 pass under
+C:/Flycast-Evidence/selective-cpu-diagnostic-build-a. Diagnostic evidence at
+C:/Flycast-Evidence/validation-host-cadence-a/diagnostic-run: launcher0,
+host0/helper11, no forced children, performance_eligible=false. The rejected
+initial benchmark-plus-timing invocation remains retained. cpu-summary.json
+records600 samples for most scopes: frame-render14.317ms, submit11.229ms,
+return-worker10.718ms, return-motion-stream7.437ms, return-input-build3.225ms,
+returned-evaluate6.575ms; evaluate-motion-stream only7 samples, median6.793ms.
+Nested and asynchronous timings must not be added or called an eligible FPS
+result. Source inspection confirms motion records project/hash both current
+and previous scenes every preparation, followed by matching and stream output.
+Next bounded H task: attribute those phases with a retained-source CPU benchmark
+and parity checks before choosing immutable-record reuse or allocation work.
+Do not weaken accepted-history matching or assume the rare render-thread
+rebuild dominates. No new visual result or overall acceptance.
+Camera-lighting research refreshed against official NVIDIA viewport, runtime
+RtxOptions and post-processing documentation and Epic auto-exposure guidance:
+Toolkit camera light is a viewport light; runtime fallback is primarily debug;
+authored scene lighting and controlled exposure comparisons are appropriate.
+Existing LOG1006 fallback-off negative result still stands; this research is
+not evidence that fallback causes current face washout. No settings changed.
+Sources: https://github.com/NVIDIAGameWorks/dxvk-remix/blob/main/RtxOptions.md
+https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/latest/docs/toolkitinterface/remix-toolkitinterface-viewport.html
+https://dev.epicgames.com/documentation/en-us/unreal-engine/auto-exposure-in-unreal-engine
+
 LOG1018 host attribution preflight and reset-counter scope audit.
 validation-host-cadence-a rejected before launch: existing selective-reuse
 benchmark guard disallows CPU diagnostic scopes. No guard bypass or timing

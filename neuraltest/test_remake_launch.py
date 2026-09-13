@@ -355,6 +355,23 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.benchmark_selective_resource_refresh = False
         self.assertNotIn('FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH', prepare(self.args)[2])
 
+    def test_selective_diagnostic_requires_instrumentation(self):
+        self.args.anchored_light = True
+        self.args.cpu_timing = True
+        self.args.diagnostic_selective_resource_refresh = True
+        env = prepare(self.args)[2]
+        self.assertEqual(env['FLYCAST_REMAKE_SELECTIVE_RESOURCE_REFRESH'], '1')
+        self.assertEqual(env['FLYCAST_REMAKE_CPU_TIMING'], '1')
+        for field, value in [('anchored_light', False), ('cpu_timing', False),
+                             ('capture_frames', 1), ('manual_input', True),
+                             ('benchmark_selective_resource_refresh', True),
+                             ('selective_resource_refresh', True)]:
+            previous = getattr(self.args, field, False)
+            setattr(self.args, field, value)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                prepare(self.args)
+            setattr(self.args, field, previous)
+
     def test_remix_only_requires_capture(self):
         self.args.remix_only = True
         with self.assertRaises(ValueError):

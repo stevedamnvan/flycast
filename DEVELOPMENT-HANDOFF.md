@@ -1,18 +1,27 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1007, source commit a04f06c32 (fork verified).
-Identity validation avoids redundant matrix arithmetic after exact identity
-check; CPU-only alternating benchmark .716 to .452ms. Four serial builds,
-1092/0 selftests x3 and SDK329/0 pass. Whole-pipeline speed remains unproven.
-LOG1006 fallback-off result is at repeat noise; both ordinary and hit poses
-show face washout. Preserve native effects, welded normals and arena materials.
-Next: current-host whole-pipeline performance setup and bounded moving exposure
-proof. validation-pipeline-preflight-a passes using the OLD LOG911 host; it is
-not a current-build result. Replace that host in an isolated prepared workspace
-before running; retain supplied-consumer configuration and replay provenance.
-Toolkit PIDs27736/34596 still live at this check; preserve unknown pending edits
-on8000. Do not force-close for a benchmark or call a confounded run acceptance.
-No game/helper running. Baseline mod last checked exactE3C09790...E8340.
+Current resume checkpoint LOG1019 (launcher diagnostic implementation).
+Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
+Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
+images, but present medians17.611/17.241ms do not establish60fps acceptance.
+LOG1019 supported selective-reuse CPU diagnostic completes host0/helper11,
+no forced children; performance_eligible=false. Four serial builds and
+1092/0 selftests x3 pass; launcher tests28 pass. Evidence roots:
+C:/Flycast-Evidence/selective-cpu-diagnostic-build-a
+C:/Flycast-Evidence/validation-host-cadence-a
+Next H task: split retained-source motion preparation into record projection/
+hashing, matching and assembly; measure exact output parity before optimizing.
+Off-thread motion preparation median7.437ms; only7 render-thread rebuild
+samples. Do not sum nested timings or relax history/identity/reset policy.
+Preserve current arena/floor and welded normals. Face washout remains open;
+fallback-off, roughness and exposure experiments are not accepted fixes.
+Package D readiness records12 Practice atlases:2 exact old inventory matches,
+10 new keys. Cached metal albedos retain baked reflections and raw alpha
+mismatches; no full material-set upgrade or new binding is accepted.
+Toolkit projects remain open with pending edits: do not force close/save stale
+state. Recheck actual GPU load before performance runs. Intermittent empty
+helper shutdown access violation remains unclosed; temporary module-retain
+switch was removed. Preserve private evidence and original baseline assets.
 
 Previous checkpoint LOG1001: fill1280 completed with no previews after
 fallback at5309; preserve failure,do not relax guards. Fill640 completed115

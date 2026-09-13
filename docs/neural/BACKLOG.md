@@ -116,6 +116,15 @@ LOG1017 quiet-viewport OIT pair recovers bounded fresh share99.259/99.167%,
 max latency5 in both; present medians17.611/17.241ms. This meets freshness only
 for this replay, not60fps/full acceptance. Continue host cadence and character
 response work; no more tuning to compensate for background Toolkit rendering.
+Bounded next diagnostic: explicit --diagnostic-selective-resource-refresh with
+mandatory CPU timing, automatic input, anchored light and no capture. Preserve
+strict helper compatibility/reset policy and the existing benchmark exclusions.
+One run attributes host costs; instrumentation never closes performance gates.
+LOG1019 diagnostic complete, host0/helper11, no forced children. Motion stream
+preparation median7.437ms off thread; render-thread rebuild only7 samples.
+Next bounded H work attributes projection/hash, matching and output assembly
+using retained sources before any cache change; require exact stream parity
+and preserve accepted-history gates. No FPS acceptance from instrumented timing.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.
