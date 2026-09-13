@@ -1,11 +1,47 @@
 import json
 import tempfile
 import unittest
+import struct
 from pathlib import Path
-from remix_capture_mcp import capture_destination, displacement_request, ingestion_request, surface_request, diffuse_binding_request
+from remix_capture_mcp import capture_destination, displacement_request, ingestion_request, surface_request, diffuse_binding_request, scalar_dds_mip_probe, scalar_dds_ingestion_request
 
 
 class CaptureDestinationTests(unittest.TestCase):
+    def test_scalar_mip_probe_preservation_and_corruption(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); project = root / 'review.usda'; project.write_text('project')
+            header = bytearray(148); header[:4] = b'DDS '
+            for offset, value in [(4, 124), (8, 0x21007), (12, 4), (16, 4), (28, 3), (76, 32), (80, 4), (108, 0x401008)]:
+                struct.pack_into('<I', header, offset, value)
+            header[84:88] = b'DX10'; struct.pack_into('<5I', header, 128, 80, 3, 0, 1, 0)
+            source = root / 'source.dds'; source.write_bytes(header + bytes(range(24)))
+            body = {'context_plugin': {'name': 'TextureImporter', 'data': {'input_files': [[str(source), 'METALLIC']],
+                    'output_directory': str(root / 'assets/ingested/new')}}, 'executor': 1}
+            request, _ = scalar_dds_ingestion_request(project, json.dumps(body), 'METALLIC')
+            self.assertEqual(request['executor'], 0)
+            with self.assertRaises(ValueError): scalar_dds_ingestion_request(project, json.dumps(body), 'ROUGHNESS')
+            body['cleanup_input'] = True
+            with self.assertRaises(ValueError): scalar_dds_ingestion_request(project, json.dumps(body), 'METALLIC')
+            del body['cleanup_input']
+            body['context_plugin']['data']['output_directory'] = str(root / 'escape')
+            with self.assertRaises(ValueError): scalar_dds_ingestion_request(project, json.dumps(body), 'METALLIC')
+            body['context_plugin']['data']['output_directory'] = str(root / 'assets/ingested/new')
+            existing = root / 'assets/ingested/new'; existing.mkdir(parents=True); (existing / 'keep').write_text('keep')
+            with self.assertRaises(ValueError): scalar_dds_ingestion_request(project, json.dumps(body), 'METALLIC')
+            target = root / 'assets/ingested/probe/metal.m.rtex.dds'; target.parent.mkdir(parents=True)
+            target.write_bytes(source.read_bytes()); Path(str(target) + '.meta').write_text('fixture metadata')
+            result = scalar_dds_mip_probe(source, 'METALLIC', project, target)
+            self.assertTrue(result['all_mips_byte_identical'])
+            self.assertFalse(result['pipeline_preservation_proven'])
+            changed = bytearray(target.read_bytes()); changed[-1] ^= 1; target.write_bytes(changed)
+            self.assertFalse(scalar_dds_mip_probe(source, 'METALLIC', project, target)['all_mips_byte_identical'])
+            for offset, value in [(28, 1), (128, 81), (140, 2)]:
+                bad = bytearray(source.read_bytes()); struct.pack_into('<I', bad, offset, value); target.write_bytes(bad)
+                with self.assertRaises(ValueError): scalar_dds_mip_probe(target, 'METALLIC')
+            target.write_bytes(source.read_bytes()[:-1])
+            with self.assertRaises(ValueError): scalar_dds_mip_probe(target, 'METALLIC')
+            with self.assertRaises(ValueError): scalar_dds_mip_probe(source, 'METALLIC', project, source)
+
     def test_diffuse_binding_requires_isolated_ingested_target(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d); project = root / 'review.usda'; project.write_text('project')

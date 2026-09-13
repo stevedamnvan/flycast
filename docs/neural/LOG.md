@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1136 authored scalar DDS probe and typed in-process ingestion adapter.
+Existing remix_capture_mcp.py now validates bounded full-chain DX10 BC4_UNORM
+2D scalar DDS, hashes every mip and compares isolated typed ingested outputs
+with existing metadata. Typed flycast_ingest_scalar_dds_current_process uses
+existing ASGI ingestion service/executor0, fresh project assets directory,
+source preservation, no input cleanup, no binding, and rejects preservation
+claims unless exactly one output matches every mip. PNG APIs unchanged.
+Seven focused Python tests pass. Four serial builds and1167selftests x3 pass
+at scalar-dds-adapter-build-a. Independent scalar-mip-fixture-a16x16five-level
+BC4 fixture has deliberate constants32/208/64/176/112; all5probe hashes match.
+Live generic default-executor attempt failed500: IngestCraft CLI log20260913_160347
+shows progress callback timeout127.0.0.1:8095, not DDS format rejection. Explicit
+executor0 generic attempt fails before dispatch on dangling MCP schema reference
+/components/schemas/Executors. Both failure reports/request bodies retained;
+no output directory/binding, baseline byte-exact. Typed wrapper avoids enum schema
+and existing subprocess issue but has NOT yet been live-loaded/tested. Next load
+updated existing Toolkit extension preserving project state, one fixture ingest,
+verify actual mips before any weapon texture binding. No pipeline/appearance claim.
+
 LOG1135 procedural blade scalar mask filtering experiment, no binding.
 weapon-mask-filter-a stores source-coordinate diagnostic mask and9 ordinary box
 mips plus bilinear reconstruction checks. Grip unchanged at levels0..2; level3

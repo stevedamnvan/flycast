@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1135; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1136; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -34,7 +34,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   LOG1134 weapon UV and live MCP blade source identity verified. No masks/bindings
   bound. LOG1135 mask CPU test:ordinary mips bleed fromlevel3; conservative mips
   contain bleed but erase distant metal. Agent inspecting existing DDS ingestion
-  preservation adapter/test only; root owns integration. No runtime acceptance.
+  preservation adapter/test implemented LOG1136:7Python/fourbuilds/1167tests x3 pass.
+  Next load updated existing extension preserving project,typed DDS fixture ingest.
+  Generic failures callback timeout and dangling enum;not DDS rejection.
+  Source fixture scalar-mip-fixture-a; no runtime/binding acceptance.
   Evidence weapon-used-uv-a. Shield absent from current Toolkit stage.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.

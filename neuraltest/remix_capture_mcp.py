@@ -8,7 +8,78 @@ import hashlib
 import json
 import math
 import re
+import struct
 from pathlib import Path
+
+
+def scalar_dds_mip_probe(source_file, semantic, project_file=None, ingested_file=None):
+    """Read-only authored-chain check; does not ingest, create metadata or bind.
+
+    BC4_UNORM has no sRGB variant. Material linear sampling remains a separate
+    typed-binding check; byte preservation alone does not establish that state.
+    """
+    if semantic not in ('ROUGHNESS', 'METALLIC'):
+        raise ValueError('Scalar semantic required')
+
+    def inspect(path):
+        path = Path(path)
+        if not path.is_absolute() or path.suffix.lower() != '.dds' or not path.is_file():
+            raise ValueError('Existing absolute DDS required')
+        if not 148 <= path.stat().st_size <= 64 * 1024 * 1024:
+            raise ValueError('DDS extent bound')
+        data = path.read_bytes()
+        if data[:4] != b'DDS ' or struct.unpack_from('<I', data, 4)[0] != 124:
+            raise ValueError('DDS header required')
+        height, width = struct.unpack_from('<II', data, 12)
+        flags = struct.unpack_from('<I', data, 8)[0]
+        caps = struct.unpack_from('<I', data, 108)[0]
+        if flags & 0x21007 != 0x21007 or caps & 0x401008 != 0x401008 or struct.unpack_from('<I', data, 80)[0] != 4:
+            raise ValueError('Declared texture, mip chain and FourCC flags required')
+        mip_count = struct.unpack_from('<I', data, 28)[0]
+        if not width or not height or width > 16384 or height > 16384:
+            raise ValueError('DDS dimensions bound')
+        if mip_count != max(width, height).bit_length():
+            raise ValueError('Complete mip chain required')
+        if struct.unpack_from('<I', data, 76)[0] != 32 or data[84:88] != b'DX10':
+            raise ValueError('Explicit DX10 BC4_UNORM required')
+        dxgi, dimension, misc, array_size, misc2 = struct.unpack_from('<5I', data, 128)
+        if (dxgi, dimension, misc, array_size, misc2) != (80, 3, 0, 1, 0):
+            raise ValueError('Single 2D BC4_UNORM linear scalar required')
+        if struct.unpack_from('<I', data, 112)[0] != 0 or struct.unpack_from('<I', data, 24)[0] not in (0, 1):
+            raise ValueError('No cube or volume DDS')
+        offset = 148
+        mips = []
+        for level in range(mip_count):
+            w, h = max(1, width >> level), max(1, height >> level)
+            size = ((w + 3) // 4) * ((h + 3) // 4) * 8
+            if offset + size > len(data):
+                raise ValueError('Truncated mip payload')
+            mips.append(dict(level=level, width=w, height=h, bytes=size,
+                             sha256=hashlib.sha256(data[offset:offset + size]).hexdigest()))
+            offset += size
+        if offset != len(data):
+            raise ValueError('Trailing DDS payload')
+        return dict(path=str(path), sha256=hashlib.sha256(data).hexdigest(),
+                    format='BC4_UNORM', mips=mips)
+
+    source = inspect(source_file)
+    result = dict(source=source, semantic=semantic, read_only=True,
+                  pipeline_preservation_proven=False, linear_binding_verified=False)
+    if ingested_file is not None:
+        if project_file is None:
+            raise ValueError('Saved project required for output check')
+        project, target = Path(project_file), Path(ingested_file)
+        if not project.is_absolute() or not project.is_file():
+            raise ValueError('Saved absolute project required')
+        allowed = (project.parent / 'assets/ingested').resolve()
+        if allowed not in target.resolve().parents or target.resolve() == Path(source_file).resolve():
+            raise ValueError('Separate ingested project output required')
+        suffix = '.m.rtex.dds' if semantic == 'METALLIC' else '.r.rtex.dds'
+        if not target.name.endswith(suffix) or not Path(str(target) + '.meta').is_file():
+            raise ValueError('Typed ingested DDS and existing metadata required')
+        output = inspect(target)
+        result.update(output=output, all_mips_byte_identical=source['mips'] == output['mips'])
+    return result
 
 
 def displacement_request(shader_path, displace_in=None, displace_out=None):
@@ -89,7 +160,86 @@ def ingestion_request(project_file, request_json, semantic='DIFFUSE'):
     return body
 
 
+def scalar_dds_ingestion_request(project_file, request_json, semantic):
+    project = Path(project_file)
+    if not project.is_absolute() or not project.is_file():
+        raise ValueError('Saved absolute project required')
+    body = json.loads(request_json)
+    if body['context_plugin']['name'] != 'TextureImporter':
+        raise ValueError('Existing TextureImporter required')
+    data = body['context_plugin']['data']
+    files = data['input_files']
+    if len(files) != 1 or len(files[0]) != 2 or files[0][1] != semantic:
+        raise ValueError('Exactly one scalar DDS semantic required')
+    probe = scalar_dds_mip_probe(files[0][0], semantic)
+    source = Path(files[0][0]).resolve()
+    output = Path(data['output_directory'])
+    if not output.is_absolute():
+        raise ValueError('Absolute output required')
+    output = output.resolve()
+    allowed = (project.parent / 'assets/ingested').resolve()
+    if output == allowed or allowed not in output.parents or source == output or output in source.parents:
+        raise ValueError('Separate isolated project output required')
+    if output.exists() and (not output.is_dir() or any(output.iterdir())):
+        raise ValueError('Output must be fresh and empty')
+    def preserve(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key == 'cleanup_input' and child is not False:
+                    raise ValueError('Input cleanup forbidden')
+                preserve(child)
+        elif isinstance(value, list):
+            for child in value:
+                preserve(child)
+    preserve(body)
+    body['executor'] = 0
+    return body, probe
+
+
 def register(mcp):
+    @mcp.tool(name='flycast_ingest_scalar_dds_current_process')
+    async def ingest_scalar_dds_current_process(request_json: str, semantic: str) -> dict:
+        """Test existing scalar DDS ingestion; verify authored mips, never bind or fabricate metadata."""
+        import omni.usd
+        import httpx
+        from omni.services.core import main
+        stage = omni.usd.get_context().get_stage()
+        if stage is None:
+            raise ValueError('Open intended project first')
+        project = stage.GetRootLayer().realPath
+        body, before = scalar_dds_ingestion_request(project, request_json, semantic)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.get_app()),
+                                     base_url='http://fastapi', timeout=120) as client:
+            response = await client.post('/ingestcraft/mass-validator/queue/material', json=body)
+            response.raise_for_status()
+            service_result = response.json()
+        source = before['source']['path']
+        if scalar_dds_mip_probe(source, semantic)['source']['sha256'] != before['source']['sha256']:
+            raise ValueError('Ingestion changed source DDS')
+        output = Path(body['context_plugin']['data']['output_directory']).resolve()
+        checks = []
+        candidates = list(output.rglob('*.dds')) if output.is_dir() else []
+        if len(candidates) > 32:
+            raise ValueError('Unexpected DDS output count')
+        for candidate in candidates:
+            if output not in candidate.resolve().parents:
+                raise ValueError('Output escaped isolated directory')
+            try:
+                check = scalar_dds_mip_probe(source, semantic, project, str(candidate))
+            except ValueError as exc:
+                check = dict(path=str(candidate), all_mips_byte_identical=False, error=str(exc))
+            checks.append(check)
+        preserved = len(checks) == 1 and checks[0].get('all_mips_byte_identical', False)
+        return dict(result=service_result, executor=0, bound=False, source=before['source'],
+                    checks=checks, preservation_verified=preserved,
+                    disposition='preserved_fixture_only' if preserved else 'rejected_unproven_mip_preservation',
+                    linear_binding_verified=False)
+
+    @mcp.tool(name='flycast_probe_scalar_dds_mips')
+    async def probe_scalar_dds_mips(source_file: str, semantic: str, project_file: str = None, ingested_file: str = None) -> dict:
+        """Read-only scalar DDS mip validation; never ingests, binds or creates metadata."""
+        return scalar_dds_mip_probe(source_file, semantic, project_file, ingested_file)
+
     async def ingest_current_process(request_json, semantic):
         """Ingest one diffuse through Toolkit's existing API, avoiding broken enum refs.
 

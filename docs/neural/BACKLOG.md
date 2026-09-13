@@ -542,7 +542,11 @@ world137/154 unchanged. Weapon source5900 UV evidence and live MCP blade texture
 identity pass. LOG1135 actual diagnostic mask leaks with ordinary mips from level3;
 conservative mips prevent CPU bilinear bleed but erase distant metal from level4.
 No acceptance/binding. Next prove authored scalar DDS mip preservation through
-existing MCP adapter before controlled runtime test; do not disable mipmaps;
+existing MCP adapter before controlled runtime test; do not disable mipmaps.
+LOG1136 typed scalar DDS adapter implemented,7Python tests/fourbuilds/1167selftests x3
+pass. Generic attempts failed subprocess callback and dangling enum schema, not
+proven DDS rejection. Next load existing extension and one typed fixture ingest;
+verify every mip and legitimate metadata before binding;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
