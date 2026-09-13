@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1149. This is a summary
+Updated 2026-09-13, evidence through LOG1151. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,11 +64,13 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** blended-alpha active-attack interval review (LOG1148;
-300-frame integrity complete, late brow/eye shading still open), then capture-free end-to-end timing with the reviewed
-configuration. Earlier LOG1107 exported-cutout aggregate adds0.32..0.35ms across
-26poses; native rejected draw/other worker stages remain outside this measurement. Do not turn generation or capture activity
-into a completion milestone without its acceptance evidence.
+**Next deliverable:** attribute blended-alpha returned-output stalls from existing
+worker/host logs (LOG1151), then a targeted correction or matched confirmation.
+Both capture-free runs completed1200 identical source IDs; median about11.2ms,
+but returned repeats46->143 and p99 19.37->20.82ms. No candidate promotion or
+60fps acceptance. Moving300-frame integrity complete; sampled neck/fringe improvement
+and late brow/eye shading remain separate from full appearance acceptance.
+Preserve liked arena/floor while resolving character response.
 
 | Forecast | Target date / confidence | Basis and next revision |
 | --- | --- | --- |

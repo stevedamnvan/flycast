@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1151 capture-free alpha route comparison completed; candidate not promoted.
+Evidence C:/Flycast-Evidence/alpha-route-benchmark-b/comparison.json. Both runs
+terminal0, baseline exact, orderly host shutdown [0,11], synchronous_capture=false,
+1200 samples over identical sources5302..6501, normal640x480 with normal-effects.
+Cutout versus blended present p50/p95/p99 ms:11.1949/15.9754/19.371 versus
+11.1751/16.7865/20.8175. Median wall ms/emulated submission11.193 versus11.175.
+Both1200 remake presentations, zero missing/identity mismatches/source gaps.
+Returned output repeats46 versus143; accepted evaluations1154 versus1056;
+mean/max latency frames3.833/5 versus3.762/7. Similar median is not equal fresh
+output throughput: candidate needs investigation before promotion. One sequential
+pair cannot establish causal cost or statistical significance. Host owned objects
+initial/final1102/1186 versus989/1184, growth84 versus195; differing initial
+populations prevent a leak claim. Host VRAM growth -145358848/-146214912 bytes.
+No native speed reference, OIT matrix, lifecycle or full-game acceptance here;
+supplied neural image-processing provenance remains independently unconfirmed.
+Next attribute blended returned-output stalls using existing worker/host logs,
+then one targeted measured correction or matched confirmation if logs lack
+attribution. Preserve liked arena/floor, provisional blended appearance, and late
+eye-band lighting investigation. No default/profile change or source build.
+
 LOG1150 explicit capture-free normal-effects benchmark entry enabled.
 alpha-route-benchmark-a preflight rejected before game launch: old normal-effects
 guard requiredCPU timing, while benchmark rejectsCPU timing. Failure retained.

@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1150; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1151; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
@@ -16,11 +16,12 @@ Full appearance/performance gates pending; no defaults promoted.
 
 Launcher correction: normal-effects now permits explicit validated
 capture-free benchmark warmup;35launcher tests/fourbuilds/1183selftests x3 pass.
-Fresh alpha-route-benchmark-b cutout running session65419/launcher31656; poll existing
-run, then launch prepared blended via run_one.py only after cutout terminal.
-First pair alpha-route-benchmark-a
-cutout preflight exited1 before game launch (CPU timing requirement conflict).
-Preserve failure. No benchmark yet measured; analyze after both fresh runs finish.
+alpha-route-benchmark-b COMPLETE: both terminal0/baselineexact,1200 samples each
+sources5302..6501, no synchronous capture. Cutout/blended p50 11.195/11.175ms,
+p99 19.371/20.818ms; returned repeats46/143, max latency5/7frames. No promotion.
+Next inspect existing worker/host logs for blended stalls before a targeted fix
+or justified confirmation. Full performance/native-relative gates remain open.
+First pair alpha-route-benchmark-a preflight failure preserved. No live benchmark.
 Late-face-stage-review:5595..5599 eye band already inreturnedimage; native/final
 stages change0faceROI pixels. Occlusion versus returned lighting still unresolved.
 
