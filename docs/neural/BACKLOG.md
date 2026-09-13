@@ -558,7 +558,10 @@ Next consume native submitted sorted triangle ranges under existing alpha gates,
 LOG1141 implemented with4builds/1175selftests x3. Live5400/5401 identity/Present/native
 invariants pass;5402busy fallback missing. Same5400 recovers15meshes/194triangles,
 104E0786cutout triangles,all35old meshes unchanged. Next complete-frame/moving
-contour review;diagnostic worker-busy gap remains. No wholehair/visual acceptance.
+contour review. LOG1142 bounded diagnostic100ms slot wait passes four builds and
+1183selftests x3; sorted-alpha-b completes5400..5402 with all capture checks passing,
+baselineexact. Short worker-busy gap resolved; next300-frame moving combat review.
+No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
 No strip reconstruction
 or claim every native draw eligible. Read-only MCP surface inspector verified.
 Retain weapon

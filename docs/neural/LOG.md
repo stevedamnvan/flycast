@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1142 bounded diagnostic feed wait restores complete short capture.
+DispatchForCapture waits for pending-slot ownership, preserving FIFO and caller
+ownership on timeout/cancellation; Stop/ResetAnchor wake waiters. API clamps to
+1000ms; renderer uses100ms only inside explicit bounded moving effect capture.
+Ordinary gameplay Dispatch remains nonblocking with native fallback. Four serial
+builds and1183selftests x3 pass at capture-feed-wait-build-a; focused tests cover
+timeout ownership, FIFO and Stop wakeup. Reset cancellation is not separately tested.
+shrine-normal-sorted-alpha-b completes5400..5402,3/3 requested sources,terminal0,
+baselineexact. capture-audit.json reports no errors: v3 archives, helper receipt,
+producer/Present identity and protected native pixels pass. Prior missing5402
+now captured. Root inspected5402 composite: character lighting/hair still need
+visual work; no appearance or performance acceptance. Next300-frame moving
+combat review of sorted-alpha recovery at full capture quality; preserve previous
+failure evidence and all full-remaster gates.
+
 LOG1141 sorted translucent export corrected and same-source recovery proved.
 BuildRemakeViewScene now consumes captured sortedTriangles indexed triples by
 polyIndex for eligible vertexRange alpha draws. Preserves exact winding/order,

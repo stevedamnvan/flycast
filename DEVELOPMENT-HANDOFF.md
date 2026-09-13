@@ -3,10 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1141; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1142; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
+  LOG1142 diagnostic feed slot wait fourbuilds/1183selftests x3 pass.
+  shrine-normal-sorted-alpha-b completes5400..5402,3/3,all capture checks pass,
+  terminal0/baselineexact. Root viewed5402; character lighting/hair remain open.
+  Next300-frame moving sorted-alpha recovery review at full quality.
   Fourbuilds/1135selftests x3,43launcher tests pass. Live diagnostic exits0/11;
   sources5901..5903 full10.52MB archives/1.08MB wire,all v3/wire checks pass,
   native mismatches0.1200remake presents,85repeats,maxage5;not performance proof.

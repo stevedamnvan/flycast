@@ -3178,7 +3178,19 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
 	};
-	if(!remakeFeedWorker.Dispatch(std::move(job)))skip("feed","worker-busy-native-fallback");
+	const auto* captureStart=std::getenv("FLYCAST_REMAKE_COMPARE_START_FRAME");
+	const auto* captureEnd=std::getenv("FLYCAST_REMAKE_COMPARE_END_FRAME");
+	const bool captureQueueWait=job.captureScene&&captureStart&&*captureStart&&captureEnd&&*captureEnd
+		&&RemakeEffectEvidenceRequested()
+		&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
+		&&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0
+		&&RemakeComparisonEligible(captureStart,metadata.frameId,true)
+		&&RemakeComparisonBeforeEnd(captureEnd,metadata.frameId,true);
+	// Synchronous evidence may wait for queue space; gameplay retains nonblocking fallback.
+	const bool dispatched=captureQueueWait
+		?remakeFeedWorker.DispatchForCapture(std::move(job),std::chrono::milliseconds(100))
+		:remakeFeedWorker.Dispatch(std::move(job));
+	if(!dispatched)skip("feed",captureQueueWait?"capture-queue-timeout-native-fallback":"worker-busy-native-fallback");
 	} catch(const std::exception& error) {
 		remakeAsyncChannel.Close();remakeAsyncTextures.Reset();resetRemakeAsyncFrames();remakeAsyncStopped=true;
 		WARN_LOG(RENDERER,"Remake async feed stopped: %s; existing presentation retained",error.what());

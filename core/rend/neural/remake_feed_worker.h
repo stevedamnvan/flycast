@@ -79,7 +79,8 @@ struct RemakeFeedResult {
  double workerMs=0,packetMs=0,anchorMs=0,temporalMs=0,publishMs=0,curvedMs=0; // Diagnostic stage times inside the worker.
 };
 class RemakeFeedWorker {
- mutable std::mutex mutex;std::condition_variable wake;std::thread thread;
+ mutable std::mutex mutex;std::condition_variable wake,slotAvailable;std::thread thread;
+ std::uint64_t slotGeneration=0;
  std::optional<RemakeFeedJob> pending;bool busy=false,stop=false,resetAnchor=false;
  std::deque<RemakeFeedResult> results;
  RemakeChunkWorkers chunkWorkers; // Explicit owner, never a TLS destructor join.
@@ -260,7 +261,7 @@ class RemakeFeedWorker {
     if(stop)return;
     reset=resetAnchor;resetAnchor=false;
     if(!pending){if(reset)anchor.Reset();continue;}
-    job=std::move(*pending);pending.reset();busy=true;
+    job=std::move(*pending);pending.reset();busy=true;slotAvailable.notify_all();
    }
    if(reset)anchor.Reset();
    RemakeFeedResult result=process(job);
@@ -282,8 +283,8 @@ public:
   stop=false;thread=std::thread([this]{run();});
  }
  void Stop() {
-  {std::lock_guard<std::mutex> lock(mutex);stop=true;pending.reset();}
-  wake.notify_all();
+  {std::lock_guard<std::mutex> lock(mutex);stop=true;++slotGeneration;pending.reset();}
+  wake.notify_all();slotAvailable.notify_all();
   if(thread.joinable())thread.join();
   std::lock_guard<std::mutex> lock(mutex);results.clear();busy=false;thread=std::thread();
  }
@@ -297,10 +298,24 @@ public:
   }
   wake.notify_one();return true;
  }
+ // Explicit synchronous diagnostic capture only. Wait for slot ownership, not
+ // processing/completion. Timeout/cancellation never moves the caller's job.
+ bool DispatchForCapture(RemakeFeedJob&& job,std::chrono::milliseconds timeout) {
+  std::unique_lock<std::mutex> lock(mutex);
+  const auto generation=slotGeneration;
+  timeout=(std::max)(std::chrono::milliseconds(0),(std::min)(timeout,std::chrono::milliseconds(1000)));
+  if(stop||!thread.joinable()){++busySkips;return false;}
+  if(!slotAvailable.wait_for(lock,timeout,[&]{return stop||slotGeneration!=generation||!pending;})) {
+   ++busySkips;return false;
+  }
+  if(stop||slotGeneration!=generation){++busySkips;return false;}
+  pending=std::move(job);++dispatched;
+  lock.unlock();wake.notify_one();return true;
+ }
  // Retire the worker-owned anchor and any pending job (session or epoch change).
  void ResetAnchor() {
-  {std::lock_guard<std::mutex> lock(mutex);resetAnchor=true;pending.reset();}
-  wake.notify_one();
+  {std::lock_guard<std::mutex> lock(mutex);resetAnchor=true;++slotGeneration;pending.reset();}
+  wake.notify_one();slotAvailable.notify_all();
  }
  std::vector<RemakeFeedResult> Drain() {
   std::lock_guard<std::mutex> lock(mutex);
