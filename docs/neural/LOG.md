@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1168 current hair UV300 passes; one local PBRify draft generated, height held.
+late-face-uv-moving-a/audit.json and REPORT.md: all300 sources5300..5599 same
+DDS/decoded foundation, region present throughout, no other-triangle overlap or
+one-texel expanded overlap; malformed/nonfinite/degenerate/out-of-unit counts0.
+Base-level raster scope only, no full-game/mip semantic acceptance.
+current-hair-pbrify-a reused integration_pbrify.json through ComfyHTTP7860 with
+installed four local PBRify models; download nodes removed, no external API/tool
+nodes. One prompt c0517319-8b8c-429a-81ae-a1d4214aa67d succeeded,4required maps
+plus2workflow previews; paid API cost0. Source/workflow/model hashes cache recorded,
+no automatic retry. Four1024x1024 outputs copied/hashed; no ingestion/binding.
+Root viewed hair-maps-review.png: albedo strand detail clearer but baked bright band
+persists; height repeats it as ridge, rejected for hair relief binding. Other maps
+remain draft/unaccepted pending alpha/seam/channel checks and proper highlight
+correction. This is not delit appearance acceptance or completed material upgrade.
+Next address baked band without sacrificing alpha/UV; cached outputs must not rebill.
+
 LOG1167 current hair UV region bounded; old workflow is upscale, not delighting.
 late-face-uv-a/uv-audit.json source5597: six same-atlas meshes,184triangles wholly
 inside box117,187..179,248;12others. Rasterized hair union3545texels:1848opaque,
