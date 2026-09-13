@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1151; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1152; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
@@ -19,8 +19,10 @@ capture-free benchmark warmup;35launcher tests/fourbuilds/1183selftests x3 pass.
 alpha-route-benchmark-b COMPLETE: both terminal0/baselineexact,1200 samples each
 sources5302..6501, no synchronous capture. Cutout/blended p50 11.195/11.175ms,
 p99 19.371/20.818ms; returned repeats46/143, max latency5/7frames. No promotion.
-Next inspect existing worker/host logs for blended stalls before a targeted fix
-or justified confirmation. Full performance/native-relative gates remain open.
+LOG1152 existing logs attribute dominant growth to helper draw scope2.161->6.116ms.
+Next bounded inner timing: resource refresh, vertex upload, draw/state, retained copy.
+Both logs report undisposed common device objects; lifecycle gate remains open.
+Full performance/native-relative gates remain open.
 First pair alpha-route-benchmark-a preflight failure preserved. No live benchmark.
 Late-face-stage-review:5595..5599 eye band already inreturnedimage; native/final
 stages change0faceROI pixels. Occlusion versus returned lighting still unresolved.

@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1152 existing helper logs narrow alpha throughput regression to scene draw.
+alpha-route-benchmark-b/attribute_stalls.py and stall-attribution.json retain
+source-bounded5302..6501 statistics and six200-source windows. Helper published
+1153 cutout /1056 blended returns; every logged return published successfully.
+Helper draw median2.161->6.116ms, prepare2.183->3.072ms, color lock wait1.378->2.093ms;
+color copy0.0973->0.0973ms, depth conversion0.281->0.246ms, return0.322->0.324ms.
+Every window has fewer blended helper returns; not just one initial stall.
+Source remake_runtime_smoke.cpp691..719 shows draw_ms brackets legacyScene.Draw
+plus logging; this includes resource updates, vertex upload, driver submission,
+light work and retained packet copy. It is CPU elapsed scope, not pure GPU timing.
+No single inner cause proven. Next bounded inner draw timing distinguishes resource
+refresh, vertex uploads, draw/state calls and retained copy before optimization.
+Both helper logs also report common device objects not disposed at shutdown;
+orderly process exit is not lifecycle acceptance. Preserve this open gate.
+No new runtime run or source modification; no candidate/default promotion.
+
 LOG1151 capture-free alpha route comparison completed; candidate not promoted.
 Evidence C:/Flycast-Evidence/alpha-route-benchmark-b/comparison.json. Both runs
 terminal0, baseline exact, orderly host shutdown [0,11], synchronous_capture=false,
