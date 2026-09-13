@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1043 mip pixel inspection and bias negative control.
+Decoded every original256 DDS mip and ingested original-art DDS mip using
+verified RGBA/BGRA masks, exact file bounds. Base pixels exact; lower mip MAE
+modest (tile14 max8.75, tile15 max1.688), no corrupt/missing chain found.
+Same fixed5301/source replacement test with private rtx.nativeMipBias=-2
+completed0; runtime logged option. Viewed image remains very blurry, no visible
+recovery. Do not ship bias change or claim chosen mip from config parsing.
+Source-control layer detached and baseline exact. Evidence shrine-sampling-a
+mip-pixel-audit.json, mip2 pairs, source-mip-minus2.bmp/log/receipts. Next inspect
+replacement texture streaming/resident mip availability and actual sampler
+selection; no regeneration. Original-art replacement control remains key
+regression evidence. Moving/lighting/appearance gates stay open.
+
 LOG1042 original-art replacement control isolates tile softness to path.
 CPU source/candidate downsample comparisons retain detail/layout (MAE3.712/2.168);
 source DDS256 has9mips, candidate1024 has11. No missing mip chain diagnosis.

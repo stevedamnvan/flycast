@@ -1,9 +1,9 @@
-Current checkpoint LOG1042: original256 tile artwork ingested RGBA exact and
-bound in separate control layer also renders markedly blurry. Exit0, layer
-detached and baseline exact. Generation not sole cause; next replacement
-sampler/mip selection isolation, no regeneration or normals to hide softness.
-Source256 has9mips/candidate1024 has11. Evidence shrine-sampling-a. All parent
-processes terminal. MCP8002 currently Shrine capture, workfile unsaved.
+Current checkpoint LOG1043: original-art DDS mip pixels valid, base exact and
+lower-level differences modest. Private nativeMipBias=-2 test exit0/logged,
+still blurry. Bias rejected, source-control layer removed, baseline exact.
+Next replacement texture streaming/resident mip and sampler inspection;
+no regeneration or normals to hide softness. shrine-sampling-a evidence.
+All parent processes terminal; MCP8002 Shrine capture remains unsaved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

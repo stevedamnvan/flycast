@@ -162,8 +162,9 @@ Resource cleanup warning remains open. LOG1041 tile diffuse candidates
 ingested/bound/rendered via MCP, detached and baseline exact. Floor smoother
 with lost apparent detail; not accepted. Next sampling/mip-response inspection
 LOG1042 ORIGINAL-art replacement also becomes markedly blurry; generation
-is not sole cause. Both DDS mip chains complete. Next isolate replacement
-sampler/mip selection before adding normals or regenerating. Lighting balance
+is not sole cause. LOG1043 mip pixels valid; private nativeMipBias=-2
+logged but no visible recovery, rejected. Next inspect replacement texture
+streaming/resident mips and actual sampler before normals or regeneration. Lighting balance
 and moving validation remain.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.
