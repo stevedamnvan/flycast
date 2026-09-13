@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1166 cached hair foundation mismatch verified; no transplant.
+Agent exact decoded current key0717f6309d9a78ed6809d22111fbe42306bae943b620331788fcb9fc5b4ed701
+matches nightmare-triangle-material-export-a runtime textureE0786D8691604967.dds,
+DDS SHA c2d080fa97a4d7f31db19dc64d2524890c550b848c4971ddcaf10e0d5917119d.
+Current source packet DDS has different container hash but decoded RGBA identical.
+Character ledger cached_maps empty for this identity. Earlier corrected hair uses
+26F0F098F66BA515; alpha differs59516/65536 pixels and edited UV.5,.5..75,.75 does
+not match current sampled hair bounds~.467,.730..696,.965. Prior preservation
+checks certify only that earlier foundation. Do not reuse old maps by character name.
+Toolkit MCP8002 live read-only flycast_inspect_surface verifies older26F shader
+composes pbrify8 albedo/roughness/normal, pbrify height, roughness0.7/metal0;
+old-foundation-mcp-surface.json retained. This does not prove those maps bind current
+E0786 source or establish runtime defaults. No layer, asset or setting changed.
+Next exact-foundation source/alpha/used-UV mask validation for current hair before
+one bounded existing-tool correction; no paid generation or map transplant.
+World coverage stays137/154; old WORLD-COVERAGE-GAPS prose130/24 is stale.
+
 LOG1165 late hair source-region audit and world coverage recount.
 late-face-surface-a/surface-inventory.json parses source5597 control packet and
 all7 prior input-XY candidates (not returned pixel owners). Six use texture269419008,
