@@ -1,4 +1,12 @@
-Current checkpoint LOG1071: explicit diagnostic received-packet persistence
+Current checkpoint LOG1072: Palgaea source6301 panel A/B/repeat each0, source
+packet exact/all48meshesowned and six identitiesverified. Floor response above
+repeatnoise5.489vs0.463, whole2.868vs0.430; viewed no clear visual gain. Candidate
+inactive/baselineexact. Evidence palgaea-panels-fresh-ab-a/comparison.jpg/json.
+Do not repeat still or roughness sweep. Next physical metal/coating mask
+correction then moving review; ten sources/six stage joins independently ready.
+GPU free. Full remaster, character lighting, lifecycle/performance remain open.
+
+Prior checkpoint LOG1071: explicit diagnostic received-packet persistence
 added to existing launcher/helper.32Python, four builds,1108selftests x3 pass,
 five invalid CLI cases rejected. Live full-world-palgaea-packet-c terminal0,
 received-view.bin saved source6301/sequence97,13753446bytes, baselineexact.

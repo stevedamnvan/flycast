@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1072 Palgaea exact-source panel A/B completes, no appearance promotion.
+received-view.bin SHA60217c249569ef605925d5e9fcc36e0dc8579ef3d4fd8cbb3ecbc318532fe362
+parses source6301/producer6300/epoch3;48/48 meshes own textures, all six candidate
+dimensions/format/payloads exact (DDS headers differ). Panels2590/2654.
+palgaea-panels-fresh-ab-a control/candidate/repeat each exit0, identical packet,
+helper/config/light settings. Existing opt-in layer activated through MCP only
+for candidate, then detached; baseline exact. Whole candidateMAE2.868 vs repeat
+0.430; bottom90rows5.489 vs0.463, upperstage0.830 vs0.425. Broad bands include
+other geometry and are not isolated material masks. Viewed both full images:
+floor response changes above repeat noise, but no clear studio-quality gain.
+Keep candidate inactive, technical response only; no moving/human acceptance.
+Do not repeat this still or sweep roughness constants. Next material-class/mask
+correction for convincing metal/coating response and moving test when the revised
+material is ready; independently continue ten generated-source joins across six
+prepared stages. Baseline character lighting/lifecycle/performance stay open.
+
 LOG1071 Owned diagnostic live-packet retention unblocks Palgaea same-source test.
 Bounded search109 evidence roots found no reusable panel packet; native TA
 material exports are not FTRV. Existing launcher now offers --save-received-packet

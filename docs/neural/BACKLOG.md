@@ -244,8 +244,11 @@ Two MCP BC4 roughness conversions exceeded conservative local check. LOG1070
 existing BGRA8 linear conversion exactly preserves both scalar maps; guarded
 MCP bindings saved in existing five-material opt-in layer, inactive/baseline exact.
 LOG1071 bounded109-root lookup found no reusable FTRV; explicit helper received-
-packet persistence added/tested, live source6301 saved baselineexact. Next verify
-owned texture identities then same-source panel test and moving review.
+packet persistence added/tested, live source6301 saved baselineexact. LOG1072
+48ownedmeshes/all six identities verified; panel control/candidate/repeat0,
+floor response above noise but no clear visual gain. Keep inactive, no repeat
+of this still/constant sweep. Next physical metal/coating mask correction before
+moving review; continue remaining stage joins independently.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack
