@@ -118,6 +118,11 @@ scene/appearance acceptance.
 LOG1029 face albedos2/6 ingested by MCP, DDS/PNG RGBA exact, no binding yet.
 Next single opt-in diffuse-only layer and same-source control/repeat/candidate;
 face normals/height remain unbound and no appearance gain accepted.
+LOG1030 binding attempt rejected: wrong authoring layer despite create request.
+Baseline disk restored exact; in-memory opinions unresolved. Do not save root/
+baseline. Next guarded explicit-layer binding/recovery in existing MCP before
+rendering; preserve pending edits. Full agents produced60 character/36 world
+candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded

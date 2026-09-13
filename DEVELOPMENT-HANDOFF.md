@@ -1,6 +1,17 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1029: two face albedos ingested, unbound.
+Current resume checkpoint: face binding attempt rejected; recovery required.
+MCP create_layer(set_edit_target=True), override_textures and save_layer returned
+OK but candidate layer stayed empty and mod.usda acquired two face overrides.
+No A/B render launched. Unexpected mod archived face-albedo-review-b/
+unexpected-mod-after-override.usda; exact known backup restored on disk to
+E3C097905777002034A4983A166E061A6278CA4D70DB9686F5DCD49F263E8340.
+Toolkit in-memory mod may still have those opinions: DO NOT SAVE baseline or
+project. MCP baseline lock rejected422 (locking sublayer not allowed); subsequent
+edit-target call did not execute. Do not assume guard installed. Need bounded MCP restore/reload or safe typed
+binding fix before further layer operations. Preserve unknown pending edits.
+No visual acceptance, no candidate binding promoted. Full texture agents continue.
+
 Four serial builds/1102x3 pass. scene-coverage-live-a JSON failure retained;
 corrected live-b terminal launcher0, two retained frames5430/5432 from request3.
 Both exact frame/mesh-ID census checks pass:47 nonempty draws,41 exported.

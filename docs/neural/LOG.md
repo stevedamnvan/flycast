@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1030 candidate texture binding rejected; baseline disk recovered.
+MCP create_layer(set_edit_target=True), override_textures and save returnedOK,
+but face_albedo_review_b.usda stayed empty and mod acquired two face overrides.
+No render launched. Archived unexpected mod in face-albedo-review-b. Exact
+known backup visual-regression-frozen-a/toolkit-recovery/mod-before.usda SHA
+E3C097905777002034A4983A166E061A6278CA4D70DB9686F5DCD49F263E8340
+restored on disk; in-memory baseline opinions may remain. Do not save project
+or baseline until reconciled. MCP lock_layer rejected422 (sublayer not allowed).
+Installed texture core uses stage.GetEditTarget at write; creation requested
+target but did not guarantee it at subsequent mutation. Removal exists in core
+via None, but service ReplaceTexturesRequestModel requires Path, so no callable
+removal route exposed. Need bounded typed target-explicit binding/recovery in
+existing MCP extension, with pre/post baseline checks, before repeating. No
+candidate promoted. User pending edits preserved; unknown root not saved.
+Agents completed15 character chains60 maps and9 world chains36 maps, local
+only. Astaroth visually identified in native3600, five clean atlases generated;
+requires exact runtime hash join. Generated maps remain candidates; painted-eye
+and baked-metal normals rejected, uncertain sampling foundations remain native.
+
 LOG1029 face albedo candidates ingested through existing Toolkit MCP.
 Local PBRify candidates from character agent, assets2/6 current exact identities,
 source-alpha-preserved PNGs. MCP8001 flycast_ingest_diffuse_current_process
