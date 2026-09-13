@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1019 (launcher diagnostic implementation).
+Current resume checkpoint LOG1020 (motion phase attribution).
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
@@ -9,8 +9,11 @@ no forced children; performance_eligible=false. Four serial builds and
 1092/0 selftests x3 pass; launcher tests28 pass. Evidence roots:
 C:/Flycast-Evidence/selective-cpu-diagnostic-build-a
 C:/Flycast-Evidence/validation-host-cadence-a
-Next H task: split retained-source motion preparation into record projection/
-hashing, matching and assembly; measure exact output parity before optimizing.
+Next H task: test bounded immutable-scene record reuse in the return worker.
+LOG1020 actual adjacent-packet benchmark: records2.360..2.426ms, matching~.005ms,
+assembly.430..517ms; five runs exact stream parity. Evidence motion-phase-timing-a.
+Preserve compatibility, exact matching and reactive/history gates; require parity
+and required source validation before eligible live measurement.
 Off-thread motion preparation median7.437ms; only7 render-thread rebuild
 samples. Do not sum nested timings or relax history/identity/reset policy.
 Preserve current arena/floor and welded normals. Face washout remains open;

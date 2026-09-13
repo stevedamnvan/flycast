@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1020 motion preparation phase benchmark isolates repeated record work.
+External-only instrumented copy of remake_motion_stream.h, MSVC/O2, actual
+adjacent retained source packets5434/5435 from practice-hit-hud-a/control.
+C:/Flycast-Evidence/motion-phase-timing-a retains source hashes, benchmark,
+commands and five process results. Each uses10 warmups/300 timed iterations;
+all exit0 with exact fieldwise vertex, index and aggregate output parity
+against the original implementation. Actual pair is temporally compatible,
+41 meshes/27570 output vertices. Record projection/hash2.360..2.426ms,
+matching0.00481..0.00539ms, assembly0.430..0.517ms. No production change.
+This is a CPU-only repeat of one pair, not the live7.437ms scope or FPS gain.
+Next bounded implementation candidate is worker-local immutable-scene record
+reuse, keyed by retained scene ownership (not hash-only identity), with bounded
+lifetime and unchanged compatibility/exact-match/reactivity/history gates.
+Test stale/new scene, changed camera/geometry, reset and rejection behavior;
+require stream parity before four builds/selftests and eligible live comparison.
+Initial standalone build attempts lacked core include and neural feature define;
+corrected in retained build.cmd, no source workaround. No rendering acceptance.
+
 LOG1019 supported selective-reuse CPU diagnostic completes.
 Added --diagnostic-selective-resource-refresh: requires anchored automatic
 capture-free CPU timing and rejects benchmark/capture reuse combinations.

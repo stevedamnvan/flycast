@@ -125,6 +125,11 @@ preparation median7.437ms off thread; render-thread rebuild only7 samples.
 Next bounded H work attributes projection/hash, matching and output assembly
 using retained sources before any cache change; require exact stream parity
 and preserve accepted-history gates. No FPS acceptance from instrumented timing.
+LOG1020 retained actual adjacent-packet benchmark isolates record work at
+2.360..2.426ms versus matching~0.005ms and assembly0.430..0.517ms; five runs
+have exact stream parity. Next test bounded worker-local immutable-scene record
+reuse, preserve all temporal/exact-match gates, then measure eligible live
+cadence only after required source validation. This is not an FPS gain.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.
