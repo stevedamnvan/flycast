@@ -1,11 +1,14 @@
-Current checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
+Current checkpoint LOG1056: native combat preflight exits0, three frames;
+attack visible but damage0 at distance. Add approach movement before moving
+material review. Evidence shrine-combat-timing-a. Character agent CPU work
+complete: seven fighters,50 sources,17 pending runtime joins. GPU released.
+
+Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.
 3renders0, visible response/artworkretained, baseline exact restored. Candidate
 shrine_roughness_review_a inactive, heightoff. Moving/humanacceptance pending.
 FacePNG pipeline LOG1054 valid but weakresponse; no stronger albedo sweep.
-Next movingmaterial review and targeted character lighting. Character agent
-owns GPU for prepared Maxi selection-first/native extraction; verify terminal
-before reclaiming. World agent CPU acceptance-ledger update. No new generation.
+Next movingmaterial review and targeted character lighting. Maxi extraction completed; character agent prepared next selector route. World agent CPU acceptance-ledger update. No new generation.
 Fullroster/costumes/alternate-scenes/lifecycle open;1280timings remain scoped.
 MCP8002 Shrine unsaved; old8001 stale state must not be saved.
 

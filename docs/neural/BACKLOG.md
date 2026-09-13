@@ -219,6 +219,9 @@ Shrine11 renderable runtime joins complete; zero-triangle draw excluded with
 evidence. Character agent audits roster/costume gaps CPU-only. Current local
 candidates60character/44world maps, none accepted; Astaroth runtime join open.
 Helper resource cleanup and full moving/performance acceptance remain open.
+LOG1056 native attack preflight exits0, three frames; damage0 at distance.
+Next verify approach/contact before moving material review. Seven fighters
+captured/50 character groups,17 pending runtime joins; costumes remain open.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded

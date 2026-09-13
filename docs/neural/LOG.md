@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG1056 combat-route preflight and character coverage reconciliation.
+shrine-combat-timing-a native capture exits0, sources5900..5902 retained.
+Viewed5901: Mitsurugi attack pose, Sophitia at distance, HUD MID/damage0/total0.
+This is attack execution, not contact or moving-material acceptance. Next add
+approach movement and verify contact before candidate review. Replay scheduler
+conditionally subtracts HLE boot cycles; raw producer-cycle comparison alone
+cannot establish old input timing. No material or Toolkit state changed.
+Character agent reports seven fighters captured,50 source groups,33 runtime
+aliases/17 pending joins; costumes unverified. Next selection-only route ready,
+actual portrait/name required before confirmation. Full roster remains open.
+
 LOG1055 documented scalar route verified and Shrine roughness integrated.
 Installed roughness importer uses BC4,gammafalse; installed MDL scalar lookup
 and retained public runtime roughnessSample.x support raw R. Unequal modelRGB
