@@ -1,9 +1,10 @@
-Current checkpoint LOG1040: Shrine runtime-export-b clean exit0 after optional
-startup/linger reduced15s each to1s each within unchanged30s watchdog. All26
-textures byte-exact to failed export. Resource40-object cleanup warning remains.
-World agent8 tile outputs terminal, GPU released; CPU QA pending. Next tile QA,
-MCP integration and moving lighting validation. No parent GPU job active.
-Evidence full-world-shrine-a/runtime-export-b; timing in existing Toolkit README.
+Current checkpoint LOG1041: two Shrine tile diffuse candidates tested through
+MCP8002, all three fixed-packet renders exit0. Candidate floor smoother/less
+apparent stone detail; not accepted. Layer detached, baseline mod byte-exact.
+Current8002 capture is Shrine imported0ced1bc5; workfile not saved. Preserve
+old8001 state. Next sampling/mip response inspection before normal additions,
+then moving lighting validation. Evidence shrine-tile-integration-a. All parent
+GPU jobs terminal; world agent QA complete11 candidates44maps, none accepted.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

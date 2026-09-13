@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1041 Shrine tile diffuse integration verified, appearance not accepted.
+Parent reviewed tile14 albedo/normal and both rendered tiles. Normals amplify
+veins/borders; no normal/height binding. MCP8002 ingests two alpha-preserved
+albedos; DDS1024 RGBA exact. Dry-run then import clean Shrine capture0ced1bc5
+with69 dependencies, project not saved. Current8002 capture is now Shrine.
+Candidate shrine_tile_review_a created beneath mod; guarded diffuse binds
+3ECB7533C7293862/27FC81EE306E691E. Candidate/control/repeat fixed5301+fill0.3
+all exit0. Candidate detached and saved parent restores exact baseline mod.
+Viewed floor: candidate smoother with reduced apparent stone detail; no quality
+promotion. MAE candidate/repeat whole6.480/0.262, floor13.640/0.201 proves effect,
+not improvement. Evidence shrine-tile-integration-a receipts/BMPs/comparison.
+World11 candidates/44 maps, none accepted. Next investigate texture sampling/
+mip response before normal additions or further generation; keep baseline.
+Moving validation and face lighting still open. No new runtime configuration.
+
 LOG1040 Shrine export timing correction completes cleanly.
 Prior script15s startup+15s linger consumed entire standalone30s watchdog
 before load/render/cleanup. Private runtime-export-b script uses1s each with
