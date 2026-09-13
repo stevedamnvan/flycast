@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1172. This is a summary
+Updated 2026-09-13, evidence through LOG1173. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -78,7 +78,8 @@ MCP current stage lacks E0786 shader; next activate/import matching capture thro
 existing MCP before opt-in binding and controlled comparison. LOG1171 import
 complete; current-process diffuse ingestion completed but compressed DDS changes
 42321 alpha texels: compressed output held. LOG1172 existing BGRA8 MCP export
-passes base-level RGBA exact; next isolated binding and same-source comparison.
+passes base-level RGBA exact. LOG1173 isolated MCP binding saved/muted, layer-off
+surface exact and baseline hash unchanged. Next managed same-source comparison.
 Appearance pending.
 No transplant. Fill pair5/5 passes but eye band remains;
 no lighting promotion or further blind sweep. Preserve current arena/floor.

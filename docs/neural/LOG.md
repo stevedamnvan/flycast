@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1173 exact-foundation hair candidate bound via MCP in opt-in layer.
+hair-band-correction-a/bind_mcp.py and per-operation JSON receipts retained.
+MCP8002 created layers/hair_band_current_a.usda under review workfile, bound
+validated BGRA8 diffuse to /RootNode/Looks/mat_E0786D8691604967/Shader, saved
+only candidate layer, inspected on, muted and inspected off. binding-validation:
+layer-off surface exact; baseline mod SHA remains
+e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340.
+Candidate currently muted; workfile not saved, baseline not changed. No roughness,
+normal, height, light or arena texture change. Shader opacity metadata comes from
+source capture through existing binding operation; runtime proof remains pending.
+Next prepare existing managed same-source capture lane with isolated runtime mod
+copy including candidate versus baseline, fixed fill and identical settings.
+Do not mistake Toolkit composed-input checks for rendered acceptance. Require
+matched baseline repeat, fixed-source still checks then moving review. All MCP
+calls terminal; no gameplay capture launched in this slice.
+
 LOG1172 existing MCP uncompressed hair ingestion passes base-level RGBA.
 Installed nvtt_export --help confirms bgra8. Existing diffuse ingestion request
 changed only diffuse conversion format bc7->bgra8 and fresh output directory

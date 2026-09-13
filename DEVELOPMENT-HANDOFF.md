@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1172; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1173; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1169 hair-band-correction-a completed one local Comfy output, cost0. Crop
@@ -15,7 +15,9 @@ activate/import matching capture via existing MCP, then opt-in comparison.
 LOG1171 matching capture imported via MCP8002. Diffuse ingestion completed but
 DDS alpha42321 texels differ: hold, no binding. Next lossless DDS export through
 existing tools. LOG1172 BGRA8 MCP export now passes base-level RGBA exact;
-next isolated binding and lighting-fixed same-source comparison.
+LOG1173 isolated layer layers/hair_band_current_a.usda saved/muted via MCP8002;
+layer-off surface exact, baseline hash unchanged. Next lighting-fixed managed
+same-source comparison with isolated runtime mod copy. No capture launched.
 All jobs terminal; baseline/layers unchanged.
 
 late-face-fill-direction-a BOTH COMPLETE5/5, input/native exact, terminal0/baselineexact.
