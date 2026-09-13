@@ -342,6 +342,26 @@ bool SerializeRemakeViewPacket(std::ostream& out,const remake::Packet& source,st
   ConstWire wire(out);writePacket(wire,source);wire.flush();require(bool(out),"view-wire-write");error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
+bool VerifyRemakeCaptureTransport(const remake::Packet& full,const remake::Packet& transport,std::string& error) {
+ try {
+  require(full.meshes.size()==transport.meshes.size(),"capture-link-mesh-count");
+  for(const auto& mesh:full.meshes)require(mesh.textureWire==remake::TextureWire::Carried,"capture-link-full-required");
+  std::ostringstream validated(std::ios::binary);
+  if(!SerializeRemakeViewPacket(validated,full,error))return false;
+  auto projected=full;
+  for(std::size_t i=0;i<projected.meshes.size();++i){
+   auto& mesh=projected.meshes[i];const auto mode=transport.meshes[i].textureWire;
+   require(mode==remake::TextureWire::Carried||mode==remake::TextureWire::Registered||mode==remake::TextureWire::Referenced,"capture-link-mode");
+   if(mode!=remake::TextureWire::Carried)require(mesh.texture.known&&mesh.material&&!mesh.material->sourceDdsBytes.empty(),"capture-link-texture-required");
+   mesh.textureWire=mode;
+   if(mode==remake::TextureWire::Referenced)mesh.material->sourceDdsBytes.clear();
+  }
+  std::ostringstream projectedWire{std::ios::binary},transportWire{std::ios::binary};
+  if(!SerializeRemakeViewPacket(projectedWire,projected,error)||!SerializeRemakeViewPacket(transportWire,transport,error))return false;
+  require(projectedWire.str()==transportWire.str(),"capture-link-wire-mismatch");
+  error.clear();return true;
+ }catch(const std::exception& e){error=e.what();return false;}
+}
 bool VerifyRemakeViewWireParity(const remake::Packet& source,std::string& error) {
  try {
   std::ostringstream actual(std::ios::binary),referenceWire(std::ios::binary);

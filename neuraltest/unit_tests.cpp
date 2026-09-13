@@ -813,6 +813,22 @@ int RunSelfTests()
 					"version5 wire retains texture carriage mode, identity and bytes");
 			}
 			suite.Expect(wireBytes[0]==wireBytes[1]+dds.size(),"referenced wire omits exactly the texture bytes");
+            {
+                auto full=first;full.meshes[0].textureWire=remake::TextureWire::Carried;
+                std::string why;
+                suite.Expect(VerifyRemakeCaptureTransport(full,first,why)&&VerifyRemakeCaptureTransport(full,second,why),"capture link preserves registered and referenced source projection");
+                auto changed=second;changed.meshes[0].vertices[0].u+=0.125f;
+                suite.Expect(!VerifyRemakeCaptureTransport(full,changed,why),"capture link rejects changed UV");
+                changed=second;++changed.meshes[0].texture.generation;
+                suite.Expect(!VerifyRemakeCaptureTransport(full,changed,why),"capture link rejects changed texture generation");
+                changed=second;++changed.producer.cycle;
+                suite.Expect(!VerifyRemakeCaptureTransport(full,changed,why),"capture link rejects changed producer cycle");
+                changed=second;changed.meshes.clear();
+                suite.Expect(!VerifyRemakeCaptureTransport(full,changed,why),"capture link rejects missing mesh");
+                suite.Expect(!VerifyRemakeCaptureTransport(second,second,why),"capture link requires full source bytes");
+                suite.Expect(full.meshes[0].material->sourceDdsBytes==dds&&full.meshes[0].textureWire==remake::TextureWire::Carried,"capture linkage does not modify full source");
+            }
+
 			std::ostringstream plain(std::ios::binary);std::string why;
 			suite.Expect(SerializeRemakeViewPacket(plain,packet,why)&&static_cast<unsigned char>(plain.str()[4])==1,
 				"carried textures keep the pre-version5 wire byte-identical");

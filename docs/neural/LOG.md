@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1125 capture linkage verifier foundation, no live capture behavior change.
+VerifyRemakeCaptureTransport validates a full carried packet, derives only the
+requested carried/registered/referenced texture modes, then requires exact
+serialized transport equality. Rejects absent full bytes, invalid modes, changes
+to serialized scene/source/texture fields. Full input remains unchanged. This
+is an archive linkage oracle, not permission to register/reuse texture identity
+or bypass channel receipt checks. Not yet wired to archive writer/reader/live feed.
+Seven new unit assertions exercise valid registration/reference, UV/generation/
+cycle/missing-mesh corruption, incomplete full packet and source preservation.
+Initial compile failed on local declaration; corrected names/braced construction.
+Four serial builds then1124selftests x3 pass; failure retained capture-link-build-a,
+passing evidence capture-link-build-b. No GPU run needed for unconnected oracle.
+Next add versioned archive linkage with negative controls before enabling capture
+reference transport. Preserve v1/v2 reading, complete texture bytes/alpha and
+both actual transport receipt and full archive verification; never substitute
+archive digest into a live receipt. Full capture quality remains mandatory.
+Character agent verified original pre-run seeds for remaining6: ready manifest
+C:/Flycast-Evidence/character-coverage-audit-c/remaining-six-acquisition-ready.json.
+Native-workspace/seed hashes match original receipts,not postrun defaults.
+Next bounded acquisition threshold3600 with retained opponent replay when GPUfree.
+
 LOG1124 Voldo runtime identity export resolves four pending materials.
 Verified existing replay/original seed, current host; character-voldo-runtime-a
 terminal0,baselineexact. Requested/actual5700,epoch3,ordinal5699,cycle20603739968.

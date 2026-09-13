@@ -506,7 +506,10 @@ LOG1124 Voldo source5700: four exactRGBA joins; independent ledger application
 complete:61/67, independently verified. Maxi applied57/67 previously verified. Six earlier opponent groups
 remain; no generation/visual approval inferred.
 Full-quality capture reference transport requires explicit verified archive linkage;
-proposal reviewed,not implemented,all current capture safeguards unchanged.
+LOG1125 linkage verifier foundation implemented/tested:fourbuilds,1124selftests
+x3,corruption controls. Not connected to runtime/archive yet. Next versioned
+archive verification before capture references;full quality/legacy reads retained.
+Remaining6seed provenance verified; existing3600route ready for acquisition.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

@@ -13,6 +13,9 @@ using RemakeTextureSent=std::function<bool(const remake::TextureIdentity&)>;
 bool BuildRemakeViewPacket(const RemakeViewScene&,const RemakeTextureReader&,remake::Packet&,std::string&,
  const RemakeTextureSent& sent={});
 bool SerializeRemakeViewPacket(std::ostream&,const remake::Packet&,std::string&);
+// Archive linkage oracle only; does not authorize live texture registration.
+// Full packet stays self-contained. Every non-texture wire byte must agree.
+bool VerifyRemakeCaptureTransport(const remake::Packet& full,const remake::Packet& transport,std::string&);
 // Harness-only parity oracle; retains the old copy-based writer, never used by live publication.
 bool VerifyRemakeViewWireParity(const remake::Packet&,std::string&);
 bool DeserializeRemakeViewPacket(std::istream&,remake::Packet&,std::string&);
