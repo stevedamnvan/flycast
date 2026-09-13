@@ -1,4 +1,10 @@
 Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
+Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
+17remaining (11no triangles/2offscreen in sampled native frame,4unresolved).
+Baselineexact/GPUfree. Castle38 preview decode exact; upstream/correspondence
+still unproven. PackageD two-input76MB albedo proposal awaits model-download
+approval; no new installation/inference. Continue independent completeness work.
+Historical checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 only graph paths, not dedicated de-lighting. Existing ledgers corrected in
 place,74output hashes preserved. Full PackageD requirement remains open.
 LOG1079 gamma audit found no demonstrated missing/double decode in eight actual
@@ -12,7 +18,7 @@ resolved, world136/154 with18remaining, baselineexact/GPUfree. World agent now
 classifies remaining12other-stage gaps CPU-only. Native Castle38 alpha127
 supports native hold; live OIT draw correspondence unresolved. No force promotion.
 Albedo report finds no documented76MB architecture/verified existing loader;
-author's Klein Space uses different weights. Capability gap remains open.
+author’s Klein Space uses different weights. Capability gap remains open.
 Default10character row captured; remaining10labels/unlocks/costumes unproven.
 Vertical selection probe Up/Down both retained Kilik/default row, terminal0;
 no extra row found in current seed. No more menu guessing. World agent owns

@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1082 remaining-world census classified and seventh fixed-packet join resolved.
+Ostrheinsburg5600 single fixed export terminal0,33DDS, exact source asset17
+maps91E19C70AC1F9582. Existing ledgers now137/154runtime matches,17remaining:
+11no restart-valid triangles in sampled native frame,2offscreen in sample,
+Castle38native/live correspondence unresolved,3water/lava/Money dynamic or
+missing-packet dependencies. Sample exclusions are not globally unused assets.
+Evidence world-texture-completion-b/fixed-export-final-gap-result.json and
+missing-world-other12-classification.json; baselineexact/GPUreleased.
+Castle38 direct independent B5G5R5A1 decode equals preview RGBA exactly, max0;
+raw SHA82c614149aaad29dcd6b6274486515e151a50117884fcdd34555ab6287a550b2.
+castle38-decoder-check.json proves no preview decoder mismatch, not upstream
+texture/upload correctness. Nativealpha127 retained; no opaque promotion.
+Concrete two-input76MB albedo compatibility/trial proposal added to PackageD
+queue, pending explicit model-download approval under AGENTS no-new-model rule.
+Only existing loader/core nodes, two outputs/no retries, retained maps, no paid
+API/binding/fallback installations. No generation executed or gate relaxed.
+
 LOG1081 six world runtime gaps resolved from retained owned packets, no gameplay
 recapture. Castle5300 and Proving6001 fixed exports both terminal0, baseline
 exact, GPU released. Exact payload joins: Castle29=40DEAECC05DCCD47,

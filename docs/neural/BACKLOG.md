@@ -278,11 +278,24 @@ LOG1080 primary-source recheck found separate76MB PBRFusion4 albedo weight;
 existing Comfy generator still depth/normal only. Agent checks documented
 compatibility read-only; no download/inference or de-lighting capability claim.
 LOG1081 six fixed-packet exact joins raise world coverage to136/154,18remaining.
+LOG1082 Ostr5600 fixed export adds91E19C70AC1F9582, now137/154,17remain:
+11no triangles/2offscreen in sampled native frame,4unresolved dynamic/alpha/
+packet dependencies. Sample exclusion is not global non-use. GPUfree/baselineexact.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.
 Albedo followup finds no documented architecture for exact76MB file; author's
 Klein demo uses a different model. No verified existing-loader route claimed.
+Bounded proposal pending explicit model-download approval: fetch only the
+76,038,936-byte PBRFusion4_Albedo.safetensors at the LOG1080 pinned revision
+and verify its SHA. Inspect with existing safetensors/Spandrel; stop if the
+installed loader cannot support it, no dependency changes or new node packs.
+If compatible, one albedo output each for existing 62BCD7B9D1AEBDB5 character
+atlas and78918ECF7600A708 floor, via existing ComfyHTTP core nodes; two outputs,
+no retries/variants, no paid API. Cache by source/model/settings hashes; preserve
+originals and PBRify normal/height, no binding before dimension/alpha/UV/seam
+and baked-light review. Local inference, outside gameplay; no automatic fallback
+to the4.32GB generator or FLUX/Klein. This proposal is not trial authorization.
 Next supported aligned de-lighting capability evaluation within existing tools;
 do not flip transfer curves, scale these as delit albedo or lower PackageD gates.
 Default10character slots covered; remaining labels need unlock/mode access audit.
