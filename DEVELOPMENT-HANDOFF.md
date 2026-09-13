@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1022 (first live cache replay).
+Current resume checkpoint LOG1023 (live cache pair complete).
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
@@ -9,7 +9,10 @@ no forced children; performance_eligible=false. Four serial builds and
 1092/0 selftests x3 pass; launcher tests28 pass. Evidence roots:
 C:/Flycast-Evidence/selective-cpu-diagnostic-build-a
 C:/Flycast-Evidence/validation-host-cadence-a
-Next H task: repeat eligible live cache replay at same denominator.
+Next H task: inspect capture-geometry classification against LOG908 history.
+Repeat motion-cache-live-b completes99.352% fresh, median17.3219ms, max5,
+zero identity errors, orderly exits. Stop unchanged repetitions; no clear live
+speedup. Output-own includes native effects and textures are already pooled.
 First motion-cache-live-a:99.259% fresh, present median17.2116ms, max latency5,
 zero identity mismatch, host0/helper11, no forced children. No clear live gain
 over prior quiet variability;60fps and full acceptance remain open.

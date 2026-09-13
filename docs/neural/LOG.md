@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1023 second live motion-cache replay confirms freshness, no clear speedup.
+C:/Flycast-Evidence/motion-cache-live-b: same binaries/flags/seed denominator
+as LOG1022. Preflight GPU11%, no game/helper, two engine samples no Toolkit
+activity above0.1%. Launcher0, host0/helper11, no forced children; eligible.
+1073/1080 steady fresh (99.352%),7 repeats/no other; zero identity mismatch.
+Full1200 presentP50/P95/P99=17.3219/20.8253/24.2567ms, latency mean3.977/max5.
+Pair medians17.212/17.322 versus earlier quiet17.611/17.241 overlap; do not
+claim isolated live speedup or60fps. Cache parity/CPU-only benefit is proven,
+full H acceptance remains open. Stop repeating this unchanged configuration.
+Source/history audit of next apparent output-own cost confirms it encloses
+native-effects composition (already corrected in LOG908); owned output textures
+already use a ring. Do not reimplement pooling or attribute2ms to the copy.
+Next H slice: inspect capture-geometry classification (~1.062ms diagnostic)
+for repeated work against existing LOG908 history before proposing a change.
+Character lighting/material response and full roster/level gates remain pending.
+
 LOG1022 first live motion-cache replay preserves bounded freshness.
 C:/Flycast-Evidence/motion-cache-live-a uses current automation host SHA
 021ea3f0b8125cfbc7c7d26572b5f154090ce2a80d6fddd70051ed337c11fb15,

@@ -138,7 +138,11 @@ No live gain,60fps or visual acceptance is claimed by this microbenchmark.
 LOG1022 first eligible cached live replay preserves99.259% freshness, max
 latency5, zero identity mismatches, orderly host0/helper11. Present median
 17.2116ms is close to quiet control variability; no isolated live speedup.
-Next repeat same denominator, then choose remaining host cost from evidence.
+LOG1023 repeat completes99.352% fresh, median17.3219ms, max latency5 and
+zero identity mismatch. Pair overlaps prior quiet timing; no live speedup.
+Stop unchanged repeats. Next inspect capture-geometry classification and
+existing LOG908 evidence before a source change; output-own includes native
+effects and already pools textures, so it is not a new2ms allocation target.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.
