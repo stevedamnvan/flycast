@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1050 late benchmark reaches stage but supplied host setup incomplete.
+shrine-streaming-benchmark-a/on terminal launcher0,host0/helper11, orderly.
+1200 samples begin source5902, no synchronous capture; all1200 presents native,
+zero accepted/remaster. Consumer reports NGX availability0 feature-initBAD00004.
+Root copied plain executable instead of existing supplied host dependencies;
+reject entire run for remaster performance. Feedback-off pair not dispatched.
+Next reuse verified supplied chain/config in fresh isolated pair and existing
+--benchmark-selective-resource-refresh; no binary inspection/download. Preserve
+failed attempt, telemetry, commands/hashes. Baseline mod remains exact.
+Idle ComfyUI queue verified empty; existing HTTP /free unloads cached models.
+Three Toolkit sessions preserved; their background load remains a confound.
+World agent finished10/10 visible Practice selector stages,154world identities
+including variants (235 total=154world+44character+37native effects/HUD).
+Seven clean missing sources prepared,28 potential local maps,zero attempts.
+Existing11world candidates unaccepted;37runtime joins. Hidden/alternate-view
+coverage and full-game acceptance remain open. See world external checkpoint.
+
 LOG1049 explicit late-stage capture-free benchmark route.
 Default launcher warmup2100+1200 samples can end before Shrine. Added bounded
 --benchmark-warmup2100..10000, requiring automatic managed anchored capture-free

@@ -188,7 +188,12 @@ memory/cadence validation and character direct-diffuse correction, preserving
 arena/floor. LOG1049 adds explicit capture-free benchmark warmup/fill to the
 existing launcher: requested warmup5900,1200samples; actual source IDs must
 prove stage scope. Defaults/capture guards unchanged, helper120s watchdog
-retained (host420s is not helper extension). Dry-run passes; live A/B pending. No default promotion. World ledger102sources through Valentine;
+retained (host420s is not helper extension). LOG1050 first live run reaches
+source5902 but all1200 presents native: plain host copy omitted supplied chain,
+NGX unavailable. Reject performance; paired off not dispatched. Next reuse
+verified supplied host/config and benchmark selective resource refresh, then
+fresh paired run. Preserve failed setup evidence. World visible selector census
+now10/10,154world identities incl variants; full hidden/alternate coverage open. No default promotion. World ledger102sources through Valentine;
 Harbor gameplay and remaining selector slots delegated, full coverage unproven.
 Shrine11 renderable runtime joins complete; zero-triangle draw excluded with
 evidence. Character agent audits roster/costume gaps CPU-only. Current local

@@ -1,12 +1,13 @@
-Current checkpoint LOG1049: explicit late benchmark warmup/fill implemented;
-30 launcher tests, four serial builds and1102 selftests x3 pass. Dry-run5900
-passes, no live benchmark yet. Helper120s watchdog unchanged; host420s does
-not extend it. Next paired feedback on/off capture-free run after world GPU
-release; verify actual sample source IDs cover Shrine and retain failures.
-Fresh three-pose comparisons LOG1048 retain detail but do not accept appearance.
-Character direct-diffuse correction remains critical. World agent still owns
-GPU for remaining routes (Harbor/Money Pit done); use external ledger for latest
-counts. MCP8002 Shrine unsaved; old8001 stale state must not be saved.
+Current checkpoint LOG1050: late benchmark window reaches source5902, but
+all1200 presents native because root copied plain executable without supplied
+runtime chain. NGX availability0/BAD00004; terminal0/11 orderly. Reject run,
+do not execute prepared off pair. Next reuse verified supplied host/config
+and established benchmark selective refresh in NEW paired directories.
+No source bug/renderer regression inferred. Baseline exact; helper120s retained.
+World GPU released:10/10 visible Practice slots captured,154world sources;
+hidden/alternate views, runtime joins and appearance acceptance remain open.
+Character agent audits authoritative supplied host reuse CPU-only.
+MCP8002 Shrine unsaved; preserve old8001 stale pending state.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
