@@ -3,9 +3,15 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1117; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1118; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1118 normal refresh control TERMINAL0/11,all1200native/no previews.
+  Capture explicitly disables texture references:10.52MBpackets vs1.12MB
+  capture-free OIT. Helper refresh cannot fix host serialization. Next inspect
+  source-owned archive/cache and reduce capture transport cost while retaining
+  full saved-packet/digest identity. No more unchanged capture runs.
+  Evidence shrine-normal-integration-b/transport-audit.json;baselineexact.
 - LOG1117 existing late normal capture TERMINAL0/11, baselineexact, no previews;
   all1200measured presents native.162/478returns overage8. Feed publish18.76ms
   diagnostic median; selective refresh was off unlike OIT benchmarks. Next one

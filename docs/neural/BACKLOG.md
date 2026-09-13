@@ -478,6 +478,10 @@ LOG1117 existing3-frame late normal capture reaches5902..7101 but all1200native,
 no previews;162/478returns age>8. Feed publish median18.76ms diagnostic.
 Unlike OIT benchmark, selective refresh was off. Next controlled normal capture
 with existing selective refresh before attributing renderer cost; no new route.
+LOG1118 refresh control also1200native/zero previews. Source confirms capture
+disables texture references for self-contained archive/digest lineage: packet
+median10.52MB vs1.12MB capture-free OIT. Next capture transport/archive cost fix
+with full source identity preserved; no more unchanged captures or helper toggles.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

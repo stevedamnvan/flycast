@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1118 normal selective-refresh control fails; capture transport attribution.
+shrine-normal-integration-b terminal0/11, baselineexact, same5900capture bounds.
+All1200measured presents native,325accepted,zero previews. No normal visual pass.
+Diagnostic feed publish median20.22ms (a18.76),serialize11.73,digest8.24.
+Selective refresh only affects helper D3D9 resources; not packet serialization.
+Current DX11Renderer feed lines3070ff explicitly disable texture-reference
+transport whenever preview capture or locked input is enabled, preserving full
+saved-packet/digest lineage. Consumer5900..6201 median packet bytes:
+normal capturea/b10,522,482; capture-free OIT1280b1,120,150. Different renderer
+prevents claiming isolated speedup, but source confirms capture's transport
+policy difference. Audit files scope-audit.json and transport-audit.json.
+Next bounded engineering: preserve self-contained saved packet/source-digest
+identity while reducing capture transport serialization/copy cost; inspect
+existing source-owned archive/material cache before changing wire lineage.
+Alternative capture-free normal diagnostic can isolate presentation, but does
+not close visual gate. Do not rerun unchanged capture, toggle helper refresh,
+relax freshness/recovery, or call missing imagery accepted. No source changes.
+
 LOG1117 existing bounded normal diagnostic reaches Shrine but presents native.
 No launcher/source change required: --capture-frames3 --capture-start-source5900
 --capture-warmup5900 --normal-effects --cpu-timing --renderer dx11 uses existing
