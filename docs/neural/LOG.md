@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1164 late face fill-direction trial complete; not an eye-band correction.
+late-face-fill-direction-a control/mirrored both terminal0/baselineexact,5/5
+sources5595..5599 each, all capture integrity checks pass. comparison.json20stage
+rows: parsed packets exact, native head/floor/arenaRGB exact. Only fill X sign
+changed, same radiance. Final head medianMAE5.025,signed+2.875; floor2.158/+0.353,
+arena4.094/-2.019. Returned head4.799/+0.181. No same-setting noise repeat in this
+trial; small response cannot establish improvement or precise isolated light cost.
+Root inspected5597 final/native head pairs: mirrored fill does not remove dark
+brow/eye band, returned face/hair softer than native and hair remains broad panels.
+No global lighting promotion; preserve current arena/floor. Next inspect exact
+face/hair surface inputs and returned-image softening before another lighting sweep.
+World coverage followup delegated read-only to resource_reuse_review using existing
+ledgers/captures; no GPU work/generation, proposals only. Parent character priority
+retained. Both lighting runs finished; no live capture or benchmark.
+
 LOG1163 late face directional-fill attribution started; cleanup ownership guarded.
 Existing LOG545/1014 warns registered device/factory may be released by public
 Shutdown; do not add blind Release to raw pointers. Exact installed1.5.2 ownership

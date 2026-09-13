@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1163. This is a summary
+Updated 2026-09-13, evidence through LOG1164. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,9 +64,9 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** late-face directional-fill attribution (LOG1163), sources5595..5599.
-Control running; mirrored fill direction prepared. Preserve key/radiance/maps and
-liked arena. Compare exact inputs and returned eye-band response before correction.
+**Next deliverable:** inspect exact late face/hair surface inputs and returned-image
+softening (LOG1164). Fill-direction pair5/5 each passes integrity but eye band remains;
+no lighting promotion or further blind sweep. Preserve current arena/floor.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.
 Both capture-free runs completed1200 identical source IDs; median about11.2ms,
