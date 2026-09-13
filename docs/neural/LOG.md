@@ -1,5 +1,29 @@
 # Neural rendering evidence log
 
+LOG1076 Live metallic ingestion verified; whole-world census reconciled.
+Toolkit37292 refused graceful shutdown after saved review; nonforced MCP close
+403 pending changes. No force/discard. Preserved old8002 and other old sessions;
+new same installed Toolkit PID20436/8003 loads updated existing extension.
+MCP discovery confirms metallic tool, saved Castle review reopened. New8003 is
+authoritative; old8002 pending must not be saved/discarded. Restart/session
+receipts in metallic-mcp-extension-a. Source mask ingested via guarded METALLIC
+wrapper, linear BGRA8/256square:1540selected pixels, exact sourceR; DDS SHA
+64cbca6224f7ab1a1176b1e7e349067319558e369ca2ed936174eaca31400790.
+palgaea-metal-ingestion-b request/result/QA; baselineexact, unbound. Next activate
+existing Palgaea capture through8003, bind mask in same inactive opt-in layer,
+then bounded source6301 render review. Material classification remains hypothesis.
+Valentine terminal0:24DDS/13world, generated9199358701C0A1EC exact, exportsource
+5072 vs owned5900(59meshes). Money terminal1:required5900packet absent, lastsource
+4992; host0/helper11 orderly, no forcedchildren/baselineexact. Retained export4769
+valid23DDS/10world, carpetC1BE60C614F6EFA2 exact. No successful packet-run claim.
+Full154world ledger disjoint19generated candidates+134baseline-reused+1rejected.
+Reused134 includes50backdropUV,30UValpha,23delight/class,9mixedmask,19cached,
+3native dynamic.130/154runtime identities joined, all19generated candidates
+have identities,0appearanceaccepted. Eligible nongenerated batch empty; existing
+8job/30output batch already complete. Do not equate reuse/hold with remastered.
+world-texture-completion-b/whole-world154-reconciliation.json owns detailed rows.
+GPU released. Full character roster/costumes, appearance, performance remain open.
+
 LOG1075 Guarded metallic ingestion support and two further stage joins.
 Generic remix_ingest_material_asset rechecked with executor0: unresolved
 /components/schemas/Executors fails before conversion; receipt retained in

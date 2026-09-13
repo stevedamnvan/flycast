@@ -259,7 +259,14 @@ next classification review/MCP metallic ingestion then bounded render test.
 LOG1075 existing guarded MCP wrapper adds METALLIC, six tests/four builds/
 three selftests pass.8002 Castle review preserved; restart/load tool pending
 agent GPU release. Harbor/Proving each two sources joined, ownedpackets5901/6001;
-Valentine/Money serialized pending, two generated sources remain.
+LOG1076 Valentine joined with owned5900packet; Money retained export identity
+but packet acquisition failed (last4992<5900). All19generated have runtime joins.
+Fullworld154=19candidates+134baseline-reused+1rejected,130runtime identities,
+0appearanceaccepted; no eligible nongenerated batch. Holds require actual
+classification/UV/alpha/lighting work, not indiscriminate generation.
+Authoritative Toolkit20436/8003 now supports METALLIC; source mask ingested,
+exact256square scalarR, unbound. Old8002 pending preserved. Next guarded binding
+then source6301 review; do not silently count retained Money export as packet pass.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack

@@ -1,4 +1,14 @@
-Current checkpoint LOG1075: METALLIC semantic added to existing MCP ingestion
+Current checkpoint LOG1076: authoritative Toolkit PID20436/MCP8003 opened saved
+Castle review with metallic tool. Old37292/8002 refused nonforcedclose due pending
+changes; preserved, do not save/discard it. Source metallic mask ingested exactR
+256square1540pixels, unbound; palgaea-metal-ingestion-b. Next activate existing
+Palgaea import via8003, guarded mask binding same layer then source6301 review.
+Valentine full capture passed; Money export joined but requiredpacket absent,
+terminal1, no retry. Full154world=19generated candidates+134baseline-reused+1reject;
+130runtimejoins,0appearanceaccepted, no eligible nongenerated batch. Detailed
+world-texture-completion-b/whole-world154-reconciliation.json. GPU free.
+
+Prior checkpoint LOG1075: METALLIC semantic added to existing MCP ingestion
 wrapper, six focused tests/four builds/1108selftests x3 pass. Generic tool fails
 unresolved Executors ref (retained).8002 Castle review saved/backup in metallic-
 mcp-extension-a, baselineexact. Next restart authoritativePID37292/8002 after
