@@ -341,8 +341,11 @@ all native effects applied, zero HUD/world/backbuffer mismatches. Baselineexact.
 Four builds/1117selftests x3 passed for source c9ebf5b29. Appearance remains
 CORRECTIONS_REQUIRED: severe dark character regions and poor face readability
 versus native. No common-source baseline pair or performance acceptance.
-Next isolate dark character response using retained native/returned/composited
-images and exact bindings; preserve arena, no global exposure sweep.
+LOG1098 confirms dark regions already in returned image, extraction lane uses
+replacement-off/native-shading/no-fill, not full remaster look. LOG1038 already
+isolated this; no repeated fill sweep. Next restore exact review-lane layer,
+profile/fill/source provenance for full-look baseline repeat/candidate review.
+Inspect face/hair/body/weapon/arena; preserve arena, no global exposure sweep.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

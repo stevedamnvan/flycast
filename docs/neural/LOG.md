@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1098 review-lane provenance correction. Inspected source5301 returned image:
+dark character regions exist before native composition. Current extraction
+capture uses native-shading.conf, replacement disabled and no scene-fill.
+LOG1038 already attributed dark legs in this diagnostic setup and showed
+neutral fill helps legs but changes floor and leaves bright faces. Do not
+repeat that light sweep or mistake extraction images for full remaster A/B.
+LOG1097 appearance rejection stands for its actual diagnostic output, but is
+NOT evidence of regression in the saved remaster material stack. Neither fill
+nor new triangle candidate is visually accepted. Next full-look comparison
+must record layer/profile/fill/source provenance, baseline repeat noise and
+face/hair/body/weapon/arena inspection. Preserve accepted arena reference.
+Evidence character-nightmare-triangle30-a/review-lane-audit.json; no render,
+source, live profile or asset mutation. Goal remains active.
+
 LOG1097 live triangle footprint coverage verified, appearance CORRECTIONS_REQUIRED.
 Source c9ebf5b2935980e0180ec9a2b1ae42d66ca51364 pushed/fork verified.
 First character-nightmare-triangle-a run: launcher0/helper11 orderly shutdown,

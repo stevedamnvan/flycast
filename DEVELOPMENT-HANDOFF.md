@@ -18,8 +18,11 @@ promoted in24live captures5301..5329, native effects applied and all composition
 mismatches zero. Baselineexact/GPUfree. Visual CORRECTIONS_REQUIRED: severe dark
 character bodies/faces versus native. No exact common source with old stills;
 no appearance/performance acceptance. First3source capture empty, preserved.
-Next isolate dark character response from retained native/returned/composited
-and exact bindings, preserve arena/no exposure sweep. Evidence
+LOG1098: dark regions already in returned image; extraction lane is
+replacement-off/native-shading/no-fill. LOG1038 already isolates this. Do not
+call it a saved-remaster regression or repeat fill sweep. Next restore exact
+full-look layer/profile/fill/source provenance for baseline repeat/candidate
+and face/hair/body/weapon/arena review. Preserve arena. Evidence
 C:/Flycast-Evidence/character-nightmare-triangle30-a/verification.json.
 Historical LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
 unused atlas contamination; rectangle69.6percentmid vs covered30.4percent,
