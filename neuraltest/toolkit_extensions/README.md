@@ -77,3 +77,21 @@ same26 texture files as the timeout run. Keep the watchdog unchanged; retain
 export logs and verify files/terminal exit before claiming success. A successful
 exit does not close the separate undisposed-device-object warning. Use a fresh
 output directory for a corrected run and retain the failed evidence.
+
+### Image-processing input and scalar-map checks (LOG1053)
+
+Do not pass capture DDS files directly to ComfyUI LoadImage without decoded
+pixel equivalence proof. The installed loader first tries VideoFromFile;
+Pillow RGB/255 code is a fallback, not proof of the active decoding path.
+Two raw face DDS inputs produced a red/blue swap and alpha255->254 in the
+bounded core-node test. Both outputs were rejected before ingestion.
+Use the existing exact native PNG sources, verified against raw DDS pixels;
+keep alpha and dimensions exact and verify the requested RGB operation before
+Toolkit ingestion. Never infer correctness from successful node completion.
+
+PBRify roughness/height RGB outputs are not necessarily equal-channel scalar
+images. The installed Remix save node's linear setting does not reduce them
+to one channel. Record actual channel/transfer conventions and validate the
+runtime import before binding. Do not average channels, regenerate cached maps,
+or claim physical roughness solely from a grayscale-looking preview. Preserve
+raw outputs, source identity and baseline fallback while the convention is open.

@@ -200,7 +200,11 @@ lighting still open. Feedback-off stays explicit candidate, no default change. L
 errors. Both end same4.798GB host allocation; off grows0.542GB to that level,
 not a leak diagnosis. Longer lifecycle open. Vertex-brightness preservation
 control rejected globally: dark cheek/changed arena despite restored contrast.
-Next targeted character response; eight world PBRify jobs/30maps delegated. Preserve failed setup evidence. World visible selector census
+LOG1053 targeted skin adjustment outputs fail directDDS input RGB/alpha checks,
+rejected before ingestion; exact nativePNG face inputs found/verified. Next
+bounded albedo response from those verified inputs, no global lighting change.
+World8jobs/30maps complete, total19generated candidates/74maps. QA holds baked
+shading, carpet roughness, scalar channel/transfer; heightoff, accepted0. Preserve failed setup evidence. World visible selector census
 now10/10,154world identities incl variants; full hidden/alternate coverage open. No default promotion. World ledger102sources through Valentine;
 Harbor gameplay and remaining selector slots delegated, full coverage unproven.
 Shrine11 renderable runtime joins complete; zero-triangle draw excluded with

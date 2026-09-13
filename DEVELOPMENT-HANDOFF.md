@@ -1,12 +1,13 @@
-Current checkpoint LOG1052:1280 feedback pair completes,1200remaster presents
-each; on/off P50 16.377/16.501ms, off one repeat, identity0. Both end same
-4.798GB host allocation; growth alone not leak. No60fps/lifecycle acceptance.
-Vertex normalization control all3renders0, restores contrast but dark cheek
-and changed arena: rejected globally. Next targeted character material/light
-response and longer lifecycle. Feedback-off still explicit candidate only.
-World batch session60771 terminal0:8jobs/30maps complete, one attempt each,
-no failures/retries/paid cost. GPU released; agent CPU alpha/artifact QA pending.
-Baseline exact. MCP8002 Shrine unsaved; old8001 stale state must not be saved.
+Current checkpoint LOG1053: two deterministic skin-response outputs rejected
+before ingestion: direct DDS Comfy loader swaps R/B and alpha255->254. No
+runtime changes/retries. Exact nativePNG sources for both faces verified in
+character-texture-readiness-b/exact-face-png-source-proof.json. Next bounded
+albedo response from these inputs; no per-material textured diffuse multiplier
+proven in installed schema. Preserve failed character-material-response-a.
+1280streaming results LOG1052 stand; longer lifecycle/lighting open.
+World8jobs/30maps completed; total19world candidates/74maps, accepted0. Scalar
+channel/transfer and baked-shading QA holds, heightoff. GPU free; models cached.
+MCP8002 Shrine unsaved; old8001 stale state must not be saved. Baseline exact.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

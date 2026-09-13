@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1053 targeted skin response preparation catches DDS decoding failure.
+MCP8002 confirms face hashes91446E8A159E8C2F/0DCBE839C56F7DD2 bind only original
+Shrine diffuse DDS. Installed/public material audit finds no proven per-material
+textured-albedo multiplier; diffuse_color_constant is fallback, global scale
+and vertex controls are not skin-only solutions. No invented shader input.
+Two deterministic existing Comfy core-node15percent black blends completed,
+no learned generation/paid API; both fail pixel validation BEFORE ingestion.
+All65536alpha pixels255->254 in each; RGB resembles red/blue swap (Mits RGBscale
+MAE55.77 versus reversed-channel0.93). No retries/binding/runtime edits.
+Current LoadImage uses VideoFromFile before Pillow; do not infer fallback path.
+Agent verified native256PNG asset2/6 from pair-temple-validation byte-exact to
+raw DXGI28 face payload, alpha255; exact-face-png-source-proof.json. Next use
+these verified inputs for bounded skin-albedo response, preserving the failed
+outputs/attempt counts. Playbook updated with decoder and scalar-channel guard.
+World batch QA:19generated world candidates/74raw maps total, accepted0. New8
+alpha derivatives exact; Harbor14 remains baked-dark, carpet roughness follows
+print. Roughness RGBp95 spread4..9/255,max24..95; heightp95 5..7,max11..28.
+Scalar import conventions unresolved, so no automatic binding; all heightoff.
+Evidence character-material-response-a and world FULL-WORLD-BATCH-RESULT.md.
+
 LOG1052 higher-resolution streaming pair and vertex-lighting falsifier.
 shrine-streaming-benchmark-1280-a both1200samples source5902..7101, capture-free,
 terminal0/11 orderly,1200remaster presents each; feedback-on1200accepted/no
