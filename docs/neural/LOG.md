@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1083 root review found a range-space error in external gap classifiers.
+classify_missing_world.py and classify_other_world_gaps.py sliced scene.indices
+for every draw, including range_space=vertices. Native DX11 sorted translucency
+instead submits TRIANGLELIST ranges from sorted_triangles by poly_index
+(dx11_renderer.cpp4134 onward; pvr_scene_capture.cpp61 onward). Prior gap UV,
+triangle/offscreen and index-derived alpha claims are superseded pending full
+24identity correction. Exact137runtime texture joins are independent/unaffected.
+Root independent Castle5300 proof: sorted138 has13submitted triangles, U
+0.76953125..0.85546875,V0.8828125..0.98828125, vertexalpha127.139/140 have
+no submitted sorted entries, not proof their source geometry is nonexistent.
+Actual UV bounding rectangle644texels is entirely opaque constantRGBA
+(140,173,132,255). Prior top-left noisy-architecture sampling was wrong; full
+atlas noise is not the sampled surface. No physical material inference or
+force cutout promotion. Independent native vertexalpha127 and raw decode exact
+remain valid; live OIT ordinal correspondence still unproven. Evidence
+world-texture-completion-b/castle38-sorted-draw-root-check.json.
+World agent correcting classifiers and ledgers with preserved superseded
+reports; CPU-only. Do not reuse LOG1082 11zero/2offscreen split until corrected.
+Model approval remains pending; no generation/download. Baseline untouched.
+
 LOG1082 remaining-world census classified and seventh fixed-packet join resolved.
 Ostrheinsburg5600 single fixed export terminal0,33DDS, exact source asset17
 maps91E19C70AC1F9582. Existing ledgers now137/154runtime matches,17remaining:

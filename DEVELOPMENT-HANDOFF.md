@@ -1,5 +1,12 @@
 Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
+Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
+superseded because external classifiers mishandled sorted vertex ranges.
+World agent correcting all24original gap rows CPU-only. Castle38 sorted138
+actually samples constant opaqueRGBA140/173/132/255 with vertexalpha127;
+13submitted triangles. Preserve native translucency, no noisy-region inference.
+Model-download proposal still awaits approval. Baseline untouched/GPUfree.
+Historical LOG1082: world137/154runtime matches after Ostr5600 fixed export,
 17remaining (11no triangles/2offscreen in sampled native frame,4unresolved).
 Baselineexact/GPUfree. Castle38 preview decode exact; upstream/correspondence
 still unproven. PackageD two-input76MB albedo proposal awaits model-download

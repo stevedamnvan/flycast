@@ -281,6 +281,11 @@ LOG1081 six fixed-packet exact joins raise world coverage to136/154,18remaining.
 LOG1082 Ostr5600 fixed export adds91E19C70AC1F9582, now137/154,17remain:
 11no triangles/2offscreen in sampled native frame,4unresolved dynamic/alpha/
 packet dependencies. Sample exclusion is not global non-use. GPUfree/baselineexact.
+LOG1083 correction: geometry split above is superseded pending range-space
+repair. External classifiers incorrectly indexed sorted native vertex ranges;
+use actual submitted sorted TRIANGLELIST ranges.137exact texture aliases stay
+valid. Castle38 actually samples constant opaque texels with vertexalpha127,
+not the noisy atlas region. World agent re-audits all24original gap rows CPU-only.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.
