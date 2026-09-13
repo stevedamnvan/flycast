@@ -1,13 +1,12 @@
-Current checkpoint LOG1051: corrected supplied-chain feedback on/off benchmark
-both terminal0/11,1200remaster presents source5902..7101,0native/identity errors.
-640 P50=14.962/14.939ms, host VRAM growth0; no meaningful slowdown in this pair.
-Next1280 and longer lifecycle validation, then direct-diffuse character lighting.
-Feedback-off remains explicit candidate; no default/global acceptance. Toolkit
-background preserved and helper40-object cleanup warning persists. Supplied
-consumer contract evaluated, neural image processing independently unconfirmed.
-Failed plain-host attempt LOG1050 retained. Baseline mod exact. World agent CPU
-full154-material inventory; GPU currently root/released after pair. MCP8002
-Shrine unsaved; old8001 stale pending state must not be saved.
+Current checkpoint LOG1052:1280 feedback pair completes,1200remaster presents
+each; on/off P50 16.377/16.501ms, off one repeat, identity0. Both end same
+4.798GB host allocation; growth alone not leak. No60fps/lifecycle acceptance.
+Vertex normalization control all3renders0, restores contrast but dark cheek
+and changed arena: rejected globally. Next targeted character material/light
+response and longer lifecycle. Feedback-off still explicit candidate only.
+World batch session60771 terminal0:8jobs/30maps complete, one attempt each,
+no failures/retries/paid cost. GPU released; agent CPU alpha/artifact QA pending.
+Baseline exact. MCP8002 Shrine unsaved; old8001 stale state must not be saved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

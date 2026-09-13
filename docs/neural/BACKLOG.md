@@ -195,7 +195,12 @@ corrected supplied chain/benchmark selective refresh pair completes:1200/1200
 remaster presents in each, source5902..7101, no identity errors.640 P50 on/off
 14.962/14.939ms; host VRAM growth0. Background Toolkit activity and helper40
 undisposed objects remain. Next1280 and longer lifecycle check; character
-lighting still open. Feedback-off stays explicit candidate, no default change. Preserve failed setup evidence. World visible selector census
+lighting still open. Feedback-off stays explicit candidate, no default change. LOG1052
+1280 pair1200remaster each, on/off P50 16.377/16.501ms, off one repeat,0identity
+errors. Both end same4.798GB host allocation; off grows0.542GB to that level,
+not a leak diagnosis. Longer lifecycle open. Vertex-brightness preservation
+control rejected globally: dark cheek/changed arena despite restored contrast.
+Next targeted character response; eight world PBRify jobs/30maps delegated. Preserve failed setup evidence. World visible selector census
 now10/10,154world identities incl variants; full hidden/alternate coverage open. No default promotion. World ledger102sources through Valentine;
 Harbor gameplay and remaining selector slots delegated, full coverage unproven.
 Shrine11 renderable runtime joins complete; zero-triangle draw excluded with

@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG1052 higher-resolution streaming pair and vertex-lighting falsifier.
+shrine-streaming-benchmark-1280-a both1200samples source5902..7101, capture-free,
+terminal0/11 orderly,1200remaster presents each; feedback-on1200accepted/no
+repeats, off1199accepted/one output repeat; identity errors0, maxlatency4.
+Present P50 on/off16.377/16.501ms; P95 22.465/19.919; P99 23.928/23.302.
+Small median difference, no established speed gain; tails exceed16.67ms.
+Host final VRAM identical4797730816bytes: on growth0, off542126080bytes.
+Owned objects on202->202, off198->202, maximum202 both. This bounded allocation
+rise is not runaway/leak proof; longer lifecycle remains open. Background
+Toolkit preserved, helper40-object warning and independent neural-image proof
+still pending. Effective feedback options and exact baseline verified.
+character-vertex-lighting-a: public Remix options describe vertex colour
+brightness normalization (main rtx_options.h338-343; installed behavior tested
+separately). Same5908 control/preserve/repeat all exit0, optionFalse logged.
+MAE12.578 vsrepeat0.846. Viewed full pair and enlarged face crops: some contrast
+returns but overly dark cheek and changed architecture. REJECTED_AS_GLOBAL_
+LIGHTING_FIX; do not promote retained baked brightness or call it recovered
+physical lighting. No source/default/material edits. Hypothesis/source URL
+and evidence retained. Next targeted character material/light response,
+longer lifecycle; world session60771 terminal0,8jobs/30outputs complete, one
+attempt each, no failures/retries/paid cost. GPU released; CPU QA pending.
+
 LOG1051 corrected supplied-host paired streaming benchmark,640x480.
 shrine-streaming-benchmark-b reuses hash-verified6 supplied files from
 motion-cache-live-b plus current automation executable and Shrine seed/replay.
