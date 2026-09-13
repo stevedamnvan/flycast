@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1152. This is a summary
+Updated 2026-09-13, evidence through LOG1153. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,7 +64,8 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** bounded inner helper draw timing (LOG1152): distinguish
+**Next deliverable:** complete alpha-draw-scopes-a (LOG1153), blended then cutout,
+using implemented inner helper timing to distinguish
 resource refresh, vertex uploads, draw/state calls and retained packet copy.
 Existing logs place median draw growth at2.161->6.116ms; copy/return costs similar.
 Both capture-free runs completed1200 identical source IDs; median about11.2ms,

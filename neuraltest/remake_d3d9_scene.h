@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <chrono>
 
 namespace neuraltest::remake {
 // Immutable shared texture source bytes. A Referenced mesh (D-212) carries no
@@ -133,6 +134,12 @@ class D3D9PacketScene {
   return offset==data.size()?S_OK:E_INVALIDARG;
  }
  HRESULT DrawInternal(const Packet& packet) {
+  // Host elapsed scopes include driver waits; these are not GPU timestamps.
+  using Clock=std::chrono::steady_clock;
+  auto checkpoint=Clock::now();
+  const auto elapsed=[&](){const auto now=Clock::now();const double ms=std::chrono::duration<double,std::milli>(now-checkpoint).count();checkpoint=now;return ms;};
+  double uploadMs=0,stateMs=0,primitiveMs=0;
+
   if(!device_||!api_.CreateLight||!api_.DestroyLight||!api_.DrawLightInstance||!ReadyForDiagnosticAdapter(packet,packet.frame,packet.game,true).ok)return E_INVALIDARG;
   const auto fixedDirection=anchoredLight_?anchoredLightDirection_.Select(packet,
    templeLightRig_?std::optional<Vec3>{TempleLightDirection(packet.camera,false)}:authoredDirection_):std::optional<Vec3>{};
@@ -144,6 +151,7 @@ class D3D9PacketScene {
    ||(mesh.textureWire==TextureWire::Referenced&&!ResolveReference(mesh)))return E_INVALIDARG;
   for(const auto& mesh:packet.meshes)if(mesh.sourceAlphaReference&&!cutoutShader_)
    if(FAILED(CreateLegacyCutoutShader(device_,&cutoutShader_)))return E_FAIL;
+  const double validationMs=elapsed();
   if(ready_ && packet.frame!=previous_.frame && !DiagnosticContinuation(previous_,packet)) {
    const bool regenerated=allowSkippedSources_&&AnchorGenerationChange(previous_,packet);
    if(!regenerated&&(!allowSkippedSources_||!AsyncSourceContinuation(previous_,packet)))return E_INVALIDARG;
@@ -234,6 +242,7 @@ class D3D9PacketScene {
    // Capture directories may differ; resource reuse requires exact source bytes.
    if(!SameTexture(m,textureBytes_[i]))return E_INVALIDARG;
   }
+  const double resourcesMs=elapsed();
   const auto& c=packet.camera;
   D3DMATRIX identity{};identity._11=identity._22=identity._33=identity._44=1;
   D3DMATRIX view{};view._44=1;
@@ -251,6 +260,7 @@ class D3D9PacketScene {
      FAILED(device_->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE)))return E_FAIL;
   auto hr=device_->Clear(0,nullptr,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0xff000000,1,0);if(FAILED(hr))return hr;
   if(FAILED(hr=device_->BeginScene()))return hr;
+  const double setupMs=elapsed();
   for(std::size_t i=0;i<resources_.size()&&SUCCEEDED(hr);++i) {
    const auto& mesh=packet.meshes[i];auto& r=resources_[i];void* mapped=nullptr;
    if(omitCutoutsControl_&&mesh.sourceAlphaReference)continue;
@@ -258,6 +268,7 @@ class D3D9PacketScene {
    auto* output=static_cast<Vertex*>(mapped);
    for(std::size_t j=0;j<r.indices.size();++j){const auto& v=mesh.vertices[r.indices[j]];output[j]={v.position.x,v.position.y,v.position.z,v.normal->x,v.normal->y,v.normal->z,v.publicColor,v.u,v.v};}
    hr=r.vb->Unlock();if(FAILED(hr))break;
+   uploadMs+=elapsed();
    const auto tsp=*mesh.sourceTsp;
    if(FAILED(ApplyLegacyAlpha(device_,mesh,cutoutShader_,opaqueAlphaOne_))){hr=E_FAIL;break;}
    const auto address=[](bool clamp,bool mirror){return clamp?D3DTADDRESS_CLAMP:mirror?D3DTADDRESS_MIRROR:D3DTADDRESS_WRAP;};
@@ -267,12 +278,20 @@ class D3D9PacketScene {
       FAILED(device_->SetSamplerState(0,D3DSAMP_MINFILTER,(tsp&(1<<13))?D3DTEXF_LINEAR:D3DTEXF_POINT))||
       FAILED(device_->SetSamplerState(0,D3DSAMP_MAGFILTER,(tsp&(1<<13))?D3DTEXF_LINEAR:D3DTEXF_POINT))||
       FAILED(device_->SetSamplerState(0,D3DSAMP_MIPFILTER,D3DTEXF_POINT))||FAILED(device_->SetSamplerState(0,D3DSAMP_SRGBTEXTURE,FALSE))) {hr=E_FAIL;break;}
+   stateMs+=elapsed();
    hr=device_->DrawPrimitive(D3DPT_TRIANGLELIST,0,UINT(r.indices.size()/3));
+   primitiveMs+=elapsed();
   }
   const auto ended=device_->EndScene();if(FAILED(hr))return hr;if(FAILED(ended))return ended;
   if(api_.DrawLightInstance(light_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
   if(fillLight_&&api_.DrawLightInstance(fillLight_)!=REMIXAPI_ERROR_CODE_SUCCESS)return E_FAIL;
+  const double finishMs=elapsed();
   previous_=packet; // Diagnostic draw only; harness aborts if the following Present fails.
+  const double retainedCopyMs=elapsed();
+  std::cout<<"legacy_draw_cpu frame="<<packet.frame<<" meshes="<<packet.meshes.size()
+   <<" validation_ms="<<validationMs<<" resources_ms="<<resourcesMs<<" setup_ms="<<setupMs
+   <<" upload_ms="<<uploadMs<<" state_ms="<<stateMs<<" primitive_ms="<<primitiveMs
+   <<" finish_ms="<<finishMs<<" retained_copy_ms="<<retainedCopyMs<<'\n';
   return S_OK;
  }
 public:

@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1153 helper inner draw CPU scopes implemented; live attribution pending.
+neuraltest/remake_d3d9_scene.h now logs validation, resource refresh/setup,
+vertex upload, render state, primitive submission, finish/lights and retained
+packet copy elapsed times with source frame and mesh count. No rendering state,
+geometry, alpha policy or resource lifetime changed. Times include driver waits
+and logging perturbation; not GPU timestamps or final acceptance performance.
+Four serial builds and1183selftests x3 pass helper-draw-scopes-build-a.
+Prepared alpha-draw-scopes-a copies prior host/settings and replaces only helper;
+reverse order blended then cutout. Blended launched session89306/launcher35024;
+cutout unlaunched. Poll existing process; no restart on observation timeout.
+Next complete both and inspect inner scopes before choosing optimization.
+
 LOG1152 existing helper logs narrow alpha throughput regression to scene draw.
 alpha-route-benchmark-b/attribute_stalls.py and stall-attribution.json retain
 source-bounded5302..6501 statistics and six200-source windows. Helper published
