@@ -336,10 +336,14 @@ rectangle69.6percentmid vs covered30.4percent;1/2texel margins still pass.
 Next implement bounded triangle-footprint candidate with filtering margin,
 unchanged thresholds/native fallback and wrap/work guards; focused negative
 tests/four builds/three selftests then same-source/moving review. GPUfree.
-LOG1096 bounded triangle-footprint candidate implemented, unchanged thresholds
-and native guards; four builds/1117selftests x3 pass. Next liveNightmare5300
-compare to retained footprint-a baseline, verify ownership and inspect visuals;
-then moving/CPU cost. No appearance/performance acceptance yet. GPUfree.
+LOG1097 triangle candidate exports shared26 in24live captures5301..5329;
+all native effects applied, zero HUD/world/backbuffer mismatches. Baselineexact.
+Four builds/1117selftests x3 passed for source c9ebf5b29. Appearance remains
+CORRECTIONS_REQUIRED: severe dark character regions and poor face readability
+versus native. No common-source baseline pair or performance acceptance.
+Next isolate dark character response using retained native/returned/composited
+images and exact bindings; preserve arena, no global exposure sweep.
+Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

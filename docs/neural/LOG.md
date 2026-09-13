@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1097 live triangle footprint coverage verified, appearance CORRECTIONS_REQUIRED.
+Source c9ebf5b2935980e0180ec9a2b1ae42d66ca51364 pushed/fork verified.
+First character-nightmare-triangle-a run: launcher0/helper11 orderly shutdown,
+5300 owned packet saved and6cutouts promoted versus prior5, but no preview
+captures. Preserved failed capture; no appearance conclusion from launch exit.
+Changed diagnostic window from3 to30sources in character-nightmare-triangle30-a:
+24captures5301..5329, every shared26TCW269419008 promoted. All24 report native
+effects applied and zero HUD/world/backbuffer composition mismatches. Both
+runs baseline mod byte-identical. These checks do not prove visual fidelity.
+Visual inspection against original-native shows severe dark character regions
+and poor facial readability; restored head surface alone is not acceptable.
+Prior baseline stills5300/5302 have no exact common source with this run;
+no noise-bounded appearance comparison, moving-combat or CPU acceptance claimed.
+Evidence character-nightmare-triangle30-a/verification.json and captures.
+Next isolate dark character response with retained same-source native,
+returned and composited images plus exact material bindings; preserve arena,
+no global exposure sweep. Triangle candidate stays opt-in and unaccepted.
+
 LOG1096 bounded triangle-alpha footprint candidate implemented in existing
 opt-in cutout path. Only rejected rectangle footprints evaluated; passing
 rectangles unchanged. Conservative expanded triangle halfspaces include one

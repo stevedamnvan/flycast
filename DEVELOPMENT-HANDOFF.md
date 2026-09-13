@@ -13,11 +13,14 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
-Latest LOG1096: triangle-footprint candidate implemented with bounds/filtering
-margin and existing thresholds/native guards. Fourbuilds/1117selftests x3 pass.
-Next fresh-host Nightmare5300 compare to retained character-nightmare-footprint-a
-baseline; inspect native ownership/visuals then moving/CPUcost. Old host already
-preserved in footprint-a workspace. No visual/performance acceptance yet.
+Latest LOG1097: c9ebf5b29 pushed/fork verified. Triangle candidate shared26
+promoted in24live captures5301..5329, native effects applied and all composition
+mismatches zero. Baselineexact/GPUfree. Visual CORRECTIONS_REQUIRED: severe dark
+character bodies/faces versus native. No exact common source with old stills;
+no appearance/performance acceptance. First3source capture empty, preserved.
+Next isolate dark character response from retained native/returned/composited
+and exact bindings, preserve arena/no exposure sweep. Evidence
+C:/Flycast-Evidence/character-nightmare-triangle30-a/verification.json.
 Historical LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
 unused atlas contamination; rectangle69.6percentmid vs covered30.4percent,
 1/2texel margins still pass. Next bounded triangle-footprint correction,
