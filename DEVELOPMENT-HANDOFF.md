@@ -1,10 +1,9 @@
-Current checkpoint LOG1057: combined moving Shrine roughness run completed0,
-84/90sources5900..5989, HUD/world/backbuffer mismatch0, baseline exact restored.
-Evidence shrine-roughness-combat-a. Contact preflight damage19. Six-frame review
-shows attack motion and retained tiles, first frame brighter, characters still
-dark/uneven. Next fresh same-source control/repeat; no temporal/look acceptance.
-GPU released. World agent one Hoko roughness job ready,16 runtime joins held.
-Character seven fighters/50 sources; next selection route ready, costumes open.
+Current checkpoint LOG1058: fresh combat roughness A/B three exact poses plus
+control repeat, seven renders0, baseline restored. Evidence shrine-combat-fresh-ab-a.
+Modest floor response; character lighting issue in both versions. No temporal
+shimmer/look acceptance. Next paired live temporal control and targeted lighting;
+Hoko wood roughness ready after MCP live-binding check. GPU released.
+Character seven fighters/50 sources; next selector ready, costume coverage open.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

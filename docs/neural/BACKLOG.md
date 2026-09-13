@@ -221,7 +221,9 @@ candidates60character/44world maps, none accepted; Astaroth runtime join open.
 Helper resource cleanup and full moving/performance acceptance remain open.
 LOG1056 native attack preflight exits0, three frames; damage0 at distance.
 LOG1057 approach/contact verified damage19; combined roughness capture84/90,
-protected mismatch0, baseline restored. Next fresh same-source control/repeat;
+protected mismatch0, baseline restored. LOG1058 fresh three-pose A/B and repeat
+seven renders0; floor effect above noise, character issue on both sides. Next
+paired live temporal control and targeted character lighting;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 

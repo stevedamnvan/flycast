@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG1058 fresh same-source combat roughness comparison.
+shrine-combat-fresh-ab-a: sources5900/5939/5989 control/candidate plus5900repeat,
+seven exits0; exact source packet/config/exe hashes retained before each render.
+Three viewed pairs: modest tile-response change; character lighting problem
+present both sides. Whole MAE2.226/2.560/2.799 vs repeat0.394; bottom100
+3.004/2.761/3.252 vs repeat0.348. Baseline restored exact, candidate inactive.
+This separates roughness effect in these stills, not live temporal history or
+shimmer. Next paired live temporal control and targeted character lighting;
+no global lighting/default promotion or appearance acceptance. Existing Hoko
+wood roughness integration ready after live MCP binding verification.
+
 LOG1057 contact route and combined moving roughness capture.
 shrine-combat-contact-a native3frames exits0; viewed5901 HUD damage19 verifies
 prior contact after approach input. shrine-roughness-combat-a reuses supplied
