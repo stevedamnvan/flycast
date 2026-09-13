@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1124 Voldo runtime identity export resolves four pending materials.
+Verified existing replay/original seed, current host; character-voldo-runtime-a
+terminal0,baselineexact. Requested/actual5700,epoch3,ordinal5699,cycle20603739968.
+character-voldo-fixed-export-a terminal0;25runtime textureDDS,all4pending sources
+match exact dimensions/fullRGBA includingalpha:553D1276F761CC64,
+2203CCC3A1CC91F1,82437C068C133D6A,21C7BB03B7325CEB. exact-joins.json retained.
+Viewed output confirms Voldo/claws in identity-only replacement-disabled export;
+not lighting/remaster appearance acceptance. Character agent independently
+verifying and applying ledger with backups and preserved generation/UV/alpha holds.
+Maxi ledger applied/verifiedSHA bee22287ff3b65283ea1073cabd103ac3f402f7765c337aa42fee7b0a2b79017:
+57/67 before Voldo,expected61/67 after. Remaining6earlier opponent-capture groups;
+Voldo application verifiedSHA74d10d3292acc84b0e6ee3ad66d66050039962ed27ed9b057a1a009b46135a5d:61/67.
+No whole-game denominator claim. Next verified source route for these6 while
+full-quality capture linkage work remains the root engineering priority.
+
 LOG1123 Maxi owned runtime acquisition resolves six pending exact identities.
 User-authorized parallel coverage route: verified original seed/replay, current
 host,existing managed acquisition. character-maxi-runtime-a terminal0,baselineexact.

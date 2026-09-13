@@ -3,9 +3,12 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1123; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1124; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1124 Voldo runtime/export TERMINAL0,actual5700,baselineexact;four exactRGBA
+  joins. Character agent applied61/67ledger; root hash verified. Maxi57/67
+  applied and verified. Remaining6earlier opponent sources. No visual acceptance.
 - LOG1123 Maxi runtime/fixed export TERMINAL0,actual5301,baselineexact. Six
   exactRGBA joins found;material_coverage agent verifying/applying ledger,expected
   57/67 (confirm). Next verified Voldo route. Capture linkage proposal reviewed,

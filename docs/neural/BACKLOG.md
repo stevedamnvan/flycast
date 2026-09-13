@@ -44,7 +44,7 @@ committed. Current engineering priority remains FC-067 / M2-scene.
 
 | Delivery area / existing owner | Verified position | Work left / completion evidence |
 | --- | --- | --- |
-| Character completeness / FC-067 M2-scene | 10 default fighters captured; 51/67 captured material groups runtime-matched | 16 joins; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
+| Character completeness / FC-067 M2-scene | 10 default fighters captured; 61/67 captured material groups runtime-matched (LOG1124) | Six earlier opponent-capture joins; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
 | Arena completeness / FC-067 M2-scene, Package D | 154 captured world groups; 137 runtime-matched; 10 named stage groups plus one unidentified group sampled | 17 joins or evidenced dispositions; remaining scene regions/variants/levels; no whole-game completeness claim |
 | Material upgrades / Package D, FC-067 M3-relighting | 19 world material candidates; 15 character PBRify sets/60 maps; zero newly appearance-accepted upgrades in audited expansion ledgers | Classify held mixed atlases; delit albedo/roughness/metal masks as eligible; validate alignment/alpha and retained maps; MCP opt-in binding; technical and human visual approval recorded separately |
 | Hair and character response / FC-067 M2-scene, M3-relighting | Missing fringe/side-hair surface recovered; 26 live composition checks and 19-frame full-stack sequence support scoped restoration | Triangle CPU cost, longer combat, natural skin/hair response and contour review; 19 frames is not the required moving gate |
@@ -502,6 +502,9 @@ world137/154,19candidate integrity passes but0newvisual approvals.
 LOG1123 Maxi acquired source5301, six exactRGBA runtime joins found; character
 agent independently verifying/applying ledger (expected57/67,10pending). Confirm
 ledger before claiming applied. Next verified Voldo route; preserve material holds.
+LOG1124 Voldo source5700: four exactRGBA joins; independent ledger application
+complete:61/67, independently verified. Maxi applied57/67 previously verified. Six earlier opponent groups
+remain; no generation/visual approval inferred.
 Full-quality capture reference transport requires explicit verified archive linkage;
 proposal reviewed,not implemented,all current capture safeguards unchanged.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
