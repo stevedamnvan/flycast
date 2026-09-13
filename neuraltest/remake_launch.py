@@ -34,6 +34,24 @@ def capture_storage_preflight(out, frames, output_size):
                 estimated_required_bytes=required, reservation=False)
 
 
+def capture_evaluation_start(args):
+    """Permit bounded live evaluation before previews, without changing runtime policy."""
+    start = getattr(args, 'capture_start_source', 0)
+    preroll = getattr(args, 'capture_preroll', 0)
+    if not preroll:
+        return start
+    warmup = getattr(args, 'capture_warmup', 0) or 2100
+    if (not 1 <= preroll <= 300 or not 1 <= getattr(args, 'capture_frames', 0) <= 300
+            or start - preroll < warmup or start > 10000000
+            or not getattr(args, 'effect_identity', False)
+            or not getattr(args, 'managed_session', False)
+            or getattr(args, 'manual_input', False)
+            or getattr(args, 'locked_input_root', None)):
+        raise ValueError('Capture pre-roll requires 1..300 frames, managed automatic live '
+                         'effect capture, and evaluation start at or after host warmup')
+    return start - preroll
+
+
 def prepare(args):
     paths = {key: Path(getattr(args, key)).resolve(strict=True)
              for key in ('flycast', 'harness', 'helper', 'runtime', 'game')}
@@ -177,6 +195,7 @@ def prepare(args):
         env['FLYCAST_REMAKE_SHADING_AWARE_MOTION'] = '1'
         env['FLYCAST_REMAKE_COLOR_CONSISTENCY'] = '1'
     capture_start = getattr(args, 'capture_start_source', 0)
+    evaluation_start = capture_evaluation_start(args)
     remix_only = getattr(args, 'remix_only', False)
     if remix_only and not capture_frames:
         raise ValueError('Remix-only comparison requires bounded image capture')
@@ -198,7 +217,7 @@ def prepare(args):
         if capture_start+capture_frames-1 > 10000000:
             raise ValueError('Comparison end exceeds source bound')
         env['FLYCAST_REMAKE_EFFECT_IDENTITY'] = '1'
-        env['FLYCAST_REMAKE_COMPARE_START_FRAME'] = str(capture_start)
+        env['FLYCAST_REMAKE_COMPARE_START_FRAME'] = str(evaluation_start)
         env['FLYCAST_REMAKE_COMPARE_END_FRAME'] = str(capture_start+capture_frames-1)
         if extended:
             env['FLYCAST_REMAKE_EXTENDED_EFFECT_CAPTURE'] = '1'
@@ -392,6 +411,8 @@ def main():
     p.add_argument('--capture-frames', type=int, default=0,
                    help='Developer image capture 1..300; excludes this run from performance evidence')
     p.add_argument('--capture-start-source', type=int, default=0)
+    p.add_argument('--capture-preroll', type=int, default=0,
+                   help='Live exact-effects evaluation 1..300 sources before previews; host warmup must precede it')
     p.add_argument('--capture-warmup', type=int, default=0,
                    help='Capture-only host warmup 2100..10000 for later replay selections; zero retains default')
     p.add_argument('--remix-only', action='store_true',
@@ -453,11 +474,13 @@ def main():
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
-    storage = capture_storage_preflight(out, args.capture_frames, args.output_size)
+    storage = capture_storage_preflight(out, args.capture_frames + args.capture_preroll, args.output_size)
     helper_cwd = out/'runtime-output' if args.isolated_runtime_output else Path(__file__).resolve().parent.parent
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   capture_storage=storage,
+                  capture_preroll=args.capture_preroll,
+                  capture_evaluation_start=capture_evaluation_start(args),
                   helper_working_directory=str(helper_cwd),
                   isolated_runtime_output=args.isolated_runtime_output,
                   save_received_packet=args.save_received_packet,

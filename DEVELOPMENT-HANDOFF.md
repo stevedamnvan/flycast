@@ -3,13 +3,16 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1111; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1112; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1112: launcher --capture-preroll implemented; six Python checks, four
+  serial builds and three selftests pass. Dry run evaluation5000/preview5300..5599
+  with hostwarmup5000 and pre-roll300; runtime safeguards unchanged. Next fresh
+  seeded full-stack live attack run; no process launched yet.
 - LOG1111: early attack gap is presentation startup/reentry: latch5309,
   recovery5485 despite92early retained returns. Header-native mechanism probe
-  passes. Next inspect bounded evaluation pre-roll and existing locked-source
-  route; preserve production age8/recovery60 and requested preview interval.
+  passes. Preserve production age8/recovery60 and requested preview interval.
   Shutdown truncation remains unexplained; no fix or recapture yet.
 - Latest storage refresh: C:171.4GB/D:27.3GB free. Earlier LOG1110: C:space restored, then exact-duplicate capture cleanup saved
   14.7GB; C:167.6GBfree at checkpoint, D:stillfull. All8150paths/content retained

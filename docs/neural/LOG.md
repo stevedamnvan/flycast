@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1112 bounded capture evaluation pre-roll implemented in existing launcher.
+New --capture-preroll1..300 requires managed automatic live exact-effect capture;
+host warmup must precede evaluation start, locked replay/manual/noncapture are
+rejected. Default0 preserves behavior. Comparison start moves earlier; requested
+preview start/end/count and420s ceiling remain unchanged. Storage preflight
+conservatively includes pre-roll frames. Runtime presentation age8/recovery60,
+source ownership, renderer and visual materials unchanged.
+Six launcher unit checks pass; four serial builds and three selftest runs exit0.
+Build records C:/Flycast-Evidence/capture-preroll-build-a. Read-only dry run
+C:/Game Dev/Emulators/capture-preroll-dryrun.json requests evaluation5000,
+preview5300..5599,300pre-roll/300preview, hostwarmup5000 and64.93GB estimate.
+LOG779 frozen-pixel locked replay cannot establish a fresh material candidate;
+therefore use the live route. No processes launched for this dry run.
+Next one fresh seeded full-stack attack run with these bounds, verify actual
+source coverage/cycles/native invariants and inspect output. Pre-roll does not
+guarantee contiguous presentation or close truncated-shutdown diagnosis.
+No moving-combat/performance/appearance/full-goal acceptance yet.
+
 LOG1111 attack capture gap attributed to presentation startup/reentry.
 Read-only retained logs: presentation latches at current5309/candidate0,
 resumes at5485/candidate5477 after60fresh ticks; first saved preview5487.
