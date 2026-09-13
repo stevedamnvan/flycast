@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1127; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1128; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -11,10 +11,16 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   sources5901..5903 full10.52MB archives/1.08MB wire,all v3/wire checks pass,
   native mismatches0.1200remake presents,85repeats,maxage5;not performance proof.
   Hair copper-bright and character response dark:visual acceptance still open.
-  Next full-quality moving active-combat review using opt-in transport.
+  LOG1128 longer exact-effect run attempted all5300..5599 but0complete previews:
+  normal snapshot is absent from OIT-only identity capture/replay checks.
+  300partial archives retained;no moving acceptance. Next implement normal
+  source-qualified effect evidence,then short probe before300repeat.
+  Do not substitute pointer hashes/output equality for exact input identity.
+  Failure evidence shrine-capture-reference-moving-a/failure-audit.json.
   Evidence C:/Flycast-Evidence/shrine-capture-reference-a/integration-audit.json.
   Character67/67captured joins;world137/154. Next Money Pit three variants need
-  new matching source frames;world17-next-acquisition.json under character audit.
+  new matching source frames. Money host reached7105 but anchor rejects from4993;
+  diagnose5900..5902 basis first. money-acquisition-diagnosis.json under character audit.
   Diagnostic ended;existing Toolkit sessions preserved;subagent tasks completed.
 - LOG1125 capture transport/full-source linkage oracle implemented,unconnected.
   Fourbuilds/1124selftests x3 pass; next versioned archive writer/reader checks

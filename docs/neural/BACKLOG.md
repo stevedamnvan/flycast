@@ -516,10 +516,16 @@ LOG1127 opt-in live capture transport integrated:fourbuilds/1135selftests x3,
 with1.08MB transport; v3 linkage/wire parity pass and native mismatches0.
 1200evaluated remake presents,85repeats,maxage5; synchronous CPU diagnostic,
 not performance acceptance. Hair remains copper-bright,character shading dark.
-Next full-quality moving active-combat review with --capture-references;
-keep the300-frame gate and separate appearance/performance acceptance.
+LOG1128 attempted all300sources5300..5599 with exact effects:0complete previews,
+300partial archives. Normal snapshot lacks the OIT-only exact-effect identity
+capture/replay connection; do not count archives as images or remove the gate.
+Next implement source-qualified normal effect evidence and locked-replay checks,
+then a short probe before repeating300. Preserve full input-state provenance,
+including shader/layout content where needed;no pointer identity substitute.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require
-new matched source frames, not repeated4900export. See LOG1127 world audit.
+new matched source frames, not repeated4900export. LOG1128 proves host reached
+7105 but anchor publication stopped4992 as ambiguous-source-basis; diagnose
+retained5900..5902 basis before another acquisition. World count unchanged.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

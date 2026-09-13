@@ -1,5 +1,30 @@
 # Neural rendering evidence log
 
+LOG1128 normal exact-effect moving capture exposes an evidence integration gap.
+Executed shrine-capture-reference-moving-a with300requested sources5300..5599,
+60frame pre-roll,warmup5000,compact transport,exact effect identity,unchanged
+420s ceiling/full-quality capture. Terminal0/11,baselineexact. All300sources
+attempted in order;300partial v3 archives but0completed previews. Every attempt
+rejected `effect evidence requires evaluated source effects`. Do not count
+partial directories as image captures or moving acceptance. Detailed evidence:
+C:/Flycast-Evidence/shrine-capture-reference-moving-a/failure-audit.json.
+Root cause:quality_capture.cpp exact identity accepts only RemakeOitEffects;
+normal DX11 owns NativeEffectSnapshot instead. Normal composition succeeds but
+its exact-effect evidence path is unconnected. Do not disable identity to claim
+the300frame gate. Next implement source-qualified normal effect evidence and
+its locked-replay verification, then a short falsifying probe before300repeat.
+Read-only agent also located an OIT-only locked-replay identity check. Shader
+bytecode/input-layout provenance must be captured at creation if exact input
+identity needs it; pointers or output equality cannot replace input evidence.
+Cadence1200observed,360remake/840native outside bounded evaluation window,
+12repeated outputs,maxage8. Diagnostic capture is not performance evidence.
+Parallel Money Pit diagnosis corrects the suspected threshold issue:host reached
+7105;publication stopped4992 with anchor-ambiguous-source-basis from4993.
+Original seed/replay hashes verified. No repeated acquisition dispatched.
+Next diagnose retained5900..5902 camera basis before newly supported acquisition;
+that interval covers the three pending variants. Report:
+character-coverage-audit-c/money-acquisition-diagnosis.json. Counts unchanged.
+
 LOG1127 opt-in compact live capture transport preserves full-quality archives.
 Feed builds the complete carried packet, projects registration/reference modes
 after source transforms, and retains both full source and exact published packet
