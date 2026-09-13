@@ -354,6 +354,11 @@ recorded setup; no global lighting sweep. Evidence nightmare-review-restored-a.
 LOG1100 shared26 runtime E0786D8691604967 exact fullRGBA joined, character
 51/67groups with runtime aliases,16pending. Used-UV classification/generation
 hold preserved; no appearance acceptance. World137/154 unchanged.
+LOG1101 exact face1133/430triangles identified; unit normals, no orientation
+acceptance. Omission controls show current5300 headbox responds more to
+shared26 than face-expression mesh. Next choose retained face-facing pose for
+skin correction; keep5300 for hair/contour, no new broad color/light sweep.
+Evidence face-response-attribution-a. Both omission copies diagnostic only.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

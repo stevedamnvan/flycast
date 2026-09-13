@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1101 exact face mesh and omission attribution. Source5300 matched-anchor
+packet face atlas0DCBE839C56F7DD2 fullRGBA identifies mesh1133,430triangles,
+1290vertices, opaquealpha255; normal lengths0.99999994..1.0. Unit length does
+not prove orientation or faithful surface reconstruction. Vertex RGB variable;
+no whitening/reduction repeated after LOG1054/1060 negative results.
+Two isolated packet omission renders exit0, same review settings; only selected
+mesh omitted, originals unchanged. Removing face mesh1133 gives headbox
+MAE2.320 and28pixels above40meanRGBdelta; removing shared26 gives5.507 and171
+such pixels. Headbox535:605,170:230 is not a semantic skin segmentation.
+Visual inspection confirms current pose is unsuitable for judging a broad
+face-expression correction; cutout affects substantially more visible head
+coverage. Do not treat unit normals or atlas presence as a visible face proof.
+Next use retained clearer face-facing source from existing face review for
+skin response; keep Nightmare5300 for hair/contour coverage. No game geometry,
+material or lighting mutation; baselineexact. No appearance acceptance.
+Evidence face-response-attribution-a/face-mesh-inputs.json,
+omission-receipts.json and omission-comparison.json. GPUfree.
+
 LOG1100 shared26 full RGBA runtime identity recovered. Fresh candidate5300
 fixed export terminal0, baseline mod exact. Runtime E0786D8691604967 DDS DXGI28
 matches all256x256RGBA source bytes, not merely earlier alpha fingerprint.

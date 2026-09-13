@@ -13,6 +13,11 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1101: face1133/430triangles exact atlas identified. Two omission
+renders terminal0 show5300headbox mostly affected by shared26, weak face-atlas
+coverage. Use retained face-facing pose for skin correction; keep5300hair/
+contour. No source/material mutation, baselineexact/GPUfree. Evidence
+face-response-attribution-a. Do not repeat vertex whitening or color sweep.
 Latest LOG1100: shared26 runtime E0786D8691604967 exact256RGBA recovered via
 fresh fixed export terminal0. Character51/67joined,16pending; world137/154.
 Ledger backed up; material classification/generation hold remains. No bindings,
