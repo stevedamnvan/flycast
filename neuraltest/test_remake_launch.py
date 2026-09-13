@@ -229,6 +229,28 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.cpu_timing = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_NORMAL_EFFECTS'], '1')
 
+    def test_normal_effects_explicit_capture_free_benchmark(self):
+        self.args.normal_effects = True
+        self.args.renderer = 'dx11'
+        self.args.benchmark_warmup = 5300
+        self.args.anchored_light = self.args.managed_session = True
+        _, _, env, host, helper = prepare(self.args)
+        self.assertEqual(env['FLYCAST_REMAKE_NORMAL_EFFECTS'], '1')
+        self.assertEqual(host[host.index('--remake-evidence')+1], 'none')
+        self.assertNotIn('FLYCAST_REMAKE_CPU_TIMING', env)
+        self.assertNotIn('--diagnostic-capture-budget', helper)
+        for name, value in [('benchmark_warmup', 2099), ('managed_session', False),
+                            ('capture_frames', 3), ('cpu_timing', True)]:
+            with self.subTest(name=name):
+                old = getattr(self.args, name, None)
+                setattr(self.args, name, value)
+                with self.assertRaisesRegex(ValueError, 'Benchmark warmup'):
+                    prepare(self.args)
+                if old is None:
+                    delattr(self.args, name)
+                else:
+                    setattr(self.args, name, old)
+
     def test_no_writes_and_explicit_opt_in(self):
         _, out, _, host, helper = prepare(self.args)
         self.assertFalse(out.exists())

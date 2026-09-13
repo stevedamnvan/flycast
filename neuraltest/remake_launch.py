@@ -96,8 +96,9 @@ def prepare(args):
             del env[key]
     env['FLYCAST_REMAKE_OUTPUT_SIZE'] = output_size
     if getattr(args, 'normal_effects', False):
-        if getattr(args, 'renderer', 'dx11-oit') != 'dx11' or not getattr(args, 'cpu_timing', False):
-            raise ValueError('Normal effects prototype requires dx11 and diagnostic CPU timing')
+        if (getattr(args, 'renderer', 'dx11-oit') != 'dx11'
+                or not (getattr(args, 'cpu_timing', False) or getattr(args, 'benchmark_warmup', 0))):
+            raise ValueError('Normal effects prototype requires dx11 and diagnostic CPU timing or explicit benchmark warmup')
         env['FLYCAST_REMAKE_NORMAL_EFFECTS'] = '1'
     if getattr(args, 'normal_effect_proof', False):
         if getattr(args, 'renderer', 'dx11-oit') != 'dx11' or not getattr(args, 'cpu_timing', False):
@@ -464,7 +465,7 @@ def main():
                    help='Force the helper RGBA32F depth reference path')
     p.add_argument('--verify-depth-format', action='store_true',
                    help='With CPU timing, compare both depth formats from eight identical completed frames')
-    p.add_argument('--normal-effects', action='store_true', help='Experimental normal effects composition; requires dx11 and cpu-timing')
+    p.add_argument('--normal-effects', action='store_true', help='Experimental normal effects composition; requires dx11 and cpu-timing or explicit bounded benchmark warmup')
     p.add_argument('--normal-effect-proof', action='store_true', help='Diagnostic-only bounded native effects replay comparison; requires dx11 and cpu-timing')
     p.add_argument('--renderer', choices=['dx11-oit', 'dx11'], default='dx11-oit',
                    help='Host renderer route for the run (the 600-frame gate asks for both); default dx11-oit')

@@ -3,15 +3,26 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1149; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1150; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
 terminal0/baselineexact; all integrity and explicit alpha-state transition checks pass.
 Sample review supports reduced sparkle but late dark brow/eye band and panel hair
 remain. Next capture-free cost of candidate plus late face/fringe shading diagnosis.
-Lossless review animation generation session92234; poll before claiming completion.
+Lossless review animation complete: combat-comparison-lossless.webp,300frames,
+all assembled pixels verified (combat-comparison-receipt.json). Not cadence evidence.
 Full appearance/performance gates pending; no defaults promoted.
+
+Launcher correction: normal-effects now permits explicit validated
+capture-free benchmark warmup;35launcher tests/fourbuilds/1183selftests x3 pass.
+Fresh alpha-route-benchmark-b cutout running session65419/launcher31656; poll existing
+run, then launch prepared blended via run_one.py only after cutout terminal.
+First pair alpha-route-benchmark-a
+cutout preflight exited1 before game launch (CPU timing requirement conflict).
+Preserve failure. No benchmark yet measured; analyze after both fresh runs finish.
+Late-face-stage-review:5595..5599 eye band already inreturnedimage; native/final
+stages change0faceROI pixels. Occlusion versus returned lighting still unresolved.
 
 Current diagnostic follow-up: shrine-blended-alpha-review-a removes only
 --alpha-cutout from private restored-source launch. Terminal0/baselineexact;

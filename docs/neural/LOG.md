@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1150 explicit capture-free normal-effects benchmark entry enabled.
+alpha-route-benchmark-a preflight rejected before game launch: old normal-effects
+guard requiredCPU timing, while benchmark rejectsCPU timing. Failure retained.
+Launcher now admits normal-effects only withdx11 plus diagnosticCPU timing OR
+explicit benchmark_warmup, still subject to existing2100..10000/managed/anchored/
+capture-free/automatic/noCPU benchmark validation. Normal proof stays diagnostic;
+implicit normal effects remain rejected.35launcher tests pass including negative
+modes; fourbuilds/1183selftests x3 pass normal-effects-benchmark-gate-build-a.
+Fresh alpha-route-benchmark-b prepared with same binaries/source replay/warmup5300,
+640x480/normal renderer/lighting;only --alpha-cutout differs. Cutout run active,
+blended not launched yet. No timing result or performance acceptance claimed.
+Previous300frame lossless comparison animation completed and every assembled pixel
+verified; playback timing is illustrative, not runtimecadence. Late face5595..5599
+stage audit finds0native/final effect changes infaceROI; eye band alreadyreturned,
+not the same cause as removed neckpatch. Occlusion/lighting attribution pending.
+
 LOG1149 blended-alpha moving interval complete; character appearance still open.
 shrine-blended-alpha-moving-a completes300/300 sources5300..5599,terminal0,
 baselineexact. moving-audit.json: all archive/helper/source/Present/protected-native

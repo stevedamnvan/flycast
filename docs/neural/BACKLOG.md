@@ -599,6 +599,11 @@ LOG1149 run complete300/300,all integrity/state-transition checks pass,baselinee
 Distributed/close/late sample review supports reduced sparkle; dark late brow/eye
 band and panel hair remain. Next capture-free route cost plus late character shading
 diagnosis; candidate not promoted and full visual acceptance remains open.
+Capture-free pair preflight alpha-route-benchmark-a failed before game launch:
+normal-effects required CPU timing while benchmark forbids it. Bounded launcher
+correction now permits explicit normal-effects+dx11+validated benchmark warmup;
+implicit route, CPU-timed benchmark, captures and unbounded/manual modes still reject.
+35launcher tests pass; fourbuilds/three selftests running before fresh pair-b.
 do not expand promotion or adjust global lighting based on this failed visual hypothesis.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
