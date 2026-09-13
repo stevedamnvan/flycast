@@ -1,5 +1,27 @@
 # Neural rendering evidence log
 
+LOG1017 quiet-viewport pipeline first run restores freshness.
+Helper rebuilt after diagnostic switch removal, SHA32202B3D890CF959830FEEDD5A87023C554281C4C8FC132C42ADFB0110ACA5CD.
+Two preflight GPU Engine samples showed no Toolkit activity above0.1 percent,
+total GPU13%; later two samples also returned no matching activity. Projects
+remain open, no pending edits discarded. validation-pipeline-quiet-a completes
+host0/helper11, launcher0, baseline mod exact. After120 warmup1072/1080 fresh
+(99.259%),8 repeats, no other presents; full1200 P50/P95/P99 present interval
+17.611/21.6065/24.9487ms, latency mean4.00/max5, zero identity mismatches.
+This supports background rendering as a material confound in LOG1008/1009,
+not isolated attribution of all differences. Repeat quiet-b now running; no
+60fps, audio, exact-SHA, whole lifecycle or overall remaster acceptance.
+Repeat quiet-b terminal host0/helper11, launcher0:1071/1080 fresh (99.167%),
+9 repeats/no other steady presents, zero identity mismatches, latency max5.
+Full-run present P50/P95/P99=17.2407/21.47/25.1296ms. Both quiet runs meet99%
+freshness in this bounded OIT replay, but not sustained60fps/full acceptance.
+Quiet-a helper medians: period17.666ms, draw4.047, color lock1.068,
+receive4.069 (digest1.704, validation1.289), return1.355. Nested timings not
+additive. Compared with loaded-viewport observations, lock/draw costs fell;
+do not attribute that whole difference to CPU validation. No further blind
+freshness tuning; next supported work is host cadence and bounded character
+lighting/material response. Intermittent empty-source unload crash stays open.
+
 LOG1016 bounded unload experiment rejects premature lifetime change.
 Temporary retain-module switch passed four serial builds and1092/0 selftests
 x3. First launcher run stripped the inherited switch, so it is a normal-unload

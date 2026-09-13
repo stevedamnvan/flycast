@@ -112,6 +112,10 @@ Installed Toolkit shared viewport code supports updates_enabled=False while
 minimized when /app/renderer/skipWhileMinimized is enabled; verify the measured
 load actually falls rather than assuming minimization worked. Keep pending
 projects open. No new orchestration system or game setting change is needed.
+LOG1017 quiet-viewport OIT pair recovers bounded fresh share99.259/99.167%,
+max latency5 in both; present medians17.611/17.241ms. This meets freshness only
+for this replay, not60fps/full acceptance. Continue host cadence and character
+response work; no more tuning to compensate for background Toolkit rendering.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.
