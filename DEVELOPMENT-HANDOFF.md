@@ -1,11 +1,10 @@
-Current checkpoint LOG1061: anchor divergence arises at scheduler-admitted
-support cut4832/4833 and next reference4833/4834. Small view-relative lighting
-change measured; broad face issue unexplained. Existing fresh3packet sequence
-preflight exits0/readbacks0, viewed5913; baseline unchanged. Evidence
-shrine-sequence-preflight-a. Next candidate/repeat with exact same sequence,
-then extend existing route for representative motion if needed. No scheduler edit.
-Ivy verified/extracted, eight fighters/57character groups, costumes/joins open.
-GPU free; Hoko roughness pending live binding verification.
+Current checkpoint LOG1062: exact3packet sequence control/candidate/repeat all0,
+three readbacks each; modest consistent roughness effect above repeat noise.
+Baseline restored; evidence shrine-sequence-preflight-a. Next extend existing
+helper sequence support for representative motion; no production scheduling edit.
+Four serial builds/three selftests required for source change. Do not call
+three frames temporal acceptance. Character lighting still unresolved.
+Eight fighters/57character groups; Hoko roughness waiting live binding check.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

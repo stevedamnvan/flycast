@@ -1,5 +1,16 @@
 # Neural rendering evidence log
 
+LOG1062 exact-sequence roughness candidate/repeat complete.
+shrine-sequence-preflight-a now control/candidate/repeat each exit0 and three
+successful readbacks5911..5913, same packets/camera. MCP candidate detached,
+baseline exact restored. Whole candidate MAE2.504/2.532/2.477 vs repeat
+0.338/0.373/0.438; floor3.222/3.246/3.055 vs0.303/0.305/0.395. Viewed allpairs,
+modest consistent floorresponse. Three frames do not accept moving shimmer.
+Next extend existing helper packet-sequence length for representative motion;
+retain same-session fresh renders, explicit source identity and bounded inputs.
+No production render scheduling changes or original/baseline replacements.
+Source implementation requires four serial builds and three selftests.
+
 LOG1061 anchor divergence located; existing fresh-sequence route works.
 Candidate worker skips4832, detects support cut4833, publishes new reference4834;
 control detects4832 and publishes4833. Both started4673. Different admitted
