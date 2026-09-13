@@ -236,8 +236,11 @@ LOG1065 Hoko wood MCP ingestion/binding verified in same opt-in layer;
 fresh5302 candidate signal below repeatnoise, no appearance acceptance. Next
 existing generated-world runtime joins. LOG1066 Palgaea acquisition0captures
 despite launcher0; do not repeat unchanged. LOG1067 adds tested opt-in isolated
-runtime output to the existing launcher. Next direct helper runtime capture
-with isolated output/source provenance, then six Palgaea material joins.
+runtime output to the existing launcher. LOG1068 isolated Palgaea export0,
+source5822, all14world identities and six generated candidates exact joined;
+Toolkit MCP import verifies78dependencies, baseline unchanged. Next physical/
+UV/baked-light checks and eligible roughness ingestion in existing opt-in layer,
+then same-source/moving review. Ten other generated sources await six stage joins.
 Ninefighters/63groups,33 runtime aliases/30 pending; eleven roster labels lack
 verified extraction. Character lighting and temporal acceptance remain open;
 no production scheduling change. Costumes and hidden content remain open.

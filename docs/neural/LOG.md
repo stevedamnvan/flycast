@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1068 Palgaea isolated runtime export and exact texture joins complete.
+full-world-palgaea-runtime-b uses verified fresh seeds/replay and the existing
+managed launcher with --isolated-runtime-output; runtime auto-capture60 and
+asset replacements disabled. Launcher0, host0/helper11 orderly channel-closed,
+no forced children, baseline mod exact. Helper present60/source5822 immediately
+precedes New capture; USD export ends successfully. This is not6300 geometry.
+Capture SHA aaebafbcbeead7ecf5f6b81bf2eeb75402da4609d44176a95a41f0066301d505.
+Thirty DDS decode without error;14/14 retained Palgaea world identities exact
+dimensions/RGBA, including all six generated candidates: assets15/16/17/20/23/24
+map to2859E95ADA663EB5/4E14656441C8B2C2/6786E2312C474AB4/E17D183E355EA9A3/
+10255B8514E8C584/76CCAAAE504FC4AF. Exact joins and hashes in world-texture-
+completion-b/palgaea-runtime-b-source-join.json. No map acceptance inferred.
+Toolkit8002 MCP dry-run then import verifies78dependencies, imports rebased
+capture_import_aaebafbcbeead7ec.usda into unsaved review workfile. Baseline
+unchanged; existing opt-in layer inactive. No new bindings or generation.
+Next inspect six physical/UV/baked-light holds, ingest eligible roughness through
+MCP into existing single opt-in layer, then exact-source and moving review.
+Remaining ten generated sources have six prepared stage routes. Full roster,
+costumes/hidden modes, character lighting, performance and lifecycle remain open;
+helper still reports40 undisposed common objects, not a lifecycle pass.
+
 LOG1067 Isolated helper runtime output option, before Palgaea export.
 Existing launcher adds --isolated-runtime-output: fresh out/runtime-output
 is the helper working directory in both managed and ordinary sessions. Host

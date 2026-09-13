@@ -1,4 +1,14 @@
-Current checkpoint LOG1067: launcher --isolated-runtime-output tested;31Python
+Current checkpoint LOG1068: Palgaea isolated runtime export completed, source5822
+at helper60; all14world identities and six generated candidates exact joined.
+Evidence full-world-palgaea-runtime-b and world-texture-completion-b/palgaea-
+runtime-b-source-join.json. Toolkit8002 MCP imported capture_aaebafbcbeead7ec
+(78dependencies) into unsaved workfile; baseline exact, opt-in layer inactive.
+Next inspect physical/UV/baked-light holds and ingest eligible roughness through
+MCP in existing layer, then source-matched/moving review. No appearance gain
+accepted. GPU free; helper40object lifecycle warning remains. Six further stage
+routes cover ten generated sources. Full roster/costumes/hidden content open.
+
+Prior checkpoint LOG1067: launcher --isolated-runtime-output tested;31Python
 checks, four serial builds and three selftests pass. Effective helper cwd is
 recorded; host cwd/session ownership unchanged. Next run isolated Palgaea
 runtime auto-export, correlate helper counter/source and join six materials.
