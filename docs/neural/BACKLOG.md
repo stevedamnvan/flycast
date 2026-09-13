@@ -96,6 +96,10 @@ capture mesh/instance bindings and existing texture files;11 are diffuse-only.
 Current capture derives from5458, so do not compare it as exact coverage of
 native5300/5900. Next same-source native/export omission census; material PBR
 completion remains pending despite binding presence.
+LOG1026 exact5458 export has41 meshes/9233 triangles without truncation and
+capture has41 instances; count agreement is not full source coverage. Native
+draw IDs are retained. Next co-retain native draw census and remake export for
+one evaluation, classify omitted draws, then fix the first real scene omission.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded

@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1025 (character binding census).
+Current resume checkpoint LOG1026 (exact export denominator).
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
@@ -23,6 +23,9 @@ all reported texture files exist;11 diffuse-only, asset10 four maps. Exact
 capture source5458 differs from native5300/5900 audit: next same-source native/
 export omission census, then source-specific material completion. Evidence
 scene-completion-a/character-binding-census.json. No visual acceptance.
+Exact5458 packet:41 meshes/9233 triangles, no truncation; capture41 instances.
+Next same-evaluation native/export census using retained source draw IDs;
+existing native5300/5900 do not establish coverage of5458.
 One-scene motion record cache implemented, required four builds and1102/0
 selftests x3 pass. CPU-only actual-packet parity:~2.8ms uncached to~1.6ms primed;
 priming excluded, not live gain. Evidence motion-record-cache-build-a and

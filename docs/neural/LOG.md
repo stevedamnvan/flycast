@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1026 exact exported packet census establishes bounded denominator.
+scene-completion-a/packet-5458.json produced with existing ReadRemakeViewPacket
+linked against current neural library; standalone inspector source retained.
+Packet5458 has41 meshes,27699 vertices,9233 triangles, truncated=false; imported
+capture has41 mesh instance references. Count agreement is not topology/pixel
+parity and does not prove all native draws were exported. Packet explicitly
+omits unsupported PVR draws/offscreen geometry, fog/modifier shading and
+translucent layers;13899 vertices have estimated projected depth. Native HUD
+exclusion remains intentional. Source IDs decode as list=id>>32 and
+ordinal=(id&0xffffffff)-1, verified in remake_view_transport.cpp, permitting
+exact draw attribution. Existing native5300/5900 cannot serve as same-frame
+coverage evidence for5458. Next retain native PVR draw census and remake export
+from one evaluation using existing capture facilities (or a bounded diagnostic
+addition if they cannot co-retain), then classify each missing source draw.
+Do not infer missing geometry from different-frame mesh counts. No source
+runtime changes, asset generation or completeness acceptance in this slice.
+
 LOG1025 character capture binding census through Toolkit MCP.
 Read-only MCP8001 get_material_textures for all12 exact character identities
 in practice-current-capture-a. scene-completion-a/character-live-textures.json
