@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1123 Maxi owned runtime acquisition resolves six pending exact identities.
+User-authorized parallel coverage route: verified original seed/replay, current
+host,existing managed acquisition. character-maxi-runtime-a terminal0,baselineexact.
+Requested5300 threshold,actual wire5301/epoch3/ordinal5300/cycle19289208064.
+Existing fixed export character-maxi-fixed-export-a terminal0,baselineexact;
+26runtime textureDDS. All6pending Maxi sources match dimensions/everyRGBAbyte:
+D4CC0F0E458AAECF,8474FA73370B166D,2EC84F00C1E51841,42FB6B7A936503C5,
+EF9E9CBC931F0DE2,5F27DE52BCC8EEF8. exact-joins.json maps full content keys.
+Initial broad DDS scan encountered unsupported float probe format113; corrected
+scope to captures/textures,not silently ignored source texture errors.
+Viewed fixed output: identity-only replacements-disabled export,not remaster
+quality/lighting acceptance. Character agent independently verifying and applying
+six joins to existing ledger; expected57/67,10pending,confirm actual ledger before
+claiming applied. All artwork/generation/UV/alpha holds retained.
+Capture design review external CAPTURE-TRANSPORT-REVIEW.md in world-material-qa-
+20260913-a: references alone violate current archive receipt equality. Proposed
+explicit compact-transport/full-archive lineage with independent verification,
+legacy compatibility and corruption tests. Design only; no capture change.
+Next Voldo acquisition using verified manifest while root scopes full-quality
+capture linkage implementation. Do not overwrite or reduce capture content.
+
 LOG1122 bounded late normal diagnostic isolates capture overhead; parallel QA.
 Existing launcher gains diagnostic-warmup2100..10000/diagnostic-fill, only for
 normal-effects +CPU timing, automatic managed anchored capture-free runs.

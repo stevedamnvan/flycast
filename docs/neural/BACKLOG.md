@@ -499,7 +499,11 @@ LOG1122 late normal diagnostic route tested; no-capture1200evaluated/3repeats/
 Next full-quality capture scheduling/transport preserving exact source/archive
 identity. Parallel QA confirms character51/67 (6Maxi/4Voldo/6earlier pending),
 world137/154,19candidate integrity passes but0newvisual approvals.
-Maxi/Voldo acquisition preparation delegated; preserve material holds.
+LOG1123 Maxi acquired source5301, six exactRGBA runtime joins found; character
+agent independently verifying/applying ledger (expected57/67,10pending). Confirm
+ledger before claiming applied. Next verified Voldo route; preserve material holds.
+Full-quality capture reference transport requires explicit verified archive linkage;
+proposal reviewed,not implemented,all current capture safeguards unchanged.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
