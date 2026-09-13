@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1156. This is a summary
+Updated 2026-09-13, evidence through LOG1157. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -66,7 +66,8 @@ not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
 **Next deliverable:** validate implemented exact-compatible resource reuse (LOG1155).
 Four builds/1200selftests x3 pass;11/11 capture integrity and packet semantics pass.
-Visual difference exceeds older comparison; fresh old-helper control active (LOG1156).
+Fresh control9/11 integrity passes; differences persist, region review delegated.
+mesh-resource-benchmark-a reuse active, old prepared (LOG1157); no promotion.
 Preserved DDS equality, incoming order, current uploads, reset and ownership gates.
 Next inspect same-source output, moving integrity, live failure cleanup and paired
 capture-free timing/resource growth before promotion.

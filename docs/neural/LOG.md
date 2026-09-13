@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1157 fresh old-helper control complete; region review and timing dispatched.
+shrine-mesh-resource-control-a terminal0/baselineexact,9/11 captures5372..5380,
+missing5370/5371; all9 integrity checks pass. No unchanged retry. Candidate/control
+packet semantics exact on9common frames; fresh-control-review.json MAE6.798..8.266.
+Root viewed fresh-control-pair-5375.png: broad scene/contours retained, differences
+persist. This is not visual acceptance. resource_reuse_review agent owns read-only
+region/stage comparison in candidate visual-review; no source edits/GPU usage.
+Capture-free mesh-resource-benchmark-a prepared old/reuse with same host/config,
+blended alpha; only helper differs. Reuse running session69705/launcher36116;
+old not launched. Poll then run old via run_one.py after terminal and sampler exit.
+Analyze both actual source denominators, fresh returns, tails, resources; no speed
+claim yet. Visual concern, moving proof and live failure cleanup remain open.
+
 LOG1156 resource reuse short capture integrity passes; visual equivalence open.
 shrine-mesh-resource-reuse-a terminal0/baselineexact,11/11 sources5370..5380,
 all archive/helper/producer/completed Present/protected-native checks pass.
