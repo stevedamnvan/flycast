@@ -295,6 +295,10 @@ exact.0of3missing Money source identities match; source5900 differs, no defect
 claim.137/154 unchanged; no repeat4900run. Both agents terminal usage-limit
 errors, no live GPU jobs. Parent resumes character unmatched-group audit and
 dynamic-state evidence locally; model-download approval remains pending.
+LOG1086 parent saved-export pass resolves3character identities, now36/67joined,
+31pending.344DDS checked, exact originalPNG keys reverified, ledger updated
+with prior copy preserved. No binding/appearance/generation acceptance or GPU
+launch. World137/154 unchanged. Do not repeat same saved-export search.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

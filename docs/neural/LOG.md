@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1086 parent completed bounded saved-export character identity pass after
+agent usage-limit failures.344retained DDS files in full-world evidence roots
+decoded without errors and compared by dimensions+exactRGBA against34unmatched
+character groups. Three groups match: Mitsurugi nativeasset0=A98556A34169DE7E,
+asset1=D9A6008277708225, pair-temple asset26=D1C1B38235AA4743. Independently
+rechecked original PNG content keys and matchedDDS SHA before appending aliases
+to existing character ledger; pre-edit ledger preserved. Character count67,
+runtimejoined36,pending31. All appearance and mesh-binding gates remain open.
+No generation, GPU launch, binding or baseline edit. World137/154 unchanged.
+Evidence character-texture-readiness-b/saved-runtime-character-joins-root.json
+and saved-runtime-character-joins-applied.json. Do not repeat same344file pass;
+next missing-character work needs new exact packet evidence or available fighter
+capture, with sorted topology rules preserved. Model approval still pending.
+
 LOG1085 Money reachable-bound acquisition complete, parent verification after
 both subagents hit usage limits. Launcher terminal0, host0/helper11 orderly,
 no forced children, baseline SHA unchanged. Actual owned source4901,36meshes,

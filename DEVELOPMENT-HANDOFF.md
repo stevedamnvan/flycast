@@ -3,6 +3,11 @@ Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
 Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
 Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
 Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
+Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
+now36/67joined,31pending; exact originalPNG keys checked, ledger backup retained.
+World137/154 unchanged. No GPU/binding/generation; baseline unchanged. Both
+agents terminal usage-limit errors, no active captures. Model approval pending.
+Historical LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
 0of3missing Money identities matched;137/154unchanged, no5900proof/repeat4900.
 Baselineexact/GPUfree. Both subagents terminal usage-limit errors. Character
 unmatched-group CPU audit unfinished; parent can resume locally. Model approval
