@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1160. This is a summary
+Updated 2026-09-13, evidence through LOG1161. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -70,7 +70,8 @@ Fresh control9/11 integrity passes; differences persist, region review delegated
 Timing old/reuse repeats152/2; p9516.54/14.47ms (LOG1158). Floor change unresolved.
 Prior light cadence restored;11/11 integrity passes, floor error9.80->3.57 (LOG1159).
 Corrected timing1198accepted/2repeats; budget varied, scoped result only (LOG1160).
-Full300moving capture active; ownership rollback tests delegated, no promotion.
+Full300moving capture active; production-used ownership rollback tests pass,
+fourbuilds/1205selftests x3 (LOG1161). Driver faults remain separate; no promotion.
 Preserved DDS equality, incoming order, current uploads, reset and ownership gates.
 Next inspect same-source output, moving integrity, live failure cleanup and paired
 capture-free timing/resource growth before promotion.

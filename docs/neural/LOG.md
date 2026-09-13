@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1161 pending resource ownership tested through production-used helper.
+Extracted existing temporary resource collection into LegacyPendingResources;
+RefreshMatchingResources now uses its Retain and destructor directly. Same AddRef/
+Release ownership and incoming ordering, no rendering or light policy change.
+Five tests exercise partial vertex allocation early return, partial texture plus
+exception, throwing CPU index copy after earlier retain, reordered commit and
+retirement, final zero references/no underflow. Four serial builds/1205selftests x3
+pass resource-ownership-build-a. These are counted-reference ownership tests,
+not real driver HRESULT/device-loss injection or complete lifecycle acceptance.
+Full moving shrine-resource-reuse-moving-a remains active session87049/launcher21360,
+using copied e555b4aba-era helper (before this ownership refactor). Do not substitute
+new build into running evidence. Audit script prepared audit-resource-reuse-moving-a.py;
+create per-frame audit-roots junction wrappers as prior300 audit before invoking.
+Next finish300frame integrity/scene equality/visual review, then remaining scoped
+lifecycle and representative performance gates. No current material/default promotion.
+
 LOG1160 corrected resource reuse retains fresh-output gain; full moving launched.
 mesh-resource-benchmark-a/corrected terminal0/baselineexact,1200 sources5302..6501,
 synchronous capture false.1198 accepted/2repeats, zero missing/identity mismatches;

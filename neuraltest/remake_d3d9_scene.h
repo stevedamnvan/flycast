@@ -3,6 +3,7 @@
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
 #include "remake_legacy_reuse.h"
+#include "remake_legacy_pending.h"
 #include "remake_cutout.h"
 #include "remake_scene_lighting.h"
 #include <d3d9.h>
@@ -138,10 +139,7 @@ class D3D9PacketScene {
  // Build the replacement collection transactionally. Retained COM references
  // belong to both collections until commit, so any failure leaves old ownership intact.
  HRESULT RefreshMatchingResources(const Packet& packet) {
-  struct Pending {
-   std::vector<Resource> resources;
-   ~Pending(){for(auto& r:resources){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}}
-  } pending;
+  LegacyPendingResources<Resource> pending;
   Packet nextInitial=packet;
   std::vector<TextureSourceBytes> nextBytes(packet.meshes.size());
   pending.resources.resize(packet.meshes.size());
@@ -152,10 +150,8 @@ class D3D9PacketScene {
   for(std::size_t i=0;i<packet.meshes.size();++i) {
    auto& next=pending.resources[i];const auto old=mapping[i];
    if(old<resources_.size()) {
-    next.indices=resources_[old].indices;
     nextBytes[i]=textureBytes_[old];
-    next.vb=resources_[old].vb;next.vb->AddRef();
-    next.texture=resources_[old].texture;next.texture->AddRef();++retained;
+    pending.Retain(i,resources_[old]);++retained;
    } else {
     nextBytes[i]=ReadTexture(packet.meshes[i]);next.indices=Triangles(packet.meshes[i]);
     if(next.indices.empty())return E_INVALIDARG;
