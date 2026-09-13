@@ -486,6 +486,10 @@ LOG1119 geometric serializer reserve preserves exact wire bytes (5484/5900),
 fourbuilds/three selftests pass; normal diagnostic serialization11.73->8.93ms.
 Three previews6174/6177/6178 native invariants exact but only159/1200remake
 presents. Next remaining packet/digest cost; full normal/visual gate still open.
+LOG1120 immutable texture spans retain exact wire bytes and all validation,
+serialization8.93->2.62ms, three previews native invariants exact;351/1200remake
+presents still fails continuity. Fourbuilds/three selftests/two packet parity pass.
+Next unchanged byte-serial digest (~8.3ms) cost; preserve archive hashes.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1120 serializer streams immutable texture spans after validation.
+ConstWire stages metadata/geometry and records source-owned texture spans;
+flush writes them in original order after all packet validation. Eliminates
+texture staging copy/reallocation; same wire format,byte budget,source payload,
+archive receipt digest and ownership. No reference-transport/format change.
+Four serial builds/three selftests pass; retained5484/5900(39meshes each) exact
+wire-parity passes. Build evidence serialize-spans-build-a.
+Normal diagnostic-d terminal0/11,baselineexact: serialization2.623ms vs8.931c,
+publish11.068vs17.328,feed20.915vs28.194. Byte-serial digest8.303ms unchanged.
+Diagnostic-only scopes, not capture-free performance or isolated frame gain.
+1200measured presents351evaluated/849native,43held,188output repeats;0identity
+errors. Still fails sustained remaster presentation. Three previews5971/5973/
+5974 native HUD/world/backbuffer mismatch0; viewed5971 fighters/weapons/arena
+present, hair response still questionable and no appearance approval inferred.
+Evidence C:/Flycast-Evidence/shrine-normal-integration-d,scope-audit.json.
+Next bound remaining digest/transport cost while retaining archive identity;
+consider capture-free normal diagnostic separately for timing attribution.
+Do not relax recovery, change saved hashes, or call this a completed visual gate.
+
 LOG1119 serializer geometric reserve avoids repeated full-prefix reallocations.
 ConstWire per-mesh exact reserve could repeatedly copy accumulated texture
 payloads. Grow geometrically within existing72MiB limit; retain wire bytes,

@@ -237,10 +237,18 @@ namespace {
 struct ConstWire {
  // Words are staged in memory and written to the stream once at the end:
  // the same bytes as the per-word stream writes, without a sentry per word.
+ struct TextureSpan {std::size_t offset;const char* data;std::size_t size;};
+ std::vector<TextureSpan> textures;
  std::ostream* out;std::vector<char> staged;std::size_t budget=72*1024*1024;
  explicit ConstWire(std::ostream& output):out(&output){staged.reserve(1u<<20);}
  void bytes(const void* p,std::size_t n){require(n<=budget,"view-wire-byte-bound");budget-=n;
   staged.insert(staged.end(),static_cast<const char*>(p),static_cast<const char*>(p)+n);}
+ // Source packet owns these immutable bytes until serialization returns.
+ // Delay every stream write until validation finishes, as before.
+ void texture(const void* p,std::size_t n){
+  require(n<=budget,"view-wire-byte-bound");budget-=n;
+  textures.push_back({staged.size(),static_cast<const char*>(p),n});
+ }
  void word(std::uint32_t v){unsigned char b[4];for(unsigned i=0;i<4;++i)b[i]=static_cast<unsigned char>(v>>(8*i));bytes(b,4);}
  void wide(std::uint64_t v){word(std::uint32_t(v));word(std::uint32_t(v>>32));}
  void real(float v){require(std::isfinite(v),"view-wire-nonfinite");std::uint32_t bits;std::memcpy(&bits,&v,4);word(bits);}
@@ -268,7 +276,16 @@ struct ConstWire {
  }
  void count(std::size_t n,unsigned bound){require(n<=bound,"view-wire-count");word(std::uint32_t(n));}
  void string(const std::string& s,unsigned bound){count(s.size(),bound);if(!s.empty())bytes(s.data(),s.size());}
- void flush(){require(bool(out->write(staged.data(),std::streamsize(staged.size()))),"view-wire-write");staged.clear();}
+ void flush(){
+  std::size_t offset=0;
+  for(const auto& span:textures){
+   require(bool(out->write(staged.data()+offset,std::streamsize(span.offset-offset))),"view-wire-write");
+   require(bool(out->write(span.data,std::streamsize(span.size))),"view-wire-write");
+   offset=span.offset;
+  }
+  require(bool(out->write(staged.data()+offset,std::streamsize(staged.size()-offset))),"view-wire-write");
+  staged.clear();textures.clear();
+ }
 };
 void writePacket(ConstWire& w,const remake::Packet& p) {
  unsigned version=1;
@@ -297,7 +314,7 @@ void writePacket(ConstWire& w,const remake::Packet& p) {
   const auto& data=m.material->sourceDdsBytes;
   require(mode==2?data.empty():mode==1?!data.empty():true,"view-wire-texture-mode");
   w.count(data.size(),unsigned(remake::Limits{}.textureBytes-textureTotal));textureTotal+=data.size();
-  if(!data.empty())w.bytes(data.data(),data.size());
+  if(!data.empty())w.texture(data.data(),data.size());
   w.count(m.vertices.size(),unsigned(remake::Limits{}.vertices-vertexTotal));vertexTotal+=m.vertices.size();
   w.reserve(m.vertices.size()*36+m.indices.size()*4);
   for(const auto& v:m.vertices)w.vertex(v);
