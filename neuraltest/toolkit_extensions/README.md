@@ -100,3 +100,10 @@ LOG1054 verifies the corrected native-PNG path: two face adjustments preserve
 alpha/dimensions, their ingested DDS pixels match exactly, and the guarded
 candidate layer restores the baseline after three fresh renders. This is
 technical pipeline evidence; its subtle appearance response was not accepted.
+
+LOG1055 resolves the narrow roughness route: use the existing
+`flycast_ingest_roughness_current_process` semantic importer. Installed Toolkit
+produces linear BC4, and the runtime scalar sample uses R. Preserve the raw
+model output and measure decoded BC4 error against R; unequal RGB alone is not
+an import rejection. Two Shrine maps passed with p95 error2/255. Physical
+roughness plausibility, moving review and height remain separate open gates.

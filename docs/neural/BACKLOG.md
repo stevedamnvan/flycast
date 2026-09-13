@@ -205,7 +205,12 @@ rejected before ingestion; exact nativePNG face inputs found/verified. Next
 LOG1054 verifiedPNG correction/ingestedDDS exact; guarded face layer3renders0,
 baseline restored. Visible response subtle, no useful appearance acceptance.
 Exact5908 export all26texture aliases/bytes match5301; wrong face source identity
-not supported. Next targeted response correction, no blind stronger albedo sweep.
+not supported. Next targeted response correction, no blind stronger albedo sweep. LOG1055
+roughness R-channel/linear BC4 route verified (p95error2/255); two existing
+Shrine maps bound viaMCP,3renders0 andbaseline exact. Artworkretained, moving/
+human reviewpending. UnequalRGB alone no longer blocks documentedR route.
+Next movingmaterial review/characterlighting; Maxi selector-first extraction
+delegated, preserve visible name gate and full roster/costume scope.
 World8jobs/30maps complete, total19generated candidates/74maps. QA holds baked
 shading, carpet roughness, scalar channel/transfer; heightoff, accepted0. Preserve failed setup evidence. World visible selector census
 now10/10,154world identities incl variants; full hidden/alternate coverage open. No default promotion. World ledger102sources through Valentine;

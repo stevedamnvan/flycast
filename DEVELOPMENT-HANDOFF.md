@@ -1,13 +1,13 @@
-Current checkpoint LOG1054: verifiedPNG skin adjustment ingested viaMCP,
-exactRGBA/alpha; control/candidate/repeat0, baseline restored. Response subtle,
-not accepted appearance. Exact5908 export26DDS aliases/bytes match5301 including
-faces, so do not repeat identity suspicion for this pose. Candidate layer
-skin_response_review_b inactive. Fourprocessed outputs total incl failedDDS,
-paid0/learnedgeneration0. Next targeted character response, no blind albedo sweep.
-World agent resolving documented roughness channel/import route; BC4/gammafalse
-installed behavior differs stale fixture. Heightoff; new74world maps unaccepted.
-1280streaming results stand, longer lifecycle open. GPU free. MCP8002 Shrine
-unsaved; old8001 stale state must not be saved.
+Current checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
+p95error2/255; guarded target verified then existing MCP texture overrides.
+3renders0, visible response/artworkretained, baseline exact restored. Candidate
+shrine_roughness_review_a inactive, heightoff. Moving/humanacceptance pending.
+FacePNG pipeline LOG1054 valid but weakresponse; no stronger albedo sweep.
+Next movingmaterial review and targeted character lighting. Character agent
+owns GPU for prepared Maxi selection-first/native extraction; verify terminal
+before reclaiming. World agent CPU acceptance-ledger update. No new generation.
+Fullroster/costumes/alternate-scenes/lifecycle open;1280timings remain scoped.
+MCP8002 Shrine unsaved; old8001 stale state must not be saved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

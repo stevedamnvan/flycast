@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1055 documented scalar route verified and Shrine roughness integrated.
+Installed roughness importer uses BC4,gammafalse; installed MDL scalar lookup
+and retained public runtime roughnessSample.x support raw R. Unequal modelRGB
+is not alone a technical bind blocker; physical map QA remains separate.
+Actual CPU decoder test world8PNG inputs agrees withPillow, alphaexact; DDS
+controlfailsRGB. Previous RGB/255 fallback-only provenance corrected externally.
+shrine-roughness-review-a:2existing maps ingested viaMCP8002, DXGI80/1024square;
+rawR->DDS MAE0.821/0.738,p95both2/255,max8/6, medians125/166 unchanged.
+Candidate beneath mod, original albedo retained, roughness maps bound using
+existing MCP override after edit-target verification; explicit0.5rough/0metal
+match capturedMDL defaults. Saved layer inspected; no height/normal edits.
+Control/candidate/repeat exit0, baseline restoredexact. WholeMAE2.923 versus
+repeat0.265; bottom1003.883 versus0.215. Viewed pair: floor artwork retained,
+visible response; no moving/human acceptance from still. No new generation.
+Next moving material review and targeted character lighting; GPU delegated to
+character agent for exactMaxi selector-first native extraction. Full roster/
+costumes and hidden/alternate scene coverage remain open.
+
 LOG1054 verified PNG skin-response path and exact-pose texture identity.
 character-material-response-b corrects deterministic input route using existing
 native256PNG (not another AI variation). Two15percent encoded-RGB reductions
