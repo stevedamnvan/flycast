@@ -1,10 +1,9 @@
-Current checkpoint LOG1045: feedback-off/neverDowngrade-off fixed5301 render
-exit0 restores visible stone detail. Candidate for moving/memory validation,
-not default/performance acceptance. Generated tiles also detailed with all-mips.
-Baseline exact, layers detached; parent processes terminal. World agent now
-owns GPU for Ostrheinsburg gameplay + remaining extraction. Parent CPU work
-until coordination. Evidence shrine-sampling-a/no-feedback and shrine-resident-tiles-a.
-MCP8002 Shrine workfile unsaved, preserve old8001 state.
+Current checkpoint LOG1046: feedback-off generated tiles retain detail in26
+short moving captures5900..5929 of30 requested, zero HUD/composition mismatches.
+Host0/helper11 orderly; layer removed baseline exact. GPU snapshot5.08GiB
+not growth/budget acceptance. Next locked-source baseline comparison and longer
+memory/cadence checks. World agent owns GPU for extraction now. Evidence
+shrine-feedback-moving-a, all parent processes terminal. MCP8002 Shrine unsaved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

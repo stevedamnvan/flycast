@@ -176,7 +176,10 @@ implicating residency/promotion. Not production policy or pixel-faithful match.
 LOG1045 samplerFeedbackEnable=False with neverDowngrade=False restores
 visible detail, implicating feedback-driven promotion. Generated tiles also
 retain detail with all-mips control. Next opt-in moving/memory validation of
-feedback-off candidate before defaults; no artwork acceptance or regeneration. Lighting balance
+feedback-off candidate before defaults. LOG1046 retains26/30 short moving
+frames with detail and zero protected/composition mismatches; single5.08GiB
+GPU snapshot is not growth/performance proof. Next matched locked-source
+comparison and longer memory/cadence validation; no broad artwork acceptance. Lighting balance
 and moving validation remain.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.

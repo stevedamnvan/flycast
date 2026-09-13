@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1046 feedback-off generated tiles in short live movement.
+shrine-feedback-moving-a terminal host0/helper11 orderly;26/30 requested frames
+5900..5929 retained. Candidate tiles active, neutral fill0.3, feedbackoff,
+neverDowngradeoff. Viewed full26-frame contact sheet: stone detail retained
+through short motion, no broad shimmer/combat acceptance from half-second lane.
+HUD/world/backbuffer recorded mismatches all0. Layer detached baseline exact.
+Dedicated GPU process counter snapshot PID36520 main adapter5450440704bytes
+(~5.08GiB), secondary118784; point-in-time only, no baseline/growth/performance
+claim. Baseline layer CPU inventory184DDS/no unresolved refs,222MiB disk;
+hypothetical RGBA8 full chains1125MiB excludes capture/driver/transient costs,
+not measured resident texture use. Evidence texture-residency-budget-a and
+shrine-feedback-moving-a audit/contact-sheet/commands/memory snapshot.
+Next matched locked-source baseline comparison using retained moving packets
+and longer memory/cadence validation before default promotion. World agent GPU
+released to continue extraction; parent CPU work until next coordinated lane.
+
 LOG1045 sampler-feedback-off restores detail without forced residency.
 Source-art replacement fixed5301 render, samplerFeedbackEnable=False and
 neverDowngradeTextures=False, unchanged other settings, terminal0. Runtime
