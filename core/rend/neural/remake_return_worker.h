@@ -52,7 +52,7 @@ class RemakeReturnWorker {
  std::shared_ptr<const RemakeTemporalScene> chain; // Newest received scene: the history the next image is prepared against.
  static RemakeReturnResult prepare(RemakeReturnedImage&& image,RemakeOverlaySnapshot&& overlay,
   const std::shared_ptr<const RemakeTemporalScene>& scene,const std::shared_ptr<const RemakeTemporalScene>& previous,
-  bool allowShadingChanges) {
+  bool allowShadingChanges,RemakeMotionRecordCache& recordCache) {
   const auto start=std::chrono::steady_clock::now();
   RemakeReturnResult r;r.returned=std::move(image);r.overlay=std::move(overlay);
   static thread_local unsigned validateCount=0,streamCount=0,inputCount=0;
@@ -63,7 +63,7 @@ class RemakeReturnWorker {
   if(scene) {
    RemakeCpuScope timing("return-motion-stream",r.returned.frame,streamCount);
    r.temporal=true;r.previousFrame=previous?previous->frame:0;
-   r.streamReady=BuildRemakeMotionStream(previous.get(),*scene,r.stream,r.streamError,allowShadingChanges);
+   r.streamReady=recordCache.Build(previous,scene,r.stream,r.streamError,allowShadingChanges);
   }
   if(r.wellFormed) {
    RemakeCpuScope timing("return-input-build",r.returned.frame,inputCount);
@@ -73,6 +73,7 @@ class RemakeReturnWorker {
   return r;
  }
  void run() {
+  RemakeMotionRecordCache recordCache;std::uint64_t cacheGeneration=0;
   for(;;) {
    RemakeReturnJob job;std::uint64_t mine=0;bool haveJob=false;RemakeLiveChannel* poll=nullptr;
    {
@@ -83,9 +84,10 @@ class RemakeReturnWorker {
     if(pending){job=std::move(*pending);pending.reset();busy=true;haveJob=true;}
     else if(channel&&!closed)poll=channel;
    }
+   if(cacheGeneration!=mine){recordCache.Reset();cacheGeneration=mine;}
    if(haveJob) {
     const auto scene=job.overlay.temporalScene;
-    RemakeReturnResult result=prepare(std::move(job.returned),std::move(job.overlay),scene,job.previous,shadingAwareMotion);
+    RemakeReturnResult result=prepare(std::move(job.returned),std::move(job.overlay),scene,job.previous,shadingAwareMotion,recordCache);
     std::lock_guard<std::mutex> lock(mutex);
     busy=false;++completed;
     if(!stop&&mine==generation)results.emplace_back(mine,std::move(result));
@@ -110,7 +112,7 @@ class RemakeReturnWorker {
     if(const auto found=scenes.find(image.source.sequence);found!=scenes.end())scene=found->second;
     previous=chain;if(scene)chain=scene;busy=true;
    }
-   RemakeReturnResult result=prepare(std::move(image),RemakeOverlaySnapshot{},scene,previous,shadingAwareMotion);
+   RemakeReturnResult result=prepare(std::move(image),RemakeOverlaySnapshot{},scene,previous,shadingAwareMotion,recordCache);
    std::lock_guard<std::mutex> lock(mutex);
    busy=false;++completed;++received;
    if(!stop&&mine==generation)results.emplace_back(mine,std::move(result));

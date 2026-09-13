@@ -276,6 +276,44 @@ int RunSelfTests()
 		RemakeMotionStream stream;std::string error;
 		suite.Expect(BuildRemakeMotionStream(&previous,current,stream,error)&&stream.trustedVertices==3&&stream.maximumMotion==0,
 			"returned geometry static motion is exactly zero");
+		{
+			RemakeMotionRecordCache cache;
+			auto a=std::make_shared<const RemakeTemporalScene>(previous);
+			auto b=std::make_shared<const RemakeTemporalScene>(current);
+			RemakeMotionStream cached,reference;
+			const auto equal=[](const RemakeMotionStream& x,const RemakeMotionStream& y){
+				if(x.indices!=y.indices||x.vertices.size()!=y.vertices.size()||x.trustedDraws!=y.trustedDraws
+				 ||x.reactiveDraws!=y.reactiveDraws||x.ambiguousDraws!=y.ambiguousDraws
+				 ||x.trustedVertices!=y.trustedVertices||x.maximumMotion!=y.maximumMotion
+				 ||x.requiresColorValidation!=y.requiresColorValidation)return false;
+				for(std::size_t i=0;i<x.vertices.size();++i){const auto& p=x.vertices[i];const auto& q=y.vertices[i];
+				 if(p.currentScreen.x!=q.currentScreen.x||p.currentScreen.y!=q.currentScreen.y||p.currentScreen.z!=q.currentScreen.z
+				  ||p.previousScreen.x!=q.previousScreen.x||p.previousScreen.y!=q.previousScreen.y||p.previousScreen.z!=q.previousScreen.z
+				  ||p.confidence!=q.confidence||p.currentDraw!=q.currentDraw||p.previousDraw!=q.previousDraw)return false;}
+				return true;
+			};
+			for(unsigned mutation=0;mutation<7;++mutation){
+				cache.Reset();bool ok=cache.Build({},a,cached,error);
+				auto changed=current;
+				if(mutation==1)changed.meshes[0].vertices[0].position.x+=.1f;
+				if(mutation==2)changed.camera.fovY+=1.f;
+				if(mutation==3)changed.producer.epoch++;
+				if(mutation==4)changed.frame+=20;
+				if(mutation==5)changed.meshes[0].vertices[0].u+=.1f;
+				if(mutation==6)changed.meshes[0].alphaBlend=true;
+				auto c=std::make_shared<const RemakeTemporalScene>(changed);
+				ok=ok&&cache.Build(a,c,cached,error)&&BuildRemakeMotionStream(a.get(),*c,reference,error)&&equal(cached,reference);
+				suite.Expect(ok,"motion record reuse preserves changed scene and history boundary output");
+			}
+			cache.Reset();bool ok=cache.Build({},a,cached,error);
+			auto replacement=previous;replacement.meshes[0].vertices[0].position.x+=.2f;
+			auto other=std::make_shared<const RemakeTemporalScene>(replacement);
+			ok=ok&&cache.Build(other,b,cached,error)&&BuildRemakeMotionStream(other.get(),*b,reference,error)&&equal(cached,reference);
+			suite.Expect(ok,"motion record reuse rejects different owner with same frame identity");
+			auto invalid=current;invalid.meshes[0].indices[0]=999;
+			suite.Expect(!cache.Build(a,std::make_shared<const RemakeTemporalScene>(invalid),cached,error),"motion cache rejects invalid new scene");
+			cache.Reset();suite.Expect(cache.Build(a,b,cached,error)&&BuildRemakeMotionStream(a.get(),*b,reference,error)&&equal(cached,reference),"motion cache reset preserves uncached output");
+		}
 		auto translated=current;for(auto& v:translated.meshes[0].vertices)v.position.x+=4.f*10/240;
 		bool ok=BuildRemakeMotionStream(&previous,translated,stream,error);
 		bool truth=ok&&stream.trustedVertices==3;

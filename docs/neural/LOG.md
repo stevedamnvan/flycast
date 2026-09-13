@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1021 bounded return-worker motion record reuse implemented.
+RemakeMotionRecordCache retains one published immutable scene and its projected
+records, reuses only the identical owned previous scene with temporal
+compatibility, and always rebuilds current records. Different owners with
+identical IDs cannot hit; failure clears the cache. Worker-local lifetime and
+generation reset avoid cross-thread cache mutation; Stop destroys the cache.
+Feed source audit: receipt is assigned before publication, then render/return
+paths consume const scenes. Exact draw/material/UV/reactivity checks and
+render-thread accepted-history identity checks remain unchanged. Uncached
+BuildRemakeMotionStream remains the fallback and standalone path.
+Four serial builds and1102/0 selftests x3 pass in motion-record-cache-build-a.
+Ten new checks cover changed geometry/camera/UV/reactivity, epoch/gap, distinct
+owner, invalid input and reset parity. motion-record-cache-timing-a has five
+CPU-only actual-packet comparisons: uncached2.725..2.882ms versus primed-cache
+1.557..1.687ms, all fieldwise outputs exact. Cache priming is outside timing;
+not a live FPS or net pipeline claim. Refactored uncached path also matches
+LOG1020's saved original implementation over310 iterations of the actual pair.
+Next: isolated current automation host eligible live replay, existing strict
+selective policy, no CPU timing/capture and verified quiet Toolkit viewports.
+Preserve failures and measure freshness/cadence/lifecycle before gain claims.
+
 LOG1020 motion preparation phase benchmark isolates repeated record work.
 External-only instrumented copy of remake_motion_stream.h, MSVC/O2, actual
 adjacent retained source packets5434/5435 from practice-hit-hud-a/control.

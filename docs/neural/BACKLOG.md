@@ -130,6 +130,11 @@ LOG1020 retained actual adjacent-packet benchmark isolates record work at
 have exact stream parity. Next test bounded worker-local immutable-scene record
 reuse, preserve all temporal/exact-match gates, then measure eligible live
 cadence only after required source validation. This is not an FPS gain.
+LOG1021 one-scene worker record cache implemented; four serial builds and
+1102/0 selftests x3 pass. Actual-packet output parity passes; primed CPU-only
+cost falls~2.8 to~1.6ms. Next eligible live replay uses current automation host,
+existing strict selective reuse and quiet Toolkit load, with no diagnostics.
+No live gain,60fps or visual acceptance is claimed by this microbenchmark.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.

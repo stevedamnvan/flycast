@@ -79,16 +79,26 @@ inline bool records(const RemakeTemporalScene& scene,std::vector<DrawRecord>& ou
  return true;
 }
 }
+// One immutable scene's projected records. Worker ownership bounds this to one
+// retained scene; it is never a correspondence or accepted-history certificate.
+struct RemakeMotionRecords {
+ std::vector<DrawRecord> draws;
+ std::vector<std::vector<remake::Vec3>> screens;
+};
 // Previous must be the compatible last successful evaluation, not last publication.
 // This produces geometry candidates only; returned-depth/disocclusion and GPU
 // interpolation still decide per-pixel trust before neural history is enabled.
-inline bool BuildRemakeMotionStream(const RemakeTemporalScene* previous,const RemakeTemporalScene& current,
- RemakeMotionStream& output,std::string& error,bool allowShadingChanges=false) {
+inline bool BuildRemakeMotionStreamPrepared(const RemakeTemporalScene* previous,const RemakeTemporalScene& current,
+ RemakeMotionStream& output,std::string& error,bool allowShadingChanges,
+ const RemakeMotionRecords* retained,RemakeMotionRecords* prepared) {
  try {
   if(previous&&!CompatibleRemakeTemporalReference(*previous,current))previous=nullptr;
-  std::vector<DrawRecord> before,now;std::vector<std::vector<remake::Vec3>> oldScreen,newScreen;
-  if(!remake_motion_detail::records(current,now,newScreen)
-   ||(previous&&!remake_motion_detail::records(*previous,before,oldScreen))) {error="remake-motion-source-bound";return false;}
+  RemakeMotionRecords currentRecords,previousRecords;
+  if(!remake_motion_detail::records(current,currentRecords.draws,currentRecords.screens)
+   ||(previous&&!retained&&!remake_motion_detail::records(*previous,previousRecords.draws,previousRecords.screens))) {error="remake-motion-source-bound";return false;}
+  const auto& now=currentRecords.draws;const auto& newScreen=currentRecords.screens;
+  const auto& before=previous?(retained?retained->draws:previousRecords.draws):previousRecords.draws;
+  const auto& oldScreen=previous?(retained?retained->screens:previousRecords.screens):previousRecords.screens;
   const auto matches=MatchDraws({before.data(),before.size()},{now.data(),now.size()});
   RemakeMotionStream result;
   result.requiresColorValidation=allowShadingChanges;
@@ -112,7 +122,30 @@ inline bool BuildRemakeMotionStream(const RemakeTemporalScene* previous,const Re
    }
    for(auto index:mesh.indices)result.indices.push_back(base+index);
   }
-  output=std::move(result);error.clear();return true;
+  output=std::move(result);if(prepared)*prepared=std::move(currentRecords);error.clear();return true;
  }catch(const std::exception& e){error=e.what();return false;}
 }
+inline bool BuildRemakeMotionStream(const RemakeTemporalScene* previous,const RemakeTemporalScene& current,
+ RemakeMotionStream& output,std::string& error,bool allowShadingChanges=false) {
+ return BuildRemakeMotionStreamPrepared(previous,current,output,error,allowShadingChanges,nullptr,nullptr);
+}
+// Thread-confined. Callers publish scenes as immutable before handing them here.
+// Retaining ownership prevents allocator address reuse from identifying a new scene.
+class RemakeMotionRecordCache {
+ std::shared_ptr<const RemakeTemporalScene> scene;
+ RemakeMotionRecords records;
+public:
+ void Reset(){scene.reset();records={};}
+ bool Build(const std::shared_ptr<const RemakeTemporalScene>& previous,
+  const std::shared_ptr<const RemakeTemporalScene>& current,RemakeMotionStream& output,
+  std::string& error,bool allowShadingChanges=false) {
+  if(!current){Reset();error="remake-motion-source-missing";return false;}
+  RemakeMotionRecords next;
+  const bool reuse=previous&&scene&&previous==scene
+   &&CompatibleRemakeTemporalReference(*previous,*current);
+  if(!BuildRemakeMotionStreamPrepared(previous.get(),*current,output,error,allowShadingChanges,
+    reuse?&records:nullptr,&next)){Reset();return false;}
+  scene=current;records=std::move(next);return true;
+ }
+};
 }
