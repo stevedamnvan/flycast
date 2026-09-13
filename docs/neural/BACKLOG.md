@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1154. This is a summary
+Updated 2026-09-13, evidence through LOG1155. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,11 +64,11 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** implement exact-compatible resource reuse across changing
-mesh sets under existing selective/anchored gates (LOG1154). Preserve DDS equality,
-one-to-one incoming draw order, current vertex uploads and reset/failure ownership.
-Inner timing complete: blended resource median4.7935ms versus cutout0.82695ms;
-full rebuilds449/450. Validate mutations/cleanup, moving output and paired timing.
+**Next deliverable:** validate implemented exact-compatible resource reuse (LOG1155).
+Four builds/1200selftests x3 pass; shrine-mesh-resource-reuse-a visual capture active.
+Preserved DDS equality, incoming order, current uploads, reset and ownership gates.
+Next inspect same-source output, moving integrity, live failure cleanup and paired
+capture-free timing/resource growth before promotion.
 Both capture-free runs completed1200 identical source IDs; median about11.2ms,
 but returned repeats46->143 and p99 19.37->20.82ms. No candidate promotion or
 60fps acceptance. Moving300-frame integrity complete; sampled neck/fringe improvement

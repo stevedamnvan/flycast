@@ -13,6 +13,7 @@
 #include "remake_anchor_basis_diagnostics_tests.h"
 #include "remake_sorted_alpha_tests.h"
 #include "remake_feed_capture_wait_tests.h"
+#include "remake_legacy_reuse_tests.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_curved_export.h"
 #include "rend/neural/source_hook_attribution.h"
@@ -785,6 +786,7 @@ int RunSelfTests()
 			"live view converts witnessed triangle with source draw identity");
 		TestRemakeSortedAlpha(suite,p);
 		TestRemakeFeedCaptureWait(suite);
+		TestRemakeLegacyReuse(suite);
 		if(!view.meshes.empty()) {
 			const auto& v=view.meshes[0].vertices[0];
 			suite.Expect(Near(v.position[0],-1)&&Near(v.position[1],1)&&Near(v.position[2],10)

@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1155 exact-compatible resource matching implemented under selective gate.
+D3D9PacketScene now builds incoming-order one-to-one matching across mesh count
+and order changes using unchanged LegacyResourceCompatible plus exact SameTexture.
+Retained resources AddRef into guarded pending collection; unmatched allocations
+created before commit; failure/exception releases pending references, preserving
+old ownership. Checked unbind precedes swaps; Packet move assignment statically
+requires noexcept. Retired resources release after commit; lights retained.
+Existing selective/anchored/same-game gates, anchor/source-reset behavior, per-frame
+vertex uploads, alpha and sampler states unchanged. No temporal identity inferred.
+New LegacyReuseMapping and17 tests cover insertion/removal/reorder, duplicates,
+empty/unmatched, dynamic attributes, identity/index/topology/transform/blend and
+texture revision mutations, caller exact-byte predicate. Agent read-only ownership
+review found no blocker. These tests do not constitute live COM fault injection.
+Four serial builds and1200selftests x3 pass mesh-resource-reuse-build-a.
+Same-source visual/provenance check shrine-mesh-resource-reuse-a active session6678,
+launcher772; previous host/settings retained, new helper,5370..5380 full captures.
+Poll existing run before any launch. Output equivalence, moving interval, live
+failure cleanup and capture-free speed/resource-growth remain pending; no promotion.
+
 LOG1154 inner alpha draw comparison complete; exact resource reuse next.
 alpha-draw-scopes-a both terminal0/baselineexact,1200 host samples5302..6501,
 reverse order blended then cutout. inner-attribution.json: blended1065 draws,

@@ -2,6 +2,7 @@
 #pragma once
 #include "remake_scene.h"
 #include "remake_legacy_contract.h"
+#include "remake_legacy_reuse.h"
 #include "remake_cutout.h"
 #include "remake_scene_lighting.h"
 #include <d3d9.h>
@@ -14,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <type_traits>
 
 namespace neuraltest::remake {
 // Immutable shared texture source bytes. A Referenced mesh (D-212) carries no
@@ -133,6 +135,44 @@ class D3D9PacketScene {
   }
   return offset==data.size()?S_OK:E_INVALIDARG;
  }
+ // Build the replacement collection transactionally. Retained COM references
+ // belong to both collections until commit, so any failure leaves old ownership intact.
+ HRESULT RefreshMatchingResources(const Packet& packet) {
+  struct Pending {
+   std::vector<Resource> resources;
+   ~Pending(){for(auto& r:resources){if(r.vb)r.vb->Release();if(r.texture)r.texture->Release();}}
+  } pending;
+  Packet nextInitial=packet;
+  std::vector<TextureSourceBytes> nextBytes(packet.meshes.size());
+  pending.resources.resize(packet.meshes.size());
+  const auto mapping=LegacyReuseMapping(packet.meshes.size(),resources_.size(),[&](std::size_t i,std::size_t j){
+   return LegacyResourceCompatible(packet.meshes[i],initial_.meshes[j])&&SameTexture(packet.meshes[i],textureBytes_[j]);
+  });
+  std::size_t retained=0;
+  for(std::size_t i=0;i<packet.meshes.size();++i) {
+   auto& next=pending.resources[i];const auto old=mapping[i];
+   if(old<resources_.size()) {
+    next.indices=resources_[old].indices;
+    nextBytes[i]=textureBytes_[old];
+    next.vb=resources_[old].vb;next.vb->AddRef();
+    next.texture=resources_[old].texture;next.texture->AddRef();++retained;
+   } else {
+    nextBytes[i]=ReadTexture(packet.meshes[i]);next.indices=Triangles(packet.meshes[i]);
+    if(next.indices.empty())return E_INVALIDARG;
+    auto hr=device_->CreateVertexBuffer(UINT(next.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&next.vb,nullptr);
+    if(FAILED(hr))return hr;
+    if(FAILED(hr=Texture(*nextBytes[i],&next.texture)))return hr;
+   }
+  }
+  if(FAILED(device_->SetTexture(0,nullptr))||FAILED(device_->SetStreamSource(0,nullptr,0,0)))return E_FAIL;
+  static_assert(std::is_nothrow_move_assignable_v<Packet>,"Resource commit requires nonthrowing packet transfer");
+  resources_.swap(pending.resources);textureBytes_.swap(nextBytes);
+  initial_=std::move(nextInitial);
+  std::cout<<"selective_source_resource_refresh frame="<<packet.frame<<" replaced="<<resources_.size()-retained
+   <<" retained="<<retained<<" retired="<<pending.resources.size()-retained
+   <<" anchored_lights_retained=true temporal_identity_proven=false\n";
+  return S_OK;
+ }
  HRESULT DrawInternal(const Packet& packet) {
   // Host elapsed scopes include driver waits; these are not GPU timestamps.
   using Clock=std::chrono::steady_clock;
@@ -170,24 +210,8 @@ class D3D9PacketScene {
    for(std::size_t i=0;compatible&&i<packet.meshes.size();++i)
     compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && SameTexture(packet.meshes[i],textureBytes_[i]);
    if(!compatible) {
-    if(selectiveRefresh_&&anchoredLight_&&packet.game==initial_.game&&packet.meshes.size()==resources_.size()) {
-     // Allocation reuse only: never infer temporal identity from a slot. The
-     // unchanged strict contract and exact DDS decide which resources survive.
-     std::size_t replaced=0;
-     for(std::size_t i=0;i<resources_.size();++i) {
-      const auto& mesh=packet.meshes[i];
-      if(LegacyResourceCompatible(mesh,initial_.meshes[i])&&SameTexture(mesh,textureBytes_[i]))continue;
-      auto bytes=ReadTexture(mesh);auto indices=Triangles(mesh);if(indices.empty())return E_INVALIDARG;
-      auto& r=resources_[i];
-      if(FAILED(device_->SetTexture(0,nullptr))||FAILED(device_->SetStreamSource(0,nullptr,0,0)))return E_FAIL;
-      if(r.vb){r.vb->Release();r.vb=nullptr;}if(r.texture){r.texture->Release();r.texture=nullptr;}
-      r.indices=std::move(indices);textureBytes_[i]=std::move(bytes);
-      auto hr=device_->CreateVertexBuffer(UINT(r.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&r.vb,nullptr);
-      if(FAILED(hr))return hr;if(FAILED(hr=Texture(*textureBytes_[i],&r.texture)))return hr;
-      initial_.meshes[i]=mesh;++replaced;
-     }
-     std::cout<<"selective_source_resource_refresh frame="<<packet.frame<<" replaced="<<replaced
-      <<" retained="<<resources_.size()-replaced<<" anchored_lights_retained=true temporal_identity_proven=false\n";
+    if(selectiveRefresh_&&anchoredLight_&&packet.game==initial_.game) {
+     const auto refreshed=RefreshMatchingResources(packet);if(FAILED(refreshed))return refreshed;
     } else {
     std::cout<<"live_source_resource_refresh frame="<<packet.frame<<" draws="<<packet.meshes.size()<<" temporal_identity_proven=false\n";
     // Diagnostic policy: discard/recreate incompatible resources, never freeze
