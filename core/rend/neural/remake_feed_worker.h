@@ -71,6 +71,7 @@ struct RemakeFeedResult {
  bool anchored=false,supportChanged=false,regenerated=false,viewCut=false;
  std::uint32_t generation=0;std::uint64_t referenceOrdinal=0;remake::Vec3 origin{};double projectionMaxPixels=0;
  RemakeCameraAnchor::SupportReport support{};RemakeCameraAnchor::ProjectionReport projection{};
+ RemakeCameraAnchor::BasisReport basis{}; // Diagnostic only, never used for acceptance.
  // Texture identities the consumer registered from this published packet
  // (D-212); the render thread records them as sent only after Published.
  std::vector<remake::TextureIdentity> registeredTextures;std::size_t registeredBytes=0;
@@ -122,6 +123,7 @@ class RemakeFeedWorker {
    const auto anchorStart=elapsed();
    proposed=anchor;
    const bool applied=proposed.Apply(job.snapshot,job.scene,job.packet,error,&chunkWorkers);
+   r.basis=proposed.LastBasisReport();
    r.anchorMs=elapsed()-anchorStart;
    if(!applied) {
     r.stage="camera-anchor";r.error=error;r.support=proposed.LastSupportReport();r.referenceOrdinal=proposed.ReferenceOrdinal();

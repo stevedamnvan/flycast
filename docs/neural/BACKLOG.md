@@ -527,7 +527,12 @@ LOG1131 complete normal draw/resource encoding and capture/replay dispatch
 implemented. Fourbuilds/1159selftests x3 and both GPU identity fixtures pass.
 Live5300..5302 normal effect records,full source archives,helper/Present joins
 and native mismatch checks pass. No appearance/performance acceptance.
-Next short live locked-source replay check,then300frame moving combat review.
+LOG1132 live300/300 sources5300..5599 complete with exact archive/helper/Present
+joins and protected native invariants; baseline byte-exact. Visual approval and
+performance remain open. Short locked replay rejects camera.position.x at byte141
+before effect comparison; preserve strict scene gate. Money diagnostic-only basis
+rejection scopes pass fourbuilds/1167selftests x3. Next one bounded Money5900..5902
+run with new reason/support counters and verified seed/replay; no unchanged retry.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require

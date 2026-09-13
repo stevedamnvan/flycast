@@ -10,6 +10,7 @@
 #include "rend/neural/pvr_palette_binding.h"
 #include "rend/neural/remake_alpha_ownership.h"
 #include "rend/neural/remake_camera_anchor.h"
+#include "remake_anchor_basis_diagnostics_tests.h"
 #include "rend/neural/remake_feed_worker.h"
 #include "rend/neural/remake_curved_export.h"
 #include "rend/neural/source_hook_attribution.h"
@@ -1174,6 +1175,7 @@ int RunSelfTests()
 			{
 				// A second rigid basis with few points is a moving object: support comes
 				// from the dominant basis only. An even split stays ambiguous.
+				TestRemakeAnchorBasisDiagnostics(suite,p,view,packet);
 				auto observed46=p;auto supported46=view;observed46.sourceVertices.clear();supported46.meshes[0].vertices.clear();
 				for(unsigned i=0;i<46;++i) {
 					auto witness=p.sourceVertices[0];

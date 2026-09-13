@@ -76,7 +76,16 @@ public:
   std::uint64_t framesSinceLast=0; // Source frames between this and the last accepted export: the unit of the from-last motion.
   bool available=false,rejected=false;
  };
+ // Diagnostic-only rejection detail; separate from SupportReport::rejected,
+ // which participates in reanchor policy. Never used to select a basis.
+ struct BasisReport {
+  enum class Rejection { None, BasisLimit, UnsupportedSplit };
+  Rejection rejection=Rejection::None;
+  std::size_t bases=0,dominant=0,runnerUp=0,lastAcceptedPoints=0,maximumShared=0;
+  std::uint64_t lastAcceptedOrdinal=0;
+ };
 private:
+ BasisReport basisReport{};
  std::set<Point> lastPoints; // Last accepted support only; bounded like reference.
  Matrix lastBasis{};
  SupportReport report{};
@@ -127,6 +136,7 @@ public:
  void Reset(){*this={};}
  std::uint64_t ReferenceOrdinal()const{return first.ordinal;}
  const SupportReport& LastSupportReport()const{return report;}
+ const BasisReport& LastBasisReport()const{return basisReport;}
  std::uint32_t Generation()const{return generation;}
  remake::Vec3 Origin()const{return origin;}
  // Retire the fixed view after a rejected shared-support check. The next accepted
@@ -143,6 +153,9 @@ public:
  const ProjectionReport& LastProjectionReport()const{return projectionReport;}
  bool Apply(const PvrDecodedPacket& source,const RemakeViewScene& scene,
   remake::Packet& packet,std::string& error,RemakeChunkWorkers* executor=nullptr) {
+  basisReport={};
+  basisReport.lastAcceptedOrdinal=last.ordinal;
+  basisReport.lastAcceptedPoints=lastPoints.size();
   const auto fail=[&](const char* why){error=why;return false;};
   const auto p=source.sourceProducer;
   if(!p.Available()||source.frame!=scene.frame||packet.frame!=source.frame
@@ -177,7 +190,19 @@ public:
    const double scales[]={scene.focalX,-scene.focalY,1.};
    for(unsigned r=0;r<3;++r)for(unsigned c=0;c<4;++c)m[r*4+c]=double(t.matrix[c*4+r])/scales[r];
    if(!rigid(m))return fail("anchor-nonrigid-source");
-   if(bases.size()>=64&&!bases.count(m))return fail("anchor-ambiguous-source-basis");
+   if(bases.size()>=64&&!bases.count(m)) {
+    basisReport.bases=bases.size()+1; // The rejected additional basis, not stored.
+    // Counts cover only the first64 stored bases; the65th was not inserted.
+    for(const auto& basis:bases) {
+     const auto count=basis.second.size();
+     if(count>basisReport.dominant){basisReport.runnerUp=basisReport.dominant;basisReport.dominant=count;}
+     else basisReport.runnerUp=(std::max)(basisReport.runnerUp,count);
+     std::size_t shared=0;for(const auto& point:basis.second)shared+=lastPoints.count(point);
+     basisReport.maximumShared=(std::max)(basisReport.maximumShared,shared);
+    }
+    basisReport.rejection=BasisReport::Rejection::BasisLimit;
+    return fail("anchor-ambiguous-source-basis");
+   }
    Point key{};std::memcpy(key.data(),t.input.data(),sizeof(key));bases[m].insert(key);
   }
   if(bases.empty())return fail("anchor-insufficient-source-support");
@@ -190,6 +215,9 @@ public:
     dominant=it;
    } else runnerUp=(std::max)(runnerUp,it->second.size());
   }
+  basisReport.bases=bases.size();
+  basisReport.dominant=dominant->second.size();
+  basisReport.runnerUp=runnerUp;
   // Lineage first: with several bases, keep the one whose exact points continue
   // the last accepted support (same shared-support thresholds). Two large rigid
   // groups then stay consistently anchored instead of flipping or rejecting.
@@ -199,11 +227,15 @@ public:
   if(bases.size()>1&&!lastPoints.empty())
    for(auto it=bases.begin();it!=bases.end();++it) {
     std::size_t shared=0;for(const auto& v:it->second)shared+=lastPoints.count(v);
+    basisReport.maximumShared=(std::max)(basisReport.maximumShared,shared);
     if(shared>=16&&shared*2>=(std::min)(it->second.size(),lastPoints.size())&&shared>chosenShared){chosen=it;chosenShared=shared;}
    }
   const bool lineageSelected=chosen!=bases.end();
   if(!lineageSelected) {
-   if(bases.size()>1&&dominant->second.size()<2*runnerUp)return fail("anchor-ambiguous-source-basis");
+   if(bases.size()>1&&dominant->second.size()<2*runnerUp) {
+    basisReport.rejection=BasisReport::Rejection::UnsupportedSplit;
+    return fail("anchor-ambiguous-source-basis");
+   }
    chosen=dominant;
   }
   const Matrix current=chosen->first;const bool have=true;

@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1131; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1132; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -22,7 +22,11 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   Live shrine-normal-effect-identity-b sources5300..5302 complete,v3/helper/
   Present/full producer joins pass,native mismatches0,baselineexact,terminal0/11.
   BGRA vertex support corrected after rejected probe-a;all evidence retained.
-  Next short live locked replay using b/captures,then300frame combat review.
+  LOG1132 moving-a completes300/300 sources5300..5599; all archive/helper/Present
+  and protected native checks pass; baselineexact. Locked-a fails camera.position.x
+  offset141 before effect comparison; strict replay remains open.
+  Money diagnostic scopes pass fourbuilds/1167selftests x3; next bounded5900..5902
+  using character-coverage-audit-c/money-next-spec-20260913-153808.json.
   No appearance/performance acceptance;character response/hair still open.
   Evidence normal-readback-build-c and normal-readback-gpu-a/readback-proof.json.
   Do not substitute pointer hashes/output equality for exact input identity.
@@ -31,7 +35,7 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   Character67/67captured joins;world137/154. Next Money Pit three variants need
   new matching source frames. Money host reached7105 but anchor rejects from4993;
   diagnose5900..5902 basis first. money-acquisition-diagnosis.json under character audit.
-  Diagnostic ended;existing Toolkit sessions preserved;subagent tasks completed.
+  Diagnostic ended;existing Toolkit sessions preserved;parallel material audits active.
 - LOG1125 capture transport/full-source linkage oracle implemented,unconnected.
   Fourbuilds/1124selftests x3 pass; next versioned archive writer/reader checks
   before live transport changes. Full-quality captures/legacy compatibility intact.

@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG1132 full live moving capture and diagnostic-only anchor rejection scopes.
+shrine-normal-effect-moving-a retains all300 complete sources5300..5599 at
+640x480 within unchanged420s ceiling. moving-audit.json: no missing/unexpected
+sources/errors; all v3 archives, helper/return producer identities, evaluated
+Present joins and protected native mismatch checks pass. Terminal0 and baseline
+byte-exact. Original full packets and PNGs retained. Synchronous capture is not
+performance evidence; appearance and supplied external neural provenance remain
+unaccepted. Selected stills retain liked arena/floor but copper-bright hair and
+dark character response remain concerns; no overall moving visual approval.
+Short shrine-normal-effect-locked-a rejects sources5300/5302 before effect
+comparison: scene mismatch offset141 is camera.position.x, equal packet lengths.
+Zero complete previews; strict replay remains open. No normalization or gate change.
+Money Pit instrumentation adds independent BasisReport, copied before rejected
+trial anchor is discarded, and bounded diagnostic logging. Distinguishes65th
+basis overflow from unsupported split with support/lineage counts; all existing
+predicates, errors and reanchor behavior unchanged. Four serial builds exit0 and
+1167selftests x3 pass (anchor-basis-diagnostics-build-b). Initial build-a retained:
+LNK1104 because live capture held neuraltest.exe; rerun after capture terminal.
+Future parallel builds must snapshot harness/helper as well as host executable.
+Audit initially reread300packet roots per frame; stopped and used per-frame
+junction roots referencing unchanged archives, same verifier, all300 pass.
+Next one bounded Money5900..5902 diagnostic using verified route/seed, no retries;
+root spec character-coverage-audit-c/money-next-spec-20260913-153808.json.
+Coverage unchanged67/67 captured character joins and137/154 world joins.
+No material, baseline, lighting, native timing or acceptance policy changed.
+
 LOG1131 normal exact-effect identity capture integrated and short live proof.
 Separate NFE1 snapshot/NID1 draw encoding includes producer,depth,target views,
 ordered native parameters/draws,exact shader/layout provenance,active indexed

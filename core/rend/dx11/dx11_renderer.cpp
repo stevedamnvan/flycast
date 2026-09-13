@@ -2904,6 +2904,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 				(unsigned long long)fed.frame,fed.generation,fed.support.rotationFromLastDegrees,fed.support.translationFromLast,(unsigned long long)fed.support.framesSinceLast,unsigned(fed.support.sharedLast));
 		}
 		if(!fed.stage.empty()) {
+			if(fed.stage=="camera-anchor"&&fed.basis.rejection!=RemakeCameraAnchor::BasisReport::Rejection::None) {
+				static unsigned basisDiagnostics=0;
+				if(basisDiagnostics++<32)NOTICE_LOG(RENDERER,"Remake anchor basis rejection: source=%llu reason=%s bases=%u dominant=%u runner_up=%u maximum_shared=%u previous_points=%u last_accepted_ordinal=%llu diagnostic_only=true",
+					(unsigned long long)fed.frame,fed.basis.rejection==RemakeCameraAnchor::BasisReport::Rejection::BasisLimit?"basis-limit":"unsupported-split",
+					unsigned(fed.basis.bases),unsigned(fed.basis.dominant),unsigned(fed.basis.runnerUp),unsigned(fed.basis.maximumShared),unsigned(fed.basis.lastAcceptedPoints),(unsigned long long)fed.basis.lastAcceptedOrdinal);
+			}
 			if(const auto* diagnostics=std::getenv("FLYCAST_REMAKE_ASYNC_DIAGNOSTICS");diagnostics&&std::strcmp(diagnostics,"1")==0)
 				NOTICE_LOG(RENDERER,"Remake async skip: frame=%llu producer=%llu stage=%s reason=%s",
 					(unsigned long long)fed.frame,(unsigned long long)fed.producer.ordinal,fed.stage.c_str(),fed.error.c_str());
