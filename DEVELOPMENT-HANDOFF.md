@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1153; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1154; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
@@ -21,8 +21,11 @@ sources5302..6501, no synchronous capture. Cutout/blended p50 11.195/11.175ms,
 p99 19.371/20.818ms; returned repeats46/143, max latency5/7frames. No promotion.
 LOG1152 existing logs attribute dominant growth to helper draw scope2.161->6.116ms.
 Inner helper scopes implemented; fourbuilds/1183selftests x3 pass.
-alpha-draw-scopes-a blended running session89306/launcher35024; poll, then run
-prepared cutout via run_one.py after terminal. Reverse-order attribution pair.
+alpha-draw-scopes-a BOTH COMPLETE terminal0/baselineexact; inner-attribution.json.
+Resource median blended4.7935/cutout0.82695ms; full refresh counts449/450.
+Next exact-compatible one-to-one resource reuse across mesh count/order changes;
+retain DDS checks, reset gates, current vertex uploads and exception-safe COM ownership.
+Agent resource_reuse_review complete/read-only; no active benchmark.
 Both logs report undisposed common device objects; lifecycle gate remains open.
 Full performance/native-relative gates remain open.
 First pair alpha-route-benchmark-a preflight failure preserved. No live benchmark.

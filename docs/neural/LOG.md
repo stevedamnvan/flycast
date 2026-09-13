@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1154 inner alpha draw comparison complete; exact resource reuse next.
+alpha-draw-scopes-a both terminal0/baselineexact,1200 host samples5302..6501,
+reverse order blended then cutout. inner-attribution.json: blended1065 draws,
+449 full/367 selective refreshes; cutout1150 draws,450 full/504 selective.
+Median resource scope4.7935/0.82695ms blended/cutout; full-refresh-only medians
+5.8453/4.93395ms. Vertex upload0.1383/0.1015ms; primitive0.2711/0.21265ms.
+Thus full refresh count alone is not the explanation; resource workload dominates
+and blended set varies41..91 meshes versus40..58. Helper scope includes CPU/driver
+waits, not pure GPU shading. No claim that alpha ray traversal itself dominates.
+Source selective reuse requires identical mesh counts and slot correspondence;
+count changes force all-resource and light rebuild. Read-only agent review confirms
+bounded next change: incoming-order one-to-one exact-compatible resource matching,
+exact DDS check, create unmatched/retire unused, explicit COM ownership and failure
+cleanup; retain existing selective/anchored/same-game gates and reset behavior.
+Tests must cover insertion/removal/reorder, identity and DDS mutations, current
+vertex uploads and failure cleanup, then moving provenance and capture-free timing.
+Instrumented p50 cutout/blended11.14/11.3484ms,p99 19.6934/20.7262ms. Both keep
+shutdown undisposed-device-object diagnostic; lifecycle acceptance remains open.
+No runtime/default promotion. All runs terminal; no active benchmark.
+
 LOG1153 helper inner draw CPU scopes implemented; live attribution pending.
 neuraltest/remake_d3d9_scene.h now logs validation, resource refresh/setup,
 vertex upload, render state, primitive submission, finish/lights and retained
