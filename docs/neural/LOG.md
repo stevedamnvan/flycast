@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1107 aggregate exported-cutout CPU microbenchmark.26Shrine poses, four
+exported cutouts each, unchanged production rectangle/triangle functions with
+all indexedUVs and owned alpha planes. MSVC/O2;5warmup+20measured batches of
+10iterations. Added per-pose batch-median range320.41..352.33us across26poses.
+This covers exported cutouts only: native rejected translucent draw, alpha
+cache/decode, packet assembly and rendering excluded. Not full-worker or
+frame-time proof. No multiplicative several-millisecond cost observed in this
+set; no new cache justified by this result alone. Next longer full-stack combat
+and capture-free end-to-end performance with current source safeguards.
+Evidence triangle-footprint-aggregate-a/inventory.json,results.json,summary.json,
+bench.cpp and26inputs; external harness compile/run terminal0. No source change.
+
 LOG1106 triangle-footprint CPU microbenchmark uses unchanged production inline
 functions with captured Nightmare5300 shared26alpha/196triangles. MSVC14.44
 /O2 C++17,10warmup+100measured batches of100calls. Rectangle median8.506us;

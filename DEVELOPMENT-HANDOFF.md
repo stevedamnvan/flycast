@@ -13,6 +13,10 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1107:26pose/four exported-cutout aggregate benchmark adds0.32..0.35ms,
+excludes native rejected draw/other worker stages. No cache warranted yet;
+next longer full-stack moving combat then capture-free end-to-end timing.
+Evidence triangle-footprint-aggregate-a. External harness only, GPUfree.
 Latest LOG1106: isolated CPU benchmark actual hair footprint adds~0.359ms,
 rectangle8.506us vs combined367.447us median. Not frame/worker acceptance.
 Next aggregate failed-rectangle workload across poses before optimizing.

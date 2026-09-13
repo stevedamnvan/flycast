@@ -57,9 +57,9 @@ Counts use captured material groups, not entire-game percentages. Runtime
 identity is not live binding, generation is not acceptance, and technical
 acceptance is not human visual approval. Existing baseline artwork stays intact.
 
-**Next deliverable:** aggregate scene-worker footprint cost after LOG1106 isolated
-measurement (~0.359ms added for captured hair), then longer full-stack moving
-hair/combat review. Do not turn generation or capture activity
+**Next deliverable:** longer full-stack moving hair/combat review, then capture-free
+end-to-end timing. LOG1107 exported-cutout aggregate adds0.32..0.35ms across
+26poses; native rejected draw/other worker stages remain outside this measurement. Do not turn generation or capture activity
 into a completion milestone without its acceptance evidence.
 
 | Forecast | Target date / confidence | Basis and next revision |
@@ -431,6 +431,10 @@ LOG1106 isolated production-function microbenchmark: captured hair rectangle
 8.506us vs rectangle+triangle367.447us median, ~0.359ms added per call.
 Not full worker/game-frame cost; next aggregate failed-rectangle workload across
 retained poses, then choose optimization if warranted. Evidence triangle-footprint-cpu-a.
+LOG1107 four exported cutouts across26poses add0.320..0.352ms per pose in
+microbenchmark. Native rejected draw/other worker stages excluded; no full
+performance pass. No cache added; next longer full-stack moving combat and
+capture-free end-to-end performance. Evidence triangle-footprint-aggregate-a.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
