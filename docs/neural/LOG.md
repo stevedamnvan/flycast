@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1061 anchor divergence located; existing fresh-sequence route works.
+Candidate worker skips4832, detects support cut4833, publishes new reference4834;
+control detects4832 and publishes4833. Both started4673. Different admitted
+cut sources set different origin/basis; consumer logs explicitly reanchor lights.
+CPU camera-basis comparison gives max key0.389081deg/fill0.367888deg difference;
+not proof of broad face-response cause. No production scheduler change.
+shrine-sequence-preflight-a uses existing63frame helper mode:60warmup then
+exact candidate-session packets5911/5912/5913, owning38meshes/textures each.
+Exit0; three fresh readbacks0; viewed5913. Baseline unchanged. This bounded
+sequence avoids cross-session anchor admission; not full temporal acceptance.
+Next run candidate/repeated-control on same sequence, then extend existing
+sequence support only as needed for representative moving review.
+Ivy extraction native3frames passed after name/portrait verification; eight
+fighters/57source groups now, costume IDs and runtime joins remain open.
+
 LOG1060 face-only vertex diagnostic has no useful visual gain.
 face-vertex-render-a verifies agent packet5577 RGB-only byte changes, renders
 exact source/control, whitened two-face candidate and repeat; all3exit0.

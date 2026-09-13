@@ -226,7 +226,9 @@ seven renders0; floor effect above noise, character issue on both sides. Next
 LOG1059 live control native-exact82 but camera poses differ82; no causal
 material comparison. LOG1060 face RGB diagnostic3renders0, no useful gain;
 close whitening branch. Next anchor/reference-versus-light-space audit and
-equivalence before further live A/B;
+equivalence before further live A/B. LOG1061 locates cut/reference one-frame
+admission difference. Existing fresh3packet sequence5911..5913 exits0; next
+candidate/repeat on exact sequence, then representative motion extension;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 

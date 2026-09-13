@@ -1,9 +1,11 @@
-Current checkpoint LOG1060: face-only RGB whitening exact packet test3renders0,
-no useful gain; close this branch, no shipping edit. Evidence face-vertex-render-a.
-Baseline unchanged. Next source audit anchor reference selection versus light
-coordinate gauge; world agent active CPU-only. No new live A/B until controlled.
-LOG1059 baseline/candidate82native-exact but camera pose/origin differs82.
-GPU free. Hoko roughness and next character selector remain prepared.
+Current checkpoint LOG1061: anchor divergence arises at scheduler-admitted
+support cut4832/4833 and next reference4833/4834. Small view-relative lighting
+change measured; broad face issue unexplained. Existing fresh3packet sequence
+preflight exits0/readbacks0, viewed5913; baseline unchanged. Evidence
+shrine-sequence-preflight-a. Next candidate/repeat with exact same sequence,
+then extend existing route for representative motion if needed. No scheduler edit.
+Ivy verified/extracted, eight fighters/57character groups, costumes/joins open.
+GPU free; Hoko roughness pending live binding verification.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.
