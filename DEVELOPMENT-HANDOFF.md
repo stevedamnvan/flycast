@@ -1,61 +1,97 @@
-Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
-Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
-Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
-Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
-Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
-Latest LOG1086: parent recovered3character runtime identities from344savedDDS,
-Latest LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
-Latest LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
-Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
-Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
-Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
-Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
-Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
-Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
-Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
-Latest LOG1107:26pose/four exported-cutout aggregate benchmark adds0.32..0.35ms,
+# Development handoff
+
+## Current execution checkpoint
+
+Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
+Latest measured checkpoint: LOG1108; read actual Git HEAD on resume.
+Goal remains the full playable Soulcalibur remaster, not this individual fix.
+
+- Latest LOG1108: full-stack Shrine capture terminal0,296retained/292consecutive,
+  all native composition checks zero/shared26promoted. Baseline unchanged.
+  Evidence `C:/Flycast-Evidence/shrine-hair-combat300-a`; no active run.
+  Actual cycles show idle motion AFTER attacks; not combat acceptance.
+- Next: existing replay attack interval around sources5300..5599, verify native
+  cycles/actions, full mod stack. Then capture-free performance. Do not repeat
+  the5900idle window or count292consecutive as the300-frame gate.
+- Mod discovery uses repository cwd and its existing Soulcalibur junction.
+  Isolated runtime-output has no mod mount; do not use it for full-look claims.
+- Last completed evidence:19pose matched full-stack hair sequence, plus
+  four-cutout CPU aggregate0.320..0.352ms added per pose in26retained poses.
+  Neither is full combat/performance acceptance. No cache added.
+- Next after terminal capture: verify actual source count/native invariants,
+  inspect moving hair/skin/weapons/arena; retain gaps and failures. Then
+  capture-free end-to-end performance, preserving normal/OIT and300/600 gates.
+- Coverage: character51/67 captured groups runtime-matched; world137/154.
+  Full roster/costume/scene denominator unknown. Generated candidates remain
+  distinct from technical acceptance and human visual approval.
+- Baseline mod SHA E3C097905777002034A4983A166E061A6278CA4D70DB9686F5DCD49F263E8340.
+  Preserve active arena/floor, originals and pending Toolkit stages. MCP8003 is
+  last verified authoring endpoint; recheck before use. No model download
+  approval or paid-generation budget has been supplied for pending work.
+
+## Archived resume notes (not current assignments)
+
+The following notes preserve older evidence. Their next steps, running process
+claims and completion labels are historical; use the current checkpoint above.
+
+Historical checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
+Historical LOG1082: world137/154runtime matches after Ostr5600 fixed export,
+Historical LOG1083:137exact texture joins valid; prior17gap geometry split is
+Historical LOG1084: corrected topology verified with4checks;137aliases unchanged,
+Historical LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
+Historical LOG1086: parent recovered3character runtime identities from344savedDDS,
+Historical LOG1087: Nightmare runtime acquisition ACTIVE exec34930/launcher31980,
+Historical LOG1088: Nightmare run TERMINAL0, actual5300owned39meshes; fixed export
+Historical LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
+Historical LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
+Historical LOG1091: diagnostic-only alpha exclusion records implemented in same-job
+Historical LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
+Historical LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
+Historical LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
+Historical LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Historical LOG1107:26pose/four exported-cutout aggregate benchmark adds0.32..0.35ms,
 excludes native rejected draw/other worker stages. No cache warranted yet;
 next longer full-stack moving combat then capture-free end-to-end timing.
 Evidence triangle-footprint-aggregate-a. External harness only, GPUfree.
-Latest LOG1106: isolated CPU benchmark actual hair footprint adds~0.359ms,
+Historical LOG1106: isolated CPU benchmark actual hair footprint adds~0.359ms,
 rectangle8.506us vs combined367.447us median. Not frame/worker acceptance.
 Next aggregate failed-rectangle workload across poses before optimizing.
 Evidence triangle-footprint-cpu-a; no source mutation/GPUfree. LOG1105 status
 and forecast ledger now in BACKLOG; keep it updated, no defensible ETA yet.
-Latest LOG1104:19frame full-stack hair sequence/control/repeat terminal0,
+Historical LOG1104:19frame full-stack hair sequence/control/repeat terminal0,
 headchange4.282 vs0.815noise. Hair present beginning/middle/end; only0.3sec,
 not full moving/appearance acceptance. Next triangle-fallback CPUcost then
 longer moving combat. Existing cleanup warning remains. Baselineexact/GPUfree.
 Evidence shrine-hair-sequence-a,57BMPs and receipts. No source mutation.
-Latest LOG1103: fresh Shrine terminal0/26captures shared26promoted, native
+Historical LOG1103: fresh Shrine terminal0/26captures shared26promoted, native
 effects/HUD/composition exact;5908native byte-identical old. Full-stack1280
 still restores fringe/side-hair over exposed face. Next moving full-stack head
 review and triangle CPU cost. Live isolated runtime has no mods mount, so
 coverage-only; standalone repo cwd/mod junction verifies review setup.
 Evidence shrine-cutout-current-a; baselineexact/GPUfree. No full acceptance.
-Latest LOG1102: old Shrine5908 face-review packet lacks shared26. Fresh1280
+Historical LOG1102: old Shrine5908 face-review packet lacks shared26. Fresh1280
 inspection vs native shows head occlusion difference; do not tune skin from
 incomplete packet. Face normals aligned across both retained sources. Next
 fresh current-host Shrine5908 using existing seed/replay; verify native head
 coverage after cutout fix. No global sweep/new generation. GPUfree.
 Evidence shrine-face-review1280-a; baseline unchanged.
-Latest LOG1101: face1133/430triangles exact atlas identified. Two omission
+Historical LOG1101: face1133/430triangles exact atlas identified. Two omission
 renders terminal0 show5300headbox mostly affected by shared26, weak face-atlas
 coverage. Use retained face-facing pose for skin correction; keep5300hair/
 contour. No source/material mutation, baselineexact/GPUfree. Evidence
 face-response-attribution-a. Do not repeat vertex whitening or color sweep.
-Latest LOG1100: shared26 runtime E0786D8691604967 exact256RGBA recovered via
+Historical LOG1100: shared26 runtime E0786D8691604967 exact256RGBA recovered via
 fresh fixed export terminal0. Character51/67joined,16pending; world137/154.
 Ledger backed up; material classification/generation hold remains. No bindings,
 new maps or appearance acceptance. MCP8003 read-only face diffuse original.
 Next exact face mesh/material attribution under LOG1099 settings. GPUfree.
-Latest LOG1099: restored review settings rendered4stills terminal0, baselineexact.
+Historical LOG1099: restored review settings rendered4stills terminal0, baselineexact.
 39common meshes identical, one added cutout;12byte anchor-matched diagnostic.
 Head change above repeat noise, no broad visual acceptance; legs readable,
 faces overbright. Next per-material face/direct-diffuse diagnosis using
 nightmare-review-restored-a settings/receipts; no global fill/exposure sweep.
 GPUfree, full goal active. Historical checkpoint below.
-Latest LOG1097: c9ebf5b29 pushed/fork verified. Triangle candidate shared26
+Historical LOG1097: c9ebf5b29 pushed/fork verified. Triangle candidate shared26
 promoted in24live captures5301..5329, native effects applied and all composition
 mismatches zero. Baselineexact/GPUfree. Visual CORRECTIONS_REQUIRED: severe dark
 character bodies/faces versus native. No exact common source with old stills;

@@ -57,7 +57,8 @@ Counts use captured material groups, not entire-game percentages. Runtime
 identity is not live binding, generation is not acceptance, and technical
 acceptance is not human visual approval. Existing baseline artwork stays intact.
 
-**Next deliverable:** longer full-stack moving hair/combat review, then capture-free
+**Next deliverable:** full-stack active-attack interval review (LOG1108 covered
+idle motion only:296retained/292consecutive), then capture-free
 end-to-end timing. LOG1107 exported-cutout aggregate adds0.32..0.35ms across
 26poses; native rejected draw/other worker stages remain outside this measurement. Do not turn generation or capture activity
 into a completion milestone without its acceptance evidence.
@@ -435,6 +436,10 @@ LOG1107 four exported cutouts across26poses add0.320..0.352ms per pose in
 microbenchmark. Native rejected draw/other worker stages excluded; no full
 performance pass. No cache added; next longer full-stack moving combat and
 capture-free end-to-end performance. Evidence triangle-footprint-aggregate-a.
+LOG1108 full-stack296/300retained,292consecutive; all native composition
+checks pass, shared26present throughout. Cycle interval is after attack inputs:
+idle-motion only. Next source5300..5599 existing replay attack interval with
+actual cycle/native verification. No300consecutive/combat/performance acceptance.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

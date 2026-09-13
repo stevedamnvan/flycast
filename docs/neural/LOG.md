@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1108 full-stack300-source requested capture terminal0/baselineexact.
+shrine-hair-combat300-a retains296frames5900..6199, missing5901/5903/5905/5907;
+longest consecutive292. All296 native effects applied, HUD/world/backbuffer
+mismatches zero, shared26promoted. Repo cwd existing mod junction resolved
+before launch; full material/fill/feedbackoff setup, unlike isolated prior run.
+Viewed6000/6050/6100: restored head coverage present. Not full temporal/human
+appearance acceptance and not300consecutive gate. Source cycle interval
+21314387584..22311963968 is AFTER last active replay release20100000000;
+this is idle-motion evidence, not an active-combat pass despite directory name.
+Next target existing attack-input interval around source5300..5599 (verify
+actual cycles and native gameplay), with full stack; no changed input or time
+ceiling. Capture-free performance remains next separate gate.
+Handoff cleaned: one current checkpoint, accumulated older notes labeled
+historical, original archived in evidence. Queue and exit requirements intact.
+
 LOG1107 aggregate exported-cutout CPU microbenchmark.26Shrine poses, four
 exported cutouts each, unchanged production rectangle/triangle functions with
 all indexedUVs and owned alpha planes. MSVC/O2;5warmup+20measured batches of
