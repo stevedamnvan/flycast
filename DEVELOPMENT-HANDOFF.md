@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1157; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1158; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 LOG1149 shrine-blended-alpha-moving-a FINISHED:300/300 sources5300..5599,
@@ -28,8 +28,10 @@ shrine-mesh-resource-reuse-a COMPLETE11/11 integrity/packet semantics pass.
 Visual MAE exceeds older history comparison; equivalence remains open.
 Fresh old-helper control COMPLETE9/11, missing5370/5371; all9integrity/packet matches.
 Visual differences persist; resource_reuse_review agent reviewing regions/stages.
-mesh-resource-benchmark-a reuse ACTIVE session69705/launcher36116; poll then run
-prepared old via run_one.py after terminal. Both needed before cost claim.
+mesh-resource-benchmark-a BOTH COMPLETE: old/reuse repeats152/2, p9516.54/14.47ms.
+Visual floor darkening confirmed; light lifetime restoration implemented, fourbuilds/1200x3pass.
+shrine-resource-light-lifetime-a ACTIVE session3510/launcher33620; poll and audit
+5370..5380 before judging light-lifetime hypothesis. No promotion.
 Live fault cleanup remains pending; no candidate promotion.
 Agent resource_reuse_review completed mapping/tests and ownership review.
 Both logs report undisposed common device objects; lifecycle gate remains open.

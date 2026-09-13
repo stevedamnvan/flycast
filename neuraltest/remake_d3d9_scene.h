@@ -170,7 +170,7 @@ class D3D9PacketScene {
   initial_=std::move(nextInitial);
   std::cout<<"selective_source_resource_refresh frame="<<packet.frame<<" replaced="<<resources_.size()-retained
    <<" retained="<<retained<<" retired="<<pending.resources.size()-retained
-   <<" anchored_lights_retained=true temporal_identity_proven=false\n";
+   <<" light_lifetime_separate=true temporal_identity_proven=false\n";
   return S_OK;
  }
  HRESULT DrawInternal(const Packet& packet) {
@@ -211,7 +211,15 @@ class D3D9PacketScene {
     compatible=LegacyResourceCompatible(packet.meshes[i],initial_.meshes[i]) && SameTexture(packet.meshes[i],textureBytes_[i]);
    if(!compatible) {
     if(selectiveRefresh_&&anchoredLight_&&packet.game==initial_.game) {
+     const bool countChanged=packet.meshes.size()!=resources_.size();
      const auto refreshed=RefreshMatchingResources(packet);if(FAILED(refreshed))return refreshed;
+     // Preserve the previous light lifetime on a count change while retaining
+     // compatible mesh allocations. Reuse is not a lighting-policy change.
+     if(countChanged) {
+      std::cout<<"scene_light_recreate frame="<<packet.frame<<" reason=mesh-count-change previous_policy=true\n";
+      if(light_){api_.DestroyLight(light_);light_=nullptr;}
+      if(fillLight_){api_.DestroyLight(fillLight_);fillLight_=nullptr;}
+     }
     } else {
     std::cout<<"live_source_resource_refresh frame="<<packet.frame<<" draws="<<packet.meshes.size()<<" temporal_identity_proven=false\n";
     // Diagnostic policy: discard/recreate incompatible resources, never freeze
@@ -228,6 +236,8 @@ class D3D9PacketScene {
     auto hr=device_->CreateVertexBuffer(UINT(r.indices.size()*sizeof(Vertex)),D3DUSAGE_DYNAMIC|D3DUSAGE_WRITEONLY,fvf,D3DPOOL_DEFAULT,&r.vb,nullptr);
     if(FAILED(hr))return hr;if(FAILED(hr=Texture(*textureBytes_[i],&r.texture)))return hr;
    }
+  }
+  if(!light_) {
    remixapi_LightInfoDistantEXT distant{};distant.sType=REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DISTANT_EXT;
    // Old prepared artifacts use a reflected anchor. The live-derived packet is
    // already camera-relative (+Z forward), so use an explicitly labeled headlight

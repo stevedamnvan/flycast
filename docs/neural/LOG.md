@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1158 resource reuse timing improves; restore preexisting light lifetime.
+mesh-resource-benchmark-a both terminal0/baselineexact,1200 samples5302..6501,
+capture-free blended alpha. Old/reuse repeated outputs152/2, accepted1048/1198,
+max latency6/4frames, no missing/identity mismatches. p50 11.2253/11.1431ms,
+p95 16.5418/14.4695ms,p99 19.6893/19.1986ms; host-owned growth93/-29objects.
+One scoped pair is not native-relative, lifecycle, full-game or60fps acceptance.
+Agent region review: candidate floor median signed -9.561 RGB; head+2.317,
+arena+4.696, differences already returned. Not global exposure; no promotion.
+Source review found count-change reuse additionally retained lights; old path
+recreated them. Correction snapshots count change before matching, destroys only
+lights after successful mesh refresh, then existing creation block recreates same
+hashes/directions/radiance/angles. Mesh allocations stay retained; reset/failure
+paths unchanged. Log records light recreation reason; no global lighting change.
+Four serial builds/1200selftests x3 pass resource-light-lifetime-build-a.
+shrine-resource-light-lifetime-a active session3510/launcher33620,5370..5380,
+new helper same settings. Poll existing run, audit all captures and compare floor/
+head regions against fresh old control and prior reuse before moving acceptance.
+Light-lifetime attribution remains a hypothesis until this control is inspected.
+
 LOG1157 fresh old-helper control complete; region review and timing dispatched.
 shrine-mesh-resource-control-a terminal0/baselineexact,9/11 captures5372..5380,
 missing5370/5371; all9 integrity checks pass. No unchanged retry. Candidate/control
