@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1159 restoring light lifetime substantially reduces unintended appearance change.
+shrine-resource-light-lifetime-a terminal0/baselineexact,11/11 sources5370..5380,
+all capture integrity checks pass;9common fresh-control packets semantically exact.
+Full final medianMAE3.146 versus7.229 before correction. FloorMAE3.570 versus9.801,
+head6.050 versus8.262,arena2.068 versus6.267. Signed floor -1.209 versus-9.561;
+head-0.586,arena+0.098. Values approach prior control-history comparisons; not pixel
+invariance or whole moving appearance acceptance. Root viewed5375 pair, floor/arena
+closer to control, no obvious new silhouette break. Existing face/hair quality open.
+light-creation-audit.json verifies all763 observed count transitions have creation:
+585 explicit selective events,178 existing full-reset creations, none missing.
+Initial explicit-event-only audit incorrectly omitted full-reset paths; retained
+light-event-audit.json, corrected audit adds actual scene_light_created records.
+Evidence supports light lifetime as major contributor; runtime internals unclaimed.
+Corrected performance confirmation mesh-resource-benchmark-a/corrected active
+session74439/launcher25112. Same old/reuse host/settings, new helper. Poll existing
+run, analyze corrected denominator/cadence/resources, then full moving comparison.
+No promotion or broad performance acceptance; fault cleanup still open.
+
 LOG1158 resource reuse timing improves; restore preexisting light lifetime.
 mesh-resource-benchmark-a both terminal0/baselineexact,1200 samples5302..6501,
 capture-free blended alpha. Old/reuse repeated outputs152/2, accepted1048/1198,
