@@ -1,4 +1,13 @@
-Current checkpoint LOG1074: Castle and Ostrheinsburg two generated sources each
+Current checkpoint LOG1075: METALLIC semantic added to existing MCP ingestion
+wrapper, six focused tests/four builds/1108selftests x3 pass. Generic tool fails
+unresolved Executors ref (retained).8002 Castle review saved/backup in metallic-
+mcp-extension-a, baselineexact. Next restart authoritativePID37292/8002 after
+agent GPU release, discover new tool and ingest/verify source mask; no binding.
+Harbor/Proving two sources each exact joined, owned5901/6001. Valentine then
+Money running serially under world agent; two generated source joins remain.
+Do not restart those capture handles or touch old stale Toolkit sessions.
+
+Prior checkpoint LOG1074: Castle and Ostrheinsburg two generated sources each
 exact joined, owned packets5300/5600 ready. Castle MCP imported41deps, active
 unsaved capture_c3386ba35dcf1791. Baselineexact/candidateinactive. Six generated
 sources remain across four stages. Source-derived Palgaea mask256square exact

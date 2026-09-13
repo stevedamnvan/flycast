@@ -256,6 +256,10 @@ packets5300/5600 ready, exports4752/4921 distinct. Castle MCP imported41deps.
 Six sources remain across Harbor/Proving/Valentine/Money. Source-derived Palgaea
 mask exact1540pixels within authored quadrant, unbound material hypothesis;
 next classification review/MCP metallic ingestion then bounded render test.
+LOG1075 existing guarded MCP wrapper adds METALLIC, six tests/four builds/
+three selftests pass.8002 Castle review preserved; restart/load tool pending
+agent GPU release. Harbor/Proving each two sources joined, ownedpackets5901/6001;
+Valentine/Money serialized pending, two generated sources remain.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack

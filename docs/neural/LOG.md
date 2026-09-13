@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1075 Guarded metallic ingestion support and two further stage joins.
+Generic remix_ingest_material_asset rechecked with executor0: unresolved
+/components/schemas/Executors fails before conversion; receipt retained in
+palgaea-metal-ingestion-a. Existing current-process wrapper extended with one
+METALLIC PNG semantic, same fresh-directory/cache and no-binding guards.
+Six focused tests pass, four serial builds0 and1108selftests x3 pass. Evidence
+metallic-mcp-extension-a. Live registration not yet updated: restart required.
+Current8002 Castle review verified/saved via MCP after external disk backup;
+review SHA1322270259491e872684074ee50d0c0d23c1d1d0a0df35621b47b2e6a0a4239b,
+baselineexact. Old stale Toolkit sessions remain untouched. Next graceful restart
+authoritative8002 after agent GPU captures, discover metallic tool, ingest and
+verify source mask before binding. No conversion/binding success claimed yet.
+Harbor terminal0/baselineexact:26DDS/19world matches, both generated hashes
+AC7F758A63E8B017/D10F706F70360E70 exact; runtime4975 vs ownedpacket5901(65meshes).
+Proving terminal0/baselineexact:30DDS/11world, both DD46780F0D9F8827/FAB77449EBBF89F8
+exact; runtime5029 vs ownedpacket6001(34meshes). Separate source receipts under
+full-world-*-runtime-a. Valentine active then Money serialized, two sources
+remain; no material appearance or physical classification acceptance inferred.
+
 LOG1074 Castle/Ostrheinsburg joins and source-aligned Palgaea mask diagnostic.
 Castle terminal0/baselineexact:19DDS/11world identities, both generated sources
 join AD46B0C1467225F9 mixed panel and661AE1F9195BA6CA wood. Exportsource4752,

@@ -70,6 +70,11 @@ class CaptureDestinationTests(unittest.TestCase):
             roughness = ingestion_request(project, json.dumps(body), 'ROUGHNESS')
             self.assertEqual(roughness['context_plugin']['data']['input_files'][0][1], 'ROUGHNESS')
             self.assertEqual(roughness['executor'], 0)
+            body['context_plugin']['data']['input_files'][0][1] = 'METALLIC'
+            metallic = ingestion_request(project, json.dumps(body), 'METALLIC')
+            self.assertEqual(metallic['executor'], 0)
+            self.assertEqual(metallic['context_plugin']['data']['input_files'][0][1], 'METALLIC')
+            with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body), 'ROUGHNESS')
             with self.assertRaises(ValueError): ingestion_request(project, json.dumps(body), 'NORMAL')
             body['context_plugin']['data']['input_files'][0][1] = 'DIFFUSE'
             output.mkdir(parents=True); (output / 'cached.dds').write_bytes(b'cached')

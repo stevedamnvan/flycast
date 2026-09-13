@@ -66,7 +66,7 @@ def capture_destination(project_file, capture_file):
 
 
 def ingestion_request(project_file, request_json, semantic='DIFFUSE'):
-    if semantic not in ('DIFFUSE', 'ROUGHNESS'):
+    if semantic not in ('DIFFUSE', 'ROUGHNESS', 'METALLIC'):
         raise ValueError('Unsupported ingestion semantic')
     project = Path(project_file)
     if not project.is_absolute() or not project.is_file():
@@ -121,6 +121,14 @@ def register(mcp):
         Requires a fresh project ingestion directory and never overwrites cache.
         """
         return await ingest_current_process(request_json, 'ROUGHNESS')
+
+    @mcp.tool(name='flycast_ingest_metallic_current_process')
+    async def ingest_metallic_current_process(request_json: str) -> dict:
+        """Ingest one METALLIC PNG through existing semantic conversion; no binding.
+
+        Requires a fresh project ingestion directory and never overwrites cache.
+        """
+        return await ingest_current_process(request_json, 'METALLIC')
 
     @mcp.tool(name='flycast_inspect_displacement')
     async def inspect_displacement(shader_path: str) -> dict:

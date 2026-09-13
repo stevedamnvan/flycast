@@ -47,6 +47,13 @@ Disable by omitting the launch flags on the next start. Restart for code
 updates; hot-reloading registration is not supported. Preserve unsaved work
 before restarting Toolkit.
 
+`flycast_ingest_metallic_current_process(request_json)` uses the same guarded
+current-process ingestion path as diffuse and roughness. Exactly one existing
+absolute PNG tagged METALLIC and a fresh project assets/ingested subdirectory
+are required. It does not bind or accept the material. Verify scalar channels,
+linear conversion and source alignment separately. Generic material ingestion
+may fail on the installed tool schema's unresolved Executors reference.
+
 Observed ingestion limitation (LOG924): launching with these extension flags
 caused ingestion-child progress callback timeouts; an explicit HTTP port did
 not resolve it. Standard Toolkit launch without these flags successfully
