@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1063 existing helper extended for bounded offline packet sequences.
+Final --packet-sequence-list accepts3..300 absolute unique packet paths with
+exact60+N frames, continuity checks,4GiB serialized input bound and120s explicit
+watchdog. Other modes/budgets unchanged; no production scheduling edits.
+packet-sequence-extension-a: initial build invocation failed quoting before
+compilation; corrected build-b four serial builds0, selftests1108x3pass.
+Six CLI negatives reject before runtime load: duplicate/relative paths, wrong
+count, reversed continuity, missing file,301entries. Existing tests retain
+ordinary/worker budget checks. Actual79consecutive sources5911..5989 load/render0,
+79readbacks,139presents; final image inspected, baseline unchanged exact.
+40undisposed objects remains; no lifetime or moving appearance acceptance.
+Next candidate/repeat using same79packet list and settings, then visual review.
+
 LOG1062 exact-sequence roughness candidate/repeat complete.
 shrine-sequence-preflight-a now control/candidate/repeat each exit0 and three
 successful readbacks5911..5913, same packets/camera. MCP candidate detached,

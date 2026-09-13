@@ -7,6 +7,8 @@
 #include "remake_d3d9_scene.h"
 #include "remake_scene_lighting.h"
 #include "remake_runtime_budget.h"
+#include "remake_packet_sequence.h"
+#include <fstream>
 #include "remake_return_depth.h"
 #include "rend/neural/remake_view_transport.h"
 #include "rend/neural/remake_live_channel.h"
@@ -52,6 +54,12 @@ LRESULT CALLBACK windowProc(HWND window,UINT msg,WPARAM w,LPARAM l) {
 
 int wmain(int argc,wchar_t** argv) {
  using namespace neuraltest::remake;
+ std::optional<std::filesystem::path> packetSequenceList;
+ if(argc>=3&&std::wstring(argv[argc-2])==L"--packet-sequence-list") {
+  packetSequenceList=std::filesystem::path(argv[argc-1]);argc-=2;
+  if(!packetSequenceList->is_absolute()){std::cerr<<"absolute packet sequence list required\n";return 2;}
+ }
+
  // Explicit bounded wait for the first live source (manual gameplay needs the
  // player to reach supported content). Not a GPU wait or throughput setting.
  unsigned sourceWaitMs=90000;
@@ -103,13 +111,20 @@ int wmain(int argc,wchar_t** argv) {
  const std::filesystem::path runtime(argv[2]);
  const bool extendedReturn=argc==14&&std::wstring(argv[5])==L"--live-channel-async"
   &&std::wstring(argv[12])==L"--return-d3d9-scene-memory-depth";
- const auto frameLimit=RemakeWorkerFrameLimit(sessionWorker,extendedReturn,requestedFrames);
+ const auto frameLimit=packetSequenceList?
+  (requestedFrames>=63&&requestedFrames<=360?std::optional<long>{requestedFrames}:std::nullopt):
+  RemakeWorkerFrameLimit(sessionWorker,extendedReturn,requestedFrames);
  if(!*argv[4] || *end || !frameLimit || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
  const long frames=*frameLimit;
  unsigned rejectedReturns=0;
- const auto runtimeBudget=RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames,sessionWorker);
+ if(packetSequenceList&&(sessionWorker||diagnosticCaptureBudget||argc!=14||std::wstring(argv[5])!=L"--live-artifact"
+  ||std::wstring(argv[12])!=L"--capture-d3d9-scene-memory")) {
+  std::cerr<<"packet sequence requires offline fresh D3D9 memory capture\n";return 2;
+ }
+ const auto runtimeBudget=packetSequenceList?std::optional<unsigned>{120u}:
+  RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames,sessionWorker);
  if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
  std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
   <<" runtime_watchdog_seconds="<<*runtimeBudget<<"\n"<<std::flush;
@@ -387,6 +402,30 @@ int wmain(int argc,wchar_t** argv) {
      if(std::filesystem::exists(capture.wstring()+L".frame-"+std::to_wstring(endpoint.frame)+L".bmp"))
       throw std::invalid_argument("sequence capture already exists");
     }
+   }
+   if(packetSequenceList) {
+    std::ifstream list(*packetSequenceList,std::ios::binary);
+    if(!list)throw std::invalid_argument("packet sequence list unavailable");
+    const auto paths=ParsePacketSequencePaths(list);
+    if(!PacketSequenceFrames(frames,paths.size())||!std::filesystem::equivalent(paths.front(),std::filesystem::path(argv[6])))
+     throw std::invalid_argument("packet sequence frame count or first packet mismatch");
+    std::uintmax_t bytes=0;
+    for(const auto& path:paths) {
+     const auto size=std::filesystem::file_size(path);
+     if(size>4ull*1024*1024*1024-bytes)throw std::invalid_argument("packet sequence aggregate exceeds4GiB");
+     bytes+=size;
+    }
+    sequence.push_back(*snapshot);
+    for(std::size_t i=1;i<paths.size();++i) {
+     Packet next;std::string reason;
+     if(!flycast::rend::neural::ReadRemakeViewPacket(paths[i],next,reason))throw std::invalid_argument(reason);
+     if(!DiagnosticContinuation(sequence.back(),next))throw std::invalid_argument("packet sequence identity/origin discontinuity");
+     sequence.push_back(std::move(next));
+    }
+    for(const auto& endpoint:sequence)
+     if(std::filesystem::exists(capture.wstring()+L".frame-"+std::to_wstring(endpoint.frame)+L".bmp"))
+      throw std::invalid_argument("packet sequence capture exists");
+    std::cout<<"offline_packet_sequence="<<sequence.size()<<" warmup=60 fresh_render=true gameplay=false\n";
    }
    if(legacyMemory) {
     if(snapshot){auto own=OwnDiagnosticTextures(*snapshot);if(!own.ok)throw std::invalid_argument(own.reason);}

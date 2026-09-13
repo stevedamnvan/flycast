@@ -244,3 +244,24 @@ capture; it is mutually exclusive with `--remix-only`. Use an already prepared
 hooks-disabled host and verify its active log reports no neural hooks. Merely
 requesting DLAA is not proof the supplied consumer left it untouched. This is
 not the target-native PVR DLAA lane. The launcher never edits hook policy.
+
+## Offline exact-packet motion comparison (LOG1063)
+
+The existing `remake-runtime-smoke` helper accepts a final
+`--packet-sequence-list ABSOLUTE_UTF8_TEXT_FILE` option with its
+`--live-artifact FIRST_PACKET --assets DIRECTORY --clips NEAR FAR
+--capture-d3d9-scene-memory NEW_OUTPUT` mode. Place the list option after
+other trailing options, including `--scene-light-anchor` when used.
+The file contains one absolute packet filename per line, including FIRST_PACKET,
+in playback order. Exactly 3..300 unique paths are required. Set `--frames`
+to 60 plus the number of packets; 60 presentations warm the first packet.
+Each listed source is freshly rendered and saved under the output prefix.
+
+The helper rejects missing files, duplicate/relative paths, wrong frame counts,
+source/origin discontinuity and aggregate serialized input above 4 GiB before
+runtime load. It retains the loaded sequence in memory. This explicit offline
+mode has a 120-second watchdog and cannot combine with a live channel, session
+worker or diagnostic capture-budget override. Other modes retain their limits.
+Use exactly the same list and settings for control/candidate/repeat. This does
+not reproduce the original live temporal history, neural evaluation or gameplay
+HUD composition, and synchronous output is not performance evidence.

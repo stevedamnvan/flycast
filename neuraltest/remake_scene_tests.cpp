@@ -4,6 +4,8 @@
 #include "remake_scene_lighting.h"
 #include "rend/neural/remake_extent.h"
 #include "remake_runtime_budget.h"
+#include "remake_packet_sequence.h"
+#include <sstream>
 #include "remake_return_depth.h"
 #include "rend/neural/remake_presentation.h"
 #include <algorithm>
@@ -158,6 +160,17 @@ TestCounts TestSceneContract() {
   c=b;c.diagnosticOrigin->x=std::numeric_limits<float>::quiet_NaN();expect(!AnchorGenerationChange(a,c),"generation change requires a finite origin");
   c=b;c.sourceGitSha="other";expect(!AnchorGenerationChange(a,c),"generation change requires the same source build");
  }
+ expect(PacketSequenceFrames(63,3)&&PacketSequenceFrames(360,300)&&!PacketSequenceFrames(359,300),"packet sequence exact frame denominator");
+ const auto sequencePaths=[](const std::string& text){std::istringstream in(text);return ParsePacketSequencePaths(in);};
+ const std::string pathPrefix=std::filesystem::temp_directory_path().generic_u8string()+"/";
+ expect(sequencePaths(pathPrefix+"a.bin\n"+pathPrefix+"b.bin\n"+pathPrefix+"c.bin\n").size()==3,"packet sequence absolute ordered paths");
+ for(const auto& bad:std::vector<std::string>{"relative.bin\n",pathPrefix+"a\n"+pathPrefix+"a\n"+pathPrefix+"c\n",pathPrefix+"a\n\n"+pathPrefix+"c\n"}) {
+  bool rejected=false;try{sequencePaths(bad);}catch(const std::exception&){rejected=true;}
+  expect(rejected,"packet sequence rejects relative duplicate or empty input");
+ }
+ std::string tooMany;for(unsigned i=0;i<301;++i)tooMany+=pathPrefix+std::to_string(i)+"\n";
+ bool countRejected=false;try{sequencePaths(tooMany);}catch(const std::exception&){countRejected=true;}
+ expect(countRejected,"packet sequence rejects301 sources");
  expect(RemakeRuntimeBudget(false,false,120)==30u,"ordinary runtime budget unchanged");
  expect(RemakeRuntimeBudget(false,true,120)==30u,"short returned-scene budget unchanged");
  expect(RemakeRuntimeBudget(false,true,121)==120u,"extended returned-scene budget unchanged");

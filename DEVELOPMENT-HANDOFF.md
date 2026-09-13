@@ -1,10 +1,10 @@
-Current checkpoint LOG1062: exact3packet sequence control/candidate/repeat all0,
-three readbacks each; modest consistent roughness effect above repeat noise.
-Baseline restored; evidence shrine-sequence-preflight-a. Next extend existing
-helper sequence support for representative motion; no production scheduling edit.
-Four serial builds/three selftests required for source change. Do not call
-three frames temporal acceptance. Character lighting still unresolved.
-Eight fighters/57character groups; Hoko roughness waiting live binding check.
+Current checkpoint LOG1063: existing helper now supports explicit offline
+3..300 packet sequences,60warmup+N,120s budget,4GiB serialized bound. Four serial
+builds0,1108selftests x3, six negative CLI tests. Actual79source control renders0,
+79readbacks and139presents, final image viewed. Baseline unchanged;40object
+shutdown warning remains. Evidence packet-sequence-extension-a. Next candidate/
+repeat with same sequence79.txt, then moving material review. No live scheduling
+change; character lighting and full acceptance remain open.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

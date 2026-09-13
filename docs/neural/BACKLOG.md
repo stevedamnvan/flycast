@@ -229,8 +229,9 @@ close whitening branch. Next anchor/reference-versus-light-space audit and
 equivalence before further live A/B. LOG1061 locates cut/reference one-frame
 admission difference. Existing fresh3packet sequence5911..5913 exits0; next
 LOG1062 candidate/repeat on exact sequence pass, effect above noise; next
-extend existing helper sequence for representative motion (source build/test
-gates apply), no production scheduling change;
+LOG1063 helper sequence3..300 implemented;4builds/1108x3selftests pass,
+79source control renders/readbacks0. Next same-list candidate/repeat and visual
+motion review; no production scheduling change;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 
