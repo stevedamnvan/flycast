@@ -121,7 +121,11 @@ face normals/height remain unbound and no appearance gain accepted.
 LOG1030 binding attempt rejected: wrong authoring layer despite create request.
 Baseline disk restored exact; in-memory opinions unresolved. Do not save root/
 baseline. Next guarded explicit-layer binding/recovery in existing MCP before
-rendering; preserve pending edits. Full agents produced60 character/36 world
+rendering; preserve pending edits.
+LOG1032 guarded binding and byte-exact layer-off pass on newMCP8002; old8001
+pending project preserved. Face albedo candidate does not fix washout; inactive.
+Next diffuse/specular lighting-response isolation, not more albedo-only trials.
+Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
 candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each

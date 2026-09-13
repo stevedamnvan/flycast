@@ -1,3 +1,28 @@
+Current checkpoint LOG1032: candidate/control/repeat terminal0, viewed;
+face washout unresolved, albedo candidate NOT promoted. MCP8002 guarded layer
+binding verified and layer removed; baseline byte-exact E3C09790...E8340.
+Old8001 pending session remains preserved: do not save stale baseline there.
+Next bounded diffuse/specular lighting-response isolation, no more albedo-only
+washout trials. face-albedo-review-b/comparison.json and images retained.
+Texture full-set candidates continue to need per-surface visual acceptance.
+
+Live guarded binding succeeded MCP8002. Candidate properly under mod, both face
+writes explicitly verified; candidate rendered exit0 in face-albedo-review-b.
+Candidate detached via MCP; saved mod exact E3C09790...E8340. Old8001 stale
+session preserved, do not save it. Controls now running via render_controls.py;
+poll active handle, then inspect candidate/control/repeat before any acceptance.
+New Toolkit PID37292/MCP8002 is authoritative integration session.
+
+Toolkit recovery checkpoint: old8001 project close403 pending after saving/
+archiving mod and root. Do not force-close or save its stale baseline again.
+Root empty candidate removed through MCP; removed-layer save422 retained.
+Baseline disk restored exact E3C09790...E8340 in finally. Saved in-memory mod/root
+and original disk copies are in toolkit-layer-recovery-b. No pending edits discarded.
+New existing Toolkit process PID37292 started with same extension on MCP8002;
+verify readiness/tool discovery, open saved soulcalibur-character-review.usda,
+then create candidate UNDER mod and use explicit guarded binder. Old8000/8001
+remain preserved. No A/B render yet. Do not interpret session startup as success.
+
 Guarded binder source complete (LOG1031); six Python tests, four builds and
 1102 selftests x3 pass. NOT live-validated/loaded. Existing extension README
 explains failure: candidate must be beneath replacement mod, not workfile;

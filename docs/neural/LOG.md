@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1032 guarded face binding and exact layer-off verified; appearance rejected.
+Old MCP8001 pending session preserved after normal close403; archived root/mod
+memory snapshots in toolkit-layer-recovery-b, restored exact baseline disk.
+New ToolkitPID37292/MCP8002 loads updated extension and saved project. Candidate
+inserted beneath mod, explicit binder verifies both typed face material writes
+and unchanged baseline during authoring. Save adds expected candidate sublayer.
+Candidate/control/control-repeat same5458 packet120-frame renders all exit0;
+helper warns40 common device objects undisposed (lifecycle remains unclosed).
+MCP removes candidate and saves parent; baseline exactE3C09790...E8340, no
+remaining candidate activation. Evidence face-albedo-review-b receipts and BMPs.
+Viewed candidate/control: facial washout persists, no accepted quality gain.
+Whole MAE repeat1.120/candidate1.162; Sophitia face box repeat1.414/candidate2.130;
+Mitsurugi head1.547/1.640. Difference above noise is not improvement. No moving
+acceptance and no face normal/height binding. Stop albedo-only washout iterations;
+next bounded lighting/material-response attribution must separate diffuse from
+specular response with existing supported controls, preserving liked arena.
+The guarded MCP integration is technically proven for these two material writes
+and layer-off, not general rollback fault injection or overall scene acceptance.
+
 LOG1031 explicit-layer binding guard implemented; activation pending.
 New flycast_bind_diffuse_in_layer validates linked isolated layer and project
 ingested DDS+metadata, uses explicit Usd.EditContext, copies only the composed
