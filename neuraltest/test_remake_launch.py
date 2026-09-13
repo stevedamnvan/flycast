@@ -9,6 +9,50 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_late_benchmark_preserves_capture_free_route(self):
+        self.args.benchmark_warmup = 5900
+        self.args.anchored_light = self.args.managed_session = True
+        self.args.benchmark_fill = '0 0 1 0.3'
+        _, _, env, host, helper = prepare(self.args)
+        self.assertEqual(host[host.index('--warmup')+1], '5900')
+        self.assertEqual(host[host.index('--frames')+1], '1200')
+        self.assertEqual(host[host.index('--timeout-ms')+1], '420000')
+        self.assertEqual(host[host.index('--remake-evidence')+1], 'none')
+        self.assertEqual(helper[helper.index('--scene-fill')+1], '0 0 1 0.3')
+        self.assertNotIn('--diagnostic-capture-budget', helper)
+        self.assertNotIn('FLYCAST_REMAKE_COMPARE_REMIX_ONLY', env)
+
+    def test_late_benchmark_rejects_mixed_or_unbounded_modes(self):
+        self.args.benchmark_warmup = 5900
+        self.args.anchored_light = self.args.managed_session = True
+        for name, value in [('manual_input', True), ('managed_session', False),
+                            ('anchored_light', False), ('capture_frames', 3),
+                            ('capture_warmup', 5900), ('cpu_timing', True),
+                            ('benchmark_warmup', -1), ('benchmark_warmup', 2099),
+                            ('benchmark_warmup', 10001)]:
+            with self.subTest(name=name, value=value):
+                old = getattr(self.args, name, None)
+                setattr(self.args, name, value)
+                with self.assertRaisesRegex(ValueError, 'Benchmark warmup'):
+                    prepare(self.args)
+                if old is None:
+                    delattr(self.args, name)
+                else:
+                    setattr(self.args, name, old)
+        self.args.benchmark_fill = '0 0 1 0.3'
+        self.args.benchmark_warmup = 0
+        with self.assertRaisesRegex(ValueError, 'Benchmark fill'):
+            prepare(self.args)
+        self.args.benchmark_warmup = 5900
+        for invalid in ('0 0 0 1', 'nan 0 1 1', '0 0 1 4'):
+            self.args.benchmark_fill = invalid
+            with self.assertRaises(ValueError):
+                prepare(self.args)
+        self.args.benchmark_fill = '0 0 1 0.3'
+        self.args.scene_fill = '0 0 1 0.3'
+        with self.assertRaisesRegex(ValueError, 'Benchmark fill'):
+            prepare(self.args)
+
     def test_scene_fill_is_bounded_capture_only(self):
         self.args.scene_fill = '0 0 1 0.3'
         with self.assertRaisesRegex(ValueError, 'Scene fill requires'):

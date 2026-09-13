@@ -97,7 +97,20 @@ def prepare(args):
         if not args.anchored_light:
             raise ValueError('Temple light rig requires anchored light')
         helper.extend(['--scene-light-radiance', '1', '--temple-light-rig'])
-    fill = getattr(args, 'scene_fill', None)
+    benchmark_warmup = getattr(args, 'benchmark_warmup', 0)
+    if benchmark_warmup:
+        if (not 2100 <= benchmark_warmup <= 10000 or args.manual_input
+                or not args.managed_session or not args.anchored_light
+                or getattr(args, 'capture_frames', 0)
+                or getattr(args, 'capture_warmup', 0)
+                or getattr(args, 'cpu_timing', False)):
+            raise ValueError('Benchmark warmup requires 2100..10000, automatic managed anchored capture-free non-CPU timing')
+        host[host.index('--warmup')+1] = str(benchmark_warmup)
+        host[host.index('--timeout-ms')+1] = '420000'
+    benchmark_fill = getattr(args, 'benchmark_fill', None)
+    if benchmark_fill is not None and (not benchmark_warmup or getattr(args, 'scene_fill', None) is not None):
+        raise ValueError('Benchmark fill requires benchmark warmup and no scene fill')
+    fill = benchmark_fill if benchmark_fill is not None else getattr(args, 'scene_fill', None)
     if fill is not None:
         try:
             values = [float(v) for v in fill.split()]
@@ -107,8 +120,8 @@ def prepare(args):
                 or abs(sum(v*v for v in values[:3])-1) > 1e-5
                 or not 0 <= values[3] <= 3 or not args.anchored_light
                 or getattr(args, 'temple_light_rig', False)
-                or not getattr(args, 'capture_frames', 0)):
-            raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture and anchored light without temple rig')
+                or not (getattr(args, 'capture_frames', 0) or benchmark_fill is not None)):
+            raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture or explicit benchmark mode, and anchored light without temple rig')
         helper.extend(['--scene-fill', fill])
     if args.anchored_light:
         helper.append('--scene-light-anchor')
@@ -336,6 +349,9 @@ def main():
         p.add_argument('--'+name, type=Path, required=True)
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
+    p.add_argument('--benchmark-warmup', type=int, default=0,
+                   help='Explicit late gameplay benchmark warmup 2100..10000; automatic managed anchored capture-free non-CPU timing only')
+    p.add_argument('--benchmark-fill', help='Explicit XYZ and radiance for benchmark warmup; same bounded authored light as scene-fill, without image capture')
     p.add_argument('--temple-light-rig', action='store_true', help='Opt-in authored warm key/cool fill, requires --anchored-light')
     p.add_argument('--output-size', choices=['640x480','1280x960'], default='640x480', help='Opt-in matching host/helper/neural extent; fresh session required')
     p.add_argument('--realtime-audio', action='store_true',
@@ -425,6 +441,10 @@ def main():
                   extended_effect_capture=args.extended_effect_capture,
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
+                  benchmark_warmup=args.benchmark_warmup,
+                  benchmark_fill=args.benchmark_fill,
+                  benchmark_scope='requested tracker warmup; verify actual source frame IDs in samples' if args.benchmark_warmup else None,
+                  benchmark_helper_watchdog_seconds=120 if args.benchmark_warmup else None,
                   cpu_timing=args.cpu_timing,
                   depth_rgba32f=args.depth_rgba32f,
                   verify_depth_format=args.verify_depth_format,

@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1049 explicit late-stage capture-free benchmark route.
+Default launcher warmup2100+1200 samples can end before Shrine. Added bounded
+--benchmark-warmup2100..10000, requiring automatic managed anchored capture-free
+non-CPU mode; optional separate --benchmark-fill reuses existing bounded light.
+Existing scene-fill/capture-warmup semantics and performance defaults unchanged.
+Receipt records requested warmup/fill and120s helper watchdog. Host420s bound
+does not extend helper; retain expiry as failure, no diagnostic-budget bypass.
+Actual sample source IDs must prove gameplay denominator before performance
+claims. Thirty launcher tests pass; four serial builds and1102 selftests x3
+pass. Agent reviewed guards/lifetime; dry CLI request5900/fill0.3 exits0 without
+launch. Evidence shrine-benchmark-preflight-a. Live matched feedback on/off
+measurement pending GPU release from world extraction; no performance gain
+or global setting promotion claimed. Source slice changes launcher only.
+
 LOG1048 fresh three-pose material A/B with baseline repeat.
 shrine-fresh-pose-ab-a: six fresh helper renders of retained geometry5908,
 5918,5929 plus baseline repeat5908 all exit0. Exact source hashes paired;
