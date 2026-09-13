@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1080 upstream de-lighting capability recheck, read-only. PBRify author's
+EXTRA_INFO.md explicitly describes missing de-lighting and the resulting height
+map limitations. This corroborates LOG1078; preserve liked floor, do not enable
+height broadly or regenerate retained maps. Primary source checked2026-09-13:
+https://github.com/Kim2091/PBRify_Remix/blob/main/EXTRA_INFO.md
+Earlier PBRFusion4 assessment remains correct for inspected Comfy generator,
+but must not imply no separately published albedo weight exists. Author HF
+revision2bcb437856eec9fe18514c97d462d58b86e82b87 lists
+PBRFusion4_Albedo.safetensors,76038936bytes, SHA256
+905cc66fc7a773b4068a9b520868608187330d8a7ed18e5598f5449e17cae044.
+https://huggingface.co/NightRaven109/PBRFusion4/tree/main
+Model card and Comfy README still document depth/normal only. Filename and
+Apache2 repository label do not prove de-lighting or existing-loader support.
+No model downloaded, no new nodes or inference. Character agent checks public
+text/code compatibility; world agent classifies24existing unmatched identities.
+LOG831 four-output built-in atlas trial reviewed: all rejected, authorization
+exhausted, no reroll. No available proven aligned de-light route claimed.
+Next evaluate documented separate albedo route before any installation proposal;
+retain original maps, numeric paid-budget and no-new-model approval boundaries.
+
 LOG1079 colour-space audit and bounded vertical roster probe close unsupported
 routes. Eight historical albedo PNG/BC7 DDS pairs preserve source code values:
 MAE0.298..3.163/255, compared with hypothetical extra encoding39..59 or

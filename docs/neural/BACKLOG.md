@@ -274,6 +274,9 @@ lighting, no dedicated de-light stage. Existing ledgers corrected,74hashes prese
 LOG1079 gamma-chain audit found no demonstrated missing/double decode: eight
 actual diffuse ingests preserve source code values; no gamma toggle justified.
 Vertical Up/Down observations retain Kilik and the default row; GPU released.
+LOG1080 primary-source recheck found separate76MB PBRFusion4 albedo weight;
+existing Comfy generator still depth/normal only. Agent checks documented
+compatibility read-only; no download/inference or de-lighting capability claim.
 Next supported aligned de-lighting capability evaluation within existing tools;
 do not flip transfer curves, scale these as delit albedo or lower PackageD gates.
 Default10character slots covered; remaining labels need unlock/mode access audit.

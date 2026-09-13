@@ -4,6 +4,9 @@ place,74output hashes preserved. Full PackageD requirement remains open.
 LOG1079 gamma audit found no demonstrated missing/double decode in eight actual
 diffuse ingests; no gamma setting change justified. Next supported aligned
 de-lighting evaluation; no raw-albedo scaling or blind mask/roughness sweeps.
+LOG1080 separate76MB PBRFusion4 albedo weight exists upstream; existing Comfy
+generator remains depth/normal only. Character agent investigates documented
+compatibility read-only, no model download or inference authorized by this check.
 Default10character row captured; remaining10labels/unlocks/costumes unproven.
 Vertical selection probe Up/Down both retained Kilik/default row, terminal0;
 no extra row found in current seed. No more menu guessing. World agent owns
