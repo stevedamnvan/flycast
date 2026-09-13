@@ -1,4 +1,11 @@
-Current checkpoint LOG1072: Palgaea source6301 panel A/B/repeat each0, source
+Current checkpoint LOG1073: one built-in asset15 metallic-mask diagnostic
+rejected for redrawn fasteners/corrosion and shaded mask; no retries or binding.
+Prompt/output/verdict palgaea-metal-mask-builtin-a. Model/cost unexposed, no API.
+Next source-anchored authored masks, not more generated repaint. Castle runtime
+capture terminal0, received packet present; world agent completing exact two-
+candidate join and source correlation. Baseline unchanged, candidate inactive.
+
+Prior checkpoint LOG1072: Palgaea source6301 panel A/B/repeat each0, source
 packet exact/all48meshesowned and six identitiesverified. Floor response above
 repeatnoise5.489vs0.463, whole2.868vs0.430; viewed no clear visual gain. Candidate
 inactive/baselineexact. Evidence palgaea-panels-fresh-ab-a/comparison.jpg/json.

@@ -248,7 +248,10 @@ packet persistence added/tested, live source6301 saved baselineexact. LOG1072
 48ownedmeshes/all six identities verified; panel control/candidate/repeat0,
 floor response above noise but no clear visual gain. Keep inactive, no repeat
 of this still/constant sweep. Next physical metal/coating mask correction before
-moving review; continue remaining stage joins independently.
+moving review; continue remaining stage joins independently. LOG1073 single
+built-in asset15 mask rejected: redrawn fasteners/corrosion violate alignment.
+No retries/scaling; next source-anchored authored masks with existing tools.
+Castle capture terminal0, exact join/source audit pending before integration.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack

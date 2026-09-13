@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1073 One built-in metallic mask diagnostic rejected for artwork misalignment.
+Official Adobe OpenPBR guidance distinguishes exposed iron metalness1 from rust0;
+PBR guide treats metallic/roughness as linear data. Sources and exact prompt in
+palgaea-metal-mask-builtin-a/material-guidance.md and prompt.txt. One built-in
+image_gen request/output on Palgaea asset15, no API execution or retries.
+Model ID and monetary cost not exposed: do not label Sunburst or claim zero cost.
+Source256square, output1254square; compared normalized side-by-side, candidate
+redraws fasteners as shaded domes, adds edge rivets and changes corrosion.
+Rejected for alignment/material semantics, not merely resolution. No ingestion,
+binding, second candidate or scaling. Baseline and retained maps preserved.
+Next source-anchored authored regions through existing tooling; generated
+grayscale repaint does not satisfy retained-map alignment. Castle runtime
+acquisition separately terminal0/orderly shutdown, received packet present;
+world agent completing export-source correlation/two-candidate exact joins.
+
 LOG1072 Palgaea exact-source panel A/B completes, no appearance promotion.
 received-view.bin SHA60217c249569ef605925d5e9fcc36e0dc8579ef3d4fd8cbb3ecbc318532fe362
 parses source6301/producer6300/epoch3;48/48 meshes own textures, all six candidate
