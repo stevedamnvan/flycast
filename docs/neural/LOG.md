@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG1110 storage capacity restored and user-authorized duplicate cleanup.
+Live check found C:155.7GB free before cleanup work, D:still0; prior immediate
+C:capacity blocker cleared. Read-only audit confirmed C:/Flycast-Evidence and
+D:/Flycast-Evidence separate directories; current capture uses C:. Do not
+attribute C:truncation solely to D:being full. Failed attack evidence retained.
+User authorized removing evidence no longer needed. Exact SHA256 duplicates
+within C:capture directories deduplicated with same-volume hardlinks:
+8150paths,14,910,426,389duplicate logical bytes removed; measured free increase
+14,723,092,480bytes (~14.7GB), ending167,629,578,240free. Every pathname and
+content preserved; unique evidence not deleted. Per-path containment/device/
+SHA checks and atomic replacement recorded. Retained captures are immutable;
+future edits require private copies/replacement, never in-place linked writes.
+Audit/manifests C:/Game Dev/Emulators/evidence-space-audit.json,
+evidence-dedup-review.json,evidence-dedup-actions.jsonl,evidence-dedup-summary.json.
+Launcher now checks output-volume free space before captures/dry-run and before
+creating output or starting processes. Conservative estimate1GiB plus per-frame
+64MiB+128bytes/outputpixel; records estimate/free/probe, not a reservation or
+mid-run guarantee. Noncapture benchmarks unaffected. Three focused Python
+checks and four serial builds/1117selftests x3 pass; diff check clean.
+Evidence capture-storage-preflight-a/builds.json. Next investigate incomplete
+attack-frame admission/failed shutdown from retained logs, then capture-free
+performance; no automatic repeat of failed capture, no acceptance waived.
+
 LOG1109 active-attack capture failed; storage exhausted. Existing replay
 source5300..5599 full-stack run terminal launcher1, host0/helper11,
 orderly_host_shutdown=false. Baselineexact; no children currently running.

@@ -15,6 +15,25 @@ import struct
 import math
 
 
+def capture_storage_preflight(out, frames, output_size):
+    """Conservative capture estimate, not a reservation or a runtime write guarantee."""
+    if not frames:
+        return None
+    width, height = (int(v) for v in output_size.split('x'))
+    # Owned packets/effect identities plus image, depth and comparison buffers.
+    required = 1024**3 + frames * (64 * 1024**2 + width * height * 128)
+    probe = Path(out).resolve()
+    while not probe.exists():
+        probe = probe.parent
+    free = shutil.disk_usage(probe).free
+    if free < required:
+        raise ValueError(f'Capture storage preflight: {probe} has {free} bytes free; '
+                         f'estimated {required} bytes required for {frames} frames. '
+                         'Choose an output volume with more space; no files were removed.')
+    return dict(volume_probe=str(probe), free_bytes=free,
+                estimated_required_bytes=required, reservation=False)
+
+
 def prepare(args):
     paths = {key: Path(getattr(args, key)).resolve(strict=True)
              for key in ('flycast', 'harness', 'helper', 'runtime', 'game')}
@@ -434,9 +453,11 @@ def main():
     p.add_argument('--run', action='store_true', help='Actually launch; default is read-only preflight')
     args = p.parse_args()
     paths, out, env, host, helper = prepare(args)
+    storage = capture_storage_preflight(out, args.capture_frames, args.output_size)
     helper_cwd = out/'runtime-output' if args.isolated_runtime_output else Path(__file__).resolve().parent.parent
     # Do not hash or read the supplied third-party runtime internally.
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
+                  capture_storage=storage,
                   helper_working_directory=str(helper_cwd),
                   isolated_runtime_output=args.isolated_runtime_output,
                   save_received_packet=args.save_received_packet,

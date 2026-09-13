@@ -57,9 +57,12 @@ Counts use captured material groups, not entire-game percentages. Runtime
 identity is not live binding, generation is not acceptance, and technical
 acceptance is not human visual approval. Existing baseline artwork stays intact.
 
-**Immediate blocker (LOG1109):** evidence drive D: full; capture metadata truncated.
-No new captures/generation until capacity restored. Preserve all private evidence;
-no cleanup authorized. Read-only and bounded source work remain available.
+**Storage update (LOG1110):** C: capacity restored; user-authorized exact-duplicate
+capture deduplication recovered14.7GB, ending167.6GBfree. D:remains full.
+All evidence paths/content retained via hardlinks; no unique evidence deleted.
+Captures are immutable: edit private copies, never overwrite linked data in place.
+Launcher capture preflight now estimates capacity before launching; this does
+not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
 **Next deliverable:** full-stack active-attack interval review (LOG1108 covered
 idle motion only:296retained/292consecutive), then capture-free
@@ -448,6 +451,9 @@ LOG1109 attack capture terminal1, truncated5596metadata; D:full/C:~3.17GB.
 106readable metadata pairs are not complete visual proof. Stop capture and
 generation writes; preserve evidence. Restore storage capacity before next run.
 Read-only/source work may continue; no full-goal blocked/completed claim.
+LOG1110 capacity restored/C:167.6GBfree after14.7GBduplicate cleanup; all paths
+preserved. Capture storage preflight added/tested. Next retained attack-frame
+admission/shutdown diagnosis and capture-free performance, not blind recapture.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

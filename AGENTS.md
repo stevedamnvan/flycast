@@ -79,6 +79,9 @@ by default. The short goal text and last verified tracker state are in BACKLOG.
   user Apply and previously authorized byte-restored test sweeps stay narrow
   exceptions, not blanket authorization. User-owned test workspaces are not
   permission to overwrite their runtime/media/configuration.
+- Retained capture files may be hardlinked after LOG1110 deduplication. Treat
+  evidence as immutable; create private copies for edits, never modify retained
+  image/texture bytes in place. Preserve manifest-linked paths.
 - Do not acquire proprietary game media. Preserve untracked/private evidence,
   legal media, user paths and worktrees. No resets, cleans, stashes, rebases,
   broad staging or discarding user changes. Commit only owned source/docs.

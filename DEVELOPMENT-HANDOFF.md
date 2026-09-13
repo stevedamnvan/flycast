@@ -3,16 +3,16 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1109; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1110; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
-- Latest LOG1109: attack run terminal1, no active capture processes. Evidence
-  `C:/Flycast-Evidence/shrine-hair-attacks-a`;106readable metadata pairs, truncated
- 5596coverage JSON. D:full/C:~3.17GB. Stop new captures/generation until capacity
-  restored. Preserve failed evidence; no deletion/cleanup authorized.
-- Next restore evidence capacity and inspect retained failures before another
-  live run; read-only/source work remains possible. Full goal stays active.
-  Audit: `C:/Game Dev/Emulators/shrine-attacks-storage-audit.json`.
+- Latest LOG1110: C:space restored, then exact-duplicate capture cleanup saved
+  14.7GB; C:167.6GBfree at checkpoint, D:stillfull. All8150paths/content retained
+  via hardlinks. Never edit retained capture bytes in place; make private copies.
+- Launcher storage preflight added;3Pythonchecks/fourbuilds/1117selftests x3 pass.
+  No active captures. Failed attack run retained (LOG1109); next inspect its
+  admission/shutdown gap before recapture, then capture-free performance.
+- Cleanup manifests in C:/Game Dev/Emulators/evidence-dedup-*.json/jsonl.
 - Mod discovery uses repository cwd and its existing Soulcalibur junction.
   Isolated runtime-output has no mod mount; do not use it for full-look claims.
 - Last completed evidence:19pose matched full-stack hair sequence, plus
