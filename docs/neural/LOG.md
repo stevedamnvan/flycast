@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1079 colour-space audit and bounded vertical roster probe close unsupported
+routes. Eight historical albedo PNG/BC7 DDS pairs preserve source code values:
+MAE0.298..3.163/255, compared with hypothetical extra encoding39..59 or
+decoding31..60. Existing PNG loading/save pass-through, Toolkit mip-gamma and
+public runtime manual decode are consistent with one decode; exact installed
+replacement shader/view path remains unproven. No demonstrated gamma fault,
+no production setting change justified. This does not solve baked lighting.
+Evidence world-texture-completion-b/ALBEDO-COLORSPACE-AUDIT.md and
+albedo-colorspace-ingest-audit.json. New19albedos remain unbound; historical
+eight-ingest evidence must not be represented as their ingestion acceptance.
+Character vertical-discovery selection-only Up9.5b/frame3300 then Down11.5b/
+frame3900 both retain Kilik/default ten-slot row, both observations terminal0.
+No confirms/save edits, GPU released; additional roster access remains unknown.
+Input SHA912e59f922c4af11a8c94fd520a42567e66f5db004fb643306460ea53cc2c3c2;
+character-texture-readiness-b/vertical-discovery/verdict.json. Do not repeat
+menu guesses. World agent now reconciles complete stage coverage CPU-only;
+parent evaluates aligned de-lighting within existing generation restrictions.
+No source, binding, generation or baseline changes in this slice. Full playable
+and appearance acceptance remain open.
+
 LOG1078 PBRify albedo foundation corrected across full generated-world inventory.
 All19 graph paths are LoadImage177 -> ImageUpscaleWithModel31 using4x-PBRify-
 UpscalerV4 -> JoinAlpha27 -> Save181. Installed example labels upscaled albedo;

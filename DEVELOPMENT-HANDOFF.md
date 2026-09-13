@@ -1,11 +1,14 @@
 Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 only graph paths, not dedicated de-lighting. Existing ledgers corrected in
 place,74output hashes preserved. Full PackageD requirement remains open.
-Next separate gamma-chain audit (world agent CPU) and supported aligned
+LOG1079 gamma audit found no demonstrated missing/double decode in eight actual
+diffuse ingests; no gamma setting change justified. Next supported aligned
 de-lighting evaluation; no raw-albedo scaling or blind mask/roughness sweeps.
 Default10character row captured; remaining10labels/unlocks/costumes unproven.
-Character CPU audit finds no evidenced alternate row/seed; no more horizontal
-guessing. GPU free.8003 authoritative, candidatesinactive, baseline preserved.
+Vertical selection probe Up/Down both retained Kilik/default row, terminal0;
+no extra row found in current seed. No more menu guessing. World agent owns
+CPU whole-stage coverage reconciliation. GPU free.8003 authoritative,
+candidatesinactive, baseline preserved.
 
 Prior checkpoint LOG1077: metallic mask bound via8003 in same candidate layer,
 source6301 control/candidate/repeat0; combined floor5.620MAE vs1.321repeat,

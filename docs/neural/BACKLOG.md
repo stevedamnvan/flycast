@@ -271,7 +271,10 @@ response above noise but no convincing visual gain. Keep inactive; no further
 mask/roughness sweeps on this still.
 LOG1078 proves all19 albedo paths are source-colour upscales with retained broad
 lighting, no dedicated de-light stage. Existing ledgers corrected,74hashes preserved.
-Next separate gamma-chain audit and supported de-lighting capability evaluation;
+LOG1079 gamma-chain audit found no demonstrated missing/double decode: eight
+actual diffuse ingests preserve source code values; no gamma toggle justified.
+Vertical Up/Down observations retain Kilik and the default row; GPU released.
+Next supported aligned de-lighting capability evaluation within existing tools;
 do not flip transfer curves, scale these as delit albedo or lower PackageD gates.
 Default10character slots covered; remaining labels need unlock/mode access audit.
 Do not count retained Money export as packet pass. All19generated candidates
