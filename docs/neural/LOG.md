@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1171 matching hair capture imported through MCP; lossy ingestion held.
+hair-band-correction-a/capture-import-dryrun.json and capture-import.json record
+67 dependencies, source SHA d45e3fbc8ec987be89af8a820f51cbc384517ff4efe47906aea84d959fce5d54.
+MCP8002 imported matching capture without saving project or changing mod.usda;
+current-surface.json confirms E0786 shader uses original diffuse, no authored
+roughness/metal/normal/height (absent inputs do not establish runtime defaults).
+One existing diffuse current-process MCP ingestion completed, bound=false,
+request/result retained. Output assets/ingested/hair_band_current_a/
+candidate-exact-alpha.a.rtex.dds decodes256x256 but alpha differs42321 texels
+from validated PNG; RGB MAE7.104. dds-validation.json retained. HOLD from binding:
+compressed ingestion does not satisfy this candidate's exact-alpha requirement.
+Next inspect existing lossless DDS/ingestion route and preserve alpha through
+export; no generation retry, new model or global Toolkit configuration change.
+Current Toolkit session now shows matching imported capture. No candidate layer
+bound, baseline unchanged, no visual acceptance. All MCP sessions terminal.
+
 LOG1170 cached hair RGB packaged with byte-exact source alpha.
 C:/Flycast-Evidence/hair-band-correction-a/package_alpha.py preserves cached
 Comfy RGB and restores the original source alpha without another generation.
