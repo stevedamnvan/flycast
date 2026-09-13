@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1033 direct diffuse contribution isolates character washout.
+Five same5458/120-frame helper renders completed exit0: control, no specular,
+no diffuse, no direct diffuse, no indirect diffuse. Official public RtxOptions
+compositePrimary/Secondary controls used only in private diagnostic profiles;
+runtime logs confirm parsed settings. Viewed all: removing specular leaves
+washed faces; removing direct diffuse restores visible face shading/detail;
+removing indirect diffuse leaves washout. This implicates direct diffuse
+contribution in this pose, not proof of root cause or an accepted lighting fix.
+Do not ship disabled lighting lobes. Preserve full lighting and liked arena;
+next inspect authored direct-light radiance/direction and material diffuse
+response together, using bounded same-source evidence before moving combat.
+Evidence C:/Flycast-Evidence/lighting-lobes-a and lighting-diffuse-a contains
+profiles, commands, logs, BMPs, receipts and lobe comparison. Baseline mod exact
+E3C09790...E8340 in every run; no layer changes. Resource cleanup warning stays
+open. Whole/face metrics are diagnostic differences, not visual acceptance.
+Full-set agents resumed: world and complete roster/costumes including uncaptured
+sources; initial four-character/two-level matrix does not limit scope.
+Character ownership corrected to44 groups; previous54 included mixed historical
+entries. Astaroth active UV use requires wrap/strip-aware material validation.
+
 LOG1032 guarded face binding and exact layer-off verified; appearance rejected.
 Old MCP8001 pending session preserved after normal close403; archived root/mod
 memory snapshots in toolkit-layer-recovery-b, restored exact baseline disk.

@@ -76,6 +76,17 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 Current card: **FC-067 / M2-scene**.
 
+**Full-set agent assignment (2026-09-12).** The world and character agents
+cover the entire game world and character set, including uncaptured levels,
+roster and costumes. The four-character/two-level matrix below is an initial
+validation checkpoint, not a scope limit. Each agent maintains its existing
+coverage ledger, distinguishes known captured sources from uncaptured or
+unresolved identities, and prepares exact-source runtime joins and eligible
+material batches. Candidate generation is not accepted coverage. Parent owns
+lighting/material-response correction, live Toolkit MCP integration and final
+review; GPU generation is serialized with rendering tests. Existing budget,
+baseline preservation and technical/human acceptance gates remain unchanged.
+
 **User priority correction: scene completion first (LOG1024).** Suspend routine
 H micro-optimization and repeated performance runs. Complete native-to-Remix
 geometry/material coverage for Kilik, Taki, Mitsurugi and Sophitia on temple
@@ -124,7 +135,10 @@ baseline. Next guarded explicit-layer binding/recovery in existing MCP before
 rendering; preserve pending edits.
 LOG1032 guarded binding and byte-exact layer-off pass on newMCP8002; old8001
 pending project preserved. Face albedo candidate does not fix washout; inactive.
-Next diffuse/specular lighting-response isolation, not more albedo-only trials.
+LOG1033 five lobe-isolation renders implicate direct diffuse contribution in
+face washout; reflections and indirect diffuse alone are not the explanation.
+Next correct direct-light/material response with full lighting retained; no
+disabled-lobe profile is a proposed remaster look. Not more albedo-only trials.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
 candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 

@@ -1,10 +1,15 @@
-Current checkpoint LOG1032: candidate/control/repeat terminal0, viewed;
-face washout unresolved, albedo candidate NOT promoted. MCP8002 guarded layer
-binding verified and layer removed; baseline byte-exact E3C09790...E8340.
-Old8001 pending session remains preserved: do not save stale baseline there.
-Next bounded diffuse/specular lighting-response isolation, no more albedo-only
-washout trials. face-albedo-review-b/comparison.json and images retained.
-Texture full-set candidates continue to need per-surface visual acceptance.
+Current checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,
+viewed. Direct diffuse contribution drives face washout in retained5458 pose;
+no-specular and no-indirect-diffuse still wash out. Do not ship disabled lobes.
+Next bounded direct-light/material-response correction, preserve liked arena
+and full path-traced lighting; then moving review. Evidence lighting-lobes-a
+and lighting-diffuse-a. Baseline mod exact E3C09790...E8340 throughout.
+MCP8002 is authoritative; candidate inactive. Old8001 pending state preserved,
+do not save its stale baseline. Character/world agents cover entire game set,
+including uncaptured roster/costumes/levels, with existing external ledgers.
+
+## Historical checkpoint detail (superseded statuses; retain evidence)
+
 
 Live guarded binding succeeded MCP8002. Candidate properly under mod, both face
 writes explicitly verified; candidate rendered exit0 in face-albedo-review-b.
