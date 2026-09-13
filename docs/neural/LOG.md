@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1117 existing bounded normal diagnostic reaches Shrine but presents native.
+No launcher/source change required: --capture-frames3 --capture-start-source5900
+--capture-warmup5900 --normal-effects --cpu-timing --renderer dx11 uses existing
+late capture route. Fresh supplied host/seed,baselineexact. Evidence
+C:/Flycast-Evidence/shrine-normal-integration-a, terminal0/11 orderly.
+Measured1200sources5902..7101:all1200native,319accepted evaluations,zero preview
+files. Normal Compose logged earlier; this does not prove displayed provenance.
+Retained return audit5900..7101:478returns,316retained,162age>8. Never relax age
+or recovery gates to pass. No images means visual/normal-path acceptance OPEN.
+Diagnostic scope medians (different bounded sample populations, not additive):
+feed-worker27.60ms, publish18.76ms, serialization10.44ms,digest8.18ms;
+emulated period11.74ms,render7.26ms,returned-evaluate4.06ms. No performance
+claim from CPU instrumentation. This capture did NOT enable selective refresh,
+whereas recent OIT benchmarks did. Therefore no normal-vs-OIT speed conclusion.
+Next one controlled normal diagnostic with existing --selective-resource-refresh
+(capture permits it), same scene/supplied inputs and bounds; inspect packet/feed
+cost and whether previews become available. No new timing route or orchestration.
+If it still fails, use retained stage evidence for a bounded feed fix instead of
+repeating warmup or accepting native fallback as remaster performance.
+
 LOG1116 1280 capture-free repeat; normal-renderer prerequisite corrected.
 shrine-attacks-performance-1280-b terminal0/11 orderly, baselineexact.1200samples
 5002..6201 all evaluated/fresh, no native/fallback/identity errors; maximum age4.

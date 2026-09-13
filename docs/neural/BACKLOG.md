@@ -474,6 +474,10 @@ Normal native-effects remains diagnostic-only in launcher: next prove current
 normal integration/provenance at the selected scene before a performance gate.
 Resolve bounded late diagnostic reachability; do not measure menus or remove
 guards for a passing metric. No further unchanged OIT repeats;60fps unproven.
+LOG1117 existing3-frame late normal capture reaches5902..7101 but all1200native,
+no previews;162/478returns age>8. Feed publish median18.76ms diagnostic.
+Unlike OIT benchmark, selective refresh was off. Next controlled normal capture
+with existing selective refresh before attributing renderer cost; no new route.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
