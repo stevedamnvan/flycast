@@ -1,4 +1,12 @@
-Current checkpoint LOG1076: authoritative Toolkit PID20436/MCP8003 opened saved
+Current checkpoint LOG1077: metallic mask bound via8003 in same candidate layer,
+source6301 control/candidate/repeat0; combined floor5.620MAE vs1.321repeat,
+whole3.138vs1.036. Viewed no convincing gain; candidateinactive/baselineexact.
+Evidence palgaea-metal-binding-a and palgaea-metal-fresh-ab-a. Stop mask/roughness
+sweeps. Next actual PBRify albedo lineage/de-lighting audit (world agent CPU),
+then evidence-led foundation correction. No new generation. GPU free.
+8003 remains authoritative Palgaea unsaved; old8002 pending untouched.
+
+Prior checkpoint LOG1076: authoritative Toolkit PID20436/MCP8003 opened saved
 Castle review with metallic tool. Old37292/8002 refused nonforcedclose due pending
 changes; preserved, do not save/discard it. Source metallic mask ingested exactR
 256square1540pixels, unbound; palgaea-metal-ingestion-b. Next activate existing

@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1077 Source-aligned metallic region bound/tested; no appearance promotion.
+Authoritative8003 activated existing Palgaea import, verified opt-in edit target
+and bound linear metallic DDS to2859E95ADA663EB5. Same five-material layer saved,
+readback verified, detached/baselineexact; original diffuse/normal/height retained.
+palgaea-metal-binding-a and palgaea-metal-fresh-ab-a retain all receipts. Same
+source6301 control/candidate/repeat each0. WholeMAE3.138 vs repeat1.036; floor
+5.620 vs1.321; upperstage1.083 vs0.871. Combined roughness+metal mask comparison,
+not isolated proof of metallic improvement. Viewed side-by-side: response changes,
+no convincing remastering gain. Keep candidate inactive; stop mask/threshold or
+roughness sweeps on this still. Next audit actual PBRify albedo node lineage:
+does it remove painted lighting or only upscale? Root requested bounded CPU
+source/workflow evidence before further material iteration. No new generation.
+Face lighting, moving acceptance and full scene/performance remain open.
+
 LOG1076 Live metallic ingestion verified; whole-world census reconciled.
 Toolkit37292 refused graceful shutdown after saved review; nonforced MCP close
 403 pending changes. No force/discard. Preserved old8002 and other old sessions;

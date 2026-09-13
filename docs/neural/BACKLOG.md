@@ -266,7 +266,11 @@ Fullworld154=19candidates+134baseline-reused+1rejected,130runtime identities,
 classification/UV/alpha/lighting work, not indiscriminate generation.
 Authoritative Toolkit20436/8003 now supports METALLIC; source mask ingested,
 exact256square scalarR, unbound. Old8002 pending preserved. Next guarded binding
-then source6301 review; do not silently count retained Money export as packet pass.
+LOG1077 guarded binding/source6301 control/candidate/repeat0, combined floor
+response above noise but no convincing visual gain. Keep inactive; no further
+mask/roughness sweeps on this still. Next bounded PBRify albedo lineage audit
+for actual de-lighting versus upscale before material iteration. Do not silently
+count retained Money export as packet pass.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack
