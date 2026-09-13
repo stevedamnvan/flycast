@@ -220,7 +220,9 @@ evidence. Character agent audits roster/costume gaps CPU-only. Current local
 candidates60character/44world maps, none accepted; Astaroth runtime join open.
 Helper resource cleanup and full moving/performance acceptance remain open.
 LOG1056 native attack preflight exits0, three frames; damage0 at distance.
-Next verify approach/contact before moving material review. Seven fighters
+LOG1057 approach/contact verified damage19; combined roughness capture84/90,
+protected mismatch0, baseline restored. Next fresh same-source control/repeat;
+character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each

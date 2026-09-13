@@ -1,7 +1,10 @@
-Current checkpoint LOG1056: native combat preflight exits0, three frames;
-attack visible but damage0 at distance. Add approach movement before moving
-material review. Evidence shrine-combat-timing-a. Character agent CPU work
-complete: seven fighters,50 sources,17 pending runtime joins. GPU released.
+Current checkpoint LOG1057: combined moving Shrine roughness run completed0,
+84/90sources5900..5989, HUD/world/backbuffer mismatch0, baseline exact restored.
+Evidence shrine-roughness-combat-a. Contact preflight damage19. Six-frame review
+shows attack motion and retained tiles, first frame brighter, characters still
+dark/uneven. Next fresh same-source control/repeat; no temporal/look acceptance.
+GPU released. World agent one Hoko roughness job ready,16 runtime joins held.
+Character seven fighters/50 sources; next selection route ready, costumes open.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

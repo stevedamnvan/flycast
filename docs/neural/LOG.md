@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1057 contact route and combined moving roughness capture.
+shrine-combat-contact-a native3frames exits0; viewed5901 HUD damage19 verifies
+prior contact after approach input. shrine-roughness-combat-a reuses supplied
+chain and existing Shrine roughness layer viaMCP8002; launcher0,84/90sources
+5900..5989, missing5901/5903/5904/5907/5909/5910. HUD/world/backbuffer mismatch
+sums0; external_nr_proven false remains. Baseline restored exact E3C09790...E8340.
+Six sampled frames show attacks/tile detail; first sample brighter, characters
+still dark/uneven. No matched-control, temporal, appearance or performance
+acceptance. Next fresh same-source control/repeat for these captured packets,
+then distinguish startup lighting variation from ongoing material shimmer.
+World agent prepares one exact Hoko wood roughness job31EB60D1111B005D;
+16 other generated candidates need runtime joins. No new generation/binding.
+
 LOG1056 combat-route preflight and character coverage reconciliation.
 shrine-combat-timing-a native capture exits0, sources5900..5902 retained.
 Viewed5901: Mitsurugi attack pose, Sophitia at distance, HUD MID/damage0/total0.
