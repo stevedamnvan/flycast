@@ -13,6 +13,11 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1106: isolated CPU benchmark actual hair footprint adds~0.359ms,
+rectangle8.506us vs combined367.447us median. Not frame/worker acceptance.
+Next aggregate failed-rectangle workload across poses before optimizing.
+Evidence triangle-footprint-cpu-a; no source mutation/GPUfree. LOG1105 status
+and forecast ledger now in BACKLOG; keep it updated, no defensible ETA yet.
 Latest LOG1104:19frame full-stack hair sequence/control/repeat terminal0,
 headchange4.282 vs0.815noise. Hair present beginning/middle/end; only0.3sec,
 not full moving/appearance acceptance. Next triangle-fallback CPUcost then

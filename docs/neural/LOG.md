@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1106 triangle-footprint CPU microbenchmark uses unchanged production inline
+functions with captured Nightmare5300 shared26alpha/196triangles. MSVC14.44
+/O2 C++17,10warmup+100measured batches of100calls. Rectangle median8.506us;
+rectangle+triangle median367.447us (difference358.941us). P95batch means11.742/
+394.079us are NOT frame-latency P95. Triangle4846texels passes unchanged rule;
+rectangle12600fails. Scene worker cost, not direct render-thread attribution.
+No whole-frame/performance acceptance or worst-case budget proof. Next assess
+aggregate failed-rectangle workload across retained poses before choosing
+cache/raster optimization; preserve alpha and native safeguards. Initial
+compile cwd error retained in receipt, corrected build/run terminal0.
+Evidence triangle-footprint-cpu-a/bench.cpp,input.bin,results.txt,receipt.json.
+No repository source changes; four-build gate not retriggered for this external
+measurement harness. Full moving combat/performance/lifecycle gates open.
+
 LOG1105 user-requested delivery status/forecast added inside BACKLOG. Existing
 FC queue and exit gates preserved. Captured coverage, acceptance gaps, next
 deliverable and weekly velocity baseline explicit. No defensible delivery ETA
