@@ -1,11 +1,11 @@
-Current checkpoint LOG1035: wood candidate same-source A/B completed, three
-renders exit0. Guarded MCP binding and exact layer-off verified; candidate
-inactive. Visible post-localized change above noise, no appearance acceptance.
-Evidence temple-wood-integration-a receipts/BMPs/comparison. Baseline exact.
-Next expand scene captures using world-texture-completion-b/COMPLETE-WORLD-HANDOFF.md
-and seven prepared routes; inspect each selector before confirmation. Correct
-per-material diffuse response in parallel, no further global lighting sweeps.
-MCP8002 authoritative; old8001 pending state preserved, do not save it.
+Current checkpoint LOG1036: Shrine of Eurydice observed selector4700 and native
+Mitsurugi/Sophitia gameplay5300..5302 verified. Three complete frames31 assets
+each; world agent CPU census pending. Evidence full-world-shrine-a commands,
+seed receipt, capture-audit and images. Built executable reports4e43b3565,
+not current exact-SHA evidence. No running parent capture; both exit0.
+Next Shrine exact-source Remix runtime join and remaining six stage routes;
+material-light response remains open. Wood candidate inactive, baseline exact
+at LOG1035. MCP8002 authoritative; preserve pending old8001 without saving.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

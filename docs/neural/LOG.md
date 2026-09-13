@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1036 Shrine of Eurydice native scene capture expands level coverage.
+Prepared route replayed in new full-world-shrine-a/workspace with copied
+verified original NVRAM/VMUs; originals preserved. Observe4700 exit0; viewed
+selector explicitly reads Shrine of Eurydice. Confirmation replay then captures
+5300..5302, terminal complete3/exit0. Viewed native5300: Mitsurugi/Sophitia in
+shrine arena, Practice overlay present. Each frame31 assets; zero nonfinite
+index references. Raw pvr-scene plus material manifest/assets retained together.
+Evidence full-world-shrine-a seed receipt, commands, completion, capture-audit.
+Copied automation executable SHA A0CC439C5320AFBA6F5BA834794AD466C1DF7E1E031B82AAF9907B21E03D70A6;
+capture reports built git_sha4e43b3565, not current exact-SHA build evidence.
+No source code changed and no current-SHA/performance claim. This is native
+scene inventory, not Remix runtime coverage or moving-combat acceptance.
+World agent assigned CPU dedup/census from terminal capture. Next exact-source
+Remix export/runtime join and remaining prepared stage routes; preserve liked
+arena/floor and inactive candidate layers. Persistent full scope unchanged.
+
 LOG1035 temple wood candidate binding and same-source isolation verified.
 MCP8002 creates temple_wood_review_a beneath mod; guarded binder targets
 31EB60D1111B005D diffuse only and verifies baseline authoring invariant.

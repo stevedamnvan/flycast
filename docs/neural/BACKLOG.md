@@ -144,7 +144,10 @@ light sweeps. Temple17 wood runtime31EB60D1111B005D live MCP binding confirmed;
 LOG1035 wood candidate bound/rendered then detached; baseline exact. Posts
 change above repeat noise (5.579 versus0.409 MAE); floor near noise. No visual
 acceptance. Next prepared uncaptured-level capture routes and per-material
-diffuse-response correction; seven routes unexecuted,26/60 world runtime joins.
+diffuse-response correction. LOG1036 Shrine selector visually confirmed and
+three native gameplay frames captured with31 assets each; world agent dedup
+pending. Six prepared stage routes remain unexecuted. Shrine Remix join still
+required; prior26/60 runtime joins do not include this new scene.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
 candidate maps, not accepted upgrades; Astaroth runtime join remains required.
 
