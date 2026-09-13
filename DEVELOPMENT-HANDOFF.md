@@ -35,7 +35,8 @@ full median7.229->3.146 against fresh control; input exact on9common.
 Corrected timing COMPLETE:1198accepted/2repeats,mean age3.0075,max5.
 Budget differed from old; no broad causal/performance acceptance.
 shrine-resource-reuse-moving-a COMPLETE300/300 integrity and exact parsed scene pairs.
-No runtime active. resource_reuse_review agent reviewing sampled moving visuals.
+No runtime active. Sampled review COMPLETE:7full/16close pairs, no obvious new
+geometry/contour loss; floor darkening reduced, eye band/panel hair remain open.
 Ownership helper integrated; fourbuilds/1205selftests x3 pass (LOG1161).
 Moving run uses earlier copied helper; preserve provenance. Real driver faults
 remain separate; no promotion.

@@ -71,7 +71,8 @@ Timing old/reuse repeats152/2; p9516.54/14.47ms (LOG1158). Floor change unresolv
 Prior light cadence restored;11/11 integrity passes, floor error9.80->3.57 (LOG1159).
 Corrected timing1198accepted/2repeats; budget varied, scoped result only (LOG1160).
 Full300moving integrity and exact scene pairs pass (LOG1162); sampled visual review
-underway. Production-used ownership rollback tests pass,
+complete: no obvious sampled geometry loss, eye band/panel hair remain open.
+Production-used ownership rollback tests pass,
 fourbuilds/1205selftests x3 (LOG1161). Driver faults remain separate; no promotion.
 Preserved DDS equality, incoming order, current uploads, reset and ownership gates.
 Next inspect same-source output, moving integrity, live failure cleanup and paired

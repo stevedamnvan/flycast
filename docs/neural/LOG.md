@@ -6,7 +6,12 @@ no missing/unexpected. moving-audit.json all helper receipts/archive/producer/
 completed Present/native protection checks pass. same-source-scenes.json verifies
 all300 parsed producer/camera/geometry/material records equal prior blended-moving
 reference. Scope is source integrity, not pixel equality or appearance approval.
-Root viewed final5599: arena/floor and separated fighters present; natural face/hair
+Sampled review now complete: visual-review/REVIEW.md covers7 full pairs plus
+11fringe/5lateface close pairs; no obvious new mesh/contour/sword/coat/arena loss.
+Neck patch remains gone; dark eye shading and broad hair panels unresolved.
+All300 final-image medianMAE2.642 versus prior moving; bottom35 floorMAE3.202,
+signed-0.547. Different-history comparisons not exact pixel acceptance. No continuous
+playback/human appearance acceptance. Root viewed final5599: arena/floor and separated fighters present; natural face/hair
 quality remains unresolved. resource_reuse_review agent owns sampled moving visual
 review including attacks/fringe/lateface in visual-review. No runtime active.
 Capture used copied pre-ownership-refactor helper; newer helper has1205selftests
