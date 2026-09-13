@@ -100,6 +100,15 @@ LOG1026 exact5458 export has41 meshes/9233 triangles without truncation and
 capture has41 instances; count agreement is not full source coverage. Native
 draw IDs are retained. Next co-retain native draw census and remake export for
 one evaluation, classify omitted draws, then fix the first real scene omission.
+LOG1027 same-source census verified in two retained frames:47 nonempty draws,
+41 exported; exact packet mesh-ID sets match. Next inspect OP0, protectedPT0
+and TR0/2/5/62 footprints and native-effects restoration before declaring
+coverage or changing export policy. Four builds/1102x3 pass; failed locale
+capture retained, corrected JSON validated. Texture agents now cover ENTIRE
+captured world/character sets and track uncaptured roster/levels as outstanding.
+One local GPU generation queue owner at a time; parent owns live MCP binding.
+Generation is not acceptance; face normals from first batch rejected for relief
+on painted details. Full set disposition and human visual gates preserved.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded

@@ -29,6 +29,7 @@ struct RemakeOverlaySnapshot {
  RemakeOverlayIdentity identity;
  // Only retained under explicit developer capture/replay, never ordinary play.
  std::shared_ptr<const remake::Packet> captureScene;
+ std::shared_ptr<const std::string> captureCoverage; // Same owned source as captureScene, diagnostic only.
  // Explicit temporal preparation only; geometry/generations, never DDS payloads.
  std::shared_ptr<const RemakeTemporalScene> temporalScene;
  std::uint64_t replayOriginalFrame=0;

@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1027 same-source native draw inclusion capture implemented and verified.
+Explicit preview capture retains compact census from the owned feed job beside
+its remake-view.bin: list/ordinal/count, textured/protected and exported flags.
+No snapshot retained or census constructed for ordinary play. Same overlay
+ownership carries the record to presentation. JSON uses classic locale.
+First scene-coverage-live-a completed but JSON invalid due thousands separators;
+retained failure, not repaired evidence. Corrected scene-coverage-build-b four
+serial builds and1102/0 selftests x3 pass. scene-coverage-live-b launcher0,
+retains two frames5430/5432 from requested3. Each record parses and matches
+packet frame and exact exported mesh-ID set. 3383 native entries,47 nonempty,
+41 exported. Excluded: OP0 untextured count4; PT0 protected count239; TR0/2/5/62
+counts9/14/59/393, first/last textured. Do not claim all exclusions are harmless:
+next inspect these six draw footprints and native-effects restoration. No
+complete geometry/world-camera or appearance acceptance. Evidence roots retained.
+User expanded texture agents to ENTIRE captured world/character set, with
+uncaptured roster/levels explicitly outstanding. Character agent local face
+batch completed2 workflows/8 outputs; candidate normals emboss painted features
+and are rejected for direct binding. No paid API/live layer mutation. World
+agent owns next coordinated local GPU batch; parent owns scene/lighting and MCP.
+
 LOG1026 exact exported packet census establishes bounded denominator.
 scene-completion-a/packet-5458.json produced with existing ReadRemakeViewPacket
 linked against current neural library; standalone inspector source retained.

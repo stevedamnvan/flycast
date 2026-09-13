@@ -15,6 +15,8 @@
 #include <chrono>
 #include <map>
 #include <set>
+#include <sstream>
+#include <locale>
 #include <condition_variable>
 #include <deque>
 #include <functional>
@@ -166,7 +168,23 @@ class RemakeFeedWorker {
   for(const auto& mesh:job.packet.meshes)if(mesh.textureWire==remake::TextureWire::Registered&&mesh.material) {
    r.registeredTextures.push_back(mesh.texture);r.registeredBytes+=mesh.material->sourceDdsBytes.size();
   }
-  if(job.captureScene)r.capturedPacket=std::make_shared<remake::Packet>(std::move(job.packet));
+  if(job.captureScene) {
+   // Capture-only: source and export share this owned job, never adjacent frames.
+   std::set<std::uint64_t> exported;for(const auto& mesh:job.packet.meshes)exported.insert(mesh.id);
+   std::ostringstream census;census.imbue(std::locale::classic());census<<"{\"frame\":"<<job.packet.frame<<",\"producer_ordinal\":"<<job.packet.producer.ordinal
+    <<",\"scope\":\"native draw inclusion, not recovered world completeness\",\"draws\":[";
+   bool first=true;
+   for(const auto& draw:job.snapshot.draws) {
+    if(!first)census<<",";first=false;
+    const auto id=(std::uint64_t(draw.list)<<32)|(std::uint64_t(draw.ordinal)+1);
+    census<<"{\"list\":"<<draw.list<<",\"ordinal\":"<<draw.ordinal<<",\"count\":"<<draw.state.count
+     <<",\"protected_overlay\":"<<(draw.protectedOverlay?"true":"false")
+     <<",\"textured\":"<<(draw.texture?"true":"false")
+     <<",\"exported\":"<<(exported.count(id)?"true":"false")<<"}";
+   }
+   census<<"]}";r.overlay.captureCoverage=std::make_shared<const std::string>(census.str());
+   r.capturedPacket=std::make_shared<remake::Packet>(std::move(job.packet));
+  }
   r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
   return r;
  }

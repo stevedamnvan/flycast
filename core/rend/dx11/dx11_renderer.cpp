@@ -3776,6 +3776,12 @@ void DX11Renderer::displayFramebuffer()
 				remakeCompositeTexture,backbuffer,error,remakeDisplayedEvaluated?remakeEvaluatedTexture.get():nullptr,
 				previewOverlay.captureScene.get(),previewOverlay.replayOriginalFrame,
 				remakeDisplayedEvaluated?remakePreEffectTexture.get():nullptr,previewOverlay.effects.get(),previewOverlay.alphaEffectSelections,remakeAsyncToken);
+			if(captured&&previewOverlay.captureCoverage) {
+				const auto coveragePath=std::filesystem::path(directory)/("frame-"+std::to_string(previewSource->frame)
+					+"-present-"+std::to_string(currentNeuralSourceFrameId))/"source-draw-coverage.json";
+				std::ofstream coverageFile(coveragePath);coverageFile<<*previewOverlay.captureCoverage;
+				if(!coverageFile)WARN_LOG(RENDERER,"Remake source coverage archive failed");
+			}
 			NOTICE_LOG(RENDERER,"Remake preview pixel capture: source=%llu current=%llu success=%d synchronous=true performance_eligible=false error=%s",
 				(unsigned long long)remakeDecision.frame,(unsigned long long)currentNeuralSourceFrameId,captured,error.c_str());
 			if(captured&&remakeDisplayedEvaluated&&remakeAcceptedRasterFrame) {

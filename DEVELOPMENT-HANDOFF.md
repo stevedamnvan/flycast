@@ -1,6 +1,15 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1026 (exact export denominator).
+Current resume checkpoint LOG1027: same-source coverage capture verified.
+Four serial builds/1102x3 pass. scene-coverage-live-a JSON failure retained;
+corrected live-b terminal launcher0, two retained frames5430/5432 from request3.
+Both exact frame/mesh-ID census checks pass:47 nonempty draws,41 exported.
+Next inspect omitted OP0/PT0/TR0,2,5,62 footprints and native effect restoration.
+Do not equate all excluded draws with missing surfaces or automatic native safety.
+Character/world agents now cover full captured sets; uncaptured game remains
+outstanding. Local face batch8 outputs complete, normals rejected for embossed
+painted details; inspect albedo before MCP candidate integration. World agent
+next GPU queue owner. No paid generation or live mutation; preserve baseline.
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
