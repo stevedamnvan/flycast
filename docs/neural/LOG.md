@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1028 excluded translucent draw footprints present in native effect evidence.
+Decoded native-effect-identity.bin for exact5430/5432, checked header/word count,
+source ordinal5429/5431, full307200 heads and exact end consumption. OIT source
+encodes poly ordinal in sequence>>17 (dx11_oitrenderer.cpp500), same native list
+ordinal. effect-footprints.json at scene-coverage-live-b records TR0:8316pixels
+under fighters (5430bbox198,350..347,425); TR2:23458pixels in Practice panel;
+TR5:316pixels in panel; TR62:771/841pixels around Sophitia upper body. These
+four export exclusions are present in native effect chains, not simply absent.
+Preview confirms effects applied,25920 changed pixels,6108 protected pixels
+with zero HUD/world/backbuffer mismatches. Presence is not proof each effect's
+final occlusion/appearance is correct. OP0 untextured quad still needs source
+state/depth classification; protectedPT0 is native overlay. Viewed native and
+composited5430: both fighters/arena present, strong washed-out character and
+statue highlights remain; binding presence does not close lighting quality.
+No export policy relaxed. Next inspect OP0 and effect occlusion; then candidate
+albedo-only face A/B through MCP, normals rejected and height unbound. Character
+agent full45-content-group ledger expands beyond current12; world full-set
+ledger expanding with originals/caches preserved. No visual acceptance.
+
 LOG1027 same-source native draw inclusion capture implemented and verified.
 Explicit preview capture retains compact census from the owned feed job beside
 its remake-view.bin: list/ordinal/count, textured/protected and exported flags.

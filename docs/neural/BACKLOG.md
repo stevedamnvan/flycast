@@ -109,6 +109,12 @@ captured world/character sets and track uncaptured roster/levels as outstanding.
 One local GPU generation queue owner at a time; parent owns live MCP binding.
 Generation is not acceptance; face normals from first batch rejected for relief
 on painted details. Full set disposition and human visual gates preserved.
+LOG1028 all four excluded TR draws occur in same-source native effect chains;
+TR2/5 panel, TR0 floor footprint, TR62 Sophitia upper-body footprint. No blanket
+missing-translucency diagnosis. Next OP0 state classification and effect
+occlusion review, then albedo-only face candidate A/B through MCP. Washed-out
+character response remains visually evident; geometry inclusion alone is not
+scene/appearance acceptance.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded

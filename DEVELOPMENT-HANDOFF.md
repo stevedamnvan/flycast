@@ -1,10 +1,13 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1027: same-source coverage capture verified.
+Current resume checkpoint LOG1028: native effect exclusion footprints verified.
 Four serial builds/1102x3 pass. scene-coverage-live-a JSON failure retained;
 corrected live-b terminal launcher0, two retained frames5430/5432 from request3.
 Both exact frame/mesh-ID census checks pass:47 nonempty draws,41 exported.
-Next inspect omitted OP0/PT0/TR0,2,5,62 footprints and native effect restoration.
+TR0/2/5/62 present in exact native effect chains; footprints retained in
+scene-coverage-live-b/effect-footprints.json. Next OP0 source state and effect
+occlusion review, then face albedo-only A/B via MCP. Highlights visibly washed
+out; normals from face batch rejected, height unbound.
 Do not equate all excluded draws with missing surfaces or automatic native safety.
 Character/world agents now cover full captured sets; uncaptured game remains
 outstanding. Local face batch8 outputs complete, normals rejected for embossed
