@@ -346,6 +346,11 @@ replacement-off/native-shading/no-fill, not full remaster look. LOG1038 already
 isolated this; no repeated fill sweep. Next restore exact review-lane layer,
 profile/fill/source provenance for full-look baseline repeat/candidate review.
 Inspect face/hair/body/weapon/arena; preserve arena, no global exposure sweep.
+LOG1099 full review settings restored in4fresh still renders, all exit0.
+39common meshes exact, one added cutout; matched authored-anchor control.
+Local head difference6.585MAE vs2.067repeat; broad gain unproven. Legs readable,
+faces still overbright. Next per-material face/direct-diffuse diagnosis in this
+recorded setup; no global lighting sweep. Evidence nightmare-review-restored-a.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

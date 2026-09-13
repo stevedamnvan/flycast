@@ -13,6 +13,12 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1099: restored review settings rendered4stills terminal0, baselineexact.
+39common meshes identical, one added cutout;12byte anchor-matched diagnostic.
+Head change above repeat noise, no broad visual acceptance; legs readable,
+faces overbright. Next per-material face/direct-diffuse diagnosis using
+nightmare-review-restored-a settings/receipts; no global fill/exposure sweep.
+GPUfree, full goal active. Historical checkpoint below.
 Latest LOG1097: c9ebf5b29 pushed/fork verified. Triangle candidate shared26
 promoted in24live captures5301..5329, native effects applied and all composition
 mismatches zero. Baselineexact/GPUfree. Visual CORRECTIONS_REQUIRED: severe dark

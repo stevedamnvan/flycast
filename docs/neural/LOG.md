@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1099 restored review setup renders completed. Four fresh helper still runs
+exit0: baseline, baseline repeat, candidate, candidate with baseline authored
+light anchor. Existing mod stack enabled, no-feedback.conf, existing neutral
+fill0.3,640x480. Baseline mod byte-identical; no Toolkit/layer mutation.
+Source5300/producers identical,39common mesh payloads byte-identical, candidate
+adds8589934632 only. Session anchor differs in3floats; fourth diagnostic render
+copies only12anchor bytes into an evidence packet, preserving candidate meshes.
+No recovered-world/camera claim. Raw sources preserved.
+Matched-anchor right-head MAE6.585 vs baseline-repeat2.067; whole2.328 vs1.964,
+floor2.570 vs2.274. Local head change exists; broad improvement not established.
+Viewed baseline/candidate/matched: legs and armor readable with review setup;
+faces still overbright and hair/contour quality not accepted. Standalone lacks
+native overlays and moving combat. CPU/performance gates remain pending.
+Evidence nightmare-review-restored-a receipts, comparison.json and BMPs.
+Next diagnose overbright character face material/direct-diffuse response under
+this recorded setup, preserve arena and no repeat global fill/exposure sweep.
+Triangle coverage remains proven only in scope, not accepted remaster quality.
+
 LOG1098 review-lane provenance correction. Inspected source5301 returned image:
 dark character regions exist before native composition. Current extraction
 capture uses native-shading.conf, replacement disabled and no scene-fill.
