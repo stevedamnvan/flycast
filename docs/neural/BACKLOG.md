@@ -179,7 +179,10 @@ retain detail with all-mips control. Next opt-in moving/memory validation of
 feedback-off candidate before defaults. LOG1046 retains26/30 short moving
 frames with detail and zero protected/composition mismatches; single5.08GiB
 GPU snapshot is not growth/performance proof. Next matched locked-source
-comparison and longer memory/cadence validation; no broad artwork acceptance. Lighting balance
+LOG1047 locked-return route reuses returned pixels and is invalid for
+material A/B;19 exact comparisons prove replay only. Next fresh helper renders
+of retained geometry packets under each state, then separate memory/cadence
+validation. World ledger89sources; Ostrheinsburg captured, Valentine confirmed. Lighting balance
 and moving validation remain.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.

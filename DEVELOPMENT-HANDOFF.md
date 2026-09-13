@@ -1,9 +1,9 @@
-Current checkpoint LOG1046: feedback-off generated tiles retain detail in26
-short moving captures5900..5929 of30 requested, zero HUD/composition mismatches.
-Host0/helper11 orderly; layer removed baseline exact. GPU snapshot5.08GiB
-not growth/budget acceptance. Next locked-source baseline comparison and longer
-memory/cadence checks. World agent owns GPU for extraction now. Evidence
-shrine-feedback-moving-a, all parent processes terminal. MCP8002 Shrine unsaved.
+Current checkpoint LOG1047: locked-input route is returned-image replay, NOT
+fresh geometry rendering; reject19 identical frames for material A/B. Terminal
+host0/helper11. Next fresh helper renders of same geometry under baseline and
+candidate states, then live motion/memory checks. shrine-locked-baseline-a
+has disposition. World agent owns GPU: Ostrheinsburg done, Valentine next;
+89world sources. Maxi selector prep ready CPU-only. MCP8002 Shrine unsaved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

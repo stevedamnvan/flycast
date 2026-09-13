@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1047 locked-return route rejected for material A/B; extraction expands.
+shrine-locked-baseline-a terminal host0/helper11;19/22 retained contiguous
+source5908..5929 comparisons. Packets exact, HUD0, image MAE0. Source inspection
+explains equality: ReadLockedRemakeInput returns retained image, later source
+selects replay instead of newly returned render. This is valid composition
+replay, NOT a fresh material A/B; reject current comparison for appearance.
+Do not repeat this route for material/lighting experiments. Next fresh helper
+renders of identical retained geometry packets under each material state,
+then separate live motion/cadence checks. disposition.json preserves failure.
+World agent completes Ostrheinsburg3frames,17new world sources; ledger89world,
+44character,21HUD/effects. Valentine selector confirmed, gameplay next;4unknown
+slots remain. Character agent prepared Maxi selection-only route with visible
+confirmation gate; no full-roster completion. GPU released to world extraction.
+
 LOG1046 feedback-off generated tiles in short live movement.
 shrine-feedback-moving-a terminal host0/helper11 orderly;26/30 requested frames
 5900..5929 retained. Candidate tiles active, neutral fill0.3, feedbackoff,
