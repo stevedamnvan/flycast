@@ -3,7 +3,7 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1143; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1144; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 - LOG1127 compact live transport integrated behind --capture-references.
@@ -13,7 +13,10 @@ Goal remains the full playable Soulcalibur remaster, not this individual fix.
   LOG1143 sorted-alpha-moving-a completes300/300 sources5300..5599;all integrity
   checks pass,baselineexact. Existing meshes/camera/materials exact across300 pairs;
   5..18alpha meshes added. Visual samples retain fringe sparkle/dark cheek/panel hair.
-  Next consecutive5370..5380 closeup/source-mesh diagnosis before global light edits.
+  LOG1144 consecutive5370..5380 stage inspection places bright patches in native
+  effect restoration, not final HUD compositor. Next existing NFE1 decode for
+  rejected native draw ownership; agent moving_surface_review owns bounded5375
+  parser investigation. Verify unexpected DDS visualization before decoder claims.
   Evidence moving-audit.json,retained-scene-comparison.json,visual-review/REVIEW.md.
   Fourbuilds/1135selftests x3,43launcher tests pass. Live diagnostic exits0/11;
   sources5901..5903 full10.52MB archives/1.08MB wire,all v3/wire checks pass,

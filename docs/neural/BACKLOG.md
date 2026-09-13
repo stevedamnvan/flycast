@@ -564,7 +564,10 @@ baselineexact. LOG1143 moving capture completes300/300 sources5300..5599;all int
 checks pass. Existing mesh/camera/material data exact across300 prior-source pairs,
 5..18alpha meshes added. Four visual samples show fuller hair but fringe sparkle,
 dark cheeks and panel-like hair remain. Next5370..5380 closeup/source-mesh diagnosis
-before global lighting changes. Preserve arena/floor; no temporal visual acceptance.
+before global lighting changes. LOG1144 all11stage closeups localize bright patches
+to native-effect restoration (evaluated==final ROI). Next decode retained NFE1
+native draw data for exact alpha ownership; DDS visualization needs format check.
+Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
 No strip reconstruction
 or claim every native draw eligible. Read-only MCP surface inspector verified.

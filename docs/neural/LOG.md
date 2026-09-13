@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1144 remaining fringe artifact localized to native-effect restoration.
+Existing sorted-alpha-moving-a frames5370..5380 inspected at fixed head/hand ROI
+(375,158)-(466,249), original pixels retained; nearest-neighbor stage contact sheet
+and fringe-stage-samples.json under visual-review. Native-effect evaluated output
+changes545..744 ROI pixels from pre-effect image; maximum positive RGB channel
+delta201..239. Evaluated and final composite RGBA match throughout this ROI in
+all11frames. Root inspected all11stage rows: bright fringe/hair-tip patches return
+in native effects, not final HUD composition. Does not identify exact draw or prove
+that removing legitimate alpha is safe; no global exposure/material change made.
+Agent exact5375 alpha-plane/texture join identifies269419008 with12 footprint
+rejects and5 promoted owners as candidates. Unexpected RGB/alpha contact sheet
+requires independent DDS format verification; no decoder-fault claim. Exported
+packet omits rejected geometry, but existing full NFE1 identity retains native
+draw resource data. Next decode that existing evidence for exact rejected-draw
+ownership; no new capture required merely because the exported packet omits it.
+Character appearance remains CORRECTIONS_REQUIRED. Baseline unchanged.
+
 LOG1143 sorted-alpha recovery verified across300 captured combat frames.
 shrine-normal-sorted-alpha-moving-a completed sources5300..5599,300/300,
 terminal0/baselineexact. moving-audit.json: all full v3 archives/helper receipts,
