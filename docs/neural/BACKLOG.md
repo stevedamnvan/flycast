@@ -202,7 +202,10 @@ not a leak diagnosis. Longer lifecycle open. Vertex-brightness preservation
 control rejected globally: dark cheek/changed arena despite restored contrast.
 LOG1053 targeted skin adjustment outputs fail directDDS input RGB/alpha checks,
 rejected before ingestion; exact nativePNG face inputs found/verified. Next
-bounded albedo response from those verified inputs, no global lighting change.
+LOG1054 verifiedPNG correction/ingestedDDS exact; guarded face layer3renders0,
+baseline restored. Visible response subtle, no useful appearance acceptance.
+Exact5908 export all26texture aliases/bytes match5301; wrong face source identity
+not supported. Next targeted response correction, no blind stronger albedo sweep.
 World8jobs/30maps complete, total19generated candidates/74maps. QA holds baked
 shading, carpet roughness, scalar channel/transfer; heightoff, accepted0. Preserve failed setup evidence. World visible selector census
 now10/10,154world identities incl variants; full hidden/alternate coverage open. No default promotion. World ledger102sources through Valentine;

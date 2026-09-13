@@ -1,13 +1,13 @@
-Current checkpoint LOG1053: two deterministic skin-response outputs rejected
-before ingestion: direct DDS Comfy loader swaps R/B and alpha255->254. No
-runtime changes/retries. Exact nativePNG sources for both faces verified in
-character-texture-readiness-b/exact-face-png-source-proof.json. Next bounded
-albedo response from these inputs; no per-material textured diffuse multiplier
-proven in installed schema. Preserve failed character-material-response-a.
-1280streaming results LOG1052 stand; longer lifecycle/lighting open.
-World8jobs/30maps completed; total19world candidates/74maps, accepted0. Scalar
-channel/transfer and baked-shading QA holds, heightoff. GPU free; models cached.
-MCP8002 Shrine unsaved; old8001 stale state must not be saved. Baseline exact.
+Current checkpoint LOG1054: verifiedPNG skin adjustment ingested viaMCP,
+exactRGBA/alpha; control/candidate/repeat0, baseline restored. Response subtle,
+not accepted appearance. Exact5908 export26DDS aliases/bytes match5301 including
+faces, so do not repeat identity suspicion for this pose. Candidate layer
+skin_response_review_b inactive. Fourprocessed outputs total incl failedDDS,
+paid0/learnedgeneration0. Next targeted character response, no blind albedo sweep.
+World agent resolving documented roughness channel/import route; BC4/gammafalse
+installed behavior differs stale fixture. Heightoff; new74world maps unaccepted.
+1280streaming results stand, longer lifecycle open. GPU free. MCP8002 Shrine
+unsaved; old8001 stale state must not be saved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

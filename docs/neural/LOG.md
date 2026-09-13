@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1054 verified PNG skin-response path and exact-pose texture identity.
+character-material-response-b corrects deterministic input route using existing
+native256PNG (not another AI variation). Two15percent encoded-RGB reductions
+complete; maxexpected error0.95/255, alpha exact, dimensions exact. Both MCP
+current-process ingests yield DDS RGBA byte-exact to candidates. Total4processed
+outputs across rejectedDDS+correctedPNG attempts, paid0, learned generation0.
+Guarded MCP8002 skin_response_review_b authored only two face diffuse paths,
+saved layer/mod archived, control/candidate/repeat all exit0. Layer detached,
+baseline exact E3C09790...E8340. WholeMAE0.604 vsrepeat0.286; Sophitia face-region
+1.392 vs0.515, floor0.488 vs0.227. Viewed full pair/enlarged crop: subtle response,
+not a useful accepted correction; do not strengthen/regenerate blindly.
+Exact5908 source export terminal0,26DDS names AND bytes match prior5301,
+including both faces. Rules out wrong source texture aliases in this check;
+not runtime material-read instrumentation or whole-game identity acceptance.
+Next targeted lighting/material response with this verified input path; no
+global vertex-brightness promotion. World scalar importer audit ongoing:
+installed roughness BC4/gammafalse supports a documented channel route; unequal
+RGB alone should not be treated as permanently unbindable. Height remainsoff.
+
 LOG1053 targeted skin response preparation catches DDS decoding failure.
 MCP8002 confirms face hashes91446E8A159E8C2F/0DCBE839C56F7DD2 bind only original
 Shrine diffuse DDS. Installed/public material audit finds no proven per-material

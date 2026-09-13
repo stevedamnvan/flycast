@@ -95,3 +95,8 @@ to one channel. Record actual channel/transfer conventions and validate the
 runtime import before binding. Do not average channels, regenerate cached maps,
 or claim physical roughness solely from a grayscale-looking preview. Preserve
 raw outputs, source identity and baseline fallback while the convention is open.
+
+LOG1054 verifies the corrected native-PNG path: two face adjustments preserve
+alpha/dimensions, their ingested DDS pixels match exactly, and the guarded
+candidate layer restores the baseline after three fresh renders. This is
+technical pipeline evidence; its subtle appearance response was not accepted.
