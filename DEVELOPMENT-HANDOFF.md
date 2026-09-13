@@ -1,4 +1,13 @@
-Current checkpoint LOG1077: metallic mask bound via8003 in same candidate layer,
+Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
+only graph paths, not dedicated de-lighting. Existing ledgers corrected in
+place,74output hashes preserved. Full PackageD requirement remains open.
+Next separate gamma-chain audit (world agent CPU) and supported aligned
+de-lighting evaluation; no raw-albedo scaling or blind mask/roughness sweeps.
+Default10character row captured; remaining10labels/unlocks/costumes unproven.
+Character CPU audit finds no evidenced alternate row/seed; no more horizontal
+guessing. GPU free.8003 authoritative, candidatesinactive, baseline preserved.
+
+Prior checkpoint LOG1077: metallic mask bound via8003 in same candidate layer,
 source6301 control/candidate/repeat0; combined floor5.620MAE vs1.321repeat,
 whole3.138vs1.036. Viewed no convincing gain; candidateinactive/baselineexact.
 Evidence palgaea-metal-binding-a and palgaea-metal-fresh-ab-a. Stop mask/roughness

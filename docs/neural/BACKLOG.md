@@ -265,13 +265,17 @@ Fullworld154=19candidates+134baseline-reused+1rejected,130runtime identities,
 0appearanceaccepted; no eligible nongenerated batch. Holds require actual
 classification/UV/alpha/lighting work, not indiscriminate generation.
 Authoritative Toolkit20436/8003 now supports METALLIC; source mask ingested,
-exact256square scalarR, unbound. Old8002 pending preserved. Next guarded binding
+exact256square scalarR. Old8002 pending preserved.
 LOG1077 guarded binding/source6301 control/candidate/repeat0, combined floor
 response above noise but no convincing visual gain. Keep inactive; no further
-mask/roughness sweeps on this still. Next bounded PBRify albedo lineage audit
-for actual de-lighting versus upscale before material iteration. Do not silently
-count retained Money export as packet pass.
-Ten other generated sources await six stage joins. Voldo selector verified;
+mask/roughness sweeps on this still.
+LOG1078 proves all19 albedo paths are source-colour upscales with retained broad
+lighting, no dedicated de-light stage. Existing ledgers corrected,74hashes preserved.
+Next separate gamma-chain audit and supported de-lighting capability evaluation;
+do not flip transfer curves, scale these as delit albedo or lower PackageD gates.
+Default10character slots covered; remaining labels need unlock/mode access audit.
+Do not count retained Money export as packet pass. All19generated candidates
+have runtime identities; this does not close their appearance/material holds.
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack
 verified extraction. Character lighting and temporal acceptance remain open;
@@ -902,6 +906,13 @@ alignment with the retained maps. Record every material as upgraded, reused or
 rejected, with per-map disposition and reasons for eligibility, reuse or
 rejection. Retain baseline assets for every failed/rejected map or material;
 no material may silently disappear from the coverage ledger.
+
+LOG1078 verified capability boundary: the current19 world "albedo" outputs
+are upscaled source colour, not proven delit albedo. Their executed PBRify
+graphs contain no dedicated de-lighting stage. Preserve their files/attempts
+and original bound albedo; evaluate a supported aligned route before claiming
+this requirement met. De-lighting, transfer encoding and visual approval remain
+separate checks. No new models or paid execution are authorized by this finding.
 
 **Reusable recipe and whole-game expansion (user direction, 2026-09-12).**
 Use shared material-class recipes across the full captured union; the current

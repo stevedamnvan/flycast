@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1078 PBRify albedo foundation corrected across full generated-world inventory.
+All19 graph paths are LoadImage177 -> ImageUpscaleWithModel31 using4x-PBRify-
+UpscalerV4 -> JoinAlpha27 -> Save181. Installed example labels upscaled albedo;
+no disabled de-lighting branch or separate model exists in executed workflow.
+Coarse32square luminance correlation source/output0.999143..0.999942, consistent
+with visually retained baked shadows/glow. Not proof the upscaler never changes
+light, but no supported intrinsic-albedo guarantee. Local node-name/description
+query found no dedicated delight/intrinsic/ICLight/PBRFusion stage; no downloads.
+Existing ten ledger/QA JSON files corrected in place: all19 albedo outputs now
+upscaled source-colour candidates, delighting_proven=false, originals retained,
+0albedoaccepted.74raw hashes verified;19attempts and19alpha-restored files unchanged.
+Evidence world-texture-completion-b/PBRIFY-ALBEDO-FOUNDATION-AUDIT.md and
+albedo-foundation-correction-receipt.json. Full PackageD still requires genuine
+delit/reimagined albedo; no capability claim or scope reduction. No arbitrary
+transfer-curve toggle as delighting. Next separate gamma-chain audit for washed
+response and evidence-based supported de-lighting evaluation within existing
+tools/budget boundaries; no further raw-albedo scaling or blind roughness tests.
+Right5 native3600 confirms Astaroth already captured; no gameplay/redundant maps.
+Default10slot row accounted for, remaining labels/unlock/mode access unproven.
+Character agent CPU availability audit, no save editing. GPU free, baselineexact.
+
 LOG1077 Source-aligned metallic region bound/tested; no appearance promotion.
 Authoritative8003 activated existing Palgaea import, verified opt-in edit target
 and bound linear metallic DDS to2859E95ADA663EB5. Same five-material layer saved,
