@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1018 host attribution preflight and reset-counter scope audit.
+validation-host-cadence-a rejected before launch: existing selective-reuse
+benchmark guard disallows CPU diagnostic scopes. No guard bypass or timing
+result. Quiet pair existing GPU timestamp spans have medians9.93/9.34ms versus
+present17.61/17.24ms; asynchronous spans are not additive CPU budgets and do not
+alone identify a host bottleneck. Aggregate stage_counts.resets=1164 is not
+returned-scene history reset count: quiet-b samples record1 reset; full host
+log has1 accepted reset and1164 accepted retained-history evaluations. Do not
+disable reset guards to address an apparent every-frame reset based on that
+aggregate. Need a supported diagnostic policy matching selective reuse, with
+timing explicitly excluded from performance acceptance, before source tuning.
+
 LOG1017 quiet-viewport pipeline first run restores freshness.
 Helper rebuilt after diagnostic switch removal, SHA32202B3D890CF959830FEEDD5A87023C554281C4C8FC132C42ADFB0110ACA5CD.
 Two preflight GPU Engine samples showed no Toolkit activity above0.1 percent,
