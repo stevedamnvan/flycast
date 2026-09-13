@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1023 (live cache pair complete).
+Current resume checkpoint LOG1025 (character binding census).
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
@@ -18,6 +18,11 @@ or nonfinite indexed positions. This does not prove Remix coverage. MCP8001
 read-only discovery and scene inspection evidence is in scene-completion-a.
 Preserve liked arena/floor, native HUD/effects, welded normals and original maps.
 Performance pair remains evidence, not current assignment.
+MCP census:12 character materials all have capture mesh/instance references,
+all reported texture files exist;11 diffuse-only, asset10 four maps. Exact
+capture source5458 differs from native5300/5900 audit: next same-source native/
+export omission census, then source-specific material completion. Evidence
+scene-completion-a/character-binding-census.json. No visual acceptance.
 One-scene motion record cache implemented, required four builds and1102/0
 selftests x3 pass. CPU-only actual-packet parity:~2.8ms uncached to~1.6ms primed;
 priming excluded, not live gain. Evidence motion-record-cache-build-a and

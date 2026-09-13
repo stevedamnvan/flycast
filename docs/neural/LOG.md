@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1025 character capture binding census through Toolkit MCP.
+Read-only MCP8001 get_material_textures for all12 exact character identities
+in practice-current-capture-a. scene-completion-a/character-live-textures.json
+and character-binding-census.json retain responses and file/reference checks.
+All12 material identities have one mesh definition and one instance reference
+in capture_import_7a8bcb9a32d75af9.usda; every reported texture file exists.
+Eleven materials expose diffuse only; asset10 exposes four texture inputs.
+This establishes captured binding presence, not PBR completion or good shading.
+Prototype meshes are invisible but scene instances author inherited visibility;
+do not classify prototype flags alone as missing live geometry. Source capture
+command identifies exact remake-view packet5458, not native audit5300/5900.
+Therefore this cannot close native-draw completeness across those other frames.
+Next obtain a same-source draw/export omission census for5458 (or a new exact
+matched capture using existing tooling), then address diffuse-only character
+materials with existing source-specific PBRify workflow. Preserve expression
+cells, mixed-atlas regions, alpha, welded normals and baseline fallback. No
+new generation, layer mutation or appearance acceptance in this audit.
+
 LOG1024 user reprioritizes scene completion before performance tuning.
 Backlog active authority amended in place: four characters/two levels, all8
 pairings, native-to-Remix coverage first, then faces/hair/lighting and combat.

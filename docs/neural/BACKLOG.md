@@ -91,6 +91,11 @@ Current action: reconcile retained native temple/water captures with exact
 exported scenes and Toolkit MCP bindings; do not compare unrelated frames as
 missing geometry. LOG1024 native used textures all resolve in two frames, but
 Remix coverage remains unproven. Earlier H next-action notes below are deferred.
+LOG1025 MCP census confirms all12 audited Mitsurugi/Sophitia identities have
+capture mesh/instance bindings and existing texture files;11 are diffuse-only.
+Current capture derives from5458, so do not compare it as exact coverage of
+native5300/5900. Next same-source native/export omission census; material PBR
+completion remains pending despite binding presence.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded
