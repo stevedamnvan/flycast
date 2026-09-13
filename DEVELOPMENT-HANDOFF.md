@@ -13,6 +13,12 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1102: old Shrine5908 face-review packet lacks shared26. Fresh1280
+inspection vs native shows head occlusion difference; do not tune skin from
+incomplete packet. Face normals aligned across both retained sources. Next
+fresh current-host Shrine5908 using existing seed/replay; verify native head
+coverage after cutout fix. No global sweep/new generation. GPUfree.
+Evidence shrine-face-review1280-a; baseline unchanged.
 Latest LOG1101: face1133/430triangles exact atlas identified. Two omission
 renders terminal0 show5300headbox mostly affected by shared26, weak face-atlas
 coverage. Use retained face-facing pose for skin correction; keep5300hair/

@@ -359,6 +359,10 @@ acceptance. Omission controls show current5300 headbox responds more to
 shared26 than face-expression mesh. Next choose retained face-facing pose for
 skin correction; keep5300 for hair/contour, no new broad color/light sweep.
 Evidence face-response-attribution-a. Both omission copies diagnostic only.
+LOG1102 old Shrine5908 face-review packet lacks recovered shared26, viewed
+native/reconstruction head occlusion differs. Do not tune skin from incomplete
+packet. Next fresh post-fix Shrine capture using existing replay/seed, verify
+native head coverage first. Face normals align with triangles, no flip fix.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

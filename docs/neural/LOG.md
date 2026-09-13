@@ -1,5 +1,22 @@
 # Neural rendering evidence log
 
+LOG1102 retained face review is incomplete for head-occlusion acceptance.
+Normals audit: source5300 Sophitia430, Shrine5908 Mitsurugi296/Sophitia430
+nondegenerate triangles all align with average vertex normal (min dots0.794,
+0.808,0.850); no flipped-normal evidence in these meshes. Not source-normal truth.
+Fresh5908 review1280x960 render terminal0/baselineexact, established fill0.3,
+feedbackoff/material stack. Viewed against native5908: reconstructed head shows
+more face where native hair covers it. This is a coverage/occlusion hypothesis,
+not proof of a skin-lighting defect. Older38mesh packet contains no shared26
+payload, whose missing export was subsequently corrected at5300. Do not use
+this incomplete old packet to tune face appearance or regenerate face maps.
+Next fresh post-cutout-fix Shrine capture using existing5908 replay/seed route,
+then verify head coverage against native before any skin-response change.
+No global lighting, normals or material mutation. Evidence
+face-response-attribution-a/face-normal-orientation.json and
+shrine-face-review1280-a/receipt.json,review.bmp,completeness-check.json.
+Full scope and performance gates remain open; GPUfree.
+
 LOG1101 exact face mesh and omission attribution. Source5300 matched-anchor
 packet face atlas0DCBE839C56F7DD2 fullRGBA identifies mesh1133,430triangles,
 1290vertices, opaquealpha255; normal lengths0.99999994..1.0. Unit length does
