@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1066 Palgaea packet acquisition failed; Nightmare extraction completed.
+full-world-palgaea-runtime-a reuses verified selector/seed, requests6300..6302.
+Launcher0 but no preview captures; all1200host presents native. Helper renders
+from5191, delayed returns do not establish accepted output. Baseline unchanged.
+Do not call this runtime export complete or repeat identical acquisition.
+Next audit existing helper-triggered runtime capture (Shrine export-b route)
+independent of host acceptance, isolated output and explicit source-frame
+provenance. DDS pixel joins can establish materials, not6300 geometry if a
+different source is captured. No acceptance gate relaxation or default change.
+Nightmare name/portrait verified then3native frames pass; ninefighters/63groups,
+organic sword and flesh/metal armour held for masks, costume IDs unknown.
+World agent prepared six remaining stage routes for10generated sources; castle
+original seed receipt still needs checking. No new generation or bindings.
+
 LOG1065 Hoko wood roughness integrated through existing MCP layer.
 hoko-wood-integration-a: initial Shrine lookup422; attempted import refuses
 existing destination; reused Hoko capture7a8bcb9a32d75af9 viaactivate_capture.

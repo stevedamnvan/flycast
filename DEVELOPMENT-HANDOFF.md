@@ -1,11 +1,10 @@
-Current checkpoint LOG1065: Hoko wood roughness ingested/bound viaMCP, readback
-verified in existing opt-in roughness layer (3materials total), baseline exact
-restored and layer inactive. Evidence hoko-wood-integration-a; fresh5302 A/B
-three runs0 but candidate signal below repeatnoise, no visual acceptance.
-Next missing runtime joins for existing generated world candidates; do not
-repeat inconclusive Hoko pose. Character lighting/full motion remain open.
-Toolkit8002 now existing Hoko capture7a8bcb9a32d75af9 unsaved selection. Old8001
-stale state untouched. Eight fighters/57groups; next selector prepared.
+Current checkpoint LOG1066: Palgaea requested packet acquisition has0captures
+although launcher0; all1200host presents native, helper renders from5191.
+Evidence full-world-palgaea-runtime-a, baseline unchanged. Do not repeat same
+acquisition. Next audit existing runtime auto-capture directly from helper,
+isolated output/source provenance, then exact DDS material joins. World agent
+CPU audit active. Nightmare extracted:9fighters/63groups, mask/costume holds.
+Toolkit8002 remains Hoko unsaved, opt-in layer inactive, GPU free.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.

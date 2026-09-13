@@ -234,7 +234,10 @@ LOG1063 helper sequence3..300 implemented;4builds/1108x3selftests pass,
 79outputs each; sampled tile pattern retained, full motion/human approval open.
 LOG1065 Hoko wood MCP ingestion/binding verified in same opt-in layer;
 fresh5302 candidate signal below repeatnoise, no appearance acceptance. Next
-existing generated-world runtime joins; character lighting remains open; no production scheduling change;
+existing generated-world runtime joins. LOG1066 Palgaea acquisition0captures
+despite launcher0; do not repeat unchanged. Next existing direct helper runtime
+capture audit with isolated output/source provenance. Ninefighters/63groups;
+character lighting remains open; no production scheduling change;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 
