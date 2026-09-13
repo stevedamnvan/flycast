@@ -467,6 +467,9 @@ LOG1114 capture-free640OIT:1200evaluated/3repeats,14.92ms median; exact attack
 sources5300..5599 all300evaluated/0repeats/latencymax3. No visual gate from timing.
 Next repeat then1280/normal matrix; diagnostic capture overhead is separate,
 not a reason to loosen production policy or repeat pre-roll sweeps.
+LOG1115 repeat640 and first1280 OIT both steady1080/1080fresh, attack300/300fresh,
+maxsteady latency3,owned-object growth0. Medians15.17/16.18ms; tails remain
+21.81/21.86ms P95. Next repeat1280 then normal renderer; sustained60fps unproven.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

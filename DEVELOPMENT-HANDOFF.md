@@ -3,9 +3,13 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1114; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1115; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1115 repeat640/first1280 OIT TERMINAL0/11, baselineexact. Steady1080/1080
+  fresh,attack300/300fresh,maxsteady age3 both;owned-object growth0. Median
+  15.17/16.18ms,P9521.81/21.86ms. Next repeat1280 then normal renderer coverage.
+  Evidence shrine-attacks-performance-b and shrine-attacks-performance-1280-a.
 - LOG1114 capture-free640OIT attack run TERMINAL0/11 orderly:1200evaluated,
   3repeats,median14.92ms; exact5300..5599 all300evaluated/0repeats/maxage3.
   Native fallback/identity errors0,owned-object growth0,baselineexact. Next repeat

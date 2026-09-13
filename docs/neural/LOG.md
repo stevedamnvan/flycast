@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1115 capture-free attack repeat and1280 OIT progression.
+Two sequential terminal0/11 orderly runs, baseline exact, no capture/build/
+generation overlap: shrine-attacks-performance-b and shrine-attacks-performance-1280-a.
+Same replay/seed/current host, supplied consumer, feedbackoff, fill0.3,
+selective refresh,1200sources5002..6201. 640repeat P50/P95/P99 present interval
+15.1672/21.8103/29.7295ms;1280x96016.1755/21.8624/24.0766ms.
+Both1200evaluated presents,one output repeat in full window,0native/fallback/
+identity errors; maxlatency3 at640 and4 at1280. After120warmup both1080/1080
+fresh, maxlatency3. Exact5300..5599attack window300/300fresh/maxlatency3 both.
+Matrix-window-audit.json in1280evidence counts first retained output against
+preceding sample, not dropping boundary repeats. Prior640a steady1078/1080fresh.
+Owned GPU objects198initial/final,growth0 both;1280host VRAM decreases147718144bytes.
+These are CPU present intervals; GPU timing invalid. Higher tails in640repeat
+remain observed, not a proven cause or stable pacing acceptance. Existing
+consumer imagery/provenance/cleanup limitations remain. No native speed pair,
+visual gate, sustained60fps, normal renderer or full lifecycle acceptance.
+Next repeat1280 then normal renderer coverage, preserving all acceptance gates.
+No material/lighting edits or runtime-policy relaxation justified by this result.
+
 LOG1114 capture-free attack benchmark removes presentation interruption.
 Existing supplied-consumer setup copied with verified binary hashes, current
 built host and original seed/replay, baseline mod exact. 640x480 OIT, feedbackoff,
