@@ -3,20 +3,22 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1146; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1147; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
 Parked candidate: source-candidate under shrine-opaque-alpha-footprint-a preserves
 exact255 header, unit_tests, new test header and reversible tracked.patch. Tracked
-source restored to HEAD; new untracked test retained. Existing build outputs still
-contain candidate: rebuild before future baseline launches. Fourbuilds and
+source restored to HEAD; new untracked test retained. LOG1147 restored fourbuilds
+and1183selftests x3 pass; binaries now restored. Candidate previously passed fourbuilds and
 1195selftests x3 pass (opaque-alpha-footprint-build-a). Live5370..5380 capture
 shrine-opaque-alpha-footprint-a11/11 passes integrity,baselineexact,terminal0.
 Five5375targets now promote; root/agent visual review still sees bright fringe/neck
 patch and darker/mottled coat. Do not claim visual correction or promote candidate.
 Next direct remaining native-blend pixel attribution; preserved tested source work.
 Captured VS/viewport check confirms six prior candidates end above neck patch;
-native-projection-check-5375.json. Agent checks all native draw regions now.
+native-projection-check-5375.json. IMPORTANT LOG1147: agent alpha-owner joins had
+off-by-one error. Mesh low word=ordinal+1. Correct95/98/102/116 are footprint rejects
+on269419008, not pre-promotion omissions. Correct attribution before further edits.
 External REVIEW.md and decision-comparison evidence under new capture visual-review.
 
 - LOG1127 compact live transport integrated behind --capture-references.

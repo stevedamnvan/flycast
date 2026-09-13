@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1147 attribution correction: mesh low word is native ordinal plus one.
+Root verified remake_feed_worker.h census identity formula. Earlier agent reports
+subtracted2^33 but omitted the additional1; their alpha-decision owner labels and
+joins are wrong. Retain those reports as failed analysis, not implementation truth.
+Correct native95/98/102/116 map to low words96/99/103/117, all texture269419008 and
+texture-alpha-footprint rejects. Therefore LOG1145/1146 claims of a different texture
+subgroup or pre-promotion rejection are superseded. No new Build rejection tracing
+is needed on that basis. Fully opaque low words124/125/127/129/137 actually mean
+native123/124/126/128/136. Geometry of previously decoded six draws remains measured,
+but selection of that set did not test the correct hypothesis. Image-stage evidence
+and failed candidate appearance outcome remain valid; no successful shimmer fix.
+Restored tracked source rebuilt at restore-sorted-alpha-build-a: four serial builds
+and1183selftests x3 pass, all exits0; binaries now match restored source behavior.
+Next corrected identity-checked attribution of genuinely partial-alpha neck draws;
+preserve native alpha and liked arena. Candidate source and tests remain parked.
+
 LOG1146 opaque-footprint hypothesis tested, parked; neck patch is different draws.
 Exact255 conservative qualification candidate passed fourbuilds/1195selftests x3
 at opaque-alpha-footprint-build-a. Live shrine-opaque-alpha-footprint-a captures

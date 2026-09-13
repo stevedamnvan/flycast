@@ -582,8 +582,11 @@ target5375 owners promote, but fringe/neck artifacts persist and coat appears
 darker/mottled. Appearance CORRECTIONS_REQUIRED; candidate parked in capture
 source-candidate with exact source/test copies and tracked.patch, not accepted as
 shimmer fix. Tracked source restored; build outputs still candidate until rebuild.
-Captured shader projection confirms six tested draws do not cover neck patch.
-Next isolate remaining blended draw pixel contribution across all native draws;
+LOG1147 corrects audit identity: mesh low word=native ordinal+1. Native95/98/102/116
+DO have footprint rejects on texture269419008; prior pre-promotion/different-texture
+hypothesis was an off-by-one join error. Fully opaque labels were low words, not
+ordinals. Four restored builds/1183tests x3 pass; binaries now restored.
+Next correct identity-checked partial-alpha neck contribution; no new export-gate tracing.
 do not expand promotion or adjust global lighting based on this failed visual hypothesis.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
