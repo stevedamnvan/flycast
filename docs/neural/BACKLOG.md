@@ -494,6 +494,12 @@ Next bounded late capture-free normal diagnostic warmup/fill route with strict
 rejection checks; normal-effects keeps diagnostic restriction, archives keep
 exact digest. Isolate normal integration from capture transport before further
 optimization. Full visual evidence still required; no more digest unroll probes.
+LOG1122 late normal diagnostic route tested; no-capture1200evaluated/3repeats/
+0fallback,maxage4. Captures remain full quality; diagnostic is not acceptance.
+Next full-quality capture scheduling/transport preserving exact source/archive
+identity. Parallel QA confirms character51/67 (6Maxi/4Voldo/6earlier pending),
+world137/154,19candidate integrity passes but0newvisual approvals.
+Maxi/Voldo acquisition preparation delegated; preserve material holds.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

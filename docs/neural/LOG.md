@@ -1,5 +1,28 @@
 # Neural rendering evidence log
 
+LOG1122 bounded late normal diagnostic isolates capture overhead; parallel QA.
+Existing launcher gains diagnostic-warmup2100..10000/diagnostic-fill, only for
+normal-effects +CPU timing, automatic managed anchored capture-free runs.
+Rejects capture/manual/benchmark mixtures; fill keeps existing finite/unit/
+radiance constraints. Always performance-ineligible; no capture format/resolution/
+texture/alpha/HUD/hash quality change. User explicitly reaffirmed full capture
+quality. Nine launcher tests,fourserialbuilds,three selftests and dry-run pass.
+Live shrine-normal-no-capture-a terminal0/11,baselineexact:1200evaluated presents,
+3repeats,0native/fallback/identity errors,maxage4. Diagnostic feed7.03ms,
+publish2.28ms,serialize1.32ms,digest0.83ms versus full capture-d20.91/11.07/
+2.62/8.30. CPU audits ran independently; not controlled performance evidence.
+This isolates the full capture transport cost, not visual or final normal gate.
+Next full-quality capture scheduling/transport work preserving owned source
+and archive identity; no more unchanged checksum or normal diagnostic sweeps.
+Parallel character audit C:/Flycast-Evidence/character-coverage-audit-c:
+664retained runtimeDDS checked,16pending source keys verified,no exactnewjoins.
+51/67remain,split6Maxi/4Voldo/6earlieropponent. Acquisition preparation delegated.
+World QA C:/Flycast-Evidence/world-material-qa-20260913-a:19candidates/74outputs
+hash/decode/dimensions pass,19preserved alphas exact.134reused/19unaccepted/
+1rejected,137/154runtimejoins. R/linear prior semantics supersede old channel
+uncertainty; Harbor baked shading/Money mixed atlas holds remain. No appearance
+acceptance or automatic binding. Reports reviewed; originals unchanged.
+
 LOG1121 receipt digest micro-optimization rejected by measurement.
 External optimized C++ audit of retained normal5971packet10,522,482bytes:
 20interleaved measured pairs after4warmups, byte-serial original median8.08885ms,

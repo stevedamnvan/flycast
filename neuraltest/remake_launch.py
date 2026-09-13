@@ -52,6 +52,26 @@ def capture_evaluation_start(args):
     return start - preroll
 
 
+def normal_diagnostic_warmup(args):
+    value = getattr(args, 'diagnostic_warmup', 0)
+    fill = getattr(args, 'diagnostic_fill', None)
+    if not value and fill is None:
+        return 0
+    if (not 2100 <= value <= 10000 or not getattr(args, 'cpu_timing', False)
+            or not getattr(args, 'normal_effects', False)
+            or getattr(args, 'renderer', 'dx11-oit') != 'dx11'
+            or not getattr(args, 'managed_session', False)
+            or not getattr(args, 'anchored_light', False)
+            or getattr(args, 'manual_input', False)
+            or any(getattr(args, key, 0) for key in ('capture_frames', 'capture_warmup',
+                'capture_preroll', 'benchmark_warmup'))
+            or any(getattr(args, key, None) is not None for key in
+                ('benchmark_fill', 'scene_fill', 'locked_input_root'))):
+        raise ValueError('Late normal diagnostic requires 2100..10000, normal effects, '
+                         'CPU timing, automatic managed anchored capture-free mode')
+    return value
+
+
 def prepare(args):
     paths = {key: Path(getattr(args, key)).resolve(strict=True)
              for key in ('flycast', 'harness', 'helper', 'runtime', 'game')}
@@ -134,6 +154,11 @@ def prepare(args):
         if not args.anchored_light:
             raise ValueError('Temple light rig requires anchored light')
         helper.extend(['--scene-light-radiance', '1', '--temple-light-rig'])
+    diagnostic_warmup = normal_diagnostic_warmup(args)
+    diagnostic_fill = getattr(args, 'diagnostic_fill', None)
+    if diagnostic_warmup:
+        host[host.index('--warmup')+1] = str(diagnostic_warmup)
+        host[host.index('--timeout-ms')+1] = '420000'
     benchmark_warmup = getattr(args, 'benchmark_warmup', 0)
     if benchmark_warmup:
         if (not 2100 <= benchmark_warmup <= 10000 or args.manual_input
@@ -147,7 +172,7 @@ def prepare(args):
     benchmark_fill = getattr(args, 'benchmark_fill', None)
     if benchmark_fill is not None and (not benchmark_warmup or getattr(args, 'scene_fill', None) is not None):
         raise ValueError('Benchmark fill requires benchmark warmup and no scene fill')
-    fill = benchmark_fill if benchmark_fill is not None else getattr(args, 'scene_fill', None)
+    fill = diagnostic_fill if diagnostic_fill is not None else (benchmark_fill if benchmark_fill is not None else getattr(args, 'scene_fill', None))
     if fill is not None:
         try:
             values = [float(v) for v in fill.split()]
@@ -157,8 +182,8 @@ def prepare(args):
                 or abs(sum(v*v for v in values[:3])-1) > 1e-5
                 or not 0 <= values[3] <= 3 or not args.anchored_light
                 or getattr(args, 'temple_light_rig', False)
-                or not (getattr(args, 'capture_frames', 0) or benchmark_fill is not None)):
-            raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture or explicit benchmark mode, and anchored light without temple rig')
+                or not (getattr(args, 'capture_frames', 0) or benchmark_fill is not None or diagnostic_fill is not None)):
+            raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture or explicit benchmark/diagnostic mode, and anchored light without temple rig')
         helper.extend(['--scene-fill', fill])
     if args.anchored_light:
         helper.append('--scene-light-anchor')
@@ -395,6 +420,8 @@ def main():
                    help='Diagnostic managed capture: save one owned helper packet at or after capture-start-source')
     p.add_argument('--anchored-light', action='store_true')
     p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
+    p.add_argument('--diagnostic-warmup', type=int, default=0, help='Late normal-effects CPU diagnostic only: 2100..10000, no captures')
+    p.add_argument('--diagnostic-fill', help='Bounded unit XYZ/radiance for diagnostic warmup; same scene-fill validation')
     p.add_argument('--benchmark-warmup', type=int, default=0,
                    help='Explicit late gameplay benchmark warmup 2100..10000; automatic managed anchored capture-free non-CPU timing only')
     p.add_argument('--benchmark-fill', help='Explicit XYZ and radiance for benchmark warmup; same bounded authored light as scene-fill, without image capture')
@@ -497,6 +524,8 @@ def main():
                   extended_effect_capture=args.extended_effect_capture,
                   comparison_end_source=(args.capture_start_source+args.capture_frames-1)
                       if args.effect_identity or args.locked_input_root else None,
+                  diagnostic_warmup=args.diagnostic_warmup,
+                  diagnostic_fill=args.diagnostic_fill,
                   benchmark_warmup=args.benchmark_warmup,
                   benchmark_fill=args.benchmark_fill,
                   benchmark_scope='requested tracker warmup; verify actual source frame IDs in samples' if args.benchmark_warmup else None,

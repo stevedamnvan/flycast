@@ -3,9 +3,15 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1121; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1122; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1122 late normal no-capture diagnostic TERMINAL0/11:1200evaluated,3repeats,
+  no fallback,maxage4; baselineexact. Launcher9tests/fourbuilds/three selftests pass.
+  Full-quality capture remains mandatory; next scheduling/transport work keeping
+  source/archive identity. No more unchanged diagnostic/checksum loops.
+  Parallel QA:character51/67,world137/154,19candidate integrity passes,no approvals.
+  material_coverage agent preparing Maxi/Voldo acquisitions; world QA complete.
 - LOG1121 isolated digest original8.09/unrolled8.08ms: no useful improvement;
   retained5971hash exact. No source change. Next bounded late capture-free normal
   diagnostic warmup/fill route (normal-effects still requires CPU timing), then
