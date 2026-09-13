@@ -37,7 +37,7 @@ it. The tracker carries the objective; this backlog carries the work plan.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1173. This is a summary
+Updated 2026-09-13, evidence through LOG1174. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -64,25 +64,17 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable:** inspect exact late face/hair surface inputs and returned-image
-softening (LOG1165): source hair region retains painted highlights and tapered alpha;
-cached26F hair foundation mismatches current E0786 alpha/UV (LOG1166). Validate
-current-source used-region mask before correction;5597UV audit separates sampled
-region,300-frame separation check passes (LOG1168). One cached local PBRify4map
-draft produced; height repeats baked band and is rejected for binding. Address band
-before acceptance; upscale is not delighting. LOG1169 band correction RGB draft
-reduces stripe but alpha changed14260 texels by -1: rejected for binding. Preserve
-source alpha exactly during packaging; reuse cached RGB, no regeneration.
-LOG1170 packaging now passes exact alpha/outside RGBA and cached RGB checks.
-MCP current stage lacks E0786 shader; next activate/import matching capture through
-existing MCP before opt-in binding and controlled comparison. LOG1171 import
-complete; current-process diffuse ingestion completed but compressed DDS changes
-42321 alpha texels: compressed output held. LOG1172 existing BGRA8 MCP export
-passes base-level RGBA exact. LOG1173 isolated MCP binding saved/muted, layer-off
-surface exact and baseline hash unchanged. Next managed same-source comparison.
-Appearance pending.
-No transplant. Fill pair5/5 passes but eye band remains;
-no lighting promotion or further blind sweep. Preserve current arena/floor.
+**Next deliverable:** distinguish late dark eye-band ownership/shading from returned
+face softening. LOG1174 control/repeat/hair candidate complete5/5 each with exact
+packets and protected outputs. Crown painted highlight reduced in inspected5597,
+but eye band and soft face remain; no promotion or blind lighting/generation sweep.
+Head final medianMAE candidate6.253 versus repeat3.760; arena/floor near repeat.
+Current-foundation candidate has exact base RGBA, isolated MCP binding and exact
+layer-off restoration (LOG1170-1173); remains muted, moving review pending.
+Old26F foundation must not be transplanted onto E0786. Cached PBRify height repeats
+painted band and stays rejected. Preserve current arena/floor and native alpha.
+Next use retained native/returned stages and exact inputs to locate the face issue;
+generation/capture completion is not appearance acceptance. All sessions terminal.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.
 Both capture-free runs completed1200 identical source IDs; median about11.2ms,

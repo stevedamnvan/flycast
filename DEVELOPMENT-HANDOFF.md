@@ -3,8 +3,13 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1173; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1174; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
+
+LOG1174 hair-band-live-a all3 cases COMPLETE5/5 integrity, baselineexact.
+Root reviewed5597: crown band reduced, dark eye band/soft face persist.
+No promotion. Next retained native/returned face ownership/shading diagnosis,
+then moving candidate review. No live capture; Toolkit layer remains muted.
 
 LOG1169 hair-band-correction-a completed one local Comfy output, cost0. Crop
 reduces baked band but alpha14260 texels changed by -1; REJECTED for binding.

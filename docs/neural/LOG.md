@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1174 hair-band live control/repeat/candidate complete; limited response.
+C:/Flycast-Evidence/hair-band-live-a retains three isolated unchanged-launcher
+setups, absolute runtime mod wrappers, commands, logs, captures and audits.
+All terminal0,5/5 sources5595..5599, receipt/Present/native protection/archive
+checks errors0, baseline mod exact. Candidate and repeat parsed packets match
+control5/5; lighting/settings identical. No performance/consumer acceptance.
+Final head medianMAE repeat3.76014/candidate6.25260; floor1.94222/1.57911;
+arena2.27559/2.25575. Returned head3.93710/6.34979. Five-frame noise bound only.
+Root inspected5597 full and head pairs: candidate reduces painted crown highlight,
+no obvious new contour/arena loss in this sample, but dark eye band and soft
+face remain unsatisfactory. Do not promote or claim character lighting repaired.
+Toolkit candidate layer remains muted, baseline unmodified. Runtime still reports
+40 undisposed common objects; existing lifecycle gate remains open, no blind Release.
+All captures now terminal. Next inspect native versus returned face/eye ownership
+and shading inputs; distinguish fringe occlusion from face material response and
+returned softening. Keep corrected-hair candidate for moving review, no blind
+regeneration/lighting sweep. No appearance acceptance from larger pixel difference.
+
 LOG1173 exact-foundation hair candidate bound via MCP in opt-in layer.
 hair-band-correction-a/bind_mcp.py and per-operation JSON receipts retained.
 MCP8002 created layers/hair_band_current_a.usda under review workfile, bound
