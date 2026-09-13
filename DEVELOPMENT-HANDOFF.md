@@ -1,9 +1,11 @@
-Current checkpoint LOG1047: locked-input route is returned-image replay, NOT
-fresh geometry rendering; reject19 identical frames for material A/B. Terminal
-host0/helper11. Next fresh helper renders of same geometry under baseline and
-candidate states, then live motion/memory checks. shrine-locked-baseline-a
-has disposition. World agent owns GPU: Ostrheinsburg done, Valentine next;
-89world sources. Maxi selector prep ready CPU-only. MCP8002 Shrine unsaved.
+Current checkpoint LOG1048: fresh three-pose material A/B and one baseline
+repeat all exit0; visible stone detail retained, candidate MAE6.5..6.9 versus
+repeat0.283. No human appearance/motion acceptance. Baseline restored exact.
+Next feedback-off memory/cadence validation and character direct-diffuse
+correction; do not repeat invalid locked-return material comparison (LOG1047).
+World agent owns GPU for Harbor and remaining selector slots;102world sources
+through Valentine. Character agent CPU roster/costume completeness audit.
+MCP8002 Shrine unsaved; old8001 stale state must not be saved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

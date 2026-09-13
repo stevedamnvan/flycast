@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1048 fresh three-pose material A/B with baseline repeat.
+shrine-fresh-pose-ab-a: six fresh helper renders of retained geometry5908,
+5918,5929 plus baseline repeat5908 all exit0. Exact source hashes paired;
+baseline/candidate mod hashes distinct, MCP activation/save returned OK.
+Runtime logs verify feedbackoff, neverDowngradeFalse supplied config. Candidate
+layer-specific load is not separately named in runtime log; provenance remains
+bounded to saved state, logged config and changed output. Additional config,
+layer/executable hashes are post-run observations, not pre/post proof.
+Whole-image candidate MAE6.543/6.945/6.501 versus repeat0.283; bottom100rows
+15.115/15.112/14.833 versus repeat0.216 (band can include characters).
+Viewed all three pairs: fine stone detail retained, subtle appearance changes;
+no appearance acceptance or temporal stability from still poses. Character
+lighting remains harsh. Candidate detached, baseline exact E3C09790...E8340.
+Next separate feedback-off memory/cadence validation and direct-diffuse
+character-lighting correction. No default/profile promotion or performance claim.
+World agent resumes Harbor gameplay/remaining visible selector slots; Valentine
+adds13world sources to102. Character agent audits full roster/costume gaps CPU-only.
+Full game extraction and all remaster acceptance remain open.
+
 LOG1047 locked-return route rejected for material A/B; extraction expands.
 shrine-locked-baseline-a terminal host0/helper11;19/22 retained contiguous
 source5908..5929 comparisons. Packets exact, HUD0, image MAE0. Source inspection

@@ -180,14 +180,17 @@ feedback-off candidate before defaults. LOG1046 retains26/30 short moving
 frames with detail and zero protected/composition mismatches; single5.08GiB
 GPU snapshot is not growth/performance proof. Next matched locked-source
 LOG1047 locked-return route reuses returned pixels and is invalid for
-material A/B;19 exact comparisons prove replay only. Next fresh helper renders
-of retained geometry packets under each state, then separate memory/cadence
-validation. World ledger89sources; Ostrheinsburg captured, Valentine confirmed. Lighting balance
-and moving validation remain.
-Six prepared stage routes remain unexecuted. Shrine Remix join still
-required; prior26/60 runtime joins do not include this new scene.
-Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world
-candidate maps, not accepted upgrades; Astaroth runtime join remains required.
+material A/B;19 exact comparisons prove replay only. LOG1048 fresh helper
+renders of three identical geometry packets under baseline/candidate and one
+baseline repeat all exit0. Candidate MAE6.5..6.9 versus repeat0.283; viewed stone
+detail retained. No appearance/temporal acceptance. Next separate feedback-off
+memory/cadence validation and character direct-diffuse correction, preserving
+arena/floor. No default promotion. World ledger102sources through Valentine;
+Harbor gameplay and remaining selector slots delegated, full coverage unproven.
+Shrine11 renderable runtime joins complete; zero-triangle draw excluded with
+evidence. Character agent audits roster/costume gaps CPU-only. Current local
+candidates60character/44world maps, none accepted; Astaroth runtime join open.
+Helper resource cleanup and full moving/performance acceptance remain open.
 
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded
