@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1024 user reprioritizes scene completion before performance tuning.
+Backlog active authority amended in place: four characters/two levels, all8
+pairings, native-to-Remix coverage first, then faces/hair/lighting and combat.
+No replacement roadmap or reduced full-game scope. H deferred except testing
+blockers. scene-completion-a/native-coverage.json rechecks actual native source
+and material manifests for temple5300 and water5900:29/34 used native assets,
+zero missing used texture bindings, zero nonfinite indexed references. Native
+modifier triangles692/718 and declared camera/light/offscreen omissions remain
+explicit. Separate material manifests supply texture pixels omitted by the
+geometry JSON; do not misreport that declaration as absent native textures.
+This does not prove all native draws survive export or reach Remix. Existing
+read-only Toolkit MCP8001 discovery succeeds; retain project/prim evidence.
+Next exact-source export/binding census must distinguish intentional protected
+native effects from missing world/character surfaces. No visual acceptance.
+
 LOG1023 second live motion-cache replay confirms freshness, no clear speedup.
 C:/Flycast-Evidence/motion-cache-live-b: same binaries/flags/seed denominator
 as LOG1022. Preflight GPU11%, no game/helper, two engine samples no Toolkit

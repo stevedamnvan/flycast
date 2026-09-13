@@ -75,6 +75,23 @@ it. The tracker carries the objective; this backlog carries the work plan.
 ### Ordered queue
 
 Current card: **FC-067 / M2-scene**.
+
+**User priority correction: scene completion first (LOG1024).** Suspend routine
+H micro-optimization and repeated performance runs. Complete native-to-Remix
+geometry/material coverage for Kilik, Taki, Mitsurugi and Sophitia on temple
+and water, all eight pairings, before further performance tuning except a
+failure that blocks reliable scene testing. Preserve the liked arena/floor.
+First trace source draws, used textures, export inclusion and live bindings;
+classify each omission as intentional native HUD/effect, unsupported, missing,
+or verified in Remix. Then correct faces/hair/material-light response and
+validate moving combat. Native texture presence, cached PBR maps and a loaded
+MCP project alone do not establish scene completion. This reprioritizes the
+existing FC-067 / Package D-F-G queue; full-game scope and gates remain intact.
+Current action: reconcile retained native temple/water captures with exact
+exported scenes and Toolkit MCP bindings; do not compare unrelated frames as
+missing geometry. LOG1024 native used textures all resolve in two frames, but
+Remix coverage remains unproven. Earlier H next-action notes below are deferred.
+
 LOG1005 camera-lighting audit: key/fill direction is already held within each
 diagnostic anchor; world consistency across cuts remains unproven. Next bounded
 visual check inspects runtime fallback-light state and exposure during motion

@@ -9,13 +9,15 @@ no forced children; performance_eligible=false. Four serial builds and
 1092/0 selftests x3 pass; launcher tests28 pass. Evidence roots:
 C:/Flycast-Evidence/selective-cpu-diagnostic-build-a
 C:/Flycast-Evidence/validation-host-cadence-a
-Next H task: inspect capture-geometry classification against LOG908 history.
-Repeat motion-cache-live-b completes99.352% fresh, median17.3219ms, max5,
-zero identity errors, orderly exits. Stop unchanged repetitions; no clear live
-speedup. Output-own includes native effects and textures are already pooled.
-First motion-cache-live-a:99.259% fresh, present median17.2116ms, max latency5,
-zero identity mismatch, host0/helper11, no forced children. No clear live gain
-over prior quiet variability;60fps and full acceptance remain open.
+Current priority: USER REQUESTED SCENE COMPLETION FIRST (LOG1024).
+Defer H tuning except blockers to reliable scene testing. Reconcile native
+source draws with exact exported scene and Toolkit MCP bindings across four
+characters/two levels; fix omissions before appearance and moving combat.
+Retained temple5300/water5900 have no unresolved used native texture bindings
+or nonfinite indexed positions. This does not prove Remix coverage. MCP8001
+read-only discovery and scene inspection evidence is in scene-completion-a.
+Preserve liked arena/floor, native HUD/effects, welded normals and original maps.
+Performance pair remains evidence, not current assignment.
 One-scene motion record cache implemented, required four builds and1102/0
 selftests x3 pass. CPU-only actual-packet parity:~2.8ms uncached to~1.6ms primed;
 priming excluded, not live gain. Evidence motion-record-cache-build-a and
