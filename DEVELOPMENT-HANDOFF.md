@@ -1,10 +1,9 @@
-Current checkpoint LOG1039: live Shrine fill candidate terminal host0/helper11,
-orderly. One5301 capture of3; legs detailed, floor brighter/faces overlit.
-HUD invariants exact. Different packet SHA/digest across sessions, not exact
-live A/B; fixed-packet standalone attribution remains. OP2901 zero triangles,
-expected exclusion. World agent owns GPU generation for Shrine tiles14/15,
-8outputs local only. No parent GPU work until release. Next tile QA, lighting
-balance and moving validation. Evidence shrine-live-fill-a. MCP8002 authoritative.
+Current checkpoint LOG1040: Shrine runtime-export-b clean exit0 after optional
+startup/linger reduced15s each to1s each within unchanged30s watchdog. All26
+textures byte-exact to failed export. Resource40-object cleanup warning remains.
+World agent8 tile outputs terminal, GPU released; CPU QA pending. Next tile QA,
+MCP integration and moving lighting validation. No parent GPU job active.
+Evidence full-world-shrine-a/runtime-export-b; timing in existing Toolkit README.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

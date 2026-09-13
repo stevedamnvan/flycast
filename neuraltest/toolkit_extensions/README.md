@@ -66,3 +66,14 @@ unlinked and external targets, authors in Usd.EditContext, verifies the target
 spec and baseline memory/disk invariants, and does not save. Runtime activation
 and rollback behavior still require a preserved-state Toolkit restart and live
 validation; passing path tests is not proof of live integration.
+
+### Standalone capture timing (LOG1040)
+
+The standalone helper has a30-second total watchdog. Startup wait and post-render
+linger both consume that budget: requesting15000ms for each guarantees no room
+for runtime loading/rendering/cleanup. For the verified Shrine exact-packet export,
+1000ms startup plus1000ms linger completed normally with120 presents and the
+same26 texture files as the timeout run. Keep the watchdog unchanged; retain
+export logs and verify files/terminal exit before claiming success. A successful
+exit does not close the separate undisposed-device-object warning. Use a fresh
+output directory for a corrected run and retain the failed evidence.

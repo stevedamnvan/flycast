@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1040 Shrine export timing correction completes cleanly.
+Prior script15s startup+15s linger consumed entire standalone30s watchdog
+before load/render/cleanup. Private runtime-export-b script uses1s each with
+same5301 packet,120frames and unchanged watchdog. Terminal0, normal unload;
+all26texture files byte-exact to failed runtime-export. Baseline exact by
+render-receipt; validation.json records equality. Prior exit124 retained.
+Resource warning40 common device objects undisposed remains separate/unclosed.
+Updated existing Toolkit extension playbook with bounded capture timing.
+World agent completed8 local tile outputs and released GPU; CPU QA pending.
+Next tile QA/integration through MCP and moving lighting validation; no broad
+appearance/performance/lifecycle acceptance inferred from this export.
+
 LOG1039 live neutral fill and expected Shrine exclusion.
 shrine-live-fill-a terminal host0/helper11 orderly/no forced children. One
 5301/present5308 capture retained of requested3. Viewed composed output: leg
