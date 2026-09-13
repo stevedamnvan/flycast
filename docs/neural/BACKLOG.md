@@ -238,9 +238,13 @@ existing generated-world runtime joins. LOG1066 Palgaea acquisition0captures
 despite launcher0; do not repeat unchanged. LOG1067 adds tested opt-in isolated
 runtime output to the existing launcher. LOG1068 isolated Palgaea export0,
 source5822, all14world identities and six generated candidates exact joined;
-Toolkit MCP import verifies78dependencies, baseline unchanged. Next physical/
-UV/baked-light checks and eligible roughness ingestion in existing opt-in layer,
-then same-source/moving review. Ten other generated sources await six stage joins.
+Toolkit MCP import verifies78dependencies, baseline unchanged. LOG1069 holds
+four mixed/baked-light maps; panels15/16 native6300 UV quadrant checks pass.
+Two MCP roughness conversions unbound: BC4 error exceeded conservative local
+check. Next existing lossless scalar conversion support/spatial-error review,
+then bounded same-source panel test and moving review in existing opt-in layer.
+Ten other generated sources await six stage joins. Voldo selector verified;
+next extraction uses shifted confirmation suffix, no costume claim.
 Ninefighters/63groups,33 runtime aliases/30 pending; eleven roster labels lack
 verified extraction. Character lighting and temporal acceptance remain open;
 no production scheduling change. Costumes and hidden content remain open.

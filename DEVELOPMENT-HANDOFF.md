@@ -1,4 +1,13 @@
-Current checkpoint LOG1068: Palgaea isolated runtime export completed, source5822
+Current checkpoint LOG1069: reviewed all six Palgaea maps. Four held for mixed
+regions/painted lighting; panels15/16 pass native6300 UV quadrant check only.
+Two roughness maps MCP ingested, unbound: BC4 p95error3/max13,14 exceeds local
+conservative check. Next inspect existing lossless scalar conversion support
+or spatial error before panel render test. Evidence palgaea-panel-ingestion-a;
+world-texture-completion-b/palgaea-six-material-readiness and panels-uv6300.
+Baseline exact, no new bindings, no regeneration. Voldo selector verified;
+next gameplay confirmation must follow finalLeft10.1b (+1b suffix proposed).
+
+Prior checkpoint LOG1068: Palgaea isolated runtime export completed, source5822
 at helper60; all14world identities and six generated candidates exact joined.
 Evidence full-world-palgaea-runtime-b and world-texture-completion-b/palgaea-
 runtime-b-source-join.json. Toolkit8002 MCP imported capture_aaebafbcbeead7ec

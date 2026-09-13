@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1069 Palgaea six-material visual/UV review and two unbound conversions.
+Viewed world-texture-completion-b/palgaea-six-material-readiness.png: generated
+albedo retains painted lighting; normal maps track painted ornament/light.
+Hold17/20/23/24 for physical region masks and delighting. Keep existing albedo,
+normals/alpha; no new height, no blanket metallic1. Panels15/16 are bounded
+roughness-only diagnostic candidates. Native6300 UV audit73/220 triangles has
+zero quadrant crossings/out-of-range UVs, opaque sources; not5822geometry or
+moving seam proof. Viewed palgaea-panels-uv6300.png, atlas layout retained.
+MCP8002 confirms all six current diffuse bindings match exact export DDS.
+Two existing roughness PNGs ingested through MCP into fresh cached directories;
+palgaea-panel-ingestion-a stores requests/results and baseline exact receipt.
+BC4 linear1024 maps retain median137/136; R conversion MAE1.131/1.189,
+p95=3/255 and maxima13/14. Initial conservative local QA bound(p95<=2,max<=12)
+failed; failure retained, not silently relaxed and no binding performed. This
+bound is an investigative check, not a new project acceptance gate. Next inspect
+existing converter support for lossless scalar output or spatial error before
+any panel render test; reuse caches, no generation retry. Four mixed maps stay
+held. Voldo selection-only native3500 verified, GPU released; gameplay suffix
+requires +1billioncycles after finalLeft10.1b before next extraction.
+
 LOG1068 Palgaea isolated runtime export and exact texture joins complete.
 full-world-palgaea-runtime-b uses verified fresh seeds/replay and the existing
 managed launcher with --isolated-runtime-output; runtime auto-capture60 and
