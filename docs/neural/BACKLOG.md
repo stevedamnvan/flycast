@@ -539,7 +539,10 @@ roughness continuation; camera needs target-qualified evidence before behavior e
 134existing generated maps intact;105stale readiness fields corrected with receipts.
 LOG1134 alias refresh now independently verifies all67character DDS identities;
 world137/154 unchanged. Weapon source5900 UV evidence and live MCP blade texture
-identity pass. Next actual blade region mask/mip validation before opt-in binding;
+identity pass. LOG1135 actual diagnostic mask leaks with ordinary mips from level3;
+conservative mips prevent CPU bilinear bleed but erase distant metal from level4.
+No acceptance/binding. Next prove authored scalar DDS mip preservation through
+existing MCP adapter before controlled runtime test; do not disable mipmaps;
 shield absent in current Toolkit capture. Keep paint/wrap/skin/hair baseline.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.

@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1135 procedural blade scalar mask filtering experiment, no binding.
+weapon-mask-filter-a stores source-coordinate diagnostic mask and9 ordinary box
+mips plus bilinear reconstruction checks. Grip unchanged at levels0..2; level3
+leaks up to4/255 into97source texels, level4 up to45 into507. Inset-only proposal
+is insufficient. Conservative full-footprint inclusion plus1mip-texel erosion
+keeps all out-of-region/grip reconstructed values0 at every tested level, but
+metal disappears at level4 onward. These CPU tests do not prove anisotropic or
+runtime behavior and do not approve distant appearance. No texture bound.
+Installed-source review WEAPON-MIP-ROUTE.md in readiness refresh confirms guarded
+MCP ingestion currently PNG-only; installed DDS validator may pass preconverted
+correctly suffixed DDS but complete mip preservation is unproven. Existing MCP
+texture override supports metallic DDS. Next bounded existing-adapter work:
+prove legitimate authored scalar DDS ingestion with per-mip preservation; do not
+fabricate metadata, invent converter flags or disable mips. If preservation is
+unsupported, retain baseline and assess verified material-region separation.
+Agent owns only existing adapter/test files; root owns integration and GPU review.
+Baseline, source albedo/normal/height/alpha, skin/hair/paint/wrap unchanged.
+
 LOG1134 weapon source-qualified UV and live MCP readiness.
 weapon-used-uv-a retains exact source5900 packet SHA, full triangle UVs and source
 images:51B4B028A25C0B1E mesh2357/218triangles, F99F377520942C9F mesh2415/358.
