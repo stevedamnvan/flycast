@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1148 existing blended-alpha path reduces bright character patches in10samples.
+Restored source; private shrine-blended-alpha-review-a removes only --alpha-cutout.
+Terminal0/baselineexact;10/11 sources5370..5380 complete,missing5371. All10 capture
+integrity checks pass.5371 returns atcurrent5376,retained0/presentationfalse.
+Root/agent review: neckpatch absent/fringe reduced across10samples; hair still broad,
+faces occluded, coat decoration retained, no obvious large arena/floor change.
+No overall appearance acceptance. visual-review/REVIEW.md and paired5375 retained.
+alpha-state-transition-audit.json confirms10producer/camera/retainedgeometry/texture
+identities, no removedmeshes;117expected transitions from alpha128cutout to256/no-cutout
+andblend.20..30meshes added/frame. Initial equality and wrong-null-sentinel audit
+failures retained; corrected sentinel against actual source writer, not changed inputs.
+Root verified399decision forward/inverse mesh-to-ordinal joins across11oldframes.
+Next300frame5300..5599 capture running shrine-blended-alpha-moving-a, private fullquality
+evidence. No source/default/layer changes or performance/appearance acceptance.
+
 LOG1147 attribution correction: mesh low word is native ordinal plus one.
 Root verified remake_feed_worker.h census identity formula. Earlier agent reports
 subtracted2^33 but omitted the additional1; their alpha-decision owner labels and

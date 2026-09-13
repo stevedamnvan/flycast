@@ -3,8 +3,22 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1147; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1148; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
+
+LOG1148 next run ACTIVE: shrine-blended-alpha-moving-a, sources5300..5599,
+root exec session41270/launcher37264. Poll existing process; do not restart on timeout.
+Ten-sample visual review confirms reduced neck/fringe artifact, coat retained;
+explicit alpha-state transition audit passes. Full moving/appearance gates pending.
+
+Current diagnostic follow-up: shrine-blended-alpha-review-a removes only
+--alpha-cutout from private restored-source launch. Terminal0/baselineexact;
+10/11 captures5370..5380 pass integrity,missing5371. That return arrived current5376
+retained0/presentationfalse; full interval not accepted. Root5375visual: orange neck
+patch appears removed, hair still coarse. Agent reviewing10frames/arena and corrected
+owner mapping. No config/source/default promotion. Existing capture preserved.
+Root verified399alpha decision forward/inverse joins over11oldframes in
+visual-review/verified-alpha-owner-joins.json; use ordinal=(mesh lowword)-1.
 
 Parked candidate: source-candidate under shrine-opaque-alpha-footprint-a preserves
 exact255 header, unit_tests, new test header and reversible tracked.patch. Tracked

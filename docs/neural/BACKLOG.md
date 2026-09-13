@@ -587,6 +587,14 @@ DO have footprint rejects on texture269419008; prior pre-promotion/different-tex
 hypothesis was an off-by-one join error. Fully opaque labels were low words, not
 ordinals. Four restored builds/1183tests x3 pass; binaries now restored.
 Next correct identity-checked partial-alpha neck contribution; no new export-gate tracing.
+Next bounded diagnostic: restored source, same5370..5380 interval, existing legacy
+blended-alpha export with only --alpha-cutout removed from private launch command.
+Purpose: distinguish retained-native lighting from consumer alpha response after
+sorted-topology recovery. Preserve full captures and exact baseline; inspect neck,
+hair, floor/arena transparency and native invariants. Not a default/profile promotion.
+LOG1148 ten samples show neckpatch removed/fringe reduced,coat retained;all10integrity
+and explicit alpha-transition identity checks pass. Missing5371;no full interval
+acceptance. Next300frame5300..5599 blended review running shrine-blended-alpha-moving-a.
 do not expand promotion or adjust global lighting based on this failed visual hypothesis.
 Preserve arena/floor; no temporal visual acceptance or alpha deletion by guess.
 No wholehair/visual/performance acceptance; ordinary gameplay remains nonblocking.
