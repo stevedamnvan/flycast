@@ -1,4 +1,12 @@
-Current checkpoint LOG1073: one built-in asset15 metallic-mask diagnostic
+Current checkpoint LOG1074: Castle and Ostrheinsburg two generated sources each
+exact joined, owned packets5300/5600 ready. Castle MCP imported41deps, active
+unsaved capture_c3386ba35dcf1791. Baselineexact/candidateinactive. Six generated
+sources remain across four stages. Source-derived Palgaea mask256square exact
+rule1540pixels, no outsidequadrant; unbound hypothesis, source-mask-a/b receipts.
+Next material classification/MCP metallic semantic support then bounded test.
+No model inference or threshold sweep. GPU free; full acceptance remains open.
+
+Prior checkpoint LOG1073: one built-in asset15 metallic-mask diagnostic
 rejected for redrawn fasteners/corrosion and shaded mask; no retries or binding.
 Prompt/output/verdict palgaea-metal-mask-builtin-a. Model/cost unexposed, no API.
 Next source-anchored authored masks, not more generated repaint. Castle runtime

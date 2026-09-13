@@ -251,7 +251,11 @@ of this still/constant sweep. Next physical metal/coating mask correction before
 moving review; continue remaining stage joins independently. LOG1073 single
 built-in asset15 mask rejected: redrawn fasteners/corrosion violate alignment.
 No retries/scaling; next source-anchored authored masks with existing tools.
-Castle capture terminal0, exact join/source audit pending before integration.
+LOG1074 Castle/Ostrheinsburg each two generated sources exact joined; owned
+packets5300/5600 ready, exports4752/4921 distinct. Castle MCP imported41deps.
+Six sources remain across Harbor/Proving/Valentine/Money. Source-derived Palgaea
+mask exact1540pixels within authored quadrant, unbound material hypothesis;
+next classification review/MCP metallic ingestion then bounded render test.
 Ten other generated sources await six stage joins. Voldo selector verified;
 LOG1070 Voldo extracted after shifted suffix, four new groups, no costume claim.
 Tenfighters/67groups,33 runtime aliases/34 pending; ten roster labels lack

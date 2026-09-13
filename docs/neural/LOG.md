@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1074 Castle/Ostrheinsburg joins and source-aligned Palgaea mask diagnostic.
+Castle terminal0/baselineexact:19DDS/11world identities, both generated sources
+join AD46B0C1467225F9 mixed panel and661AE1F9195BA6CA wood. Exportsource4752,
+separate owned packet5300 has31/31ownedmeshes. MCP8002 import verifies41deps,
+capture_import_c3386ba35dcf1791.usda active unsaved; baselineexact, no binding.
+Ostrheinsburg terminal0/baselineexact:29DDS/15world identities, both generated
+sources join408868D296BA5FE0 yellow/gold and915FFC846C878B04 paving. Exportsource
+4921, separate packet5600 has54ownedmeshes. Gold substrate unproven. Final receipts
+under respective full-world-*-runtime-a/packet-export-join.json. GPU released.
+Six generated sources remain across Harbor/Proving/Valentine/Money joins.
+Palgaea source-mask uses existing Comfy HTTP core mask nodes, no AI inference:
+select B-R>0.03 only in bottom-right128square of asset15. Output256square exact
+rule match,1540pixels, zero outsidequadrant; viewed no repainted features. This
+is an authored color-region hypothesis, not verified exposed-metal classification.
+Unbound. First two submissions failed source path validation; malformed local
+error-inspection command failed before request. Existing upload/image resolved
+path, third submission succeeds; no threshold sweep. All receipts/workflow in
+palgaea-source-mask-a/b. Next material review and existing MCP metallic semantic
+ingestion support before one bounded render test; no blanketmetal or rerolls.
+
 LOG1073 One built-in metallic mask diagnostic rejected for artwork misalignment.
 Official Adobe OpenPBR guidance distinguishes exposed iron metalness1 from rust0;
 PBR guide treats metallic/roughness as linear data. Sources and exact prompt in
