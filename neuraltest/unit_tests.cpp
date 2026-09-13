@@ -1537,6 +1537,27 @@ int RunSelfTests()
 					"returned replay archive roundtrips exact color and depth through existing verifier");
 				suite.Expect(!WriteLockedRemakeInput(writerFolder,packet,image,error)&&error=="archive-file-exists",
 					"returned replay archive refuses overwrite");
+
+                const auto linkedRoot=root/"linked",linkedFolder=linkedRoot/"frame-test";
+                std::filesystem::create_directory(linkedRoot);std::filesystem::create_directory(linkedFolder);
+                auto transport=packet;
+                for(auto& mesh:transport.meshes)if(mesh.texture.known&&!mesh.material->sourceDdsBytes.empty()){
+                    mesh.textureWire=remake::TextureWire::Referenced;mesh.material->sourceDdsBytes.clear();
+                }
+                std::ostringstream compact(std::ios::binary);SerializeRemakeViewPacket(compact,transport,error);
+                const auto transportBytes=compact.str();auto linkedImage=image;
+                linkedImage.source={2,digest(transportBytes.data(),transportBytes.size()),static_cast<std::uint32_t>(transportBytes.size())};
+                suite.Expect(WriteLockedRemakeInput(linkedFolder,packet,linkedImage,error,&transport),"v3 archive writes full source and separate verified transport");
+                suite.Expect(ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error)&&roundtrip.bgra==image.bgra&&roundtrip.projectionDepth==image.projectionDepth&&roundtrip.source.digest==linkedImage.source.digest,"v3 archive preserves pixels depth and original transport receipt");
+                {std::ofstream f(linkedFolder/"remake-transport.bin",std::ios::binary|std::ios::app);f.put(0);}
+                suite.Expect(!ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error),"v3 archive rejects transport trailing bytes");
+                {std::ofstream f(linkedFolder/"remake-transport.bin",std::ios::binary);f.write(transportBytes.data(),transportBytes.size());}
+                auto changedTransport=transport;++changedTransport.producer.cycle;
+                std::ostringstream altered(std::ios::binary);SerializeRemakeViewPacket(altered,changedTransport,error);const auto changedBytes=altered.str();
+                {std::ofstream f(linkedFolder/"remake-transport.bin",std::ios::binary);f.write(changedBytes.data(),changedBytes.size());}
+                suite.Expect(!ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error),"v3 archive rejects changed transport source");
+                for(const auto& file:std::filesystem::directory_iterator(linkedFolder))std::filesystem::remove(file.path());
+                std::filesystem::remove(linkedFolder);std::filesystem::remove(linkedRoot);
 				for(const auto& file:std::filesystem::directory_iterator(writerFolder))std::filesystem::remove(file.path());
 				std::filesystem::remove(writerFolder);std::filesystem::remove(writerRoot);
 				{std::ofstream f(folder/"remake-return.bgra",std::ios::binary);f.write(reinterpret_cast<const char*>(image.bgra.data()),image.bgra.size());}

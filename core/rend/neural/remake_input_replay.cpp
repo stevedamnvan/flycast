@@ -53,7 +53,7 @@ bool PrepareLockedRemakeInput(const std::filesystem::path& root,std::string& err
  catch(const std::exception& e){error=e.what();return false;}
 }
 bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake::Packet& packet,
- const RemakeReturnedImage& image,std::string& error)
+ const RemakeReturnedImage& image,std::string& error,const remake::Packet* transport)
 {
  try {
   RemakeNeuralInput input;
@@ -63,7 +63,16 @@ bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake:
   auto digest=[](const void* bytes,std::size_t count){auto p=static_cast<const unsigned char*>(bytes);std::uint64_t h=14695981039346656037ull;
    for(std::size_t i=0;i<count;++i){h^=p[i];h*=1099511628211ull;}return h;};
   const auto serialized=wire.str();const auto hash=digest(serialized.data(),serialized.size());
-  if(!image.source.sequence||image.source.digest!=hash||image.source.bytes!=serialized.size())throw std::runtime_error("archive-source-receipt-mismatch");
+  std::string transportBytes;
+  if(transport){
+   if(!VerifyRemakeCaptureTransport(packet,*transport,error))return false;
+   std::ostringstream compact(std::ios::binary);
+   if(!SerializeRemakeViewPacket(compact,*transport,error))return false;
+   transportBytes=compact.str();
+  }
+  const auto& receiptBytes=transport?transportBytes:serialized;
+  if(!image.source.sequence||image.source.digest!=digest(receiptBytes.data(),receiptBytes.size())||image.source.bytes!=receiptBytes.size())throw std::runtime_error("archive-source-receipt-mismatch");
+  if(transport&&std::filesystem::exists(directory/"remake-transport.bin"))throw std::runtime_error("archive-file-exists");
   const char* names[]={"remake-view.bin","remake-return.bgra","remake-return-depth.f32","remake-return.json","manifest.json"};
   for(const auto* name:names)if(std::filesystem::exists(directory/name))throw std::runtime_error("archive-file-exists");
   if(!std::filesystem::is_directory(directory))throw std::runtime_error("archive-directory-missing");
@@ -73,6 +82,12 @@ bool WriteLockedRemakeInput(const std::filesystem::path& directory,const remake:
   write(names[2],image.projectionDepth.data(),image.projectionDepth.size()*sizeof(float));
   nlohmann::json receipt={{"version",2},{"width",image.width},{"height",image.height},{"frame",packet.frame},{"source_digest",hash},{"sequence",image.source.sequence},
    {"depth_values",image.projectionDepth.size()},{"pixel_bytes",image.bgra.size()}};
+  if(transport){
+   receipt["version"]=3;receipt["source_digest"]=image.source.digest;
+   receipt["transport_bytes"]=image.source.bytes;receipt["archive_digest"]=hash;
+   receipt["archive_bytes"]=serialized.size();
+   write("remake-transport.bin",transportBytes.data(),transportBytes.size());
+  }
   auto hex=[](std::uint64_t value){std::ostringstream out;out.imbue(std::locale::classic());out<<std::uppercase<<std::hex<<std::setw(16)<<std::setfill('0')<<value;return out.str();};
   nlohmann::json manifest={{"frame_id",packet.frame},{"git_sha",packet.sourceGitSha},
    {"remake_input","returned-scene-reset-only-inverted-projection-experiment"},
@@ -126,17 +141,29 @@ bool ReadLockedRemakeInput(const std::filesystem::path& root,const remake::Packe
   std::uint64_t hash=14695981039346656037ull;
   for(unsigned char c:wire.str()){hash^=c;hash*=1099511628211ull;}
   const auto receiptVersion=receipt.value("version",1u);
-  if((receiptVersion!=1&&receiptVersion!=2)
+  std::uint64_t sourceHash=hash;std::uint32_t sourceBytes=static_cast<std::uint32_t>(wire.str().size());
+  if(receiptVersion==3){
+   if(receipt.at("archive_digest").get<std::uint64_t>()!=hash||receipt.at("archive_bytes").get<std::uint64_t>()!=wire.str().size())throw std::runtime_error("locked-replay-archive-mismatch");
+   const auto transportPath=match/"remake-transport.bin";
+   const auto size=std::filesystem::file_size(transportPath);
+   if(size>72*1024*1024||size!=receipt.at("transport_bytes").get<std::uint64_t>())throw std::runtime_error("locked-replay-transport-extent");
+   std::string compact(static_cast<std::size_t>(size),'\0');read(transportPath,compact.data(),compact.size());
+   sourceHash=14695981039346656037ull;for(unsigned char c:compact){sourceHash^=c;sourceHash*=1099511628211ull;}
+   remake::Packet transport;std::istringstream stream(compact,std::ios::binary);
+   if(!DeserializeRemakeViewPacket(stream,transport,error)||!VerifyRemakeCaptureTransport(retained,transport,error))return false;
+   sourceBytes=static_cast<std::uint32_t>(size);
+  }
+  if((receiptVersion!=1&&receiptVersion!=2&&receiptVersion!=3)
    ||receipt.value("width",640u)!=RemakeWidth()||receipt.value("height",480u)!=RemakeHeight()
-   ||(receiptVersion==2&&(!receipt.contains("width")||!receipt.contains("height")))
+   ||(receiptVersion>=2&&(!receipt.contains("width")||!receipt.contains("height")))
    ||receipt.at("frame").get<std::uint64_t>()!=retained.frame
-   ||receipt.at("source_digest").get<std::uint64_t>()!=hash
+   ||receipt.at("source_digest").get<std::uint64_t>()!=sourceHash
    ||receipt.at("depth_values").get<unsigned>()!=RemakePixels()
    ||receipt.at("pixel_bytes").get<unsigned>()!=RemakePixels()*4)
     throw std::runtime_error("locked-replay-receipt-mismatch");
   RemakeReturnedImage image;image.frame=current.frame;image.producer=current.producer;
   image.width=RemakeWidth();image.height=RemakeHeight();image.nearPlane=retained.camera.nearPlane;image.farPlane=retained.camera.farPlane;
-  image.source={receipt.at("sequence").get<std::uint64_t>(),hash,static_cast<std::uint32_t>(wire.str().size())};
+  image.source={receipt.at("sequence").get<std::uint64_t>(),sourceHash,sourceBytes};
   image.bgra.resize(RemakePixels()*4);image.projectionDepth.resize(RemakePixels());
   read(match/"remake-return.bgra",image.bgra.data(),image.bgra.size());
   read(match/"remake-return-depth.f32",image.projectionDepth.data(),image.projectionDepth.size()*sizeof(float));

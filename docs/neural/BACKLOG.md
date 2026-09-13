@@ -44,7 +44,7 @@ committed. Current engineering priority remains FC-067 / M2-scene.
 
 | Delivery area / existing owner | Verified position | Work left / completion evidence |
 | --- | --- | --- |
-| Character completeness / FC-067 M2-scene | 10 default fighters captured; 61/67 captured material groups runtime-matched (LOG1124) | Six earlier opponent-capture joins; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
+| Character completeness / FC-067 M2-scene | 10 default fighters captured; 67/67 captured material groups runtime-matched (LOG1126) | No pending joins within captured set; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
 | Arena completeness / FC-067 M2-scene, Package D | 154 captured world groups; 137 runtime-matched; 10 named stage groups plus one unidentified group sampled | 17 joins or evidenced dispositions; remaining scene regions/variants/levels; no whole-game completeness claim |
 | Material upgrades / Package D, FC-067 M3-relighting | 19 world material candidates; 15 character PBRify sets/60 maps; zero newly appearance-accepted upgrades in audited expansion ledgers | Classify held mixed atlases; delit albedo/roughness/metal masks as eligible; validate alignment/alpha and retained maps; MCP opt-in binding; technical and human visual approval recorded separately |
 | Hair and character response / FC-067 M2-scene, M3-relighting | Missing fringe/side-hair surface recovered; 26 live composition checks and 19-frame full-stack sequence support scoped restoration | Triangle CPU cost, longer combat, natural skin/hair response and contour review; 19 frames is not the required moving gate |
@@ -509,7 +509,11 @@ Full-quality capture reference transport requires explicit verified archive link
 LOG1125 linkage verifier foundation implemented/tested:fourbuilds,1124selftests
 x3,corruption controls. Not connected to runtime/archive yet. Next versioned
 archive verification before capture references;full quality/legacy reads retained.
-Remaining6seed provenance verified; existing3600route ready for acquisition.
+LOG1126 original3600route acquired actual3603; all6verified/applied:67/67
+captured character joins,0pending. Whole roster/costume and visual acceptance open.
+Version3 archive linkage writer/reader implemented,fourbuilds/1128selftests x3
+pass. Next feed/overlay transport propagation and opt-in live capture proof;
+current live path unchanged,full-quality bytes and legacy archives preserved.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

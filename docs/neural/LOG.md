@@ -1,5 +1,26 @@
 # Neural rendering evidence log
 
+LOG1126 version3 full-quality archive linkage and character join completion.
+Archive writer optionally accepts actual transport packet, verifies derivation
+from full carried source, checks actual live receipt, and writes compact wire
+alongside complete remake-view.bin. Version3 distinguishes source_digest/
+transport_bytes from archive_digest/archive_bytes. Reader bounds and validates
+both, verifies exact linkage and existing color/depth/source manifest checks.
+Legacy v1/v2 reading and default v2 writing unchanged. No live capture references
+enabled yet; next propagate source-owned transport packet through feed/overlay
+before opt-in live test. No reduced textures,resolution,alpha or hash bypass.
+Four serial builds and1128selftests x3 pass, including v3 roundtrip and corrupted
+transport controls; original archive tests retained. Evidence capture-archive-v3-build-a.
+Parallel original-seed opponent acquisition/export both0,baselineexact,actual
+3603/epoch3/ordinal3602/cycle13714125376. All6remaining sources fullRGBA exact
+among30runtimeDDS. Character ledger now67/67runtimejoined,0pending in captured
+set, root hash verified004a3a7ef7802f51680041e7df8c935a620fef3f509af102196b36355177d269.
+Evidence character-opponent-runtime-a,character-opponent-fixed-export-a and
+character-coverage-audit-c/opponent-independent-joins.json/opponent-applied.json.
+Full roster/costume denominator, generation holds, material quality, visual approval
+and gameplay acceptance remain open. GPU released. Do not equate67joins with
+67remastered/accepted materials or whole-game completeness.
+
 LOG1125 capture linkage verifier foundation, no live capture behavior change.
 VerifyRemakeCaptureTransport validates a full carried packet, derives only the
 requested carried/registered/referenced texture modes, then requires exact

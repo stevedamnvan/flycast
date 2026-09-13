@@ -3,9 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1125; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1126; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1126 archivev3 writer/reader linkage tested,fourbuilds/1128selftests x3.
+  Live capture unchanged; next feed/overlay propagation and opt-in live proof.
+  Character original-seed opponent acquisition/export0,all6exact joins applied:
+  67/67captured groups,0pending;root ledger hash verified. Full game/visual open.
+  GPUfree;both subagents completed their bounded tasks.
 - LOG1125 capture transport/full-source linkage oracle implemented,unconnected.
   Fourbuilds/1124selftests x3 pass; next versioned archive writer/reader checks
   before live transport changes. Full-quality captures/legacy compatibility intact.
