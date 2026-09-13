@@ -161,7 +161,10 @@ within unchanged30s watchdog: terminal0,26textures byte-exact to failed run.
 Resource cleanup warning remains open. LOG1041 tile diffuse candidates
 ingested/bound/rendered via MCP, detached and baseline exact. Floor smoother
 with lost apparent detail; not accepted. Next sampling/mip-response inspection
-before adding normals; lighting balance and moving validation remain.
+LOG1042 ORIGINAL-art replacement also becomes markedly blurry; generation
+is not sole cause. Both DDS mip chains complete. Next isolate replacement
+sampler/mip selection before adding normals or regenerating. Lighting balance
+and moving validation remain.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world

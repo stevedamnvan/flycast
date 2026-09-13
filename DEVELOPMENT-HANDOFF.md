@@ -1,10 +1,9 @@
-Current checkpoint LOG1041: two Shrine tile diffuse candidates tested through
-MCP8002, all three fixed-packet renders exit0. Candidate floor smoother/less
-apparent stone detail; not accepted. Layer detached, baseline mod byte-exact.
-Current8002 capture is Shrine imported0ced1bc5; workfile not saved. Preserve
-old8001 state. Next sampling/mip response inspection before normal additions,
-then moving lighting validation. Evidence shrine-tile-integration-a. All parent
-GPU jobs terminal; world agent QA complete11 candidates44maps, none accepted.
+Current checkpoint LOG1042: original256 tile artwork ingested RGBA exact and
+bound in separate control layer also renders markedly blurry. Exit0, layer
+detached and baseline exact. Generation not sole cause; next replacement
+sampler/mip selection isolation, no regeneration or normals to hide softness.
+Source256 has9mips/candidate1024 has11. Evidence shrine-sampling-a. All parent
+processes terminal. MCP8002 currently Shrine capture, workfile unsaved.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

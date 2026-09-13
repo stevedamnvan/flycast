@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1042 original-art replacement control isolates tile softness to path.
+CPU source/candidate downsample comparisons retain detail/layout (MAE3.712/2.168);
+source DDS256 has9mips, candidate1024 has11. No missing mip chain diagnosis.
+MCP ingests ORIGINAL tiles14/15 at256, RGBA exact. Separate guarded source-only
+replacement layer rendered same5301/fill0.3 exit0. Viewed output is markedly
+blurrier than unmodified baseline, even without generated artwork. Generation
+alone therefore cannot explain softness. Replacement texture/material sampling
+path is next causal target; do not regenerate or add normals to mask it.
+Saved public rtx_materials.cpp uses exact game sampler override for legacy
+material; captured replacement shader filter_mode1. Different sampler behavior
+is a hypothesis, not proven defect. Parent renderer uploads supplied mip chain.
+Source-control layer detached via MCP, baseline exact. Evidence shrine-sampling-a
+DDS/header audit, source comparisons, ingestion/binding/off receipts and BMP.
+No appearance acceptance, source changes or production configuration changes.
+
 LOG1041 Shrine tile diffuse integration verified, appearance not accepted.
 Parent reviewed tile14 albedo/normal and both rendered tiles. Normals amplify
 veins/borders; no normal/height binding. MCP8002 ingests two alpha-preserved
