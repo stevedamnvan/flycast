@@ -230,8 +230,10 @@ equivalence before further live A/B. LOG1061 locates cut/reference one-frame
 admission difference. Existing fresh3packet sequence5911..5913 exits0; next
 LOG1062 candidate/repeat on exact sequence pass, effect above noise; next
 LOG1063 helper sequence3..300 implemented;4builds/1108x3selftests pass,
-79source control renders/readbacks0. Next same-list candidate/repeat and visual
-motion review; no production scheduling change;
+79source control renders/readbacks0. LOG1064 same-list candidate/repeat all0,
+79outputs each; sampled tile pattern retained, full motion/human approval open.
+Next prepared Hoko wood MCP binding/integration while character lighting remains
+open; no production scheduling change;
 character lighting and temporal acceptance remain open. Seven fighters
 captured/50 character groups,17 pending runtime joins; costumes remain open.
 

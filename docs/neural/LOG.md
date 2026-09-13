@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1064 79-source exact-packet roughness A/B/repeat complete.
+packet-sequence-extension-a: all3runs exit0/79readbacks each, sources5911..5989;
+source packet hashes unchanged after runs, baseline restored exact viaMCP.
+Median whole MAE2.802 vs repeat0.738; floorcandidate range3.064..5.229.
+Six sampled pairs inspected: tile pattern retained, modest response, no obvious
+popping in samples. long-comparison.gif exported; raw delta metrics are not
+motion-compensated flicker acceptance. Short79frame lane does not establish
+full moving/human appearance acceptance. Candidate remains inactive opt-in.
+Next advance prepared Hoko wood roughness after live MCP source-binding check;
+character lighting and wider motion review remain open. Agent prepared next
+selection-only route, identity unassigned until portrait/name read. Eight
+fighters/57groups/24pending runtime joins; costumes remain unverified.
+
 LOG1063 existing helper extended for bounded offline packet sequences.
 Final --packet-sequence-list accepts3..300 absolute unique packet paths with
 exact60+N frames, continuity checks,4GiB serialized input bound and120s explicit

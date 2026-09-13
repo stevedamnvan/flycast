@@ -1,10 +1,10 @@
-Current checkpoint LOG1063: existing helper now supports explicit offline
-3..300 packet sequences,60warmup+N,120s budget,4GiB serialized bound. Four serial
-builds0,1108selftests x3, six negative CLI tests. Actual79source control renders0,
-79readbacks and139presents, final image viewed. Baseline unchanged;40object
-shutdown warning remains. Evidence packet-sequence-extension-a. Next candidate/
-repeat with same sequence79.txt, then moving material review. No live scheduling
-change; character lighting and full acceptance remain open.
+Current checkpoint LOG1064:79-source exact packet control/candidate/repeat all0,
+79outputs each, baseline restored, packet hashes unchanged. Evidence
+packet-sequence-extension-a/long-comparison.json and long-comparison.gif.
+Six sampled pairs retain tile pattern, no obvious popping there; full motion/
+human acceptance remains open. Candidate inactive. Next Hoko wood roughness
+MCP live-binding check/integration; character lighting still open. Eightfighters/
+57groups, next selector prepared,24runtime joins pending, costumes unknown.
 
 Prior checkpoint LOG1055:2Shrine roughness maps ingested BC4/linear rawR,
 p95error2/255; guarded target verified then existing MCP texture overrides.
