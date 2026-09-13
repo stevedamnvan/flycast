@@ -323,6 +323,10 @@ LOG1092 live5300/5302 diagnostic identifies TCW269419008/mesh8589934632 rejected
 texture-alpha-footprint, OITordinal39count393. Native sorted granularity differs.
 Next combined footprint/sample correspondence, no threshold relaxation. Both
 capture/host terminal0,baselineexact/GPUfree; appearance/counts unchanged.
+LOG1093 native196triangle CPU raster union30.4percentmidalpha passes existing
+rule versus boundingrectangle69.6percent fails. Unused atlas hypothesis now
+supported only for native sample; filtering/live OIT correspondence unproven.
+Next bounded rejected-live-mesh footprint/texture provenance, no global retuning.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

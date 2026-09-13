@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1093 bounded CPU shared26 footprint experiment.196native sorted triangles
+at5300 mapped into source256square atlas. Combined UV rectangle12600texels:
+3022opaque/807clear/8771mid (69.6111percentmid), fails existing cutout rule.
+Pillow raster union4405texels:2641opaque/425clear/1339mid (30.3973percentmid),
+passes same rule. Supports unused-atlas contamination hypothesis; not exact
+filtering-aware sampling or live combined OIT geometry. No production threshold
+or predicate changes justified yet. Native sceneSHA
+b10ab5833ded12e5a6b0134cb8af675122d3642564671436bf49fbc1aa9b2386.
+Evidence character-texture-readiness-b/shared26-triangle-footprint-root.json
+and shared26_triangle_footprint.py. No GPU/generation/binding, baseline untouched.
+Next capture rejected live mesh UV/texture provenance or measure both footprints
+inside bounded diagnostic before mesh is removed; use actual owned texture,
+preserve resource bounds and native fallback. Avoid retuning global thresholds.
+
 LOG1092 fresh diagnostic Nightmare run terminal0, baselineexact. Staged host
 matches builtSHA09b7cb1532968256dae5c14220c0d90a7718fd98eadc1577b2d8ef5596e7f382.
 Same-job captures5300/5302 both identify mesh8589934632,textureTCW269419008

@@ -10,6 +10,12 @@ Latest LOG1089: Ivy5300owned39meshes and fixedexport terminal0,7aliases added,
 Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
 Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
 Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
+Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
+versus69.6percent boundingrectangle, same rule passes/fails respectively.
+CPU approximation supports unused atlas hypothesis, not exact liveOIT proof.
+Next bounded rejected-live-mesh UV/texture footprint provenance before any
+predicate change; no threshold sweep. Baseline untouched/GPUfree.
+Historical LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 texture269419008/mesh8589934632 for texture-alpha-footprint. Combined OITdraw39
 count393 differs from native sorted groups. Next exact combined footprint and
 sample correspondence; no relaxed thresholds. Baselineexact/GPUfree/counts same.
