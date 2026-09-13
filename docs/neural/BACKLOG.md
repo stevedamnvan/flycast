@@ -135,6 +135,10 @@ LOG1021 one-scene worker record cache implemented; four serial builds and
 cost falls~2.8 to~1.6ms. Next eligible live replay uses current automation host,
 existing strict selective reuse and quiet Toolkit load, with no diagnostics.
 No live gain,60fps or visual acceptance is claimed by this microbenchmark.
+LOG1022 first eligible cached live replay preserves99.259% freshness, max
+latency5, zero identity mismatches, orderly host0/helper11. Present median
+17.2116ms is close to quiet control variability; no isolated live speedup.
+Next repeat same denominator, then choose remaining host cost from evidence.
 LOG1011 Package D readiness: current12 Practice atlas sources yield two exact
 matches in the existing47 inventory, with verified cached PBRify maps; ten
 require further source-specific work. This is not the full-game denominator.

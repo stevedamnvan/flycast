@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1022 first live motion-cache replay preserves bounded freshness.
+C:/Flycast-Evidence/motion-cache-live-a uses current automation host SHA
+021ea3f0b8125cfbc7c7d26572b5f154090ce2a80d6fddd70051ed337c11fb15,
+unchanged helper32202b3d...5cd and existing strict selective-reuse policy.
+Preflight no game/helper; GPU12%, two Windows engine samples found no Toolkit
+PID27736/34596 activity above0.1%. Separate workspace copied original seeds,
+consumer and current host. Baseline mod remains exactE3C09790...E8340.
+Launcher0, host0/helper11, no forced children, performance_eligible=true.
+1200 presents; skip first120 yields1072/1080 fresh (99.259%),8 repeats,
+no other steady presentations. Full-run presentP50/P95/P99
+17.2116/20.6125/24.2254ms; mean latency3.957/max5, zero identity mismatches.
+LOG1017 quiet controls medians17.611/17.241ms: this single result is close to
+prior variability, not an isolated whole-game speedup or60fps proof. Source
+record cache's CPU-only gain is not promoted to overall performance acceptance.
+Incremental binary provenance, not fresh exact-SHA regression. H remains open.
+Next repeat eligible run at same denominator before choosing next bottleneck;
+retain character-response and full material/scene coverage work in the queue.
+
 LOG1021 bounded return-worker motion record reuse implemented.
 RemakeMotionRecordCache retains one published immutable scene and its projected
 records, reuses only the identical owned previous scene with temporal

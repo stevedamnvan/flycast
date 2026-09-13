@@ -1,6 +1,6 @@
 # Flycast experimental Remix + external DLSS 5 development handoff
 
-Current resume checkpoint LOG1021 (bounded worker motion record cache).
+Current resume checkpoint LOG1022 (first live cache replay).
 Goal remains ACTIVE and BACKLOG owns the full playable remaster queue.
 Quiet Toolkit viewport pair LOG1017 reaches99.259/99.167% fresh returned
 images, but present medians17.611/17.241ms do not establish60fps acceptance.
@@ -9,8 +9,10 @@ no forced children; performance_eligible=false. Four serial builds and
 1092/0 selftests x3 pass; launcher tests28 pass. Evidence roots:
 C:/Flycast-Evidence/selective-cpu-diagnostic-build-a
 C:/Flycast-Evidence/validation-host-cadence-a
-Next H task: eligible live replay of current automation host with existing
-strict selective reuse, no CPU timing/capture, verified quiet Toolkit load.
+Next H task: repeat eligible live cache replay at same denominator.
+First motion-cache-live-a:99.259% fresh, present median17.2116ms, max latency5,
+zero identity mismatch, host0/helper11, no forced children. No clear live gain
+over prior quiet variability;60fps and full acceptance remain open.
 One-scene motion record cache implemented, required four builds and1102/0
 selftests x3 pass. CPU-only actual-packet parity:~2.8ms uncached to~1.6ms primed;
 priming excluded, not live gain. Evidence motion-record-cache-build-a and
