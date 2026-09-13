@@ -149,7 +149,10 @@ three native gameplay frames captured with31 assets each; world agent dedup
 complete:12 new world sources (72world total). LOG1037 managed source5301
 retained once of requested3; lower bodies visibly too dark. Runtime export
 wrote102files/26textures then helper timeout124; retain failed provenance.
-Next exact-source runtime joins and lower-body lighting/occlusion diagnosis.
+LOG1038 dark legs reproduce without replacements and before native-effects.
+Neutral fill0.3 restores leg detail in same-source still but brightens floor;
+faces still too bright. Candidate only. Next live/moving fill validation and
+classify excluded world draw0/2901. Eleven of12 Shrine world runtime joins.
 Six prepared stage routes remain unexecuted. Shrine Remix join still
 required; prior26/60 runtime joins do not include this new scene.
 Three renders exit0; helper resource cleanup warning remains open. Full agents produced60 character/36 world

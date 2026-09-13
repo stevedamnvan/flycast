@@ -1,11 +1,11 @@
-Current checkpoint LOG1037: Shrine managed run terminal host0/helper11, orderly,
-one capture5301-present5308 of requested3. Viewed composite: lower bodies too
-dark; no acceptance. Runtime-export wrote102files/26textures then timeout124
-during linger. Failed run retained, not clean success; no live parent process.
-Baseline exact. Next CPU exact texture joins from retained export with failure
-provenance, then dark lower-body light/occlusion diagnosis. World ledger now
-72world/44character-like/17HUD-effects;12 new Shrine world textures. Tiles14/15
-dry-run only. Evidence full-world-shrine-a; MCP8002 authoritative, preserve8001.
+Current checkpoint LOG1038: Shrine legs black before native effects, and both
+baseline/replacements-off no-fill renders reproduce. Existing neutral fill0.3
+restores leg detail in baseline still (all three exit0), also brightens floor;
+face overbrightness persists. Candidate only, no production profile changes.
+Next live/moving neutral-fill validation with arena review; classify world draw
+0/2901 exported=false. Agent CPU review pending. Eleven/12 Shrine world joins
+from failed-export assets; timeout124 provenance remains. Evidence
+shrine-leg-isolation-a. No parent GPU job live. MCP8002 authoritative.
 
 
 Prior causal checkpoint LOG1033: five same-source lighting-lobe diagnostics exit0,

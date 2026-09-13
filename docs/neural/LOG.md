@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1038 Shrine dark-leg attribution and neutral-fill candidate.
+Viewed same5301 pre-native-effects image: legs already black, so native effect
+restoration is not cause. Standalone baseline/no-fill and replacement-off/no-fill
+both exit0 and reproduce black legs; leg MAE only0.394/0.840 between them.
+Third baseline render with existing neutral fill radiance0.3 exits0 and restores
+visible armor/cloth detail. Same key/source, all light lobes retained; baseline
+mod unchanged. Leg means35.0->60.9 and56.3->88.5; floor also60.7->76.0, so do
+not claim unchanged arena look. Face overbrightness persists. Candidate only,
+requires live/moving validation and arena/face review. Evidence shrine-leg-isolation-a
+three BMPs, commands, receipts, comparison.json. No production profile change.
+World join finds11/12 Shrine world source identities in failed-export assets;
+exact5301 native draw list0ordinal2901 count7 textured is exported=false in
+same-source census. Exclusion cause under CPU review, not yet missing-visible
+texture diagnosis. Next live neutral-fill candidate validation and classify
+excluded world draw. Full scope/performance/lifecycle gates remain open.
+
 LOG1037 Shrine managed capture and failed runtime export retained.
 Managed session terminal host0/helper11, orderly shutdown, no forced children;
 retained one source5301/present5308 packet of requested3. Composite viewed:
