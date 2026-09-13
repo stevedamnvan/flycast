@@ -13,6 +13,11 @@ Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+Latest LOG1100: shared26 runtime E0786D8691604967 exact256RGBA recovered via
+fresh fixed export terminal0. Character51/67joined,16pending; world137/154.
+Ledger backed up; material classification/generation hold remains. No bindings,
+new maps or appearance acceptance. MCP8003 read-only face diffuse original.
+Next exact face mesh/material attribution under LOG1099 settings. GPUfree.
 Latest LOG1099: restored review settings rendered4stills terminal0, baselineexact.
 39common meshes identical, one added cutout;12byte anchor-matched diagnostic.
 Head change above repeat noise, no broad visual acceptance; legs readable,

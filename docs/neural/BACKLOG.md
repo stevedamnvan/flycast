@@ -351,6 +351,9 @@ LOG1099 full review settings restored in4fresh still renders, all exit0.
 Local head difference6.585MAE vs2.067repeat; broad gain unproven. Legs readable,
 faces still overbright. Next per-material face/direct-diffuse diagnosis in this
 recorded setup; no global lighting sweep. Evidence nightmare-review-restored-a.
+LOG1100 shared26 runtime E0786D8691604967 exact fullRGBA joined, character
+51/67groups with runtime aliases,16pending. Used-UV classification/generation
+hold preserved; no appearance acceptance. World137/154 unchanged.
 Triangle candidate remains opt-in; moving/CPU assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

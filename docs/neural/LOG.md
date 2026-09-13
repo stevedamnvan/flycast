@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1100 shared26 full RGBA runtime identity recovered. Fresh candidate5300
+fixed export terminal0, baseline mod exact. Runtime E0786D8691604967 DDS DXGI28
+matches all256x256RGBA source bytes, not merely earlier alpha fingerprint.
+Source0717f6309d9a78ed6809d22111fbe42306bae943b620331788fcb9fc5b4ed701
+now joined in backed-up ledger; character51/67runtime groups,16pending.
+Shared atlas generation hold remains: used-UV material classification required,
+no blanket hair/skin/metal assignment. No new maps or active layer changes.
+Read-only Toolkit MCP8003 confirms mat_0DCBE839C56F7DD2 diffuse points to
+original Palgaea capture DDS, no listed generated normal texture. This is
+current Toolkit-stage evidence, not proof of live Nightmare material binding.
+Evidence nightmare-triangle-material-export-a/shared26-identity.json and
+character-texture-readiness-b/shared26-runtime-join-applied.json.
+Next exact face-atlas/mesh material attribution and bounded response correction
+under LOG1099 review settings; preserve arena and no repeated global sweep.
+
 LOG1099 restored review setup renders completed. Four fresh helper still runs
 exit0: baseline, baseline repeat, candidate, candidate with baseline authored
 light anchor. Existing mod stack enabled, no-feedback.conf, existing neutral
