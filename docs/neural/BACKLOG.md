@@ -532,7 +532,13 @@ joins and protected native invariants; baseline byte-exact. Visual approval and
 performance remain open. Short locked replay rejects camera.position.x at byte141
 before effect comparison; preserve strict scene gate. Money diagnostic-only basis
 rejection scopes pass fourbuilds/1167selftests x3. Next one bounded Money5900..5902
-run with new reason/support counters and verified seed/replay; no unchanged retry.
+run completed (LOG1133): launcher1, host/helper0/11, zero previews, baselineexact.
+First32 logs prove earlier unsupported splits but exhaust before5900; target branch
+unproven. No unchanged retry. Next weapon used-UV/mask evidence and selected existing
+roughness continuation; camera needs target-qualified evidence before behavior edits.
+134existing generated maps intact;105stale readiness fields corrected with receipts.
+Keep67character/137world historic joins bounded; alias refresh verifies57DDS plus
+10PNG-backed aliases still needing separate runtime proof.
 Preserve full input-state provenance,
 active buffer extents and all sampled texture subresources;no pointer hashes.
 World137/154 unchanged; next Money Pit three palette/atlas acquisitions require

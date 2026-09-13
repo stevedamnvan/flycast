@@ -1,5 +1,31 @@
 # Neural rendering evidence log
 
+LOG1133 Money Pit diagnostic terminal and existing material readiness correction.
+One money-basis-diagnostic-a run used tested402635f48-tree host, verified original
+seed/replay, private host/harness/helper snapshots and unchanged3-frame/420s bounds.
+Launcher1; host/helper0/11, orderly shutdown, no forced children, no received packet
+and0previews; baseline byte-exact. First32 rejection records distinguish unsupported
+split (not basis cap), including source4855:5bases,667dominant,370runner-up,
+64shared,615previous points,last accepted4830. Logging budget exhausted before
+5900..5902, so target-frame rejection branch remains unproven. Do not extrapolate
+these counts or repeat unchanged run. diagnosis.json retains target-frame lines.
+Next camera work needs target-qualified observation if existing evidence cannot
+resolve it; no threshold relaxation or fabricated world reconstruction.
+Parallel material-readiness-refresh-20260914-a (actual audit2026-09-13) checks134
+existing outputs:15character sets/60maps plus19world/74maps all hash/decode/dimension
+checks pass. Corrected105 stale fields across material-readiness.json and
+full-character-ledger.json using before copies, hashes and atomic replacement;
+correction-receipt.json lists every change. Ten sets now reference existing outputs;
+five source-key opponent-identity holds removed only with exact DDS/proof evidence.
+UV/alpha/physical-material and visual approval holds preserved. Ledger79rows means
+67character plus12world-owned rows, not79characters. Refresh independently verifies
+67source keys and57DDS aliases; ten PNG-backed aliases require separate runtime
+proof refresh, not a new claim that this audit re-proved all67 historic joins.
+Next independent visual work: existing weapon sampled-UV masks, then selected
+roughness integration via MCP. No bulk regeneration or uniform mixed-atlas metallic.
+Lossless300frame combat-review-lossless.webp decoded pixel-exact against all original
+composite PNGs; originals retained. This is review media, not appearance acceptance.
+
 LOG1132 full live moving capture and diagnostic-only anchor rejection scopes.
 shrine-normal-effect-moving-a retains all300 complete sources5300..5599 at
 640x480 within unchanged420s ceiling. moving-audit.json: no missing/unexpected
