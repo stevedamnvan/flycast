@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1094 rejected-live-footprint diagnostic implemented without promotion change.
+Capture-only decisions retain indexed UV triangle references for rejected meshes,
+alpha-plane dimensions and FNV64 of actual decoded alpha bytes. Per-job65536
+reference cap; invalid/nonfinite/out-of-range indices or cap exhaustion omit
+footprint (zero dimensions/empty UV), never alter native decision. Nine-digit
+JSON float precision preserves float32 UVs; fingerprint serialized as string.
+No extra records for promoted meshes or ordinary noncapture gameplay. Existing
+same-job coverage output reused; no new renderer/capture service.
+Four serial builds pass,1113selftests x3 pass including rejected UV/plane identity
+and promoted-record omission. Evidence alpha-footprint-provenance-a/builds.json.
+Next fresh-host bounded Nightmare5300 capture then compare actual alpha
+fingerprint to native source and evaluate captured triangle footprint. No live
+footprint proof yet; no thresholds/binding/generation or baseline changes.
+
 LOG1093 bounded CPU shared26 footprint experiment.196native sorted triangles
 at5300 mapped into source256square atlas. Combined UV rectangle12600texels:
 3022opaque/807clear/8771mid (69.6111percentmid), fails existing cutout rule.

@@ -327,6 +327,10 @@ LOG1093 native196triangle CPU raster union30.4percentmidalpha passes existing
 rule versus boundingrectangle69.6percent fails. Unused atlas hypothesis now
 supported only for native sample; filtering/live OIT correspondence unproven.
 Next bounded rejected-live-mesh footprint/texture provenance, no global retuning.
+LOG1094 diagnostic captures rejected indexedUVs/alpha fingerprint+dimensions,
+65536references per job, invalid/capped footprints explicitly empty; ordinary
+rendering unchanged. Four builds/1113selftests x3 pass. Next fresh-host live
+Nightmare5300 footprint proof; no production predicate change or appearance claim.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

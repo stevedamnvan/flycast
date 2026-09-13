@@ -103,7 +103,11 @@ inline bool RemakeDrawHasDepthExtent(const remake::Mesh& mesh) {
  return hi-lo>1e-4f*std::max(std::abs(hi),1e-6f);
 }
 struct RemakeAlphaCutoutPromotion {
- struct Decision { std::uint64_t mesh,texture; const char* reason; };
+ struct Decision {
+  std::uint64_t mesh,texture; const char* reason;
+  unsigned width=0,height=0;std::uint64_t alphaFnv64=0;
+  std::vector<std::array<float,2>> triangleUvs;
+ };
  unsigned promoted=0,keptNative=0,undecoded=0; // Per packet; keptNative meshes are removed from the packet.
  std::vector<std::uint64_t> promotedIds;
  std::vector<Decision> decisions; // Populated only for bounded diagnostic captures.
@@ -113,17 +117,30 @@ struct RemakeAlphaCutoutPromotion {
 // composition is untouched. Opaque and already-cutout meshes are never changed.
 inline RemakeAlphaCutoutPromotion PromoteRemakeAlphaCutouts(remake::Packet& packet,RemakeAlphaPlaneCache& cache,bool diagnostic=false) {
  RemakeAlphaCutoutPromotion result;std::vector<remake::Mesh> kept;kept.reserve(packet.meshes.size());
+ std::size_t diagnosticReferences=0;
  for(auto& mesh:packet.meshes) {
   if(!mesh.sourceAlphaBlend||mesh.sourceAlphaReference){kept.push_back(std::move(mesh));continue;}
   std::shared_ptr<const RemakeAlphaPlane> plane;
   if(mesh.material&&!mesh.material->sourceDdsBytes.empty()&&mesh.texture.known)plane=cache.Remember(mesh.texture,mesh.material->sourceDdsBytes);
   else if(mesh.texture.known)plane=cache.Find(mesh.texture);
-  const auto record=[&](const char* reason){if(diagnostic)result.decisions.push_back({mesh.id,mesh.texture.id,reason});};
+  const auto record=[&](const char* reason,bool footprint=false){
+   if(!diagnostic)return;
+   RemakeAlphaCutoutPromotion::Decision decision{mesh.id,mesh.texture.id,reason};
+   if(footprint&&plane&&mesh.indices.size()%3==0&&mesh.indices.size()<=65536-diagnosticReferences
+    &&std::all_of(mesh.indices.begin(),mesh.indices.end(),[&](unsigned i){return i<mesh.vertices.size()
+      &&std::isfinite(mesh.vertices[i].u)&&std::isfinite(mesh.vertices[i].v);})) {
+    decision.width=plane->width;decision.height=plane->height;decision.alphaFnv64=14695981039346656037ull;
+    for(auto a:plane->alpha){decision.alphaFnv64^=a;decision.alphaFnv64*=1099511628211ull;}
+    for(auto i:mesh.indices)decision.triangleUvs.push_back({mesh.vertices[i].u,mesh.vertices[i].v});
+    diagnosticReferences+=mesh.indices.size();
+   }
+   result.decisions.push_back(std::move(decision));
+  };
   if(!plane){record("alpha-plane-unavailable");++result.undecoded;++result.keptNative;continue;}
   const auto stats=MeasureRemakeAlphaCutout(*plane,mesh);
   const char* reason=!RemakeAlphaCutoutQualifies(stats)?"texture-alpha-footprint":
    !RemakeVertexAlphaOpaque(mesh)?"vertex-alpha":!RemakeDrawHasDepthExtent(mesh)?"no-depth-extent":nullptr;
-  if(reason){record(reason);++result.keptNative;continue;}
+  if(reason){record(reason,true);++result.keptNative;continue;}
   record("promoted");
   mesh.sourceAlphaBlend=false;mesh.sourceAlphaReference=RemakeAlphaCutoutReference;
   ++result.promoted;result.promotedIds.push_back(mesh.id);kept.push_back(std::move(mesh));

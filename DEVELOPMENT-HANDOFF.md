@@ -11,6 +11,11 @@ Latest LOG1090: shared26native4/11footprints qualify for texture alpha; live5300
 Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
 Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
+Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
+four serial builds/1113selftests x3 pass. Next fresh staged currenthost Nightmare
+5300capture, compare actual rejected alpha fingerprint and triangle footprint.
+No live proof yet; baseline untouched/GPUfree, no model download approved.
+Historical LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 versus69.6percent boundingrectangle, same rule passes/fails respectively.
 CPU approximation supports unused atlas hypothesis, not exact liveOIT proof.
 Next bounded rejected-live-mesh UV/texture footprint provenance before any

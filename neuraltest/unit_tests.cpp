@@ -499,6 +499,10 @@ int RunSelfTests()
 		auto flats=PromoteRemakeAlphaCutouts(flat,cache,true);
 		suite.Expect(flats.decisions.size()==2&&std::string(flats.decisions[0].reason)=="no-depth-extent",
 			"diagnostic identifies flat native effect exclusion");
+		suite.Expect(flats.decisions[0].triangleUvs.size()==message.indices.size()
+			&&flats.decisions[0].width==16&&flats.decisions[0].height==8
+			&&flats.decisions[0].alphaFnv64!=0&&flats.decisions[1].triangleUvs.empty(),
+			"rejected diagnostic retains indexed UV triangles and alpha identity only for rejected meshes");
 		suite.Expect(flats.promoted==1&&flats.keptNative==1&&flat.meshes.size()==1&&flat.meshes[0].id==tilted.id,
 			"alpha cutout keeps a constant-depth screen message native");
 		{

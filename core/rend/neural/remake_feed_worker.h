@@ -171,7 +171,7 @@ class RemakeFeedWorker {
   if(job.captureScene) {
    // Capture-only: source and export share this owned job, never adjacent frames.
    std::set<std::uint64_t> exported;for(const auto& mesh:job.packet.meshes)exported.insert(mesh.id);
-   std::ostringstream census;census.imbue(std::locale::classic());census<<"{\"frame\":"<<job.packet.frame<<",\"producer_ordinal\":"<<job.packet.producer.ordinal
+   std::ostringstream census;census.imbue(std::locale::classic());census.precision(9);census<<"{\"frame\":"<<job.packet.frame<<",\"producer_ordinal\":"<<job.packet.producer.ordinal
     <<",\"scope\":\"native draw inclusion, not recovered world completeness\",\"draws\":[";
    bool first=true;
    for(const auto& draw:job.snapshot.draws) {
@@ -186,7 +186,13 @@ class RemakeFeedWorker {
    for(const auto& decision:r.cutout.decisions) {
     if(!first)census<<",";first=false;
     census<<"{\"mesh\":"<<decision.mesh<<",\"texture_id\":"<<decision.texture
-     <<",\"reason\":\""<<decision.reason<<"\"}";
+     <<",\"reason\":\""<<decision.reason<<"\",\"alpha_width\":"<<decision.width
+     <<",\"alpha_height\":"<<decision.height<<",\"alpha_fnv64\":\""<<decision.alphaFnv64
+     <<"\",\"triangle_uvs\":[";
+    bool firstUv=true;for(const auto& uv:decision.triangleUvs) {
+     if(!firstUv)census<<",";firstUv=false;census<<"["<<uv[0]<<","<<uv[1]<<"]";
+    }
+    census<<"]}";
    }
    census<<"]}";r.overlay.captureCoverage=std::make_shared<const std::string>(census.str());
    r.capturedPacket=std::make_shared<remake::Packet>(std::move(job.packet));
