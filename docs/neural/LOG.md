@@ -1,5 +1,21 @@
 # Neural rendering evidence log
 
+LOG1095 live rejected footprint matches native alpha hypothesis. Fresh host
+Nightmare footprint capture terminal0/baselineexact, sources5300/5302.
+Both mesh8589934632/TCW269419008 alpha dimensions+FNV match retained native
+shared26PNG;196live indexedUV triangles yield same CPU footprint measurements:
+rectangle12600texels/69.6111percentmid fails, triangle union4405/30.3973percent
+passes. One/two texel dilations still pass with30.5095/32.3585percentmid.
+Evidence character-nightmare-footprint-a/footprint-verdict.json and
+filter-margin-check.json. Alpha identity is not fullRGB proof; polygon raster
+and dilation are CPU approximations, not GPU sample coverage certification.
+Bounded correction now justified for evaluation: triangle-covered alpha footprint
+with filtering margin, same thresholds/native fallback, work/size caps and
+safe fallback for wrapping/invalid/overbudget geometry. Test disconnected atlas
+islands, real gradients, degenerate/wrapped UVs and work bounds before live
+same-source A/B then moving review. Do not globally relax max-mid or promote
+all translucent surfaces. No production predicate/binding change yet; GPUfree.
+
 LOG1094 rejected-live-footprint diagnostic implemented without promotion change.
 Capture-only decisions retain indexed UV triangle references for rejected meshes,
 alpha-plane dimensions and FNV64 of actual decoded alpha bytes. Per-job65536

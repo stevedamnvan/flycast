@@ -331,6 +331,11 @@ LOG1094 diagnostic captures rejected indexedUVs/alpha fingerprint+dimensions,
 65536references per job, invalid/capped footprints explicitly empty; ordinary
 rendering unchanged. Four builds/1113selftests x3 pass. Next fresh-host live
 Nightmare5300 footprint proof; no production predicate change or appearance claim.
+LOG1095 live5300/5302alpha fingerprint and196UV triangles match native case:
+rectangle69.6percentmid vs covered30.4percent;1/2texel margins still pass.
+Next implement bounded triangle-footprint candidate with filtering margin,
+unchanged thresholds/native fallback and wrap/work guards; focused negative
+tests/four builds/three selftests then same-source/moving review. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

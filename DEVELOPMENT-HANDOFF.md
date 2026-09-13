@@ -12,6 +12,13 @@ Latest LOG1091: diagnostic-only alpha exclusion records implemented in same-job
 Latest LOG1092: Nightmare diagnostic terminal0,source5300/5302 both reject
 Latest LOG1093: native shared26triangle-covered footprint30.4percentmidalpha
 Latest LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
+Latest LOG1095: live5300/5302actual alpha fingerprint/196UV triangles verify
+unused atlas contamination; rectangle69.6percentmid vs covered30.4percent,
+1/2texel margins still pass. Next bounded triangle-footprint correction,
+unchanged thresholds/nativefallback, wrapping/work guards, focused tests then
+four builds/three selftests/liveA/B. Baselineexact/GPUfree; no fix accepted yet.
+Evidence character-nightmare-footprint-a/footprint-verdict.json.
+Historical LOG1094: rejected-live UV/alpha fingerprint diagnostic implemented;
 four serial builds/1113selftests x3 pass. Next fresh staged currenthost Nightmare
 5300capture, compare actual rejected alpha fingerprint and triangle footprint.
 No live proof yet; baseline untouched/GPUfree, no model download approved.
