@@ -459,8 +459,10 @@ LOG1111 identifies startup presentation latch at5309 and recovery5485 despite
 review, keeping requested preview sources and production age/reentry safeguards.
 Header-native synthetic mechanism probe passes. LOG1112 adds bounded launcher
 evaluation pre-roll; six Python checks/four builds/three selftests pass. Next
-one fresh seeded live run: evaluation5000, preview5300..5599; retain420s ceiling.
-Actual coverage, combat and shutdown remain unproven.
+LOG1113 fresh live run terminal0/orderly:113previews5484..5599, longest110,
+all native mismatch counts0. Pre-roll alone failed to recover attack interval.
+Next retained candidate-continuity audit and capture-free timing; no repeated
+earlier warmup or relaxed recovery. Full300combat/performance remain open.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

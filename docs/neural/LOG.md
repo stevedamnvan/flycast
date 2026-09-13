@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1113 pre-roll live experiment completes orderly but fails coverage hypothesis.
+Fresh verified seed/config/replay copies and current built host; full baseline
+mod unchanged, repository mod mount preserved. Evaluation5000, preview5300..5599,
+pre-roll300. Launcher exits0, host0/helper11, orderly_host_shutdown=true,
+forced_children empty. Evidence C:/Flycast-Evidence/shrine-hair-attacks-preroll-a.
+113readable previews5484..5599, longest110consecutive; all native effects applied,
+HUD/world/backbuffer mismatch totals0. Viewed5484: swords and shield present,
+HUD HIGH13/1HIT confirms attack feedback; one frame is not moving acceptance.
+Presentation latches5011/candidate0, resumes5484/candidate5478. Earlier evaluation
+does NOT recover requested5300..5483. This falsifies pre-roll alone as the remedy
+and weakens the cold-start-only explanation in LOG1111. Keep policy age8/recovery60;
+do not repeat earlier warmups or relax recovery to obtain a passing capture.
+Next inspect candidate continuity through the failed recovery interval using
+retained logs; capture-free return/presentation timing takes priority over more
+synchronous capture. Full300-frame combat/appearance/performance remain open.
+The clean terminal run removes immediate storage/truncated-shutdown as a current
+blocker but does not establish the prior failed run's shutdown cause.
+
 LOG1112 bounded capture evaluation pre-roll implemented in existing launcher.
 New --capture-preroll1..300 requires managed automatic live exact-effect capture;
 host warmup must precede evaluation start, locked replay/manual/noncapture are

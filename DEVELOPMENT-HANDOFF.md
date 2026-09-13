@@ -3,13 +3,16 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1112; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1113; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
-- LOG1112: launcher --capture-preroll implemented; six Python checks, four
-  serial builds and three selftests pass. Dry run evaluation5000/preview5300..5599
-  with hostwarmup5000 and pre-roll300; runtime safeguards unchanged. Next fresh
-  seeded full-stack live attack run; no process launched yet.
+- LOG1113: pre-roll run TERMINAL0/orderly, no forced children. 113previews
+  5484..5599, longest110; native HUD/world/backbuffer mismatch0 throughout.
+  Viewed5484 confirms attack feedback, swords/shield; not moving acceptance.
+  Earlier evaluation failed to restore requested early sources. Next retained
+  candidate-continuity audit then capture-free timing; do not repeat warmups.
+  Evidence C:/Flycast-Evidence/shrine-hair-attacks-preroll-a/audit.json.
+- LOG1112 pre-roll launcher remains bounded; six checks/fourbuilds/three selftests pass.
 - LOG1111: early attack gap is presentation startup/reentry: latch5309,
   recovery5485 despite92early retained returns. Header-native mechanism probe
   passes. Preserve production age8/recovery60 and requested preview interval.
