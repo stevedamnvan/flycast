@@ -2,6 +2,12 @@ Current checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 Latest LOG1082: world137/154runtime matches after Ostr5600 fixed export,
 Latest LOG1083:137exact texture joins valid; prior17gap geometry split is
 Latest LOG1084: corrected topology verified with4checks;137aliases unchanged,
+Latest LOG1085: Money terminal0 actual4901ownedpacket36meshes/26textures,
+0of3missing Money identities matched;137/154unchanged, no5900proof/repeat4900.
+Baselineexact/GPUfree. Both subagents terminal usage-limit errors. Character
+unmatched-group CPU audit unfinished; parent can resume locally. Model approval
+still pending. Evidence money4900-root-packet-verification.json.
+Historical LOG1084: corrected topology verified with4checks;137aliases unchanged,
 17gaps=11no submitted triangles in sample+6on-screen candidates. World agent
 owns Money4900 changed-bound acquisition in full-world-money-packet4900-a;
 prior5900request was never reached(last4992). Poll inherited handle, no restart.

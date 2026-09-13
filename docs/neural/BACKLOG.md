@@ -290,6 +290,11 @@ LOG1084 correction complete, four independent topology checks pass. Remaining
 17=11no submitted triangles in sample+6on-screen-candidate cases;137exact
 aliases unchanged. Money one changed-bound acquisition4900 underway, based
 on previouslast4992; actual-source identity required, no5900comparison claim.
+LOG1085 Money run complete actual4901ownedpacket,36meshes/26textures, baseline
+exact.0of3missing Money source identities match; source5900 differs, no defect
+claim.137/154 unchanged; no repeat4900run. Both agents terminal usage-limit
+errors, no live GPU jobs. Parent resumes character unmatched-group audit and
+dynamic-state evidence locally; model-download approval remains pending.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain
 translucent; exact OIT correspondence unproven, do not force cutout promotion.

@@ -1,5 +1,24 @@
 # Neural rendering evidence log
 
+LOG1085 Money reachable-bound acquisition complete, parent verification after
+both subagents hit usage limits. Launcher terminal0, host0/helper11 orderly,
+no forced children, baseline SHA unchanged. Actual owned source4901,36meshes,
+26unique decoded texture payloads,10,635,196bytes, SHA256
+e01c1287817a44ac84adfaf1f1061265177bb960cbf747c16651716fd988018e.
+All texture wires owned. Exact dimension+RGBA hashes compared to three missing
+Money identities (asset25base/variant and30):0matches. Native source5900 differs,
+so absence in4901 does not prove a live missing-texture defect. No new runtime
+aliases:137/154 unchanged. Do not repeat same4900capture or claim5900proof.
+Evidence full-world-money-packet4900-a/attempt.json and launch.json plus
+world-texture-completion-b/money4900-root-packet-verification.json. First parent
+verification failed on an observation lacking source; corrected to canonical
+existing_sources paths and asserted every source hash before comparisons.
+No generation/binding or appearance acceptance. GPU released; both agents
+terminal usage-limit errors after capture, not live jobs. Character unmatched
+group audit unfinished; resume locally from existing ledgers. Model-download
+approval still pending. Next compare dynamic texture-state/geometry evidence
+before selecting another material capture; preserve original native surfaces.
+
 LOG1084 topology correction reviewed and regression checked. Agent corrected
 all24original gap identities, ten affected by vertex-range handling, retained
 SUPERSEDED-range-space reports/scripts. Sorted translucent ranges use submitted
