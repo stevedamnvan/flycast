@@ -257,7 +257,15 @@ struct ConstWire {
   for(unsigned i=0;i<4;++i)record[32+i]=static_cast<unsigned char>(v.publicColor>>(8*i));
   bytes(record,36);
  }
- void reserve(std::size_t n){staged.reserve(staged.size()+n);}
+ // Exact per-mesh reserves repeatedly copy all preceding textures. Grow
+ // geometrically, bounded by the existing packet byte ceiling; wire bytes
+ // and validation order remain unchanged.
+ void reserve(std::size_t n){
+  const auto required=staged.size()+n;
+  require(n<=budget,"view-wire-byte-bound");
+  if(required>staged.capacity())staged.reserve(std::max(required,
+   std::min(std::size_t(72*1024*1024),staged.capacity()*2)));
+ }
  void count(std::size_t n,unsigned bound){require(n<=bound,"view-wire-count");word(std::uint32_t(n));}
  void string(const std::string& s,unsigned bound){count(s.size(),bound);if(!s.empty())bytes(s.data(),s.size());}
  void flush(){require(bool(out->write(staged.data(),std::streamsize(staged.size()))),"view-wire-write");staged.clear();}

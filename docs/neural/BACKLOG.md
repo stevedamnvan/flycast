@@ -482,6 +482,10 @@ LOG1118 refresh control also1200native/zero previews. Source confirms capture
 disables texture references for self-contained archive/digest lineage: packet
 median10.52MB vs1.12MB capture-free OIT. Next capture transport/archive cost fix
 with full source identity preserved; no more unchanged captures or helper toggles.
+LOG1119 geometric serializer reserve preserves exact wire bytes (5484/5900),
+fourbuilds/three selftests pass; normal diagnostic serialization11.73->8.93ms.
+Three previews6174/6177/6178 native invariants exact but only159/1200remake
+presents. Next remaining packet/digest cost; full normal/visual gate still open.
 Triangle candidate remains opt-in; full moving/performance assessment pending. GPUfree.
 No gameplay recapture/binding/appearance acceptance. World agent classifies
 remaining12other-stage gaps CPU-only. Castle38 native alpha127 must remain

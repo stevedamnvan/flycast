@@ -3,9 +3,14 @@
 ## Current execution checkpoint
 
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
-Latest measured checkpoint: LOG1118; read actual Git HEAD on resume.
+Latest measured checkpoint: LOG1119; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
 
+- LOG1119 serializer geometric reserve implemented; fourbuilds/three selftests
+  and two39mesh exact wire parity checks pass. Normal diagnostic-c terminal0/11,
+  serialization8.93ms vs11.73control;three previews native invariants exact.
+  Still159/1200remake presents; no normal/appearance acceptance. Next remaining
+  packet/digest cost preserving archive lineage. Baselineexact.
 - LOG1118 normal refresh control TERMINAL0/11,all1200native/no previews.
   Capture explicitly disables texture references:10.52MBpackets vs1.12MB
   capture-free OIT. Helper refresh cannot fix host serialization. Next inspect

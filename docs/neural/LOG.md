@@ -1,5 +1,23 @@
 # Neural rendering evidence log
 
+LOG1119 serializer geometric reserve avoids repeated full-prefix reallocations.
+ConstWire per-mesh exact reserve could repeatedly copy accumulated texture
+payloads. Grow geometrically within existing72MiB limit; retain wire bytes,
+full-texture archives, receipt digest, source identity and runtime recovery.
+Four serial builds/three selftests pass. Production wire-parity command exact
+on retained frames5484/5900,39meshes each. Build evidence serialize-growth-build-a.
+Same bounded normal diagnostic shrine-normal-integration-c terminal0/11 orderly,
+baselineexact. Serialization median8.93ms vs11.73control; publish17.33vs20.22;
+digest8.45ms remains. Diagnostic populations600scopes, not a whole-game speed
+claim. Measured1200presents:159remake-evaluated,1041native,37held,110output repeats,
+0identity errors; still fails sustained presentation. Three previews6174/6177/
+6178 finally saved,allHUD/world/backbuffer mismatches0,native effects applied.
+Viewed6174: fighters/swords/shield and arena visible; shiny hair and character
+response still require visual scrutiny. No appearance acceptance from this image.
+This is scoped byte-identical serialization improvement, not normal performance
+or combat gate. Next remaining full-packet/digest cost with archive lineage
+preserved; do not relax freshness or relabel fallback as successful remaster.
+
 LOG1118 normal selective-refresh control fails; capture transport attribution.
 shrine-normal-integration-b terminal0/11, baselineexact, same5900capture bounds.
 All1200measured presents native,325accepted,zero previews. No normal visual pass.
