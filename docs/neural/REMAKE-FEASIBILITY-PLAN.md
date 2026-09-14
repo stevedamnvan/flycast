@@ -29,7 +29,8 @@ failed/parked; neither approximation nor a mock closes that gate.
 
 Immediate work is the backlog's live M2-scene integration card. The runtime is
 available; do not repeat historical dependency inventories. The standing objective closes
-only on the backlog's working-pipeline checklist, not an individual milestone.
+only when both the backlog's working-pipeline checklist and full Soulcalibur
+content/visual completion requirements pass, not an individual milestone.
 Historical launch snapshots remain in Git at0e095eb75 and in their source
 audits/LOG entries; they are not continuing orders to pause.
 

@@ -2,6 +2,56 @@
 
 ## Current execution checkpoint
 
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest audit LOG1176,2026-09-13.
+Verified checkout before this docs slice: bba3366302b18ca2686be23d12bf645db3982808,
+feat/neural-rendering; read actual HEAD/status and fork ref on resume.
+Persistent full-remaster objective is correct and retained. Tracker read PAUSED;
+this is not a claim of automatic continuation or completion. User Continue
+explicitly authorizes current work. No gameplay capture/benchmark is running.
+
+Current card remains FC-067 / M2-scene. Next isolate added face darkening at the
+raw-return/evaluated boundary using the existing Remix-only or locked-source
+comparison, with exact returned colour/depth provenance checked before attribution.
+LOG1175 independent review confirms five-frame brow/fringe/skin ROI median
+RGB signed change-27.115; native-effect restoration adds0 there. Raw Remix face
+is also shaded/soft. Do not blame lighting alone or assert consumer identity.
+Then resume moving character/camera/scene review and the existing playability gates.
+Material agent completed weapon review: metallic mips4..8zero, no stored wrap-band
+leakage; next baseline metallic check and controlled near/far moving review.
+GPU ownership stays serial. Full world/roster/costume coverage remains in scope.
+
+Verified coverage:10default fighters,67/67captured character joins;154world groups,
+137joins/17unresolved.15character PBRify sets/60maps and19world candidates exist;
+zero newly appearance-approved expansion upgrades. Whole-game denominator unknown.
+Latest source gate f7e1fdd39:four serial builds,1205selftests x3 (LOG1161).
+Corrected reuse diagnostic1198/1200 accepted,2repeats; differing GPU budget and
+owned-resource growth prevent performance/lifecycle acceptance.300-frame integrity
+and sampled visuals are not a full combined consumer or player-combat pass.
+
+Hair candidate layers/hair_band_current_a.usda is saved and muted in MCP8002 review
+session; BGRA8 DDS base RGBA exact and layer-off original surface exact. LOG1174
+control/repeat/candidate each5/5 sources5595..5599,terminal0 and baselineexact.
+Crown painted stripe reduces, but dark eyes/soft face persist; no promotion.
+Evidence: C:/Flycast-Evidence/hair-band-live-a and face-stage-followup-a.
+Audit reports: C:/Flycast-Evidence/project-state-audit-20260913.
+
+Preserve arena/floor, native alpha/HUD, welded smooth normals and safe fallbacks.
+Baseline mod SHA e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340.
+MCP8002 was last used successfully; rediscover before edits. No paid budget or new
+model/node permission inferred. No proprietary binary inspection or blind device
+Release. Existing dirty remake_alpha_cutout.h status and untracked assets/logs
+are preserved; do not reset/clean/stash or broad-stage them. Captures may be
+hardlinked: never edit retained bytes in place. This audit changes docs only.
+
+## Archived resume notes (not current assignments)
+
+The following notes preserve older evidence. Their next steps, running process
+claims and completion labels are historical; use the current checkpoint above.
+
+### Archived LOG1175-and-earlier working notes
+
+### Superseded checkpoint accumulation
+
 Authoritative queue and delivery forecast: `docs/neural/BACKLOG.md`.
 Latest measured checkpoint: LOG1175; read actual Git HEAD on resume.
 Goal remains the full playable Soulcalibur remaster, not this individual fix.
@@ -270,10 +320,6 @@ External REVIEW.md and decision-comparison evidence under new capture visual-rev
   last verified authoring endpoint; recheck before use. No model download
   approval or paid-generation budget has been supplied for pending work.
 
-## Archived resume notes (not current assignments)
-
-The following notes preserve older evidence. Their next steps, running process
-claims and completion labels are historical; use the current checkpoint above.
 
 Historical checkpoint LOG1078: all19 PBRify world albedo outputs proven upscale-
 Historical LOG1082: world137/154runtime matches after Ostr5600 fixed export,
@@ -968,7 +1014,7 @@ C:/Flycast-Evidence/visual-regression-frozen-a; no live configuration changed.
 The amended broad goal is ACTIVE. Diagnostic runs are not performance evidence.
 
 
-## Current checkpoint: capture texture-query batching committed (LOG893)
+## Historical checkpoint: capture texture-query batching committed (LOG893)
 
 Proof, moving and matched cost runs pass their exactness checks; no
 capture-cost gain claimed (native-draw 14.71 ms inside the earlier spread).
@@ -1437,7 +1483,7 @@ The backlog is the sole execution queue; this handoff is a checkpoint, not a
 replacement roadmap. Requested routing is GPT-6 Astra low/light, no subagents;
 that is user intent, not confirmation of the active model configuration.
 
-## Exact checkout and unfinished changes
+## Historical checkout and unfinished changes (2026-09-09)
 
 Branch: `feat/neural-rendering`.
 Verified HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`.
@@ -1460,7 +1506,7 @@ push the above changes. Review and commit independently proven slices after
 resumption; use explicit staging, never include private artifacts/config/media.
 Push only the user's `fork` remote, not upstream `origin`, and verify remote SHA.
 
-## Verified checkpoint and evidence locations
+## Historical verified checkpoint and evidence locations
 
 External evidence directory names below are under the existing second-drive
 `Flycast-Evidence` root; do not move raw evidence into Git.

@@ -38,8 +38,9 @@ explicitly parked work, or the need for real missing third-party components.
    an external dependency, prohibited action or genuinely new authority.
 
 Requested execution is gpt-6-astra at low reasoning (Astra light), not Sol/high.
-This records routing intent, not proof of live model settings. No subagents
-by default. The short goal text and last verified tracker state are in BACKLOG.
+This records routing intent, not proof of live model settings. Use bounded parallel
+agents under the user's full-set delegation; parent owns integration/acceptance
+and GPU work is serialized. The short goal and tracker observation are in BACKLOG.
 
 ## Pilot rules (D-224, opt-in "Soulcalibur Faithful RTX")
 

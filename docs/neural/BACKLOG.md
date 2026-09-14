@@ -13,31 +13,17 @@ Do not create replacement FC IDs or another task-state system.
 
 > Deliver a beautiful, playable Soulcalibur RTX Remix and supplied DLSS 5 remaster by following docs/neural/BACKLOG.md. Continue its authoritative queue and preserve all scope, safety and acceptance gates until the full remaster is proven.
 
-User requested this shorter goal on2026-09-12 and GPT-6 Astra low (Astra light)
-for implementation. Detailed scope remains in this backlog. The user replaced
-the tracker goal through /goal; get_goal now verifies ACTIVE: follow this
-backlog to deliver the full playable remaster, preserving scope, safety and
-acceptance gates. The reset does not reset project progress or completed work.
-
-User amended the goal on 2026-09-12 to restore visual quality as a required
-partner to performance: materials must respond convincingly to path-traced
-lighting, characters must retain detail and identity, and hair must survive
-moving-combat review. The goal tool returned no active goal in this turn; the
-amended objective was registered and verified ACTIVE. This changes immediate
-focus within the existing queue, not completed engineering or acceptance gates.
-Next: execute the playable-delivery sequence below. Bound the visual-repeat
-investigation, then advance live combat and performance with the last verified
-baseline wherever candidate appearance remains unaccepted.
-
-Run with Astra low as requested. On 2026-09-08 the app reported no existing
-goal, and the short objective above was successfully registered as active.
-Use the goal tools to verify current state; this document is not live app
-telemetry. Do not falsely complete an objective or edit app storage to replace
-it. The tracker carries the objective; this backlog carries the work plan.
+The persistent objective remains appropriate: deliver the full playable Soulcalibur
+remaster by following this backlog, preserving scope, safety and acceptance gates.
+The2026-09-13 audit read the tracker as PAUSED, not active or complete. Its existing
+objective was retained; no goal was replaced or falsely completed. Recheck the
+tracker on resume rather than treating this dated observation as live telemetry.
+The requested implementation routing remains GPT-6 Astra low/light; this records
+user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1175. This is a summary
+Updated 2026-09-13, evidence through LOG1176. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -47,10 +33,10 @@ committed. Current engineering priority remains FC-067 / M2-scene.
 | Character completeness / FC-067 M2-scene | 10 default fighters captured; 67/67 captured material groups runtime-matched (LOG1126) | No pending joins within captured set; used-UV and alpha classification; hidden fighters, costumes and full roster denominator; representative moving coverage |
 | Arena completeness / FC-067 M2-scene, Package D | 154 captured world groups; 137 runtime-matched; 10 named stage groups plus one unidentified group sampled | 17 joins or evidenced dispositions; remaining scene regions/variants/levels; no whole-game completeness claim |
 | Material upgrades / Package D, FC-067 M3-relighting | 19 world material candidates; 15 character PBRify sets/60 maps; zero newly appearance-accepted upgrades in audited expansion ledgers | Classify held mixed atlases; delit albedo/roughness/metal masks as eligible; validate alignment/alpha and retained maps; MCP opt-in binding; technical and human visual approval recorded separately |
-| Hair and character response / FC-067 M2-scene, M3-relighting | Sorted-alpha recovery has 300-frame capture integrity evidence (LOG1143); blended-alpha variant reduces neck/fringe artifacts in 10 samples (LOG1148) | Complete moving visual review of blended variant, natural skin/hair response, contour/alpha stability and cross-scene checks; capture integrity is not appearance acceptance |
+| Hair and character response / FC-067 M2-scene, M3-relighting | Sorted/blended-alpha route has 300-frame integrity and sampled moving review (LOG1143/1149/1162); crown-band candidate has controlled five-frame evidence (LOG1174) | Continuous combat review, natural skin/hair response, contour/alpha stability and cross-scene checks; evaluation amplifies face darkening (LOG1175); integrity is not appearance acceptance |
 | Lighting/camera / FC-067 M2-camera, M3-relighting | Path-traced review exists; liked arena reference retained; fill/profile and source/anchor provenance recorded | Stable supported camera/occlusion; material-specific light response and cross-level checks; retain parked strict-replay failure |
 | Remix + supplied DLSS 5 / FC-067 M4-presentation, M4-DLSS5 | Scoped combined presentation and protection evidence exists | Synchronized native/public DLAA/Remix/combined evidence over 300 consecutive gameplay frames, current consumer settings/provenance and negative controls |
-| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Restored source passes four builds and 1183 selftests x3 (LOG1147); no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
+| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Latest source slice f7e1fdd39 passes four serial builds and1205 selftests x3 (LOG1161); corrected diagnostic1198/1200 accepted,2repeats (LOG1160); no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
 | Delivery / standing-goal exit | Backlog, LOG and handoff maintained; proven slices pushed | Reproducible opt-in launch, known limitations, full evidence index and all applicable working-pipeline gates together |
 
 Counts use captured material groups, not entire-game percentages. Runtime
@@ -77,14 +63,19 @@ LOG1175 retained stages locate additional eye darkening at returned->evaluated
 (median signed-27.115); subsequent native-effect/final stages change0 in eye ROI.
 Raw return remains soft/shaded. Next inspect evaluation boundary and existing
 non-neural Remix comparison lane with identical sources; do not blame lights alone.
+The fixed eye ROI includes brow/fringe/skin; stage deltas are code-value changes,
+not physical exposure. Evaluated and pre-effects are saved views, not always a
+chronological pair. Next comparison must match raw return before causal claims.
 Use exact inputs to locate the face issue;
 generation/capture completion is not appearance acceptance. All sessions terminal.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.
-Both capture-free runs completed1200 identical source IDs; median about11.2ms,
-but returned repeats46->143 and p99 19.37->20.82ms. No candidate promotion or
-60fps acceptance. Moving300-frame integrity complete; sampled neck/fringe improvement
-and late brow/eye shading remain separate from full appearance acceptance.
+Latest corrected reuse diagnostic (LOG1160):1198/1200 accepted,2 repeats;
+mean returned age3.0075,max5. Older46->143 repeat comparison is historical.
+Native-relative performance, normal/OIT600 matrix and lifecycle remain open:
+GPU budgets differed and owned-object growth was not closed. No60fps acceptance.
+Full 300-frame resource-reuse capture integrity is proven in its copied-helper
+scope; sampled visual checks are not continuous combat or human appearance approval.
 Preserve liked arena/floor while resolving character response.
 
 | Forecast | Target date / confidence | Basis and next revision |
@@ -115,14 +106,14 @@ time separately. If prerequisites are missing, keep the ETA unestimated rather
 than inventing a date. The checkpoint date above is reviewed when work runs;
 it does not create an unattended reminder.
 
-### Current checkpoint
+### Retained checkpoints (historical)
 
 - Resumed 2026-09-09 ("proceed from here"). The frame3099 boundary is a measured
   genuine source-view cut, not visibility churn (LOG760, D-207). Managed sessions
   now re-anchor in-session with a labeled generation instead of a fresh helper;
   demonstrated in fc067-anchor-boundary-e with five native frames per cut instead
   of about120 (LOG763). Support thresholds and guards unchanged.
-- Handoff HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`; capture/index and
+- Historical handoff HEAD: `995308035f8c320da6c305fc5b06b44f1931703b`; capture/index and
   anchor-generation changes are committed as separate slices after this resume
   (see LOG for SHAs). No world-consistent continuity across cuts is claimed.
 - 2026-09-10 checkpoint `81654643daeaf0b4333978ee4a99da649dd40a6b` (LOG794,
@@ -156,12 +147,15 @@ it does not create an unattended reminder.
 
 Current card: **FC-067 / M2-scene**.
 
-**Current delegation (user correction):** world agent owns the remaining level
-extraction routes and coverage-ledger updates, including the already-running
-Ostrheinsburg observation in full-world-ostrheinsburg-a. Parent owns critical
-replacement mip-promotion and character-lighting correction. Character agent
-provides bounded CPU streaming research. Serialize GPU ownership explicitly;
-do not restart an inherited live capture. Extraction is not full-game acceptance.
+**Current delegation (LOG1176 audit):** parent owns evaluation-stage face diagnosis,
+MCP binding and serialized GPU tests. Material agent completed existing blade-mask/mip
+and retained-image review: metallic mips4..8zero may fade at distance, no stored
+wrap-band leakage. Next baseline metallic verification then serialized moving
+near/far test; full world/character assignment below remains in scope. Independent
+face and engineering audits are complete. No gameplay
+capture or benchmark is running at this checkpoint; prior Ostrheinsburg/Money job
+references below are historical. Verify a live process/job handle before waiting
+or resuming; never restart from a stale running label alone.
 
 **Full-set agent assignment (2026-09-12).** The world and character agents
 cover the entire game world and character set, including uncaptured levels,
@@ -749,7 +743,7 @@ new FC IDs or implicit acceptance of old M1-M5 requirements.
 |---|---|---|---|---|
 | FC-067 / M2-camera | todo | LOG175, LOG509-511 | Complete the usable coordinate/camera contract alongside the supported live-scene experiment. Retain camera-relative labels and failed exact arithmetic; no further count-only or constant-fitting phase. | Live common-origin subset and measured calibration candidate exist; world/camera acceptance pending |
 | FC-067 / M1-GPU | todo | public-header adapter already tested | Preserve verified synthetic and actual moving GPU output. Remaining runtime cleanup warning needs focused ownership work, not repeated factory/camera bring-up. | LOG404-412, LOG467-474; GPU output verified in bounded scope, cleanup warning remains open |
-| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Connect owned live geometry/materials to the existing uploader, then advance return-image integration. Experimental camera-relative transport may be implemented now; completed scene acceptance still requires a supported camera contract, moving coverage/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG529 ordinary-frame feed matches60 moving fighter/arena scenes and paired image files, with56 bounded retained replies. Camera-relative approximation remains explicit; delayed HUD/returned presentation and combined ordinary gameplay remain pending |
+| FC-067 / M2-scene | doing | LOG484 owned snapshot, LOG509 live dependency subset, LOG467 legacy uploader | Live transport/return integration already exists. Finish scene coverage and character response; isolate raw-return versus evaluated face darkening, then validate moving combat. Scene acceptance still requires supported camera/depth evidence and explicit omissions. Parked strict replay failure is not waived. | LOG1126 character67/67captured joins; world137/154. LOG1162 moving300-frame integrity and sampled visual checks; LOG1174-1175 controlled hair comparison and evaluation-boundary darkening. Full scene/appearance and combined ordinary gameplay acceptance pending |
 | FC-067 / M3-relighting | todo | M1-GPU, M2-scene | Actual moving Soulcalibur fighters/arena rendered through Remix with source assets, controlled lighting, stable camera/occlusion and explicit baked-light/material limitations. Preserve moving native/Remix comparison. | pending |
 | FC-067 / M4-presentation | todo | M3-relighting | Return actual Remix output to Flycast with explicit ownership, synchronization, frame identity, bounded latency, native fallback and protected HUD/OSD. Source scene/guidance must describe the new image. | LOG542 sustained OIT delivery and LOG544 completed original-HUD Presents are experimental evidence; scene completeness and full acceptance remain open |
 | FC-067 / M4-DLSS5 | todo | M4-presentation | Prove that returned Remix scene reaches the supplied external DLSS 5 consumer and the combined result reaches Present. Exact-input ON/OFF, active consumer tuple, native/public/Remix/combined distinction and focused Gate 10 negative controls. | LOG564 confirms28 consecutive exact-input external results after native effects/HUD and completed Present, including effect identity and marked/clean/OFF controls. Full moving quality matrix and upstream scene acceptance remain open; do not repeat this regression without a changed dependency |
@@ -3337,8 +3331,17 @@ external configuration writes, spending or unrelated system changes.
 
 ### Working-pipeline acceptance (standing-goal exit)
 
-All of the following are required together; this is an experimental supported-
-scope gameplay prototype, not universal Dreamcast/Naomi or production readiness.
+All pipeline criteria below are necessary together. They establish a supported
+Soulcalibur gameplay checkpoint, not completion of the full requested remaster.
+Standing-goal completion additionally requires the full Soulcalibur character,
+costume and level denominator established; every eligible material processed under
+Package D with source-qualified upgraded/reused/rejected accounting and baseline
+retention for failures; representative scene/character combinations and moving
+combat reviewed; technical acceptance and human visual approval recorded separately.
+The four-character/two-level matrix is an intermediate checkpoint, not a scope cap.
+Unknown content, merely generated maps or blanket unreviewed reuse cannot close
+that requirement. Other titles and universal Dreamcast/Naomi support are separate.
+
 
 - A reproducible opt-in launch/build route, with exact source/API/runtime
   provenance and explicit supported renderer/game/domain restrictions.

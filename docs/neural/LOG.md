@@ -1,5 +1,39 @@
 # Neural rendering evidence log
 
+LOG1176 project-state audit: retain full goal, clarify current queue and exit.
+Read current HEAD bba336630, BACKLOG/handoff/plan, current capture receipts,
+material ledgers and ownership build logs. Parallel reports retained under
+C:/Flycast-Evidence/project-state-audit-20260913: ENGINEERING-AUDIT.md,
+MATERIAL-AUDIT.md, BLADE-REVIEW.md and blade-mip-audit.json. Independent face
+review is face-stage-followup-a/INDEPENDENT-REVIEW.md and independent-stage-check.json.
+Goal tool reports existing full-remaster objective PAUSED, not complete; wording
+still correct and retained. No replacement goal or false completion was attempted.
+No goal API available here changes paused status; user Continue authorizes this turn.
+Coverage confirmed10default fighters/67character joins; world154/137joined/17gaps;
+15character PBRify sets60maps and19world candidates, zero newly appearance-approved
+expansion upgrades. Whole roster/costume/level denominator and acceptance remain open.
+Latest source gate f7e1fdd39: four serial build exits0, three1205/0selftests (LOG1161).
+Corrected1198/1200 accepted diagnostic with2repeats supersedes old46->143 summary;
+uncontrolled GPU-budget differences, owned-object growth, final normal/OIT600,
+native-cycle within1%, actual driver/lifecycle and combined consumer gates remain open.
+Recent capture external_nr_proven=false is not proof of current DLSS5 contribution.
+Face review confirms added raw->pre-effects/evaluated darkening, not native-restoration
+cause. Eye ROI includes brow/fringe/skin; code RGB values are not physical exposure.
+The saved evaluated and pre-effects images are not universally chronological stages;
+their equality here supports this boundary localization, not an algorithm attribution.
+Blade audit: 51B4 metallic mask contains no stored wrap-band texels but mips4..8
+are allzero. Possible distance fade needs controlled moving near/far review; baseline
+metallic outside mask and filter footprints unproven. Layer changes metallic only.
+Retained light-angle stills show strong illumination/reflection confound; no moving
+blade acceptance. No new generation, GPU launch, source or live material change.
+In-place docs corrections: current handoff concise, superseded notes archived,
+tracker state dated, latest gate/count summaries corrected, full-set delegation
+retained, standing-goal completion requires full content/visual proof in addition
+to the unchanged pipeline gates. No new roadmap or FC IDs. No release ETA justified.
+Next parent bounded evaluation comparison on same returned input; CPU blade/mip
+review now complete, next baseline-metallic check and later serialized moving review.
+Preserve current arena/floor, alpha/HUD, welded normals, baseline and dirty work.
+
 LOG1175 retained face-stage comparison separates added evaluation darkening.
 C:/Flycast-Evidence/face-stage-followup-a/stage_compare.py, stage-deltas.json,
 all-stages.png and native-return-final.png retained. Five control sources5595..5599;
