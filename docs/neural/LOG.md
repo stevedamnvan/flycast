@@ -1,5 +1,44 @@
 # Neural rendering evidence log
 
+LOG1177 evaluation controls localize extra darkening; exact replay remains open.
+Goal tool re-read ACTIVE on continuation; full objective unchanged. No source change.
+face-evaluation-locked-a combined completed launcher0, child exits0/11,0previews:
+strict scene match rejected byte141 (camera.position.x). Case changed capture
+reference/preroll behavior; mismatch retained, matcher unchanged, locked bypass not
+launched. Initial tiny header probe SyntaxError retained in session, corrected read
+mapped141. Do not label this a successful exact-input comparison.
+face-evaluation-live-a/remix-only restores live references/preroll60, captures5/5
+5595..5599,terminal0, all receipt/archive/Present/native protection checks pass.
+Parsed input camera/geometry/materials match hair-band-live-a/control5/5, but raw
+render differs: eye MAE4.878, signed-0.917 across sessions. Within bypass capture
+raw->pre-effects eye change0; source/log confirms neural_submitted=false and no
+history advance. Combined control same-frame change median signed-27.115/MAE28.247.
+Returned-DLAA control uses copied current host plus documented private INI
+[RenoDX.DLSS5] EnableHooks=0 and existing --returned-dlaa. Fresh run log confirms
+SAFE MODE/all hooks off/no NR, requested public dlaa,5accepted evaluations and
+5/5 integrity passes. INI bytes changed by formatting on shutdown, semantic changes0,
+EnableHooks remains0; before hash reconstructed/verified. No global config changed.
+Public eye raw->pre-effects median signed+1.540/MAE4.266, cross-session raw
+MAE4.596/signed+0.852. Producer/materials exact; exact-geometry comparison FAILS:
+camera lens/pose/basis and all259 vertex/index records equal, but diagnosticOrigin
+XYZ differs. Origin controls temporal compatibility and resource/light resets;
+ORIGIN-DEPENDENCY.md confirms it cannot be stripped. No identical-input
+public-vs-supplied proof. Root viewed both5597 stage montages: public/bypass avoid
+large added darkening, raw softness/shading remains. Supplied-hook path is implicated
+as a hypothesis, not verified consumer algorithm/provenance or appearance acceptance.
+Independent code review found BGRA/RGBA swap, UNORM upload, SDK exposure1 and owned
+copy path, no demonstrated host gamma/exposure-copy defect. Do not add compensation.
+Evidence/scripts/failed replay/code review retained in face-evaluation-live-a and
+face-evaluation-locked-a. Public validation first used missing-numpy standard Python;
+rerun with bundled runtime passed. All GPU processes terminal, baselineexact.
+Blade baseline MCP read: no authored metallic override; retained MDL default0.
+This is not effective runtime-default proof (BLADE-BASELINE.md); no blade mutation.
+Next establish a reference using the same capture/preroll/anchor-generation route
+and verify the strict scene gate before replaying identical input/guidance/history
+for a consumer-specific correction. Do not retry old incompatible archive unchanged. User-authorized
+RTX/artist research agent runs independently; recommendations must map to existing
+queue and a falsifying check. Preserve full combined-pipeline goal and all gates.
+
 LOG1176 project-state audit: retain full goal, clarify current queue and exit.
 Read current HEAD bba336630, BACKLOG/handoff/plan, current capture receipts,
 material ledgers and ownership build logs. Parallel reports retained under

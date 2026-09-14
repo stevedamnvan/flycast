@@ -15,15 +15,15 @@ Do not create replacement FC IDs or another task-state system.
 
 The persistent objective remains appropriate: deliver the full playable Soulcalibur
 remaster by following this backlog, preserving scope, safety and acceptance gates.
-The2026-09-13 audit read the tracker as PAUSED, not active or complete. Its existing
-objective was retained; no goal was replaced or falsely completed. Recheck the
-tracker on resume rather than treating this dated observation as live telemetry.
+The2026-09-13 audit read the tracker as PAUSED; the subsequent continuation
+re-read ACTIVE (LOG1177). Its objective was retained; no goal was replaced or
+falsely completed. Recheck on resume; dated observations are not live telemetry.
 The requested implementation routing remains GPT-6 Astra low/light; this records
 user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1176. This is a summary
+Updated 2026-09-13, evidence through LOG1177. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -61,12 +61,19 @@ Old26F foundation must not be transplanted onto E0786. Cached PBRify height repe
 painted band and stays rejected. Preserve current arena/floor and native alpha.
 LOG1175 retained stages locate additional eye darkening at returned->evaluated
 (median signed-27.115); subsequent native-effect/final stages change0 in eye ROI.
-Raw return remains soft/shaded. Next inspect evaluation boundary and existing
-non-neural Remix comparison lane with identical sources; do not blame lights alone.
-The fixed eye ROI includes brow/fringe/skin; stage deltas are code-value changes,
-not physical exposure. Evaluated and pre-effects are saved views, not always a
-chronological pair. Next comparison must match raw return before causal claims.
-Use exact inputs to locate the face issue;
+Raw return remains soft/shaded. LOG1177 bypass adds0 eye darkening; hooks-off
+public DLAA adds+1.540 versus combined-27.115 within each source capture. All5/5
+integrity passes, but public-vs-combined diagnosticOrigin differs: identical-input
+consumer isolation remains unproven. Strict locked replay failed camera byte141;
+retain that failure and do not repeat unchanged or normalize the scene to pass.
+Origin dependency confirmed: temporal compatibility/resource/light resets; all259
+vertex/index records and actual camera fields match but origin cannot be stripped.
+Next same-route reference/strict generation match, then identical input/guidance/
+history before consumer-specific correction. No speculative gamma or light compensation.
+The fixed eye ROI includes brow/fringe/skin; deltas are code values, not physical
+exposure. Runtime softness and moving skin/hair review remain open. Independent
+RTX/artist research will supply bounded recommendations under existing packages;
+research findings are not acceptance or permission for new models/paid generation.
 generation/capture completion is not appearance acceptance. All sessions terminal.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.

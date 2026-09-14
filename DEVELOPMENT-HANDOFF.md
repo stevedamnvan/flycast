@@ -2,20 +2,24 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest audit LOG1176,2026-09-13.
-Verified checkout before this docs slice: bba3366302b18ca2686be23d12bf645db3982808,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1177,2026-09-13.
+Verified checkout before this docs slice: 05f197e3c7616a33438a5e9e6397c33fa733d603,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
-Persistent full-remaster objective is correct and retained. Tracker read PAUSED;
-this is not a claim of automatic continuation or completion. User Continue
-explicitly authorizes current work. No gameplay capture/benchmark is running.
+Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
+(LOG1177), superseding audit PAUSED observation. No gameplay capture/benchmark running.
 
-Current card remains FC-067 / M2-scene. Next isolate added face darkening at the
-raw-return/evaluated boundary using the existing Remix-only or locked-source
-comparison, with exact returned colour/depth provenance checked before attribution.
-LOG1175 independent review confirms five-frame brow/fringe/skin ROI median
-RGB signed change-27.115; native-effect restoration adds0 there. Raw Remix face
-is also shaded/soft. Do not blame lighting alone or assert consumer identity.
-Then resume moving character/camera/scene review and the existing playability gates.
+Current card remains FC-067 / M2-scene. LOG1177 live bypass and hooks-off public
+returned-DLAA each5/5 integrity pass. Eye raw->pre-effects delta0/+1.540 respectively
+versus combined-27.115. Raw face remains soft/shaded. Public producer/materials
+match but diagnosticOrigin differs; exact-input consumer isolation NOT proven.
+Locked replay attempt failed camera.position.x at byte141,0captures; unchanged
+matcher, second locked case not launched. Origin governs temporal/resource/light resets despite259exact geometry records.
+Next same-route reference and strict generation match before existing exact-input/
+guidance/history replay; no old incompatible-archive retry or origin normalization.
+No blind relighting, gamma compensation or claim of supplied consumer provenance.
+Evidence: face-evaluation-live-a and face-evaluation-locked-a under C:/Flycast-Evidence.
+Independent user-requested RTX/artist research underway; integrate only bounded,
+source-backed recommendations into BACKLOG. No parallel GPU work.
 Material agent completed weapon review: metallic mips4..8zero, no stored wrap-band
 leakage; next baseline metallic check and controlled near/far moving review.
 GPU ownership stays serial. Full world/roster/costume coverage remains in scope.
