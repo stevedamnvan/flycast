@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1177. This is a summary
+Updated 2026-09-13, evidence through LOG1178. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -70,11 +70,16 @@ Origin dependency confirmed: temporal compatibility/resource/light resets; all25
 vertex/index records and actual camera fields match but origin cannot be stripped.
 Next same-route reference/strict generation match, then identical input/guidance/
 history before consumer-specific correction. No speculative gamma or light compensation.
+Before enabling compact-reference locked replay, validate its production archive/
+receipt round trip with a different valid current receipt and strict tamper rejects.
+Both launcher and renderer currently exclude the combination; neither guard is
+changed yet. REFERENCE-REPLAY-SCOPE.md in face-evaluation-live-a records the bounded
+extension. Wire-mode differences are not proven to cause the origin mismatch.
 The fixed eye ROI includes brow/fringe/skin; deltas are code values, not physical
 exposure. Runtime softness and moving skin/hair review remain open. Independent
-RTX/artist research will supply bounded recommendations under existing packages;
-research findings are not acceptance or permission for new models/paid generation.
-generation/capture completion is not appearance acceptance. All sessions terminal.
+RTX/artist research completed (LOG1178); actions below remain under existing packages,
+not acceptance or permission for new models/paid generation.
+Generation/capture completion is not appearance acceptance. All sessions terminal.
 Resource reuse has300-frame integrity and sampled visual evidence; ownership tests
 pass1205x3. Full driver/lifecycle and representative performance gates remain open.
 Latest corrected reuse diagnostic (LOG1160):1198/1200 accepted,2 repeats;
@@ -84,6 +89,20 @@ GPU budgets differed and owned-object growth was not closed. No60fps acceptance.
 Full 300-frame resource-reuse capture integrity is proven in its copied-helper
 scope; sampled visual checks are not continuous combat or human appearance approval.
 Preserve liked arena/floor while resolving character response.
+
+**Research-guided checks (LOG1178, existing FC-067 scope):** Package G first verifies
+evaluation input format/exposure/history against the actual API and same-source
+route; do not transfer Streamline/RR assumptions to the supplied hook contract.
+Package D/G blade work verifies effective baseline metallic before changing masks:
+NVIDIA documents legacy0.1, while retained replacement MDL declares0; neither alone
+proves the installed effective value. Then test blade mip3/4 transitions and wrap/
+guard response under fixed light. Package B/D/G hair work checks transparent RGB,
+alpha/color mips and supported geometry before new strand generation. Keep painted
+illumination out of retained height/normal maps. Package G compares stationary and
+moving/disocclusion behavior; accumulated still quality does not close combat gates.
+Each proposed change needs a local falsifying check, same-source repeat comparison
+and opt-in rollback. [Research report](C:/Flycast-Evidence/rtx-artist-research-20260913/RESEARCH.md)
+separates official contracts, artist practice and firsthand forum anecdotes.
 
 | Forecast | Target date / confidence | Basis and next revision |
 | --- | --- | --- |

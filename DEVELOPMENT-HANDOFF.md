@@ -2,8 +2,8 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1177,2026-09-13.
-Verified checkout before this docs slice: 05f197e3c7616a33438a5e9e6397c33fa733d603,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1178,2026-09-13.
+Verified checkout before this docs slice: 8678b69ce67c7f51cec19e13e71ddd1585225ed2,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
 (LOG1177), superseding audit PAUSED observation. No gameplay capture/benchmark running.
@@ -16,10 +16,14 @@ Locked replay attempt failed camera.position.x at byte141,0captures; unchanged
 matcher, second locked case not launched. Origin governs temporal/resource/light resets despite259exact geometry records.
 Next same-route reference and strict generation match before existing exact-input/
 guidance/history replay; no old incompatible-archive retry or origin normalization.
+First validate compact-reference replay archive/current-receipt round trips and
+negative controls before changing either launcher or renderer exclusion. Scope:
+face-evaluation-live-a/REFERENCE-REPLAY-SCOPE.md; extension unimplemented/unvalidated.
 No blind relighting, gamma compensation or claim of supplied consumer provenance.
 Evidence: face-evaluation-live-a and face-evaluation-locked-a under C:/Flycast-Evidence.
-Independent user-requested RTX/artist research underway; integrate only bounded,
-source-backed recommendations into BACKLOG. No parallel GPU work.
+Independent user-requested RTX/artist research complete (LOG1178), linked in BACKLOG.
+Five bounded checks integrated; official legacy metallic0.1 differs retained MDL0,
+so installed baseline still needs verification. No parallel GPU work.
 Material agent completed weapon review: metallic mips4..8zero, no stored wrap-band
 leakage; next baseline metallic check and controlled near/far moving review.
 GPU ownership stays serial. Full world/roster/costume coverage remains in scope.

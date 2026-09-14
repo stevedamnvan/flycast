@@ -1,5 +1,43 @@
 # Neural rendering evidence log
 
+LOG1178 user-requested RTX specialist/3D artist research integrated.
+C:/Flycast-Evidence/rtx-artist-research-20260913/RESEARCH.md completed, root read.
+Sources: official NVIDIA Remix material/game-setup/denoising and public Streamline
+integration docs, original RTX issues/developer forum reports, Marmoset artist PBR
+guidance and Polycount alpha/mip/material discussions. Direct links/dates and
+confidence/limits retained in report. Firsthand community observations are test
+leads, not installed-runtime proof; rolling docs may postdate local1.5.2.
+Five recommendations mapped into existing FC-067 packages: evaluation contract and
+same input/history before exposure compensation (G); verify actual baseline
+metallic then blade near/far mip3/4 under fixed lights (D/G); inspect transparent
+RGB, alpha/color mip chains and supported fringe geometry (B/D/G); exclude painted
+light bands from height/normal structure (D); moving/disocclusion versus accumulated
+still review (G). Each has a falsifier and reuse/rollback limits, no new roadmap.
+Primary source independently opened by root: NVIDIA Game Setup lists legacy
+metallicConstant0.1, roughnessConstant0.7 and sRGB-gamma legacy albedo. This is
+not proof installed runtime resolves those defaults or replacement MDL uses them.
+BLADE-BASELINE MDL0 and live unauthored fields cannot establish zero outside-mask
+runtime neutrality. Verify effective path; do not install a global metallic override.
+Source: https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/latest/docs/runtimeinterface/remix-runtimeinterface-gamesetup.html
+Reject unsupported prescription transfer: no global mip removal/negative bias,
+no guessed Streamline/RR exposure changes in direct NGX path, no OmniHair/groom/SSS
+assumptions, no forum fusedWorldView setting copied into this exporter. No new
+models/node packs/renderers, paid generation, downloads or runtime mutations.
+Research input changes engineering priority only when a local test supports it.
+Parallel source review retained in face-evaluation-live-a/REFERENCE-REPLAY-SCOPE.md:
+compact-reference locked replay is excluded separately by launcher and renderer.
+Archive reader supports v3, but combined route remains unvalidated. Next fixture
+must prove archive round trip/current receipt reassignment with different valid
+receipt, strict scene/origin/transport/pixel tamper rejection and fresh reference
+lifetimes before enabling either guard. No proof wire-mode difference caused
+current origin mismatch; no matcher weakening or unchanged archive retry.
+Existing face isolation remains first; serious full-game path tracing, supplied
+DLSS5 contribution, visual approval and performance/lifecycle gates unchanged.
+Research agent completed; can take another bounded question when evidence needs it.
+Independent research-agent review found no material overclaims or unsupported
+prescriptions in the integration. backlog_contract_inspect and git diff --check
+pass; docs only, no new source/build/runtime acceptance claimed.
+
 LOG1177 evaluation controls localize extra darkening; exact replay remains open.
 Goal tool re-read ACTIVE on continuation; full objective unchanged. No source change.
 face-evaluation-locked-a combined completed launcher0, child exits0/11,0previews:
