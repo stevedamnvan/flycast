@@ -29,6 +29,15 @@ inline unsigned RemakePreviewCaptureLimit(const char* text,const char* moving=nu
  for(;*text;++text){if(*text<'0'||*text>'9')return 0;value=value*10+unsigned(*text-'0');if(value>maximum)return 0;}
  return value;
 }
+// Compact transport is diagnostic-only. Full source bytes are still retained
+// separately, including during locked replay; no ordinary gameplay opt-in.
+inline bool RemakeCompactCaptureTransportEnabled(bool captureScene,const char* requested,
+ const char* moving,const char* frames,bool managed,bool lockedInput,bool exactEffects)noexcept {
+ if(!captureScene||!managed||!RemakeMovingCaptureEnabled(requested)
+  ||!RemakeMovingCaptureEnabled(moving)||!frames||!*frames|| (lockedInput&&!exactEffects))return false;
+ const auto count=RemakePreviewCaptureLimit(frames,moving);
+ return count>0&&count<=300;
+}
 // Diagnostic evaluation start, not an emulation scheduler. With no request the
 // ordinary path is unchanged; malformed or unbounded requests fail closed.
 inline bool RemakeComparisonEligible(const char* start,std::uint64_t frame,bool boundedCapture)noexcept {

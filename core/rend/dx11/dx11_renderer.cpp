@@ -3170,11 +3170,11 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 	job.buildPacket=true;job.registerMore=registerMore;job.textures=std::move(staged);job.byReference=bool(sent);job.sent=remakeSentTextures;job.sentTextureBytes=remakeSentTextureBytes;
 	job.alphaOwnership=alphaCombined;job.alphaParams=std::move(alphaParams);job.alphaCutout=alphaCombined&&alphaCutout;job.curvedExport=curvedExport;
 	if(const auto* capture=std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE");capture&&*capture)job.captureScene=true;
- const auto* compactCapture=std::getenv("FLYCAST_REMAKE_CAPTURE_REFERENCES");
- const auto* lockedCapture=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
- job.compactCaptureTransport=job.captureScene&&compactCapture&&std::strcmp(compactCapture,"1")==0
-  &&!(lockedCapture&&*lockedCapture)&&RemakeMovingCaptureEnabled(std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"))
-  &&RemakePreviewCaptureLimit(std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),"1")>0;
+	const auto* lockedCapture=std::getenv("FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT");
+	job.compactCaptureTransport=RemakeCompactCaptureTransportEnabled(job.captureScene,
+		std::getenv("FLYCAST_REMAKE_CAPTURE_REFERENCES"),std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"),
+		std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),job.managed,lockedCapture&&*lockedCapture,
+		RemakeEffectEvidenceRequested()&&RemakeNativeEffectsRequested());
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
 	};

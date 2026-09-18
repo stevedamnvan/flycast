@@ -221,9 +221,8 @@ def prepare(args):
         env['FLYCAST_REMAKE_SHADING_AWARE_MOTION'] = '1'
         env['FLYCAST_REMAKE_COLOR_CONSISTENCY'] = '1'
     if getattr(args, 'capture_references', False):
-        if (not 1 <= capture_frames <= 300 or not args.managed_session or args.manual_input
-                or getattr(args, 'locked_input_root', None)):
-            raise ValueError('Capture references require bounded automatic managed live capture')
+        if not 1 <= capture_frames <= 300 or not args.managed_session or args.manual_input:
+            raise ValueError('Capture references require bounded automatic managed capture')
         env['FLYCAST_REMAKE_CAPTURE_REFERENCES'] = '1'
     capture_start = getattr(args, 'capture_start_source', 0)
     evaluation_start = capture_evaluation_start(args)

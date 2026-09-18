@@ -232,6 +232,17 @@ identity checks remain mandatory; missing or mismatched archives reject the run.
 These synchronous diagnostics retain the30-frame limit and cannot prove the
 full300-frame moving quality or performance gate.
 
+`--capture-references` keeps complete source textures in each capture archive
+while sending registered/referenced textures over the live channel. It requires
+automatic managed capture with an explicit1..300-frame bound. It also supports
+`--locked-input-root`: the archive is validated against the complete current
+scene, then retained pixels are bound to the current session receipt. Exact
+scene/origin/effect checks remain mandatory. Match reference and replay launch
+settings; this option alone does not make anchor scheduling deterministic.
+Locked replay still rejects `--capture-preroll`; capture the history-building
+frames explicitly in both runs when needed. This option never enables texture
+references in ordinary full-source archive construction.
+
 `--extended-effect-capture` explicitly raises the exact-effects diagnostic ceiling
 to300 frames when effect identity or locked replay is selected. Without it the
 30-frame ceiling remains. Source start plus count defines an inclusive end;

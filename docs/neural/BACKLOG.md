@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-13, evidence through LOG1178. This is a summary
+Updated 2026-09-14, evidence through LOG1179. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -70,11 +70,13 @@ Origin dependency confirmed: temporal compatibility/resource/light resets; all25
 vertex/index records and actual camera fields match but origin cannot be stripped.
 Next same-route reference/strict generation match, then identical input/guidance/
 history before consumer-specific correction. No speculative gamma or light compensation.
-Before enabling compact-reference locked replay, validate its production archive/
-receipt round trip with a different valid current receipt and strict tamper rejects.
-Both launcher and renderer currently exclude the combination; neither guard is
-changed yet. REFERENCE-REPLAY-SCOPE.md in face-evaluation-live-a records the bounded
-extension. Wire-mode differences are not proven to cause the origin mismatch.
+LOG1179 compact-reference replay archive/current-receipt fixture passes1214/0
+before policy extension. Launcher/runtime now permit bounded managed capture with
+locked input, retaining full archives and strict scene/effect checks; four builds,
+three1218/0selftests and36launcher tests passed. Next fresh65-frame reference/replay5535..5599,
+capturing history-building frames explicitly, no locked pre-roll. Require exact
+scene, origin, returned bytes and guidance before attributing consumer differences.
+Wire-mode differences are not proven to cause the earlier origin mismatch.
 The fixed eye ROI includes brow/fringe/skin; deltas are code values, not physical
 exposure. Runtime softness and moving skin/hair review remain open. Independent
 RTX/artist research completed (LOG1178); actions below remain under existing packages,
@@ -103,6 +105,10 @@ moving/disocclusion behavior; accumulated still quality does not close combat ga
 Each proposed change needs a local falsifying check, same-source repeat comparison
 and opt-in rollback. [Research report](C:/Flycast-Evidence/rtx-artist-research-20260913/RESEARCH.md)
 separates official contracts, artist practice and firsthand forum anecdotes.
+Hair-filter audit (LOG1179) finds source1stored mip versus candidate9, base alpha
+exact and no fully transparent black RGB in either. Next original-RGB ingestion
+control with the same mip policy before attributing minification changes to the
+band correction. Candidate stays muted; no new generation/dilation justified.
 
 | Forecast | Target date / confidence | Basis and next revision |
 | --- | --- | --- |

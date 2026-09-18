@@ -1685,17 +1685,83 @@ int RunSelfTests()
 				suite.Expect(!WriteLockedRemakeInput(writerFolder,packet,image,error)&&error=="archive-file-exists",
 					"returned replay archive refuses overwrite");
 
+                const auto unanchoredReplayFixture=packet;
+                {
+                auto packet=unanchoredReplayFixture;
+                packet.diagnosticEmbeddingProvenance="diagnostic-camera-embedded-anchor-not-world-reconstruction";
+                packet.diagnosticOrigin=remake::Vec3{1,2,3};
+                // Identity camera basis is a valid anchor; establish an explicit
+                // known texture so Referenced and Registered are nonvacuous.
+                packet.meshes[0].texture.known=true;
+                packet.meshes[0].material->sourceTexture=packet.meshes[0].texture;
                 const auto linkedRoot=root/"linked",linkedFolder=linkedRoot/"frame-test";
                 std::filesystem::create_directory(linkedRoot);std::filesystem::create_directory(linkedFolder);
                 auto transport=packet;
                 for(auto& mesh:transport.meshes)if(mesh.texture.known&&!mesh.material->sourceDdsBytes.empty()){
                     mesh.textureWire=remake::TextureWire::Referenced;mesh.material->sourceDdsBytes.clear();
                 }
-                std::ostringstream compact(std::ios::binary);SerializeRemakeViewPacket(compact,transport,error);
+                std::ostringstream compact(std::ios::binary);
+                if(!SerializeRemakeViewPacket(compact,transport,error))
+                    std::cout<<"compact replay fixture transport serialization: "<<error<<'\n';
                 const auto transportBytes=compact.str();auto linkedImage=image;
                 linkedImage.source={2,digest(transportBytes.data(),transportBytes.size()),static_cast<std::uint32_t>(transportBytes.size())};
-                suite.Expect(WriteLockedRemakeInput(linkedFolder,packet,linkedImage,error,&transport),"v3 archive writes full source and separate verified transport");
+                const bool linkedWritten=WriteLockedRemakeInput(linkedFolder,packet,linkedImage,error,&transport);
+                if(!linkedWritten)std::cout<<"compact replay fixture initial write: "<<error<<'\n';
+                suite.Expect(linkedWritten,"v3 archive writes full source and separate verified transport");
                 suite.Expect(ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error)&&roundtrip.bgra==image.bgra&&roundtrip.projectionDepth==image.projectionDepth&&roundtrip.source.digest==linkedImage.source.digest,"v3 archive preserves pixels depth and original transport receipt");
+                // A new session may register instead of reference the same DDS.
+                // Replay pixels retain archived proof, but a new capture must
+                // link its current transport receipt, not the archived receipt.
+                const auto replayRoot=root/"linked-replay",replayFolder=replayRoot/"frame-test";
+                std::filesystem::create_directory(replayRoot);std::filesystem::create_directory(replayFolder);
+                auto currentTransport=packet;
+                for(auto& mesh:currentTransport.meshes)if(mesh.texture.known&&!mesh.material->sourceDdsBytes.empty())
+                    mesh.textureWire=remake::TextureWire::Registered;
+                std::ostringstream currentWire(std::ios::binary);
+                const bool currentSerialized=SerializeRemakeViewPacket(currentWire,currentTransport,error);
+                if(!currentSerialized)std::cout<<"compact replay fixture current serialization: "<<error<<'\n';
+                const auto currentBytes=currentWire.str();
+                RemakeReturnedImage replayed;
+                const bool replayRead=ReadLockedRemakeInput(linkedRoot,packet,replayed,writerOriginal,error);
+                suite.Expect(currentSerialized&&replayRead&&currentBytes!=transportBytes
+                    &&transport.meshes[0].textureWire==remake::TextureWire::Referenced
+                    &&currentTransport.meshes[0].textureWire==remake::TextureWire::Registered,
+                    "compact replay fixture has exact scene and different valid current transport");
+                suite.Expect(!WriteLockedRemakeInput(replayFolder,packet,replayed,error,&currentTransport)
+                    &&error=="archive-source-receipt-mismatch"&&std::filesystem::is_empty(replayFolder),
+                    "compact replay rejects archived receipt for new transport before writing");
+                replayed.source={19,digest(currentBytes.data(),currentBytes.size()),static_cast<std::uint32_t>(currentBytes.size())};
+                auto invalidTransport=currentTransport;invalidTransport.meshes[0].vertices[0].position.x+=1;
+                suite.Expect(!WriteLockedRemakeInput(replayFolder,packet,replayed,error,&invalidTransport)
+                    &&std::filesystem::is_empty(replayFolder),"compact replay rejects transport geometry not owned by full archive");
+                const bool replayWritten=WriteLockedRemakeInput(replayFolder,packet,replayed,error,&currentTransport);
+                if(!replayWritten)std::cout<<"compact replay fixture replay write: "<<error<<'\n';
+                suite.Expect(replayWritten,
+                    "compact replay writes verified retained pixels with current session receipt");
+                RemakeReturnedImage reread;std::uint64_t rereadFrame=0;
+                suite.Expect(ReadLockedRemakeInput(replayRoot,packet,reread,rereadFrame,error)
+                    &&rereadFrame==packet.frame&&reread.bgra==image.bgra&&reread.projectionDepth==image.projectionDepth
+                    &&reread.source.sequence==19&&reread.source.digest==replayed.source.digest
+                    &&reread.source.bytes==currentBytes.size()&&reread.source.digest!=linkedImage.source.digest,
+                    "compact replay reread preserves exact pixels depth and new transport identity");
+                auto changedOrigin=packet;changedOrigin.diagnosticOrigin->x+=1;
+                std::ostringstream validChangedOrigin(std::ios::binary);
+                const bool changedOriginValid=SerializeRemakeViewPacket(validChangedOrigin,changedOrigin,error);
+                if(!changedOriginValid)std::cout<<"compact replay fixture changed origin serialization: "<<error<<'\n';
+                suite.Expect(changedOriginValid,
+                    "compact replay changed origin is independently valid before strict equality rejection");
+                suite.Expect(!ReadLockedRemakeInput(replayRoot,changedOrigin,reread,rereadFrame,error)
+                    &&error.find("locked-replay-scene-mismatch")==0&&reread.bgra==image.bgra,
+                    "compact replay retains strict origin rejection and caller pixels");
+                auto changedGeometry=packet;changedGeometry.meshes[0].vertices[0].position.x+=1;
+                suite.Expect(!ReadLockedRemakeInput(replayRoot,changedGeometry,reread,rereadFrame,error)
+                    &&error.find("locked-replay-scene-mismatch")==0,
+                    "compact replay retains strict emitted geometry rejection");
+                {std::ofstream f(replayFolder/"remake-transport.bin",std::ios::binary);f.write(transportBytes.data(),transportBytes.size());}
+                suite.Expect(!ReadLockedRemakeInput(replayRoot,packet,reread,rereadFrame,error),
+                    "compact replay rejects substituted earlier-session transport");
+                for(const auto& file:std::filesystem::directory_iterator(replayFolder))std::filesystem::remove(file.path());
+                std::filesystem::remove(replayFolder);std::filesystem::remove(replayRoot);
                 {std::ofstream f(linkedFolder/"remake-transport.bin",std::ios::binary|std::ios::app);f.put(0);}
                 suite.Expect(!ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error),"v3 archive rejects transport trailing bytes");
                 {std::ofstream f(linkedFolder/"remake-transport.bin",std::ios::binary);f.write(transportBytes.data(),transportBytes.size());}
@@ -1705,6 +1771,7 @@ int RunSelfTests()
                 suite.Expect(!ReadLockedRemakeInput(linkedRoot,packet,roundtrip,writerOriginal,error),"v3 archive rejects changed transport source");
                 for(const auto& file:std::filesystem::directory_iterator(linkedFolder))std::filesystem::remove(file.path());
                 std::filesystem::remove(linkedFolder);std::filesystem::remove(linkedRoot);
+                }
 				for(const auto& file:std::filesystem::directory_iterator(writerFolder))std::filesystem::remove(file.path());
 				std::filesystem::remove(writerFolder);std::filesystem::remove(writerRoot);
 				{std::ofstream f(folder/"remake-return.bgra",std::ios::binary);f.write(reinterpret_cast<const char*>(image.bgra.data()),image.bgra.size());}
@@ -1757,6 +1824,21 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
 			RemakePresentationPolicy policy;
+			const auto compact=[](bool capture,const char* option,const char* moving,const char* count,
+				bool managed,bool locked,bool effects){return RemakeCompactCaptureTransportEnabled(capture,option,moving,count,managed,locked,effects);};
+			suite.Expect(compact(true,"1","1","300",true,false,false)
+				&&compact(true,"1","1","65",true,true,true),"compact policy permits bounded managed live and exact-effects replay");
+			suite.Expect(!compact(false,"1","1","5",true,false,false)
+				&&!compact(true,"1","1","5",false,false,false)
+				&&!compact(true,"1","1","5",true,true,false),"compact policy rejects gameplay unmanaged and unqualified replay");
+			bool compactInvalid=true;
+			for(const char* text:{static_cast<const char*>(nullptr),"","0","301","360","361","-1","5junk","9999999999999999"})
+				compactInvalid=compactInvalid&&!compact(true,"1","1",text,true,true,true);
+			suite.Expect(compactInvalid,"compact policy requires explicit count1..300 without default or overflow");
+			compactInvalid=true;
+			for(const char* text:{static_cast<const char*>(nullptr),"","0","10","true"})
+				compactInvalid=compactInvalid&&!compact(true,text,"1","5",true,false,false)&&!compact(true,"1",text,"5",true,false,false);
+			suite.Expect(compactInvalid,"compact policy requires exact opt-in and moving flags");
 			suite.Expect(RemakePreviewCaptureLimit("360","1")==360&&RemakePreviewCaptureLimit(nullptr,"1")==3
 				&&RemakePreviewCaptureLimit("361","1")==0&&RemakePreviewCaptureLimit("360","10")==0
 				&&RemakePreviewCaptureLimit("9999999999999999999","1")==0,

@@ -1,5 +1,41 @@
 # Neural rendering evidence log
 
+LOG1179 compact-reference locked replay extension and hair-filter audit,2026-09-14.
+Base6fd60c2b3bca3b4a3c064a0a9fe76486b212da38; previous goal turn progressed through
+committed specialist research integration. Goal remains full and active.
+Production archive fixture now proves full+referenced v3 read, rearchive retained
+pixels/depth with DIFFERENT current Registered transport digest/extent/sequence19,
+and strict rejection of stale receipt, mismatched transport, changed origin and
+geometry. Both changed origin and positive transports independently serialize.
+Fixture initial build succeeded but9checks failed: test marked texture known
+without matching material.sourceTexture. Corrected test foundation; retained
+fixture failure and successful fixture-b1214/0 in compact-locked-replay-build-a.
+Only after that pass, launcher and renderer compact policy extended to locked
+input. Shared tested runtime predicate requires explicit request/moving flags,
+explicit count1..300, capture scene, managed session, and exact native effects
+when locked. Launcher rejects manual/unbounded/missing effect archives, preserves
+exact effect bounds and locked pre-roll rejection. Ordinary byReference full-source
+construction, scene/origin/producer/effect/frame equality, replay receipt rebinding
+and exclusion from worker-prepared input are unchanged.36launcher tests pass.
+Four serial builds and three1218/0 enabled selftests completed successfully.
+Independent source review found no blocking regression;36launcher tests passed.
+On2026-09-18 resume, source/binary hashes rechecked against validated-hashes.json.
+Goal tracker observed PAUSED; user explicitly authorized proceeding. No live
+acceptance yet; prepared comparison was not launched during the interruption.
+Fresh pair scoped at face-evaluation-compact-locked-a:65sources5535..5599, no
+uncaptured preroll, identical current built host/helper and original material/light
+profile; combined live followed by private hooks-disabled public DLAA locked replay.
+Keep exact source/guidance/history gates. No causal assumption that compact wire
+fixes earlier anchor mismatch; preserve any rejection, no unchanged archive retry.
+Parallel material CPU audit: hair-filter-audit-a/REPORT.md and audit.json.
+E0786 decoded source key0717f6309d9a78ed6809d22111fbe42306bae943b620331788fcb9fc5b4ed701;
+base alpha exact,2009RGB changes within intended band including6alpha-zero pixels.
+Neither source nor candidate has black RGB among4233fully transparent base texels.
+Source DDS has1stored mip, candidate9: retained files cannot establish lower-mip
+parity. Next original-RGB control through identical existing lossless MCP ingestion
+settings before attributing distant fringe changes to authoring. No padding/new
+generation justified; no asset/GPU/runtime changes by agent, candidate remains muted.
+
 LOG1178 user-requested RTX specialist/3D artist research integrated.
 C:/Flycast-Evidence/rtx-artist-research-20260913/RESEARCH.md completed, root read.
 Sources: official NVIDIA Remix material/game-setup/denoising and public Streamline

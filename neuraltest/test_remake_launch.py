@@ -18,19 +18,50 @@ class LaunchPreflightTests(unittest.TestCase):
         self.args.managed_session = True
         self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_CAPTURE_REFERENCES'], '1')
 
-    def test_capture_references_reject_non_live_or_unbounded(self):
+    def test_capture_references_reject_non_automatic_or_unbounded(self):
         self.args.capture_references = True
         self.args.capture_frames = 3
         self.args.managed_session = True
         for name, value in [('capture_frames', 0), ('capture_frames', 301),
-                            ('managed_session', False), ('manual_input', True),
-                            ('locked_input_root', Path('archive'))]:
+                            ('managed_session', False), ('manual_input', True)]:
             with self.subTest(name=name, value=value):
                 old = getattr(self.args, name, None)
                 setattr(self.args, name, value)
                 with self.assertRaisesRegex(ValueError, 'Capture references'):
                     prepare(self.args)
                 setattr(self.args, name, old)
+
+    def test_capture_references_locked_requires_archive_and_exact_effect_bounds(self):
+        self.args.capture_references = self.args.managed_session = True
+        self.args.capture_frames = 3
+        self.args.capture_start_source = 5595
+        with tempfile.TemporaryDirectory() as temp:
+            self.args.locked_input_root = Path(temp)
+            with self.assertRaisesRegex(ValueError, 'native effect identity'):
+                prepare(self.args)
+            frame = Path(temp) / 'frame-fixture'
+            frame.mkdir()
+            (frame / 'native-effect-identity.bin').write_bytes(b'fixture; runtime validates contents')
+            env = prepare(self.args)[2]
+            self.assertEqual(env['FLYCAST_REMAKE_CAPTURE_REFERENCES'], '1')
+            self.assertEqual(env['FLYCAST_REMAKE_ASYNC_LOCKED_INPUT_ROOT'], str(Path(temp).resolve()))
+            self.assertEqual(env['FLYCAST_REMAKE_EFFECT_IDENTITY'], '1')
+            self.assertEqual(env['FLYCAST_REMAKE_COMPARE_START_FRAME'], '5595')
+            self.assertEqual(env['FLYCAST_REMAKE_COMPARE_END_FRAME'], '5597')
+            self.args.capture_start_source = 0
+            with self.assertRaisesRegex(ValueError, 'Exact effects'):
+                prepare(self.args)
+            self.args.capture_start_source = 5595
+            self.args.capture_frames = 31
+            with self.assertRaisesRegex(ValueError, 'Exact effects'):
+                prepare(self.args)
+            self.args.extended_effect_capture = True
+            self.args.capture_frames = 65
+            self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_COMPARE_END_FRAME'], '5659')
+            self.args.capture_preroll = 60
+            self.args.effect_identity = True
+            with self.assertRaisesRegex(ValueError, 'pre-roll'):
+                prepare(self.args)
 
     def test_received_packet_is_bounded_managed_capture_only(self):
         self.args.save_received_packet = True
