@@ -2,11 +2,12 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1179,2026-09-14.
-Verified checkout before this slice: 6fd60c2b3bca3b4a3c064a0a9fe76486b212da38,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1180,2026-09-18.
+Verified checkout before this slice: eabb757d0b6e51504d0eafd54ef69f3637352c05,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
-(LOG1177), superseding audit PAUSED observation. No gameplay capture/benchmark running.
+(LOG1177), superseding audit PAUSED observation at that time. Current tracker
+observed PAUSED on2026-09-18; user authorized this continuation. No capture running.
 
 Current card remains FC-067 / M2-scene. LOG1177 live bypass and hooks-off public
 returned-DLAA each5/5 integrity pass. Eye raw->pre-effects delta0/+1.540 respectively
@@ -18,9 +19,20 @@ Next same-route reference and strict generation match before existing exact-inpu
 guidance/history replay; no old incompatible-archive retry or origin normalization.
 Compact-reference replay/current-receipt fixture passes1214/0 before enabling
 bounded managed replay policy. Four serial builds/three1218/0selftests passed;
-evidence compact-locked-replay-build-a. Next fresh65-frame same-route pair5535..5599
-with all history frames captured, no pre-roll; scope face-evaluation-compact-locked-a.
-No live result yet. Keep exact scene/origin/effects/temporal and receipt gates.
+evidence compact-locked-replay-build-a. Live attempts retained in
+face-evaluation-compact-locked-a and face-evaluation-compact-locked-b.
+A control failed acquisition0/65: initial return prepare13741ms, credits blocked
+through5535..5599. Public case never launched. Baseline exact; failures retained.
+Revised B control terminal0 at face-evaluation-compact-locked-b,63/65sources6300..6364,
+warmup6000, quality unchanged.63archives pass;6301/6302 never evaluated and every
+accepted history reference captured. Public replay terminal0,0captures, SAFE MODE
+verified;60origin-byte189 scene mismatches and2missing-source rejections.
+Initial references differ4672/4671; both later references4832. Prior reference
+propagates into generation origin. Next deterministic INITIAL diagnostic anchor
+acquisition, explicit source identity and fail-closed missed-source behavior.
+No further GPU comparison until tested. Require exact input/history/guidance;
+not65consecutive acceptance, no consumer-specific correction proven yet.
+No further window shifting on failure; keep scene/origin/effects/receipt gates.
 2026-09-18 user resumed work; tracker observed PAUSED, not programmatically resumed.
 Source/binary hashes still match validated build evidence;36launcher tests passed.
 No blind relighting, gamma compensation or claim of supplied consumer provenance.
@@ -37,7 +49,8 @@ GPU ownership stays serial. Full world/roster/costume coverage remains in scope.
 Verified coverage:10default fighters,67/67captured character joins;154world groups,
 137joins/17unresolved.15character PBRify sets/60maps and19world candidates exist;
 zero newly appearance-approved expansion upgrades. Whole-game denominator unknown.
-Latest source gate f7e1fdd39:four serial builds,1205selftests x3 (LOG1161).
+Latest source slice eabb757d0:four serial builds,1218selftests x3,36launcher tests.
+Validated source/binary hashes retained in compact-locked-replay-build-a.
 Corrected reuse diagnostic1198/1200 accepted,2repeats; differing GPU budget and
 owned-resource growth prevent performance/lifecycle acceptance.300-frame integrity
 and sampled visuals are not a full combined consumer or player-combat pass.

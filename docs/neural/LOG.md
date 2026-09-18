@@ -1,5 +1,43 @@
 # Neural rendering evidence log
 
+LOG1180 live replay acquisition follow-up,2026-09-18.
+Source slice eabb757d0 committed/pushed; fork SHA verified. Four serial builds,
+1218/0selftests x3,36launcher tests and source/binary hashes verified before launch.
+face-evaluation-compact-locked-a/control terminal0 but child exits0/11 and0/65
+captures: all5535..5599 missing. No evaluation/history records. Return credits
+stalled at sequence4; first return preparation13741ms versus309ms in historical
+hair control. NRC fallback appears in both logs; new runtime fault not established.
+No consumer/appearance comparison can be drawn. Baseline mod exact. A public case
+preparation rejected missing archive; never launched. All failure evidence retained.
+Local DXVK cache12bytes, so no useful shader-cache reuse or performance claim.
+One revised acquisition scoped in face-evaluation-compact-locked-b/SCOPE.md:
+65sources6300..6364, host warmup6000, after observed returns resumed5866. Same
+quality/profile/materials/lights and validated binaries; no preroll. B control
+terminal0/baselineexact,63/65captures6300+6303..6364. Every accepted evaluation and
+previous reference captured; missing6301/6302 never evaluated.63archive/receipt/
+Present/protected-output audits pass with0errors. First6300reset1/history0, then
+6303previous6300/reset0 and consecutive6304..6364. This fails65consecutive target
+but provides complete accepted-history archive. Scope amended to allow one locked
+replay with additional exact accepted-chain/guidance check before any attribution.
+Public replay terminal0, child exits0/11,0captures; fresh log confirms EnableHooks0
+SAFE MODE/no NR.62strict rejections:60scene mismatches byte189 (origin.x),2missing
+producer archives. No accepted replay/evaluation; baselineexact. Root viewed
+6364 raw/composite: evaluated characters visibly darker/cooler than raw, no causal
+consumer or appearance acceptance yet. Do not keep shifting
+the window; investigate readiness/anchor lineage with strict gates.
+Concrete anchor lineage difference: control initial source4673/reference4672,
+public initial source4672/reference4671. Both generation1 references4832; at6300
+camera position matches5.67067957,.241361678,1.2995615 but origins differ:
+control1.45132554,-1.8166194,-.325044543 versus public1.48635638,-1.33564413,-.40242815.
+RemakeCameraAnchor stores the retired reference in Reanchor, then computes origin
+with viewPosition(priorReference,current). Earlier initial-reference selection thus
+propagates into later generation labels even with the same later reference source.
+No claim all current geometry matches: rejected public packets were not archived.
+Compact wire parity did not remove anchor nondeterminism. Next bounded source work
+is deterministic INITIAL diagnostic anchor acquisition with explicit source identity,
+missed-source rejection and untouched ordinary-gameplay fallback/strict equality.
+No repeated GPU capture until that foundation is tested. All sessions terminal.
+
 LOG1179 compact-reference locked replay extension and hair-filter audit,2026-09-14.
 Base6fd60c2b3bca3b4a3c064a0a9fe76486b212da38; previous goal turn progressed through
 committed specialist research integration. Goal remains full and active.

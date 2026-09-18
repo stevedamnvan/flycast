@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-14, evidence through LOG1179. This is a summary
+Updated 2026-09-18, evidence through LOG1180. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -36,7 +36,7 @@ committed. Current engineering priority remains FC-067 / M2-scene.
 | Hair and character response / FC-067 M2-scene, M3-relighting | Sorted/blended-alpha route has 300-frame integrity and sampled moving review (LOG1143/1149/1162); crown-band candidate has controlled five-frame evidence (LOG1174) | Continuous combat review, natural skin/hair response, contour/alpha stability and cross-scene checks; evaluation amplifies face darkening (LOG1175); integrity is not appearance acceptance |
 | Lighting/camera / FC-067 M2-camera, M3-relighting | Path-traced review exists; liked arena reference retained; fill/profile and source/anchor provenance recorded | Stable supported camera/occlusion; material-specific light response and cross-level checks; retain parked strict-replay failure |
 | Remix + supplied DLSS 5 / FC-067 M4-presentation, M4-DLSS5 | Scoped combined presentation and protection evidence exists | Synchronized native/public DLAA/Remix/combined evidence over 300 consecutive gameplay frames, current consumer settings/provenance and negative controls |
-| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Latest source slice f7e1fdd39 passes four serial builds and1205 selftests x3 (LOG1161); corrected diagnostic1198/1200 accepted,2repeats (LOG1160); no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
+| Playability/performance/lifecycle / FC-045, FC-054/055/063/064 | Latest source slice eabb757d0 passes four serial builds and1218 selftests x3 (LOG1179); corrected diagnostic1198/1200 accepted,2repeats (LOG1160); no overall performance acceptance | Capture-free normal/OIT 600-frame gates, >=99% eligible combined output, latency/tails/VRAM/owned-resource growth, emulation within1% of native, transitions and cleanup; see full exit checklist |
 | Delivery / standing-goal exit | Backlog, LOG and handoff maintained; proven slices pushed | Reproducible opt-in launch, known limitations, full evidence index and all applicable working-pipeline gates together |
 
 Counts use captured material groups, not entire-game percentages. Runtime
@@ -73,9 +73,17 @@ history before consumer-specific correction. No speculative gamma or light compe
 LOG1179 compact-reference replay archive/current-receipt fixture passes1214/0
 before policy extension. Launcher/runtime now permit bounded managed capture with
 locked input, retaining full archives and strict scene/effect checks; four builds,
-three1218/0selftests and36launcher tests passed. Next fresh65-frame reference/replay5535..5599,
-capturing history-building frames explicitly, no locked pre-roll. Require exact
-scene, origin, returned bytes and guidance before attributing consumer differences.
+three1218/0selftests and36launcher tests passed; source slice eabb757d0 pushed.
+LOG1180 attempt A missed5535..5599 during13741ms initial return preparation.
+Later B window6300..6364 captured63/65, all63archives pass with complete accepted
+evaluation/history chain;6301/6302 never evaluated. Public locked replay terminal0,
+0captures:60scene rejections at origin byte189 and2missing-source rejections.
+Initial anchor references differ control4672/public4671 although both later
+references are4832; prior-reference lineage propagates different generation origins.
+Next deterministic INITIAL diagnostic anchor acquisition with explicit source
+identity and fail-closed missed-source behavior, then a new matched comparison.
+Do not normalize origin or keep shifting capture windows. This does not pass65
+consecutive frames. Require exact scene/input/guidance/history before attribution.
 Wire-mode differences are not proven to cause the earlier origin mismatch.
 The fixed eye ROI includes brow/fringe/skin; deltas are code values, not physical
 exposure. Runtime softness and moving skin/hair review remain open. Independent
