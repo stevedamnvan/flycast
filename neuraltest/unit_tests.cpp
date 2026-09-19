@@ -58,6 +58,7 @@
 #include "rend/neural/remake_neural_input.h"
 #include "rend/neural/remake_input_replay.h"
 #include "rend/neural/remake_overlay_snapshot.h"
+#include "remake_diagnostic_overlay_tests.h"
 #include "rend/neural/remake_presentation.h"
 
 #include <algorithm>
@@ -131,6 +132,7 @@ bool Near(float a, float b, float epsilon = 1e-4f)
 int RunSelfTests()
 {
 	Suite suite;
+	RunRemakeDiagnosticOverlayTests(suite);
 	{
 		NativeEffectSnapshot empty;std::vector<std::uint32_t> words{1};std::string why;
 		suite.Expect(!empty.ReadIdentityForEvidence(nullptr,nullptr,{1,2,3},words,why)&&words.empty(),"unsealed normal snapshot cannot yield identity");

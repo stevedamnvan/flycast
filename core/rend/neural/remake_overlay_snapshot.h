@@ -8,6 +8,7 @@
 #include "windows/comptr.h"
 #include <d3d11.h>
 #include <memory>
+#include <array>
 
 namespace flycast::rend::neural {
 struct RemakeOverlayIdentity {
@@ -70,6 +71,42 @@ struct RemakeOverlaySnapshot {
  // shares the lease and the textures retire to the pool only when the last
  // copy is gone, so a pooled texture is never handed out while still read.
  std::shared_ptr<void> lease;
+};
+// Compact diagnostic captures can hold several returned images while a capture
+// completes. Keep every still-eligible source, rather than aliasing sequence%4.
+// No GPU allocation here; snapshots keep their existing shared resource leases.
+class RemakeDiagnosticOverlayStore {
+public:
+ static constexpr std::uint64_t MaxAge=8;
+ static constexpr std::size_t Capacity=MaxAge+1;
+ void Expire(std::uint64_t frame,const ProducerIdentity& current)noexcept {
+  for(auto& entry:entries)if(entry.identity.frame
+   &&(!current.Available()||entry.identity.producer.epoch!=current.epoch
+    ||entry.identity.frame>frame||frame-entry.identity.frame>MaxAge))entry={};
+ }
+ RemakeOverlaySnapshot* Find(std::uint64_t sequence)noexcept {
+  if(sequence)for(auto& entry:entries)
+   if(entry.identity.receipt.sequence==sequence)return &entry;
+  return nullptr;
+ }
+ bool Retain(RemakeOverlaySnapshot&& source,std::uint64_t frame,
+  const ProducerIdentity& current,const char*& reason)noexcept {
+  const auto& id=source.identity;
+  if(!source.captureTransport||!id.frame||!id.receipt.sequence||!id.receipt.bytes
+   ||!id.producer.Available()||!current.Available()||id.producer.epoch!=current.epoch
+   ||id.producer.ordinal>current.ordinal||id.producer.cycle>current.cycle
+   ||id.frame>frame||frame-id.frame>MaxAge){reason="invalid-or-expired-source";return false;}
+  Expire(frame,current);
+  if(Find(id.receipt.sequence)){reason="duplicate-receipt";return false;}
+  for(auto& entry:entries)if(!entry.identity.frame) {
+   entry=std::move(source);reason="retained";return true;
+  }
+  reason="capacity-exhausted";return false;
+ }
+ void Reset()noexcept {entries={};}
+ const auto& Snapshots()const noexcept {return entries;}
+private:
+ std::array<RemakeOverlaySnapshot,Capacity> entries{};
 };
 // Copy immutable original-frame native color/mask before publishing its receipt.
 // No CPU readback, flush or wait. Caller owns wrapped-resource acquire/release.

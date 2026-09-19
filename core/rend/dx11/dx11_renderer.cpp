@@ -2435,16 +2435,25 @@ std::uint32_t DX11Renderer::neuralResourceObjectCount() const noexcept
 	countArray(neuralOutputD3D12Resources);
 	countArray(neuralOutputWrappedTextures);
 	countArray(neuralOutputWrappedViews);
-	const auto effects=flycast::rend::neural::CountRemakeEffects(std::array<const flycast::rend::neural::RemakeOitEffects*,7>{
+	std::array<const flycast::rend::neural::RemakeOitEffects*,7+flycast::rend::neural::RemakeDiagnosticOverlayStore::Capacity> effectOwners{
 		remakeCurrentEffects.get(),remakeAsyncOverlaySources[0].effects.get(),remakeAsyncOverlaySources[1].effects.get(),
 		remakeAsyncOverlaySources[2].effects.get(),remakeAsyncOverlaySources[3].effects.get(),
-		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()});
+		remakeAsyncAcceptedOverlay.effects.get(),remakeEvaluatedOverlay.effects.get()};
+	for(std::size_t i=0;i<remakeDiagnosticOverlays.Capacity;++i)
+		effectOwners[7+i]=remakeDiagnosticOverlays.Snapshots()[i].effects.get();
+	const auto effects=flycast::rend::neural::CountRemakeEffects(effectOwners);
 	count+=effects.objects;
-	const std::array<const flycast::rend::neural::NativeEffectSnapshot*,9> normalOwners{
+	std::array<const flycast::rend::neural::NativeEffectSnapshot*,9+flycast::rend::neural::RemakeDiagnosticOverlayStore::Capacity> normalOwners{
 		remakeCurrentNormalEffects.get(),
 		nativeEffectProof.get(),remakeAsyncOverlaySources[0].normalEffects.get(),remakeAsyncOverlaySources[1].normalEffects.get(),
 		remakeAsyncOverlaySources[2].normalEffects.get(),remakeAsyncOverlaySources[3].normalEffects.get(),
 		remakeAsyncAcceptedOverlay.normalEffects.get(),remakeEvaluatedOverlay.normalEffects.get(),remakeWarmupNative.normalEffects.get()};
+	for(std::size_t i=0;i<remakeDiagnosticOverlays.Capacity;++i)
+		normalOwners[9+i]=remakeDiagnosticOverlays.Snapshots()[i].normalEffects.get();
+	for(const auto& overlay:remakeDiagnosticOverlays.Snapshots()) {
+		count+=overlay.color?1u:0u;count+=overlay.mask?1u:0u;
+		count+=overlay.colorView?1u:0u;count+=overlay.maskView?1u:0u;
+	}
 	for(std::size_t i=0;i<normalOwners.size();++i){
 		if(!normalOwners[i])continue;
 		bool duplicate=false;for(std::size_t j=0;j<i;++j)duplicate|=normalOwners[j]==normalOwners[i];
@@ -2797,7 +2806,8 @@ void DX11Renderer::drainRemakeReturns(std::uint64_t currentFrame,const flycast::
 		auto next=remakeReturnWorker.Next();
 		if(!next)break;
 		auto& prepared=*next;const auto& returned=prepared.returned;
-		auto& overlay=remakeAsyncOverlaySources[returned.source.sequence%RemakeOverlaySlots];
+		auto* diagnosticOverlay=remakeDiagnosticOverlays.Find(returned.source.sequence);
+		auto& overlay=diagnosticOverlay?*diagnosticOverlay:remakeAsyncOverlaySources[returned.source.sequence%RemakeOverlaySlots];
 		const bool accepted=returned.frame<=currentFrame&&currentFrame-returned.frame<=8
 			&&returned.producer.epoch==producer.epoch
 			&&overlay.colorView&&overlay.maskView&&overlay.identity.Matches(returned,currentFrame,producer)
@@ -2951,7 +2961,12 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		if(fed.temporalScene)overlay.temporalScene=std::move(fed.temporalScene);
 		remakeReturnWorker.RegisterScene(fed.receipt.sequence,overlay.temporalScene);
 		if(fed.capturedPacket)overlay.captureScene=std::move(fed.capturedPacket);
-		remakeAsyncOverlaySources[fed.receipt.sequence%RemakeOverlaySlots]=std::move(overlay);
+		if(overlay.captureTransport) {
+			const char* reason=nullptr;
+			if(!remakeDiagnosticOverlays.Retain(std::move(overlay),metadata.frameId,producer,reason))
+				WARN_LOG(RENDERER,"Remake diagnostic overlay rejected: source=%llu sequence=%llu reason=%s native-fallback=true",
+					(unsigned long long)fed.frame,(unsigned long long)fed.receipt.sequence,reason);
+		}else remakeAsyncOverlaySources[fed.receipt.sequence%RemakeOverlaySlots]=std::move(overlay);
 		if(fed.anchored)
 			NOTICE_LOG(RENDERER,"Remake observed camera: source=%llu reference_producer=%llu generation=%u origin=%.9g,%.9g,%.9g position=%.9g,%.9g,%.9g world_recovered=false projection_max_pixels=%.9g support_points=%u shared_reference=%u shared_last=%u rotation_from_last_deg=%.6g translation_from_last=%.6g frames_since_last=%llu bases=%u moving_points=%u lineage_basis=%d offscreen_accepted=%u offscreen_max_pixels=%.6g offscreen_max_effect_pixels=%.6g offscreen_max_tangential_pixels=%.6g offscreen_max_diagonals=%.6g",
 				(unsigned long long)fed.frame,(unsigned long long)fed.referenceOrdinal,fed.generation,
@@ -3011,6 +3026,7 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		return;
 	}
 	remakeAsyncChannel.ExpireReturns(metadata.frameId,producer,8);
+	remakeDiagnosticOverlays.Expire(metadata.frameId,producer);
 	for(auto& source:remakeAsyncOverlaySources)
 		if(source.identity.frame&&(source.identity.frame>metadata.frameId||metadata.frameId-source.identity.frame>8))source={};
 	if(remakeAsyncReturned&&(remakeAsyncReturned->frame>metadata.frameId||metadata.frameId-remakeAsyncReturned->frame>8)) {

@@ -251,6 +251,14 @@ instead of silently choosing a different reference. This does not freeze gamepla
 weaken scene equality or guarantee that later reanchors/history match. Record the
 actual initial and subsequent reference producers in each run before comparing.
 
+Compact captures retain up to nine diagnostic overlay snapshots by exact receipt,
+covering the existing inclusive eight-frame return age. Live entries are never
+overwritten when this store fills: invalid, duplicate or overflow insertions are
+logged and rejected. Accepted snapshots move to the existing presentation owner;
+expiry and temporal/session reset release retained entries. This does not change
+ordinary four-slot retention, extend acceptable return age, or guarantee that
+every requested frame is evaluated. Compare complete accepted history explicitly.
+
 `--extended-effect-capture` explicitly raises the exact-effects diagnostic ceiling
 to300 frames when effect identity or locked replay is selected. Without it the
 30-frame ceiling remains. Source start plus count defines an inclusive end;

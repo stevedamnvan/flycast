@@ -366,6 +366,7 @@ protected:
 	// on the slot that image still needs.
 	static constexpr std::size_t RemakeOverlaySlots=4;
 	std::array<flycast::rend::neural::RemakeOverlaySnapshot,RemakeOverlaySlots> remakeAsyncOverlaySources;
+	flycast::rend::neural::RemakeDiagnosticOverlayStore remakeDiagnosticOverlays;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeAsyncAcceptedOverlay;
 	flycast::rend::neural::RemakeOverlaySnapshot remakeWarmupNative;
 	std::shared_ptr<const flycast::rend::neural::RemakeOitEffects> remakeCurrentEffects;
@@ -437,6 +438,7 @@ protected:
 		// evaluation after a re-anchor recompile its shaders (a 266 ms present).
 		remakeAcceptedRaster={};remakeAcceptedRasterFrame=0;
 		remakeAsyncReturned.reset();remakeAsyncOverlaySources={};remakeAsyncAcceptedOverlay={};
+		remakeDiagnosticOverlays.Reset();
 		remakeEvaluatedSource.reset();remakeEvaluatedOverlay={};remakeEvaluatedTexture.reset();remakeEvaluatedView.reset();remakeLastEvaluationAttempt=0;
 		remakeWarmupNative={};remakePresentationPolicy.Reset();remakeCompositeTexture.reset();
 		for(auto& slot:remakeCompositeRing)slot={};remakeCompositeRingNext=0;

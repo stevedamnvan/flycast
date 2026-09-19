@@ -1,5 +1,25 @@
 # Neural rendering evidence log
 
+LOG1183 bounded diagnostic overlay retention,2026-09-19.
+Base580f143aa. Compact capture overlays now use a separate nine-snapshot store
+keyed by receipt, covering existing age0..8. A later sequence cannot overwrite
+a still-eligible snapshot. Invalid/expired input, duplicate receipt and capacity
+overflow reject retention without consuming the incoming owner or replacing live
+entries. Published transport is not undone; rejected retention cannot pass the
+existing return identity gate. Existing FIFO, ordinary four-slot ring, eight-frame
+return eligibility, native fallback and emulation scheduling remain unchanged.
+Snapshots move to the existing accepted owner; periodic expiry and existing full
+temporal/session retirement clear retained entries. Deferred history retirement
+keeps pending snapshots. Count added diagnostic effects/overlay resource owners.
+Four serial builds passed;1245/0selftests x3 including14 focused assertions for
+recorded1156/1160 collision, inclusive age8, age9/epoch expiry, overflow, duplicate,
+invalid scope/identity and shared lease transfer/reset.37launcher tests pass.
+Evidence/source/binary hashes: C:/Flycast-Evidence/diagnostic-overlay-build-a.
+Live D pair prepared at face-evaluation-compact-locked-d, same6300..6364/4800 anchor/
+640x480/profile/materials; not yet launched. Complete exact input/guidance/history
+comparison and protected-output checks still required. Character darkening not
+fixed by this source slice; no appearance/performance/full-remaster acceptance.
+
 LOG1182 exact-anchor live comparison,2026-09-18.
 Source91f1737bbe8f190cd9ff69208a2439800dda1d60 pushed/fork verified; four builds,
 1231/0selftests x3 and37launcher tests retained from LOG1181. C evidence at

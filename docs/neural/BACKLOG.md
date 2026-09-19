@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-18, evidence through LOG1182. This is a summary
+Updated 2026-09-19, evidence through LOG1183. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -88,8 +88,11 @@ raw/depth/effect pairs. Both baselineexact. First6300 reset/history-off evaluate
 RGBA exact. Public6301 overlay sequence1156 is overwritten by1160 in four-slot
 ring before return; exact identity rejects it. Existing return FIFO is correct.
 6302 guidance/history differs, so full sequence attribution remains false.
-Next bounded diagnostic overlay lifetime fix covering allowed return age, exact
-receipt matching and overflow failure; preserve ordinary nonblocking behavior.
+LOG1183 bounded diagnostic overlay store implemented:9 receipt-keyed owners for
+age0..8; explicit invalid/duplicate/overflow rejection, unchanged ordinary ring/
+FIFO/identity checks. Four builds,1245selftests x3 and37launcher tests pass.
+Next D live pair at same6300..6364/anchor4800/profile; audit complete accepted
+history and exact inputs/guidance before attributing remaining character darkening.
 No unchanged rerun, lighting compensation or new texture generation for this fault.
 Do not normalize origin or keep shifting capture windows. This does not pass65
 consecutive frames. Require exact scene/input/guidance/history before attribution.

@@ -2,8 +2,8 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1182,2026-09-18.
-Verified source checkout: 91f1737bbe8f190cd9ff69208a2439800dda1d60,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1183,2026-09-19.
+Verified base checkout: 580f143aa439d1e46d9a0bb4d28e7cf3bf66bdbf,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
 (LOG1177), superseding audit PAUSED observation at that time. Current tracker
@@ -37,8 +37,11 @@ effects exact. First6300 reset1/history0 evaluatedRGBA exact. Public6301 overlay
 sequence1156 overwritten by1160 in four-slot ring; exact identity rejects return.
 Existing FIFO is correct.6302 history/guidance differs, so full attribution false.
 Later evaluated head darkens in combined lane; do not compensate textures/lights.
-Next bounded diagnostic overlay lifetime fix covering allowed return age, exact
-receipt match and overflow failure; preserve ordinary gameplay. No unchanged retry.
+LOG1183 adds bounded9-entry diagnostic receipt store covering age0..8; exact
+identity/overflow rejection, expiry/reset/transfer ownership and ordinary4slot
+FIFO unchanged. Four builds/1245selftests x3 and37launcher tests pass.
+Next D live pair same6300..6364/anchor4800/profile; prepared, not launched.
+Evidence: diagnostic-overlay-build-a and face-evaluation-compact-locked-d.
 Require exact input/history/guidance;
 not65consecutive acceptance, no consumer-specific correction proven yet.
 No further window shifting on failure; keep scene/origin/effects/receipt gates.
@@ -58,8 +61,8 @@ GPU ownership stays serial. Full world/roster/costume coverage remains in scope.
 Verified coverage:10default fighters,67/67captured character joins;154world groups,
 137joins/17unresolved.15character PBRify sets/60maps and19world candidates exist;
 zero newly appearance-approved expansion upgrades. Whole-game denominator unknown.
-Latest source slice eabb757d0:four serial builds,1218selftests x3,36launcher tests.
-Validated source/binary hashes retained in compact-locked-replay-build-a.
+Latest source slice LOG1183:four serial builds,1245selftests x3,37launcher tests.
+Validated source/binary hashes retained in diagnostic-overlay-build-a.
 Corrected reuse diagnostic1198/1200 accepted,2repeats; differing GPU budget and
 owned-resource growth prevent performance/lifecycle acceptance.300-frame integrity
 and sampled visuals are not a full combined consumer or player-combat pass.
