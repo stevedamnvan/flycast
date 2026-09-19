@@ -2,8 +2,8 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1181,2026-09-18.
-Verified checkout before this slice: 441bfb9d7d6ce1553fddac4e40dc77b0c08e5bb9,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1182,2026-09-18.
+Verified source checkout: 91f1737bbe8f190cd9ff69208a2439800dda1d60,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
 (LOG1177), superseding audit PAUSED observation at that time. Current tracker
@@ -31,13 +31,19 @@ Initial references differ4672/4671; both later references4832. Prior reference
 propagates into generation origin. LOG1181 adds optional exact INITIAL diagnostic
 anchor producer with actual identity and failed/missed-source rejection. Four builds,
 1231/0selftests x3 and37launcher tests passed; hashes at anchor-reference-build-a.
-Next C pair uses producer4800, unchanged6300..6364window/profile and received-packet
-retention; prepared script/scope at face-evaluation-compact-locked-c, not launched.
-Later reference/history equivalence remains unproven. Require exact input/history/guidance;
+C pair terminal at face-evaluation-compact-locked-c: control64/65, public63/65,
+both baselineexact. Initial4800/later4832 anchors match;63 common scene/raw/depth/
+effects exact. First6300 reset1/history0 evaluatedRGBA exact. Public6301 overlay
+sequence1156 overwritten by1160 in four-slot ring; exact identity rejects return.
+Existing FIFO is correct.6302 history/guidance differs, so full attribution false.
+Later evaluated head darkens in combined lane; do not compensate textures/lights.
+Next bounded diagnostic overlay lifetime fix covering allowed return age, exact
+receipt match and overflow failure; preserve ordinary gameplay. No unchanged retry.
+Require exact input/history/guidance;
 not65consecutive acceptance, no consumer-specific correction proven yet.
 No further window shifting on failure; keep scene/origin/effects/receipt gates.
 2026-09-18 user resumed work; tracker observed PAUSED, not programmatically resumed.
-Source/binary hashes still match validated build evidence;36launcher tests passed.
+Source/binary hashes retained in validated build evidence;37launcher tests passed.
 No blind relighting, gamma compensation or claim of supplied consumer provenance.
 Evidence: face-evaluation-live-a and face-evaluation-locked-a under C:/Flycast-Evidence.
 Independent user-requested RTX/artist research complete (LOG1178), linked in BACKLOG.

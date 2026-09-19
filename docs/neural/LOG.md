@@ -1,5 +1,35 @@
 # Neural rendering evidence log
 
+LOG1182 exact-anchor live comparison,2026-09-18.
+Source91f1737bbe8f190cd9ff69208a2439800dda1d60 pushed/fork verified; four builds,
+1231/0selftests x3 and37launcher tests retained from LOG1181. C evidence at
+C:/Flycast-Evidence/face-evaluation-compact-locked-c. Both runs terminal0, baseline
+mod byte-exact; public fresh SAFE MODE EnableHooks0/all hooks off verified.
+Both initial references4800 and later4832 match. All63 common scene packets,
+returned BGRA/depth and native effect/alpha files exact; no origin rejection.
+Control64/65 captures missing6304; public63/65 missing6301/6304. All64/63 archive
+audits pass with0errors; every accepted evaluation/history reference captured.
+Source6304 correctly rejects missing archive. Public6301 return retained=0 then
+6302 retained=1. Source inspection confirms existing FIFO preserves pending returns;
+the four-slot overlay ring is the actual collision: before6301/sequence1156 returns,
+6305/sequence1160 overwrites the same slot0. Exact receipt Matches rejects it.
+At6302 previous history is6300 versus6301;
+motion/bias/confidence/reason differ there only. Full accepted chains differ,
+so consumer_attribution_eligible=false despite exact later guidance files.
+Source6300 reset1/history0 has exact inputs/guidance and byte-exact evaluated RGBA.
+Later62 common evaluated frames differ. Inspected6364 head stages show pronounced
+combined darkening versus public; late mixed face/hair signed code-value delta
+-44.475 versus-0.081. Fixed ROI includes hair/fringe/skin, not isolated skin or
+physical exposure. This narrows investigation to temporal evaluation/order but
+does not identify proprietary behavior or prove a corrective look. No promotion,
+performance, full65-consecutive, supplied-model provenance or appearance acceptance.
+Next bounded work: retain diagnostic overlays for the existing allowed return age,
+with exact receipt identity and bounded overflow failure. Reuse existing FIFO;
+preserve ordinary nonblocking gameplay. Do not normalize scene/history or repeat
+unchanged captures. Inspect pool/ring lifetime before choosing the smallest fix.
+Reports: comparison.json, evaluated-stage-comparison.json, per-case capture-audit.json
+and evaluation-lineage.json; head-stages-6364.png viewed. No material/light changes.
+
 LOG1181 exact initial diagnostic anchor producer,2026-09-18.
 Base441bfb9d7d6ce1553fddac4e40dc77b0c08e5bb9. Existing ASYNC_START_PRODUCER is only
 a minimum threshold and cannot select exact initial source. New optional launcher

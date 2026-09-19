@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-18, evidence through LOG1181. This is a summary
+Updated 2026-09-18, evidence through LOG1182. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -82,9 +82,15 @@ Initial anchor references differ control4672/public4671 although both later
 references are4832; prior-reference lineage propagates different generation origins.
 LOG1181 implements optional exact INITIAL diagnostic anchor producer with actual
 source identity and failed/missed-source rejection; four builds,1231/0selftests x3
-and37launcher tests pass. Live validation pending.
-Then one matched comparison with producer4800, same6300..6364window and received
-packet retention; later reanchors/history must still match before attribution.
+and37launcher tests pass; source91f1737bb pushed. LOG1182 C pair terminal:
+control64/65, public63/65; exact initial4800/later4832 anchors and63 exact scene/
+raw/depth/effect pairs. Both baselineexact. First6300 reset/history-off evaluated
+RGBA exact. Public6301 overlay sequence1156 is overwritten by1160 in four-slot
+ring before return; exact identity rejects it. Existing return FIFO is correct.
+6302 guidance/history differs, so full sequence attribution remains false.
+Next bounded diagnostic overlay lifetime fix covering allowed return age, exact
+receipt matching and overflow failure; preserve ordinary nonblocking behavior.
+No unchanged rerun, lighting compensation or new texture generation for this fault.
 Do not normalize origin or keep shifting capture windows. This does not pass65
 consecutive frames. Require exact scene/input/guidance/history before attribution.
 Wire-mode differences are not proven to cause the earlier origin mismatch.
