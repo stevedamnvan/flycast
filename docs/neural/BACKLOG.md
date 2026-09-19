@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-19, evidence through LOG1183. This is a summary
+Updated 2026-09-19, evidence through LOG1184. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -91,8 +91,14 @@ ring before return; exact identity rejects it. Existing return FIFO is correct.
 LOG1183 bounded diagnostic overlay store implemented:9 receipt-keyed owners for
 age0..8; explicit invalid/duplicate/overflow rejection, unchanged ordinary ring/
 FIFO/identity checks. Four builds,1245selftests x3 and37launcher tests pass.
-Next D live pair at same6300..6364/anchor4800/profile; audit complete accepted
-history and exact inputs/guidance before attributing remaining character darkening.
+LOG1184 D control63/65 passes all63 archives and complete accepted history;
+6300/6301/6302 retain at age8, no overlay rejection. Missing6303/6304 were never
+published (return credit). Public0captures:63 producer-not-found rejections.
+Actual6300 SH4cycles differ3336704; later references4859/4833 and scene content
+also differ. Same input recording does not prove same producer scene.
+Next reproduce source-cycle and later-anchor acquisition with existing source/
+guest identity diagnostics before another pair. Overlay fix is proven in this
+scope; no clock/origin normalization, unchanged startup retries or beauty claim.
 No unchanged rerun, lighting compensation or new texture generation for this fault.
 Do not normalize origin or keep shifting capture windows. This does not pass65
 consecutive frames. Require exact scene/input/guidance/history before attribution.

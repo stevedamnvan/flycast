@@ -2,8 +2,8 @@
 
 ## Current execution checkpoint
 
-Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1183,2026-09-19.
-Verified base checkout: 580f143aa439d1e46d9a0bb4d28e7cf3bf66bdbf,
+Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1184,2026-09-19.
+Verified source checkout: 723c75a726f3067b7df300d0e1ce59967383e8d0,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
 (LOG1177), superseding audit PAUSED observation at that time. Current tracker
@@ -40,7 +40,14 @@ Later evaluated head darkens in combined lane; do not compensate textures/lights
 LOG1183 adds bounded9-entry diagnostic receipt store covering age0..8; exact
 identity/overflow rejection, expiry/reset/transfer ownership and ordinary4slot
 FIFO unchanged. Four builds/1245selftests x3 and37launcher tests pass.
-Next D live pair same6300..6364/anchor4800/profile; prepared, not launched.
+D pair terminal: control63/65 (6303/6304 neverpublished credit skips), all63
+archives/complete accepted history pass.6300/6301/6302 retained at age8; no overlay
+retention failure. Public0captures/63producer-not-found rejections. Actual6300
+SH4cycles control22652274176/public22648937472, sameepoch3/ordinal6299; later
+references4859/4833 and scene content also differ. Baseline exact, public SAFE MODE.
+Next reproduce source-cycle/later-anchor acquisition before another paired run;
+reuse existing guest-frame/source diagnostics, no unchanged retry or normalization.
+Overlay blocker corrected; full exact-input comparison and character darkening open.
 Evidence: diagnostic-overlay-build-a and face-evaluation-compact-locked-d.
 Require exact input/history/guidance;
 not65consecutive acceptance, no consumer-specific correction proven yet.

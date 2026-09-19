@@ -1,5 +1,32 @@
 # Neural rendering evidence log
 
+LOG1184 diagnostic overlay live proof and separate source mismatch,2026-09-19.
+Source723c75a726f3067b7df300d0e1ce59967383e8d0 pushed/fork verified. D pair at
+C:/Flycast-Evidence/face-evaluation-compact-locked-d uses same6300..6364/4800 initial
+producer/640x480/profile/materials. Both terminal0 and baseline mod exact; public
+fresh log SAFE MODE EnableHooks0. Control63/65 sources (missing6303/6304 never
+published: no-return-credit) passes all63 archive/receipt/Present/protected-output
+checks. All accepted evaluations/history captured. Sources6300/6301/6302 retained
+at age8; no diagnostic overlay-retention rejection. This validates the lifetime
+correction in the live capture scope; full65 target and performance remain open.
+Public0captures/0evaluations,63 strict producer-not-found rejections. Untouched
+saved source6300 packets have same epoch3/ordinal6299 but different SH4 cycles:
+control22652274176, public22648937472 (difference3336704). CLI production reader
+reproduces rejection. Later reference at6300 is control4859/public4833, not the
+old C pair4832. Actual packets also differ in material/state and camera/geometry;
+no normalization or ordinal-only lookup is justified. Input recording matches
+C1CE37F7408EE81A/1253bytes; precise origin of source-clock drift is not yet proven.
+Producer clock stamps accepted QueueRender submissions after skip checks, so an
+ordinal alone is not a guarantee of the same emulated scene. Existing first-anchor
+selection does not constrain later reanchors. No more unchanged startup pairs.
+Next acquisition work must reproduce producer cycle and later reference lineage,
+using existing guest-frame identity diagnostics/source tools before another costly
+pair. Preserve strict scene/effect/identity gates; no emulation/audio slowdown or
+new renderer. Control6364 evaluated image viewed: character darkening persists;
+public appearance comparison unavailable. Comparison remains attribution=false.
+Reports: per-case capture-audit/evaluation-lineage,comparison.json and retained
+replay-rejection-details.json. Source build1245/0x3 is not visual acceptance.
+
 LOG1183 bounded diagnostic overlay retention,2026-09-19.
 Base580f143aa. Compact capture overlays now use a separate nine-snapshot store
 keyed by receipt, covering existing age0..8. A later sequence cannot overwrite
