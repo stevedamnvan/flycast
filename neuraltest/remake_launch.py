@@ -226,6 +226,14 @@ def prepare(args):
         env['FLYCAST_REMAKE_CAPTURE_REFERENCES'] = '1'
     capture_start = getattr(args, 'capture_start_source', 0)
     evaluation_start = capture_evaluation_start(args)
+    anchor_reference = getattr(args, 'anchor_reference_producer', 0)
+    if anchor_reference:
+        if (not 1 <= anchor_reference <= 10000000 or not args.anchored_light
+                or not getattr(args, 'capture_references', False)
+                or not (getattr(args, 'effect_identity', False) or getattr(args, 'locked_input_root', None))
+                or anchor_reference >= evaluation_start):
+            raise ValueError('Anchor reference requires bounded managed automatic anchored compact exact-effects capture and a positive producer before evaluation')
+        env['FLYCAST_REMAKE_ANCHOR_REFERENCE_PRODUCER'] = str(anchor_reference)
     remix_only = getattr(args, 'remix_only', False)
     if remix_only and not capture_frames:
         raise ValueError('Remix-only comparison requires bounded image capture')
@@ -443,6 +451,8 @@ def main():
     p.add_argument('--capture-frames', type=int, default=0,
                    help='Developer image capture 1..300; excludes this run from performance evidence')
     p.add_argument('--capture-references', action='store_true', help='Opt-in compact transport with complete version3 capture archives; no quality reduction')
+    p.add_argument('--anchor-reference-producer', type=int, default=0,
+                   help='Diagnostic exact initial anchor producer; requires managed compact exact-effects capture, misses reject instead of choosing a later source')
     p.add_argument('--capture-start-source', type=int, default=0)
     p.add_argument('--capture-preroll', type=int, default=0,
                    help='Live exact-effects evaluation 1..300 sources before previews; host warmup must precede it')
@@ -513,6 +523,7 @@ def main():
     record = dict(host=host, helper=helper, anchored_light=args.anchored_light,
                   capture_storage=storage,
                   capture_references=args.capture_references,
+                  anchor_reference_producer=args.anchor_reference_producer,
                   capture_preroll=args.capture_preroll,
                   capture_evaluation_start=capture_evaluation_start(args),
                   helper_working_directory=str(helper_cwd),

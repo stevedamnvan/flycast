@@ -243,6 +243,14 @@ Locked replay still rejects `--capture-preroll`; capture the history-building
 frames explicitly in both runs when needed. This option never enables texture
 references in ordinary full-source archive construction.
 
+`--anchor-reference-producer N` is an optional diagnostic control for the initial
+camera anchor. It requires managed automatic anchored compact capture with exact
+effects and a producer before evaluation starts. Only that producer may establish
+generation zero; if it cannot be admitted and published, later sources are rejected
+instead of silently choosing a different reference. This does not freeze gameplay,
+weaken scene equality or guarantee that later reanchors/history match. Record the
+actual initial and subsequent reference producers in each run before comparing.
+
 `--extended-effect-capture` explicitly raises the exact-effects diagnostic ceiling
 to300 frames when effect identity or locked replay is selected. Without it the
 30-frame ceiling remains. Source start plus count defines an inclusive end;

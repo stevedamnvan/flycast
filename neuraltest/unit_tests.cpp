@@ -13,6 +13,7 @@
 #include "remake_anchor_basis_diagnostics_tests.h"
 #include "remake_sorted_alpha_tests.h"
 #include "remake_feed_capture_wait_tests.h"
+#include "remake_anchor_reference_tests.h"
 #include "remake_legacy_reuse_tests.h"
 #include "remake_legacy_pending_tests.h"
 #include "rend/neural/remake_feed_worker.h"
@@ -1057,6 +1058,7 @@ int RunSelfTests()
                     &&SerializeRemakeViewPacket(wa,scoped,ea)&&SerializeRemakeViewPacket(wb,retained,eb)&&wa.str()==wb.str();
                 suite.Expect(same,"retained anchor workers match scoped-thread packet bytes above parallel threshold");
             }
+			TestRemakeAnchorReference(suite,observed,supported,packet);
 			RemakeCameraAnchor anchor;auto initial=packet;
 			suite.Expect(anchor.Apply(observed,supported,initial,error)&&anchor.ReferenceOrdinal()==p.sourceProducer.ordinal,
 				"observed camera anchor initializes fixed first source view");
@@ -1824,6 +1826,16 @@ int RunSelfTests()
 		suite.Expect(remake::DiagnosticContinuation(packet,next),"live packet accepts consecutive producer stamp");
 		{
 			RemakePresentationPolicy policy;
+			std::uint64_t anchorRequest=99;
+			suite.Expect(RemakeParseAnchorReference(nullptr,false,anchorRequest)&&anchorRequest==0,"anchor parser absent preserves default route");
+			suite.Expect(RemakeParseAnchorReference("4832",true,anchorRequest)&&anchorRequest==4832
+				&&RemakeParseAnchorReference("10000000",true,anchorRequest)&&anchorRequest==10000000,"anchor parser accepts explicit bounded values");
+			anchorRequest=99;
+			suite.Expect(!RemakeParseAnchorReference("4832",false,anchorRequest)&&anchorRequest==99,"anchor parser rejects unqualified scope atomically");
+			bool badAnchor=true;
+			for(const char* text:{"","0","-1","5junk","10000001","99999999999999999999"})
+				badAnchor=badAnchor&&!RemakeParseAnchorReference(text,true,anchorRequest)&&anchorRequest==99;
+			suite.Expect(badAnchor,"anchor parser rejects malformed zero and overflow without mutation");
 			const auto compact=[](bool capture,const char* option,const char* moving,const char* count,
 				bool managed,bool locked,bool effects){return RemakeCompactCaptureTransportEnabled(capture,option,moving,count,managed,locked,effects);};
 			suite.Expect(compact(true,"1","1","300",true,false,false)

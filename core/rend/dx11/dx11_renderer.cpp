@@ -3175,6 +3175,11 @@ void DX11Renderer::prepareRemakeAsyncFeed()
 		std::getenv("FLYCAST_REMAKE_CAPTURE_REFERENCES"),std::getenv("FLYCAST_REMAKE_MOVING_CAPTURE"),
 		std::getenv("FLYCAST_REMAKE_PREVIEW_CAPTURE_FRAMES"),job.managed,lockedCapture&&*lockedCapture,
 		RemakeEffectEvidenceRequested()&&RemakeNativeEffectsRequested());
+	if(!RemakeParseAnchorReference(std::getenv("FLYCAST_REMAKE_ANCHOR_REFERENCE_PRODUCER"),
+		job.compactCaptureTransport&&job.anchored&&RemakeEffectEvidenceRequested()&&RemakeNativeEffectsRequested(),
+		job.anchorReferenceProducer)) {
+		skip("camera-anchor-seed","invalid-diagnostic-reference-request");return;
+	}
 	job.publish=[this](const remake::Packet& source,RemakeChannelReceipt& receipt,std::string& why) {
 		return remakeAsyncChannel.PublishForReturn(source,receipt,why);
 	};

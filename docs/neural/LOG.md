@@ -1,5 +1,20 @@
 # Neural rendering evidence log
 
+LOG1181 exact initial diagnostic anchor producer,2026-09-18.
+Base441bfb9d7d6ce1553fddac4e40dc77b0c08e5bb9. Existing ASYNC_START_PRODUCER is only
+a minimum threshold and cannot select exact initial source. New optional launcher
+anchor-reference-producer requires automatic managed anchored compact exact-effects
+capture, positive bounded producer before evaluation. Runtime parser fails closed;
+worker checks actual snapshot/job producer identity and exact ordinal before initial
+Apply. Early/missed sources and failed publication cannot silently seed another
+reference. Default0/ordinary gameplay, source projection and strict replay remain
+unchanged; later reanchors are not claimed deterministic. No blocking emulation.
+Nine actual-worker and four parser checks added;37launcher tests pass. Four serial
+builds and1231/0selftests x3 pass under anchor-reference-build-a; no live run yet.
+Validated source/binary SHA256 records retained alongside build/test logs.
+Next bounded pair keeps6300..6364/640x480/profile, explicitly selects producer4800
+and retains received packets to support any further strict mismatch diagnosis.
+
 LOG1180 live replay acquisition follow-up,2026-09-18.
 Source slice eabb757d0 committed/pushed; fork SHA verified. Four serial builds,
 1218/0selftests x3,36launcher tests and source/binary hashes verified before launch.

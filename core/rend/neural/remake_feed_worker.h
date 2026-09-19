@@ -40,6 +40,7 @@ struct RemakeFeedJob {
  PvrDecodedPacket snapshot;RemakeViewScene scene;remake::Packet packet;RemakeOverlaySnapshot overlay;
  bool anchored=false,temporal=false,managed=false,captureScene=false;
  bool compactCaptureTransport=false;
+ std::uint64_t anchorReferenceProducer=0; // Explicit bounded diagnostic initial source, never a gameplay scheduler.
  std::size_t sentTextureBytes=0; // Session registration budget snapshot.
  // Geometry and texture selection are already owned; smoothing changes only
  // normals and can precede packet creation without device/context access.
@@ -92,6 +93,20 @@ class RemakeFeedWorker {
   RemakeFeedResult r;r.frame=job.frame;r.producer=job.producer;r.overlay=std::move(job.overlay);r.anchored=job.anchored;
   r.overlay.captureTransport.reset(); // Only this job's successful publication may supply it.
   std::string error;RemakeCameraAnchor proposed;
+  if(job.anchorReferenceProducer) {
+   const auto reject=[&](const char* why){r.stage="camera-anchor-reference";r.error=why;
+    r.workerMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();};
+   if(!job.anchored||!job.managed||!job.captureScene||job.anchorReferenceProducer>10000000) {
+    reject("anchor-reference-scope");return r;
+   }
+   const auto actual=job.snapshot.sourceProducer;
+   if(!actual.Available()||actual.epoch!=job.producer.epoch||actual.ordinal!=job.producer.ordinal||actual.cycle!=job.producer.cycle) {
+    reject("anchor-reference-identity");return r;
+   }
+   if(anchor.Generation()==0&&!anchor.ReferenceOrdinal()&&actual.ordinal!=job.anchorReferenceProducer) {
+    reject(actual.ordinal<job.anchorReferenceProducer?"anchor-reference-awaiting":"anchor-reference-missed");return r;
+   }
+  }
   if(job.smoothNormals)for(auto& mesh:job.scene.meshes)SmoothRemakeViewNormals(mesh);
   if(job.buildPacket) {
    const RemakeTextureReader reader=[&](const PvrCapturedDraw& draw,std::vector<unsigned char>& bytes,std::string& why) {

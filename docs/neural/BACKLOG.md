@@ -23,7 +23,7 @@ user intent, not proof of model settings. Current-turn Continue authorizes work.
 
 ### Delivery status and forecast
 
-Updated 2026-09-18, evidence through LOG1180. This is a summary
+Updated 2026-09-18, evidence through LOG1181. This is a summary
 of the existing queue, not a new roadmap or a replacement acceptance contract.
 Overall: implementation and scoped verification in progress; no release date
 committed. Current engineering priority remains FC-067 / M2-scene.
@@ -80,8 +80,11 @@ evaluation/history chain;6301/6302 never evaluated. Public locked replay termina
 0captures:60scene rejections at origin byte189 and2missing-source rejections.
 Initial anchor references differ control4672/public4671 although both later
 references are4832; prior-reference lineage propagates different generation origins.
-Next deterministic INITIAL diagnostic anchor acquisition with explicit source
-identity and fail-closed missed-source behavior, then a new matched comparison.
+LOG1181 implements optional exact INITIAL diagnostic anchor producer with actual
+source identity and failed/missed-source rejection; four builds,1231/0selftests x3
+and37launcher tests pass. Live validation pending.
+Then one matched comparison with producer4800, same6300..6364window and received
+packet retention; later reanchors/history must still match before attribution.
 Do not normalize origin or keep shifting capture windows. This does not pass65
 consecutive frames. Require exact scene/input/guidance/history before attribution.
 Wire-mode differences are not proven to cause the earlier origin mismatch.

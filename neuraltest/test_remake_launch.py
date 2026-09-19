@@ -10,6 +10,28 @@ from remake_launch import prepare, expected_retirement, orderly_host_shutdown, a
 
 
 class LaunchPreflightTests(unittest.TestCase):
+    def test_anchor_reference_is_explicit_bounded_and_before_evaluation(self):
+        with patch.dict(os.environ, {'FLYCAST_REMAKE_ANCHOR_REFERENCE_PRODUCER': '4800'}):
+            self.assertNotIn('FLYCAST_REMAKE_ANCHOR_REFERENCE_PRODUCER', prepare(self.args)[2])
+        self.args.anchor_reference_producer = 4800
+        with self.assertRaisesRegex(ValueError, 'Anchor reference'):
+            prepare(self.args)
+        self.args.capture_frames = 5
+        self.args.capture_start_source = 6300
+        self.args.managed_session = self.args.anchored_light = True
+        self.args.capture_references = self.args.effect_identity = True
+        self.assertEqual(prepare(self.args)[2]['FLYCAST_REMAKE_ANCHOR_REFERENCE_PRODUCER'], '4800')
+        for name, value in [('anchor_reference_producer', -1), ('anchor_reference_producer', 10000001),
+                            ('anchor_reference_producer', 6300), ('anchored_light', False),
+                            ('capture_references', False), ('effect_identity', False),
+                            ('managed_session', False), ('manual_input', True), ('capture_frames', 0)]:
+            with self.subTest(name=name, value=value):
+                old = getattr(self.args, name)
+                setattr(self.args, name, value)
+                with self.assertRaises(ValueError):
+                    prepare(self.args)
+                setattr(self.args, name, old)
+
     def test_capture_references_opt_in_and_inherited_flag_removed(self):
         with patch.dict(os.environ, {'FLYCAST_REMAKE_CAPTURE_REFERENCES': '1'}):
             self.assertNotIn('FLYCAST_REMAKE_CAPTURE_REFERENCES', prepare(self.args)[2])

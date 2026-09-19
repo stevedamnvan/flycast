@@ -38,6 +38,16 @@ inline bool RemakeCompactCaptureTransportEnabled(bool captureScene,const char* r
  const auto count=RemakePreviewCaptureLimit(frames,moving);
  return count>0&&count<=300;
 }
+// Exact initial reference is confined to a bounded diagnostic by the caller.
+// Invalid text preserves the caller's value; absence leaves gameplay unchanged.
+inline bool RemakeParseAnchorReference(const char* text,bool boundedDiagnostic,std::uint64_t& output)noexcept {
+ if(!text){output=0;return true;}
+ if(!boundedDiagnostic||!*text)return false;
+ std::uint64_t value=0;
+ for(;*text;++text){if(*text<'0'||*text>'9')return false;value=value*10+unsigned(*text-'0');if(value>10000000)return false;}
+ if(!value)return false;
+ output=value;return true;
+}
 // Diagnostic evaluation start, not an emulation scheduler. With no request the
 // ordinary path is unchanged; malformed or unbounded requests fail closed.
 inline bool RemakeComparisonEligible(const char* start,std::uint64_t frame,bool boundedCapture)noexcept {
