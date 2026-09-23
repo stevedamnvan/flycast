@@ -1,9 +1,112 @@
 # Development handoff
 
-## Current execution checkpoint
+## Current execution checkpoint (2026-09-23 handover, LOG1185, D-243)
+
+Read this section first. It is written to be followed step by step. Everything
+below it is history, not instructions.
+
+### Goal right now
+
+The user wants a **playable build** of the Soulcalibur RTX Remix remaster soon,
+then better characters (hair, skin, blades) and no darkening, judged in that
+build. Do not restart the exact-input two-run comparison (LOG1180..1184); it is
+parked (D-243).
+
+### What exists (all verified 2026-09-23)
+
+- `neuraltest/remake_play.py` (source commit 1f58cf26e): play launcher. Starts Flycast and the Remix helper
+  with no frame/time limits. Docs: `docs/neural/REMAKE-LAUNCH.md`, "Play sessions".
+- Helper play switch `FLYCAST_REMAKE_HELPER_PLAY=1` (`neuraltest/remake_runtime_budget.h`,
+  `RemakePlayLimits`). Only affects session workers started by the play launcher.
+- Play workspace (outside Git): `C:\Game Dev\Emulators\flycast-play\soulcalibur`.
+  Double-click `Play Soulcalibur (dlss5).bat` or `Play Soulcalibur (dlaa).bat`.
+  It holds its own `flycast.exe`, `tools\remake-runtime-smoke.exe`,
+  `remix-play.conf`, `reshade-dlss5.ini`, `reshade-dlaa.ini`.
+- Lighting fix: world-space sun (default in `remake_play.py`) plus
+  `remix-play.conf` (vertex colour strength 0, shrine sky textures). Evidence and
+  comparison sheets: `C:\Flycast-Evidence\lighting-fix-a` (`sheet-1..3.png`).
+- Smoke test `play-logs\smoke-a`: ran 5790 frames on one helper with no failure.
+  It ended because the scripted input file ran out; that is expected for
+  `--scripted-input` only.
+
+### Known problems (in priority order)
+
+1. Not yet played with a controller. Real play is the next test.
+2. Other stages: sky texture hashes are only known for the shrine stage.
+3. Blades look dark grey (no shine). Needs material work (see step 6).
+4. The Remix Neural Radiance Cache fails to start in every run (falls back).
+5. The 3D image lags the HUD by about 4 frames (LOG957). Measure in play.
+
+### Step-by-step next work
+
+Do one step at a time. After each step, write a short LOG entry (newest at the
+top of `docs/neural/LOG.md`, next number LOG1186) and commit.
+
+1. **Smoke test after the last changes.** Make sure no other `flycast.exe` runs
+   (`tasklist /FI "IMAGENAME eq flycast.exe"`). Another session (RE4 Dreamcast)
+   also uses Flycast; if it is running, wait. Never kill a Flycast you did not
+   start. Then from `C:\Game Dev\Emulators\flycast` run:
+   `python neuraltest/remake_play.py --workspace "C:/Game Dev/Emulators/flycast-play/soulcalibur" --helper "C:/Game Dev/Emulators/flycast-play/soulcalibur/tools/remake-runtime-smoke.exe" --runtime "C:/Game Dev/Emulators/external-runtimes/remix-1.5.2/runtime/.trex/d3d9.dll" --game "C:/Game Dev/Emulators/Soulcalibur (USA).chd" --remix-config "C:/Game Dev/Emulators/flycast-play/soulcalibur/remix-play.conf" --look dlss5 --scripted-input --logs "C:/Game Dev/Emulators/flycast-play/soulcalibur/play-logs/smoke-b"`
+   Pass: `helper-g1.log` has `play_session=1` and no `live source failed`, and
+   `flycast.log` in the workspace stays small (a few MB). Repeat with `--look dlaa`.
+2. **Ask the user to play** with `Play Soulcalibur (dlss5).bat` for 20-30 minutes
+   (several characters and stages, a window resize, quitting normally). Ask them
+   what looked or felt wrong. Read `play-logs\<time>\helper-g*.log` and the
+   `[play]` lines in the console. Record findings in the LOG.
+3. **Fix what play shows**, in this order: crashes/hangs, stage/round
+   transitions, input lag, stutter, then looks. One fix per commit.
+4. **Sky for other stages.** For a stage, capture a frame with the helper
+   (method in LOG1185 and `C:\Flycast-Evidence\lighting-fix-a\render.py`, env
+   `DXVK_RTX_CAPTURE_ENABLE_ON_FRAME=60`), match the far white backdrop meshes to
+   `rtx-remix\captures\textures\*.dds` by payload SHA, and add only hashes not
+   shared with near meshes to `rtx.skyBoxTextures` in `remix-play.conf`.
+5. **Check the sun on each stage.** Use `render.py` with `--direction` on a saved
+   `remake-view.bin` and compare against `original-native.png`: the character
+   shadows should fall the same way as in native.
+6. **Blades.** Give the blade materials low roughness and full metallic through
+   the Toolkit MCP (AGENTS.md pilot rules; separate layer; never edit the
+   baseline mod in place). Compare offline with `render.py` before and after.
+7. Only after 1-6: hair and skin work with the DLSS 5 look on the corrected
+   input. Do not add gamma or brightness compensation.
+
+### How to make a clean commit (every time)
+
+1. `git status --short` and `git log --oneline -3`. Someone else may have
+   committed; do not undo their work.
+2. Build all four configurations **one after another** (never in parallel, never
+   while a game or helper runs). In PowerShell from the repo:
+   `cmd.exe /c '"C:\BuildTools\VS2022\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64 && cmake --build build-neural-automation && cmake --build build-neural-baseline && cmake --build build-neural-no-ngx && cmake --build build-neural-off'`
+3. Run `build-neural-automation/neuraltest/neuraltest.exe selftest`, then the
+   same for `build-neural-baseline` and `build-neural-no-ngx`. Each must end
+   `failed=0` (1246 passed at LOG1185; more is fine if you added tests).
+4. In `neuraltest/`: `python -m unittest test_remake_launch` must say `OK` (37 tests).
+5. If you changed BACKLOG: `python neuraltest/backlog_contract_inspect.py`.
+6. Stage **only the files you changed, by name** (`git add path/to/file`). Never
+   `git add -A`, `git add .` or `git commit -a`.
+7. Do **not** stage these (they belong to someone else or are local junk):
+   `core/rend/neural/remake_alpha_cutout.h`,
+   `neuraltest/remake_fully_opaque_alpha_tests.h`, `*.log`, `*.dxvk-cache`,
+   `metrics.txt`, `nrc_session_log.txt`, anything under `build-*`.
+8. Commit message: `type(neural): short summary`, then a blank line and the
+   attribution line the environment asks for.
+9. `git push fork feat/neural-rendering`, then check that
+   `git rev-parse HEAD` equals `git rev-parse fork/feat/neural-rendering`.
+10. After copying a new `flycast.exe` or helper into the play workspace, rerun
+    step 1 of the next-work list.
+
+### Never do
+
+- Never reset, clean, stash, rebase or force-push. Never delete evidence.
+- Never edit files under `C:\Flycast-Evidence` that already exist (make new folders).
+- Never write the user's live Remix or ReShade config outside the play workspace.
+- Never claim "60 fps", "production ready" or visual approval; the user decides looks.
+- Never download models or tools, or spend money, without asking the user.
+- If disks get near full (check `Get-CimInstance Win32_LogicalDisk`), stop and ask.
+
+## Previous checkpoint (2026-09-19, LOG1184): history, not instructions
 
 Authoritative queue: `docs/neural/BACKLOG.md`. Latest checkpoint LOG1184,2026-09-19.
-Verified source checkout: 723c75a726f3067b7df300d0e1ce59967383e8d0,
+Verified source checkout (2026-09-19): 723c75a726f3067b7df300d0e1ce59967383e8d0,
 feat/neural-rendering; read actual HEAD/status and fork ref on resume.
 Persistent full-remaster objective retained. Tracker re-read ACTIVE on continuation
 (LOG1177), superseding audit PAUSED observation at that time. Current tracker
