@@ -1,5 +1,29 @@
 # Bounded experimental Remix launch
 
+## Play sessions (opt-in, D-243)
+
+`neuraltest/remake_play.py` is the route for actually playing. It starts
+Flycast directly (no harness sampling or frame bound) and starts one Remix
+helper per session generation the renderer requests, with no generation cap.
+The helper runs with `FLYCAST_REMAKE_HELPER_PLAY=1`, which lifts the session
+worker's frame, runtime, idle and first-source bounds to day-scale backstops.
+
+```powershell
+python neuraltest/remake_play.py --workspace "<prepared-host>" --helper "<build>/neuraltest/remake-runtime-smoke.exe" --runtime "<supplied-runtime>/d3d9.dll" --game "<legal-media>/Soulcalibur.chd" --remix-config "<prepared-host>/remix-play.conf" --look dlss5 --output-size 1280x960
+```
+
+- `--look dlss5|dlaa` copies `reshade-<look>.ini` over the workspace's
+  `reshade.ini` (DLAA sets `[RenoDX.DLSS5] EnableHooks=0`) and selects the lane.
+- The default sun is a world-space direction matched to the native drop shadow
+  on the shrine stage (LOG1185); `--sun`, `--sun-radiance`, `--fill` override it.
+- `remix-play.conf` sets `rtx.vertexColorStrength = 0.0` and the shrine
+  `rtx.skyBoxTextures`; other stages need their own sky hashes (LOG1185 method).
+- Logs go to `<workspace>/play-logs/<time>`; per-frame lines are dropped unless
+  `--verbose-log`. `--scripted-input` replays the automation input for an
+  unattended smoke test and ends with an automation time-out when the script runs out.
+- It refuses to start while any other `flycast.exe` runs. Play sessions are never
+  performance, provenance or appearance evidence.
+
 Independent fill diagnostic: `--scene-fill="X Y Z radiance" --anchored-light`
 on the launcher requires bounded capture. XYZ must be unit length and radiance
 0..3; temple rig conflicts. The helper accepts the same value before

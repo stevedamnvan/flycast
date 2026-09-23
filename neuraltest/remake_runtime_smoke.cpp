@@ -129,16 +129,21 @@ int wmain(int argc,wchar_t** argv) {
  if(!*argv[4] || *end || !frameLimit || !runtime.is_absolute()) {
   std::cerr<<"invalid bounded arguments\n";return 2;
  }
- const long frames=*frameLimit;
+ // Opt-in play session: only a session worker may lift its bounds (see RemakePlayLimits).
+ const bool playSession=sessionWorker&&[]{wchar_t v[2]{};return GetEnvironmentVariableW(L"FLYCAST_REMAKE_HELPER_PLAY",v,2)==1&&v[0]==L'1';}();
+ const long frames=playSession?RemakePlayLimits::frames:*frameLimit;
+ if(playSession)sourceWaitMs=RemakePlayLimits::sourceWaitMs;
+ const unsigned liveIdleWaitMs=playSession?RemakePlayLimits::idleWaitMs:RemakeLiveIdleWaitMs(sessionWorker);
  unsigned rejectedReturns=0;
  if(packetSequenceList&&(sessionWorker||diagnosticCaptureBudget||argc!=14||std::wstring(argv[5])!=L"--live-artifact"
   ||std::wstring(argv[12])!=L"--capture-d3d9-scene-memory")) {
   std::cerr<<"packet sequence requires offline fresh D3D9 memory capture\n";return 2;
  }
  const auto runtimeBudget=packetSequenceList?std::optional<unsigned>{120u}:
+  playSession?std::optional<unsigned>{RemakePlayLimits::runtimeSeconds}:
   RemakeRuntimeBudget(diagnosticCaptureBudget,extendedReturn,requestedFrames,sessionWorker);
  if(!runtimeBudget){std::cerr<<"diagnostic capture budget requires async returned scene\n";return 2;}
- std::cout<<"session_worker="<<sessionWorker<<" maximum_frames="<<frames
+ std::cout<<"session_worker="<<sessionWorker<<" play_session="<<playSession<<" maximum_frames="<<frames
   <<" runtime_watchdog_seconds="<<*runtimeBudget<<"\n"<<std::flush;
  std::optional<Packet> snapshot;
  std::optional<std::pair<float,float>> deferredLiveClip; // D-220: first live source received after runtime start.
@@ -378,7 +383,7 @@ int wmain(int argc,wchar_t** argv) {
      if((liveChannelAsync?frames<61:frames!=63)||argc!=14)throw std::invalid_argument("live channel requires 60 warmup plus bounded source frames");
      const std::wstring token(argv[6]);if(token.size()>64||!std::all_of(token.begin(),token.end(),[](wchar_t c){return c>0&&c<128;}))throw std::invalid_argument("channel token bound");
      if(!channel.CreateConsumer(std::string(token.begin(),token.end()),reason))throw std::invalid_argument(reason);
-     std::cout<<"live_channel_ready=true bounded_source_wait_ms="<<sourceWaitMs<<" live_idle_wait_ms="<<RemakeLiveIdleWaitMs(sessionWorker)<<" saved_packets_read=false\n"<<std::flush;
+     std::cout<<"live_channel_ready=true bounded_source_wait_ms="<<sourceWaitMs<<" live_idle_wait_ms="<<liveIdleWaitMs<<" saved_packets_read=false\n"<<std::flush;
      // D-220: the live return-only session receives its first source after the
      // runtime has started (device, shaders, Reflex: about 4 s), so that startup
      // is not spent holding the host's three sources.
@@ -634,7 +639,7 @@ int wmain(int argc,wchar_t** argv) {
       next=std::move(prefetched->packet);activeSourceReceipt=prefetched->receipt;receivedAt=prefetched->receivedAt;
       previousReceivedAt=prefetched->previousReceivedAt;periodMs=prefetched->periodMs;receiveWaitMs=prefetched->receiveWaitMs;
       prefetched.reset();
-     } else receiveNext(next,RemakeLiveIdleWaitMs(sessionWorker));
+     } else receiveNext(next,liveIdleWaitMs);
      const bool regenerated=liveChannelAsync&&AnchorGenerationChange(*snapshot,next);
      if(!regenerated&&!(liveChannelAsync?AsyncSourceContinuation(*snapshot,next):DiagnosticContinuation(*snapshot,next)))throw std::runtime_error("live source continuity rejected");
      if(regenerated)std::cout<<"live_anchor_generation_change previous="<<snapshot->frame<<" current="<<next.frame

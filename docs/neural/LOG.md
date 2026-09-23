@@ -1,5 +1,39 @@
 # Neural rendering evidence log
 
+LOG1185 lighting profile, world-space sun and opt-in play route,2026-09-23.
+User direction: playable build sooner; fix darkening/hair/characters in it (D-243).
+Profile of retained C-pair source6364 (exact inputs both lanes): raw Remix return
+is already dark before evaluation (geometry luminance native137/return96, floor
+165/75, bluer); consumer then crushes shadows (geometry p5 36->21) and desaturates.
+Causes read from source: key light direction=camera.forward of the first anchored
+view (remake_scene_lighting.h Select; API direction is travel direction), so the
+light grazes the floor and shadows fall behind fighters; no dome/sky light;
+backdrop meshes (unlit white vertex colour, ~1500 units) drawn as lit geometry;
+Remix defaults eye adaptation/ACES; 95% of vertices carry game vertex lighting
+(90..255) but replacement materials make rtx.vertexColorStrength nearly inert
+(mean diff 0.96). Offset/specular colour is captured but not transported, so
+blade shine is lost; blades stay dark in every lighting variant (material work).
+Offline same-packet re-renders (C:/Flycast-Evidence/lighting-fix-a, render.py,
+sheet-1..3): world-space sun -0.635885233,-0.730868090,0.247955248 (down, away
+from camera, left, matching native shadow) restores floor169/geometry129 versus
+native165/137 with real character/sword cast shadows; fixed exposure overshoots
+(153/193) so eye adaptation stays. rtx.skyDrawcallIdThreshold has no effect on
+textured draws (0.27 mean diff at 20); sky tagging uses rtx.skyBoxTextures with
+shrine hashes found by a USD capture matched by payload SHA (54/54 textures):
+9864371B47BAC786,94AB937384DB5A18,83597CCA5EF25256,84395323BBBB705A; 508A7DDC902B5767
+excluded because near cliff meshes share it. NRC fails to initialise in every
+run (importance-sampled fallback); retained, not yet investigated.
+Play route: helper FLYCAST_REMAKE_HELPER_PLAY=1 (session worker only) lifts frame/
+runtime/idle/source-wait bounds to day-scale backstops (RemakePlayLimits);
+neuraltest/remake_play.py starts Flycast directly (no harness sampling) and starts a
+helper per requested generation without the eight-generation cap, with reduced
+logging unless --verbose-log. Scripted smoke smoke-a (1280x960, supplied consumer,
+sun+sky config): one helper generation, 5790 returns to source10600, no helper
+failure, ~18ms helper period; ended when the replay script ran out (automation
+time-out, scripted-input only). Screenshot: sunlit fighters, cast shadows, HUD
+intact. Four serial builds; 1246/0 selftests x3; 37 launcher tests. Not
+performance, provenance or appearance acceptance; controller play session next.
+
 LOG1184 diagnostic overlay live proof and separate source mismatch,2026-09-19.
 Source723c75a726f3067b7df300d0e1ce59967383e8d0 pushed/fork verified. D pair at
 C:/Flycast-Evidence/face-evaluation-compact-locked-d uses same6300..6364/4800 initial

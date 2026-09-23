@@ -64,6 +64,8 @@ TestCounts TestSceneContract() {
  expect(!RemakeWorkerFrameLimit(true,false,660),"worker requires returned scene route");
  expect(!RemakeWorkerFrameLimit(true,true,120),"worker rejects ambiguous short diagnostic request");
  expect(RemakeLiveIdleWaitMs(true)==60000u&&RemakeLiveIdleWaitMs(false)==5000u,"session worker idle wait is bounded and explicit");
+ expect(RemakePlayLimits::frames>RemakeWorkerFrameLimit(true,true,660).value()&&RemakePlayLimits::runtimeSeconds>=24u*3600u
+  &&RemakePlayLimits::idleWaitMs>RemakeLiveIdleWaitMs(true)&&RemakePlayLimits::sourceWaitMs>=RemakePlayLimits::idleWaitMs,"play session limits exceed diagnostic worker bounds");
  {
   // Exercise vector groups, exceptional groups and every scalar tail length.
   for(std::size_t width:{1u,2u,3u,4u,5u,6u,7u,8u,9u,33u,4097u}) {

@@ -21,4 +21,14 @@ inline std::optional<unsigned> RemakeRuntimeBudget(bool diagnosticCapture,
  if(diagnosticCapture)return worker?420u:300u;
  return extendedReturn && frames>120 ? 120u : 30u;
 }
+// Opt-in play session (FLYCAST_REMAKE_HELPER_PLAY=1 on a session worker only):
+// the helper lives as long as the game, including long menus between fights.
+// These are day-scale backstops against a hung process, not test bounds, and
+// never make a run performance or acceptance evidence.
+struct RemakePlayLimits {
+ static constexpr long frames=2000000000L;
+ static constexpr unsigned runtimeSeconds=7u*24u*3600u;
+ static constexpr unsigned idleWaitMs=3600000u;
+ static constexpr unsigned sourceWaitMs=3600000u;
+};
 }

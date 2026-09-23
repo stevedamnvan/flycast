@@ -1,5 +1,20 @@
 # Neural rendering decisions
 
+## D-243: playable build first; fix Remix lighting before judging the consumer
+
+User direction 2026-09-23: reach a playable build much sooner, and fix the
+character darkening, hair and character quality through a working build rather
+than further exact-input attribution. LOG1185 profiling showed the darkening
+starts upstream of the supplied consumer: the only key light pointed along the
+first anchored camera's forward axis (a grazing, camera-aligned lamp: no visible
+cast shadows, floor at 45% of native), the backdrop was an ordinary lit wall, and
+eye adaptation followed the bright backdrop. A fixed world-space sun matched to
+the native drop shadow restores floor/character levels and real cast shadows.
+The two-live-run exact-input comparison (LOG1180..1184) is parked, not failed:
+if attribution is needed later, replay one run's retained inputs offline.
+`remake_play.py` is an opt-in play route. It is not evidence and does not
+relax any working-pipeline gate; those still govern release.
+
 ## D-242: the narrowed observation scope watches less code, not less of each observation
 
 LOG907. `--observation-scope narrow` (FLYCAST_REMAKE_OBSERVATION_SCOPE=narrow,
