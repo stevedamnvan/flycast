@@ -27,3 +27,12 @@ nvngx_dlssnr*.dll
 renodx-dlss5.addon64
 ReShade*.dll
 dxgi.dll
+
+# Local neural-lane run output: build/selftest logs, runtime shader caches,
+# empty runtime session files, and the Remix capture/mod folder. rtx-remix/
+# holds captures derived from game media and must never be published.
+/*.log
+*.dxvk-cache
+/metrics.txt
+/nrc_session_log.txt
+/rtx-remix/

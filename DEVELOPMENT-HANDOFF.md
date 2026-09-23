@@ -83,10 +83,12 @@ top of `docs/neural/LOG.md`, next number LOG1186) and commit.
 5. If you changed BACKLOG: `python neuraltest/backlog_contract_inspect.py`.
 6. Stage **only the files you changed, by name** (`git add path/to/file`). Never
    `git add -A`, `git add .` or `git commit -a`.
-7. Do **not** stage these (they belong to someone else or are local junk):
-   `core/rend/neural/remake_alpha_cutout.h`,
-   `neuraltest/remake_fully_opaque_alpha_tests.h`, `*.log`, `*.dxvk-cache`,
-   `metrics.txt`, `nrc_session_log.txt`, anything under `build-*`.
+7. `git status --short` should list only your own files. Logs, shader caches,
+   `build-*` and `rtx-remix/` are ignored by `.gitignore`. Never force-add them:
+   `rtx-remix/` holds captures made from the game disc and must not be published.
+   `neuraltest/remake_fully_opaque_alpha_tests.h` is an unfinished 2026-09-13
+   draft: it is not included by any build and calls `RemakeAlphaFullyOpaque`,
+   which does not exist yet. Leave it alone unless you are finishing that work.
 8. Commit message: `type(neural): short summary`, then a blank line and the
    attribution line the environment asks for.
 9. `git push fork feat/neural-rendering`, then check that
