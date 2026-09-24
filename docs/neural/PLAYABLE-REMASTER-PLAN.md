@@ -327,8 +327,9 @@ Summary for the agent:
      "Hair meshes: approve Phase A". Deliver a before/after moving comparison
      and the measured GPU cost, then stop and ask.
   3. **Phase B (live play integration): 8-12 days, $0.** Only on separate approval.
-  4. **Art:** per hairstyle, commissioned about $150-800 (all 15-20 styles about
-     $3,000-15,000), marketplace packs about $300-1,500 total (poor match), or
+  4. **Art:** per hairstyle, commissioned about $150-800 (all 13-20 styles about
+     $2,000-16,000; about 13 of 19 fighters have hair, 4-5 priority-1 long
+     styles, see HAIR-MESH-DESIGN.md section 4a), marketplace packs about $300-1,500 total (poor match), or
      DIY in Blender (1-3 days each). The user chooses; never buy anything
      yourself. No MetaHuman or engine-locked assets; never publish game assets.
   5. **Phase D (per hairstyle integration): 1-2 days each**, user approves each.

@@ -72,19 +72,103 @@ Engineering time is in agent working days (a day is about one long focused sessi
 | C. Art, per hairstyle | New hair cards (mesh + albedo/alpha/normal/roughness/flow), fit onto the reference frame | see section 5 | see section 5 | User approves each hairstyle in play |
 | D. Per-hairstyle integration | Find UV region, reference frame, binding, material in its own layer, check in play | 1-2 days each | $0 | User approval |
 
-Roster scope (estimate; the game's full roster/costume list is not yet counted,
-BACKLOG "Delivery status"): about 12-14 characters have visible hair; with
-costume variants about 15-20 hairstyles.
+Roster scope: see section 4a. About 13 hair shapes for the full 19-fighter
+roster, 7 of them in the 10 fighters captured so far; alternate costumes add
+an unknown number (planning figure 13-20).
 
 Engineering total, first character end to end (A+B+one D): about 3-4 weeks.
 Then about 1-2 days per extra hairstyle, so all hairstyles about 5-8 more weeks
 of integration, in parallel with art delivery.
 
+## 4a. How much hair would need replacing (scope analysis, LOG1188)
+
+Sources: the 67 captured character texture groups
+(`C:/Flycast-Evidence/character-texture-readiness-b/full-character-ledger.json`,
+atlases viewed as one contact sheet), the default-row selection evidence in the
+same folder's `FULL-CHARACTER-COVERAGE.md`, and Sophitia's measured hair
+(LOG1167/1168). The fighters that are not captured are listed from the game's
+name labels. Their hair is general knowledge of the character designs, **not
+checked in this emulator**. Costume counts have not been observed at all.
+
+**Captured default row (10 fighters):**
+
+| Fighter | Hair in the captured textures | Replace? | Priority |
+| --- | --- | --- | --- |
+| Sophitia | Blonde hair in a mixed skin/strap atlas; 184 triangles, about 3,545 texels (measured) | Yes | 1 (Phase A) |
+| Ivy | Large white/silver alpha hair-strip regions in two atlases; the biggest hair area captured | Yes | 1 |
+| Taki | Brown hair strips plus alpha fringe cut-outs (atlas owner inferred from the images) | Yes | 1 |
+| Xianghua | Black hair and a braid next to her red flowered cloth; green-keyed fringe cut-outs | Yes | 1 |
+| Mitsurugi | Hair on the side-face atlas (topknot) | Yes | 2 |
+| Kilik | Short dark hair with fringe cut-outs (atlas owner inferred) | Yes | 3 |
+| Maxi | Black pompadour: a hair strip, a fringe cut-out and a side-of-head region | Yes | 3 |
+| Voldo | None visible (head covered) | No | - |
+| Nightmare | None visible (helmet) | No | - |
+| Astaroth | No head hair; the dark cut-out fringes look like fur or cloth trim | No | - |
+
+**Not captured (9 selectable fighters named in the game's labels; unlocked
+state not proven):**
+
+| Fighter | Hair (general knowledge, to verify in capture) | Replace? |
+| --- | --- | --- |
+| Seung Mina | Long ponytail | Yes, priority 1 |
+| Siegfried | Short blond | Yes, 3 |
+| Hwang | Tied-back dark hair | Yes, 3 |
+| Cervantes | Long hair, mostly under a hat | Yes, 3 (low visibility) |
+| Edge Master | Grey hair/beard | Yes, 3 |
+| Rock | Mostly covered by headgear | Maybe |
+| Yoshimitsu | Mask/headgear | No |
+| Lizardman | None | No |
+| Inferno | None (flame body) | No |
+
+"Unknown Soul" is a name label with no known selectable fighter; ignore it
+until a capture shows one.
+
+**Totals:**
+
+- **About 13 of 19 fighters** have hair worth replacing: 7 captured plus about
+  6 not captured (Rock uncertain). That means **about 13 distinct hair shapes**
+  for the default costumes.
+- **4-5 priority-1 shapes** give most of the visible gain: Sophitia, Ivy, Taki,
+  Xianghua, and Seung Mina once captured. These are long or flowing hair, which
+  the low-poly original shows worst. Short styles (Kilik, Maxi, Siegfried,
+  Hwang) gain less.
+- **Alternate costumes:** the 2P colour costume normally reuses the same
+  geometry with a different texture. It needs its own binding (the atlas
+  identity changes) but no new art, only a recoloured hair texture. Unlockable
+  extra costumes may change the hairstyle. Count is unknown; planning allowance
+  is **0-7 extra shapes**, which gives 13-20 in total.
+- **Bindings to author:** about 13 shapes × 2 colour costumes = about 26 hair
+  bindings, plus any extra-costume shapes. A binding is part of Phase D (about
+  half a day for a colour variant, which reuses the shape's fit).
+- **Size of each replacement:** the originals are tiny (Sophitia's hair is 184
+  triangles). Each new shape is 5k-20k card triangles, so the gain per style is
+  large. A match shows only two fighters, so per-frame GPU cost is bounded by
+  **two hairstyles**, not the roster.
+- **Original hair is not a separate mesh for any captured fighter.** Every hair
+  region shares an atlas with skin, cloth or straps, and several use alpha or
+  green-keyed cut-out fringes. So every style needs the per-triangle UV-region
+  hide (section 3 step 1). Find each region with the uv-audit tool (LOG1167),
+  about 1-2 hours per shape, which is included in the Phase D estimate.
+
+**Recommended staging (cost at commissioned rates, section 5):**
+
+| Stage | Shapes | Art (commissioned) | Integration |
+| --- | --- | --- | --- |
+| Phase A spike | Sophitia (placeholder cards) | $0 | 6-9 days |
+| Priority 1 | Sophitia, Ivy, Taki, Xianghua (+ Seung Mina once captured) | about $600-4,000 | 4-10 days |
+| Priority 2-3, captured | Mitsurugi, Kilik, Maxi | about $450-2,400 | 3-6 days |
+| Not captured yet | Siegfried, Hwang, Cervantes, Edge Master, (Rock) | about $600-4,000 | 4-10 days, after the capture work |
+| Extra costumes | 0-7 (unknown) | up to about $5,600 | up to 14 days |
+
+Capturing the 9 missing fighters and the costumes is a prerequisite for the
+last two rows. It needs a legitimately progressed save; do not edit or
+download saves (FULL-CHARACTER-COVERAGE.md).
+
 ## 5. Art options (estimate; get real quotes before deciding)
 
-| Option | Cost per hairstyle | All 15-20 | Notes |
+| Option | Cost per hairstyle | All 13-20 | Notes |
 | --- | --- | --- | --- |
-| Commission a freelance hair-card artist | about $150-800 (higher for premium) | about $3,000-15,000 | Best match to each character's design; needs a clear brief and licence to use in this private project |
+| Commission a freelance hair-card artist | about $150-800 (higher for premium) | about $2,000-16,000 | Best match to each character's design; needs a clear brief and licence to use in this private project |
 | Marketplace hair-card packs | about $20-100 per pack | about $300-1,500 | Poor style match likely; check licence allows modification; still needs fitting (0.5-1 day each) |
 | Do it yourself in Blender (free) | $0 | $0 | About 1-3 days each for a practised hobbyist; quality depends on skill |
 | AI 3D generation | n/a | n/a | Not usable today for alpha hair cards; do not plan on it |

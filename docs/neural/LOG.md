@@ -1,5 +1,19 @@
 # Neural rendering evidence log
 
+LOG1188 hair replacement scope analysis,2026-09-23.
+HAIR-MESH-DESIGN.md section 4a. Viewed all captured character atlases as one contact
+sheet (ledger character-texture-readiness-b/full-character-ledger.json, 57 of 67
+decoded; Mitsurugi/Sophitia from their known audit). Hair present in 7 of 10 captured
+fighters (Sophitia, Ivy, Taki, Xianghua, Mitsurugi, Kilik, Maxi; Taki/Kilik/Xianghua
+atlas ownership inferred from imagery); none for Voldo, Nightmare, Astaroth. Every hair
+region shares an atlas with skin/cloth, several are alpha or green-keyed cut-out
+fringes, so all need per-triangle UV-region hiding. The 9 uncaptured fighters' hair is
+general design knowledge, not observed: about 6 more shapes. Totals: about 13 shapes
+for default costumes, 4-5 priority-1 long styles, about 26 bindings with 2P colour
+variants, extra costumes unknown (planning 0-7 extra shapes). Per-frame GPU cost is
+bounded by two hairstyles. Art estimate revised to $2,000-16,000 commissioned for 13-20.
+No measurement of per-fighter hair triangle counts beyond Sophitia (184).
+
 LOG1187 modern hair mesh design and cost estimate (proposal only),2026-09-23.
 docs/neural/HAIR-MESH-DESIGN.md: Remix mesh replacement cannot match CPU-posed hair
 (geometry hash includes positions; characters carry no bones). Proposed helper-side
