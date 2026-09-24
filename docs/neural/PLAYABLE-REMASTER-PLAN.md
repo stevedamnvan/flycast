@@ -6,8 +6,8 @@ release checklist ("Working-pipeline acceptance"), which applies only at the end
 (Phase 9). AGENTS.md hard rules still apply everywhere.
 
 Goal: a build the user can **play** soon, then **optimize** it until it runs well
-and looks like a real remaster (better lighting, characters, hair, blades), while
-never breaking what already works.
+and looks like a real remaster (better lighting, then skin and metal, then
+hair), while never breaking what already works.
 
 ---
 
@@ -52,8 +52,8 @@ never breaking what already works.
     `rtx.skyBoxTextures` in the play config. Other stages still need their hashes.
   - The launcher/helper had test time limits. Fixed for play by
     `remake_play.py` and `FLYCAST_REMAKE_HELPER_PLAY=1`.
-- Still wrong (planned below): blades dull (the game's specular colour is not
-  sent to Remix, and blade materials need metal/roughness work); hair shows a
+- Still wrong (planned below): no character texture has real materials yet,
+  so blades and armour look dull and skin looks painted (Phase 6); hair shows a
   painted highlight band and soft edges; sky only tagged on one stage; the
   Remix Neural Radiance Cache fails to start in every run; 3D image is about
   3-4 frames behind the HUD; output only up to 1280x960.
@@ -244,23 +244,112 @@ LOG957 paired real-time-audio run).
 - Currently only 640x480 and 1280x960 exist. Adding 1920x1440 needs code in
   the host, helper and launchers. Ask the user before starting.
 
-## Phase 6: blades and metal
+## Phase 6: skin and metal materials
 
-### Task 6.1: blade materials (needs the Toolkit GUI: stop and ask)
+Priority (user, 2026-09-23): this phase comes **before** any new hair geometry
+(7.5). It gives every character real metal and soft skin through Remix
+materials. Full design, starting values, atlas list and pitfalls:
+`docs/neural/SKIN-METAL-MATERIALS.md` (read it before 6.1). It replaces the old
+"blade materials" and "8.1 skin" tasks.
+
+Tasks 6.1-6.3 write tools and region files. If the GPU is busy (section 3 step
+4), you may do the non-GPU parts of 6.2 and 6.3 early.
+
+### Task 6.1: used-UV tool
+- **Do:** write `neuraltest/remake_uv_usage.py PACKET --textures DIR --out DIR`.
+  Reuse the packet reader and the texture-matching method of
+  `remake_sky_hashes.py` (SHA-256 of the DDS payload against a Remix capture
+  textures folder). For each textured packet mesh whose texture matches, write
+  `<HASH>-uv.png`: the source atlas scaled 4x (nearest), unused texels darkened,
+  used triangles outlined, grid lines every 16 texels with texel numbers; and
+  `<HASH>-uv.json`: triangle count and used texel count. Add a unit test with
+  a small synthetic packet (style of `test_remake_launch.py`).
+- **Packets:** one per captured fighter. Use FRAME and the retained fighter
+  captures (`find C:/Flycast-Evidence -name remake-view.bin` in folders named
+  after the fighter, for example `character-maxi-runtime-a`,
+  `character-voldo-runtime-a`). Get the textures folder for each with
+  `remake_offline_render.py` plus the capture `--env` lines from task 4.3.
+  Write a "fighter -> packet" table into section 11.
+- **Pass when:** the test passes, and for FRAME every character atlas has a
+  `-uv.png` with triangles drawn where the native picture shows that surface.
+
+### Task 6.2: material regions for the pilot (Sophitia, Mitsurugi)
+- **Do:** for each Sophitia and Mitsurugi atlas (design doc section 4), write
+  `neuraltest/play/material-regions/<HASH>.json` (format: design doc 3.1).
+  Draw polygons only on used texels (from 6.1). Classes from the design doc;
+  leave anything unsure unmarked (`keep`). On face atlases mark eyes and lips
+  in **every** expression cell.
+- **Check:** draw a coloured overlay per atlas (one colour per class) into
+  `C:/Flycast-Evidence/material-regions-<date>/` (the preview part of the 6.3
+  tool; write that part first).
+- **Pass when:** the user has looked at the overlays and said yes (stop and
+  ask). Fix what they point out, then commit the JSON files.
+
+### Task 6.3: map builder
+- **Do:** write `neuraltest/remake_material_maps.py` (design doc 3.2-3.3).
+  Inputs: the region JSON, the source atlas DDS and the existing upscaled
+  albedo. Outputs: albedo, metallic, roughness, anisotropy, subsurface radius,
+  transmittance and normal maps at the albedo size, into an evidence folder
+  (never into Git). Metal albedo uses the "detail" rule; `keep` texels copy the
+  current baseline exactly. Author every mip level yourself; scalar maps as BC4
+  DDS. Unit tests: `keep` texels unchanged; metal texels get metallic 1; no
+  class value leaks into another region at any mip level where the region is
+  at least 2 texels wide.
+- **Pass when:** tests pass and the pilot maps look right when you open them
+  (do not trust numbers alone).
+
+### Task 6.4: pilot metal, proven in the frame (needs the Toolkit GUI: stop and ask)
 - **Do:** ask the user to start the RTX Remix Toolkit with the Soulcalibur
   project so its MCP server runs (AGENTS.md pilot rules; port 8002 was last
-  used). Find the blade material hashes (weapon review notes: LOG1178, blade
-  work in `C:\Flycast-Evidence\blade-metal-review-b`). In a **new separate layer**
-  (never the baseline `mod.usda`), set blade materials to metallic 1.0 and
-  roughness about 0.15-0.25. Save and export to the mod.
-- **Check:** offline render of FRAME before and after with the play config;
-  compare sheet; crop the katana at 3x.
-- **Pass when:** blades show bright reflections of sky/sun like native steel,
-  nothing else changed (compare the rest of the sheet), baseline `mod.usda`
-  SHA unchanged: `e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340`.
-  Then ask the user to look at it in play.
+  used). First read `layers/character_correction.usda` (inactive; earlier
+  blade and gold-cap maps). Create the new layer `layers/skin_metal_a.usda`
+  (never edit the baseline `mod.usda`).
+  1. **Prove the binding first:** on one pilot metal atlas, bind an extreme
+     control (metallic 1 and roughness 0 everywhere, or the magenta tag method
+     of LOG933). Render FRAME offline; the change must be obvious. Then remove
+     the control.
+  2. Ingest the pilot metal maps (scalar maps through the typed tool
+     `flycast_ingest_scalar_dds_current_process` in
+     `neuraltest/remix_capture_mcp.py`) and bind them in `skin_metal_a`. Save
+     and export to the mod.
+- **Check:** offline renders of FRAME with and without the layer
+  (`--conf-file neuraltest/play/remix-play.conf`); render "without" twice to see
+  the path-tracing noise level; compare sheet; crops of the katana and of
+  Sophitia's sword and shield at 3x.
+- **Pass when:** blades and armour show real reflections of sky and sun without
+  the painted-highlight look; cloth and skin unchanged beyond noise; baseline
+  `mod.usda` SHA unchanged:
+  `e3c097905777002034a4983a166e061a6278ca4d70db9686f5dcd49f263e8340`.
+  Then the user looks at it in play and approves.
 
-### Task 6.2: game specular colour (only if 6.1 is not enough; ask first)
+### Task 6.5: pilot skin
+- **Do:** first read `layers/skin_response_review_b.usda` for earlier values.
+  In `skin_metal_a`, bind the pilot skin, eye and lip maps with the diffusion
+  profile on. Set `subsurface_radius_scale` by the design doc rule (head height
+  x 0.005, then x0.5 and x2).
+- **Check:** three offline renders (one per scale) plus one without; compare
+  sheet; face and arm crops at 3x.
+- **Pass when:** skin looks soft and lit from inside at the edges, eyes and
+  brows stay sharp, no waxy look; the user approves in play with both looks
+  (DLSS 5 and DLAA).
+
+### Task 6.6: Ray Reconstruction trial
+- **Do:** find the exact option names and values for DLSS Ray Reconstruction at
+  full resolution in the Remix log or runtime docs (design doc 3.4; do not guess
+  values). Make a copy of the play config with them. Run the 5.1 benchmark
+  with and without, and a play session with each.
+- **Pass when:** numbers for both are in the LOG (p50/p95/p99, latency) and the
+  user has compared metal reflections in motion. Put it in the tracked play
+  config only if the user prefers it **and** the 5.3 targets still hold.
+
+### Task 6.7: roll out to the other captured fighters
+- **Do:** one fighter per commit, in this order: Ivy, Taki, Xianghua, Kilik,
+  Maxi, Nightmare, Voldo, Astaroth. For each: regions (6.2 method), user review
+  of overlays, maps (6.3), ingest and bind (6.4 method), offline check.
+- **Pass when (each fighter):** the user approves the overlays and the in-play
+  look. Run the 5.1 benchmark after every third fighter and record the cost.
+
+### Task 6.8: game specular colour (only if 6.4 is not enough; ask first)
 The Dreamcast "offset" (specular) colour is captured but not sent to Remix
 (`core/rend/neural/remake_view_transport.cpp` exports only `col`). Sending it
 means a packet format change on both sides. Write a design note and ask the
@@ -290,7 +379,8 @@ user in play. Hair is judged in motion too (play), not only in stills.
 - **Pass when:** the user prefers one; make it the default only if they do.
 
 ### Task 7.3: hair material response
-- **Do:** through MCP, on hair materials only: roughness about 0.4-0.6,
+- **Do:** use the `hair` class regions and the 6.3 map builder. Through
+  MCP, on hair materials only: roughness about 0.4-0.6,
   metallic 0; if the material exposes subsurface/transmittance (the installed
   `AperturePBR_Opacity.mdl` has `subsurface_transmittance_color`), try a warm
   transmittance so backlit hair glows slightly. One change per render; keep the
@@ -320,8 +410,9 @@ Summary for the agent:
   and draw it with a Toolkit hair material (anisotropy + warm subsurface
   transmittance). Off by default; falls back to the original hair.
 - **Order and gates:**
-  1. Do tasks 7.1-7.4 first. Only if hair is still the weakest part after them,
-     ask the user whether to approve Phase A.
+  1. Do Phase 6 and tasks 7.1-7.4 first (user priority 2026-09-23: skin and
+     metal before new hair geometry). Only if hair is still the weakest part
+     after them, ask the user whether to approve Phase A.
   2. **Phase A (spike, Sophitia, offline on retained frames 5300..5599,
      placeholder cards): 6-9 agent days, $0.** Only after the user says exactly
      "Hair meshes: approve Phase A". Deliver a before/after moving comparison
@@ -341,14 +432,14 @@ Summary for the agent:
 
 ## Phase 8: skin, faces and full coverage
 
-- **8.1 Skin:** as 7.3 for skin materials (roughness about 0.5, subsurface
-  transmittance warm), judged offline then in play. User approves.
+- **8.1 Skin:** moved to Phase 6 (task 6.5).
 - **8.2 Coverage:** for each stage/character the user reaches, check that
   materials exist (BACKLOG "Delivery status": 67/67 captured character groups,
   137/154 world groups). Add missing ones with the existing Package D process
   (BACKLOG section "Package D / FC-067"). Record counts per stage.
 - **8.3 Costumes and hidden characters:** list what exists in the game; process
-  like 8.2. Ask the user which matter most.
+  like 8.2, and give their atlases regions and maps with the Phase 6
+  method. Ask the user which matter most.
 
 ## Phase 9: release candidate
 
@@ -400,12 +491,19 @@ Summary for the agent:
 | 5.1 benchmark | TODO | | |
 | 5.2 NRC failure | TODO | | |
 | 5.3 perf targets | TODO | | |
-| 6.1 blade materials | TODO | | |
+| 6.1 used-UV tool | TODO | | |
+| 6.2 pilot regions (user review) | TODO | | |
+| 6.3 map builder | TODO | | |
+| 6.4 pilot metal (Toolkit) | TODO | | |
+| 6.5 pilot skin | TODO | | |
+| 6.6 Ray Reconstruction trial | TODO | | |
+| 6.7 rollout (add a row per fighter) | TODO | | |
+| 6.8 game specular colour | ONLY IF NEEDED, ask first | | |
 | 7.1 hair candidate re-check | TODO | | |
 | 7.2 hair edges | TODO | | |
 | 7.3 hair material | TODO | | |
 | 7.4 DLSS 5 settings | TODO | | |
-| 7.5 hair meshes | DESIGN DONE; Phase A needs user approval (after 7.1-7.4) | HAIR-MESH-DESIGN.md, LOG1187 | 2026-09-23 |
-| 8.1 skin | TODO | | |
+| 7.5 hair meshes | DESIGN DONE; Phase A needs user approval (after Phase 6 and 7.1-7.4) | HAIR-MESH-DESIGN.md, LOG1187 | 2026-09-23 |
+| 8.1 skin | MOVED to 6.5 | | |
 | 8.2 coverage | TODO | | |
 | 9 release candidate | TODO | | |

@@ -197,7 +197,8 @@ this and Phase B may need a lower card count or opaque inner layers.
 
 ## 8. Recommendation
 
-Do plan tasks 7.1-7.4 (texture, edges, material, DLSS 5 settings) first. They
+Do plan Phase 6 (skin and metal, D-244) and tasks 7.1-7.4 (texture, edges,
+material, DLSS 5 settings) first. Tasks 7.1-7.4
 cost days, not weeks, and no money. If hair is still the weakest part after
 that, approve **Phase A only** (6-9 agent days, $0) and decide on art spending
 after seeing the spike on Sophitia.

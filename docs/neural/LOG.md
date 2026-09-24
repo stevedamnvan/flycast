@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1189 skin and metal materials phase planned (D-244),2026-09-23.
+User priority: skin and metal before new hair geometry. Checked installed
+AperturePBR_Opacity.mdl and Remix 1.5.2 d3d9.dll: diffusion-profile subsurface
+(radius/thickness/transmittance textures), anisotropy, metallic, normal/height with
+displacement, thin film, and enableRayReconstruction exist. Ledger: 0/67 character
+textures accepted, 23 with candidate PBRify maps, 1 with metallic. New
+docs/neural/SKIN-METAL-MATERIALS.md (classes, starting values, about 20 metal and 18
+skin atlases by runtime hash, mip pitfalls, risks); plan Phase 6 rewritten as tasks
+6.1-6.8 (used-UV tool, pilot regions with user review, map builder, proven pilot
+metal, pilot skin, Ray Reconstruction trial, rollout, ask-first specular colour).
+Old 6.1 blades and 8.1 skin folded in; hair meshes now gated after Phase 6.
+Nothing implemented or rendered.
+
 LOG1188 hair replacement scope analysis,2026-09-23.
 HAIR-MESH-DESIGN.md section 4a. Viewed all captured character atlases as one contact
 sheet (ledger character-texture-readiness-b/full-character-ledger.json, 57 of 67

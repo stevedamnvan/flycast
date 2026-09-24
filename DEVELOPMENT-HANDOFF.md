@@ -33,7 +33,9 @@ parked (D-243).
 
 1. Not yet played with a controller. Real play is the next test.
 2. Other stages: sky texture hashes are only known for the shrine stage.
-3. Blades look dark grey (no shine). Needs material work (see step 6).
+3. Blades look dark grey and skin looks painted: no character texture has real
+   materials yet. Plan Phase 6 (skin and metal, D-244) fixes this before any
+   new hair geometry.
 4. The Remix Neural Radiance Cache fails to start in every run (falls back).
 5. The 3D image lags the HUD by about 4 frames (LOG957). Measure in play.
 

@@ -1,5 +1,22 @@
 # Neural rendering decisions
 
+## D-244: skin and metal materials before new hair geometry
+
+User direction 2026-09-23: characters should "really pop" with path-traced
+metal and top-quality skin, and this comes before new hair geometry
+(PLAYABLE-REMASTER-PLAN Phase 6, design `docs/neural/SKIN-METAL-MATERIALS.md`).
+None of the 67 captured character textures has an accepted material; the
+installed runtime already supports diffusion-profile subsurface scattering,
+per-texel metallic/roughness/anisotropy, normal/height maps and DLSS Ray
+Reconstruction. Because atlases mix skin, cloth and metal, the foundation is
+per-atlas class regions (tracked JSON coordinates, no game pixels) drawn from
+used-UV evidence and reviewed by the user, then per-texel maps with authored
+mips (LOG1135-1137). Materials key on texture hashes, so this avoids the
+per-frame reposing problem that gates hair meshes (D-243/LOG1187). Hair mesh
+Phase A stays behind this phase and the user's explicit approval. Old plan
+tasks 6.1 (blades) and 8.1 (skin) are folded into Phase 6; the game specular
+colour export stays ask-first (6.8). Estimate 3-4 agent weeks, $0.
+
 ## D-243: playable build first; fix Remix lighting before judging the consumer
 
 User direction 2026-09-23: reach a playable build much sooner, and fix the
