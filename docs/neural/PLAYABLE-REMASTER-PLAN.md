@@ -312,8 +312,9 @@ Replacing hair meshes with modern hair cards is the biggest possible upgrade,
 but Remix's mesh replacement keys on geometry hashes that include vertex
 positions, and the game skins characters on the CPU every frame, so those
 hashes change every frame. It would need helper-side replacement keyed on the
-packet's stable mesh identity plus new hair assets. Write a one-page design and
-cost estimate; do not implement without user approval.
+packet's stable mesh identity plus new hair assets. Design and cost estimate:
+`docs/neural/HAIR-MESH-DESIGN.md` (written 2026-09-23). Do not implement any of
+it until the user says "Hair meshes: approve Phase A"; then do only Phase A.
 
 ## Phase 8: skin, faces and full coverage
 
@@ -381,6 +382,7 @@ cost estimate; do not implement without user approval.
 | 7.2 hair edges | TODO | | |
 | 7.3 hair material | TODO | | |
 | 7.4 DLSS 5 settings | TODO | | |
+| 7.5 hair meshes | DESIGN DONE, waiting for user approval | HAIR-MESH-DESIGN.md | 2026-09-23 |
 | 8.1 skin | TODO | | |
 | 8.2 coverage | TODO | | |
 | 9 release candidate | TODO | | |

@@ -1,5 +1,17 @@
 # Neural rendering evidence log
 
+LOG1187 modern hair mesh design and cost estimate (proposal only),2026-09-23.
+docs/neural/HAIR-MESH-DESIGN.md: Remix mesh replacement cannot match CPU-posed hair
+(geometry hash includes positions; characters carry no bones). Proposed helper-side
+wrap: hide original hair triangles by atlas identity + UV region (proven stable for
+Sophitia over 300 frames, LOG1167/1168), bind new hair cards to original hair
+triangle frames or a rigid head fit, deform per frame on CPU, draw as an extra
+textured draw with a Toolkit hair material (installed MDL has anisotropy and
+subsurface transmittance). Estimates: spike 6-9 agent days $0; first character end
+to end 3-4 weeks; art about $150-800 per hairstyle commissioned (15-20 styles
+estimated) or DIY; GPU +0.5-2 ms per character to be measured. Recommendation: plan
+tasks 7.1-7.4 first; Phase A only on explicit user approval. Nothing implemented.
+
 LOG1186 step-by-step playable remaster plan and supporting tools,2026-09-23.
 docs/neural/PLAYABLE-REMASTER-PLAN.md is the active execution order (D-243): session
 checklist, phases play route -> user play -> reliability -> per-stage sky/sun ->
