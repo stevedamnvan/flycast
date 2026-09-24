@@ -1,5 +1,15 @@
 # Neural rendering decisions
 
+## D-245: de-risk with the hair proof of concept first
+
+User direction 2026-09-24, after the first play session: keep the play problem
+list, but first prove the project's potential with the most complex item, the
+new hair geometry proof of concept (HAIR-MESH-DESIGN Phase A, Sophitia,
+offline on retained frames 5300..5599), then skin and metal materials (Phase 6),
+then playability (Phases 3-5). This is the user's approval of Phase A; Phase B
+(live integration) and any art spending still need separate approval. It
+supersedes D-244's "materials before hair meshes" order.
+
 ## D-244: skin and metal materials before new hair geometry
 
 User direction 2026-09-23: characters should "really pop" with path-traced

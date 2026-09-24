@@ -11,6 +11,19 @@ hair), while never breaking what already works.
 
 ---
 
+## Current order (user, 2026-09-24, D-245): read this first
+
+Phase 1 is done and the user played (task 2.1, problem list in section 11).
+The user then changed the order to de-risk the project's potential first:
+
+1. **Hair meshes proof of concept:** task 7.5 Phase A (approved by the user
+   2026-09-24). Design: `docs/neural/HAIR-MESH-DESIGN.md`.
+2. **Skin and metal materials:** Phase 6.
+3. **Playability:** the Phase 3 problem list, then Phases 4 and 5.
+
+Other rules in this plan still apply. Tasks 7.1-7.4 are not prerequisites of
+Phase A any more; do them with Phase 6 or after it.
+
 ## 0. How to use this plan (read every time)
 
 1. Work on **one task at a time**, in the order written. Do not skip ahead.
@@ -482,8 +495,14 @@ Summary for the agent:
 | 1.1 smoke DLSS 5 | DONE (after log-size fix) | LOG1190, play-logs/smoke-dlss5-20260924-b | 2026-09-24 |
 | 1.2 smoke DLAA | DONE | LOG1190, play-logs/smoke-dlaa-20260924 | 2026-09-24 |
 | 1.3 screenshot | DONE | LOG1190, play-logs/smoke-dlss5-20260924/screenshot-1.png | 2026-09-24 |
-| 2.1 user play | TODO | | |
-| 3.x fixes from 2.1 | TODO (add rows) | | |
+| 2.1 user play | DONE (short DLAA session; answers in chat) | LOG1191 | 2026-09-24 |
+| 3.1 arena goes dark or black, worst with a low camera (Stage 6); lighting flickers | TODO; likely cause: untagged backdrop shell blocks sun/fill; fix = sky tags per stage (Phase 4, automatic tagging to try) | LOG1191 | |
+| 3.2 audio and frame stutter | TODO; helper misses about 1 in 7 source frames, periods 11-80 ms, prepare_ms grows to 10-14 ms | LOG1191 | |
+| 3.3 helper rebuilds all resources and both lights on every skipped frame (928 resets, 1222 light creations in about 7,100 frames) | TODO; keep lights (fixed world direction) and retained resources | LOG1191 | |
+| 3.4 Stage 4 water renders as a flat untextured sheet; sky untagged | TODO | LOG1191 | |
+| 3.5 lighting overlit and unnatural | TODO; tune sun/fill/exposure against native (compare sheets) | LOG1191 | |
+| 3.6 helper render window visible during play | TODO; hide it in the play launcher/helper | LOG1191 | |
+| 3.7 input lag | NOT ASKED YET | | |
 | 4.1 stage capture option | TODO | | |
 | 4.2 capture every stage | TODO (add a row per stage) | | |
 | 4.3 sky hashes | shrine DONE (LOG1185) | | 2026-09-23 |
@@ -503,7 +522,7 @@ Summary for the agent:
 | 7.2 hair edges | TODO | | |
 | 7.3 hair material | TODO | | |
 | 7.4 DLSS 5 settings | TODO | | |
-| 7.5 hair meshes | DESIGN DONE; Phase A needs user approval (after Phase 6 and 7.1-7.4) | HAIR-MESH-DESIGN.md, LOG1187 | 2026-09-23 |
+| 7.5 hair meshes | Phase A APPROVED 2026-09-24 (D-245), doing first | HAIR-MESH-DESIGN.md, LOG1187 | 2026-09-23 |
 | 8.1 skin | MOVED to 6.5 | | |
 | 8.2 coverage | TODO | | |
 | 9 release candidate | TODO | | |

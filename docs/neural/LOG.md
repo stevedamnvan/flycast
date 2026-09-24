@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1191 first user play session and new order (D-245),2026-09-24.
+User played DLAA about 10 minutes (play-logs/20260924-001936): shrine, Stage 4
+(Cervantes), Stage 6 (Kilik). Works overall. Problems: lighting flickers or loses
+the sky contribution; arena goes dark or fully black, especially with a low camera
+(Stage 6 window grab); overlit and unnatural; Stage 4 water flat and untextured; audio
+and frame stutter; helper render window visible. Helper log: 12,489 receives,
+source gaps in about 1 in 7 frames (runs of up to 8), period 11-80 ms, prepare_ms
+rising to 10-14 ms, 928 full resource resets and 1,222 light creations (reset on every
+gap and mesh-count change). Likely cause of darkness: untagged backdrop shell that
+follows the camera blocks the fixed world sun (only shrine sky tagged). Rows 3.1-3.7
+added to plan section 11. User then set a new order: hair PoC, then skin/metal, then
+playability (D-245).
+
 LOG1190 plan Phase 1 smoke tests pass after a log-size fix,2026-09-24.
 Base c20fc3813. 1.1 DLSS 5 first run: play_session=1, 0 live source failed, exit
 0x80000003 (scripted input ran out, expected), but flycast.log 23 MB (limit 10 MB).
