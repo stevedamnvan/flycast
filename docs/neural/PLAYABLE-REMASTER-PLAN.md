@@ -307,14 +307,36 @@ user in play. Hair is judged in motion too (play), not only in stills.
   `reshade-dlss5.ini` in the workspace.
 - **Pass when:** the user's chosen settings are recorded in the LOG.
 
-### Task 7.5: new hair geometry (research only; ask first)
-Replacing hair meshes with modern hair cards is the biggest possible upgrade,
-but Remix's mesh replacement keys on geometry hashes that include vertex
-positions, and the game skins characters on the CPU every frame, so those
-hashes change every frame. It would need helper-side replacement keyed on the
-packet's stable mesh identity plus new hair assets. Design and cost estimate:
-`docs/neural/HAIR-MESH-DESIGN.md` (written 2026-09-23). Do not implement any of
-it until the user says "Hair meshes: approve Phase A"; then do only Phase A.
+### Task 7.5: new hair geometry (needs user approval; design done)
+Full design and cost estimate: `docs/neural/HAIR-MESH-DESIGN.md` (2026-09-23).
+Summary for the agent:
+- **Why not Remix mesh replacement:** Remix matches meshes by a hash that
+  includes vertex positions; the game poses characters on the CPU every frame
+  with no bones, so the hash changes every frame. Textures/materials still match.
+- **Design:** inside the helper, hide the original hair triangles (atlas texture
+  + UV region; Sophitia's 184 hair triangles stayed stable over 300 frames), pin
+  each new hair-card vertex to the nearest original hair triangle (or a fitted
+  head frame for extra length), move it every frame on the CPU (under 0.5 ms),
+  and draw it with a Toolkit hair material (anisotropy + warm subsurface
+  transmittance). Off by default; falls back to the original hair.
+- **Order and gates:**
+  1. Do tasks 7.1-7.4 first. Only if hair is still the weakest part after them,
+     ask the user whether to approve Phase A.
+  2. **Phase A (spike, Sophitia, offline on retained frames 5300..5599,
+     placeholder cards): 6-9 agent days, $0.** Only after the user says exactly
+     "Hair meshes: approve Phase A". Deliver a before/after moving comparison
+     and the measured GPU cost, then stop and ask.
+  3. **Phase B (live play integration): 8-12 days, $0.** Only on separate approval.
+  4. **Art:** per hairstyle, commissioned about $150-800 (all 15-20 styles about
+     $3,000-15,000), marketplace packs about $300-1,500 total (poor match), or
+     DIY in Blender (1-3 days each). The user chooses; never buy anything
+     yourself. No MetaHuman or engine-locked assets; never publish game assets.
+  5. **Phase D (per hairstyle integration): 1-2 days each**, user approves each.
+- **Main risks:** path tracing layered hair costs about +0.5-2 ms per character
+  (estimate) against a frame already near 16.7 ms; clipping (no physics); motion
+  softening at the new silhouette; DLSS 5 may restyle hair anyway.
+- **Pass when (Phase A):** hair follows head and ponytail with no popping or
+  detaching in the moving comparison, GPU cost measured, user decides go/no-go.
 
 ## Phase 8: skin, faces and full coverage
 
@@ -382,7 +404,7 @@ it until the user says "Hair meshes: approve Phase A"; then do only Phase A.
 | 7.2 hair edges | TODO | | |
 | 7.3 hair material | TODO | | |
 | 7.4 DLSS 5 settings | TODO | | |
-| 7.5 hair meshes | DESIGN DONE, waiting for user approval | HAIR-MESH-DESIGN.md | 2026-09-23 |
+| 7.5 hair meshes | DESIGN DONE; Phase A needs user approval (after 7.1-7.4) | HAIR-MESH-DESIGN.md, LOG1187 | 2026-09-23 |
 | 8.1 skin | TODO | | |
 | 8.2 coverage | TODO | | |
 | 9 release candidate | TODO | | |
