@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1186 step-by-step playable remaster plan and supporting tools,2026-09-23.
+docs/neural/PLAYABLE-REMASTER-PLAN.md is the active execution order (D-243): session
+checklist, phases play route -> user play -> reliability -> per-stage sky/sun ->
+performance targets -> blades -> hair -> skin/coverage -> release, each task with
+Do/Check/Pass/If-fails, two-attempt rule and a progress table. New tools:
+remake_offline_render.py, remake_compare_sheet.py (FRAME6364 native geoL136.8, old
+lighting89.8, fixed126.9), remake_sky_hashes.py (reproduces shrine hashes; flags
+84395323BBBB705A REVIEW at373 units, 508A7DDC902B5767 SHARED). remake_launch.py gains
+--scene-light-direction (before fill; anchored only) with a test: 38 launcher tests OK.
+Tracked play config neuraltest/play/remix-play.conf. Pure-Python XXH64 of texture
+bytes does not reproduce Remix hashes (4/4 mismatch), so sky hashes use captures.
+Smoke re-test pending: 16 RE4 Flycast measurement processes were running.
+
 LOG1185 lighting profile, world-space sun and opt-in play route,2026-09-23.
 User direction: playable build sooner; fix darkening/hair/characters in it (D-243).
 Profile of retained C-pair source6364 (exact inputs both lanes): raw Remix return

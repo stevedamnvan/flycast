@@ -32,6 +32,22 @@ class LaunchPreflightTests(unittest.TestCase):
                     prepare(self.args)
                 setattr(self.args, name, old)
 
+    def test_scene_light_direction_precedes_fill_and_requires_anchor(self):
+        sun = '-0.635885233 -0.730868090 0.247955248'
+        self.args.scene_light_direction = sun
+        with self.assertRaisesRegex(ValueError, 'Scene light direction'):
+            prepare(self.args)
+        self.args.anchored_light = True
+        helper = prepare(self.args)[4]
+        self.assertEqual(helper[-3:], ['--scene-light-direction', sun, '--scene-light-anchor'])
+        self.args.capture_frames = 5
+        self.args.scene_fill = '-0.487994879 -0.284207851 0.825279772 0.3'
+        helper = prepare(self.args)[4]
+        self.assertLess(helper.index('--scene-light-direction'), helper.index('--scene-fill'))
+        self.args.scene_light_direction = '1 1 1'
+        with self.assertRaisesRegex(ValueError, 'Scene light direction'):
+            prepare(self.args)
+
     def test_capture_references_opt_in_and_inherited_flag_removed(self):
         with patch.dict(os.environ, {'FLYCAST_REMAKE_CAPTURE_REFERENCES': '1'}):
             self.assertNotIn('FLYCAST_REMAKE_CAPTURE_REFERENCES', prepare(self.args)[2])

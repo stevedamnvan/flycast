@@ -186,6 +186,20 @@ def prepare(args):
                 or not (getattr(args, 'capture_frames', 0) or benchmark_fill is not None or diagnostic_fill is not None)):
             raise ValueError('Scene fill requires unit XYZ, radiance 0..3, bounded capture or explicit benchmark/diagnostic mode, and anchored light without temple rig')
         helper.extend(['--scene-fill', fill])
+    direction = getattr(args, 'scene_light_direction', None)
+    if direction is not None:
+        # D-243: explicit world-space sun (travel direction), e.g. remake_play.DEFAULT_SUN.
+        try:
+            values = [float(v) for v in direction.split()]
+        except ValueError:
+            values = []
+        if (len(values) != 3 or not all(math.isfinite(v) for v in values)
+                or abs(sum(v*v for v in values)-1) > 1e-5 or not args.anchored_light
+                or getattr(args, 'temple_light_rig', False)):
+            raise ValueError('Scene light direction requires unit XYZ and anchored light without temple rig')
+        # Helper parses trailing options from the end: direction must precede fill.
+        at = helper.index('--scene-fill') if '--scene-fill' in helper else len(helper)
+        helper[at:at] = ['--scene-light-direction', direction]
     if args.anchored_light:
         helper.append('--scene-light-anchor')
     if args.managed_session:
@@ -432,6 +446,7 @@ def main():
     p.add_argument('--save-received-packet', action='store_true',
                    help='Diagnostic managed capture: save one owned helper packet at or after capture-start-source')
     p.add_argument('--anchored-light', action='store_true')
+    p.add_argument('--scene-light-direction', help='World-space unit XYZ the sun travels (D-243); requires anchored light')
     p.add_argument('--scene-fill', help='Diagnostic fixed XYZ and radiance as one quoted value; requires capture and anchored light')
     p.add_argument('--diagnostic-warmup', type=int, default=0, help='Late normal-effects CPU diagnostic only: 2100..10000, no captures')
     p.add_argument('--diagnostic-fill', help='Bounded unit XYZ/radiance for diagnostic warmup; same scene-fill validation')

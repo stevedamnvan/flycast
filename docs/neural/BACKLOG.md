@@ -50,7 +50,8 @@ Captures are immutable: edit private copies, never overwrite linked data in plac
 Launcher capture preflight now estimates capacity before launching; this does
 not reserve space or guarantee runtime writes. Failed attack evidence remains.
 
-**Next deliverable (2026-09-23, D-243):** playable review build first. The opt-in play
+**Next deliverable (2026-09-23, D-243):** follow docs/neural/PLAYABLE-REMASTER-PLAN.md
+(active execution order, progress table in its section 11). Playable review build first. The opt-in play
 route (remake_play.py, LOG1185) and a world-space sun + shrine sky config exist; next
 is a controller play session, then fixes ordered by play impact (crashes, transitions,
 latency, pacing, then blades/hair/skin via materials and the consumer on corrected input).

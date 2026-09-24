@@ -3,7 +3,8 @@
 ## One execution authority
 
 Current handoff: [DEVELOPMENT-HANDOFF.md](DEVELOPMENT-HANDOFF.md) (read its 2026-09-23
-handover section first; D-243 playable-first direction). The user
+handover section first; D-243 playable-first direction). Active step-by-step
+order: [PLAYABLE-REMASTER-PLAN.md](docs/neural/PLAYABLE-REMASTER-PLAN.md). The user
 resumed implementation on 2026-09-09; the handoff now records the resumed state
 and the in-session anchor generation result. Preserve unfinished work.
 
