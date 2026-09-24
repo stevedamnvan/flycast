@@ -479,9 +479,9 @@ Summary for the agent:
 
 | Task | State | Evidence / LOG | Date |
 | --- | --- | --- | --- |
-| 1.1 smoke DLSS 5 | TODO | | |
-| 1.2 smoke DLAA | TODO | | |
-| 1.3 screenshot | TODO (LOG1185 smoke-a screenshot exists) | | |
+| 1.1 smoke DLSS 5 | DONE (after log-size fix) | LOG1190, play-logs/smoke-dlss5-20260924-b | 2026-09-24 |
+| 1.2 smoke DLAA | DONE | LOG1190, play-logs/smoke-dlaa-20260924 | 2026-09-24 |
+| 1.3 screenshot | DONE | LOG1190, play-logs/smoke-dlss5-20260924/screenshot-1.png | 2026-09-24 |
 | 2.1 user play | TODO | | |
 | 3.x fixes from 2.1 | TODO (add rows) | | |
 | 4.1 stage capture option | TODO | | |

@@ -234,7 +234,9 @@ void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
 
 bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
 {
-	return level <= LogTypes::LOG_LEVELS::LWARNING
+	// Errors and warnings always pass; a disabled category also mutes its notices
+	// (the play launcher turns off per-frame RENDERER notices this way).
+	return (level >= LogTypes::LOG_LEVELS::LERROR && level <= LogTypes::LOG_LEVELS::LWARNING)
 			|| (m_log[type].m_enable && GetLogLevel() >= level);
 }
 

@@ -1,5 +1,18 @@
 # Neural rendering evidence log
 
+LOG1190 plan Phase 1 smoke tests pass after a log-size fix,2026-09-24.
+Base c20fc3813. 1.1 DLSS 5 first run: play_session=1, 0 live source failed, exit
+0x80000003 (scripted input ran out, expected), but flycast.log 23 MB (limit 10 MB).
+Cause: LogManager::IsEnabled let every NOTICE through regardless of category, so
+log:RENDERER=no could not mute the per-frame RENDERER notices. Fix: a disabled
+category now also mutes its notices; errors/warnings always pass. Harness keeps
+RENDERER on (default), so its log parsing is unchanged. Four serial builds,
+selftests 1246/0 x3; workspace flycast.exe now 0f83b38a (old kept as
+flycast.exe.prev-50e4b961). Re-run 1.1 (smoke-dlss5-20260924-b) and 1.2 DLAA
+(smoke-dlaa-20260924): both play_session=1, 0 live source failed, flycast.log 6.7 KB.
+1.3: play-logs/smoke-dlss5-20260924/screenshot-1.png, -2.png: Mitsurugi vs Sophitia,
+lit, floor cast shadows, HUD readable. NRC still fails to initialise (task 5.2).
+
 LOG1189 skin and metal materials phase planned (D-244),2026-09-23.
 User priority: skin and metal before new hair geometry. Checked installed
 AperturePBR_Opacity.mdl and Remix 1.5.2 d3d9.dll: diffusion-profile subsurface
